@@ -357,7 +357,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $fields = [];
         $customAttributes = [];
         foreach ($this->custom_columns as $custom_column) {
-            $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value_id, null, $column_name_prefix);
+            $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value_id, null, $column_name_prefix, true, true);
             $customAttributes[$column_name_prefix . $custom_column->column_name] = "{$custom_column->column_view_name}({$custom_column->column_name})";
 
             // if not contains $value[$custom_column->column_name], set as null.
@@ -811,6 +811,37 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return null;
+    }
+
+    /**
+     * Get CustomValues using key. for performance
+     *
+     * @param array $values
+     * @param string $keyName database key name
+     * @return array key-value's. "key" is value, "value" matched custom_value.
+     */
+    public function getMatchedCustomValues($values, $keyName = 'id', $withTrashed = false){
+        $result = [];
+
+        foreach(array_chunk($values, 100) as $chunk){
+            $query = $this->getValueModel()->query();
+
+            $databaseKeyName = str_replace(".", "->", $keyName);
+            $query->whereIn($databaseKeyName, $chunk);
+
+            if($withTrashed){
+                $query->withTrashed();
+            }
+
+            $records = $query->get();
+
+            $records->each(function($record) use($keyName, &$result){
+                $matchedKey = array_get($record, $keyName);
+                $result[$matchedKey] = $record;
+            });
+        }
+
+        return $result;
     }
 
     /**

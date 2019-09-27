@@ -26,6 +26,8 @@ class DefaultTableProvider extends ProviderBase
     {
         $this->custom_table = array_get($args, 'custom_table');
 
+        $this->custom_columns = $this->custom_table->custom_columns;
+
         $this->primary_key = array_get($args, 'primary_key', 'id');
 
         $this->filter = array_get($args, 'filter');
@@ -39,11 +41,9 @@ class DefaultTableProvider extends ProviderBase
      */
     public function getDataObject($data, $options = [])
     {
-        ///// get all table columns
-        $custom_columns = $this->custom_table->custom_columns;
-
-        $results = [];
         $headers = [];
+        $value_customs = [];
+        $primary_values = [];
         foreach ($data as $line_no => $value) {
             // get header if $line_no == 0
             if ($line_no == 0) {
@@ -63,8 +63,19 @@ class DefaultTableProvider extends ProviderBase
                 continue;
             }
 
+            $value_customs[$line_no] = $value_custom;
+
+            // get primary values
+            $primary_values[] = array_get($value_custom, $this->primary_key);
+        }
+
+        // get all custom value for performance
+        $models = $this->custom_table->getMatchedCustomValues($primary_values, $this->primary_key, true);
+
+        $results = [];
+        foreach ($value_customs as $line_no => $value_custom) {
             ///// convert data first.
-            $value_custom = $this->dataProcessingFirst($custom_columns, $value_custom, $line_no, $options);
+            $value_custom = $this->dataProcessingFirst($value_custom, $line_no, $options);
 
             // get model
             $modelName = getModelName($this->custom_table);
@@ -76,8 +87,11 @@ class DefaultTableProvider extends ProviderBase
             }
             // if exists, firstOrNew
             else {
-                //*Replace "." to "->" for json value
-                $model = $modelName::withTrashed()->firstOrNew([str_replace(".", "->", $this->primary_key) => $primary_value]);
+                // get model from models
+                $model = array_get($models, $primary_value);
+                if(!isset($model)){
+                    $model = new $modelName;
+                }
             }
             if (!isset($model)) {
                 continue;
@@ -169,13 +183,13 @@ class DefaultTableProvider extends ProviderBase
      * @param $data
      * @return array
      */
-    public function dataProcessingFirst($custom_columns, $data, $line_no, $options = [])
+    public function dataProcessingFirst($data, $line_no, $options = [])
     {
         foreach ($data as $key => &$value) {
             if (strpos($key, "value.") !== false) {
                 $new_key = str_replace('value.', '', $key);
                 // get target column
-                $target_column = $custom_columns->first(function ($custom_column) use ($new_key) {
+                $target_column = $this->custom_columns->first(function ($custom_column) use ($new_key) {
                     return array_get($custom_column, 'column_name') == $new_key;
                 });
                 if (!isset($target_column)) {
