@@ -35,6 +35,6 @@ class OldPasswordRule implements Rule
      */
     public function message()
     {
-        return exmtrans('error.old_password');
+        return exmtrans('validation.old_password');
     }
 }
