@@ -63,6 +63,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         if ($this->guard()->attempt($credentials, $remember)) {
             if (!$this->checkPasswordLimit()) {
+                session([Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT => true]);
                 return redirect(admin_url('auth/change'));
             }
             $this->postVerifyEmail();

@@ -72,6 +72,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
         'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
+        'admin.password-limit'       => \Exceedone\Exment\Middleware\AuthenticatePasswordLimit::class,
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
@@ -96,6 +97,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.auth',
             'admin.auth-2factor',
+            'admin.password-limit',
             'admin.morph',
             'admin.bootstrap2',
             'admin.pjax',
@@ -197,18 +199,6 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->bind(PluginPublicBase::class, function ($app) {
             return Plugin::getPluginPageModel();
         });
-        
-        // register_shutdown_function(function() {
-        //     $error = error_get_last();
-        //     if (isset($error) && isset($error['type']) && ($error['type'] == E_ERROR || $error['type'] == E_CORE_ERROR)) {
-        //         if (!request()->pjax() && request()->ajax()) {
-        //             return getAjaxResponse([
-        //                 'result'  => false,
-        //                 'message' => 'メモリリークです',
-        //             ]);
-        //         }
-        //     }
-        // });
         
         Passport::ignoreMigrations();
     }
