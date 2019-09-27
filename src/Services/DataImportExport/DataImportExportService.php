@@ -5,7 +5,10 @@ namespace Exceedone\Exment\Services\DataImportExport;
 use Encore\Admin\Grid\Exporters\AbstractExporter;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\ColumnItems\ParentItem;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Validator;
@@ -257,6 +260,7 @@ class DataImportExportService extends AbstractExporter
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
             ->rules('mimes:csv,xlsx')->setWidth(8, 3)->addElementClass('custom_table_file')
             ->options($fileOption)
+            ->required()
             ->removable()
             ->help(exmtrans('custom_value.import.help.custom_table_file') . array_get($fileOption, 'maxFileSizeHelp'));
         
@@ -265,6 +269,8 @@ class DataImportExportService extends AbstractExporter
             ->options($this->importAction->getPrimaryKeys())
             ->default('id')
             ->setWidth(8, 3)
+            ->required()
+            ->config('allowClear', false)
             ->addElementClass('select_primary_key')
             ->help(exmtrans('custom_value.import.help.primary_key'));
 
@@ -319,5 +325,102 @@ class DataImportExportService extends AbstractExporter
         $keys = array_merge($keys, $val_columns);
 
         return $keys;
+    }
+
+    /**
+     * Replace custom value's data array. For import. Calling custom_value import, API POST, API PUT
+     *
+     * @param [type] $custom_columns
+     * @param [type] $data
+     * @param array $options
+     * @return void
+     */
+    public static function processCustomValue($custom_columns, $data, $options = []){
+        foreach ($data as $key => &$value) {
+            if (boolval(array_get($options, 'onlyValue')) || strpos($key, "value.") !== false) {
+                $new_key = str_replace('value.', '', $key);
+                // get target column
+                $target_column = $custom_columns->first(function ($custom_column) use ($new_key) {
+                    return array_get($custom_column, 'column_name') == $new_key;
+                });
+                if (!isset($target_column)) {
+                    continue;
+                }
+
+                if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
+                    && boolval(array_get($target_column, 'options.multiple_enabled'))) {
+                    $value = explode(",", $value);
+                }
+
+                // convert target key's id
+                if (isset($value)) {
+                    if (array_has($options, 'setting')) {
+                        $s = collect($options['setting'])->filter(function ($s) use ($key) {
+                            return isset($s['target_column_name']) && $s['column_name'] == $key;
+                        })->first();
+                    }
+                    if (isset($target_column->column_item)) {
+                        $target_table = isset($target_column->select_target_table) ? $target_column->select_target_table : $target_column->custom_table;
+                        static::getImportColumnValue($data, $key, $value, $target_column->column_item, $target_column->column_item->label(), $s ?? null, $target_table, $options);
+                    }
+                }
+            } elseif ($key == Define::PARENT_ID_NAME && isset($value)) {
+                // convert target key's id
+                if (array_has($options, 'setting')) {
+                    $s = collect($options['setting'])->filter(function ($s) use ($key) {
+                        return isset($s['target_column_name']) && $s['column_name'] == Define::PARENT_ID_NAME;
+                    })->first();
+                }
+
+                $target_table = CustomTable::getEloquent(array_get($data, 'parent_type'));
+                $parent_item = ParentItem::getItem($target_table);
+                if (isset($parent_item)) {
+                    static::getImportColumnValue($data, $key, $value, $parent_item, $target_table->table_view_name, $s ?? null, $target_table, $options);
+                }
+            }
+        }
+        return $data;
+    }
+    
+    /**
+     * get column import value. if error, set message
+     *
+     * @return void
+     */
+    protected static function getImportColumnValue(&$data, $key, &$value, $column_item, $column_view_name, $setting, $target_table, $options = [])
+    {
+        $options = array_merge(
+            [
+                'errorCallback' => null,
+            ],
+            $options
+        );
+
+        $base_value = $value;
+        $importValue = $column_item->getImportValue($value, $setting ?? null);
+
+        if (!isset($importValue)) {
+            return;
+        }
+
+        // if skip column, remove from data, and return
+        if (boolval(array_get($importValue, 'skip'))) {
+            array_forget($data, $key);
+            return;
+        }
+
+        // if not found, set error
+        if (!boolval(array_get($importValue, 'result'))) {
+            $message = isset($importValue['message']) ? $importValue['message'] : exmtrans('validation.not_has_custom_value', [
+                'attribute' => $column_view_name,
+                'value' => is_array($base_value) ? implode(exmtrans('common.separate_word'), $base_value) : $base_value,
+                'table_view_name' => $target_table->table_view_name
+            ]);
+
+            if(isset($options['errorCallback'])){
+                $options['errorCallback']($message, $key);
+            }
+        }
+        $value = array_get($importValue, 'value');
     }
 }

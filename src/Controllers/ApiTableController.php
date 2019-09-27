@@ -11,6 +11,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Carbon\Carbon;
 use Validator;
 
@@ -415,58 +416,23 @@ class ApiTableController extends AdminControllerTableBase
         if (is_null($findKeys = $request->get('findKeys'))) {
             return true;
         }
-
+        
         $errors = [];
-        foreach ($findKeys as $findKey => $findValue) {
-            // find column
-            $custom_column = CustomColumn::getEloquent($findKey, $this->custom_table);
-            if (!isset($custom_column)) {
-                $errors[$findKey] = trans('validation.exists', ['attribute' => $findKey]);
-                continue;
-            }
 
-            if (!ColumnType::COLUMN_TYPE_SELECT_TABLE($custom_column->column_type)) {
-                continue;
-            }
+        $processOptions = [
+            'onlyValue' => true,
+            'errorCallback' => function($message, $key) use(&$errors){
+                $errors[$key] = $message;
+            }, 
+            'setting' => collect($findKeys)->map(function($value, $key){
+                return [
+                    'column_name' => $key,
+                    'target_column_name' => $value
+                ];
+        })->toArray()];
 
-            // get target custom table
-            $findCustomTable = $custom_column->select_target_table;
-            if (!isset($findCustomTable)) {
-                continue;
-            }
-
-            // get target column for getting index
-            $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
-            if (!isset($findCustomColumn)) {
-                $errors[$findKey] = trans('validation.exists', ['attribute' => $findValue]);
-                continue;
-            }
-
-            if (!$findCustomColumn->index_enabled) {
-                $errors[$findKey] = exmtrans('api.errors.not_index_enabled');
-                continue;
-            }
-            $indexColumnName = $findCustomColumn->getIndexColumnName();
-
-            // get taget values
-            $findKeyValues = collect($values)->map(function($value) use($findKey){
-                return array_get($value, $findKey);
-            });
-            $selectValues = $findCustomTable->getMatchedCustomValues($findKeyValues, $indexColumnName);
-
-            foreach ($values as &$value) {
-                $findCustomValue = array_get($selectValues, array_get($value, $findKey));
-                
-                if (!isset($findCustomValue)) {
-                    $errors[$findKey] = exmtrans('custom_value.import.message.select_table_not_found', [
-                        'column_view_name' => $findValue,
-                        'value' => array_get($value, $findKey),
-                        'target_table_name' => $findCustomTable->table_view_name
-                    ]);
-                    continue;
-                }
-                array_set($value, $findKey, array_get($findCustomValue, 'id'));
-            }
+        foreach ($values as &$value) {
+            $value = DataImportExportService::processCustomValue($this->custom_columns, $value, $processOptions);
         }
 
         return count($errors) > 0 ? $errors : true;

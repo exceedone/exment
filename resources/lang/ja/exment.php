@@ -147,7 +147,7 @@ return [
     ],
 
     'validation' => [
-        'not_has_custom_value' => ':attributeに入力の値が、テーブル「:table_view_name」に存在しません。データをご確認ください。',
+        'not_has_custom_value' => ':attributeに入力の値:valueが、テーブル「:table_view_name」に存在しません。データをご確認ください。',
         'empty' => ':attributeの値は空欄のみ指定できます。',
     ],
 
