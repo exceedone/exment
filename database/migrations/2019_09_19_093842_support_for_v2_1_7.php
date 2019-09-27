@@ -6,7 +6,7 @@ use Exceedone\Exment\Database\ExtendedBlueprint;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\FilterSearchType;
 
-class CreatePasswordHistories extends Migration
+class SupportForV217 extends Migration
 {
     /**
      * Run the migrations.
