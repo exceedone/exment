@@ -3,8 +3,6 @@
 namespace Exceedone\Exment\Tests\Unit;
 
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 use Exceedone\Exment\Model\CustomTable;
 

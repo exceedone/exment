@@ -335,7 +335,8 @@ class DataImportExportService extends AbstractExporter
      * @param array $options
      * @return void
      */
-    public static function processCustomValue($custom_columns, $data, $options = []){
+    public static function processCustomValue($custom_columns, $data, $options = [])
+    {
         foreach ($data as $key => &$value) {
             if (boolval(array_get($options, 'onlyValue')) || strpos($key, "value.") !== false) {
                 $new_key = str_replace('value.', '', $key);
@@ -417,7 +418,7 @@ class DataImportExportService extends AbstractExporter
                 'table_view_name' => $target_table->table_view_name
             ]);
 
-            if(isset($options['errorCallback'])){
+            if (isset($options['errorCallback'])) {
                 $options['errorCallback']($message, $key);
             }
         }

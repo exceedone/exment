@@ -175,7 +175,7 @@ trait InitializeFormTrait
                     ->min(0)
                     ->max(20)
                     ->help(exmtrans("system.help.password_history_cnt"));
-                }
+            }
         }
 
         // template list

@@ -136,7 +136,7 @@ class SelectTable extends CustomItem
         }
 
         // if this method calls for only validate, return
-        if(boolval(array_get($this->options, 'forValidate'))){
+        if (boolval(array_get($this->options, 'forValidate'))) {
             return;
         }
 
@@ -204,7 +204,6 @@ class SelectTable extends CustomItem
                 'data-add-select2-ajax' => $ajax
             ]);
         }
-
     }
     
     public function getAdminFilterWhereQuery($query, $input)

@@ -49,9 +49,9 @@ class PasswordHistoryRule implements Rule
         
         if (count($old_passwords) == 0) {
             return true;
-        } 
+        }
 
-        return !($old_passwords->contains(function ($old_password) use($value){
+        return !($old_passwords->contains(function ($old_password) use ($value) {
             return \Hash::check($value, $old_password);
         }));
     }

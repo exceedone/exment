@@ -2,14 +2,14 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\Define;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * LoginService
  */
 class LoginService
 {
-    public static function setToken($login_provider, $provider_user){
+    public static function setToken($login_provider, $provider_user)
+    {
         // set session access key
         session([Define::SYSTEM_KEY_SESSION_PROVIDER_TOKEN => [
             'access_token' => $provider_user->token,
@@ -24,7 +24,8 @@ class LoginService
      *
      * @return void
      */
-    public static function getToken(){
+    public static function getToken()
+    {
         $session = session(Define::SYSTEM_KEY_SESSION_PROVIDER_TOKEN);
         return [
             'access_token' => array_get($session, 'access_token'),
@@ -48,7 +49,8 @@ class LoginService
      *
      * @return void
      */
-    public static function getRefreshToken(){
+    public static function getRefreshToken()
+    {
         return static::getToken()['refresh_token'];
     }
     
@@ -57,12 +59,12 @@ class LoginService
      */
     public static function getSocialiteProvider(string $login_provider)
     {
-        if(is_null(config("services.$login_provider.redirect"))){
+        if (is_null(config("services.$login_provider.redirect"))) {
             config(["services.$login_provider.redirect" => admin_urls("auth", "login", $login_provider, "callback")]);
         }
         
         $scope = config("services.$login_provider.scope", []);
-        if(!empty($scope)){
+        if (!empty($scope)) {
             $scope = is_string($scope) ? explode(',', $scope) : $scope;
         }
         

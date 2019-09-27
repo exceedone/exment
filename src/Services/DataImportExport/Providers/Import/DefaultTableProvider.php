@@ -2,12 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
-use Validator;
 use Carbon\Carbon;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\ColumnItems\ParentItem;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 
 class DefaultTableProvider extends ProviderBase
@@ -90,7 +85,7 @@ class DefaultTableProvider extends ProviderBase
             else {
                 // get model from models
                 $model = array_get($models, $primary_value);
-                if(!isset($model)){
+                if (!isset($model)) {
                     $model = new $modelName;
                 }
             }
@@ -112,7 +107,7 @@ class DefaultTableProvider extends ProviderBase
      */
     public function validateImportData($dataObjects)
     {
-        if(count($this->selectTableNotFounds) > 0){
+        if (count($this->selectTableNotFounds) > 0) {
             return [[], $this->selectTableNotFounds];
         }
 
@@ -186,7 +181,7 @@ class DefaultTableProvider extends ProviderBase
     public function dataProcessingFirst($data, $line_no, $options = [])
     {
         ///// convert data first.
-        $options['errorCallback'] = function($message, $key) use($line_no){
+        $options['errorCallback'] = function ($message, $key) use ($line_no) {
             $this->selectTableNotFounds[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no-1), $message);
         };
 

@@ -8,10 +8,8 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
-use Exceedone\Exment\Model\PasswordHistory;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
-use Exceedone\Exment\Providers\CustomUserProvider;
 use Illuminate\Validation\Validator as AdminValidator;
 
 /**

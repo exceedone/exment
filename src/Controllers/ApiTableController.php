@@ -35,7 +35,7 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         // get and check query parameter
-        if(($count = $this->getCount($request)) instanceof Response){
+        if (($count = $this->getCount($request)) instanceof Response) {
             return $count;
         }
 
@@ -56,11 +56,10 @@ class ApiTableController extends AdminControllerTableBase
                     $column = CustomColumn::getEloquent($column_name, $this->custom_table);
                     if (!isset($column) && $column->index_enabled) {
                         return abortJson(400, exmtrans('api.errors.invalid_params'));
-                    } elseif(!$column->index_enabled) {
+                    } elseif (!$column->index_enabled) {
                         return abortJson(400, exmtrans('api.errors.not_index_enabled'));
                     }
                     $column_name = $column->getIndexColumnName();
-
                 }
                 $orderby_list[] = [$column_name, count($values) > 1? $values[1]: 'asc'];
             }
@@ -144,7 +143,7 @@ class ApiTableController extends AdminControllerTableBase
         // filtered query
         $q = $request->get('q');
         
-        if(($count = $this->getCount($request)) instanceof Response){
+        if (($count = $this->getCount($request)) instanceof Response) {
             return $count;
         }
 
@@ -348,12 +347,12 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         $max_create_count = config('exment.api_max_create_count', 100);
-        if(count($values) > $max_create_count){
+        if (count($values) > $max_create_count) {
             return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count));
         }
 
         $findResult = $this->convertFindKeys($values, $request);
-        if($findResult !== true){
+        if ($findResult !== true) {
             return abortJson(400, [
                 'errors' => $findResult
             ]);
@@ -421,15 +420,15 @@ class ApiTableController extends AdminControllerTableBase
 
         $processOptions = [
             'onlyValue' => true,
-            'errorCallback' => function($message, $key) use(&$errors){
+            'errorCallback' => function ($message, $key) use (&$errors) {
                 $errors[$key] = $message;
-            }, 
-            'setting' => collect($findKeys)->map(function($value, $key){
+            },
+            'setting' => collect($findKeys)->map(function ($value, $key) {
                 return [
                     'column_name' => $key,
                     'target_column_name' => $value
                 ];
-        })->toArray()];
+            })->toArray()];
 
         foreach ($values as &$value) {
             $value = DataImportExportService::processCustomValue($this->custom_columns, $value, $processOptions);
@@ -626,7 +625,8 @@ class ApiTableController extends AdminControllerTableBase
      * @param [type] $request
      * @return void
      */
-    protected function getCount($request){
+    protected function getCount($request)
+    {
         // get and check query parameter
         
         if (!$request->has('count')) {

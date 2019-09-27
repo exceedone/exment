@@ -347,7 +347,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * validation custom_value.
      *
      * @param array $value input
-     * @param bool $systemColumn 
+     * @param bool $systemColumn
      * @param string|int $custom_value_id custom value id
      * @return mixed
      */
@@ -368,7 +368,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         
         // create parent type validation array
-        if($systemColumn){
+        if ($systemColumn) {
             $custom_relation_parent = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
             $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
             
@@ -820,22 +820,23 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param string $keyName database key name
      * @return array key-value's. "key" is value, "value" matched custom_value.
      */
-    public function getMatchedCustomValues($values, $keyName = 'id', $withTrashed = false){
+    public function getMatchedCustomValues($values, $keyName = 'id', $withTrashed = false)
+    {
         $result = [];
 
-        foreach(collect($values)->chunk(100) as $chunk){
+        foreach (collect($values)->chunk(100) as $chunk) {
             $query = $this->getValueModel()->query();
 
             $databaseKeyName = str_replace(".", "->", $keyName);
             $query->whereIn($databaseKeyName, $chunk);
 
-            if($withTrashed){
+            if ($withTrashed) {
                 $query->withTrashed();
             }
 
             $records = $query->get();
 
-            $records->each(function($record) use($keyName, &$result){
+            $records->each(function ($record) use ($keyName, &$result) {
                 $matchedKey = array_get($record, $keyName);
                 $result[$matchedKey] = $record;
             });

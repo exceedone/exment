@@ -214,7 +214,7 @@ class ExmentServiceProvider extends ServiceProvider
     }
 
     protected function publish()
-    {        
+    {
         $this->publishes([__DIR__.'/../config' => config_path()]);
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
         $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');

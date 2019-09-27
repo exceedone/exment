@@ -6,7 +6,6 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator\SelectRule;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
-use Illuminate\Validation\Rule;
 
 class Select extends CustomItem
 {

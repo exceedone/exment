@@ -174,7 +174,6 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         } else {
             $this->password = bcrypt($password);
             $this->changePassword = true;
-
         }
     }
     
@@ -187,12 +186,12 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         });
 
         static::saved(function ($model) {
-            if($model->changePassword){
+            if ($model->changePassword) {
                 // save password history
                 PasswordHistory::create([
                     'login_user_id' => $model->id,
                     'password' => $model->password
-                ]);   
+                ]);
             }
         });
 

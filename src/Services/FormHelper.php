@@ -14,7 +14,7 @@ class FormHelper
     public static function getFormField($custom_table, $column, $id = null, $form_column = null, $column_name_prefix = null, $validate = false)
     {
         $options = [];
-        if($validate){
+        if ($validate) {
             $options['forValidate'] = true;
         }
 

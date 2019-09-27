@@ -664,7 +664,7 @@ if (!function_exists('get_password_rule')) {
             }
         }
 
-        if(!$complex){
+        if (!$complex) {
             $validates[] = 'min:'.(!is_null(config('exment.password_rule.min')) ? config('exment.password_rule.min') : '8');
         }
 
