@@ -41,6 +41,8 @@ class SupportForV217 extends Migration
             $passwordHistory = new PasswordHistory;
             $passwordHistory->password = $loginUser->password;
             $passwordHistory->login_user_id = $loginUser->id;
+            $passwordHistory->created_at = $loginUser->updated_at;
+            $passwordHistory->updated_at = $loginUser->updated_at;
             $passwordHistory->save();
         }
     }
