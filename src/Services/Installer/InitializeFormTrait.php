@@ -194,7 +194,7 @@ trait InitializeFormTrait
                 'user_code' => 'required|max:32|regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/',
                 'user_name' => 'required|max:32',
                 'email' => 'required|email',
-                'password' => get_password_rule(true),
+                'password' => get_password_rule(true, null),
             ]);
         } else {
             $rules = array_merge($rules, [

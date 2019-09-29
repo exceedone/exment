@@ -126,7 +126,7 @@ class LoginUserItem extends ProviderBase
                     $has_change = true;
                 } elseif (boolval(array_get($data, 'password'))) {
                     $rules = [
-                    'password' => get_password_rule(true),
+                    'password' => get_password_rule(true, $login_user),
                     ];
                     $validation = \Validator::make($data, $rules);
                     if ($validation->fails()) {

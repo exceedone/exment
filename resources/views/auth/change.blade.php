@@ -3,12 +3,12 @@
             <p class="login-box-msg">{{ exmtrans('user.help.password_change') }}</p>
     
             <form action="{{ admin_url('auth/change') }}" method="post">
-                    <div class="form-group has-feedback {!! !$errors->has('old_password') ?: 'has-error' !!}">
-                        @if($errors->has('old_password')) @foreach($errors->get('old_password') as $message)
+                    <div class="form-group has-feedback {!! !$errors->has('current_password') ?: 'has-error' !!}">
+                        @if($errors->has('current_password')) @foreach($errors->get('current_password') as $message)
                         <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                         @endforeach @endif
         
-                        <input type="password" class="form-control" placeholder="{{ exmtrans('user.old_password') }}" name="old_password" value="{{ old('password') }}" required>
+                        <input type="password" class="form-control" placeholder="{{ exmtrans('user.current_password') }}" name="current_password" value="{{ old('password') }}" required>
                         <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
                     </div>
                     <div class="form-group has-feedback {!! !$errors->has('password') ?: 'has-error' !!}">

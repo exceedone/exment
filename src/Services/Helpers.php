@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
@@ -642,7 +643,7 @@ if (!function_exists('get_password_rule')) {
      * get_password_rule(for validation)
      * @return string
      */
-    function get_password_rule($required = true)
+    function get_password_rule($required = true, ?LoginUser $login_user = null)
     {
         $validates = [];
         if ($required) {
@@ -655,7 +656,7 @@ if (!function_exists('get_password_rule')) {
         
         // check password policy
         $complex = false;
-        $validates[] = new ExmentValidator\PasswordHistoryRule;
+        $validates[] = new ExmentValidator\PasswordHistoryRule($login_user);
 
         if (!is_null($is_complex = System::complex_password()) && boolval($is_complex)) {
             $validates[] = new ExmentValidator\ComplexPasswordRule;

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\ResetsPasswords;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -16,6 +17,8 @@ class ResetPasswordController extends Controller
 {
     use ResetsPasswords;
     use \Exceedone\Exment\Controllers\AuthTrait;
+
+    protected $login_user;
 
     /**
      * Create a new controller instance.
@@ -36,8 +39,7 @@ class ResetPasswordController extends Controller
     {
         return [
             'token' => 'required',
-            'email' => 'required|email',
-            'password' => get_password_rule(true),
+            'password' => get_password_rule(true, $this->login_user),
         ];
     }
 
@@ -52,8 +54,15 @@ class ResetPasswordController extends Controller
      */
     public function showResetForm(Request $request, $token)
     {
+        // get email
+        $email = $this->getEmailByToken($token);
+        if(!isset($email)){
+            admin_toastr(trans('passwords.token'));
+            return redirect($this->redirectTo);
+        }
+
         return view('exment::auth.reset')->with(
-            $this->getLoginPageData(['token' => $token, 'email' => $request->email])
+            $this->getLoginPageData(['token' => $token, 'email' => $email])
         );
     }
 
@@ -65,18 +74,29 @@ class ResetPasswordController extends Controller
      */
     public function reset(Request $request)
     {
+        $broker = $this->broker();
+
+        // get email
+        $email = $this->getEmailByToken($request->get('token'));
+        if(!isset($email)){
+            admin_toastr(trans('passwords.token'));
+            return back()->withInput();
+        }
+
+        // get user for password history validation
+        $this->login_user = $broker->getUser(['email' => $email]);
+
         $this->validate($request, $this->rules(), $this->validationErrorMessages());
 
         // Here we will attempt to reset the user's password. If it is successful we
         // will update the password on an actual user model and persist it to the
         // database. Otherwise we will parse the error and return the response.
-        $broker = $this->broker();
         $array = $request->only(
             'password',
             'password_confirmation',
             'token'
         );
-        $array['email'] = $request->get('email');
+        $array['email'] = $email;
         $response = $broker->reset(
             $array,
             function ($user, $password) {
@@ -124,5 +144,25 @@ class ResetPasswordController extends Controller
     protected function guard()
     {
         return Auth::guard('admin');
+    }
+
+    /**
+     * Get email address by token
+     *
+     * @return void
+     */
+    protected function getEmailByToken($token){
+        $broker = $this->broker();
+        // get email by table 'password_resets'
+        $records = \DB::table(SystemTableName::PASSWORD_RESET)->get()->toArray();
+
+        foreach($records as $record){
+            // if match token
+            if($broker->getRepository()->getHasher()->check($token, $record->token)){
+                return $record->email;
+            }
+        }
+
+        return null;
     }
 }

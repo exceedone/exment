@@ -5,7 +5,8 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Validator\OldPasswordRule;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Validator\CurrentPasswordRule;
 
 class ChangePasswordController extends Controller
 {
@@ -19,8 +20,8 @@ class ChangePasswordController extends Controller
     protected function rules()
     {
         return [
-            'old_password' => ['required', new OldPasswordRule],
-            'password' => get_password_rule(true),
+            'current_password' => ['required', new CurrentPasswordRule],
+            'password' => get_password_rule(true, \Exment::user()),
         ];
     }
 
@@ -54,6 +55,8 @@ class ChangePasswordController extends Controller
         $password = $request->get('password');
 
         $this->changePassword($user, $password);
+
+        $request->session()->forget(Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT);
 
         admin_toastr(exmtrans('user.message.change_succeeded'));
         return redirect(admin_url('auth/login'));
