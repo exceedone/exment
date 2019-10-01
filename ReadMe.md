@@ -27,6 +27,8 @@ Exment is open source software for managing information assets on the Web.
 - Mail Template
 - API
 
+And more and more and more functions....
+
 ## Operating environment
 ### Server
 - PHP 7.1.3 or upper
@@ -101,6 +103,14 @@ APP_LOCALE=en
             return parent::render($request, $exception);
         });
     }
+~~~
+
+
+- Access exment page.  
+URL is http://127.0.0.1/admin
+
+~~~
+php artisan serve
 ~~~
 
 

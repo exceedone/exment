@@ -94,7 +94,6 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
 (ex. http://localhost/admin)
 
 
-
 ## GitHub
 
 ### Brunch
