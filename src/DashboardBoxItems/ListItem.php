@@ -178,7 +178,7 @@ class ListItem implements ItemInterface
         }
         
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueModel();
+        $model = $this->custom_table->getValueModel()::query();
 
         if (array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE) {
             // filter model

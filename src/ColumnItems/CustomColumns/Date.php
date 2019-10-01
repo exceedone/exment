@@ -26,7 +26,7 @@ class Date extends CustomItem
             return null;
         }
 
-        if (!is_nullorempty($format)) {
+        if (!is_nullorempty($format) && !boolval(array_get($this->options, 'summary'))) {
             return $this->getDateUseValue($format);
         }
 
