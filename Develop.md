@@ -47,7 +47,8 @@ cd exceedone
 git clone https://github.com/hirossyi73/exment.git
 ~~~
 
-- rewrite composer.json on **project root**. *I write comments, but please remove them if you rewrite your composer.json.
+- rewrite composer.json on project root directory.  
+***When you edit composer.json, please remove comments. We cannot add comments on json file.**
 
 ~~~
     "require": {
@@ -96,8 +97,8 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
 
 ## Set up Typescript
 
-- Download ts.config from this site and put on root project.  
-[ts.config](https://exment.net/downloads/develop/tsconfig.json)
+- Download tsconfig.json from this site and put on root project.  
+[tsconfig.json](https://exment.net/downloads/develop/tsconfig.json)
 
 - Install npm packages on root project.  
 
@@ -121,12 +122,13 @@ And set *.d.ts files to node_modules/@types/(package name folder - Please create
 ~~~
 
 - Download tasks.json file and set ".vscode" folder on project root folder.  
-[tasks.json](https://exment.net/downloads/develop/.vscode/tasks.json)
+[tasks.json](https://exment.net/downloads/develop/tasks.json)
 
-- If you edit *.ts file and you want to compile, please this command.  Update .js file to packages/(owner name)/public/vendor/exment/js.
-Ctrl + Shift + B
+- If you update *.ts file in "exment" package and you want to compile, please execute this command "Ctrl + Shift + B" on VSCode.  
+Update .js file in packages/exceedone/exment/public/vendor/exment/js.
 
-- If you want to publish js file, please execute this command on project root directory.
+
+- If you want to publish js file for web, please execute this command on project root directory.
 
 ~~~
 php artisan exment:publish
@@ -138,9 +140,9 @@ php artisan exment:publish
 [EasySass](https://marketplace.visualstudio.com/items?itemName=spook.easysass)
 
 - Open VsCode setting and open EasySass setting.  
-Set "Target Dir" setting "packages/(owner name)/exment/public/vendor/exment/css".  
+Set "Target Dir" setting "packages/exceedone/exment/public/vendor/exment/css".  
 
-- When you edit .scss file and save, update .css file to packages/(owner name)/public/vendor/exment/css.
+- When you edit .scss file and save, update .css file to packages/exceedone/exment/public/vendor/exment/css.
 
 - If you want to publish css file, please execute this command on project root directory.
 
