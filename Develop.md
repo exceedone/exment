@@ -94,6 +94,62 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
 (ex. http://localhost/admin)
 
 
+## Set up Typescript
+
+- Download ts.config from this site and put on root project.  
+[ts.config](https://exment.net/downloads/develop/tsconfig.json)
+
+- Install npm packages on root project.  
+
+~~~
+npm install -g typescript
+npm install @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2
+~~~
+
+- Download *.d.ts files that not contains npm packages.  
+And set *.d.ts files to node_modules/@types/(package name folder - Please create folder).  
+[bignumber/index.d.ts](https://exment.net/downloads/develop/bignumber/index.d.ts)  
+[exment/index.d.ts](https://exment.net/downloads/develop/exment/index.d.ts)
+
+- Open packages.json's dependencies block and append downloaded files.
+
+~~~
+"dependencies": {
+    "@types/bignumber": "^1.0.0",
+    "@types/exment": "^1.0.0",
+}
+~~~
+
+- Download tasks.json file and set ".vscode" folder on project root folder.  
+[tasks.json](https://exment.net/downloads/develop/.vscode/tasks.json)
+
+- If you edit *.ts file and you want to compile, please this command.  Update .js file to packages/(owner name)/public/vendor/exment/js.
+Ctrl + Shift + B
+
+- If you want to publish js file, please execute this command on project root directory.
+
+~~~
+php artisan exment:publish
+~~~
+
+## Set up Sass
+
+- Install VsCode plugin "EasySass".
+[EasySass](https://marketplace.visualstudio.com/items?itemName=spook.easysass)
+
+- Open VsCode setting and open EasySass setting.  
+Set "Target Dir" setting "packages/(owner name)/exment/public/vendor/exment/css".  
+
+- When you edit .scss file and save, update .css file to packages/(owner name)/public/vendor/exment/css.
+
+- If you want to publish css file, please execute this command on project root directory.
+
+~~~
+php artisan exment:publish
+~~~
+
+
+
 ## GitHub
 
 ### Brunch
