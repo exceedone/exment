@@ -104,12 +104,12 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
 
 ~~~
 npm install -g typescript
-npm install @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2
+npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/bootstrap @types/icheck @types/select2
 ~~~
 
 - Download *.d.ts files that not contains npm packages.  
 And set *.d.ts files to node_modules/@types/(package name folder - Please create folder).  
-[bignumber/index.d.ts](https://exment.net/downloads/develop/bignumber/index.d.ts)  
+[bignumber/index.d.ts](https://exment.net/downloads/develop/bignumber/index.d.ts) please  
 [exment/index.d.ts](https://exment.net/downloads/develop/exment/index.d.ts)
 
 - Open packages.json's dependencies block and append downloaded files.
