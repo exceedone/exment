@@ -11,7 +11,8 @@
 
 
 ## What is Exment?
-Exment is open source software for managing information assets on the Web.
+Exment is open source software for managing information assets on the Web.  
+For Web Database, SFA, CRM, Business improvement, ...
 
 ## Functions
 - Dashboard
@@ -118,4 +119,4 @@ php artisan serve
 ------------
 # Develop
 If you'd like to help with the development of Exment, please visit this site and see how to set it up.  
-[Develop Setup](Develop.md)
+[Setup for Develop](Develop.md)
