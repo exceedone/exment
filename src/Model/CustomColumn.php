@@ -430,10 +430,13 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                     // if select_table
                     if (array_get($c, 'type') == CalcFormulaType::SELECT_TABLE) {
                         // get select table
-                        $select_table_id = static::getEloquent($c['val'])->getOption('select_target_table') ?? null;
-                        // get select from column
-                        $from_column = static::getEloquent(array_get($c, 'from'), $select_table_id);
-                        $c['from'] = $from_column->id ?? null;
+                        $select_table_column = static::getEloquent($c['val']);
+                        if (isset($select_table_column)) {
+                            $select_table_id = $select_table_column->getOption('select_target_table') ?? null;
+                            // get select from column
+                            $from_column = static::getEloquent(array_get($c, 'from'), $select_table_id);
+                            $c['from'] = $from_column->id ?? null;
+                        }
                     }
                 }
             }

@@ -11,6 +11,9 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\FormHelper;
+use Exceedone\Exment\Validator\EmptyRule;
+use Exceedone\Exment\Validator\CustomValueRule;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -338,6 +341,95 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             Notify::where('custom_table_id', $model->id)->delete();
             Menu::where('menu_type', MenuType::TABLE)->where('menu_target', $model->id)->delete();
         });
+    }
+
+    /**
+     * validation custom_value.
+     *
+     * @param array $value input
+     * @param bool $systemColumn
+     * @param string|int $custom_value_id custom value id
+     * @return mixed
+     */
+    public function validateValue($value, $systemColumn = false, $custom_value_id = null, $column_name_prefix = null)
+    {
+        // get fields for validation
+        $fields = [];
+        $customAttributes = [];
+        foreach ($this->custom_columns as $custom_column) {
+            $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value_id, null, $column_name_prefix, true, true);
+            $customAttributes[$column_name_prefix . $custom_column->column_name] = "{$custom_column->column_view_name}({$custom_column->column_name})";
+
+            // if not contains $value[$custom_column->column_name], set as null.
+            // if not set, we cannot validate null check because $field->getValidator returns false.
+            if (!array_has($value, $custom_column->column_name)) {
+                $value[$custom_column->column_name] = null;
+            }
+        }
+        
+        // create parent type validation array
+        if ($systemColumn) {
+            $custom_relation_parent = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
+            $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
+            
+            $parent_id_rules = isset($custom_table_parent) ? ['nullable', 'numeric', new CustomValueRule($custom_table_parent)] : [new EmptyRule];
+            $parent_type_rules = isset($custom_table_parent) ? ['nullable', "in:". $custom_table_parent->table_name] : [new EmptyRule];
+    
+            // create common validate rules.
+            $rules = [
+                'id' => ['nullable', 'numeric'],
+                'parent_id' => $parent_id_rules,
+                'parent_type' => $parent_type_rules,
+                'suuid' => ['nullable', 'regex:/^[a-z0-9]{20}$/'],
+                'created_at' => ['nullable', 'date'],
+                'updated_at' => ['nullable', 'date'],
+                'deleted_at' => ['nullable', 'date'],
+            ];
+            foreach ($rules as $key => $rule) {
+                $customAttributes[$key] = exmtrans("common.$key") . "($key)";
+            }
+        }
+
+        // foreach for field validation rules
+        $rules = [];
+        foreach ($fields as $field) {
+            // get field validator
+            $field_validator = $field->getValidator($value);
+            if (!$field_validator) {
+                continue;
+            }
+            // get field rules
+            $field_rules = $field_validator->getRules();
+
+            // merge rules
+            $rules = array_merge($field_rules, $rules);
+        }
+        
+        // execute validation
+        $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
+
+        return $validator;
+    }
+    
+
+    /**
+     * set Default value from custom column info
+     */
+    public function setDefaultValue($value)
+    {
+        // get fields for validation
+        $fields = [];
+        foreach ($this->custom_columns as $custom_column) {
+            // get default value
+            $default = $custom_column->getOption('default');
+
+            // if not key in value, set default value
+            if (!array_has($value, $custom_column->column_name) && isset($default)) {
+                $value[$custom_column->column_name] = $default;
+            }
+        }
+
+        return $value;
     }
 
     /**
@@ -719,6 +811,38 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return null;
+    }
+
+    /**
+     * Get CustomValues using key. for performance
+     *
+     * @param array $values
+     * @param string $keyName database key name
+     * @return array key-value's. "key" is value, "value" matched custom_value.
+     */
+    public function getMatchedCustomValues($values, $keyName = 'id', $withTrashed = false)
+    {
+        $result = [];
+
+        foreach (collect($values)->chunk(100) as $chunk) {
+            $query = $this->getValueModel()->query();
+
+            $databaseKeyName = str_replace(".", "->", $keyName);
+            $query->whereIn($databaseKeyName, $chunk);
+
+            if ($withTrashed) {
+                $query->withTrashed();
+            }
+
+            $records = $query->get();
+
+            $records->each(function ($record) use ($keyName, &$result) {
+                $matchedKey = array_get($record, $keyName);
+                $result[$matchedKey] = $record;
+            });
+        }
+
+        return $result;
     }
 
     /**
