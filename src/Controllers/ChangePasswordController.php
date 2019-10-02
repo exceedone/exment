@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Validator\OldPasswordRule;
+use Exceedone\Exment\Validator\CurrentPasswordRule;
 
 class ChangePasswordController extends Controller
 {
@@ -20,8 +20,8 @@ class ChangePasswordController extends Controller
     protected function rules()
     {
         return [
-            'old_password' => ['required', new OldPasswordRule],
-            'password' => get_password_rule(true),
+            'current_password' => ['required', new CurrentPasswordRule],
+            'password' => get_password_rule(true, \Exment::user()),
         ];
     }
 

@@ -144,7 +144,7 @@ return [
     ],
 
     'validation' => [
-        'old_password' => '現在のパスワードが正しくありません。',
+        'current_password' => '現在のパスワードが正しくありません。',
         'password_history' => '過去に登録したパスワードと同一のパスワードとなっています。他のパスワードを入力してください。',
         'complex_password' => 'パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
         'not_has_custom_value' => '列:attributeに入力の値:valueが、テーブル「:table_view_name」に存在しません。データをご確認ください。',
@@ -444,7 +444,7 @@ return [
         'email' => 'メールアドレス',
         'password' => 'パスワード',
         'password_confirmation' => 'パスワード(再入力)',
-        'old_password' => '現在のパスワード',
+        'current_password' => '現在のパスワード',
         'new_password' => '新しいパスワード',
         'new_password_confirmation' => '新しいパスワード(再入力)',
         'send_password' => 'ユーザー情報をメール送信する',

@@ -395,7 +395,7 @@ return [
         'email' => 'Email',
         'password' => 'Password',
         'password_confirmation' => 'Password(Confirm)',
-        'old_password' => 'Current Password',
+        'current_password' => 'Current Password',
         'new_password' => 'New Password',
         'new_password_confirmation' => 'New Password(Confirm)',
         'send_password' => 'Send User Info',

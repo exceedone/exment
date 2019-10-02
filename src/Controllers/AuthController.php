@@ -333,8 +333,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      */
     protected function settingForm()
     {
-        $user = LoginUser::class;
-        return $user::form(function (Form $form) {
+        $login_user = LoginUser::class;
+        return $login_user::form(function (Form $form) {
             $form->display('base_user.value.user_code', exmtrans('user.user_code'));
             $form->display('base_user.value.email', exmtrans('user.email'));
             
@@ -365,8 +365,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 });
 
             if (!useLoginProvider() || boolval(config('exment.show_default_login_provider', true))) {
-                $form->password('old_password', exmtrans('user.old_password'))->rules(['required_with:password', new ExmentValidator\OldPasswordRule])->help(exmtrans('user.help.change_only'));
-                $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
+                $form->password('current_password', exmtrans('user.current_password'))->rules(['required_with:password', new ExmentValidator\CurrentPasswordRule])->help(exmtrans('user.help.change_only'));
+                $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false, \Exment::user()))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
 
@@ -385,7 +385,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             }
 
             $form->setAction(admin_url('auth/setting'));
-            $form->ignore(['password_confirmation', 'old_password', 'login_2factor_provider']);
+            $form->ignore(['password_confirmation', 'current_password', 'login_2factor_provider']);
             $form->tools(function (Form\Tools $tools) {
                 $tools->disableDelete();
             });
