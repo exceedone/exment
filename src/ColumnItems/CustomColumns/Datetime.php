@@ -21,9 +21,4 @@ class Datetime extends Date
         }
         return Field\Datetime::class;
     }
-    
-    protected function setAdminFilterOptions(&$filter)
-    {
-        $filter->datetime();
-    }
 }
