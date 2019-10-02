@@ -175,7 +175,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             $this->password = bcrypt($password);
 
             // only default login
-            if(!isset($this->login_provider)){
+            if (!isset($this->login_provider)) {
                 $this->changePassword = true;
             }
         }
