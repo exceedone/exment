@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Services\Plugin;
 
 /**
- * Plugin Public file trait
+ * Plugin (Style, Script) base class / プラグイン(スタイル, スクリプト)の基底クラス
  */
 class PluginPublicBase
 {

@@ -1,10 +1,10 @@
 <?php
 
-/**
- * Execute Batch
- */
 namespace Exceedone\Exment\Services\Plugin;
 
+/**
+ * Plugin (Import) base class / プラグイン(インポート)の基底クラス
+ */
 class PluginImportBase
 {
     use PluginBase;

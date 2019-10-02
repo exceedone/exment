@@ -1,10 +1,10 @@
 <?php
 
-/**
- * Execute Batch
- */
 namespace Exceedone\Exment\Services\Plugin;
 
+/**
+ * Plugin (dashboard) base class / プラグイン(ダッシュボード)の基底クラス
+ */
 class PluginDashboardBase extends PluginPublicBase
 {
     use PluginPageTrait;
