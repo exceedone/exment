@@ -108,7 +108,7 @@ APP_LOCALE=en
 
 
 - Access exment page.  
-URL is http://127.0.0.1/admin
+URL is http://127.0.0.1:8000/admin
 
 ~~~
 php artisan serve
