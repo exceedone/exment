@@ -126,6 +126,7 @@ class Bootstrap
         $delete_confirm = trans('admin.delete_confirm');
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
+        $gridrow_select_edit = config('exment.gridrow_select_edit', 0);
         
         $script = <<<EOT
         $('body').append($('<input/>', {
@@ -142,6 +143,11 @@ class Bootstrap
             'type':'hidden',
             'id': 'admin_uri',
             'value': '$admin_url'
+        }));
+        $('body').append($('<input/>', {
+            'type':'hidden',
+            'id': 'gridrow_select_edit',
+            'value': '$gridrow_select_edit'
         }));
         
     ///// delete click event

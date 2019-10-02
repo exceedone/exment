@@ -1,8 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services;
 
-use Symfony\Component\HttpFoundation\Response;
-
 /**
  * Partial CRUD Service
  */
@@ -61,7 +59,7 @@ class PartialCrudService
         static::getItem($custom_table, function ($item) use (&$form, $id) {
             $result = $item->saving($form, $id);
 
-            if ($result instanceof Response) {
+            if ($result instanceof \Symfony\Component\HttpFoundation\Response) {
                 return $result;
             }
         });
@@ -69,10 +67,10 @@ class PartialCrudService
 
     public static function saved($custom_table, &$form, $id = null)
     {
-        static::getItem($custom_table, function ($item) use (&$form, $id) {
+        return static::getItem($custom_table, function ($item) use (&$form, $id) {
             $result = $item->saved($form, $id);
             
-            if ($result instanceof Response) {
+            if ($result instanceof \Symfony\Component\HttpFoundation\Response) {
                 return $result;
             }
         });
@@ -88,7 +86,11 @@ class PartialCrudService
             $classname = array_get($provider, 'classname');
             $item = $classname::getItem($custom_table);
 
-            $callback($item);
+            $result = $callback($item);
+            
+            if ($result instanceof \Symfony\Component\HttpFoundation\Response) {
+                return $result;
+            }
         }
     }
 }

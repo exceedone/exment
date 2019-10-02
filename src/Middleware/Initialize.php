@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -296,7 +297,7 @@ class Initialize
 
     protected static function requireBootstrap()
     {
-        $file = config('exment.bootstrap', exment_path('bootstrap.php'));
+        $file = config('exment.bootstrap', exment_app_path('bootstrap.php'));
         if (!\File::exists($file)) {
             return;
         }
@@ -379,6 +380,7 @@ class Initialize
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);
         }
+        Filter::extend('betweendatetime', \Exceedone\Exment\Grid\Filter\BetweenDatetime::class);
     }
 
     public static function logDatabase()

@@ -92,7 +92,7 @@ class TemplateImporter
     public static function importSystemTemplate($is_update = false)
     {
         // get vendor folder
-        $templates_base_path = base_path() . '/vendor/exceedone/exment/system_template';
+        $templates_base_path = exment_package_path('system_template');
         $path = "$templates_base_path/config.json";
 
         static::importFromFile($path, true, $is_update);
@@ -613,7 +613,7 @@ class TemplateImporter
 
     protected static function getTemplateBasePaths()
     {
-        return [static::getTemplatePath(), base_path().'/vendor/exceedone/exment/templates'];
+        return [static::getTemplatePath(), exment_package_path('templates')];
     }
 
     protected static function getTemplatePath()

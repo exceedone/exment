@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\FilterSearchType;
 use Carbon\Carbon;
 
 class CustomViewFilter extends ModelBase
@@ -136,11 +137,11 @@ class CustomViewFilter extends ModelBase
             
             // like
             case ViewColumnFilterOption::LIKE:
-                $condition_value_text = (boolval(config('exment.filter_search_full', false)) ? '%' : '') . $condition_value_text . '%';
+                $condition_value_text = (System::filter_search_type() == FilterSearchType::ALL ? '%' : '') . $condition_value_text . '%';
                 $model = $model->where($view_column_target, 'LIKE', $condition_value_text);
                 break;
             case ViewColumnFilterOption::NOT_LIKE:
-                $condition_value_text = (boolval(config('exment.filter_search_full', false)) ? '%' : '') . $condition_value_text . '%';
+                $condition_value_text = (System::filter_search_type() == FilterSearchType::ALL ? '%' : '') . $condition_value_text . '%';
                 $model = $model->where($view_column_target, 'NOT LIKE', $condition_value_text);
                 break;
                 

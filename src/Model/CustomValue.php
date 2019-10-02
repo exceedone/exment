@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\FilterSearchType;
 
 class CustomValue extends ModelBase
 {
@@ -723,6 +724,22 @@ class CustomValue extends ModelBase
     }
 
     /**
+     * merge value from custom_value
+     */
+    public function mergeValue($value)
+    {
+        foreach ($this->custom_table->custom_columns as $custom_column) {
+            $column_name = $custom_column->column_name;
+            // if not key in value, set default value
+            if (!array_has($value, $column_name)) {
+                $value[$column_name] = $this->getValue($column_name);
+            }
+        }
+
+        return $value;
+    }
+    
+    /**
      * get parent value
      */
     public function getParentValue($isonly_label = false)
@@ -733,6 +750,7 @@ class CustomValue extends ModelBase
         }
         return $model->label ?? null;
     }
+    
     /**
      * Get Custom children value summary
      */
@@ -884,7 +902,7 @@ class CustomValue extends ModelBase
             return $options;
         }
         
-        if (boolval(config('exment.filter_search_full', false))) {
+        if (System::filter_search_type() == FilterSearchType::ALL) {
             $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         } else {
             $value = $q . ($isLike ? '%' : '');
