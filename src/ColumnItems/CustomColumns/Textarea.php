@@ -12,7 +12,7 @@ class Textarea extends CustomItem
         $text = $this->text();
         $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($text) : $text;
         
-        return  preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_script_tag($text));
+        return  replaceBreak($text);
     }
     protected function getAdminFieldClass()
     {
