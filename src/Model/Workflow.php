@@ -47,4 +47,19 @@ class Workflow extends ModelBase
             $item->deletingChildren();
         }
     }
+
+    /**
+     * Get status options. contains start and end.
+     *
+     * @return Collection
+     */
+    public function getStatusOptions(){
+        $statuses = $this->workflow_statuses->pluck('status_name', 'id');
+
+        //todo:enum
+        $statuses->prepend($this->start_status_name, 'start');
+        $statuses->push($this->end_status_name, 'end');
+
+        return $statuses;
+    }
 }

@@ -91,8 +91,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
             
-            $router->resource('workflow', 'Workflow2Controller', ['except' => ['show']]);
-            $router->get('workflow/modal/status', 'Workflow2Controller@modalStatus');
+            // $router->resource('workflow', 'Workflow2Controller', ['except' => ['show']]);
+            // $router->get('workflow/modal/status', 'Workflow2Controller@modalStatus');
+
+            $router->resource('workflow', 'WorkflowController', ['except' => ['show']]);
 
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);

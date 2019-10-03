@@ -1,5 +1,5 @@
 
-<div id="has-many-table-{{$column}}" class="has-many-table-div">
+<div id="has-many-table-{{$column}}" class="form-group has-many-table-div">
     <div class="row">
         <div class="col-sm-12">
             <h4 class="field-header">{{ $label }}</h4>

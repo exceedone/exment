@@ -104,13 +104,29 @@ class WorkflowController extends AdminControllerBase
         $form->text('workflow_name', exmtrans("workflow.workflow_name"))
             ->required()
             ->rules("max:40");
+        
+        $form->text('start_status_name', exmtrans("workflow.start_status_name"))
+            ->required()
+            ->rules("max:30");
+        $form->switchbool('start_datalock_flg', exmtrans("workflow.datalock_flg"))
+            ->help(exmtrans('workflow.help.datalock_flg'))
+            ->default(0);
 
         $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) {
-            $form->text('status_name', exmtrans("workflow.status_name"));
-            $form->switchbool('editable_flg', exmtrans("workflow.editable_flg"));
-        })->setTableColumnWidth(8, 2, 2)
-        ->description(sprintf(exmtrans("workflow.description_workflow_statuses")));
+            $form->text('status_name', exmtrans("workflow.status_name"))->help(exmtrans('workflow.help.status_name'));
+            $form->switchbool('datalock_flg', exmtrans("workflow.datalock_flg"))->help(exmtrans('workflow.help.editable_flg'));
+        })->setTableColumnWidth(6, 2, 2)
+            ->setTableWidth(8, 2)
+            ->rowUpDown('order')
+            ->description(sprintf(exmtrans("workflow.description_workflow_statuses")));
         
+        $form->text('end_status_name', exmtrans("workflow.end_status_name"))
+            ->required()
+            ->rules("max:30");
+        $form->switchbool('end_datalock_flg', exmtrans("workflow.datalock_flg"))
+            ->help(exmtrans('workflow.help.datalock_flg'))
+            ->default(1);
+
         if (isset($id) && CustomTable::where('workflow_id', $id)->count() > 0) {
             $form->tools(function (Form\Tools $tools) {
                 $tools->disableDelete();
@@ -153,13 +169,13 @@ class WorkflowController extends AdminControllerBase
             'active' => !$is_action,
             'complete' => $hasStatus,
             'url' => $is_action? $workflow_status_url: null,
-            'description' => '状態の定義'
+            'description' => exmtrans('workflow.workflow_statuses')
         ];
         $steps[] = [
             'active' => $is_action,
             'complete' => $hasAction,
             'url' => !$is_action? $workflow_action_url: null,
-            'description' => 'アクションの設定'
+            'description' => exmtrans('workflow.workflow_actions')
         ];
         return $steps;
     }
@@ -171,13 +187,13 @@ class WorkflowController extends AdminControllerBase
      */
     protected function actionForm($id, $is_action)
     {
+        $workflow = Workflow::find($id);
         $form = new Form(new Workflow);
         $form->progressTracker()->options($this->getProgressInfo($id, $is_action));
         $form->hidden('action')->default(1);
         $form->display('workflow_name', exmtrans("workflow.workflow_name"));
 
-        $statuses = WorkflowStatus::where('workflow_id', $id)->get()->pluck('status_name', 'id');
-        $statuses->prepend(exmtrans("workflow.status_init"), 0);
+        $statuses = $workflow->getStatusOptions();
 
         $form->hasMany('workflow_actions', exmtrans("workflow.workflow_actions"), function ($form) use($id, $statuses) {
             $form->text('action_name', exmtrans("workflow.action_name"))->required();
@@ -188,12 +204,12 @@ class WorkflowController extends AdminControllerBase
             $form->hidden('workflow_id')->default($id);
             $form->multipleSelect('has_autority_users', exmtrans("workflow.has_autority_users"))
                 ->options(function() {
-                    return CustomTable::getEloquent(SystemTableName::USER)->getOptions();
+                    //return CustomTable::getEloquent(SystemTableName::USER)->getOptions();
                 }
             );
             $form->multipleSelect('has_autority_organizations', exmtrans("workflow.has_autority_organizations"))
                 ->options(function() {
-                    return CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions();
+                    //return CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions();
                 }
             );
         });
