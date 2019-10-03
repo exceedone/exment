@@ -15,7 +15,7 @@ use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowStatusType;
-use Exceedone\Exment\Form\Widgets\ModalInnerForm;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 
 
 class Workflow2Controller extends AdminControllerBase
@@ -125,7 +125,7 @@ class Workflow2Controller extends AdminControllerBase
      */
     public function modalStatus(Request $request){
         
-        $form = new ModalInnerForm();
+        $form = new ModalForm();
         $form->disableReset();
         $form->disableSubmit();
         $form->modalAttribute('id', 'data_share_modal');

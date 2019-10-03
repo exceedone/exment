@@ -28,7 +28,9 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\Services\FormHelper;
 use Symfony\Component\HttpFoundation\Response;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 
 class CustomValueController extends AdminControllerTableBase
 {
@@ -307,37 +309,19 @@ class CustomValueController extends AdminControllerTableBase
     }
  
     /**
-     * for file upload function.
+     * get import modal
      */
-    public function fileupload(Request $request, $tableKey, $id)
+    public function importModal(Request $request, $tableKey)
     {
-        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
+        if (($response = $this->firstFlow($request)) instanceof Response) {
             return $response;
         }
 
-        $httpfile = $request->file('file_data');
-        // file put(store)
-        $filename = $httpfile->getClientOriginalName();
-        // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
-        // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
-        $custom_value = $this->getModelNameDV()::find($id);
-        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
-            ->saveCustomValue($custom_value->id, null, $this->custom_table);
-
-        // save document model
-        $document_model = $file->saveDocumentModel($custom_value, $filename);
-        
-        // loop for $notifies
-        foreach ($custom_value->custom_table->notifies as $notify) {
-            $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::ATTACHMENT, ['attachment' => $filename]);
-        }
-        
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.update_succeeded'),
-        ]);
+        $service = $this->getImportExportService();
+        $importlist = Plugin::pluginPreparingImport($this->plugins);
+        return $service->getImportModal($importlist);
     }
-
+    
     //Function handle plugin click event
     /**
      * @param Request $request
@@ -400,6 +384,57 @@ class CustomValueController extends AdminControllerTableBase
             'toastr' => sprintf(exmtrans('common.message.success_execute')),
         ]);
     }
+
+    /**
+     * get copy modal
+     */
+    public function copyModal(Request $request, $tableKey, $id)
+    {
+        if ($request->input('uuid') === null) {
+            abort(404);
+        }
+        // get copy eloquent
+        $uuid = $request->input('uuid');
+        $copy = CustomCopy::findBySuuid($uuid);
+        if (!isset($copy)) {
+            abort(404);
+        }
+
+        $from_table_view_name = $this->custom_table->table_view_name;
+        $to_table_view_name = $copy->to_custom_table->table_view_name;
+        $path = admin_urls('data', $this->custom_table->table_name, $id, 'copyClick');
+        
+        // create form fields
+        $form = new ModalForm();
+        $form->action($path);
+        $form->method('POST');
+
+        $copy_input_columns = $copy->custom_copy_input_columns ?? [];
+
+        // add form
+        $form->description(sprintf(exmtrans('custom_copy.dialog_description'), $from_table_view_name, $to_table_view_name, $to_table_view_name));
+        foreach ($copy_input_columns as $copy_input_column) {
+            $field = FormHelper::getFormField($this->custom_table, $copy_input_column->to_custom_column, null);
+            $form->pushField($field);
+        }
+        $form->hidden('uuid')->default($uuid);
+        
+        $form->setWidth(10, 2);
+
+        // get label
+        if (!is_null(array_get($copy, 'options.label'))) {
+            $label = array_get($copy, 'options.label');
+        } else {
+            $label = exmtrans('common.copy');
+        }
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => $label
+        ]);
+    }
+
 
     //Function handle copy click event
     /**

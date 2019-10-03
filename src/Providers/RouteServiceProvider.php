@@ -95,7 +95,9 @@ class RouteServiceProvider extends ServiceProvider
             // $router->get('workflow/modal/status', 'Workflow2Controller@modalStatus');
 
             $router->resource('workflow', 'WorkflowController', ['except' => ['show']]);
+            $router->post('workflow/modal/target', 'WorkflowController@modalTarget');
 
+            $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
             
@@ -114,8 +116,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('backup/save', 'BackupController@save');
             $router->post('backup/setting', 'BackupController@postSetting');
             $router->post('backup/import', 'BackupController@import');
+            $router->get('backup/importModal', 'BackupController@importModal');
             $router->get('backup/download/{ymdhms}', 'BackupController@download');
         
+            $router->get("data/{tableKey}/importModal", 'CustomValueController@importModal');
             $router->post("data/{tableKey}/import", 'CustomValueController@import');
             $router->post("data/{tableKey}/pluginClick", 'CustomValueController@pluginClick');
             $router->get("data/{tableKey}/{id}/compare", 'CustomValueController@compare');
@@ -128,18 +132,19 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/sendMail", 'CustomValueController@sendMail');
             $router->post("data/{tableKey}/{id}/sendTargetUsers", 'CustomValueController@sendTargetUsers');
             $router->post("data/{tableKey}/{id}/sendShares", 'CustomValueController@sendShares');
+            $router->get("data/{tableKey}/{id}/copyModal", 'CustomValueController@copyModal');
             $router->post("data/{tableKey}/{id}/copyClick", 'CustomValueController@copyClick');
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
             $router->post("data/{tableKey}/{id}/rowUpdate/{rowid}", 'CustomValueController@rowUpdate');
 
-            $router->post("view/{tableKey}/filterDialog", 'CustomViewController@getFilterDialogHtml');
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
 
+            $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
                         
             $router->get('api/table/{id}', 'ApiController@table');

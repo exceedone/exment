@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Console\BackupRestoreTrait;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Validator;
 use DB;
 
@@ -50,7 +51,6 @@ class BackupController extends AdminControllerBase
             'exment::backup.index',
             [
                 'files' => $rows,
-                'modal' => $this->importModal(),
                 'restore_keyword' => Define::RESTORE_CONFIRM_KEYWORD,
                 'restore_text' => exmtrans('common.message.execution_takes_time') . exmtrans('backup.message.restore_confirm_text') . exmtrans('common.message.input_keyword', Define::RESTORE_CONFIRM_KEYWORD),
             ]
@@ -228,10 +228,8 @@ class BackupController extends AdminControllerBase
     {
         $import_path = admin_url(url_join('backup', 'import'));
         // create form fields
-        $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
-        $form->disableReset();
+        $form = new ModalForm();
         $form->modalAttribute('id', 'data_import_modal');
-        $form->modalHeader(exmtrans('backup.restore'));
 
         $fileOption = Define::FILE_OPTION();
         $form->action($import_path);
@@ -249,7 +247,11 @@ class BackupController extends AdminControllerBase
             ->setWidth(8, 3)
             ->help(exmtrans('common.message.input_keyword', Define::RESTORE_CONFIRM_KEYWORD));
 
-        return $form->render()->render();
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('backup.restore')
+        ]);
     }
 
     /**

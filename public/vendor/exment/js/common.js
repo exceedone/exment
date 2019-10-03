@@ -132,7 +132,7 @@ var Exment;
                 redirect: null,
                 preConfirmValidate: null
             }, options);
-            var data = $.extend({
+            let data = $.extend({
                 _pjax: true,
                 _token: LA.token,
             }, options.data);
@@ -140,7 +140,7 @@ var Exment;
                 data._method = 'delete';
                 options.method = 'POST';
             }
-            var swalOptions = {
+            let swalOptions = {
                 title: options.title,
                 type: options.type,
                 showCancelButton: true,
@@ -211,22 +211,12 @@ var Exment;
                 if ($(ev.target).closest('.popover').length > 0) {
                     return;
                 }
-                var editFlg = $('#gridrow_select_edit').val();
                 var linkElem = $(ev.target).closest('tr').find('.rowclick');
-                if (editFlg) {
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
-                    }
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                    }
-                } else {
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                    }
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
-                    }
+                if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                }
+                if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-edit');
                 }
                 if (!hasValue(linkElem)) {
                     linkElem = $(ev.target).closest('tr').find('.fa-external-link');

@@ -74,6 +74,7 @@ class Bootstrap
         Ad::js(asset('vendor/exment/js/common_all.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/notify_navbar.js?ver='.$ver));
+        Ad::js(asset('vendor/exment/js/modal.js?ver='.$ver));
 
         // set scripts
         $pluginPublics = Plugin::getPluginPublics();

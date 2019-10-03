@@ -1,4 +1,4 @@
-<div class="{{$class}}-block">
+<div class="block-valuemodal">
     <div class="{{$viewClass['form-group']}} {!! !$errors->has($column) ?: 'has-error' !!}">
 
         <label for="{{$id}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
@@ -7,8 +7,11 @@
             @include('admin::form.error')
 
             <p style="padding-top:7px;" class="text-valuemodal">{{ $text }}</p>
-            <p><button type="button" class="btn btn-default btn-valuemodal">{{ $buttonlabel }}</button></p>
+            <p><button type="button" class="btn btn-default btn-valuemodal" {{ isset($ajax) ? 'data-' }}}>
+            {{ $buttonlabel }}
             <input type="hidden" name="{{$name}}" value="{{$value}}" class="{{$class}}" {!! $attributes !!} />
+            </button></p>
+
             @include('admin::form.help-block')
         </div>
     </div>

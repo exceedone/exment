@@ -147,7 +147,7 @@ namespace Exment {
                 options
             );
 
-            var data = $.extend(
+            let data = $.extend(
                 {
                     _pjax: true,
                     _token: LA.token,
@@ -159,7 +159,7 @@ namespace Exment {
                 options.method = 'POST';
             }
 
-            var swalOptions:any = {
+            let swalOptions:any = {
                 title: options.title,
                 type: options.type,
                 showCancelButton: true,

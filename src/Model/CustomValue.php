@@ -82,7 +82,7 @@ abstract class CustomValue extends ModelBase
         return WorkflowValue::where('morph_id', $this->id)
             ->where('morph_type', $this->custom_table->table_name)
             ->where('workflow_id', $this->custom_table->workflow_id)
-            ->where('enabled_flg', 1)
+            //->where('datalock_flg', false)
             ->orderBy('updated_at', 'desc')
             ->first();
     }
@@ -888,7 +888,7 @@ abstract class CustomValue extends ModelBase
                         ->from('workflow_values')
                         ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
                         ->where('workflow_values.morph_type', $this->custom_table_name)
-                        ->where('workflow_values.enabled_flg', 1)
+                        //->where('workflow_values.datalock_flg', false)
                         ->where('workflow_values.workflow_status_id', $status);
                 });
             case ViewColumnFilterOption::NE:
@@ -897,7 +897,7 @@ abstract class CustomValue extends ModelBase
                         ->from('workflow_values')
                         ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
                         ->where('workflow_values.morph_type', $this->custom_table_name)
-                        ->where('workflow_values.enabled_flg', 1)
+                        //->where('workflow_values.datalock_flg', false)
                         ->where('workflow_values.workflow_status_id', $status);
                 });
             case ViewColumnFilterOption::NULL:
@@ -906,7 +906,7 @@ abstract class CustomValue extends ModelBase
                         ->from('workflow_values')
                         ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
                         ->where('workflow_values.morph_type', $this->custom_table_name)
-                        ->where('workflow_values.enabled_flg', 1)
+                        //->where('workflow_values.datalock_flg', false)
                         ->where(\DB::raw('ifnull(workflow_values.workflow_status_id, 0)'), '<>', 0);
                 });
             case ViewColumnFilterOption::NOT_NULL:
@@ -915,7 +915,7 @@ abstract class CustomValue extends ModelBase
                         ->from('workflow_values')
                         ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
                         ->where('workflow_values.morph_type', $this->custom_table_name)
-                        ->where('workflow_values.enabled_flg', 1)
+                        //->where('workflow_values.datalock_flg', false)
                         ->where(\DB::raw('ifnull(workflow_values.workflow_status_id, 0)'), '<>', 0);
                 });
         }

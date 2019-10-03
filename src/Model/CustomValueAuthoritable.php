@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\NotifySavedType;
-use Exceedone\Exment\Form\Widgets\ModalInnerForm;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
 
 class CustomValueAuthoritable extends ModelBase
@@ -63,7 +63,7 @@ class CustomValueAuthoritable extends ModelBase
         $tableKey = $custom_value->custom_table->table_name;
         $id = $custom_value->id;
 
-        $form = new ModalInnerForm();
+        $form = new ModalForm();
         $form->disableReset();
         $form->disableSubmit();
         $form->modalAttribute('id', 'data_share_modal');

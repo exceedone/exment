@@ -12,6 +12,6 @@
             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">{{trans('admin.close')}}</button>
             <button type="button" class="btn btn-info modal-submit {!! $modalSubmitAttributes !!}">{{ trans('admin.submit') }}</button>
         </div>
-  </div>
+    </div>
     </div>
 </div>

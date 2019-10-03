@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Controllers\HasResourceActions;
@@ -14,6 +15,7 @@ use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
 
 class WorkflowController extends AdminControllerBase
 {
@@ -193,26 +195,39 @@ class WorkflowController extends AdminControllerBase
         $form->hidden('action')->default(1);
         $form->display('workflow_name', exmtrans("workflow.workflow_name"));
 
-        $statuses = $workflow->getStatusOptions();
+        $form->pushField(new WorkFlowField\ActionHasMany('workflow_actions', [exmtrans("workflow.workflow_actions"), function($form) use($workflow){
+            $form->text('action_name', exmtrans("workflow.action_name"));
+            
+            $form->statusSelects('status_start', exmtrans("workflow.status_name"))->options($workflow->getStatusOptions());
 
-        $form->hasMany('workflow_actions', exmtrans("workflow.workflow_actions"), function ($form) use($id, $statuses) {
-            $form->text('action_name', exmtrans("workflow.action_name"))->required();
-            $form->select('status_from', exmtrans("workflow.status_from"))->required()
-                ->options($statuses);
-            $form->select('status_to', exmtrans("workflow.status_to"))->required()
-                ->options($statuses);
-            $form->hidden('workflow_id')->default($id);
-            $form->multipleSelect('has_autority_users', exmtrans("workflow.has_autority_users"))
-                ->options(function() {
-                    //return CustomTable::getEloquent(SystemTableName::USER)->getOptions();
-                }
-            );
-            $form->multipleSelect('has_autority_organizations', exmtrans("workflow.has_autority_organizations"))
-                ->options(function() {
-                    //return CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions();
-                }
-            );
-        });
+            $form->valueModal('work_targets', exmtrans("workflow.work_targets"))
+                ->ajax(admin_urls('workflow/modal/target'))
+                ->text(function ($value) {
+                    // /////TODO:copy and paste
+                    // if (!isset($value)) {
+                    //     return null;
+                    // }
+                    // // convert json to array
+                    // if (!is_array($value) && is_json($value)) {
+                    //     $value = json_decode($value, true);
+                    // }
+
+                    // $custom_column_options = $self->getCalcCustomColumnOptions($id, $custom_table);
+                    // ///// get text
+                    // $texts = [];
+                    // foreach ($value as &$v) {
+                    //     $texts[] = $self->getCalcDisplayText($v, $custom_column_options);
+                    // }
+                    return null;
+                })
+                ->modalbody(function ($value) {
+                    
+                    return null;
+                })
+            ;
+
+           // $form->workTargets('work_targets', exmtrans("workflow.work_targets"));
+        }]));
 
         $form->tools(function (Form\Tools $tools) {
             $tools->disableDelete();
@@ -252,5 +267,19 @@ class WorkflowController extends AdminControllerBase
                 'message' => exmtrans('workflow.message.reference_error'),
             ];
         }
+    }
+
+    public function modalTarget(Request $request){
+        $form = new ModalForm;
+        $form->disableReset();
+        $form->disableSubmit();
+
+        $form->select('aaa')->options(['1' => 'aaa']);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.shared')
+        ]);
     }
 }

@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Form\Widgets\ModalInnerForm;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Notifications;
 
 /**
@@ -54,7 +54,7 @@ class NotifyService
         $tableKey = $this->custom_table->table_name;
         $id = $this->custom_value->id;
 
-        $form = new ModalInnerForm();
+        $form = new ModalForm();
         $form->disableReset();
         $form->disableSubmit();
         $form->modalAttribute('id', 'data_notify_modal');
@@ -133,7 +133,7 @@ class NotifyService
         }
         
         // create form fields
-        $form = new ModalInnerForm();
+        $form = new ModalForm();
         $form->disableReset();
         $form->disableSubmit();
         $form->modalAttribute('id', 'data_notify_modal');

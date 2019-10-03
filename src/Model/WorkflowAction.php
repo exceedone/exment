@@ -6,7 +6,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class WorkflowAction extends ModelBase
 {
-    protected $appends = ['has_autority_users', 'has_autority_organizations'];
+    protected $appends = ['work_targets'];
 
     protected $autority_users;
     protected $autority_organizations;

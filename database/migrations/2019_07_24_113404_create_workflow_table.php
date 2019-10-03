@@ -52,8 +52,8 @@ class CreateWorkflowTable extends Migration
         $schema->create('workflow_actions', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('workflow_id')->unsigned()->index();
-            $table->integer('status_from')->unsigned();
-            $table->integer('status_to')->unsigned();
+            $table->string('status_start')->unsigned();
+            $table->string('status_end')->unsigned();
             $table->string('action_name', 30);
             $table->integer('action_group_id');
             $table->integer('order');

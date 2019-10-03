@@ -376,6 +376,10 @@ class Initialize
             'valueModal'          => Field\ValueModal::class,
             'changeField'          => Field\ChangeField::class,
             'progressTracker'          => Field\ProgressTracker::class,
+            
+            ///// workflow
+            'statusSelects'          => Field\WorkFlow\StatusSelects::class,
+            'workTargets'          => Field\WorkFlow\WorkTarget::class,
         ];
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);

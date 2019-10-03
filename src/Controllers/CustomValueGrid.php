@@ -127,7 +127,6 @@ trait CustomValueGrid
         
         $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
             $listButtons = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
-            $importlist = Plugin::pluginPreparingImport($this->plugins);
             
             // have edit flg
             $edit_flg = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
@@ -137,7 +136,6 @@ trait CustomValueGrid
                 if (!$this->custom_table->formActionDisable(FormActionType::CREATE)) {
                     $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
                 }
-                $tools->append($service->getImportModal($importlist));
             }
             
             // add page change button(contains view seting)

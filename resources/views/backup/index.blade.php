@@ -6,7 +6,7 @@
                     <i class="fa fa-download"></i> {{exmtrans("backup.backup")}}
                 </button>
 
-                <a href="javascript:void(0);" data-toggle="modal" data-target="#data_import_modal" type="button" class="btn btn-sm btn-twitter">
+                <a href="javascript:void(0);" data-widgetmodal_url="{{admin_urls('backup', 'importModal')}}" type="button" class="btn btn-sm btn-twitter">
                     <i class="fa fa-upload"></i> {{exmtrans("backup.restore")}}
                 </a>
             </div>
@@ -77,7 +77,7 @@
     </div>
     <!-- /.box-body -->
 </div>
-{!! $modal !!} 
+
 <script type="text/javascript">
     function deletefile(id) {
         Exment.CommonEvent.ShowSwal('{{admin_url("backup/delete")}}', {

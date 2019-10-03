@@ -14,7 +14,6 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\SummaryCondition;
@@ -664,33 +663,6 @@ EOT;
         });
     }
     
-    /**
-     * get filter value dialog html
-     */
-    public function getFilterDialogHtml(Request $request)
-    {
-        $view_column_target = $request->input('view_column_target');
-        if (!isset($view_column_target)) {
-            return null;
-        }
-
-        // get column item
-        $column_item = CustomViewFilter::getColumnItem($view_column_target)
-            ->options([
-                'view_column_target' => true,
-            ]);
-
-        // create modal form
-        $form = new ModalForm();
-        $form->method('POST');
-        $form->modalHeader('');
-
-        // set form
-        $form->pushField($column_item->getAdminField());
-
-        return $form->render()->render();
-    }
-
     protected function getMenuItems()
     {
         $view_kind_types = [
