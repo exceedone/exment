@@ -19,6 +19,9 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Input;
 
+/**
+ * Custom Table Class
+ */
 class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
@@ -108,9 +111,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * Whether this model disable delete
+     * Whether this model disables delete
      *
-     * @return boolean
+     * @return boolean if true, cannot delete.
      */
     public function getDisabledDeleteAttribute()
     {
@@ -344,11 +347,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * validation custom_value.
+     * validation custom_value using each column setting.
      *
-     * @param array $value input
-     * @param bool $systemColumn
+     * @param array $value input value
+     * @param bool $systemColumn if true, contains validation system column
      * @param string|int $custom_value_id custom value id
+     * @param string $column_name_prefix if not null, add column prefix name key.
      * @return mixed
      */
     public function validateValue($value, $systemColumn = false, $custom_value_id = null, $column_name_prefix = null)
@@ -413,7 +417,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     
 
     /**
-     * set Default value from custom column info
+     * Set default value from custom column info
+     *
+     * @param array $value input value
+     * @return array Value after assigning default value
      */
     public function setDefaultValue($value)
     {
@@ -462,8 +469,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * get filter and sort order from request.
-     * @param $options(query string).
-     * @param $addFilter.
+     * @param bool $addFilter append filter url
+     * @param array|null $options Options to execute this function
      */
     public function getGridUrl($addFilter = false, $options = [])
     {
@@ -499,8 +506,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * save filter and sort order.
-     * @param $path.
+     * Save database information about filter and sort order to user setting database.
+     * 
+     * @param string $path.
+     * @return void
      */
     public function saveGridParameter($path)
     {
@@ -525,8 +534,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * get custom table eloquent.
-     * @param mixed $obj id, table_name, CustomTable object, CustomValue object.
+     * Get custom table eloquent. key is id, table_name, etc.
+     * Since the results are kept in memory, access to the database is minimized.
+     * 
+     * @param mixed $obj id table_name CustomTable_object CustomValue_object.
+     * @return null|CustomTable matched custom_table.
      */
     public static function getEloquent($obj, $withs = [])
     {
@@ -1409,6 +1421,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
+    /**
+     * Get CustomValue's model.
+     * 
+     * @param null|int|string $id CustomValue's id
+     * @param bool $withTrashed if true, get already trashed value.
+     * @return CustomValue CustomValue's model.
+     */
     public function getValueModel($id = null, $withTrashed = false)
     {
         $modelname = getModelName($this);
