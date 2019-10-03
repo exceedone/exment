@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\ValueType;
 
 abstract class CustomValue extends ModelBase
 {
@@ -542,7 +543,15 @@ abstract class CustomValue extends ModelBase
         }
 
         $item->options($options);
-        if ($label) {
+
+        // get value
+        // using ValueType
+        $valueType = ValueType::getEnum($label);
+        if(isset($valueType)){
+            return $valueType->getCustomValue($item, $this);
+        }
+
+        if ($label === true) {
             return $item->text();
         }
         return $item->value();
