@@ -11,8 +11,10 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\ValueType;
 
-class CustomValue extends ModelBase
+abstract class CustomValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
@@ -183,11 +185,24 @@ class CustomValue extends ModelBase
             // re-get field data --------------------------------------------------
             $model->prepareValue();
 
+            // call plugins
+            Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saving', [
+                'custom_table' => $model->custom_table,
+                'custom_value' => $model,
+            ]);
+
             // prepare revision
             $model->preSave();
         });
         static::saved(function ($model) {
             $model->setFileValue();
+            
+            // call plugins
+            Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saved', [
+                'custom_table' => $model->custom_table,
+                'custom_value' => $model,
+            ]);
+
             $model->savedValue();
             CustomValueAuthoritable::setValueAuthoritable($model);
         });
@@ -588,7 +603,15 @@ class CustomValue extends ModelBase
         }
 
         $item->options($options);
-        if ($label) {
+
+        // get value
+        // using ValueType
+        $valueType = ValueType::getEnum($label);
+        if(isset($valueType)){
+            return $valueType->getCustomValue($item, $this);
+        }
+
+        if ($label === true) {
             return $item->text();
         }
         return $item->value();
@@ -770,6 +793,22 @@ class CustomValue extends ModelBase
     }
 
     /**
+     * merge value from custom_value
+     */
+    public function mergeValue($value)
+    {
+        foreach ($this->custom_table->custom_columns as $custom_column) {
+            $column_name = $custom_column->column_name;
+            // if not key in value, set default value
+            if (!array_has($value, $column_name)) {
+                $value[$column_name] = $this->getValue($column_name);
+            }
+        }
+
+        return $value;
+    }
+    
+    /**
      * get parent value
      */
     public function getParentValue($isonly_label = false)
@@ -780,6 +819,7 @@ class CustomValue extends ModelBase
         }
         return $model->label ?? null;
     }
+    
     /**
      * Get Custom children value summary
      */
@@ -891,6 +931,11 @@ class CustomValue extends ModelBase
         $options = $this->getQueryOptions($q, $options);
         extract($options);
 
+        if (empty($searchColumns)) {
+            // return null if searchColumns is not has
+            return null;
+        }
+
         // crate union query
         $queries = [];
         for ($i = 0; $i < count($searchColumns) - 1; $i++) {
@@ -967,10 +1012,10 @@ class CustomValue extends ModelBase
         }
 
         if (!isset($searchColumns) || count($searchColumns) == 0) {
-            return collect([]);
+            return $options;
         }
         
-        if (boolval(config('exment.filter_search_full', false))) {
+        if (System::filter_search_type() == FilterSearchType::ALL) {
             $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         } else {
             $value = $q . ($isLike ? '%' : '');

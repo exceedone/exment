@@ -177,10 +177,16 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $custom_view_columns = $this->custom_view_columns;
         foreach ($custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item
-                ->label(array_get($custom_view_column, 'view_column_name'));
+                ->label(array_get($custom_view_column, 'view_column_name'))
+                ->options([
+                    'grid_column' => true,
+                    'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
+                    'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
+                ]);
             $grid->column($item->indexEnabled() ? $item->index() : $item->name(), $item->label())
                 ->sort($item->sortable())
                 ->cast($item->getCastName())
+                ->style($item->gridStyle())
                 ->display(function ($v) use ($item) {
                     if (is_null($this)) {
                         return '';
@@ -211,14 +217,17 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // get custom view columns and custom view summaries
         $view_column_items = $this->getSummaryIndexAndViewColumns();
         
-        // create headers
+        // create headers and column_styles
         $headers = [];
+        $columnStyles = [];
         foreach ($view_column_items as $view_column_item) {
             $item = array_get($view_column_item, 'item');
             $headers[] = $item
                 ->column_item
                 ->label(array_get($item, 'view_column_name'))
                 ->label();
+
+            $columnStyles[] = $item->column_item->gridStyle();
         }
         if ($this->view_kind_type != ViewKindType::AGGREGATE) {
             $headers[] = trans('admin.action');
@@ -243,6 +252,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                             'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
                         ]);
                     }
+
+                    $item->options([
+                        'view_pivot_column' => $column->view_pivot_column_id ?? null,
+                        'view_pivot_table' => $column->view_pivot_table_id ?? null,
+                        'grid_column' => true,
+                    ]);
                     $body_items[] = $item->setCustomValue($data)->html();
                 }
 
@@ -278,7 +293,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         //return headers, bodies
-        return [$headers, $bodies];
+        return [$headers, $bodies, $columnStyles];
     }
 
     /**
@@ -314,9 +329,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      *
      * @param mixed $tableObj table_name, object or id eic
      * @param boolean $getSettingValue if true, getting from UserSetting table
+     * @param boolean $is_dashboard call by dashboard
      * @return void
      */
-    public static function getDefault($tableObj, $getSettingValue = true)
+    public static function getDefault($tableObj, $getSettingValue = true, $is_dashboard = false)
     {
         $user = Admin::user();
         $tableObj = CustomTable::getEloquent($tableObj);
@@ -331,7 +347,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $view = static::findBySuuid($suuid);
 
             // set user_setting
-            if (!is_null($user)) {
+            if (!is_null($user) && !$is_dashboard) {
                 $user->setSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]), $suuid);
             }
         }
@@ -343,18 +359,25 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         // if url doesn't contain view query, get custom view. first
         if (!isset($view)) {
-            $view = $tableObj->custom_views()->where('default_flg', true)
-                ->where('view_kind_type', '<>', ViewKindType::FILTER)->first();
+            $view = static::allRecords(function ($record) use ($tableObj) {
+                return array_get($record, 'custom_table_id') == $tableObj->id
+                    && array_get($record, 'default_flg') == true
+                    && array_get($record, 'view_kind_type') != ViewKindType::FILTER;
+            })->first();
         }
-        // get all data view
-        $alldata = $tableObj->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
-        // if all data view is not exists, create view and column
-        if (!isset($alldata)) {
-            $alldata = static::createDefaultView($tableObj);
-            $alldata->createDefaultViewColumns();
-        }
+        
         // if default view is not setting, show all data view
         if (!isset($view)) {
+            // get all data view
+            $alldata = static::allRecords(function ($record) use ($tableObj) {
+                return array_get($record, 'custom_table_id') == $tableObj->id
+                    && array_get($record, 'view_kind_type') == ViewKindType::ALLDATA;
+            })->first();
+            // if all data view is not exists, create view and column
+            if (!isset($alldata)) {
+                $alldata = static::createDefaultView($tableObj);
+                $alldata->createDefaultViewColumns();
+            }
             $view = $alldata;
         }
 
@@ -741,7 +764,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
      * @param $is_number
      */
-    public function getColumnsSelectOptions($is_number = null)
+    public function getViewColumnsSelectOptions($is_number = null)
     {
         $options = [];
         

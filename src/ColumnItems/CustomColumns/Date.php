@@ -4,7 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
-use Encore\Admin\Grid\Filter;
+use Exceedone\Exment\Grid\Filter;
 use Exceedone\Exment\Form\Field as ExmentField;
 
 class Date extends CustomItem
@@ -18,12 +18,25 @@ class Date extends CustomItem
         if (is_nullorempty($format)) {
             $format = array_get($this->options, 'format');
         }
-        
-        if (!is_nullorempty($format)) {
-            return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
+        if (is_nullorempty($format)) {
+            $format = $this->getDisplayFormat();
         }
+        
+        if (!isset($this->value)) {
+            return null;
+        }
+
+        if (!is_nullorempty($format) && !boolval(array_get($this->options, 'summary'))) {
+            return $this->getDateUseValue($format);
+        }
+
         // else, return
         return $this->value();
+    }
+
+    protected function getDisplayFormat()
+    {
+        return config('admin.date_format');
     }
 
     public function saving()
@@ -33,7 +46,25 @@ class Date extends CustomItem
             return $this->value;
         }
 
-        return (new \Carbon\Carbon($this->value()))->format($this->format) ?? null;
+        if (!isset($this->value)) {
+            return null;
+        }
+
+        return $this->getDateUseValue($this->format);
+    }
+
+    /**
+     * Get date again use format
+     *
+     * @return void
+     */
+    protected function getDateUseValue($format)
+    {
+        if (is_array($this->value())) {
+            return (new \Carbon\Carbon(array_get($this->value(), 'date')))->format($format) ?? null;
+        }
+
+        return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
     }
 
     protected function getAdminFieldClass()
@@ -46,7 +77,7 @@ class Date extends CustomItem
     
     protected function getAdminFilterClass()
     {
-        return Filter\Between::class;
+        return Filter\BetweenDatetime::class;
     }
 
     protected function setAdminOptions(&$field, $form_column_options)
@@ -58,6 +89,11 @@ class Date extends CustomItem
         }
     }
     
+    protected function setValidates(&$validates)
+    {
+        $validates[] = 'date';
+    }
+
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->date();
@@ -100,7 +136,7 @@ class Date extends CustomItem
      */
     protected function getNowString()
     {
-        return \Carbon\Carbon::now()->format('Y-m-d');
+        return \Carbon\Carbon::now()->format($this->format);
     }
 
     /**

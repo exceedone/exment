@@ -26,6 +26,18 @@ class Exment
         if (isApiEndpoint()) {
             return $callback($request, $exception);
         }
+        if (!$request->pjax() && $request->ajax()) {
+            // if memory error, throw ajax response
+            if (strpos($exception->getMessage(), 'Allowed memory size of') === 0) {
+                $manualUrl = getManualUrl('quickstart_more');
+                return getAjaxResponse([
+                    'result'  => false,
+                    'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.memory_leak', ['url' => $manualUrl]) ]],
+                ]);
+            }
+
+            return $callback($request, $exception);
+        }
         
         try {
             // whether has User

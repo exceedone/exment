@@ -4,12 +4,16 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Validator as ExmentValidator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -17,9 +21,27 @@ use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Carbon\Carbon;
 
+if (!function_exists('exmDebugLog')) {
+    /**
+     * Debug log
+     */
+    function exmDebugLog($log)
+    {
+        $now = Carbon::now();
+
+        $log_string = $now->format("YmdHisv")." ".$log;
+
+        \Log::debug($log_string);
+    }
+}
+
 if (!function_exists('exmtrans')) {
     function exmtrans($key, ...$args)
     {
+        if (count($args) > 0 && is_array($args[0])) {
+            return trans("exment::exment.$key", $args[0]);
+        }
+
         $trans = trans("exment::exment.$key");
         if (count($args) > 0) {
             $trans = vsprintf($trans, $args);
@@ -34,7 +56,7 @@ if (!function_exists('getManualUrl')) {
         $manual_url_base = config('exment.manual_url');
         // if ja, set
         if (config('app.locale') == 'ja') {
-            $manual_url_base = url_join($manual_url_base, 'ja');
+            $manual_url_base = url_join($manual_url_base, 'ja') . '/';
         }
         $manual_url_base = url_join($manual_url_base, $uri);
         return $manual_url_base;
@@ -70,24 +92,32 @@ if (!function_exists('esc_script_tag')) {
             return $html;
         }
         
-        $dom = new \DOMDocument();
+        try {
+            libxml_use_internal_errors(true);
 
-        $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-
-        $script = $dom->getElementsByTagName('script');
-
-        $remove = [];
-        foreach ($script as $item) {
-            $remove[] = $item;
+            $dom = new \DOMDocument();
+    
+            $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    
+            $script = $dom->getElementsByTagName('script');
+    
+            $remove = [];
+            foreach ($script as $item) {
+                $remove[] = $item;
+            }
+    
+            foreach ($remove as $item) {
+                $item->parentNode->removeChild($item);
+            }
+    
+            $html = trim($dom->saveHTML());
+            $html = preg_replace('/^<br>/u', '', $html);
+            $html = preg_replace('/<br>$/u', '', $html);
+            
+            libxml_use_internal_errors(false);
+        } catch (\Exception $ex) {
+            return $html;
         }
-
-        foreach ($remove as $item) {
-            $item->parentNode->removeChild($item);
-        }
-
-        $html = trim($dom->saveHTML());
-        $html = preg_replace('/^<br>/u', '', $html);
-        $html = preg_replace('/<br>$/u', '', $html);
         
         return $html;
     }
@@ -175,18 +205,36 @@ if (!function_exists('rmcomma')) {
 }
 
 // File, path  --------------------------------------------------
-if (!function_exists('exment_path')) {
+if (!function_exists('exment_app_path')) {
 
     /**
-     * Get exment path.
+     * Get Application exment path.
      *
      * @param string $path
      *
      * @return string
      */
-    function exment_path($path = '')
+    function exment_app_path($path = '')
     {
         return ucfirst(config('exment.directory', app_path('Exment'))).($path ? DIRECTORY_SEPARATOR.$path : $path);
+    }
+}
+
+if (!function_exists('exment_package_path')) {
+
+    /**
+     * Get package exment path.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    function exment_package_path($path = '')
+    {
+        $reflection = new \ReflectionClass(\Exceedone\Exment\ExmentServiceProvider::class);
+        $package_path = dirname(dirname($reflection->getFileName()));
+
+        return path_join($package_path, $path);
     }
 }
 
@@ -250,6 +298,10 @@ if (!function_exists('join_paths')) {
         $ret_pass   =   "";
 
         foreach ($pass_array as $value) {
+            if (empty($value)) {
+                continue;
+            }
+            
             if (is_array($value)) {
                 $ret_pass = $ret_pass.$trim_str.join_paths($trim_str, $value);
             } elseif ($ret_pass == "") {
@@ -282,8 +334,12 @@ if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {
         $path = Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
-        if ($mkdir && !\File::exists($path)) {
-            \File::makeDirectory($path, 0755, true);
+
+        if ($mkdir) {
+            $dirPath = pathinfo($path)['dirname'];
+            if (!\File::exists($dirPath)) {
+                \File::makeDirectory($dirPath, 0755, true);
+            }
         }
         return $path;
     }
@@ -496,9 +552,31 @@ if (!function_exists('is_vector')) {
 
 // string --------------------------------------------------
 if (!function_exists('make_password')) {
-    function make_password($length = 16)
+    function make_password($length = 16, $options = [])
     {
-        static $chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!$#%_-";
+        $options = array_merge(
+            [
+                'alphabet_upper' => true,
+                'alphabet_lower' => true,
+                'number' => true,
+                'mark' => true,
+            ],
+            $options
+        );
+
+        $chars = '';
+        if ($options['alphabet_upper']) {
+            $chars .= 'ABCDEFGHJKMNPQRSTUVWXYZ';
+        }
+        if ($options['alphabet_lower']) {
+            $chars .= 'abcdefghjkmnpqrstuvwxyz';
+        }
+        if ($options['number']) {
+            $chars .= '23456789';
+        }
+        if ($options['mark']) {
+            $chars .= '!$#%_-';
+        }
         $str = '';
         for ($i = 0; $i < $length; ++$i) {
             $str .= $chars[mt_rand(0, strlen($chars) -1)];
@@ -547,6 +625,11 @@ if (!function_exists('make_licensecode')) {
 if (!function_exists('pascalize')) {
     function pascalize($string)
     {
+        // replace A to _a
+        $string = preg_replace_callback('/[A-Z]/', function ($match) {
+            return '_' . strtolower($match[0]);
+        }, $string);
+        $string = ltrim($string, '_');
         $string = strtolower($string);
         $string = str_replace('_', ' ', $string);
         $string = ucwords($string);
@@ -560,23 +643,36 @@ if (!function_exists('get_password_rule')) {
      * get_password_rule(for validation)
      * @return string
      */
-    function get_password_rule($required = true)
+    function get_password_rule($required = true, ?LoginUser $login_user = null)
     {
         $validates = [];
         if ($required) {
-            array_push($validates, 'required');
+            $validates[] = 'required';
         } else {
-            array_push($validates, 'nullable');
+            $validates[] = 'nullable';
         }
-        array_push($validates, 'confirmed');
-        array_push($validates, 'min:'.(!is_null(config('exment.password_rule.min')) ? config('exment.password_rule.min') : '8'));
-        array_push($validates, 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '32'));
+        $validates[] = 'confirmed';
+        $validates[] = 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '32');
         
-        if (!is_null(config('exment.password_rule.rule'))) {
-            array_push($validates, 'regex:/'.config('exment.password_rule.rule').'/');
+        // check password policy
+        $complex = false;
+        $validates[] = new ExmentValidator\PasswordHistoryRule($login_user);
+
+        if (!is_null($is_complex = System::complex_password()) && boolval($is_complex)) {
+            $validates[] = new ExmentValidator\ComplexPasswordRule;
+            $complex = true;
         }
 
-        return implode("|", $validates);
+        if (!$complex) {
+            $validates[] = 'min:'.(!is_null(config('exment.password_rule.min')) ? config('exment.password_rule.min') : '8');
+        }
+
+        // set regex
+        if (!$complex && !is_null(config('exment.password_rule.rule'))) {
+            $validates[] = 'regex:/'.config('exment.password_rule.rule').'/';
+        }
+        
+        return $validates;
     }
 }
 
@@ -608,9 +704,9 @@ if (!function_exists('replaceBreak')) {
      * replace new line code to <br />
      * @return string
      */
-    function replaceBreak($text)
+    function replaceBreak($text, $isescape = true)
     {
-        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_script_tag($text));
+        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $isescape ? esc_html($text) : $text);
     }
 }
 
@@ -1350,12 +1446,26 @@ if (!function_exists('getPagerOptions')) {
     }
 }
 
+if (!function_exists('getTrueMark')) {
+    /**
+     * get true mark. If $val is true, output mark
+     */
+    function getTrueMark($val)
+    {
+        if (!boolval($val)) {
+            return null;
+        }
+
+        return config('exment.true_mark', '<i class="fa fa-check"></i>');
+    }
+}
+
 // Excel --------------------------------------------------
 if (!function_exists('getDataFromSheet')) {
     /**
      * get Data from excel sheet
      */
-    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false)
+    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
     {
         $data = [];
         foreach ($sheet->getRowIterator() as $row_no => $row) {
@@ -1368,11 +1478,11 @@ if (!function_exists('getDataFromSheet')) {
             $cellIterator->setIterateOnlyExistingCells(false); // This loops through all cells,
             $cells = [];
             foreach ($cellIterator as $column_no => $cell) {
-                $value = getCellValue($cell, $sheet);
+                $value = getCellValue($cell, $sheet, $isGetMerge);
 
                 // if keyvalue, set array as key value
                 if ($keyvalue) {
-                    $key = getCellValue($column_no."1", $sheet);
+                    $key = getCellValue($column_no."1", $sheet, $isGetMerge);
                     $cells[$key] = mbTrim($value);
                 }
                 // if false, set as array
@@ -1392,34 +1502,31 @@ if (!function_exists('getDataFromSheet')) {
     }
 }
 
-if (!function_exists('getTrueMark')) {
-    /**
-     * get true mark. If $val is true, output mark
-     */
-    function getTrueMark($val)
-    {
-        if (!boolval($val)) {
-            return null;
-        }
-
-        return config('exment.true_mark', '<i class="fa fa-check"></i>');
-    }
-}
-
 if (!function_exists('getCellValue')) {
     /**
      * get cell value
      */
-    function getCellValue($cell, $sheet)
+    function getCellValue($cell, $sheet, $isGetMerge = false)
     {
         if (is_string($cell)) {
             $cell = $sheet->getCell($cell);
         }
+
+        // if merge cell, get from master cell
+        if ($isGetMerge && $cell->isInMergeRange()) {
+            $mergeRange = $cell->getMergeRange();
+            $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
+        }
+
         $value = $cell->getCalculatedValue();
         // is datetime, convert to date string
         if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)) {
             $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
-            $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
+            if (floatval($value) < 1) {
+                $value = $date->format('H:i:s');
+            } else {
+                $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
+            }
         }
         // if rich text, set plain value
         elseif ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
@@ -1456,10 +1563,7 @@ if (!function_exists('getUserName')) {
      */
     function getUserName($id, $link = false)
     {
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, SystemTableName::USER, $id);
-        $user = System::requestSession($key, function () use ($id) {
-            return getModelName(SystemTableName::USER)::withTrashed()->find($id);
-        });
+        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
         if (!isset($user)) {
             return null;
         }
@@ -1511,6 +1615,36 @@ if (!function_exists('useLoginProvider')) {
             $path = trim($path, '/');
     
             return $path?? '/';
+        }
+    }
+
+    if (!function_exists('getCustomField')) {
+        function getCustomField($data, $field_label = null)
+        {
+            $view_column_target = array_get($data, 'view_column_target');
+            $view_filter_condition = array_get($data, 'view_filter_condition');
+
+            if (!isset($view_column_target)) {
+                return null;
+            }
+    
+            $value_type = null;
+    
+            if (isset($view_filter_condition)) {
+                $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($view_filter_condition);
+    
+                if ($value_type == 'none') {
+                    return null;
+                }
+            }
+    
+            // get column item
+            $column_item = CustomViewFilter::getColumnItem($view_column_target);
+            if (isset($field_label)) {
+                $column_item->setLabel($field_label);
+            }
+    
+            return $column_item->getFilterField($value_type);
         }
     }
 }

@@ -1,21 +1,22 @@
 var Exment;
 (function (Exment) {
-    var NotifyNavbarEvent = /** @class */ (function () {
-        function NotifyNavbarEvent() {
-        }
+    class NotifyNavbarEvent {
         /**
          * Call only once. It's $(document).on event.
          */
-        NotifyNavbarEvent.AddEventOnce = function () {
+        static AddEventOnce() {
+            if ($('.navbar-notify').length == 0) {
+                return;
+            }
             NotifyNavbarEvent.notifyNavbar();
             $(document).on('pjax:complete', function (event) {
                 NotifyNavbarEvent.notifyNavbar();
             });
-        };
+        }
         /**
          * toggle right-top help link and color
          */
-        NotifyNavbarEvent.notifyNavbar = function () {
+        static notifyNavbar() {
             if (NotifyNavbarEvent.timeout_id !== null) {
                 clearTimeout(NotifyNavbarEvent.timeout_id);
                 NotifyNavbarEvent.timeout_id = null;
@@ -32,10 +33,10 @@ var Exment;
                     $('.container-notify .label-danger').remove();
                     if (data.count > 0) {
                         $('.container-notify').append('<span class="label label-danger">' + data.count + '</span>');
-                        for (var i = 0; i < data.items.length; i++) {
-                            var d = data.items[i];
-                            var isNew = $.inArray(d.id, this.notify_navbar_ids) === -1;
-                            var li = $('<li/>', {
+                        for (let i = 0; i < data.items.length; i++) {
+                            let d = data.items[i];
+                            const isNew = $.inArray(d.id, this.notify_navbar_ids) === -1;
+                            let li = $('<li/>', {
                                 html: $('<a/>', {
                                     href: hasValue(d.href) ? d.href : 'javascript:void(0);',
                                     html: [
@@ -61,7 +62,7 @@ var Exment;
                         }
                     }
                     else {
-                        var li = $('<li/>', {
+                        let li = $('<li/>', {
                             text: data.noItemMessage,
                             'class': 'text-center',
                             style: 'padding:7px;'
@@ -70,9 +71,8 @@ var Exment;
                     }
                 },
             });
-        };
-        return NotifyNavbarEvent;
-    }());
+        }
+    }
     Exment.NotifyNavbarEvent = NotifyNavbarEvent;
 })(Exment || (Exment = {}));
 $(function () {

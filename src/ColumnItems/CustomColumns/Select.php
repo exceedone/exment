@@ -3,11 +3,14 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Exceedone\Exment\Validator\SelectRule;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 
 class Select extends CustomItem
 {
+    use ImportValueTrait;
+    
     public function value()
     {
         return $this->getResultForSelect(false);
@@ -69,9 +72,20 @@ class Select extends CustomItem
         $field->options($this->custom_column->createSelectOptions());
     }
     
+    protected function setValidates(&$validates)
+    {
+        $select_options = $this->custom_column->createSelectOptions();
+        $validates[] = new SelectRule(array_keys($select_options));
+    }
+
     protected function setAdminFilterOptions(&$filter)
     {
         $options = $this->custom_column->createSelectOptions();
         $filter->select($options);
+    }
+    
+    protected function getImportValueOption()
+    {
+        return $this->custom_column->createSelectOptions();
     }
 }

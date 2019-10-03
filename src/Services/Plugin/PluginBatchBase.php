@@ -1,10 +1,10 @@
 <?php
 
-/**
- * Execute Batch
- */
 namespace Exceedone\Exment\Services\Plugin;
 
+/**
+ * Plugin (batch) base class
+ */
 class PluginBatchBase
 {
     use PluginBase;
@@ -14,6 +14,11 @@ class PluginBatchBase
         $this->plugin = $plugin;
     }
 
+    /**
+     * Processing during batch execution.
+     *
+     * @return void
+     */
     public function execute()
     {
     }

@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Widgets\ModalInnerForm;
+use Exceedone\Exment\Notifications;
 
 /**
  * Notify dialog, send mail etc.
@@ -45,7 +46,7 @@ class NotifyService
         $users = $this->notify->getNotifyTargetUsers($this->custom_value);
 
         // if only one data, get form for detail
-        if (count($users) == 1) {
+        if (count($users) <= 1) {
             return $this->getSendForm($users);
         }
         
@@ -144,7 +145,9 @@ class NotifyService
             $form->progressTracker()->options($this->getProgressInfo(false));
         }
 
-        $form->display(exmtrans('custom_value.sendmail.mail_to'))->default($notifyTarget);
+        if (in_array(NotifyAction::EMAIL, $this->notify->notify_actions)) {
+            $form->display(exmtrans('custom_value.sendmail.mail_to'))->default($notifyTarget);
+        }
         $form->hidden('target_users')->default($notifyTargetJson);
 
         $form->text('mail_title', exmtrans('custom_value.sendmail.mail_title'))
@@ -159,8 +162,10 @@ class NotifyService
         $options = ExmentFile::where('parent_type', $tableKey)
             ->where('parent_id', $id)->get()->pluck('filename', 'uuid');
 
-        $form->multipleSelect('mail_attachment', exmtrans('custom_value.sendmail.attachment'))
-            ->options($options);
+        if (in_array(NotifyAction::EMAIL, $this->notify->notify_actions)) {
+            $form->multipleSelect('mail_attachment', exmtrans('custom_value.sendmail.attachment'))
+                ->options($options);
+        }
 
         $form->textarea('send_error_message', exmtrans('custom_value.sendmail.send_error_message'))
             ->attribute(['readonly' => true, 'placeholder' => ''])
@@ -249,6 +254,7 @@ class NotifyService
                     'subject' => null,
                     'body' => null,
                     'attach_files' => null,
+                    'is_chat' => false
                 ],
                 $params
             )
@@ -262,14 +268,20 @@ class NotifyService
             $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
         }
 
+        $subject = $subject ?? array_get($mail_template->value, 'mail_subject');
+        $body = $body ?? array_get($mail_template->value, 'mail_body');
+
         // get notify actions
         $notify_actions = $notify->notify_actions;
         foreach ($notify_actions as $notify_action) {
+            if (NotifyAction::isChatMessage($notify_action) != $is_chat) {
+                continue;
+            }
             switch ($notify_action) {
                 case NotifyAction::EMAIL:
                     // send mail
                     try {
-                        MailSender::make($mail_template, $user)
+                        Notifications\MailSender::make($mail_template, $user)
                         ->prms($prms)
                         ->user($user)
                         ->custom_value($custom_value)
@@ -298,15 +310,12 @@ class NotifyService
                     // save data
                     $login_user = \Exment::user();
 
-                    $mail_subject = $subject ?? array_get($mail_template->value, 'mail_subject');
-                    $mail_body = $body ?? array_get($mail_template->value, 'mail_body');
-                    
                     // replace system:site_name to custom_value label
                     array_set($prms, 'system.site_name', $custom_value->label);
             
                     // replace value
-                    $mail_subject = static::replaceWord($mail_subject, $custom_value, $prms);
-                    $mail_body = static::replaceWord($mail_body, $custom_value, $prms);
+                    $mail_subject = static::replaceWord($subject, $custom_value, $prms);
+                    $mail_body = static::replaceWord($body, $custom_value, $prms);
 
                     $notify_navbar = new NotifyNavbar;
                     $notify_navbar->notify_id = array_get($notify, 'id');
@@ -318,6 +327,24 @@ class NotifyService
                     $notify_navbar->trigger_user_id = $login_user->base_user_id ?? null;
                     $notify_navbar->save();
 
+                    break;
+
+                case NotifyAction::SLACK:
+                    // replace word
+                    $slack_subject = static::replaceWord($subject, $custom_value, $prms);
+                    $slack_body = static::replaceWord($body, $custom_value, $prms);
+                    $slack_content = Notifications\SlackSender::editContent($slack_subject, $slack_body);
+                    // send slack message
+                    $notify->notify(new Notifications\SlackSender($slack_content));
+                    break;
+    
+                case NotifyAction::MICROSOFT_TEAMS:
+                    // replace word
+                    $slack_subject = static::replaceWord($subject, $custom_value, $prms);
+                    $slack_body = static::replaceWord($body, $custom_value, $prms);
+                    $slack_content = Notifications\MicrosoftTeamsSender::editContent($slack_subject, $slack_body);
+                    // send slack message
+                    $notify->notify(new Notifications\MicrosoftTeamsSender($slack_subject, $slack_content));
                     break;
             }
         }

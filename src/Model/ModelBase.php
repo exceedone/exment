@@ -80,13 +80,17 @@ class ModelBase extends Model
             $model->{$column} = $id;
         }
     }
-    
+
     /**
      * get eloquent using request settion.
      * now only support only id.
      */
     public static function getEloquentDefault($obj, $withs = [], $query_key = 'id')
     {
+        if (!isset($obj)) {
+            return null;
+        }
+        
         // get table
         $obj = static::allRecords(function ($table) use ($query_key, $obj) {
             return array_get($table, $query_key) == $obj;

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Exceedone\Exment\Model;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Define;
 
 /**
@@ -27,6 +28,11 @@ class Morph
     {
         // morphMap
         try {
+            //if(!canConnection() || !\Schema::hasTable(SystemTableName::CUSTOM_TABLE)){
+            if (!canConnection() || !hasTable(SystemTableName::CUSTOM_TABLE)) {
+                return;
+            }
+            
             $tables = Model\CustomTable::allRecords();
                 
             $morphMaps = [

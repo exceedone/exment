@@ -24,6 +24,7 @@ use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\FormActionType;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -327,18 +328,26 @@ HTML;
         $custom_table = CustomTable::getEloquent($id);
         $form->hasManyTable('multi_uniques', exmtrans("custom_table.custom_column_multi.uniques"), function ($form) use ($custom_table) {
             $form->select('unique1', exmtrans("custom_table.custom_column_multi.unique1"))->required()
-                ->options($custom_table->getColumnsSelectOptions());
+                ->options($custom_table->getColumnsSelectOptions([
+                    'include_system' => false,
+                ]));
             $form->select('unique2', exmtrans("custom_table.custom_column_multi.unique2"))->required()
-                ->options($custom_table->getColumnsSelectOptions());
+                ->options($custom_table->getColumnsSelectOptions([
+                    'include_system' => false,
+                ]));
             $form->select('unique3', exmtrans("custom_table.custom_column_multi.unique3"))
-                ->options($custom_table->getColumnsSelectOptions());
+                ->options($custom_table->getColumnsSelectOptions([
+                    'include_system' => false,
+                ]));
             $form->hidden('multisetting_type')->default(1);
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(exmtrans("custom_table.custom_column_multi.help.uniques"));
         
         $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
             $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
-                ->options($custom_table->getColumnsSelectOptions());
+                ->options($custom_table->getColumnsSelectOptions([
+                    'include_system' => false,
+                ]));
             
             $form->hidden('priority')->default(1);
             $form->hidden('multisetting_type')->default(2);
@@ -347,8 +356,12 @@ HTML;
         ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
 
         if (boolval(config('exment.expart_mode', false))) {
-            $form->embeds('options', exmtrans("custom_table.custom_column_multi.table_label_format"), function ($form) {
-                $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format_string"))
+            $form->embeds('options', exmtrans("custom_table.custom_column_multi.options_label"), function ($form) {
+                $form->checkbox('form_action_disable_flg', exmtrans("custom_table.custom_column_multi.form_action_disable_flg"))
+                    ->help(exmtrans("custom_table.custom_column_multi.help.form_action_disable_flg"))
+                    ->options(FormActionType::transArray('custom_table.custom_column_multi.form_action_options'))
+                ;
+                $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format"))
                     ->rules("max:200")
                     ->help(sprintf(exmtrans("custom_table.custom_column_multi.help.table_label_format"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_label_format'))));
             });

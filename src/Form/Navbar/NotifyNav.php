@@ -8,6 +8,10 @@ class NotifyNav implements Renderable
 {
     public function render()
     {
+        if (config('exment.notify_navbar', true) === false) {
+            return;
+        }
+        
         $list = trans('admin.list');
         $list_url = admin_url('notify_navbar');
         return <<<EOT

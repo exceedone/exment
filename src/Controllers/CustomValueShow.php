@@ -17,6 +17,8 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
@@ -36,7 +38,7 @@ trait CustomValueShow
         //Plugin::pluginPreparing($this->plugins, 'loading');
         return new Show($this->getModelNameDV()::firstOrNew(['id' => $id]), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
-
+    
             // add parent link if this form is 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
             if (isset($relation)) {
@@ -127,7 +129,7 @@ trait CustomValueShow
                 }
             }
 
-            // if user only view permission, disable delete and view
+            // if user only view permission or one record table, disable delete and view
             if (!$this->custom_table->hasPermissionEditData($id)) {
                 $show->panel()->tools(function ($tools) {
                     $tools->disableEdit();
@@ -149,6 +151,11 @@ trait CustomValueShow
                     ]));
                 }
 
+                // if table has form edit disable option, disable edit.
+                if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
+                    $tools->disableEdit();
+                }
+
                 if (count($this->custom_table->getRelationTables()) > 0) {
                     $tools->append(view('exment::tools.button', [
                         'href' => $custom_value->getRelationSearchUrl(true),
@@ -158,11 +165,14 @@ trait CustomValueShow
                     ]));
                 }
 
-                if(boolval(array_get($custom_value, 'disabled_delete'))){
+                if (boolval(array_get($custom_value, 'disabled_delete')) ||
+                    $this->custom_table->formActionDisable(FormActionType::DELETE)) {
                     $tools->disableDelete();
                 }
 
-                if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
+                if ($this->custom_table->isOneRecord()) {
+                    $tools->disableEdit();
+                    $tools->disableDelete();
                     $tools->disableList();
                 } elseif (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
@@ -190,8 +200,7 @@ trait CustomValueShow
                     }
 
                     // check share permission.
-                    // ignore master table, and has permission
-                    if (!in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER()) && $this->custom_table->hasPermissionEditData($id) && $this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+                    if ($this->hasPermissionShare($id)) {
                         $tools->append(new Tools\ShareButton($this->custom_table, $id));
                     }
 
@@ -254,8 +263,6 @@ trait CustomValueShow
                 ->options($options)
                 ->setLabelClass(['d-none'])
                 ->setWidth(12, 0);
-                // // create file upload option
-                //             $form->html('<input type="file" id="'.$input_id.'" />')->plain();
                 $script = <<<EOT
     $(".$input_id").on('fileuploaded', function(e, params) {
         console.log('file uploaded', e, params);
@@ -265,7 +272,7 @@ trait CustomValueShow
 EOT;
                 Admin::script($script);
             }
-            $row->column(6, (new Box(exmtrans("common.attachment"), $form))->style('info'));
+            $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
         }
 
         if (count($revisions) > 0) {
@@ -284,7 +291,7 @@ EOT;
                     'No.'.($revision->revision_no)
                 )->setWidth(9, 2);
             }
-            $row->column(6, (new Box(exmtrans('revision.update_history'), $form))->style('info'));
+            $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
         }
 
         if ($useComment) {
@@ -313,7 +320,7 @@ EOT;
                 ->required()
                 ->setLabelClass(['d-none'])
                 ->setWidth(12, 0);
-            $row->column(6, (new Box(exmtrans("common.comment"), $form))->style('info'));
+            $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
         }
 
         if ($this->useWorkflow($modal)) {
@@ -513,6 +520,10 @@ EOT;
             return [];
         }
 
+        if (is_null($id)) {
+            return [];
+        }
+
         // if no permission, return
         if (!$this->custom_table->hasPermissionEditData($id)) {
             return [];
@@ -527,5 +538,35 @@ EOT;
             $query = $query->take(10);
         }
         return $query->get() ?? [];
+    }
+
+    /**
+     * Whether showing share button
+     *
+     * @return boolean
+     */
+    protected function hasPermissionShare($id)
+    {
+        // if system doesn't use role, return false
+        if (!System::permission_available()) {
+            return false;
+        }
+
+        // if master, false
+        if (in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+            return false;
+        }
+
+        // if not has edit data, return false
+        if (!$this->custom_table->hasPermissionEditData($id)) {
+            return false;
+        }
+
+        // if not has share data, return false
+        if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+            return false;
+        }
+
+        return true;
     }
 }

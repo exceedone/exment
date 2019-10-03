@@ -13,7 +13,13 @@ class Editor extends CustomItem
         if (is_null($text)) {
             return null;
         }
-        return '<div class="show-tinymce">'.preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_script_tag($text)).'</div>';
+
+        if (boolval(array_get($this->options, 'grid_column'))) {
+            // if grid, remove tag and omit string
+            $text = get_omitted_string(strip_tags($text));
+        }
+        
+        return  '<div class="show-tinymce">'.replaceBreak(esc_script_tag($text), false).'</div>';
     }
     
     protected function getAdminFieldClass()

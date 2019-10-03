@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\System;
 //use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
 use Encore\Admin\Layout\Column;
@@ -87,7 +88,7 @@ class MenuController extends AdminControllerBase
                 switch ($branch['menu_type']) {
                     case MenuType::PLUGIN:
                         $icon = null;
-                        $uri = null;
+                        $uri = array_get($branch, 'uri');
                         break;
                     case MenuType::TABLE:
                         $icon = $branch['icon'];
@@ -173,16 +174,21 @@ class MenuController extends AdminControllerBase
             ->attribute(['data-filter' => json_encode([
                 'key' => 'menu_type', 'readonlyValue' => [MenuType::SYSTEM, MenuType::PLUGIN, MenuType::TABLE, MenuType::PARENT_NODE]
             ])]);
-        $form->text('menu_name', exmtrans("menu.menu_name"))
+        if (!isset($id)) {
+            $form->text('menu_name', exmtrans("menu.menu_name"))
             ->required()
             ->rules(
                 [
                     Rule::unique(config('admin.database.menu_table'))->ignore($id),
                     "max:40",
+                    'regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/'
                 ]
             )->help(exmtrans('common.help_code'));
+        } else {
+            $form->display('menu_name', exmtrans("menu.menu_name"));
+        }
         $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
-        $form->icon('icon', trans('admin.icon'))->default('');
+        $form->icon('icon', trans('admin.icon'))->required()->default('');
         $form->hidden('order');
         $form->setWidth(8, 3);
 
@@ -237,18 +243,21 @@ class MenuController extends AdminControllerBase
         switch ($type) {
             case MenuType::SYSTEM:
                 foreach (Define::MENU_SYSTEM_DEFINITION as $k => $value) {
-                    array_push($options, ['id' => $k, 'text' => exmtrans("menu.system_definitions.".$k) ]);
+                    if (!$this->isAddSystemMenuOptions($k, $value)) {
+                        continue;
+                    }
+                    $options[] = ['id' => $k, 'text' => exmtrans("menu.system_definitions.".$k) ];
                 }
                 break;
             case MenuType::PLUGIN:
                 $options = [];
                 foreach (Plugin::where('plugin_type', PluginType::PAGE)->get() as $value) {
-                    array_push($options, ['id' => $value->id, 'text' => $value->plugin_view_name]);
+                    $options[] = ['id' => $value->id, 'text' => $value->plugin_view_name];
                 }
                 break;
             case MenuType::TABLE:
                 foreach (CustomTable::where('showlist_flg', true)->get() as $value) {
-                    array_push($options, ['id' => $value->id, 'text' => $value->table_view_name]);
+                    $options[] = ['id' => $value->id, 'text' => $value->table_view_name];
                 }
                 break;
         }
@@ -279,8 +288,8 @@ class MenuController extends AdminControllerBase
                 return [
                     'menu_name' => array_get($item, 'plugin_name'),
                     'title' => array_get($item, 'plugin_view_name'),
-                    'icon' => array_get($item, 'icon'),
-                    'uri' => array_get($item, 'options.uri'),
+                    'icon' => array_get($item, 'options.icon'),
+                    'uri' => $item->getRouteUri(),
                 ];
                 return Plugin::getEloquent($value);
             case MenuType::TABLE:
@@ -309,5 +318,23 @@ class MenuController extends AdminControllerBase
         }
 
         return [];
+    }
+
+    /**
+     * Whether is add system menu options
+     *
+     * @param [type] $k
+     * @param [type] $value
+     * @return boolean
+     */
+    protected function isAddSystemMenuOptions($k, $value)
+    {
+        if ($k == 'role_group') {
+            return System::permission_available();
+        } elseif ($k == 'api_setting') {
+            return System::api_available();
+        }
+        
+        return true;
     }
 }

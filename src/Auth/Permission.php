@@ -112,8 +112,23 @@ class Permission
             return $result;
         }
 
+        // if 'role' or 'role_group' and !System::permission_available(), false
+        if (in_array($endpoint, ['role', 'role_group']) && !System::permission_available()) {
+            return false;
+        }
+        // if api setting, check config
+        if (in_array($endpoint, ['api_setting']) && !System::api_available()) {
+            return false;
+        }
+
         // if system doesn't use role, return true
         if (!System::permission_available()) {
+            return true;
+        }
+
+        // not admin page's (for custom url), return true
+        $parse_url = parse_url($endpoint);
+        if ($parse_url && array_has($parse_url, 'host') && strpos($endpoint, admin_url()) === false) {
             return true;
         }
 
@@ -133,6 +148,7 @@ class Permission
             case "auth/login":
             case "auth/logout":
             case "auth/setting":
+            case "auth/change":
             case "dashboard":
             case "dashboardbox":
             case "oauth":
@@ -141,10 +157,11 @@ class Permission
                 return true;
             ///// only system permission
             case "system":
-            case "role":
             case "plugin":
             case "database":
             case "auth/menu":
+            case "auth/logs":
+            case "api_setting":
                 if ($systemRole) {
                     return array_key_exists('system', $this->permission_details);
                 }
@@ -157,6 +174,7 @@ class Permission
                     return array_key_exists(PermissionEnum::LOGIN_USER, $this->permission_details);
                 }
                 return false;
+            case "role":
             case "role_group":
                 if ($systemRole) {
                     return array_keys_exists(PermissionEnum::AVAILABLE_ACCESS_ROLE_GROUP, $this->permission_details);

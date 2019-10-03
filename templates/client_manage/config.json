@@ -601,8 +601,8 @@
         {
             "suuid": "901117b47cad43291ed6",
             "view_type": "0",
-            "view_kind_type": "0",
-            "view_view_name": "既定のビュー",
+            "view_kind_type": "9",
+            "view_view_name": "全件ビュー",
             "default_flg": "1",
             "options": null,
             "custom_view_columns": [
@@ -633,8 +633,8 @@
         {
             "suuid": "58c28b1a750f81b6621a",
             "view_type": "0",
-            "view_kind_type": "0",
-            "view_view_name": "既定のビュー",
+            "view_kind_type": "9",
+            "view_view_name": "全件ビュー",
             "default_flg": "1",
             "options": null,
             "custom_view_columns": [
@@ -683,7 +683,7 @@
         {
             "suuid": "1e425a576a67c5d993f2",
             "view_type": "0",
-            "view_kind_type": "0",
+            "view_kind_type": "9",
             "view_view_name": "全顧客情報",
             "default_flg": "1",
             "options": null,

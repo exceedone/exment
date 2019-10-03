@@ -2,22 +2,26 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Services\LoginService;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\PasswordHistory;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
+use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request as Req;
+use Carbon\Carbon;
 
 /**
  * For login controller
@@ -58,6 +62,10 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         $remember = boolval($request->get('remember', false));
 
         if ($this->guard()->attempt($credentials, $remember)) {
+            if (!$this->checkPasswordLimit()) {
+                session([Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT => true]);
+                return redirect(admin_url('auth/change'));
+            }
             $this->postVerifyEmail();
             return $this->sendLoginResponse($request);
         }
@@ -70,6 +78,35 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         return back()->withInput()->withErrors([
             $this->username() => $this->getFailedLoginMessage(),
         ]);
+    }
+
+    protected function checkPasswordLimit()
+    {
+        // not use password policy and expiration days, go next
+        if (empty($expiration_days = System::password_expiration_days())) {
+            return true;
+        }
+
+        if (is_null($user = \Exment::user())) {
+            return true;
+        }
+
+        // get password latest history
+        $last_history = PasswordHistory::where('login_user_id', $user->id)
+            ->orderby('created_at', 'desc')->first();
+
+        if (is_null($last_history)) {
+            return true;
+        }
+    
+        // calc diff days
+        $diff_days = $last_history->created_at->diffInDays(Carbon::now());
+
+        if ($diff_days > $expiration_days) {
+            return false;
+        }
+
+        return true;
     }
 
     protected function postVerifyEmail()
@@ -112,7 +149,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         if (!isset($provider)) {
             abort(404);
         }
-        $socialiteProvider = $this->getSocialiteProvider($login_provider);
+        $socialiteProvider = LoginService::getSocialiteProvider($login_provider);
         return $socialiteProvider->redirect();
     }
 
@@ -129,7 +166,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         $error_url = admin_url('auth/login');
         
-        $socialiteProvider = $this->getSocialiteProvider($login_provider);
+        $socialiteProvider = LoginService::getSocialiteProvider($login_provider);
 
         // get provider user
         $provider_user = null;
@@ -171,6 +208,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         )) {
             // set session for 2factor
             session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+            
+            // set session access key
+            LoginService::setToken($login_provider, $provider_user);
 
             return $this->sendLoginResponse($request);
         }
@@ -195,16 +235,6 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             'result'  => true,
             'message' => trans('admin.delete_succeeded'),
         ]);
-    }
-
-    /**
-     * get Socialite Provider
-     */
-    protected function getSocialiteProvider(string $login_provider)
-    {
-        config(["services.$login_provider.redirect" => admin_urls("auth", "login", $login_provider, "callback")]);
-        
-        return \Socialite::with($login_provider)->stateless();
     }
     
     /**
@@ -258,7 +288,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             $login_user = LoginUser::firstOrNew([
                 'base_user_id' => $exment_user->id,
                 'login_provider' => $login_provider,
-                ]);
+            ]);
             $login_user->base_user_id = $exment_user->id;
             $login_user->login_provider = $login_provider;
             $login_user->password = $provider_user->id;
@@ -303,8 +333,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      */
     protected function settingForm()
     {
-        $user = LoginUser::class;
-        return $user::form(function (Form $form) {
+        $login_user = LoginUser::class;
+        return $login_user::form(function (Form $form) {
             $form->display('base_user.value.user_code', exmtrans('user.user_code'));
             $form->display('base_user.value.email', exmtrans('user.email'));
             
@@ -334,9 +364,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                     return $exmentfile->local_filename;
                 });
 
-            if (!useLoginProvider()) {
-                $form->password('old_password', exmtrans('user.old_password'))->rules('required_with:password|old_password')->help(exmtrans('user.help.change_only'));
-                $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
+            if (!useLoginProvider() || boolval(config('exment.show_default_login_provider', true))) {
+                $form->password('current_password', exmtrans('user.current_password'))->rules(['required_with:password', new ExmentValidator\CurrentPasswordRule])->help(exmtrans('user.help.change_only'));
+                $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false, \Exment::user()))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
 
@@ -355,7 +385,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             }
 
             $form->setAction(admin_url('auth/setting'));
-            $form->ignore(['password_confirmation', 'old_password', 'login_2factor_provider']);
+            $form->ignore(['password_confirmation', 'current_password', 'login_2factor_provider']);
             $form->tools(function (Form\Tools $tools) {
                 $tools->disableDelete();
             });

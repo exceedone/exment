@@ -167,6 +167,20 @@ class File extends ModelBase
     }
 
     /**
+     * Download favicon image
+     */
+    public static function downloadFavicon()
+    {
+        $record = System::where('system_name', 'site_favicon')->first();
+
+        if (!isset($record)) {
+            abort(404);
+        }
+
+        return self::downloadFile($record->system_value);
+    }
+
+    /**
      * Delete file and document info
      */
     public static function deleteFile($uuid, $options = [])

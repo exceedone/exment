@@ -80,7 +80,7 @@ class News
         $bodies = [];
         
         foreach ($this->items as $item) {
-            $date = \Carbon\Carbon::parse(array_get($item, 'date'))->format('Y-m-d');
+            $date = \Carbon\Carbon::parse(array_get($item, 'date'))->format(config('admin.date_format'));
             $link = array_get($item, 'link');
             $title = array_get($item, 'title.rendered');
             $bodies[] = [

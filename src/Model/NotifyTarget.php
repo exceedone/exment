@@ -79,10 +79,9 @@ class NotifyTarget
     {
         $result = [];
         // if role users, getModelsAsRole
-        if($column == NotifyActionTarget::CREATED_USER){
+        if ($column == NotifyActionTarget::CREATED_USER) {
             $result[] = static::getModelAsUser(CustomTable::getEloquent(SystemTableName::USER)->getValueModel($custom_value->created_user_id));
-        }
-        elseif ($column == NotifyActionTarget::HAS_ROLES) {
+        } elseif ($column == NotifyActionTarget::HAS_ROLES) {
             $roleUsers = static::getModelsAsRole($custom_value);
             foreach ($roleUsers as $roleUser) {
                 $result[] = $roleUser;

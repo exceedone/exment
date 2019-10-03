@@ -18,7 +18,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -220,11 +219,11 @@ class CustomFormController extends AdminControllerTableBase
                 
         // Loop using CustomFormBlocks
         $custom_form_blocks = [];
-        foreach ($form->custom_form_blocks as $custom_form_block) {
+        foreach ($this->getFormBlockItems($form) as $custom_form_block) {
             $column_blocks = $custom_form_block->toArray();
             // get label header.
             $column_blocks = array_merge($column_blocks, [
-                'label' => $this->getBlockLabelHeader(array_get($column_blocks, 'form_block_type')) . $custom_form_block->target_table->table_view_name ?? null,
+                'label' => $this->getBlockLabelHeader(array_get($column_blocks, 'form_block_type')) . array_get($custom_form_block, 'target_table.table_view_name') ?? null,
                 'custom_form_columns' => [],
             ]);
 
@@ -271,6 +270,9 @@ class CustomFormController extends AdminControllerTableBase
                 $custom_form_column_array['header_column_name'] = '[custom_form_columns]['
                     .(isset($custom_form_column['id']) ? $custom_form_column['id'] : 'NEW__'.make_uuid())
                     .']';
+                
+                // add name for toggle(it's OK random string)
+                $custom_form_column_array['toggle_key_name'] = make_uuid();
 
                 array_push($column_blocks['custom_form_columns'], $custom_form_column_array);
             }
@@ -307,7 +309,7 @@ class CustomFormController extends AdminControllerTableBase
                 $block->form_block_view_name = $block->label;
                 $block->available = 0;
                 $block->options = [
-                    'hasmany_type' => RelationType::ONE_TO_MANY ? 1 : null
+                    'hasmany_type' => null
                 ];
                 $block->custom_form_columns = [];
                 array_push($custom_form_blocks, $block->toArray());
@@ -355,6 +357,29 @@ class CustomFormController extends AdminControllerTableBase
         }
 
         return $custom_form_blocks;
+    }
+
+    /**
+     * Get form blocks.
+     * If first request, set from database.
+     * If not (ex. validation error), set from request value
+     *
+     * @return void
+     */
+    protected function getFormBlockItems($form)
+    {
+        // get custom_form_blocks from request
+        $req_custom_form_blocks = old('custom_form_blocks');
+        if (!isset($req_custom_form_blocks)
+        ) {
+            return $form->custom_form_blocks;
+        }
+
+        return collect($req_custom_form_blocks)->map(function ($custom_form_block, $id) {
+            $custom_form_block['id'] = $id;
+            $custom_form_block['target_table'] = CustomTable::getEloquent($custom_form_block['form_block_target_table_id']);
+            return collect($custom_form_block);
+        });
     }
 
     /**
@@ -457,6 +482,7 @@ class CustomFormController extends AdminControllerTableBase
                 .(isset($custom_form_column['id']) ? $custom_form_column['id'] : 'NEW__'.make_uuid())
                 .']';
                 $custom_form_column['header_column_name'] = $header_column_name;
+                $custom_form_column['toggle_key_name'] = make_uuid();
             }
 
             array_push($suggests, [
@@ -477,7 +503,8 @@ class CustomFormController extends AdminControllerTableBase
                 'form_column_type' => FormColumnType::OTHER,
                 'required' => false,
                 'form_column_target_id' => $id,
-                'header_column_name' =>$header_column_name
+                'header_column_name' =>$header_column_name,
+                'toggle_key_name' => make_uuid(),
             ]);
         }
         array_push($suggests, [
@@ -497,6 +524,9 @@ class CustomFormController extends AdminControllerTableBase
         foreach ($inputs as $key => $value) {
             $columns = [];
             if (!isset($value['form_block_target_table_id'])) {
+                continue;
+            }
+            if (!boolval(array_get($value, 'available'))) {
                 continue;
             }
             // get column id for registration

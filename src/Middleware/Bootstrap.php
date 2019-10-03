@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Config;
 use Encore\Admin;
 use Encore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
+use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\PluginType;
 
 /**
  * Middleware as Bootstrap.
@@ -16,6 +18,28 @@ class Bootstrap
 {
     public function handle(Request $request, \Closure $next)
     {
+        $this->setCssJs($request, $next);
+
+        return $next($request);
+    }
+
+    /**
+     * Set css and js. only first request(not ajax and pjax)
+     *
+     * @param Request $request
+     * @param \Closure $next
+     * @return void
+     */
+    protected function setCssJs(Request $request, \Closure $next)
+    {
+        if ($request->ajax() || $request->pjax()) {
+            return;
+        }
+
+        if ($this->isStaticRequest($request)) {
+            return;
+        }
+
         Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav);
@@ -39,6 +63,7 @@ class Bootstrap
         Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
         
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
+        Ad::js(asset('vendor/exment/mathjs/math.min.js'));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/core/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/core/locales-all.min.js?ver='.$ver));
@@ -50,6 +75,47 @@ class Bootstrap
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/notify_navbar.js?ver='.$ver));
 
+        // set scripts
+        $pluginPublics = Plugin::getPluginPublics();
+        foreach ($pluginPublics as $pluginPublic) {
+            // get scripts
+            $plugin = $pluginPublic->_plugin();
+            $p = $plugin->matchPluginType(PluginType::SCRIPT) ? 'js' : 'css';
+            $cdns = array_get($plugin, 'options.cdns', []);
+            foreach ($cdns as $cdn) {
+                Ad::{$p}($cdn);
+            }
+
+            // get each scripts
+            $items = collect($pluginPublic->{$p}(true))->map(function ($item) use ($pluginPublic) {
+                return admin_urls($pluginPublic->_plugin()->getRouteUri(), 'public/', $item);
+            });
+            if (!empty($items)) {
+                foreach ($items as $item) {
+                    Ad::{$p}($item);
+                }
+            }
+        }
+
+        // set Plugin resource
+        $pluginPages = Plugin::getPluginPages();
+        foreach ($pluginPages as $pluginPage) {
+            // get css and js
+            $publics = ['css', 'js'];
+            foreach ($publics as $p) {
+                $items = collect($pluginPage->{$p}())->map(function ($item) use ($pluginPage) {
+                    return admin_urls($pluginPage->_plugin()->getRouteUri(), 'public/', $item);
+                });
+                if (!empty($items)) {
+                    foreach ($items as $item) {
+                        Ad::{$p}($item);
+                    }
+                }
+            }
+        }
+
+        Ad::js(asset('vendor/exment/js/customscript.js?ver='.$ver));
+
         // add admin_url and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');
         $prefix = config('admin.route.prefix') ?? '';
@@ -60,6 +126,7 @@ class Bootstrap
         $delete_confirm = trans('admin.delete_confirm');
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
+        $gridrow_select_edit = config('exment.gridrow_select_edit', 0);
         
         $script = <<<EOT
         $('body').append($('<input/>', {
@@ -76,6 +143,11 @@ class Bootstrap
             'type':'hidden',
             'id': 'admin_uri',
             'value': '$admin_url'
+        }));
+        $('body').append($('<input/>', {
+            'type':'hidden',
+            'id': 'gridrow_select_edit',
+            'value': '$gridrow_select_edit'
         }));
         
     ///// delete click event
@@ -102,7 +174,12 @@ class Bootstrap
 
 EOT;
         Ad::script($script);
+    }
 
-        return $next($request);
+    protected function isStaticRequest($request)
+    {
+        $pathInfo = $request->getPathInfo();
+        $extension = strtolower(pathinfo($pathInfo, PATHINFO_EXTENSION));
+        return in_array($extension, ['js', 'css', 'png', 'jpg', 'jpeg', 'gif']);
     }
 }

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
@@ -10,7 +11,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
-use Exceedone\Exment\Services\FormHelper;
+use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Carbon\Carbon;
 use Validator;
 
@@ -29,21 +30,91 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataList(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
+        // get and check query parameter
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
+
+        $orderby = null;
+        $orderby_list = [];
+        if ($request->has('orderby')) {
+            $orderby = $request->get('orderby');
+            $params = explode(',', $orderby);
+            $orderby_list = [];
+            foreach ($params as $param) {
+                $values = preg_split("/\s+/", trim($param));
+                $column_name = $values[0];
+                if (count($values) > 1 && !preg_match('/^asc|desc$/i', $values[1])) {
+                    return abortJson(400, exmtrans('api.errors.invalid_params'));
+                }
+                if (SystemColumn::isValid($column_name)) {
+                } else {
+                    $column = CustomColumn::getEloquent($column_name, $this->custom_table);
+                    if (!isset($column) && $column->index_enabled) {
+                        return abortJson(400, exmtrans('api.errors.invalid_params'));
+                    } elseif (!$column->index_enabled) {
+                        return abortJson(400, exmtrans('api.errors.not_index_enabled'));
+                    }
+                    $column_name = $column->getIndexColumnName();
+                }
+                $orderby_list[] = [$column_name, count($values) > 1? $values[1]: 'asc'];
+            }
+        }
+
         // get paginate
-        $model = $this->custom_table->getValueModel();
-        $paginator = $model->paginate();
+        $model = $this->custom_table->getValueModel()->query();
+
+        // set order by
+        if (isset($orderby_list)) {
+            foreach ($orderby_list as $item) {
+                $model->orderBy($item[0], $item[1]);
+            }
+        }
+        $paginator = $model->paginate($count);
 
         // execute makehidden
         $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
         $paginator->value = $value;
 
+        // set appends
+        $paginator->appends([
+            'count' => $count,
+            'orderBy' => $orderby,
+        ]);
+
         return $paginator;
     }
 
+    /**
+     * find match data for select ajax
+     * @param mixed $id
+     * @return mixed
+     */
+    public function dataSelect(Request $request)
+    {
+        $paginator = $this->dataQuery($request);
+        if (!isset($paginator)) {
+            return [];
+        }
+        
+        if (!($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator)) {
+            return $paginator;
+        }
+        // if call as select ajax, return id and text array
+        $paginator->getCollection()->transform(function ($value) {
+            return [
+                'id' => $value->id,
+                'text' => $value->label,
+            ];
+        });
+
+        return $paginator;
+    }
+    
     /**
      * find match data by query
      * use form select ajax
@@ -52,7 +123,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataQuery(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -60,16 +131,40 @@ class ApiTableController extends AdminControllerTableBase
         $model = getModelName($this->custom_table)::query();
         $model = \Exment::user()->filterModel($model);
 
+        $validator = Validator::make($request->all(), [
+            'q' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ]);
+        }
+
         // filtered query
         $q = $request->get('q');
-        if (!isset($q)) {
-            return [];
+        
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
+
+        // get custom_view
+        $custom_view = null;
+        if ($request->has('target_view_id')) {
+            $custom_view = CustomView::getEloquent($request->get('target_view_id'));
         }
 
         $paginator = $this->custom_table->searchValue($q, [
             'paginate' => true,
             'makeHidden' => true,
+            'target_view' => $custom_view,
+            'maxCount' => $count,
         ]);
+
+        $paginator->appends([
+            'q' => $q,
+            'count' => $count,
+        ]);
+
         return $paginator;
     }
     
@@ -81,7 +176,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataFind(Request $request, $tableKey, $id)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -113,8 +208,7 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, trans('admin.deny'));
         }
 
-        $custom_value = $this->custom_table->getValueModel();
-        return $this->saveData($custom_value, $request);
+        return $this->saveData($request);
     }
 
     /**
@@ -136,7 +230,7 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, trans('admin.deny'));
         }
 
-        return $this->saveData($custom_value, $request);
+        return $this->saveData($request, $custom_value);
     }
 
     /**
@@ -174,7 +268,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function relatedLinkage(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -208,9 +302,34 @@ class ApiTableController extends AdminControllerTableBase
         return $this->custom_columns;
     }
 
-    
-    protected function saveData($custom_value, $request)
+    /**
+     * get table columns data
+     */
+    public function columnData(Request $request, $tableKey, $column_name)
     {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, trans('admin.deny'));
+        }
+
+        $query = $request->get('query');
+        $custom_column = CustomColumn::getEloquent($column_name, $this->custom_table->table_name);
+
+        $list = [];
+
+        if ($custom_column->index_enabled) {
+            $column_name = $custom_column->getIndexColumnName();
+            $list = $this->custom_table->searchValue($query, [
+                'searchColumns' => collect([$column_name]),
+            ])->pluck($column_name)->unique()->toArray();
+        }
+        return json_encode($list);
+    }
+
+    
+    protected function saveData($request, $custom_value = null)
+    {
+        $is_single = false;
+
         $validator = Validator::make($request->all(), [
             'value' => 'required',
         ]);
@@ -220,111 +339,102 @@ class ApiTableController extends AdminControllerTableBase
             ]);
         }
 
-        $value = $request->get('value');
-        // replace items
-        if (!is_null($findKeys = $request->get('findKeys'))) {
-            $custom_table = $custom_value->custom_table;
-            foreach ($findKeys as $findKey => $findValue) {
-                // find column
-                $custom_column = CustomColumn::getEloquent($findKey, $custom_table);
-                if (!isset($custom_column)) {
-                    continue;
-                }
+        $values = $request->get('value');
 
-                if ($custom_column->column_type != ColumnType::SELECT_TABLE) {
-                    continue;
-                }
-
-                // get target custom table
-                $findCustomTable = $custom_column->select_target_table;
-                if (!isset($findCustomTable)) {
-                    continue;
-                }
-
-                // get target column for getting index
-                $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
-                if (!isset($findCustomColumn)) {
-                    continue;
-                }
-
-                if (!$findCustomColumn->index_enabled) {
-                    //TODO:show error
-                    continue;
-                }
-                $indexColumnName = $findCustomColumn->getIndexColumnName();
-
-                $findCustomValue = $findCustomTable->getValueModel()
-                    ->where($indexColumnName, array_get($value, $findKey))
-                    ->first();
-
-                if (!isset($findCustomValue)) {
-                    //TODO:show error
-                    continue;
-                }
-                array_set($value, $findKey, array_get($findCustomValue, 'id'));
-            }
+        if (!is_vector($values)) {
+            $values = [$values];
+            $is_single = true;
         }
 
+        $max_create_count = config('exment.api_max_create_count', 100);
+        if (count($values) > $max_create_count) {
+            return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count));
+        }
 
-        // // get fields for validation
-        $validate = $this->validateData($value, $custom_value->id);
-        if ($validate !== true) {
+        $findResult = $this->convertFindKeys($values, $request);
+        if ($findResult !== true) {
             return abortJson(400, [
-                'errors' => $validate
+                'errors' => $findResult
             ]);
         }
 
-        // set default value if new
-        if (!isset($custom_value->id)) {
-            $value = $this->setDefaultData($value);
+        $validates = [];
+        foreach ($values as $index => $value) {
+            if (!isset($custom_value)) {
+                $value = $this->custom_table->setDefaultValue($value);
+                // // get fields for validation
+                $validator = $this->custom_table->validateValue($value);
+            } else {
+                $value = $custom_value->mergeValue($value);
+                // // get fields for validation
+                $validator = $this->custom_table->validateValue($value, false, $custom_value->id);
+            }
+
+            if ($validator->fails()) {
+                if ($is_single) {
+                    $validates[] = $this->getErrorMessages($validator);
+                } else {
+                    $validates[] = [
+                        'line_no' => $index,
+                        'error' => $this->getErrorMessages($validator)
+                    ];
+                }
+            }
         }
 
-        $custom_value->setValue($value);
-        $custom_value->saveOrFail();
+        if (count($validates) > 0) {
+            return abortJson(400, [
+                'errors' => $validates
+            ]);
+        }
 
-        return getModelName($this->custom_table)::find($custom_value->id)->makeHidden($this->custom_table->getMakeHiddenArray());
+        $response = [];
+        foreach ($values as &$value) {
+            // set default value if new
+            if (!isset($custom_value)) {
+                $model = $this->custom_table->getValueModel();
+            } else {
+                $model = $custom_value;
+            }
+
+            $model->setValue($value);
+            $model->saveOrFail();
+
+            $response[] = getModelName($this->custom_table)::find($model->id)->makeHidden($this->custom_table->getMakeHiddenArray());
+        }
+
+        if ($is_single && count($response) > 0) {
+            return $response[0];
+        } else {
+            return $response;
+        }
     }
 
-    /**
-     * validate requested data
-     */
-    protected function validateData($value, $id = null)
+    protected function convertFindKeys(&$values, $request)
     {
-        // get fields for validation
-        $fields = [];
-        $customAttributes = [];
-        foreach ($this->custom_table->custom_columns as $custom_column) {
-            $fields[] = FormHelper::getFormField($this->custom_table, $custom_column, $id);
-            $customAttributes[$custom_column->column_name] = "{$custom_column->column_view_name}({$custom_column->column_name})";
-
-            // if not contains $value[$custom_column->column_name], set as null.
-            // if not set, we cannot validate null check because $field->getValidator returns false.
-            if (!array_has($value, $custom_column->column_name)) {
-                $value[$custom_column->column_name] = null;
-            }
-        }
-        // foreach for field validation rules
-        $rules = [];
-        foreach ($fields as $field) {
-            // get field validator
-            $field_validator = $field->getValidator($value);
-            if (!$field_validator) {
-                continue;
-            }
-            // get field rules
-            $field_rules = $field_validator->getRules();
-
-            // merge rules
-            $rules = array_merge($field_rules, $rules);
+        if (is_null($findKeys = $request->get('findKeys'))) {
+            return true;
         }
         
-        // execute validation
-        $validator = Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
-        if ($validator->fails()) {
-            // create error message
-            return $this->getErrorMessages($validator);
+        $errors = [];
+
+        $processOptions = [
+            'onlyValue' => true,
+            'errorCallback' => function ($message, $key) use (&$errors) {
+                $errors[$key] = $message;
+            },
+            'setting' => collect($findKeys)->map(function ($value, $key) {
+                return [
+                    'column_name' => $key,
+                    'target_column_name' => $value
+                ];
+            })->toArray()];
+
+        foreach ($values as &$value) {
+            $value = DataImportExportService::processCustomValue($this->custom_columns, $value, $processOptions);
         }
-        return true;
+
+        return count($errors) > 0 ? $errors : true;
     }
 
     /**
@@ -347,26 +457,6 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
-     * set Default Data from custom column info
-     */
-    protected function setDefaultData($value)
-    {
-        // get fields for validation
-        $fields = [];
-        foreach ($this->custom_table->custom_columns as $custom_column) {
-            // get default value
-            $default = $custom_column->getOption('default');
-
-            // if not key in value, set default value
-            if (!array_has($value, $custom_column->column_name) && isset($default)) {
-                $value[$custom_column->column_name] = $default;
-            }
-        }
-
-        return $value;
-    }
-    
-    /**
      * get calendar data
      * @return mixed
      */
@@ -377,7 +467,12 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         // filtered query
-        $custom_view = CustomView::getDefault($this->custom_table);
+        if ($request->has('dashboard')) {
+            $is_dashboard = boolval($request->get('dashboard'));
+        } else {
+            $is_dashboard = false;
+        }
+        $custom_view = CustomView::getDefault($this->custom_table, true, $is_dashboard);
         $start = $request->get('start');
         $end = $request->get('end');
         if (!isset($start) || !isset($end)) {
@@ -522,5 +617,27 @@ class ApiTableController extends AdminControllerTableBase
             $task['end'] = $dtEnd;
         }
         $task['allDayBetween'] = $allDayBetween;
+    }
+
+    /**
+     * Get count parameter for list count
+     *
+     * @param [type] $request
+     * @return void
+     */
+    protected function getCount($request)
+    {
+        // get and check query parameter
+        
+        if (!$request->has('count')) {
+            return config('exment.api_default_data_count', 20);
+        }
+
+        $count = $request->get('count');
+        if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
+            return abortJson(400, exmtrans('api.errors.over_maxcount'));
+        }
+
+        return $count;
     }
 }

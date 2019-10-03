@@ -4,9 +4,12 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Field as ExmentField;
+use Exceedone\Exment\Validator;
 
 class Time extends Date
 {
+    protected $format = 'H:i:s';
+
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
@@ -14,22 +17,22 @@ class Time extends Date
         }
         return Field\Time::class;
     }
-    
+
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->time();
     }
-
-    /**
-     * get now string for saving
-     *
-     * @return string now string
-     */
-    protected function getNowString()
+    
+    protected function getDisplayFormat()
     {
-        return \Carbon\Carbon::now()->format('H:i:s');
+        return config('admin.time_format');
     }
     
+    protected function setValidates(&$validates)
+    {
+        $validates[] = new Validator\TimeRule();
+    }
+
     /**
      * whether column is date
      *

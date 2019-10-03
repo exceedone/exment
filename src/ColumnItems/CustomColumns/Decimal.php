@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Validator;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DatabaseDataType;
 
 class Decimal extends CustomItem
@@ -18,6 +19,22 @@ class Decimal extends CustomItem
             }
         }
         return $this;
+    }
+
+    /**
+     * get html(for display)
+     */
+    public function html()
+    {
+        // default escapes text
+        $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($this->text()) : $this->text();
+        // display number as percent
+        if (array_has($this->custom_column, 'options.percent_format')) {
+            if (boolval(array_get($this->custom_column, 'options.percent_format')) && isset($text)) {
+                $text = strval(parseFloat($text) * 100) . '%';
+            }
+        }
+        return esc_html($text);
     }
     
     public function text()
@@ -74,10 +91,16 @@ class Decimal extends CustomItem
         // value size
         if (array_get($options, 'number_min')) {
             $validates[] = new Validator\NumberMinRule(array_get($options, 'number_min'));
+        } else {
+            $validates[] = new Validator\NumberMinRule(-1 * Define::MAX_SIZE_NUMBER);
         }
+
         if (array_get($options, 'number_max')) {
             $validates[] = new Validator\NumberMaxRule(array_get($options, 'number_max'));
+        } else {
+            $validates[] = new Validator\NumberMaxRule(Define::MAX_SIZE_NUMBER);
         }
+
         $validates[] = new Validator\DecimalCommaRule;
     }
     /**

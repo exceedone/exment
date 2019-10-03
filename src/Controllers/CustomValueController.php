@@ -6,6 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Layout\Row;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\RelationType;
@@ -21,6 +22,7 @@ use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifySavedType;
@@ -34,6 +36,11 @@ class CustomValueController extends AdminControllerTableBase
     use CustomValueShow, CustomValueSummary, CustomValueCalendar;
     protected $plugins = [];
 
+    const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
+    const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
+    const CLASSNAME_CUSTOM_VALUE_FORM = 'block_custom_value_form';
+    const CLASSNAME_CUSTOM_VALUE_PREFIX = 'custom_value_';
+
     /**
      * CustomValueController constructor.
      * @param Request $request
@@ -42,12 +49,14 @@ class CustomValueController extends AdminControllerTableBase
     {
         parent::__construct($request);
 
+        if (!isset($this->custom_table)) {
+            return;
+        }
+
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
 
-        if (!is_null($this->custom_table)) {
-            //Get all plugin satisfied
-            $this->plugins = Plugin::getPluginsByTable($this->custom_table->table_name);
-        }
+        //Get all plugin satisfied
+        $this->plugins = Plugin::getPluginsByTable($this->custom_table->table_name);
     }
 
     /**
@@ -63,8 +72,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
-        $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
-        if ($one_record_flg) {
+        if ($this->custom_table->isOneRecord()) {
             // get record list
             $record = $this->getModelNameDV()::first();
             $id = isset($record)? $record->id: null;
@@ -76,20 +84,32 @@ class CustomValueController extends AdminControllerTableBase
 
             // has record, execute
             if (isset($record)) {
+                // check if form edit action disabled
+                if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
+                    admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+                    return $this->show($request, $content, $this->custom_table->table_name, $id);
+                }
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
-                $content->body($form);
+                $row = new Row($form);
             }
             // no record
             else {
+                // check if form create action disabled
+                if ($this->custom_table->formActionDisable(FormActionType::CREATE)) {
+                    admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+                    return redirect(admin_url('/'));
+                }
                 $form = $this->form(null);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
-                $content->body($form);
+                $row = new Row($form);
             }
 
             $form->disableViewCheck();
             $form->disableEditingCheck();
             $form->disableCreatingCheck();
+
+            $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         } else {
             $callback = null;
             if ($request->has('query') && $this->custom_view->view_kind_type != ViewKindType::ALLDATA) {
@@ -101,18 +121,23 @@ class CustomValueController extends AdminControllerTableBase
             }
             switch ($this->custom_view->view_kind_type) {
                 case ViewKindType::AGGREGATE:
-                    $content->body($this->gridSummary());
+                    $row = new Row($this->gridSummary());
                     break;
                 case ViewKindType::CALENDAR:
-                    $content->body($this->gridCalendar());
+                    $row = new Row($this->gridCalendar());
                     break;
                 default:
-                    $content->body($this->grid($callback));
+                    $row = new Row($this->grid($callback));
                     $this->custom_table->saveGridParameter($request->path());
             }
 
-            PartialCrudService::setGridContent($this->custom_table, $content);
+            $row->class([static::CLASSNAME_CUSTOM_VALUE_GRID, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         }
+
+        $content->row($row);
+
+        PartialCrudService::setGridContent($this->custom_table, $content);
+
         return $content;
     }
     
@@ -126,9 +151,20 @@ class CustomValueController extends AdminControllerTableBase
         if (($response = $this->firstFlow($request)) instanceof Response) {
             return $response;
         }
+        // check if form create action disabled
+        if ($this->custom_table->formActionDisable(FormActionType::CREATE)) {
+            admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+            return redirect(admin_urls('data', $this->custom_table->table_name));
+        }
+
         $this->AdminContent($content);
+        
         Plugin::pluginPreparing($this->plugins, 'loading');
-        $content->body($this->form(null));
+
+        $row = new Row($this->form(null));
+        $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+        $content->row($row);
+        
         Plugin::pluginPreparing($this->plugins, 'loaded');
         return $content;
     }
@@ -150,9 +186,20 @@ class CustomValueController extends AdminControllerTableBase
         if (isset($redirect)) {
             return $redirect;
         }
+
+        // check if form edit action disabled
+        if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
+            admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+            return redirect(admin_urls('data', $this->custom_table->table_name));
+        }
+
         $this->AdminContent($content);
         Plugin::pluginPreparing($this->plugins, 'loading');
-        $content->body($this->form($id)->edit($id));
+
+        $row = new Row($this->form($id)->edit($id));
+        $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+        $content->row($row);
+
         Plugin::pluginPreparing($this->plugins, 'loaded');
         return $content;
     }
@@ -177,7 +224,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->AdminContent($content);
         $content->row($this->createShowForm($id));
         $content->row(function ($row) use ($id) {
-            $row->class('row-eq-height');
+            $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
             $this->setOptionBoxes($row, $id, false);
         });
         return $content;
@@ -308,7 +355,8 @@ class CustomValueController extends AdminControllerTableBase
         }
         
         set_time_limit(240);
-        $class = $plugin->getClass([
+
+        $class = $plugin->getClass($request->input('plugin_type'), [
             'custom_table' => $this->custom_table,
             'id' => $id
         ]);
@@ -540,13 +588,13 @@ class CustomValueController extends AdminControllerTableBase
                 Checker::error();
                 return false;
             }
-        }elseif (isset($id) && $show) {
+        } elseif (isset($id) && $show) {
             // if user doesn't have role for target id data, show deny error.
             if (!$this->custom_table->hasPermissionData($id)) {
                 Checker::error();
                 return false;
             }
-        }else{
+        } else {
             //Validation table value
             $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
             if (!$this->validateTable($this->custom_table, $roleValue)) {

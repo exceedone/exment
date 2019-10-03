@@ -80,10 +80,11 @@ class ListItem implements ItemInterface
                 }
             }
         ];
-        list($headers, $bodies) = $this->custom_view->getDataTable($datalist, $option);
+        list($headers, $bodies, $columnStyles) = $this->custom_view->getDataTable($datalist, $option);
         
         $widgetTable = new WidgetTable($headers, $bodies);
         $widgetTable->class('table table-hover');
+        $widgetTable->setColumnStyle($columnStyles);
 
         return $widgetTable->render();
     }
@@ -177,7 +178,7 @@ class ListItem implements ItemInterface
         }
         
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueModel();
+        $model = $this->custom_table->getValueModel()::query();
 
         if (array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE) {
             // filter model

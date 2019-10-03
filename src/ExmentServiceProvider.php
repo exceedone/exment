@@ -8,8 +8,11 @@ use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\Plugin\PluginPublicBase;
+use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
@@ -17,13 +20,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
-use League\Flysystem\Filesystem;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
 
 class ExmentServiceProvider extends ServiceProvider
 {
+    
     /**
      * Application Policy Map
      *
@@ -70,6 +73,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
         'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
+        'admin.password-limit'       => \Exceedone\Exment\Middleware\AuthenticatePasswordLimit::class,
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
@@ -94,6 +98,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.auth',
             'admin.auth-2factor',
+            'admin.password-limit',
             'admin.morph',
             'admin.bootstrap2',
             'admin.pjax',
@@ -116,6 +121,11 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.session',
         ],
+        'admin_plugin_public' => [
+            'admin.auth',
+            'admin.auth-2factor',
+            'admin.bootstrap2',
+        ],
         'adminapi' => [
             'adminapi.auth',
             'throttle:60,1',
@@ -124,7 +134,11 @@ class ExmentServiceProvider extends ServiceProvider
         'adminapi_anonymous' => [
             'throttle:60,1',
             'bindings',
-        ]
+        ],
+        'exment_web' => [
+            'admin.initialize',
+            'admin.morph',
+        ],
     ];
 
     /**
@@ -160,6 +174,11 @@ class ExmentServiceProvider extends ServiceProvider
         parent::register();
         require_once(__DIR__.'/Services/Helpers.php');
 
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/exment.php',
+            'exment'
+        );
+        
         // register route middleware.
         foreach ($this->routeMiddleware as $key => $middleware) {
             app('router')->aliasMiddleware($key, $middleware);
@@ -176,22 +195,23 @@ class ExmentServiceProvider extends ServiceProvider
                 return (new ExmentDatabase\Connectors\MariaDBConnectionFactory($app))->make($config, $name);
             });
         });
+
+        // bind plugin for page
+        $this->app->bind(PluginPublicBase::class, function ($app) {
+            return Plugin::getPluginPageModel();
+        });
         
         Passport::ignoreMigrations();
     }
 
     protected function publish()
     {
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/exment.php',
-            'exment'
-        );
-        
         $this->publishes([__DIR__.'/../config' => config_path()]);
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
         $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
         $this->publishes([__DIR__.'/../../laravel-admin/resources/assets' => public_path('vendor/laravel-admin')], 'laravel-admin-assets-exment');
         $this->publishes([__DIR__.'/../../laravel-admin/resources/lang' => resource_path('lang')], 'laravel-admin-lang-exment');
+        $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
     }
 
     protected function load()
@@ -199,6 +219,18 @@ class ExmentServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
+
+        // load plugins
+        if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {
+            return;
+        }
+
+        $pluginPages = Plugin::getByPluginTypes(PluginType::PLUGIN_TYPE_PLUGIN_PAGE(), true);
+        foreach ($pluginPages as $pluginPage) {
+            if (!is_null($items = $pluginPage->_getLoadView())) {
+                $this->loadViewsFrom($items[0], $items[1]);
+            }
+        }
     }
 
     protected function bootApp()
@@ -223,7 +255,7 @@ class ExmentServiceProvider extends ServiceProvider
                 
             // set cron event
             try {
-                if (\Schema::hasTable(SystemTableName::PLUGIN)) {
+                if (hasTable(SystemTableName::PLUGIN)) {
                     $plugins = Plugin::getCronBatches();
                     foreach ($plugins as $plugin) {
                         $cronSchedule = $this->app->make(Schedule::class);
@@ -262,18 +294,7 @@ class ExmentServiceProvider extends ServiceProvider
         });
 
         Storage::extend('exment-driver', function ($app, $config) {
-            switch (config('exment.driver.default', 'local')) {
-                case 'local':
-                    $adaper = Adapter\ExmentAdapterLocal::getAdapter($app, $config);
-                    break;
-                case 's3':
-                    $adaper = Adapter\ExmentAdapterS3::getAdapter($app, $config);
-                    break;
-                default:
-                    $adaper = Adapter\ExmentAdapterLocal::getAdapter($app, $config);
-                    break;
-            }
-            return new Filesystem($adaper);
+            return Driver::getExmentDriver($app, $config);
         });
 
         Initialize::initializeConfig(false);

@@ -40,7 +40,7 @@ class Modal
                     method: 'GET',
                     data: data
                 }).done(function( res ) {
-                    $('button.modal-submit').removeClass('d-none');
+                    $('#$id button.modal-submit').removeClass('d-none');
                     // change html
                     setBodyHtml(res, null, original_title);
 
@@ -110,6 +110,13 @@ class Modal
                 }).fail(function( res, textStatus, errorThrown ) {
                     // reomve class and prop
                     button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
+                    
+                    // if not have responseJSON, undefined error
+                    if(!hasValue(res.responseJSON)){
+                        toastr.error('Undefined Error');
+                        return;
+                    }
+                    
                     // show toastr
                     if(hasValue(res.responseJSON.toastr)){
                         toastr.error(res.responseJSON.toastr);
@@ -169,7 +176,7 @@ class Modal
                     if(hasValue(original_title)){
                         $('#$id .modal-title').html(original_title);
                     }
-                    $('button.modal-submit').addClass('d-none');
+                    $('#$id button.modal-submit').addClass('d-none');
                 }
                 // reomve class and prop
                 if(hasValue(button)){

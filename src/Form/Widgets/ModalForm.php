@@ -20,6 +20,10 @@ class ModalForm extends WidgetForm
                 e.preventDefault();
                 var form = $('#$id form').get()[0];
 
+                if(!form.reportValidity()){
+                    return;
+                }
+
                 // get button element
                 var button = $(e.target).closest('button');
                 button.data('buttontext', button.text());
@@ -55,6 +59,13 @@ class ModalForm extends WidgetForm
                 }).fail(function( res, textStatus, errorThrown ) {
                     // reomve class and prop
                     button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
+
+                    // if not have responseJSON, undefined error
+                    if(!hasValue(res.responseJSON)){
+                        toastr.error('Undefined Error');
+                        return;
+                    }
+                    
                     // show toastr
                     if(hasValue(res.responseJSON.toastr)){
                         toastr.error(res.responseJSON.toastr);

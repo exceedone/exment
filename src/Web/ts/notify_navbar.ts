@@ -7,6 +7,10 @@ namespace Exment {
          * Call only once. It's $(document).on event.
          */
         public static AddEventOnce() {
+            if($('.navbar-notify').length == 0){
+                return;
+            }
+            
             NotifyNavbarEvent.notifyNavbar();
             
             $(document).on('pjax:complete', function (event) {

@@ -14,15 +14,44 @@
 
             <div class="fields-group">
                 @if($fields->count() > 1)
+                    @if(isset($fields['8']))
                     <div class="row">
-                    @foreach($fields as $column)
-                        <div class="col-xs-12 col-md-{{12 / $fields->count()}}">
-                        @foreach($column as $field)
-                            {!! $field->render() !!}
-                        @endforeach
-                        </div>
+                    @foreach($fields['8'] as $field)
+                        {!! $field->render() !!}
                     @endforeach
                     </div>
+                    @endif
+                    @if(isset($fields['1']) || isset($fields['2']))
+                    <div class="row">
+                        @if(isset($fields['1']) && isset($fields['2']))
+                        <div class="col-xs-12 col-md-6">
+                        @endif
+                            @if(isset($fields['1']))
+                            @foreach($fields['1'] as $field)
+                                {!! $field->render() !!}
+                            @endforeach
+                            @endif
+                        @if(isset($fields['1']) && isset($fields['2']))
+                        </div>
+                        <div class="col-xs-12 col-md-6">
+                        @endif
+                            @if(isset($fields['2']))
+                            @foreach($fields['2'] as $field)
+                                {!! $field->render() !!}
+                            @endforeach
+                            @endif
+                        @if(isset($fields['1']) && isset($fields['2']))
+                        </div>
+                        @endif
+                    </div>
+                    @endif
+                    @if(isset($fields['9']))
+                    <div class="row">
+                    @foreach($fields['9'] as $field)
+                        {!! $field->render() !!}
+                    @endforeach
+                    </div>
+                    @endif
                 @else
                     @foreach($fields as $column)
                         @foreach($column as $field)

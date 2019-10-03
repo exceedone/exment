@@ -17,17 +17,13 @@ class UserBelongOrganizationItem extends ProviderBase
     protected $custom_table;
     protected $options;
     
-    public function __construct($custom_table)
-    {
-        parent::__construct($custom_table);
-        $this->options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions();
-    }
-
     /**
      * set laravel admin form's option
      */
     public function setAdminFormOptions(&$form, $id = null)
     {
+        $this->setOptions();
+        
         if (!System::organization_available() || count($this->options) == 0) {
             return;
         }
@@ -54,6 +50,8 @@ class UserBelongOrganizationItem extends ProviderBase
      */
     public function saved($form, $id)
     {
+        $this->setOptions();
+
         if (!System::organization_available() || count($this->options) == 0) {
             return;
         }
@@ -85,6 +83,13 @@ class UserBelongOrganizationItem extends ProviderBase
             'matchFilter' => function ($dbValue, $value) {
                 return array_get((array)$dbValue, 'parent_id') == array_get($value, 'parent_id');
             },
+        ]);
+    }
+
+    protected function setOptions()
+    {
+        $this->options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions([
+            'notAjax' => true,
         ]);
     }
 }

@@ -175,7 +175,7 @@ __EOT__;
         $this->initBackupRestore($targetfile);
 
         // set to tmp zip file
-        if(!boolval($this->option("tmp"))){
+        if (!boolval($this->option("tmp"))) {
             static::tmpDisk()->writeStream($this->zipName(), $this->getRestoreZip());
         }
 

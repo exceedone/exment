@@ -190,24 +190,37 @@ class CustomValueAuthoritable extends ModelBase
             [
                 'display_table' => $custom_table,
                 'permission' => $permission,
+                'notAjax' => true,
             ]
         );
-        $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions(
-            [
-                'display_table' => $custom_table,
-                'permission' => $permission,
-            ]
-        );
-        
         // get mapkey
+        if (is_array($users)) {
+            $users = collect($users);
+        }
+        
         $users = $users->mapWithKeys(function ($item, $key) {
             return [SystemTableName::USER . '_' . $key => $item];
         });
-        $organizations = $organizations->mapWithKeys(function ($item, $key) {
-            return [SystemTableName::ORGANIZATION . '_' . $key => $item];
-        });
+        $options = $users->toArray();
 
-        $options = array_merge($users->toArray(), $organizations->toArray());
+        if (System::organization_available()) {
+            $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions(
+                [
+                    'display_table' => $custom_table,
+                    'permission' => $permission,
+                    'noAjax' => true,
+                ]
+            );
+            if (is_array($organizations)) {
+                $organizations = collect($organizations);
+            }
+            
+            $organizations = $organizations->mapWithKeys(function ($item, $key) {
+                return [SystemTableName::ORGANIZATION . '_' . $key => $item];
+            });
+        
+            $options = array_merge($options, $organizations->toArray());
+        }
         return $options;
     }
 

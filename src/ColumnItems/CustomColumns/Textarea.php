@@ -9,7 +9,10 @@ class Textarea extends CustomItem
 {
     public function html()
     {
-        return  preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_script_tag($this->text()));
+        $text = $this->text();
+        $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($text) : $text;
+        
+        return  replaceBreak($text);
     }
     protected function getAdminFieldClass()
     {

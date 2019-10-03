@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Validator;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DatabaseDataType;
 
 class Integer extends CustomItem
@@ -29,7 +30,7 @@ class Integer extends CustomItem
         if (!isset($rmv)) {
             return null;
         }
-        return $rmv;
+        return strval(intval($rmv));
     }
 
     protected function getAdminFieldClass()
@@ -61,9 +62,14 @@ class Integer extends CustomItem
         // value size
         if (array_get($options, 'number_min')) {
             $validates[] = new Validator\NumberMinRule(array_get($options, 'number_min'));
+        } else {
+            $validates[] = new Validator\NumberMinRule(-1 * Define::MAX_SIZE_NUMBER);
         }
+
         if (array_get($options, 'number_max')) {
             $validates[] = new Validator\NumberMaxRule(array_get($options, 'number_max'));
+        } else {
+            $validates[] = new Validator\NumberMaxRule(Define::MAX_SIZE_NUMBER);
         }
 
         $validates[] = new Validator\IntegerCommaRule;

@@ -56,7 +56,8 @@ class CustomTableAction implements ActionInterface
                 $providers[] = new Export\DefaultTableProvider(
                     [
                         'custom_table' => $relation->child_custom_table,
-                        'grid' => $this->grid
+                        'grid' => $this->grid,
+                        'parent_table' => $this->custom_table->table_name,
                     ]
                 );
             }

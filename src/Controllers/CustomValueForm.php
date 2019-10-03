@@ -39,18 +39,6 @@ trait CustomValueForm
             $select_parent = intval($request->get('select_parent'));
         }
 
-        //Plugin::pluginPreparing($this->plugins, 'loading');
-        // create
-        if (!isset($id)) {
-            $isButtonCreate = true;
-            $listButton = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_create');
-        }
-        // edit
-        else {
-            $isButtonCreate = false;
-            $listButton = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
-        }
-
         //TODO: escape laravel-admin bug.
         //https://github.com/z-song/laravel-admin/issues/1998
         $form->hidden('laravel_admin_escape');
@@ -74,9 +62,7 @@ trait CustomValueForm
                 $select->required();
 
                 // set select options
-                if (!$parent_custom_table->isGetOptions()) {
-                    $select->ajax($parent_custom_table->getOptionAjaxUrl());
-                }
+                $select->ajax($parent_custom_table->getOptionAjaxUrl());
             }
             // if edit data or has $select_parent, only display
             else {
@@ -91,6 +77,12 @@ trait CustomValueForm
                 $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label);
             }
         }
+
+        $calc_formula_array = [];
+        $changedata_array = [];
+        $relatedlinkage_array = [];
+        $count_detail_array = [];
+        $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array, $count_detail_array);
 
         // loop for custom form blocks
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
@@ -113,7 +105,7 @@ trait CustomValueForm
                     $form_block_options = array_get($custom_form_block, 'options', []);
                     // if form_block_options.hasmany_type is 1, hasmanytable
                     if (boolval(array_get($form_block_options, 'hasmany_type'))) {
-                        $form->hasManyTable(
+                        $hasmany = $form->hasManyTable(
                             $relation_name,
                             $block_label,
                             function ($form) use ($custom_form_block, $id) {
@@ -125,7 +117,7 @@ trait CustomValueForm
                     }
                     // default,hasmany
                     else {
-                        $form->hasMany(
+                        $hasmany = $form->hasMany(
                             $relation_name,
                             $block_label,
                             function ($form) use ($custom_form_block, $id) {
@@ -134,38 +126,46 @@ trait CustomValueForm
                             }
                         );
                     }
+                    if (array_key_exists($relation_name, $count_detail_array)) {
+                        $hasmany->setCountScript(array_get($count_detail_array, $relation_name));
+                    }
                 }
                 // n:n
                 else {
-                    $field = new Field\Listbox(
+                    // get select classname
+                    $isListbox = $target_table->isGetOptions();
+                    if ($isListbox) {
+                        $class = Field\Listbox::class;
+                    } else {
+                        $class = Field\MultipleSelect::class;
+                    }
+
+                    $field = new $class(
                         CustomRelation::getRelationNameByTables($this->custom_table, $target_table),
                         [$custom_form_block->target_table->table_view_name]
                     );
                     $custom_table = $this->custom_table;
-                    $field->options(function ($select) use ($custom_table, $target_table) {
+                    $field->options(function ($select) use ($custom_table, $target_table, $isListbox) {
                         return $target_table->getSelectOptions(
                             [
                                 'selected_value' => $select,
                                 'display_table' => $custom_table,
+                                'notAjax' => $isListbox,
                             ]
                         );
                     });
-                    if (!$target_table->isGetOptions()) {
+                    if (!$isListbox) {
                         $field->ajax($target_table->getOptionAjaxUrl());
+                    } else {
+                        $field->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
+                        $field->help(exmtrans('common.bootstrap_duallistbox_container.help'));
                     }
-                    $field->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
-                    $field->help(exmtrans('common.bootstrap_duallistbox_container.help'));
                     $form->pushField($field);
                 }
             }
         }
 
         PartialCrudService::setAdminFormOptions($this->custom_table, $form, $id);
-
-        $calc_formula_array = [];
-        $changedata_array = [];
-        $relatedlinkage_array = [];
-        $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array);
 
         // add calc_formula_array and changedata_array info
         if (count($calc_formula_array) > 0) {
@@ -198,14 +198,14 @@ EOT;
 
         // add form saving and saved event
         $this->manageFormSaving($form, $id);
-        $this->manageFormSaved($form, $select_parent);
+        $this->manageFormSaved($form, $id, $select_parent);
 
         $form->disableReset();
 
         $custom_table = $this->custom_table;
         $custom_form = $this->custom_form;
 
-        $this->manageFormToolButton($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton);
+        $this->manageFormToolButton($form, $id, $custom_table, $custom_form);
         return $form;
     }
 
@@ -237,7 +237,7 @@ EOT;
      */
     protected function getCustomFormColumns($form, $custom_form_block, $id = null)
     {
-        $closures = [[], []];
+        $closures = [];
         $custom_value = $this->getModelNameDV()::find($id);
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
@@ -254,28 +254,20 @@ EOT;
             // set $closures using $form_column->column_no
             if (isset($field)) {
                 $column_no = array_get($form_column, 'column_no');
-                if ($column_no == 2) {
-                    $closures[1][] = $field;
-                } else {
-                    $closures[0][] = $field;
-                }
+                $closures[$column_no][] = $field;
             }
         }
 
-        // if $closures[1] count is 0, return closure function
-        if (count($closures[1]) == 0) {
-            return function ($form) use ($closures) {
-                foreach ($closures[0] as $field) {
-                    // push field to form
-                    $form->pushField($field);
-                }
-            };
-        }
-        return collect($closures)->map(function ($closure) {
-            return function ($form) use ($closure) {
+        $is_grid = array_key_exists(1, $closures) && array_key_exists(2, $closures);
+        return collect($closures)->map(function ($closure, $key) use ($is_grid) {
+            return function ($form) use ($closure, $key, $is_grid) {
                 foreach ($closure as $field) {
+                    if ($is_grid && in_array($key, [1, 2])) {
+                        $field->setWidth(8, 3);
+                    } else {
+                        $field->setWidth(8, 2);
+                    }
                     // push field to form
-                    $field->setWidth(8, 3);
                     $form->pushField($field);
                 }
             };
@@ -285,7 +277,7 @@ EOT;
     /**
      * set custom form columns
      */
-    protected function setCustomFormEvents(&$calc_formula_array, &$changedata_array, &$relatedlinkage_array)
+    protected function setCustomFormEvents(&$calc_formula_array, &$changedata_array, &$relatedlinkage_array, &$count_detail_array)
     {
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
             foreach ($custom_form_block->custom_form_columns as $form_column) {
@@ -301,7 +293,8 @@ EOT;
                 
                 // set calc rule for javascript
                 if (array_key_value_exists('calc_formula', $options)) {
-                    $this->setCalcFormulaArray($column, $options, $calc_formula_array);
+                    $is_default = $custom_form_block->form_block_type == FormBlockType::DEFAULT;
+                    $this->setCalcFormulaArray($column, $options, $calc_formula_array, $count_detail_array, $is_default);
                 }
                 // data changedata
                 // if set form_column_options changedata_target_column_id, and changedata_column_id
@@ -321,8 +314,6 @@ EOT;
     {
         // before saving
         $form->saving(function ($form) use ($id) {
-            Plugin::pluginPreparing($this->plugins, 'saving');
-
             $result = PartialCrudService::saving($this->custom_table, $form, $id);
             if ($result instanceof Response) {
                 return $result;
@@ -330,12 +321,12 @@ EOT;
         });
     }
 
-    protected function manageFormSaved($form, $select_parent = null)
+    protected function manageFormSaved($form, $id, $select_parent = null)
     {
         // after saving
-        $form->savedInTransaction(function ($form) use ($select_parent) {
+        $form->savedInTransaction(function ($form) use ($id, $select_parent) {
             CustomValueAuthoritable::setValueAuthoritable($form->model());
-            Plugin::pluginPreparing($this->plugins, 'saved');
+            
             PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
         });
         
@@ -355,13 +346,24 @@ EOT;
         });
     }
 
-    protected function manageFormToolButton($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton)
+    protected function manageFormToolButton($form, $id, $custom_table, $custom_form)
     {
         $form->disableEditingCheck(false);
         $form->disableCreatingCheck(false);
         $form->disableViewCheck(false);
         
-        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton) {
+        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form) {
+            // create
+            if (!isset($id)) {
+                $isButtonCreate = true;
+                $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_create');
+            }
+            // edit
+            else {
+                $isButtonCreate = false;
+                $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
+            }
+
             $custom_value = $custom_table->getValueModel($id);
             
             $tools->disableView(false);
@@ -379,14 +381,14 @@ EOT;
                 $tools->disableDelete();
             }
 
-            if(boolval(array_get($custom_value, 'disabled_delete'))){
+            if (boolval(array_get($custom_value, 'disabled_delete'))) {
                 $tools->disableDelete();
             }
 
             // add plugin button
-            if ($listButton !== null && count($listButton) > 0) {
-                foreach ($listButton as $plugin) {
-                    $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table));
+            if ($listButtons !== null && count($listButtons) > 0) {
+                foreach ($listButtons as $listButton) {
+                    $tools->append(new Tools\PluginMenuButton($listButton, $this->custom_table));
                 }
             }
 
@@ -399,7 +401,7 @@ EOT;
     /**
      * Create calc formula info.
      */
-    protected function setCalcFormulaArray($column, $options, &$calc_formula_array)
+    protected function setCalcFormulaArray($column, $options, &$calc_formula_array, &$count_detail_array, $is_default = true)
     {
         if (is_null($calc_formula_array)) {
             $calc_formula_array = [];
@@ -417,27 +419,48 @@ EOT;
         $keys = [];
         // loop $option_calc_formulas and get column_name
         foreach ($option_calc_formulas as &$option_calc_formula) {
-            if (!in_array(array_get($option_calc_formula, 'type'), ['dynamic', 'select_table'])) {
-                continue;
+            $child_table = array_get($option_calc_formula, 'table');
+            if (isset($child_table)) {
+                $option_calc_formula['relation_name'] = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
             }
-            // set column name
-            $formula_column = CustomColumn::getEloquent(array_get($option_calc_formula, 'val'));
-            // get column name as key
-            $key = $formula_column->column_name ?? null;
-            if (!isset($key)) {
-                continue;
-            }
-            $keys[] = $key;
-            // set $option_calc_formula val using key
-            $option_calc_formula['val'] = $key;
+            switch (array_get($option_calc_formula, 'type')) {
+                case 'count':
+                    if (array_has($option_calc_formula, 'relation_name')) {
+                        $relation_name = $option_calc_formula['relation_name'];
+                        if (!array_has($count_detail_array, $relation_name)) {
+                            $count_detail_array[$relation_name] = [];
+                        }
+                        $count_detail_array[$relation_name][] =  [
+                            'options' => $option_calc_formulas,
+                            'to' => $column->column_name,
+                            'is_default' => $is_default
+                        ];
+                    }
+                    break;
+                case 'dynamic':
+                case 'summary':
+                case 'select_table':
+                    // set column name
+                    $formula_column = CustomColumn::getEloquent(array_get($option_calc_formula, 'val'));
+                    // get column name as key
+                    $key = $formula_column->column_name ?? null;
+                    if (!isset($key)) {
+                        break;
+                    }
+                    $keys[] = $key;
+                    // set $option_calc_formula val using key
+                    $option_calc_formula['val'] = $key;
 
-            // if select table, set from value
-            if ($option_calc_formula['type'] == 'select_table') {
-                $column_from = CustomColumn::getEloquent(array_get($option_calc_formula, 'from'));
-                $option_calc_formula['from'] = $column_from->column_name ?? null;
+                    // if select table, set from value
+                    if ($option_calc_formula['type'] == 'select_table') {
+                        $column_from = CustomColumn::getEloquent(array_get($option_calc_formula, 'from'));
+                        $option_calc_formula['from'] = $column_from->column_name ?? null;
+                    }
+                    break;
             }
         }
 
+        $keys = array_unique($keys);
         // loop for $keys and set $calc_formula_array
         foreach ($keys as $key) {
             // if not exists $key in $calc_formula_array, set as array
@@ -447,7 +470,8 @@ EOT;
             // set $calc_formula_array
             $calc_formula_array[$key][] = [
                 'options' => $option_calc_formulas,
-                'to' => $column->column_name
+                'to' => $column->column_name,
+                'is_default' => $is_default
             ];
         }
     }

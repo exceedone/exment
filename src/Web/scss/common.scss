@@ -20,6 +20,10 @@
     display: block;
 }
 
+.d-inline{
+    display: inline;
+}
+
 .asterisk::after{
     content: " *";
     color: red;
@@ -199,6 +203,11 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     width:400px;
 }
 
+.skin-red .navbar-notify .label-danger, .skin-red-light .navbar-notify .label-danger{
+    background-color:yellow !important;
+    color:black !important;
+}
+
 .ui-autocomplete {
     z-index: 1031;
 }
@@ -273,6 +282,7 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
 
     .box-body{
         padding-top: 7px;
+        word-wrap: break-word;
     }
 }
 
@@ -300,7 +310,7 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
         margin-bottom:0;
         
         td, th {
-            white-space: nowrap;
+            word-wrap : break-word;
         }
     } 
 

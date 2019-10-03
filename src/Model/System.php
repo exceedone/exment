@@ -33,11 +33,12 @@ class System extends ModelBase
         if (is_null($value)) {
             return static::$requestSession[$config_key] ?? null;
         } elseif ($value instanceof \Closure) {
-            $val = static::$requestSession[$config_key] ?? null;
-            if (is_null($val)) {
-                $val = $value();
-                static::$requestSession[$config_key] = $val;
+            // check array_has
+            if (array_has(static::$requestSession, $config_key)) {
+                return static::$requestSession[$config_key];
             }
+            $val = $value();
+            static::$requestSession[$config_key] = $val;
             return $val;
         }
         static::$requestSession[$config_key] = $value;

@@ -16,6 +16,10 @@ class OrgazanizationTreeItem extends ProviderBase
      */
     public function setGridContent(&$content)
     {
+        if (!boolval(config('exment.show_organization_tree', false))) {
+            return;
+        }
+
         $html = getModelName(SystemTableName::ORGANIZATION)::tree(function (Tree $tree) {
             $tree->title(exmtrans('organization.organization_tree'));
 

@@ -1,6 +1,7 @@
 <?php
 
 return [    
+    'label' => 'English',
     'common' => [
         'home' => 'HOME',
         'error' => 'Error',
@@ -22,6 +23,7 @@ return [
         'parent_type' => 'Parent Data Table Name',
         'created' => 'Created',
         'updated' => 'Updated',  
+        'deleted' => 'Deleted', 
         'attachmented' => 'Attachmented', 
         'created_at' => 'Created At',
         'updated_at' => 'Updated At',  
@@ -105,7 +107,6 @@ return [
 
     'install' => [
         'title' => 'Install',
-        'installing' => 'Execute Install',
 
         'database' => [
             'header' => 'Database Settings',
@@ -116,6 +117,12 @@ return [
             'username' => 'User Name',
             'password' => 'Password',
         ],
+
+        'installing' => [
+            'header' => 'Initial Data Installation',
+            'installing' => 'Execute Install',
+        ],
+
 
         'help' => [
             'installing' => 'Install initial data. This process takes time.',
@@ -263,6 +270,7 @@ return [
             'current_dashboard_edit' => 'Edit Current Dashboard Setting',
             'create' => 'Create Dashboard',
         ],
+
         'message' => [
             'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
             'not_exists_table' => 'The table or view has been deleted.',
@@ -282,6 +290,7 @@ return [
         'version' => 'Version',
         'active_flg' => 'Active Flg',
         'select_plugin_file' => 'Select Plugin File',
+        'show_plugin_page' => 'Show Plugin Page',
         'options' => [
             'header' => 'Option Setting',
             'custom_options_header' => 'Custom Options',
@@ -325,6 +334,9 @@ return [
             'trigger' => 'Trigger',
             'document' => 'Document',
             'batch' => 'Batch',
+            'import' => 'Import Template',
+            'script' => 'Script',
+            'style' => 'Style',
         ],
     ],
 
@@ -383,7 +395,7 @@ return [
         'email' => 'Email',
         'password' => 'Password',
         'password_confirmation' => 'Password(Confirm)',
-        'old_password' => 'Current Password',
+        'current_password' => 'Current Password',
         'new_password' => 'New Password',
         'new_password_confirmation' => 'New Password(Confirm)',
         'send_password' => 'Send User Info',
@@ -481,6 +493,7 @@ return [
         'custom_form' => 'Form Setting',
         'custom_relation' => 'Relation Setting',
         'custom_copy' => 'Data Copy Setting',
+        'custom_operation' => 'Multi Update Setting',
         'custom_value' => 'Data List',
         'error_select' => 'Please select only one record.',
     ],
@@ -566,17 +579,22 @@ return [
             'header' => 'Detail Option',
             'index_enabled' => 'Index Enabled',
             'unique' => 'Unique',
+            'init_only' => 'Input Only Once',
             'default' => 'Default Value',
             'placeholder' => 'PlaceHolder',
             'help' => 'Help',
+            'min_width' => 'Column Min Width',
+            'max_width' => 'Column Max Width',
             'string_length' => 'Max Length',
             'rows' => 'Rows',
             'available_characters' => 'Available Characters',
+            'suggest_input' => 'Suggest Input',
             'regex_validate' => 'Regular expression',
             'number_min' => 'Min Number',
             'number_max' => 'Max Number',
             'number_format' => 'Use Number Comma String',
             'decimal_digit' => 'Number of decimal places',
+            'percent_format' => 'Show as Percent',
             'updown_button' => '+- Button',
             'datetime_now_saving' => 'Register execution date when saving',
             'datetime_now_creating' => 'Register execution date when creating',
@@ -585,6 +603,7 @@ return [
             'select_target_table' => 'Select Target Table',
             'select_target_view' => 'Target view',
             'select_import_column_id' => 'Key column when importing',
+            'select_load_ajax' => 'Narrow down the choices',
             'true_value' => 'Select1 Value',
             'true_label' => 'Select1 Label',
             'true_label_default' => 'Yes',
@@ -626,11 +645,15 @@ return [
             "organization" => "Organization",
         ],
         'help' => [
-            'index_enabled' => 'When set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>',
+            'index_enabled' => 'If set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>',
             'unique' => 'If you do not want to register the same value with other data in duplicate, please set it to YES. * For data with a large number of cases, we recommend setting "Search index" to YES.',
+            'init_only' => 'If set to YES, the value can be entered only once. After saving, it is displayed as read-only.',
             'default' => 'The initial value of the item at the time of new registration.',
             'help' => 'Help string displayed below the field.',
-            'number_format' => 'By turning YES, the text field will be displayed as a comma value.',
+            'min_width' => 'Enter the minimum value of the column width when displaying the list as an integer (px).',
+            'max_width' => 'Enter the maximum value of the column width when displaying the list as an integer (px).',
+            'number_format' => 'If set to YES, the text field will be displayed as a comma value.',
+            'percent_format' => 'If set to YES, the list screen and display screen are displayed as percentages.',
             'rows' => 'Set input form height.',
             'updown_button' => 'By turning YES, Add "+" and "-" buttons.',
             'select_item' => 'Enter choices by line break separator.',
@@ -638,6 +661,7 @@ return [
             'datetime_now_creating' => 'When new data is created, values ​​are automatically registered according to the date and time of execution. * You can not set the value by the user.',
             'select_item_valtext' => 'Enter choices by line break separator. The word before the comma is the value, the word after the comma is the label.<br/>Ex：「1,Adult<br/>2,Underage」→"1" is the value saving data. "Adult" is the label user selected.',
             'select_target_table' => 'Select the table to be selected.',
+            'select_load_ajax' => 'If set to YES, the options are not read at first, but the data is searched by the user input value, and the candidates are narrowed down. <br/> * Regardless of this setting, if the number of data items is %s or more, it will be set to narrow down to improve performance.',
             'select_target_view' => 'To narrow the data, specify a condition view. Please create the condition view on the custom table setting screen first.',
             'select_import_column_id' => 'When importing data, you can specify custom columns to narrow the data in the selected table. If not set, use id. Please refer to &nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp; for details.',
             'select_import_column_id_key' => 'Change of specification method of data of parent table',
@@ -646,6 +670,7 @@ return [
             'false_value' => 'Enter the value to be registered when saving the second choice.',
             'false_label' => 'Enter the character string to be displayed when saving the second choice.',
 			'available_characters' => 'Please select an inputable character. If you clear all checks, you can enter all the characters.',
+            'suggest_input' => 'If set to YES, you can display a list of input candidates from already registered data. <br/> * If you want to use, please set "Search index" to YES.',
             'regex_validate' => '(For advanced users) Set the contents that can be input as a regular expression. If you set a value to this item, the setting of "Available Characters" above will be disabled. Please refer to &nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp; for details.',
             'auto_number_format' => 'Set the numbering rule to be registered. For details of rules, please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'calc_formula' => 'Enter the calculation formula using other fields. *It is currently beta version.',
@@ -710,9 +735,26 @@ return [
             'changedata' => 'When you select another item in the form, you can copy the value of the selected data to the item.<br />Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'changedata_no_item' => '*There are no columns in the table whose column type is "Select (From Table)", "User", and "Organization". Register these columns if you want to use data linkage settings.',
         ],
+
         'message' => [
             'no_exists_column' => 'Required items have not been set.',
         ],
+    ],
+
+    'custom_operation_columns' => [
+        'update_value' => 'Uodate Value',
+    ],
+
+    'custom_operation' => [
+        'custom_operation' => 'Mass Update',
+        'header' => 'Mass Update Setting',
+        'description' => 'Make settings to update selected data collectively.',
+        'operation_name' => 'Mass Update Label',
+        'custom_operation_button_label' => 'Mass Update Setting',
+        'custom_operation_columns' => 'Update Column Setting',
+        'description_custom_operation_columns' => 'Set the target column and update value for mass update.',
+        'view_column_target' => 'Target Column',
+        'update_value_text' => 'Update Value',
     ],
 
     'custom_view' => [
@@ -778,7 +820,9 @@ return [
         ],
         'filter_condition_options' => [
             'eq' => 'Equal', 
-            'ne' => 'Not Equal', 
+            'ne' => 'Not Equal',
+            'like' => 'Contains', 
+            'not-like' => 'Not Contains',  
             'eq-user' => 'Match Login User', 
             'ne-user' => 'Not Match Login User', 
             'on' => 'Target Date',
@@ -867,11 +911,12 @@ return [
             'plugin' => 'Plugin',
             'master' => 'Master',
         ],
+
         'role_group_system' => [
             'system' => 'Whole system',
             'role_group' => 'Role group',
         ],
-        
+
         'role_type_option_system' => [
             'system' => ['label' => 'System Setting', 'help' => 'Users can edit system setting.'],
             'login_user' => ['label' => 'Manage login user', 'help' => 'You can manage the users who log in to Exment.'],
@@ -946,8 +991,18 @@ return [
         'input_column_description' => 'When copying is done, you can display a form (dialog) to change the value after copying. Please set the target column to be input to the form when copying.',
         'dialog_description' => "Based on this data of %s, we will create the %s data. - Register in the data of the %s to be created, please fill in the value.",
 
+        'options' => [
+            'child_copy' => 'Child Table Setting',
+            'child_copy_format' => '%s（%s → %s）',
+        ],
+
         'help' => [
             'to_custom_table_view_name' => 'Please select copy target table.',
+            'child_copy' => 'Copy the child table data linked to the target data together. Data copy settings between child tables registered in advance (those without input dialog settings) are displayed as candidates.',
+        ],
+
+        'message' => [
+            'to_custom_column_required' => 'All required fields in the destination table must be specified.',
         ],
     ],
 
@@ -1000,7 +1055,7 @@ return [
     'mail_template' => [
         'disable_body' => '(For security reasons, the body is hidden)',
     ],
-    
+
     'template' =>[
         'header' => 'Template',
         'header_export' => 'Template - Export',
@@ -1043,6 +1098,7 @@ return [
             'import_file' => 'Import File',
             'import_file_select' => 'Select CSV File',
             'primary_key' => 'Promary Key',
+            'import_plugin' => 'Import Plugin',
             'error_flow' => 'Error Handling',
             'import_error_message' => 'Error Message',
             'import_error_format' => 'Line %d : %s',
@@ -1051,6 +1107,7 @@ return [
                 'description' => 'You can import the data of each table into Exment. <br />Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for details such as the procedure.',
                 'custom_table_file' => 'Select the CSV file that you output the template.',
                 'primary_key' => 'Select the field to narrow down the update data.<br />If this field value matches existing data, it will be imported as update data.<br />If matching data does not exist, it will be imported as new data.',
+                'import_plugin' => 'If you want to process the import file independently, select it after uploading the plug-in in advance.',
                 'error_flow' => 'If an error occurs due to incomplete data , select whether to capture normal data.',
                 'import_error_message' => 'If incomplete files are incomplete, line numbers and error messages are displayed in this item.',
             ],
@@ -1062,6 +1119,10 @@ return [
                 'stop' => 'Do not capture all data.',
                 'skip' => 'Normal data is captured, but error data is not imported.',
             ],
+            'message' => [
+                'select_table_not_found' => 'Data with :column_view_name as :value did not exist in :target_table_name.',
+                'select_item_not_found' => 'The format of :column_view_name is invalid. Enter one of :value_options.'
+            ]
         ],
         'sendmail' => [
             'title' => 'Send email',
@@ -1086,6 +1147,11 @@ return [
             'no_columns_user' => 'Custom column has not been registered. Please contact your administrator and request additional custom columns.',
             'reference_error' => 'This data can not be deleted because it is referenced from another table.',
             'multiple_uniques' => 'The value for which %s is key is already registered.',
+            'init_flg' => 'Cannot edit after save.',
+        ],
+        'message' => [
+            'operation_notfound' => '更新対象のデータが見つかりませんでした。',
+            'operation_succeeded' => '一括更新を実行しました。',
         ],
     ],
 
@@ -1102,6 +1168,7 @@ return [
         'new' => 'Latest',
         'compare_revision' => 'Compare Revision',
     ],
+
     'notify_navbar' => [
         'header' => 'Notify list',
         'description' => 'List of notifications to the user.',
@@ -1143,6 +1210,7 @@ return [
         'notify_action_target' => 'Notify Target',
         'mail_template_id' => 'Notify Mail Template',
         'notify_button_name' => 'Button display name',
+        'webhook_url' => 'Webhook URL',
 
         'help' => [
             'notify_day' => 'Please enter the date of the notification. By inputting "0", will notify you on the day.',
@@ -1155,6 +1223,7 @@ return [
             'notify_action' => 'Please select the notification action to be done when the conditions are met.',
             'notify_action_target' => 'Select the target of notification destination.',
             'mail_template_id' => 'Select the template of the mail to send. When creating a new one, please create a new template in the mail template screen beforehand.',
+            'webhook_url' => 'To make Slack or Teams notifications, you need to get a webhook URL. <a href="%s" target="_blank">Learn more</a> <br/>Slack and Teams are not compatible.',
         ],
 
         'notify_trigger_options' => [
@@ -1169,10 +1238,13 @@ return [
         'notify_action_options' => [
             'email' => 'Email',
             'show_page' => 'In-system alert',  
+            'slack' => 'Slack', 
+            'microsoft_teams' => 'Microsoft Teams',
         ],
 
         'notify_action_target_options' => [
             'has_roles' => 'Have the Role User',
+            'created_user' => 'Create User',
         ],
     ],
     
@@ -1183,6 +1255,7 @@ return [
             'pie' => 'Pie chart',
         ]
     ],
+
     'calendar' => [
         'calendar_type_options' => [
             'month' => 'Monthly',
@@ -1195,6 +1268,12 @@ return [
         ]
     ],
     
+    'validator' => [
+        'required_if_ex' => [
+            'notify_actions' => 'Notify Actions'
+        ]
+    ],
+    
     'api' => [
         'scopes' => [
             'me' => 'Get Login User Info',
@@ -1203,6 +1282,7 @@ return [
             'value_read' => 'Get Value',
             'value_write' => 'Get, Create, Update, Delete Value',
         ],
+
         'errors' => [
             'access_denied' => 'Could not authenticate. The access token is incorrect or has expired.',
             'wrong_scope' => 'There is an error in the scope for executing the API. Please contact the developer.',

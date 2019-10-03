@@ -18,6 +18,10 @@
   display: block;
 }
 
+.d-inline {
+  display: inline;
+}
+
 .asterisk::after {
   content: " *";
   color: red;
@@ -3477,6 +3481,11 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   width: 400px;
 }
 
+.skin-red .navbar-notify .label-danger, .skin-red-light .navbar-notify .label-danger {
+  background-color: yellow !important;
+  color: black !important;
+}
+
 .ui-autocomplete {
   z-index: 1031;
 }
@@ -3555,6 +3564,7 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 
 .box.box-solid.box-default.box-show .box-body {
   padding-top: 7px;
+  word-wrap: break-word;
 }
 
 /* box-dashboard */
@@ -3583,7 +3593,7 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 }
 
 .box.box-dashboard table td, .box.box-dashboard table th {
-  white-space: nowrap;
+  word-wrap: break-word;
 }
 
 .box.box-dashboard .pagination {
@@ -3793,8 +3803,4 @@ fieldset[disabled] .btn.btn-purple.active {
 
 #tile-template .row-eq-height > [class^="col-"] {
   margin-bottom: 10px;
-}
-
-.icheckbox_minimal-blue.checked.disabled {
-  background-color: gray;
 }

@@ -2,26 +2,33 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
-use Validator;
 use Carbon\Carbon;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Services\FormHelper;
-use Exceedone\Exment\ColumnItems\ParentItem;
+use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 
 class DefaultTableProvider extends ProviderBase
 {
     protected $primary_key;
+    
     protected $filter;
+
+    /**
+     * Select Table not found errors
+     *
+     * @var array
+     */
+    protected $selectTableNotFounds;
 
     public function __construct($args = [])
     {
         $this->custom_table = array_get($args, 'custom_table');
 
+        $this->custom_columns = $this->custom_table->custom_columns;
+
         $this->primary_key = array_get($args, 'primary_key', 'id');
 
         $this->filter = array_get($args, 'filter');
+
+        $this->selectTableNotFounds = [];
     }
 
     /**
@@ -30,19 +37,17 @@ class DefaultTableProvider extends ProviderBase
      */
     public function getDataObject($data, $options = [])
     {
-        ///// get all table columns
-        $custom_columns = $this->custom_table->custom_columns;
-
-        $results = [];
         $headers = [];
-        foreach ($data as $key => $value) {
-            // get header if $key == 0
-            if ($key == 0) {
+        $value_customs = [];
+        $primary_values = [];
+        foreach ($data as $line_no => $value) {
+            // get header if $line_no == 0
+            if ($line_no == 0) {
                 $headers = $value;
                 continue;
             }
-            // continue if $key == 1
-            elseif ($key == 1) {
+            // continue if $line_no == 1
+            elseif ($line_no == 1) {
                 continue;
             }
 
@@ -54,8 +59,19 @@ class DefaultTableProvider extends ProviderBase
                 continue;
             }
 
+            $value_customs[$line_no] = $value_custom;
+
+            // get primary values
+            $primary_values[] = array_get($value_custom, $this->primary_key);
+        }
+
+        // get all custom value for performance
+        $models = $this->custom_table->getMatchedCustomValues($primary_values, $this->primary_key, true);
+
+        $results = [];
+        foreach ($value_customs as $line_no => $value_custom) {
             ///// convert data first.
-            $value_custom = $this->dataProcessingFirst($custom_columns, $value_custom, $options);
+            $value_custom = $this->dataProcessingFirst($value_custom, $line_no, $options);
 
             // get model
             $modelName = getModelName($this->custom_table);
@@ -67,8 +83,11 @@ class DefaultTableProvider extends ProviderBase
             }
             // if exists, firstOrNew
             else {
-                //*Replace "." to "->" for json value
-                $model = $modelName::withTrashed()->firstOrNew([str_replace(".", "->", $this->primary_key) => $primary_value]);
+                // get model from models
+                $model = array_get($models, $primary_value);
+                if (!isset($model)) {
+                    $model = new $modelName;
+                }
             }
             if (!isset($model)) {
                 continue;
@@ -88,19 +107,24 @@ class DefaultTableProvider extends ProviderBase
      */
     public function validateImportData($dataObjects)
     {
+        if (count($this->selectTableNotFounds) > 0) {
+            return [[], $this->selectTableNotFounds];
+        }
+
         ///// get all table columns
         $validate_columns = $this->custom_table->custom_columns;
         
         $error_data = [];
         $success_data = [];
-        foreach ($dataObjects as $key => $value) {
-            $check = $this->validateDataRow($key, $value, $validate_columns);
+        foreach ($dataObjects as $line_no => $value) {
+            $check = $this->validateDataRow($line_no, $value, $validate_columns);
             if ($check === true) {
                 array_push($success_data, $value);
             } else {
                 $error_data = array_merge($error_data, $check);
             }
         }
+
         return [$success_data, $error_data];
     }
     
@@ -115,35 +139,8 @@ class DefaultTableProvider extends ProviderBase
         $data = array_get($dataAndModel, 'data');
         $model = array_get($dataAndModel, 'model');
 
-        // get fields for validation
-        $fields = [];
-        foreach ($validate_columns as $validate_column) {
-            $fields[] = FormHelper::getFormField($this->custom_table, $validate_column, array_get($model, 'id'), null, 'value.');
-        }
-        // create common validate rules.
-        $rules = [
-            'id' => ['nullable', 'regex:/^[0-9]+$/'],
-            'suuid' => ['nullable', 'regex:/^[a-z0-9]{20}$/'],
-            'created_at' => ['nullable', 'date'],
-            'updated_at' => ['nullable', 'date'],
-            'deleted_at' => ['nullable', 'date'],
-        ];
-        // foreach for field validation rules
-        foreach ($fields as $field) {
-            // get field validator
-            $field_validator = $field->getValidator($data);
-            if (!$field_validator) {
-                continue;
-            }
-            // get field rules
-            $field_rules = $field_validator->getRules();
-
-            // merge rules
-            $rules = array_merge($field_rules, $rules);
-        }
-        
         // execute validation
-        $validator = Validator::make(array_dot_reverse($data), $rules);
+        $validator = $this->custom_table->validateValue(array_dot_reverse($data), true, array_get($model, 'id'), 'value.');
         if ($validator->fails()) {
             // create error message
             $errors = [];
@@ -181,49 +178,14 @@ class DefaultTableProvider extends ProviderBase
      * @param $data
      * @return array
      */
-    public function dataProcessingFirst($custom_columns, $data, $options = [])
+    public function dataProcessingFirst($data, $line_no, $options = [])
     {
-        foreach ($data as $key => &$value) {
-            if (strpos($key, "value.") !== false) {
-                $new_key = str_replace('value.', '', $key);
-                // get target column
-                $target_column = $custom_columns->first(function ($custom_column) use ($new_key) {
-                    return array_get($custom_column, 'column_name') == $new_key;
-                });
-                if (!isset($target_column)) {
-                    continue;
-                }
+        ///// convert data first.
+        $options['errorCallback'] = function ($message, $key) use ($line_no) {
+            $this->selectTableNotFounds[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no-1), $message);
+        };
 
-                if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
-                    && boolval(array_get($target_column, 'options.multiple_enabled'))) {
-                    $value = explode(",", $value);
-                }
-
-                // convert target key's id
-                if (isset($value)) {
-                    if (array_has($options, 'setting')) {
-                        $s = collect($options['setting'])->filter(function ($s) use ($key) {
-                            return isset($s['target_column_name']) && $s['column_name'] == $key;
-                        })->first();
-                    }
-                    if (isset($target_column->column_item)) {
-                        $value = $target_column->column_item->getImportValue($value, $s ?? null);
-                    }
-                }
-            } elseif ($key == Define::PARENT_ID_NAME && isset($value)) {
-                // convert target key's id
-                if (array_has($options, 'setting')) {
-                    $s = collect($options['setting'])->filter(function ($s) use ($key) {
-                        return isset($s['target_column_name']) && $s['column_name'] == Define::PARENT_ID_NAME;
-                    })->first();
-                }
-                $parent_item = ParentItem::getItem(CustomTable::getEloquent(array_get($data, 'parent_type')));
-                if (isset($parent_item)) {
-                    $value = $parent_item->getImportValue($value, $s ?? null);
-                }
-            }
-        }
-        return $data;
+        return DataImportExportService::processCustomValue($this->custom_columns, $data, $options);
     }
 
     /**

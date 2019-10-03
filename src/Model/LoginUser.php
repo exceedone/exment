@@ -9,7 +9,7 @@ use Encore\Admin\Traits\AdminBuilder;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Enums\MailKeyName;
 use Illuminate\Support\Facades\Hash;
 
@@ -27,6 +27,11 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
      * send password
      */
     protected $send_password = null;
+
+    /**
+     * is change password
+     */
+    protected $changePassword = false;
 
     /**
      * taale "user"
@@ -51,7 +56,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
 
     public function getNameAttribute()
     {
-        return array_get($this->base_user->value, "user_name");
+        return $this->base_user->value['user_name'] ?? null;
     }
 
     /**
@@ -164,8 +169,15 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             return;
         }
         
-        if (!isset($original) || !Hash::check($password, $original)) {
+        if (isset($original) && Hash::check($password, $original)) {
+            $this->password = $original;
+        } else {
             $this->password = bcrypt($password);
+
+            // only default login
+            if (!isset($this->login_provider)) {
+                $this->changePassword = true;
+            }
         }
     }
     
@@ -175,6 +187,16 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
 
         static::saving(function ($model) {
             $model->setBcryptPassword();
+        });
+
+        static::saved(function ($model) {
+            if ($model->changePassword) {
+                // save password history
+                PasswordHistory::create([
+                    'login_user_id' => $model->id,
+                    'password' => $model->password
+                ]);
+            }
         });
 
         static::created(function ($model) {

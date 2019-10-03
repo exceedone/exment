@@ -6,6 +6,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums;
@@ -47,7 +48,12 @@ class BackupController extends AdminControllerBase
 
         $content->row(view(
             'exment::backup.index',
-            ['files' => $rows, 'modal' => $this->importModal()]
+            [
+                'files' => $rows,
+                'modal' => $this->importModal(),
+                'restore_keyword' => Define::RESTORE_CONFIRM_KEYWORD,
+                'restore_text' => exmtrans('common.message.execution_takes_time') . exmtrans('backup.message.restore_confirm_text') . exmtrans('common.message.input_keyword', Define::RESTORE_CONFIRM_KEYWORD),
+            ]
         ));
 
         // create setting form
@@ -228,13 +234,20 @@ class BackupController extends AdminControllerBase
         $form->modalHeader(exmtrans('backup.restore'));
 
         $fileOption = Define::FILE_OPTION();
-        $form->action($import_path)
-            ->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
+        $form->action($import_path);
+
+        $form->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
             ->rules('mimes:zip')->setWidth(8, 3)->addElementClass('custom_table_file')
             ->attribute(['accept' => ".zip"])
             ->removable()
+            ->required()
             ->options($fileOption)
             ->help(exmtrans('backup.help.file_name') . array_get($fileOption, 'maxFileSizeHelp'));
+
+        $form->text('restore_keyword', exmtrans('common.keyword'))
+            ->required()
+            ->setWidth(8, 3)
+            ->help(exmtrans('common.message.input_keyword', Define::RESTORE_CONFIRM_KEYWORD));
 
         return $form->render()->render();
     }
@@ -245,6 +258,32 @@ class BackupController extends AdminControllerBase
     protected function import(Request $request)
     {
         set_time_limit(240);
+
+        // validation
+        $validator = Validator::make($request->all(), [
+            'upload_zipfile' => 'required|file',
+        ]);
+
+        if (!$validator->passes()) {
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => exmtrans('backup.message.restore_file_error'),
+                'errors' => [],
+            ]);
+        }
+
+        // validation restore keyword
+        $validator = Validator::make($request->all(), [
+            'restore_keyword' => Rule::in([Define::RESTORE_CONFIRM_KEYWORD]),
+        ]);
+
+        if (!$validator->passes()) {
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => exmtrans('error.mistake_keyword'),
+                'errors' => [],
+            ]);
+        }
 
         if ($request->has('upload_zipfile')) {
             // get upload file

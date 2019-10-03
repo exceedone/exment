@@ -14,7 +14,7 @@ class DecimalCommaRule implements Rule
     */
     public function passes($attribute, $value)
     {
-        return preg_match('/^[\d\s,-\.]*$/', $value);
+        return preg_match('/^[-]?[\d\s,\.]*$/', $value);
     }
 
     /**

@@ -11,7 +11,7 @@ class ParentItem implements ItemInterface
     use ItemTrait;
     
     /**
-     * this column's target custom_table
+     * this column's target custom_table. THIS IS CHILD TABLE.
      */
     protected $custom_table;
 
@@ -38,7 +38,11 @@ class ParentItem implements ItemInterface
      */
     public function name()
     {
-        return 'parent_id_'.$this->custom_table->table_name;
+        if (array_get($this->options, 'grid_column')) {
+            return 'parent_id';
+        } else {
+            return 'parent_id_'.$this->custom_table->table_name;
+        }
     }
 
     /**
@@ -91,6 +95,17 @@ class ParentItem implements ItemInterface
     }
 
     /**
+     * get grid style
+     */
+    public function gridStyle()
+    {
+        return $this->getStyleString([
+            'min-width' => config('exment.grid_min_width', 100) . 'px',
+            'max-width' => config('exment.grid_max_width', 100) . 'px',
+        ]);
+    }
+
+    /**
      * sortable for grid
      */
     public function sortable()
@@ -137,22 +152,26 @@ class ParentItem implements ItemInterface
      */
     public function getImportValue($value, $setting = [])
     {
+        $result = true;
+
         if (!isset($this->custom_table)) {
-            return null;
+            $result = false;
+        } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
+        } else {
+            // get target value
+            $target_value = $this->custom_table->getValueModel()->where("value->$target_column_name", $value)->first();
+
+            if (!isset($target_value)) {
+                $result = false;
+            } else {
+                $value = $target_value->id;
+            }
         }
 
-        if (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
-            return $value;
-        }
-
-        // get target value
-        $target_value = $this->custom_table->getValueModel()->where("value->$target_column_name", $value)->first();
-
-        if (!isset($target_value)) {
-            return null;
-        }
-
-        return $target_value->id;
+        return [
+            'result' => $result,
+            'value' => $value,
+        ];
     }
 
     

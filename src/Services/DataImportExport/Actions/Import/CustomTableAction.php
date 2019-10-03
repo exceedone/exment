@@ -100,7 +100,7 @@ class CustomTableAction implements ActionInterface
     {
         // get tablenames
         $table_names = [];
-        if(isset($this->custom_table)){
+        if (isset($this->custom_table)) {
             $table_names[] = $this->custom_table->table_name;
         }
 
@@ -124,7 +124,7 @@ class CustomTableAction implements ActionInterface
         if ($keyname == $this->custom_table->table_name) {
             return new Import\DefaultTableProvider([
                 'custom_table' => $this->custom_table,
-                'promary_key' => $this->primary_key,
+                'primary_key' => $this->primary_key,
                 'filter' => $this->filter,
             ]);
         } else {
@@ -137,7 +137,7 @@ class CustomTableAction implements ActionInterface
                 } else {
                     return new Import\DefaultTableProvider([
                         'custom_table' => $relation->child_custom_table,
-                        'promary_key' => 'id',
+                        'primary_key' => 'id',
                         'filter' => $this->filter,
                     ]);
                 }

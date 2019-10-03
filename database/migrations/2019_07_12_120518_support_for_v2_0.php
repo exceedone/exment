@@ -100,7 +100,7 @@ class SupportForV20 extends Migration
                 
             // update notify notify_action to notify_actions
             foreach(Notify::all() as $notify){
-                $notify->notify_actions = $notify_action;
+                $notify->notify_actions = $notify->notify_action;
                 $notify->save();
             }
             
