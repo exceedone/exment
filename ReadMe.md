@@ -120,3 +120,9 @@ php artisan serve
 # Develop
 If you'd like to help with the development of Exment, please visit this site and see how to set it up.  
 [Setup for Develop](Develop.md)
+
+
+
+------------
+# issues
+Please write issues using English or Japanese.  / issuesには英語または日本語で記載してください。
