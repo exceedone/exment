@@ -13,7 +13,7 @@ use File;
 use Validator;
 
 /**
- * Plugin Installer / プラグインのインストール処理
+ * Plugin Installer
  */
 class PluginInstaller
 {

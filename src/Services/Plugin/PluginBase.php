@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Services\Plugin;
 
+use Encore\Admin\Form;
+
 trait PluginBase
 {
     protected $plugin;
@@ -17,10 +19,10 @@ trait PluginBase
      * Set Custom Option Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
      *
-     * @param [type] $form
+     * @param Form $form
      * @return void
      */
-    public function setCustomOptionForm(&$form)
+    public function setCustomOptionForm(\Encore\Admin\Form &$form)
     {
     }
 }

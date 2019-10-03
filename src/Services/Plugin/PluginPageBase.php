@@ -6,7 +6,7 @@
 namespace Exceedone\Exment\Services\Plugin;
 
 /**
- * Plugin (Page) base class / プラグイン(ページ)の基底クラス
+ * Plugin (Page) base class
  */
 class PluginPageBase extends PluginPublicBase
 {

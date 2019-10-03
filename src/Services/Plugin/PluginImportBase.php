@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Services\Plugin;
 
 /**
- * Plugin (Import) base class / プラグイン(インポート)の基底クラス
+ * Plugin (Import) base class
  */
 class PluginImportBase
 {

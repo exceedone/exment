@@ -20,7 +20,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Input;
 
 /**
- * Custom Table Class / カスタムテーブルクラス
+ * Custom Table Class
  */
 class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -1421,6 +1421,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
+    /**
+     * Get CustomValue's model.
+     * 
+     * @param null|int|string $id CustomValue's id
+     * @param bool $withTrashed if true, get already trashed value.
+     * @return CustomValue CustomValue's model.
+     */
     public function getValueModel($id = null, $withTrashed = false)
     {
         $modelname = getModelName($this);

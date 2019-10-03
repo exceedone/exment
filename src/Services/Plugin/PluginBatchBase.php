@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Services\Plugin;
 
 /**
- * Plugin (batch) base class / プラグイン(バッチ)の基底クラス
+ * Plugin (batch) base class
  */
 class PluginBatchBase
 {
@@ -15,7 +15,7 @@ class PluginBatchBase
     }
 
     /**
-     * Processing during batch execution. / バッチ実行時の処理
+     * Processing during batch execution.
      *
      * @return void
      */

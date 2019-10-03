@@ -6,7 +6,7 @@ use Exceedone\Exment\Model\File as ExmentFile;
 use Illuminate\Support\Facades\File;
 
 /**
- * Plugin (Document) base class / プラグイン(ドキュメント)の基底クラス
+ * Plugin (Document) base class
  */
 abstract class PluginDocumentBase
 {

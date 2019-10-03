@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Services\Plugin;
 
 /**
- * Plugin (dashboard) base class / プラグイン(ダッシュボード)の基底クラス
+ * Plugin (dashboard) base class
  */
 class PluginDashboardBase extends PluginPublicBase
 {

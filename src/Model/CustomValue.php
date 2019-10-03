@@ -10,7 +10,7 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterSearchType;
 
-class CustomValue extends ModelBase
+abstract class CustomValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;

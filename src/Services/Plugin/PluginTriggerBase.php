@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Services\Plugin;
 use Exceedone\Exment\Model\CustomValue;
 
 /**
- * Plugin (Trigger) base class / プラグイン(トリガー))の基底クラス
+ * Plugin (Trigger) base class
  */
 class PluginTriggerBase
 {
