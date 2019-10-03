@@ -1127,6 +1127,10 @@ if (!function_exists('replaceTextFromFormat')) {
                         $str = "<a href='$str'>$str</a>";
                     }
 
+                    if ($options['escapeValue']?? false) {
+                        $str = esc_html($str);
+                    }
+
                     // replace
                     $format = str_replace($matchString, $str, $format);
                 }

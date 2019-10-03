@@ -21,6 +21,7 @@ abstract class FormOtherItem implements ItemInterface
     public function __construct($form_column)
     {
         $this->form_column = $form_column;
+        $this->label = ' ';
     }
 
     /**

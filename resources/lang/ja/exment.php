@@ -790,6 +790,7 @@ return [
             'header' => '見出し',
             'html' => 'HTML',
             'explain' => '説明文',
+            'exhtml' => '拡張HTML',
         ],
 
         'help'=> [
