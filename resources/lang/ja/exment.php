@@ -144,7 +144,10 @@ return [
     ],
 
     'validation' => [
-        'not_has_custom_value' => ':attributeに入力の値が、テーブル「:table_view_name」に存在しません。データをご確認ください。',
+        'current_password' => '現在のパスワードが正しくありません。',
+        'password_history' => '過去に登録したパスワードと同一のパスワードとなっています。他のパスワードを入力してください。',
+        'complex_password' => 'パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
+        'not_has_custom_value' => '列:attributeに入力の値:valueが、テーブル「:table_view_name」に存在しません。データをご確認ください。',
         'empty' => ':attributeの値は空欄のみ指定できます。',
     ],
 
@@ -163,6 +166,8 @@ return [
         'site_skin' => 'サイトスキン',
         'site_layout' => 'サイトメニューレイアウト',
         'default_date_format' => '日時表示書式',
+        'filter_search_type' => 'データ検索方法',
+        'api_available' => 'APIを使用する',
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
@@ -185,6 +190,10 @@ return [
         'version_error' => 'バージョンの取得に失敗しました。',
         'update_guide' => 'アップデート手順はこちらから',
         'current_version' => '現在のバージョン：',
+        'password_policy' => 'パスワードポリシー',
+        'complex_password' => '複雑なパスワード',
+        'password_expiration_days' => '有効日数',
+        'password_history_cnt' => 'パスワードの履歴件数',
         
         'site_skin_options' => [
             "skin-blue" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
@@ -212,6 +221,11 @@ return [
             'format_local' => 'ローカル（Y年m月d日 H時i分s秒）',
         ],
         
+        'filter_search_type_options' => [
+            'forward' => '前方一致',
+            'all' => '部分一致',
+        ],
+        
         'date_format_list' => [
             'format_default' => ['Y-m-d', 'Y-m-d H:i:s', 'H:i:s'],
             'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
@@ -226,11 +240,13 @@ return [
             'site_favicon' => 'サイトのファビコン(.ico)です。ホームページのブックマークなどに利用されます。推奨サイズ：16px * 16px',
             'site_skin' => 'サイトのテーマ色を選択します。※保存後、再読込で反映されます。',
             'site_layout' => 'ページ左の、サイトメニューのレイアウトを選択します。※保存後、再読込で反映されます。',
+            'filter_search_type' => '登録データの検索方法を設定します。※部分一致の場合、データ件数によって、パフォーマンスに影響がある場合があります。',
+            'api_available' => 'YESにした場合、APIを使用することができます。',
             'outside_api' => 'YESにした場合、Exmentの最新バージョンの通知など、外部サーバー通信を行う処理を実行できます。データの受信のみ行います。※外部ネットワークに接続できない環境で使用する場合など、通信を行わない場合には、NOに設定してください。',
             'grid_pager_count' => '一覧ページで表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
-            'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
-            'organization_available' => 'YESの場合、ユーザーが所属する組織や部署を作成します。',
+            'permission_available' => 'YESにした場合、ユーザーや役割によって、アクセスできる項目を管理します。',
+            'organization_available' => 'YESにした場合、ユーザーが所属する組織や部署を作成します。',
             'system_admin_users' => 'システム管理者となるユーザーを設定してください。',
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
@@ -238,6 +254,10 @@ return [
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
             'default_date_format' => '日付と時刻の表示書式を設定します。',
+            'password_policy' => 'ログインパスワードのポリシーを設定します。',
+            'complex_password' => 'YESにした場合、パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
+            'password_expiration_days' => 'パスワードの有効日数を設定します。0にした場合は無期限になります。',
+            'password_history_cnt' => '1以上を入力することで、過去に使用したことのある古いパスワードは、入力した件数分、再度登録できなくなります。<br />※0にした場合でも、設定中のパスワードは登録できません。',
         ]
     ],
 
@@ -424,7 +444,7 @@ return [
         'email' => 'メールアドレス',
         'password' => 'パスワード',
         'password_confirmation' => 'パスワード(再入力)',
-        'old_password' => '現在のパスワード',
+        'current_password' => '現在のパスワード',
         'new_password' => '新しいパスワード',
         'new_password_confirmation' => '新しいパスワード(再入力)',
         'send_password' => 'ユーザー情報をメール送信する',
@@ -436,6 +456,7 @@ return [
         'avatar' => 'アバター',
         'default_table_name' => 'ユーザー',
         'belong_organizations' => '所属組織設定',
+        'password_change' => 'パスワード変更',
         'help' =>[
             'user_name' => '画面に表示する名前です。',
             'email' => 'システム通知を受信できるメールアドレスを入力してください。',
@@ -446,9 +467,11 @@ return [
             'reset_password' => 'YESにすることで、パスワードが再設定されます。',
             'create_password_auto' => 'YESにすることで、パスワードが自動生成されます。(該当ユーザーにメールが送信されます)',
             'send_password' => 'YESにすることで、該当ユーザーにユーザー情報をメール送信します。',
+            'password_change' => 'パスワードの有効期限が過ぎています。',
         ],
         'message' => [
             'required_password' => 'パスワードを入力するか自動生成を選択してください。',
+            'change_succeeded' => 'パスワードを変更しました。',
         ]
     ],
 
@@ -1349,6 +1372,7 @@ return [
             'over_createlength' => '同時に新規作成できる件数は%s件までです。',
             'access_denied' => '認証できませんでした。アクセストークンが誤っているか、期限が切れています。',
             'wrong_scope' => 'APIを実行するためのスコープに誤りがあります。開発者にお問い合わせください。',
+            'not_index_enabled' => ':attributeは検索インデックスが設定されていません。',
         ],
 
         'help' =>[

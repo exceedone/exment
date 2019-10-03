@@ -26,6 +26,7 @@ use Webpatser\Uuid\Uuid;
 
 class ExmentServiceProvider extends ServiceProvider
 {
+    
     /**
      * Application Policy Map
      *
@@ -72,6 +73,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
         'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
+        'admin.password-limit'       => \Exceedone\Exment\Middleware\AuthenticatePasswordLimit::class,
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
@@ -96,6 +98,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.auth',
             'admin.auth-2factor',
+            'admin.password-limit',
             'admin.morph',
             'admin.bootstrap2',
             'admin.pjax',
@@ -198,23 +201,11 @@ class ExmentServiceProvider extends ServiceProvider
             return Plugin::getPluginPageModel();
         });
         
-        // register_shutdown_function(function() {
-        //     $error = error_get_last();
-        //     if (isset($error) && isset($error['type']) && ($error['type'] == E_ERROR || $error['type'] == E_CORE_ERROR)) {
-        //         if (!request()->pjax() && request()->ajax()) {
-        //             return getAjaxResponse([
-        //                 'result'  => false,
-        //                 'message' => 'メモリリークです',
-        //             ]);
-        //         }
-        //     }
-        // });
-        
         Passport::ignoreMigrations();
     }
 
     protected function publish()
-    {        
+    {
         $this->publishes([__DIR__.'/../config' => config_path()]);
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
         $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');

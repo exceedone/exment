@@ -5,6 +5,9 @@ use Exceedone\Exment\Services\DocumentExcelService;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Illuminate\Support\Facades\File;
 
+/**
+ * Plugin (Document) base class
+ */
 abstract class PluginDocumentBase
 {
     use PluginBase;
@@ -24,7 +27,7 @@ abstract class PluginDocumentBase
     }
 
     /**
-     * Create document
+     * Create document execution
      */
     public function execute()
     {

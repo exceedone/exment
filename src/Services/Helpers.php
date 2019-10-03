@@ -7,11 +7,13 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Validator as ExmentValidator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -203,18 +205,36 @@ if (!function_exists('rmcomma')) {
 }
 
 // File, path  --------------------------------------------------
-if (!function_exists('exment_path')) {
+if (!function_exists('exment_app_path')) {
 
     /**
-     * Get exment path.
+     * Get Application exment path.
      *
      * @param string $path
      *
      * @return string
      */
-    function exment_path($path = '')
+    function exment_app_path($path = '')
     {
         return ucfirst(config('exment.directory', app_path('Exment'))).($path ? DIRECTORY_SEPARATOR.$path : $path);
+    }
+}
+
+if (!function_exists('exment_package_path')) {
+
+    /**
+     * Get package exment path.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    function exment_package_path($path = '')
+    {
+        $reflection = new \ReflectionClass(\Exceedone\Exment\ExmentServiceProvider::class);
+        $package_path = dirname(dirname($reflection->getFileName()));
+
+        return path_join($package_path, $path);
     }
 }
 
@@ -623,23 +643,36 @@ if (!function_exists('get_password_rule')) {
      * get_password_rule(for validation)
      * @return string
      */
-    function get_password_rule($required = true)
+    function get_password_rule($required = true, ?LoginUser $login_user = null)
     {
         $validates = [];
         if ($required) {
-            array_push($validates, 'required');
+            $validates[] = 'required';
         } else {
-            array_push($validates, 'nullable');
+            $validates[] = 'nullable';
         }
-        array_push($validates, 'confirmed');
-        array_push($validates, 'min:'.(!is_null(config('exment.password_rule.min')) ? config('exment.password_rule.min') : '8'));
-        array_push($validates, 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '32'));
+        $validates[] = 'confirmed';
+        $validates[] = 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '32');
         
-        if (!is_null(config('exment.password_rule.rule'))) {
-            array_push($validates, 'regex:/'.config('exment.password_rule.rule').'/');
+        // check password policy
+        $complex = false;
+        $validates[] = new ExmentValidator\PasswordHistoryRule($login_user);
+
+        if (!is_null($is_complex = System::complex_password()) && boolval($is_complex)) {
+            $validates[] = new ExmentValidator\ComplexPasswordRule;
+            $complex = true;
         }
 
-        return implode("|", $validates);
+        if (!$complex) {
+            $validates[] = 'min:'.(!is_null(config('exment.password_rule.min')) ? config('exment.password_rule.min') : '8');
+        }
+
+        // set regex
+        if (!$complex && !is_null(config('exment.password_rule.rule'))) {
+            $validates[] = 'regex:/'.config('exment.password_rule.rule').'/';
+        }
+        
+        return $validates;
     }
 }
 
@@ -673,7 +706,7 @@ if (!function_exists('replaceBreak')) {
      */
     function replaceBreak($text, $isescape = true)
     {
-        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $isescape ? esc_script_tag($text) : $text);
+        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $isescape ? esc_html($text) : $text);
     }
 }
 

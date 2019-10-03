@@ -38,6 +38,10 @@ class Define
         'site_logo_mini' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_favicon' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_skin' => ['config' => 'admin.skin', 'group' => 'initialize'],
+
+        'api_available' => ['type' => 'boolean', 'config' => 'exment.api', 'group' => 'system'],
+        'filter_search_type' => ['default' => 'forward', 'group' => 'system'],
+
         'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
@@ -51,6 +55,9 @@ class Define
         'default_date_format' => ['default' => 'format_default', 'group' => 'initialize'],
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'initialize'],
         'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'initialize'],
+        'complex_password' => ['type' => 'boolean', 'group' => 'system', 'default' => false],
+        'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
+        'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
         // cannot call getValue function
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
         'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],
@@ -109,7 +116,9 @@ class Define
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER = "has_custom_table_order";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
+    public const SYSTEM_KEY_SESSION_PROVIDER_TOKEN = "provider_token";
     public const SYSTEM_KEY_SESSION_PLUGINS = "plugins";
+    public const SYSTEM_KEY_SESSION_PASSWORD_LIMIT = "password_limit";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',

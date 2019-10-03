@@ -117,7 +117,7 @@ class Permission
             return false;
         }
         // if api setting, check config
-        if (in_array($endpoint, ['api_setting']) && !boolval(config('exment.api'))) {
+        if (in_array($endpoint, ['api_setting']) && !System::api_available()) {
             return false;
         }
 
@@ -148,6 +148,7 @@ class Permission
             case "auth/login":
             case "auth/logout":
             case "auth/setting":
+            case "auth/change":
             case "dashboard":
             case "dashboardbox":
             case "oauth":

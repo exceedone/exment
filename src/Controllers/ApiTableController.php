@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
@@ -10,6 +11,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Carbon\Carbon;
 use Validator;
 
@@ -28,19 +30,15 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataList(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
         // get and check query parameter
-        $count = null;
-        if ($request->has('count')) {
-            $count = $request->get('count');
-            if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
-                return abortJson(400, exmtrans('api.errors.over_maxcount'));
-            }
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
         }
-      
+
         $orderby = null;
         $orderby_list = [];
         if ($request->has('orderby')) {
@@ -55,12 +53,13 @@ class ApiTableController extends AdminControllerTableBase
                 }
                 if (SystemColumn::isValid($column_name)) {
                 } else {
-                    $column = $this->custom_table->custom_columns()->where('column_name', $column_name)->indexEnabled()->first();
-                    if (isset($column)) {
-                        $column_name = $column->getIndexColumnName();
-                    } else {
+                    $column = CustomColumn::getEloquent($column_name, $this->custom_table);
+                    if (!isset($column) && $column->index_enabled) {
                         return abortJson(400, exmtrans('api.errors.invalid_params'));
+                    } elseif (!$column->index_enabled) {
+                        return abortJson(400, exmtrans('api.errors.not_index_enabled'));
                     }
+                    $column_name = $column->getIndexColumnName();
                 }
                 $orderby_list[] = [$column_name, count($values) > 1? $values[1]: 'asc'];
             }
@@ -75,7 +74,7 @@ class ApiTableController extends AdminControllerTableBase
                 $model->orderBy($item[0], $item[1]);
             }
         }
-        $paginator = $model->paginate($count ?? config('exment.api_default_data_count', 100));
+        $paginator = $model->paginate($count);
 
         // execute makehidden
         $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
@@ -132,10 +131,20 @@ class ApiTableController extends AdminControllerTableBase
         $model = getModelName($this->custom_table)::query();
         $model = \Exment::user()->filterModel($model);
 
+        $validator = Validator::make($request->all(), [
+            'q' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ]);
+        }
+
         // filtered query
         $q = $request->get('q');
-        if (!isset($q)) {
-            return [];
+        
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
         }
 
         // get custom_view
@@ -148,7 +157,12 @@ class ApiTableController extends AdminControllerTableBase
             'paginate' => true,
             'makeHidden' => true,
             'target_view' => $custom_view,
-            'maxCount' => 10,
+            'maxCount' => $count,
+        ]);
+
+        $paginator->appends([
+            'q' => $q,
+            'count' => $count,
         ]);
 
         return $paginator;
@@ -162,7 +176,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataFind(Request $request, $tableKey, $id)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -254,7 +268,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function relatedLinkage(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -333,11 +347,16 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         $max_create_count = config('exment.api_max_create_count', 100);
-        if(count($values) > $max_create_count){
+        if (count($values) > $max_create_count) {
             return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count));
         }
 
-        $this->convertFindKeys($values, $request);
+        $findResult = $this->convertFindKeys($values, $request);
+        if ($findResult !== true) {
+            return abortJson(400, [
+                'errors' => $findResult
+            ]);
+        }
 
         $validates = [];
         foreach ($values as $index => $value) {
@@ -394,50 +413,28 @@ class ApiTableController extends AdminControllerTableBase
     protected function convertFindKeys(&$values, $request)
     {
         if (is_null($findKeys = $request->get('findKeys'))) {
-            return;
+            return true;
+        }
+        
+        $errors = [];
+
+        $processOptions = [
+            'onlyValue' => true,
+            'errorCallback' => function ($message, $key) use (&$errors) {
+                $errors[$key] = $message;
+            },
+            'setting' => collect($findKeys)->map(function ($value, $key) {
+                return [
+                    'column_name' => $key,
+                    'target_column_name' => $value
+                ];
+            })->toArray()];
+
+        foreach ($values as &$value) {
+            $value = DataImportExportService::processCustomValue($this->custom_columns, $value, $processOptions);
         }
 
-        foreach ($findKeys as $findKey => $findValue) {
-            // find column
-            $custom_column = CustomColumn::getEloquent($findKey, $this->custom_table);
-            if (!isset($custom_column)) {
-                continue;
-            }
-
-            if ($custom_column->column_type != ColumnType::SELECT_TABLE) {
-                continue;
-            }
-
-            // get target custom table
-            $findCustomTable = $custom_column->select_target_table;
-            if (!isset($findCustomTable)) {
-                continue;
-            }
-
-            // get target column for getting index
-            $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
-            if (!isset($findCustomColumn)) {
-                continue;
-            }
-
-            if (!$findCustomColumn->index_enabled) {
-                //TODO:show error
-                continue;
-            }
-            $indexColumnName = $findCustomColumn->getIndexColumnName();
-
-            foreach ($values as &$value) {
-                $findCustomValue = $findCustomTable->getValueModel()
-                    ->where($indexColumnName, array_get($value, $findKey))
-                    ->first();
-
-                if (!isset($findCustomValue)) {
-                    //TODO:show error
-                    continue;
-                }
-                array_set($value, $findKey, array_get($findCustomValue, 'id'));
-            }
-        }
+        return count($errors) > 0 ? $errors : true;
     }
 
     /**
@@ -620,5 +617,27 @@ class ApiTableController extends AdminControllerTableBase
             $task['end'] = $dtEnd;
         }
         $task['allDayBetween'] = $allDayBetween;
+    }
+
+    /**
+     * Get count parameter for list count
+     *
+     * @param [type] $request
+     * @return void
+     */
+    protected function getCount($request)
+    {
+        // get and check query parameter
+        
+        if (!$request->has('count')) {
+            return config('exment.api_default_data_count', 20);
+        }
+
+        $count = $request->get('count');
+        if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
+            return abortJson(400, exmtrans('api.errors.over_maxcount'));
+        }
+
+        return $count;
     }
 }

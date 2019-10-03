@@ -264,7 +264,7 @@ class PatchDataCommand extends Command
     protected function patchSystemFlgColumn()
     {
         // get vendor folder
-        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template';
+        $templates_data_path = exment_package_path('system_template');
         $configPath = "$templates_data_path/config.json";
 
         $json = json_decode(\File::get($configPath), true);
@@ -492,7 +492,7 @@ class PatchDataCommand extends Command
     {
         // get vendor folder
         $locale = \App::getLocale();
-        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
+        $templates_data_path = exment_package_path('system_template/data');
         $path = path_join($templates_data_path, $locale, "mail_template.xlsx");
         // if exists, execute data copy
         if (!\File::exists($path)) {

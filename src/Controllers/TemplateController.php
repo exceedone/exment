@@ -95,7 +95,7 @@ class TemplateController extends AdminControllerBase
                 if (isset($a['thumbnail_fullpath'])) {
                     $thumbnail_path = $a['thumbnail_fullpath'];
                 } else {
-                    $thumbnail_path = base_path() . '/vendor/exceedone/exment/templates/noimage.png';
+                    $thumbnail_path = exment_package_path('templates/noimage.png');
                 }
                 array_push($datalist, [
                     'id' => array_get($a, 'template_name'),

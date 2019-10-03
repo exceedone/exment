@@ -2,61 +2,45 @@
 <img src="https://exment.net/docs/img/common/exment_logo_side.png" alt="Exment">
 </p>
 
-<p align="center">
-<a href="https://exment.net/docs/#/ja/">ドキュメント</a>
-</p>
 
-デモ
-------------
-<p align="center">
-<a href="https://exment.net/demo-env" target="_blank">デモサイト一覧</a>
-</p>
+## For Japanese(日本語)
+こちらのサイトにアクセスしてください。  
+<a href="https://exment.net" target="_blank">公式サイト</a>  
+<a href="https://exment.net/demo-env" target="_blank">デモサイト一覧</a>  
+<a href="https://exment.net/docs/#/ja/">マニュアル</a>
 
-## Exmentとは
-Exmentは、情報資産をWeb上で管理するための、オープンソースソフトウェアです。
 
-## 機能
-※スクリーンショット付きのページはこちらをご覧ください
-[https://exment.net/functions](https://exment.net/functions)
+## What is Exment?
+Exment is open source software for managing information assets on the Web.  
+For Web Database, SFA, CRM, Business improvement, ...
 
-- ダッシュボード
-- 画面上からデータ登録
-- 独自テーブル・独自列作成
-- テンプレートのインポート・エクスポート（独自テーブル・列を、他のExmentで使用することが可能）
-- データのインポート・エクスポート
-- フォーム内での値計算機能(合計額や、税額の計算)
-- 権限管理
-- 組織管理
-- メニュー構成管理
-- 検索（フリーワード検索、情報に関連する単語の検索）
-- メールテンプレート
-- プラグイン（独自のページや機能を作成）
-- 資料作成(見積書や請求書を画面から作成)
-- API（他のシステムなどからデータ連携）
+## Functions
+- Dashboard
+- Data registration from the screen
+- Custom table/Custom column creation
+- Import/export templates (Custom tables/Columns can be used with other Exments)
+- Import/export data
+- Value calculation function in form (total amount, calculation of tax amount)
+- Authorization management
+- Organization management
+- Menu configuration management
+- Search (free word search, search words related to information)
+- Mail Template
+- API
 
-## 動作環境
-### サーバー
-- PHP 7.1.3以上
-- MySQL 5.7.8以上 または MariaDB 10.2.7以上
-- Laravel5.6以上
+And more and more and more functions....
 
-### 動作確認ブラウザ
+## Operating environment
+### Server
+- PHP 7.1.3 or upper
+- MySQL 5.7.8 or upper, or MariaDB 10.2.7 or upper
+- Laravel5.6
+
+### Support Browser
 - Google Chrome
 - Microsoft Edge
 
-## その他
-Exmentは、以下のプラグイン・サービスなどを利用しております。
-+ [Laravel](https://laravel.com/)
-+ [laravel-admin](http://laravel-admin.org/)
-+ [Laravel Passport](https://github.com/laravel/passport)
-+ [Laravel Uuid](https://github.com/webpatser/laravel-uuid)
-+ [mPDF](https://github.com/mpdf/mpdf)
-+ [PhpSpreadsheet](https://github.com/phpoffice/phpspreadsheet)
-+ [TinyMCE](https://www.tiny.cloud/)
-+ [FullCalendar](https://github.com/fullcalendar/fullcalendar)
-
-## スクリーンショット
-------------
+## Screen Shot
 
 ![Custom Table and Column](https://exment.net/docs/img/common/screenshot_table_and_column.jpg)  
   
@@ -64,31 +48,76 @@ Exmentは、以下のプラグイン・サービスなどを利用しており�
   
 ![Custom Data, Dashboard and Template](https://exment.net/docs/img/common/screenshot_data_dashboard_template.jpg)
 
-------------
-# 開発
-Exmentは、pull request大歓迎です。  
-新機能をご希望の場合、pull requestをいただければ、迅速にパッケージに反映できます。  
+## QuickStart
+> You need set up LAMP and install composer.
 
-## GitHub運用
-
-### ブランチ
-GitHubブランチは、以下の運用とします。  
-※参考： [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
-
-| GitHub ブランチ名 | 派生元 | 説明 |
-| ------------------ | -------------| ------------- |
-| `master` | - | 現在の安定版です。リリースした時点でのソースコードを管理します。 |
-| `hotfix` | master | リリースしたソースコードで、致命的な不具合があったときに緊急対応を行うためのブランチです。push後、developとmasterにマージします。 |
-| `develop` | master | 次期機能などの開発を行うブランチです。 |
-| `feature` | develop | 実装する機能ごとのブランチです。 feature/XXX, feature/YYYなど。開発が完了したら、developにマージを行います。 |
-| `release` | develop | developでの開発完了後、リリース時の微調整を行うためのバージョンです。こちらのブランチで動作確認を行い、完了したら、masterにマージを行います。 |
-
-### Commit前 - php-cs-fixer
-GitHubにCommitを行う前に、php-cs-fixerを実施し、ソースコードの整形を行ってください。  
+- Create Laravel project using composer. ("exment" is project name.)
 
 ~~~
-composer global require friendsofphp/php-cs-fixer #初回のみ
-%USERPROFILE%\AppData\Roaming\Composer\vendor\bin # 左記を環境変数に追加。%USERPROFILE%は、「C:\Users\XXXX」など、端末のユーザー名に置き換える
-php-cs-fixer fix ./vendor/exceedone/exment --rules=no_unused_imports #不要なuse削除
-php-cs-fixer fix ./vendor/exceedone/exment/src #全般の整形
+composer create-project "laravel/laravel=5.6.*" exment
+cd exment
 ~~~
+
+- Require exceedone/exment using composer.
+
+~~~
+composer require exceedone/exment
+php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
+~~~
+
+- Edit .env file.
+
+~~~
+### Database setting
+# Change database setting
+# If your database is MySQL, as below
+DB_CONNECTION=mysql
+# If your database is MariaDB, as below.
+DB_CONNECTION=mariadb
+
+DB_HOST=127.0.0.1 #MySQL host name
+DB_PORT=3306 #MySQL port no.
+DB_DATABASE=homestead #MySQL database name for Exment.
+DB_USERNAME=homestead #MySQL user name for Exment.
+DB_PASSWORD=secret #MySQL password name for Exment.
+
+### timezone and locale
+APP_TIMEZONE=America/Santiago
+APP_LOCALE=en
+~~~
+
+- (Recommend) Add error page. Open "app/Exceptions/Handler.php", and modify "render" function.
+
+~~~ php
+    /**
+     * Render an exception into an HTTP response.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Exception  $exception
+     * @return \Illuminate\Http\Response
+     */
+    public function render($request, Exception $exception)
+    {
+        // Modify
+        return \Exment::error($request, $exception, function($request, $exception){
+            return parent::render($request, $exception);
+        });
+    }
+~~~
+
+
+- Access exment page.  
+URL is http://127.0.0.1:8000/admin
+
+~~~
+php artisan serve
+~~~
+
+
+# Develop
+If you'd like to help with the development of Exment, please visit this site and see how to set it up.  
+[Setup for Develop](Develop.md)
+
+
+# issues
+Please write issues using English or Japanese.  / issuesには英語または日本語で記載してください。

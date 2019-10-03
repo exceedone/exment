@@ -8,8 +8,10 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\ValueType;
 
-class CustomValue extends ModelBase
+abstract class CustomValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
@@ -541,7 +543,15 @@ class CustomValue extends ModelBase
         }
 
         $item->options($options);
-        if ($label) {
+
+        // get value
+        // using ValueType
+        $valueType = ValueType::getEnum($label);
+        if(isset($valueType)){
+            return $valueType->getCustomValue($item, $this);
+        }
+
+        if ($label === true) {
             return $item->text();
         }
         return $item->value();
@@ -901,7 +911,7 @@ class CustomValue extends ModelBase
             return $options;
         }
         
-        if (boolval(config('exment.filter_search_full', false))) {
+        if (System::filter_search_type() == FilterSearchType::ALL) {
             $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         } else {
             $value = $q . ($isLike ? '%' : '');

@@ -297,7 +297,7 @@ class Initialize
 
     protected static function requireBootstrap()
     {
-        $file = config('exment.bootstrap', exment_path('bootstrap.php'));
+        $file = config('exment.bootstrap', exment_app_path('bootstrap.php'));
         if (!\File::exists($file)) {
             return;
         }

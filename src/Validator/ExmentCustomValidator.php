@@ -8,29 +8,17 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
-use Exceedone\Exment\Providers\CustomUserProvider;
 use Illuminate\Validation\Validator as AdminValidator;
 
+/**
+ * CAUTION:::
+ * Don't please add new function. Please add new Rule.
+ */
 class ExmentCustomValidator extends AdminValidator
 {
     use ColumnOptionQueryTrait;
-
-    /**
-    * Validation current password
-    *
-    * @param $attribute
-    * @param $value
-    * @param $parameters
-    * @return bool
-    */
-    public function validateOldPassword($attribute, $value, $parameters)
-    {
-        if (is_null($value)) {
-            return true;
-        }
-        return CustomUserProvider::ValidateCredential(\Exment::user(), ['password' => $value]);
-    }
 
     /**
     * Validation in table

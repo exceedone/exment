@@ -7,7 +7,9 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\ApiScope;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -174,6 +176,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
             $router->get('auth/reset/{token}', 'ResetPasswordController@showResetForm');
             $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
+            $router->get('auth/change', 'ChangePasswordController@showChangeForm');
+            $router->post('auth/change', 'ChangePasswordController@change');
             $router->get('favicon', function () {
                 return File::downloadFavicon();
             });
@@ -206,7 +210,7 @@ class RouteServiceProvider extends ServiceProvider
             ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi'], 'addScope' => false],
         ];
         
-        if (boolval(config('exment.api'))) {
+        if (canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && System::api_available()) {
             $routes[] = ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true];
         }
 
