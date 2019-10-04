@@ -1,4 +1,4 @@
-<div {!! $modalAttributes !!}>
+<div {!! $modalAttributes !!} data-contentname="">
     <div {!! $modalInnerAttributes !!}>
       <div class="modal-content">
         <div class="modal-header">
@@ -9,8 +9,11 @@
             {!! $body !!}
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">{{trans('admin.close')}}</button>
+            <button type="button" class="btn btn-default pull-left modal-close" data-dismiss="modal">{{trans('admin.close')}}</button>
             <button type="button" class="btn btn-info modal-submit {!! $modalSubmitAttributes !!}">{{ trans('admin.submit') }}</button>
+
+            <input type="hidden" class="modal-close-defaultlabel" value="{{ trans('admin.close') }}" />
+            <input type="hidden" class="modal-submit-defaultlabel" value="{{ trans('admin.submit') }}" />
         </div>
     </div>
     </div>

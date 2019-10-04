@@ -8,10 +8,8 @@ namespace Exment {
         }
 
         public static AddEventOnce() {
-            $(document).off('click', '.button-addcalcitem').on('click', '.button-addcalcitem', {}, CustomColumnEvent.calcButtonAddItemEvent);
-            $(document).off('click', '.button-setting').on('click', '.button-setting', {}, CustomColumnEvent.calcButtonSettingEvent);
-            $(document).off('click', '.button-reset').on('click', '.button-reset', {}, CustomColumnEvent.calcButtonResetEvent);
-            $(document).off('click', '.col-value-item-remove').on('click', '.col-value-item-remove', {}, CustomColumnEvent.calcRemoveItemEvent);
+            $(document).off('click', '[data-contentname="options_calc_formula"] .button-addcalcitem').on('click', '[data-contentname="options_calc_formula"] .button-addcalcitem', {}, CustomColumnEvent.calcButtonAddItemEvent);
+            $(document).off('click', '[data-contentname="options_calc_formula"] .col-value-item-remove').on('click', '[data-contentname="options_calc_formula"] .col-value-item-remove', {}, CustomColumnEvent.calcRemoveItemEvent);
 
             $(document).on('pjax:complete', function (event) {
                 CustomColumnEvent.AddEvent();
@@ -62,9 +60,9 @@ namespace Exment {
             $('.calc_formula_area').append(clone);
         }
 
-        private static calcButtonSettingEvent = (ev) => {
+        public static GetSettingValText(){
             // get col value item list
-            var values = $(ev.target).closest('.modal').find('.calc_formula_area').find('.col-value-item');
+            var values = $('.calc_formula_area').find('.col-value-item');
             // get items and texts
             var items = [];
             var texts = [];
@@ -85,20 +83,7 @@ namespace Exment {
                 texts.push(val.text());
             }
 
-            // set value and text
-            $('.options_calc_formula').val(JSON.stringify(items));
-            $('#calc_formula').find('.text-valuemodal').text(texts.join(' '));
-
-            $('.modal').modal('hide');
-        }
-
-        private static calcButtonResetEvent = (ev) => {
-            // remove item
-            $(ev.target).closest('.modal').find('.calc_formula_area').children().remove();
-            // set value and text
-            $('.options_calc_formula').val(null);
-            $('#calc_formula').find('.text-valuemodal').text('');
-            $('.modal').modal('hide');
+            return {value: JSON.stringify(items), text: texts.join(' ')};
         }
 
         private static calcRemoveItemEvent = (ev) => {

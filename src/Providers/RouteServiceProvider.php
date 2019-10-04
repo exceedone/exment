@@ -144,6 +144,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
 
+            $router->get("column/{tableKey}/calcModal", 'CustomColumnController@calcModal');
+            $router->post("column/{tableKey}/{id}/calcModal", 'CustomColumnController@calcModal');
             $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
                         

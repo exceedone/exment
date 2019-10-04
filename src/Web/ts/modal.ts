@@ -17,14 +17,19 @@ namespace Exment {
             let original_title = $target.data('original-title');
 
             /// get data from "data-widgetmodal_getdata"
-            var data = {targetid: $target.attr('id')};
-            var getdataKeys = $target.data('widgetmodal_getdata');
+            let data = {targetid: $target.attr('id')};
+            let getdataKeys = $target.data('widgetmodal_getdata');
             if(hasValue(getdataKeys)){
                 for(var key in getdataKeys){
                     data[getdataKeys[key]] = $target.find('.' + getdataKeys[key]).val();
                 }
             }
             
+            let method = hasValue($target.data('widgetmodal_method')) ? $target.data('widgetmodal_method') : 'GET';
+            if(method.toUpperCase() == 'POST'){
+                data['_token'] = LA.token;
+            }
+
             data = $.extend(
                 data, params
             );
@@ -32,7 +37,7 @@ namespace Exment {
             // get ajax
             $.ajax({
                 url: url,
-                method: 'GET',
+                method: method,
                 data: data
             }).done(function( res ) {
                 $('#modal-showmodal button.modal-submit').removeClass('d-none');
@@ -54,6 +59,10 @@ namespace Exment {
         private static setModalEvent = (ev) =>{
             const target = $(ev.target).closest('[data-widgetmodal_url]');
             const url = target.data('widgetmodal_url');
+
+            if(!hasValue(url)){
+                return;
+            }
 
             Exment.ModalEvent.ShowModal(target, url);
         }
@@ -193,6 +202,16 @@ namespace Exment {
                 }
                 $('#modal-showmodal button.modal-submit').addClass('d-none');
             }
+
+            // set modal contentname
+            $('#modal-showmodal').attr('data-contentname', res.contentname);
+
+            // set buttonname
+            const closelabel = hasValue(res.closelabel) ? res.closelabel : $('#modal-showmodal .modal-close-defaultlabel');
+            const submitlabel = res.submitlabel ? res.submitlabel : $('#modal-showmodal .modal-submit-defaultlabel');
+            $('#modal-showmodal').find('.modal-close').text(closelabel);
+            $('#modal-showmodal').find('.modal-submit').text(submitlabel);
+
             Exment.ModalEvent.enableSubmit(button);
         }
 

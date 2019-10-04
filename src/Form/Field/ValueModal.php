@@ -14,20 +14,22 @@ class ValueModal extends Field
 {
     protected $view = 'exment::form.field.valuemodal';
 
+    protected $valueTextScript;
+
     /**
      * @var string
      */
     protected $buttonlabel;
 
     /**
+     * @var string
+     */
+    protected $modalContentname;
+
+    /**
      * @var string modal ajax
      */
     protected $ajax;
-
-    /**
-     * @var callable|string modal body
-     */
-    protected $modalbody;
 
     /**
      * @var array modal ajax posting names
@@ -48,6 +50,19 @@ class ValueModal extends Field
     }
 
     /**
+     * Set modal content key name.
+     *
+     * @param string $modalContentname
+     *
+     * @return $this|mixed
+     */
+    public function modalContentname($modalContentname = '')
+    {
+        $this->modalContentname = $modalContentname;
+        return $this;
+    }
+
+    /**
      * Set ajax.
      *
      * @param string $text
@@ -57,25 +72,6 @@ class ValueModal extends Field
     public function ajax($ajax = '')
     {
         $this->ajax = $ajax;
-        return $this;
-    }
-
-    /**
-     * Available buttons.
-     *
-     * @var array
-     */
-    protected $buttons = ['reset', 'setting'];
-
-    /**
-     * Set modal body
-     *
-     *
-     * @return $this|mixed
-     */
-    public function modalbody($modalbody)
-    {
-        $this->modalbody = $modalbody;
         return $this;
     }
 
@@ -95,38 +91,47 @@ class ValueModal extends Field
     protected function script()
     {
         $classname = $this->getElementClassSelector();
+        $modalContentname = $this->modalContentname;
         $post_names = collect($this->post_names)->toJson();
         $ajax = $this->ajax;
+        $valueTextScript = $this->valueTextScript;
 
         $script = <<<EOT
-$('$classname').closest('.block-valuemodal').on('click', '.btn-valuemodal', function (ev) {
-    let modal = $(ev.target).closest('.block-valuemodal').find('.modal');
-    let data = $post_names;
-    if(data.length == 0){
-        data = {};
-    }
-    data['_token'] = LA.token;
-    if(hasValue('$ajax')){
-        $.ajax({
-            url: '$ajax',
-            type: 'POST',
-            data: data,
-        })
-        .done(function (repsonse) {
-            Exment.CommonEvent.CallbackExmentAjax(repsonse);
-            modal.find('.modal-body').html(data);
-            modal.modal();
-        })
-    }else{
-        modal.modal();
-    }
-});
+
+        // Set to close button modal event
+        let keyname = '[data-contentname="$modalContentname"] .modal-submit';
+        $(document).off('click', keyname).on('click', keyname, {}, function(ev){
+            let valText = {$valueTextScript};
+            
+            // set value and text
+            $('$classname').val(valText.value);
+            $('$classname').closest('.block-valuemodal').find('.text-valuemodal').text(valText.text);
+
+            $('.modal').modal('hide');
+        });
+
+        keyname = '[data-contentname="$modalContentname"] .modal-close';
+        $(document).off('click', keyname).on('click', keyname, {}, function(ev){
+            $('$classname').val(null);
+            $('$classname').closest('.block-valuemodal').find('.text-valuemodal').text('');
+        });
 
 EOT;
         $this->script = $script;
     }
 
+    /**
+     * Set value and text script
+     *
+     * @param string $script
+     * @return $this|mixed
+     */
+    public function valueTextScript($script){
+        $this->valueTextScript = $script;
 
+        return $this;
+    }
+    
     /**
      * {@inheritdoc}
      */
@@ -141,23 +146,12 @@ EOT;
             $this->text(call_user_func($this->text, $this->value));
         }
 
-        // set modalbody
-        if ($this->modalbody instanceof \Closure) {
-            if ($this->form) {
-                $this->modalbody = $this->modalbody->bindTo($this->form->model());
-            }
-
-            $this->modalbody(call_user_func($this->modalbody, $this->value));
-        }
-        if ($this->modalbody instanceof Renderable) {
-            $this->modalbody = $this->modalbody->render();
-        }
-
+       
         // set button label
         if (is_null($this->buttonlabel)) {
             $this->buttonlabel = exmtrans('common.change');
         }
-
+ 
         // set button label
         if (is_array($this->value)) {
             $this->value = json_encode($this->value);
@@ -169,8 +163,6 @@ EOT;
         return parent::render()->with([
             'text'   => $this->text,
             'buttonlabel'   => $this->buttonlabel,
-            'buttons'   => $this->buttons,
-            'modalbody' => $this->modalbody,
             'ajax' => $this->ajax,
         ]);
     }

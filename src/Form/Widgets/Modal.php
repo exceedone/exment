@@ -10,6 +10,7 @@ use Encore\Admin\Facades\Admin;
 class Modal
 {
     use ModalTrait;
+    
     protected $modalBody;
 
     public function body($modalBody)

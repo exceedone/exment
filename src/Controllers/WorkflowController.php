@@ -220,10 +220,6 @@ class WorkflowController extends AdminControllerBase
                     // }
                     return null;
                 })
-                ->modalbody(function ($value) {
-                    
-                    return null;
-                })
             ;
 
            // $form->workTargets('work_targets', exmtrans("workflow.work_targets"));

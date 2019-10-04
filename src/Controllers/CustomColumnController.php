@@ -465,6 +465,9 @@ class CustomColumnController extends AdminControllerTableBase
             $form->valueModal('calc_formula', exmtrans("custom_column.options.calc_formula"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])])
                 ->help(exmtrans("custom_column.help.calc_formula"))
+                ->ajax(admin_urls('column', $custom_table->table_name, $id, 'calcModal'))
+                ->modalContentname('options_calc_formula')
+                ->valueTextScript('Exment.CustomColumnEvent.GetSettingValText();')
                 ->text(function ($value) use ($id, $custom_table, $self) {
                     /////TODO:copy and paste
                     if (!isset($value)) {
@@ -482,31 +485,6 @@ class CustomColumnController extends AdminControllerTableBase
                         $texts[] = $self->getCalcDisplayText($v, $custom_column_options);
                     }
                     return implode(" ", $texts);
-                })
-                ->modalbody(function ($value) use ($id, $custom_table, $self) {
-                    /////TODO:copy and paste
-                    // get other columns
-                    // return $id is null(calling create fuction) or not match $id and row id.
-                    $custom_column_options = $self->getCalcCustomColumnOptions($id, $custom_table);
-                    
-                    if (!isset($value)) {
-                        $value = [];
-                    }
-                    // convert json to array
-                    if (!is_array($value) && is_json($value)) {
-                        $value = json_decode($value, true);
-                    }
-
-                    ///// get text
-                    foreach ($value as &$v) {
-                        $v['text'] = $self->getCalcDisplayText($v, $custom_column_options);
-                    }
-
-                    return view('exment::custom-column.calc_formula_modal', [
-                        'custom_columns' => $custom_column_options,
-                        'value' => $value,
-                        'symbols' => exmtrans('custom_column.symbols'),
-                    ]);
                 })
             ;
 
@@ -553,6 +531,41 @@ class CustomColumnController extends AdminControllerTableBase
         return $form;
     }
     
+    public function calcModal(Request $request, $tableKey, $id){
+        // get other columns
+        // return $id is null(calling create fuction) or not match $id and row id.
+        $custom_column_options = $this->getCalcCustomColumnOptions($id, $this->custom_table);
+        
+        // get value
+        $value = $request->get('options_calc_formula');
+
+        if (!isset($value)) {
+            $value = [];
+        }
+        // convert json to array
+        if (!is_array($value) && is_json($value)) {
+            $value = json_decode($value, true);
+        }
+
+        ///// get text
+        foreach ($value as &$v) {
+            $v['text'] = $this->getCalcDisplayText($v, $custom_column_options);
+        }
+        
+        $render = view('exment::custom-column.calc_formula_modal', [
+            'custom_columns' => $custom_column_options,
+            'value' => $value,
+            'symbols' => exmtrans('custom_column.symbols'),
+        ]);
+        return getAjaxResponse([
+            'body'  => $render->render(),
+            'title' => exmtrans("custom_column.options.calc_formula"),
+            'contentname' => 'options_calc_formula',
+            'closelabel' => trans('admin.reset'),
+            'submitlabel' => trans('admin.setting'),
+        ]);
+    }
+
     protected function getCalcDisplayText($v, $custom_column_options)
     {
         $val = array_get($v, 'val');
@@ -586,6 +599,7 @@ class CustomColumnController extends AdminControllerTableBase
         }
         return $text;
     }
+
     /**
      * add column form and view after saved
      */
