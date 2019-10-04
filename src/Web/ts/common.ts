@@ -154,7 +154,7 @@ namespace Exment {
                 }, options.data
             );
 
-            if(options.method.toLowerCase == 'delete'){
+            if(options.method.toLowerCase() == 'delete'){
                 data._method = 'delete';
                 options.method = 'POST';
             }
@@ -1073,6 +1073,25 @@ const trimAny = function (str, any) {
     return str.replace(new RegExp("^" + any + "+|" + any + "+$", "g"), '');
 }
 
+const entityMap = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+    '/': '&#x2F;',
+    '`': '&#x60;',
+    '=': '&#x3D;'
+  };
+  
+  function escHtml (string) {
+    if(!string){
+        return string;
+    }
+    return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+      return entityMap[s];
+    });
+  }
 const selectedRow = function () {
     var id = $('.grid-row-checkbox:checked').eq(0).data('id');
     return id;
@@ -1113,6 +1132,27 @@ const getParamFromArray = function (array) {
         return (x.value !== (undefined || null || ''));
     });
     return $.param(array);
+}
+
+const serializeFromArray = function (form) {
+    let param = {};
+    $(form.serializeArray()).each(function(i, v) {
+        // if name is array
+        if(v.name.slice(-2) == '[]'){
+            if(!hasValue(v.value)){
+                return;
+            }
+            let name = v.name.slice(0, -2);
+            if(!hasValue(param[name])){
+                param[name] = [];
+            }
+            param[name].push(v.value);
+        }else{
+            param[v.name] = v.value;
+        }
+    });
+
+    return param;
 }
 
 const getUuid = function() : string{

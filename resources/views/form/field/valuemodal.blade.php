@@ -10,7 +10,7 @@
             <p><button type="button" class="btn btn-default btn-valuemodal" 
             data-widgetmodal_url="{{$ajax}}"
             data-widgetmodal_method="POST"
-            data-widgetmodal_getdata='["options_calc_formula"]'
+            data-widgetmodal_getdata='["{{$modalContentname}}"]'
             >
             {{ $buttonlabel }}
             <input type="hidden" name="{{$name}}" value="{{$value}}" class="{{$class}}" {!! $attributes !!} />

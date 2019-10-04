@@ -94,7 +94,7 @@ class ValueModal extends Field
         $modalContentname = $this->modalContentname;
         $post_names = collect($this->post_names)->toJson();
         $ajax = $this->ajax;
-        $valueTextScript = $this->valueTextScript;
+        $valueTextScript = $this->valueTextScript ?? '{value:null, text:null}';
 
         $script = <<<EOT
 
@@ -105,7 +105,8 @@ class ValueModal extends Field
             
             // set value and text
             $('$classname').val(valText.value);
-            $('$classname').closest('.block-valuemodal').find('.text-valuemodal').text(valText.text);
+
+            $('$classname').closest('.block-valuemodal').find('.text-valuemodal').html(valText.text);
 
             $('.modal').modal('hide');
         });
@@ -164,6 +165,7 @@ EOT;
             'text'   => $this->text,
             'buttonlabel'   => $this->buttonlabel,
             'ajax' => $this->ajax,
+            'modalContentname' => $this->modalContentname
         ]);
     }
 }

@@ -24,8 +24,9 @@ class CreateWorkflowTable extends Migration
         $schema->create('workflows', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->index();
-            $table->string('workflow_name', 30);
+            $table->integer('custom_table_id')->unsigned();
 
+            $table->string('workflow_name', 30);
             $table->string('start_status_name', 30);
             $table->boolean('start_datalock_flg')->default(false);
             $table->string('end_status_name', 30);
@@ -33,6 +34,8 @@ class CreateWorkflowTable extends Migration
 
             $table->timestamps();
             $table->timeusers();
+            
+            $table->foreign('custom_table_id')->references('id')->on('custom_tables');
         });
 
         $schema->create('workflow_statuses', function (ExtendedBlueprint $table) {
@@ -52,8 +55,8 @@ class CreateWorkflowTable extends Migration
         $schema->create('workflow_actions', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('workflow_id')->unsigned()->index();
-            $table->string('status_start')->unsigned();
-            $table->string('status_end')->unsigned();
+            $table->string('status_from');
+            $table->string('status_to');
             $table->string('action_name', 30);
             $table->integer('action_group_id');
             $table->integer('order');
@@ -83,10 +86,6 @@ class CreateWorkflowTable extends Migration
 
             $table->index(['morph_type', 'morph_id']);
         });
-
-        $schema->table('custom_tables', function (ExtendedBlueprint $table) {
-            $table->integer('workflow_id')->unsigned()->nullable()->after('order');
-        });
     }
 
     /**
@@ -101,8 +100,5 @@ class CreateWorkflowTable extends Migration
         Schema::dropIfExists('workflow_actions');
         Schema::dropIfExists('workflow_statuses');
         Schema::dropIfExists('workflows');
-        Schema::table('custom_tables', function (Blueprint $table) {
-            $table->dropColumn('workflow_id');
-        });
     }
 }

@@ -6,7 +6,6 @@ use Encore\Admin\Form;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
-use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
@@ -16,6 +15,7 @@ use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 class WorkflowController extends AdminControllerBase
 {
@@ -37,6 +37,7 @@ class WorkflowController extends AdminControllerBase
     {
         $grid = new Grid(new Workflow);
         $grid->column('id', exmtrans("common.id"));
+        $grid->column('custom_table.table_view_name', exmtrans("custom_table.table"))->sortable();
         $grid->column('workflow_name', exmtrans("workflow.workflow_name"))->sortable();
         
         $grid->disableExport();
@@ -45,18 +46,13 @@ class WorkflowController extends AdminControllerBase
         }
 
         $grid->actions(function (Grid\Displayers\Actions $actions) {
-            if (CustomTable::where('workflow_id', $actions->row->id)->exists()) {
-                $actions->disableDelete();
-            }
             $actions->disableView();
-            if (count($actions->row->workflow_statuses) > 0) {
-                // add new edit link
-                $linker = (new Linker)
-                    ->url(admin_urls('workflow', $actions->getKey(), 'edit?action=1'))
-                    ->icon('fa-link')
-                    ->tooltip(exmtrans('workflow.action'));
-                $actions->prepend($linker);
-            }
+            // add new edit link
+            $linker = (new Linker)
+                ->url(admin_urls('workflow', $actions->getKey(), 'edit?action=1'))
+                ->icon('fa-link')
+                ->tooltip(exmtrans('workflow.action'));
+            $actions->prepend($linker);
         });
 
         return $grid;
@@ -107,6 +103,11 @@ class WorkflowController extends AdminControllerBase
             ->required()
             ->rules("max:40");
         
+        $form->select('custom_table_id')->options(function ($value) {
+            $options = CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
+            return $options;
+        })->required();
+
         $form->text('start_status_name', exmtrans("workflow.start_status_name"))
             ->required()
             ->rules("max:30");
@@ -128,12 +129,6 @@ class WorkflowController extends AdminControllerBase
         $form->switchbool('end_datalock_flg', exmtrans("workflow.datalock_flg"))
             ->help(exmtrans('workflow.help.datalock_flg'))
             ->default(1);
-
-        if (isset($id) && CustomTable::where('workflow_id', $id)->count() > 0) {
-            $form->tools(function (Form\Tools $tools) {
-                $tools->disableDelete();
-            });
-        }
 
         $form->saving(function (Form $form) {
             $this->exists = $form->model()->exists;
@@ -195,35 +190,25 @@ class WorkflowController extends AdminControllerBase
         $form->hidden('action')->default(1);
         $form->display('workflow_name', exmtrans("workflow.workflow_name"));
 
-        $form->pushField(new WorkFlowField\ActionHasMany('workflow_actions', [exmtrans("workflow.workflow_actions"), function($form) use($workflow){
-            $form->text('action_name', exmtrans("workflow.action_name"));
-            
-            $form->statusSelects('status_start', exmtrans("workflow.status_name"))->options($workflow->getStatusOptions());
+        $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function($form) use($id, $workflow){
+            $form->statusSelects('status_from', exmtrans("workflow.status_name"))
+                ->config('allowClear', false)
+                ->options($workflow->getStatusOptions());
 
-            $form->valueModal('work_targets', exmtrans("workflow.work_targets"))
-                ->ajax(admin_urls('workflow/modal/target'))
-                ->text(function ($value) {
-                    // /////TODO:copy and paste
-                    // if (!isset($value)) {
-                    //     return null;
-                    // }
-                    // // convert json to array
-                    // if (!is_array($value) && is_json($value)) {
-                    //     $value = json_decode($value, true);
-                    // }
-
-                    // $custom_column_options = $self->getCalcCustomColumnOptions($id, $custom_table);
-                    // ///// get text
-                    // $texts = [];
-                    // foreach ($value as &$v) {
-                    //     $texts[] = $self->getCalcDisplayText($v, $custom_column_options);
-                    // }
-                    return null;
-                })
-            ;
-
-           // $form->workTargets('work_targets', exmtrans("workflow.work_targets"));
-        }]));
+            // $form->valueModal('work_targets', exmtrans("workflow.work_targets"))
+            //     ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
+            //     ->modalContentname('workflow_actions_work_targets')
+            //     ->setElementClass('workflow_actions_work_targets')
+            //     ->required()
+            //     ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
+            //     ->text(function ($value) {
+            //         if(!isset($value)){
+            //             return '全ユーザー';
+            //         }
+            //         return null;
+            //     })
+            // ;
+        });
 
         $form->tools(function (Form\Tools $tools) {
             $tools->disableDelete();
@@ -265,17 +250,30 @@ class WorkflowController extends AdminControllerBase
         }
     }
 
-    public function modalTarget(Request $request){
-        $form = new ModalForm;
-        $form->disableReset();
-        $form->disableSubmit();
+    public function modalTarget(Request $request, $id){
+        $workflow = Workflow::find($id);
+        $custom_table = $workflow->custom_table;
 
-        $form->select('aaa')->options(['1' => 'aaa']);
+        // get selected value
+        $value = $request->get('workflow_actions_work_targets');
+        if (!isset($value)) {
+            $value = [];
+        }
+        // convert json to array
+        if (!is_array($value) && is_json($value)) {
+            $value = json_decode($value, true);
+        }
+
+        $form = AuthUserOrgHelper::getUserOrgModalForm($custom_table, $value);
 
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
-            'title' => exmtrans('common.shared')
+            'title' => exmtrans('common.shared'),
+            'closelabel' => trans('admin.reset'),
+            'submitlabel' => trans('admin.setting'),
+            'contentname' => 'workflow_actions_work_targets',
         ]);
     }
+
 }

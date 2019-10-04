@@ -379,7 +379,6 @@ class Initialize
             
             ///// workflow
             'statusSelects'          => Field\WorkFlow\StatusSelects::class,
-            'workTargets'          => Field\WorkFlow\WorkTarget::class,
         ];
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);

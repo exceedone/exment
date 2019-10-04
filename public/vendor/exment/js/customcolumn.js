@@ -15,13 +15,13 @@ var Exment;
         }
         static GetSettingValText() {
             // get col value item list
-            var values = $('.calc_formula_area').find('.col-value-item');
+            let values = $('.calc_formula_area').find('.col-value-item');
             // get items and texts
-            var items = [];
-            var texts = [];
+            let items = [];
+            let texts = [];
             for (var i = 0; i < values.length; i++) {
                 // get value
-                var val = values.eq(i);
+                let val = values.eq(i);
                 // push value
                 let itemval = { 'type': val.data('type'), 'val': val.data('val') };
                 if (hasValue(val.data('from'))) {
@@ -32,7 +32,7 @@ var Exment;
                 }
                 items.push(itemval);
                 // push text
-                texts.push(val.text());
+                texts.push(escHtml(val.text()));
             }
             return { value: JSON.stringify(items), text: texts.join(' ') };
         }

@@ -33,6 +33,12 @@ class WorkflowAction extends ModelBase
             ->where('related_type', SystemTableName::ORGANIZATION)->get()->pluck('related_id');
     }
 
+    public function getWorkTargetsAttribute()
+    {
+        return WorkflowAuthority::where('workflow_action_id', $this->id)
+            ->where('related_type', SystemTableName::ORGANIZATION)->get()->pluck('related_id');
+    }
+
     protected static function boot() {
         parent::boot();
 

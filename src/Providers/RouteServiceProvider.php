@@ -91,11 +91,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
             
-            // $router->resource('workflow', 'Workflow2Controller', ['except' => ['show']]);
-            // $router->get('workflow/modal/status', 'Workflow2Controller@modalStatus');
-
             $router->resource('workflow', 'WorkflowController', ['except' => ['show']]);
-            $router->post('workflow/modal/target', 'WorkflowController@modalTarget');
+            $router->post('workflow/{id}/modal/target', 'WorkflowController@modalTarget');
 
             $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');
@@ -166,7 +163,6 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'relation', 'CustomRelationController');
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
             $this->setTableResouce($router, 'operation', 'CustomOperationController');
-            $this->setTableResouce($router, 'data', 'CustomValueController');
 
             $router->get('webapi/menu/menutype', 'MenuController@menutype');
             $router->post('webapi/menu/menutargetvalue', 'MenuController@menutargetvalue');

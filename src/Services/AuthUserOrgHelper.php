@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 
 /**
  * Role, user , organization helper
@@ -228,6 +229,43 @@ class AuthUserOrgHelper
         $query->with(trim($withs, '.'));
         $query->whereNull($modelname::getParentOrgIndexName());
         return $query;
+    }
+
+    /**
+     * Get User, org, role group form
+     *
+     * @return void
+     */
+    public static function getUserOrgModalForm($custom_table = null, $value = []){
+        $form = new ModalForm();
+
+        $users = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions(
+            [
+                'display_table' => $custom_table,
+                'notAjax' => true,
+            ]
+        );
+        // select target users
+        $form->multipleSelect(SystemTableName::USER, exmtrans('menu.system_definitions.user'))
+            ->options($users)
+            ->default(array_get($value, SystemTableName::USER))
+            ->setWidth(9, 2);
+
+        if (System::organization_available()) {
+            $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions(
+                [
+                    'display_table' => $custom_table,
+                    'noAjax' => true,
+                ]
+            );
+                
+            $form->multipleSelect(SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
+                ->options($organizations)
+                ->default(array_get($value, SystemTableName::ORGANIZATION))
+                ->setWidth(9, 2);
+        }
+
+        return $form;
     }
 
     protected static function setFlattenOrganizations($orgs, &$org_flattens)

@@ -207,8 +207,8 @@ namespace Exment {
             $('#modal-showmodal').attr('data-contentname', res.contentname);
 
             // set buttonname
-            const closelabel = hasValue(res.closelabel) ? res.closelabel : $('#modal-showmodal .modal-close-defaultlabel');
-            const submitlabel = res.submitlabel ? res.submitlabel : $('#modal-showmodal .modal-submit-defaultlabel');
+            const closelabel = hasValue(res.closelabel) ? res.closelabel : $('#modal-showmodal .modal-close-defaultlabel').val();
+            const submitlabel = res.submitlabel ? res.submitlabel : $('#modal-showmodal .modal-submit-defaultlabel').val();
             $('#modal-showmodal').find('.modal-close').text(closelabel);
             $('#modal-showmodal').find('.modal-submit').text(submitlabel);
 

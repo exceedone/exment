@@ -17,13 +17,32 @@ class StatusSelects extends Select
 
     public function __construct($column = '', $arguments = [])
     {
-        $this->column['start'] = 'status_start';
-        $this->column['end'] = 'status_end';
+        $this->column['action_name'] = 'action_name';
+        $this->column['status_from'] = 'status_from';
+        $this->column['status_to'] = 'status_to';
 
         $this->label = $this->formatLabel($arguments);
         $this->id = $this->formatId($this->column);
 
         // $this->options(['format' => $this->format]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function value($value = null)
+    {
+        if (is_null($value)) {
+            if (is_null($this->value['status_from']) && is_null($this->value['status_to'])) {
+                return $this->getDefault();
+            }
+
+            return $this->value;
+        }
+
+        $this->value = $value;
+
+        return $this;
     }
 
     /**
@@ -59,10 +78,9 @@ class StatusSelects extends Select
         $configs = json_encode($configs);
 
         // get classname
-        $classname = implode(',', array_values($this->getElementClassSelector()));
 
         if (empty($this->script)) {
-            $this->script = "$(\"{$classname}\").select2($configs);";
+            $this->script = "$('.workflow_actions_status_from,.workflow_actions_status_to').select2($configs);";
         }
 
         if ($this->options instanceof \Closure) {

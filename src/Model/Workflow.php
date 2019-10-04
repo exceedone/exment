@@ -6,6 +6,11 @@ class Workflow extends ModelBase
 {
     use Traits\AutoSUuidTrait;
     
+    public function custom_table()
+    {
+        return $this->belongsTo(CustomTable::class, 'custom_table_id');
+    }
+
     /**
      * get workflow statuses
      */
@@ -57,7 +62,7 @@ class Workflow extends ModelBase
         $statuses = $this->workflow_statuses->pluck('status_name', 'id');
 
         $statuses->prepend($this->start_status_name, 'start');
-        $statuses->push($this->end_status_name, 'end');
+        $statuses->put('end', $this->end_status_name);
 
         return $statuses;
     }
