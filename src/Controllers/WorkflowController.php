@@ -123,13 +123,6 @@ class WorkflowController extends AdminControllerBase
             ->rowUpDown('order')
             ->description(sprintf(exmtrans("workflow.description_workflow_statuses")));
         
-        $form->text('end_status_name', exmtrans("workflow.end_status_name"))
-            ->required()
-            ->rules("max:30");
-        $form->switchbool('end_datalock_flg', exmtrans("workflow.datalock_flg"))
-            ->help(exmtrans('workflow.help.datalock_flg'))
-            ->default(1);
-
         $form->saving(function (Form $form) {
             $this->exists = $form->model()->exists;
         });

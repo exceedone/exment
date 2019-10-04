@@ -29,8 +29,6 @@ class CreateWorkflowTable extends Migration
             $table->string('workflow_name', 30);
             $table->string('start_status_name', 30);
             $table->boolean('start_datalock_flg')->default(false);
-            $table->string('end_status_name', 30);
-            $table->boolean('end_datalock_flg')->default(true);
 
             $table->timestamps();
             $table->timeusers();
@@ -63,6 +61,8 @@ class CreateWorkflowTable extends Migration
 
             $table->timestamps();
             $table->timeusers();
+            
+            $table->foreign('workflow_id')->references('id')->on('workflows');
         });
 
         $schema->create('workflow_authorities', function (ExtendedBlueprint $table) {
@@ -80,11 +80,13 @@ class CreateWorkflowTable extends Migration
             $table->string('morph_type', 255);
             $table->bigInteger('morph_id')->unsigned();
             $table->integer('workflow_status_id')->unsigned();
+            $table->boolean('enabled_flg')->default(false)->index();
 
             $table->timestamps();
             $table->timeusers();
 
             $table->index(['morph_type', 'morph_id']);
+            $table->foreign('workflow_id')->references('id')->on('workflows');
         });
     }
 

@@ -377,6 +377,7 @@ class CustomValueController extends AdminControllerTableBase
             'workflow_status_id' => array_get($action, 'status_to'),
             'enabled_flg' => 1
         ];
+
         $created = WorkflowValue::create($data);
 
         return ([

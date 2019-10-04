@@ -62,8 +62,8 @@ class Workflow extends ModelBase
         $statuses = $this->workflow_statuses->pluck('status_name', 'id');
 
         $statuses->prepend($this->start_status_name, 'start');
-        $statuses->put('end', $this->end_status_name);
 
         return $statuses;
     }
+
 }

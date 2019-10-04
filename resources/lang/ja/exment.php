@@ -562,7 +562,6 @@ return [
         'description_workflow_actions' => '状態を変化させるアクションを定義します。 例：申請、承認、決裁',
         'status_name' => 'ステータス名',
         'start_status_name' => '開始ステータス名',
-        'end_status_name' => '終了ステータス名',
         'action_name' => 'アクション名',
         'datalock_flg' => 'データの編集不可',
         'action' => 'アクション設定',

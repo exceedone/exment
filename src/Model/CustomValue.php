@@ -81,24 +81,10 @@ abstract class CustomValue extends ModelBase
     {
         return WorkflowValue::where('morph_id', $this->id)
             ->where('morph_type', $this->custom_table->table_name)
-            ->where('workflow_id', $this->custom_table->workflow_id)
-            //->where('datalock_flg', false)
+            //->where('workflow_id', $this->custom_table->workflow_id)
+            ->where('enabled_flg', true)
             ->orderBy('updated_at', 'desc')
             ->first();
-    }
-
-    public function getWorkflowStatusIdAttribute()
-    {
-        return array_get($this->workflow_value, 'workflow_status_id')?? 0;
-    }
-
-    public function getWorkflowStatusAttribute()
-    {
-        $workflow_value = $this->workflow_value;
-        if (isset($workflow_value)) {
-            return array_get($workflow_value->workflow_status, 'status_name');
-        }
-        return null;
     }
 
     // user value_authoritable. it's all role data. only filter morph_type
@@ -122,34 +108,63 @@ abstract class CustomValue extends ModelBase
     // get workflow actions which has authority
     public function workflow_actions()
     {
-        $workflow_id = array_get($this->custom_table, 'workflow_id');
-        $status_id = $this->workflow_status_id;
-        if ($workflow_id) {
-            $user = \Exment::user()->base_user_id;
-            $organization = \Exment::user()->getOrganizationIds();
-            $actions = WorkflowAction::select()
-                ->leftJoin('workflow_authorities', 'workflow_authorities.workflow_action_id', '=', 'workflow_actions.id')
-                ->where('workflow_actions.workflow_id', $workflow_id)
-                ->where('workflow_actions.status_from', $status_id)
-                ->where(function ($query) use($user, $organization){
-                    $query
-                        ->whereNull('workflow_authorities.related_id')
-                        ->orWhere(function ($query1) use($user) {
-                            $query1
-                                ->where('workflow_authorities.related_id', '=', $user)
-                                ->where('workflow_authorities.related_type', '=', SystemTableName::USER);
-                        });
-                    if (count($organization) > 0) {
-                        $query->orWhere(function ($query2) use($organization) {
-                            $query2
-                                ->where('workflow_authorities.related_id', '=', $organization)
-                                ->where('workflow_authorities.related_type', '=', SystemTableName::ORGANIZATION);
-                        });
-                    }
-                })->get();
-            return $actions;
+        $workflows = Workflow::where('custom_table_id', $this->custom_table->id)
+            ->with(['workflow_statuses', 'workflow_actions'])
+            ->get();
+        
+        if(count($workflows) == 0){
+            return [];
         }
-        return [];
+
+        //TODO:workflow multiple workflow support
+        $workflow = $workflows->first();
+
+        // get current status etc
+        $workflow_value = $this->workflow_value;
+        $workflow_status = isset($workflow_value) ? $workflow_value->workflow_status : null;
+
+        // get matched actions
+        $workflow_actions = $workflow
+            ->workflow_actions
+            ->filter(function($workflow_action) use($workflow_status){
+                if(!isset($workflow_status)){
+                    return $workflow_action->status_from == 'start';
+                }
+                return $workflow_action->status_from == $workflow_status->id;
+            });
+
+        // TODO:authority etc
+
+        //return 
+        return $workflow_actions;
+
+        // $status_id = $this->workflow_status_id;
+        // if ($workflow_id) {
+        //     $user = \Exment::user()->base_user_id;
+        //     $organization = \Exment::user()->getOrganizationIds();
+        //     $actions = WorkflowAction::select()
+        //         ->leftJoin('workflow_authorities', 'workflow_authorities.workflow_action_id', '=', 'workflow_actions.id')
+        //         ->where('workflow_actions.workflow_id', $workflow_id)
+        //         ->where('workflow_actions.status_from', $status_id)
+        //         ->where(function ($query) use($user, $organization){
+        //             $query
+        //                 ->whereNull('workflow_authorities.related_id')
+        //                 ->orWhere(function ($query1) use($user) {
+        //                     $query1
+        //                         ->where('workflow_authorities.related_id', '=', $user)
+        //                         ->where('workflow_authorities.related_type', '=', SystemTableName::USER);
+        //                 });
+        //             if (count($organization) > 0) {
+        //                 $query->orWhere(function ($query2) use($organization) {
+        //                     $query2
+        //                         ->where('workflow_authorities.related_id', '=', $organization)
+        //                         ->where('workflow_authorities.related_type', '=', SystemTableName::ORGANIZATION);
+        //                 });
+        //             }
+        //         })->get();
+        //     return $actions;
+        // }
+        // return [];
     }
  
     public function parent_custom_value()

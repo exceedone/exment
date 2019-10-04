@@ -6,10 +6,9 @@ class WorkflowValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;
 
-    public function getWorkflowStatusAttribute()
+    public function workflow_status()
     {
-        return WorkflowStatus::where('id', $this->workflow_status_id)
-            ->first();
+        return $this->belongsTo(WorkflowStatus::class, 'workflow_status_id');
     }
 
     public function getWorkflowEditableAttribute()

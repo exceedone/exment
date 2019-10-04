@@ -14,7 +14,6 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
-use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -121,11 +120,6 @@ class CustomTableController extends AdminControllerBase
         
         $form->number('order', exmtrans("custom_table.order"))->rules("integer")
             ->help(sprintf(exmtrans("common.help.order"), exmtrans('common.custom_table')));
-
-        // $form->select('workflow_id', exmtrans("custom_table.workflow_id"))
-        //     ->options(function() {
-        //         return Workflow::get()->pluck('workflow_name', 'id');
-        //     });
 
         $form->exmheader(exmtrans('common.detail_setting'))->hr();
 
