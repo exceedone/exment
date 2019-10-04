@@ -87,6 +87,16 @@ abstract class CustomValue extends ModelBase
             ->first();
     }
 
+    public function getWorkflowStatusAttribute()
+    {
+        return isset($this->workflow_value) ? $this->workflow_value->workflow_status : null;
+    }
+
+    public function getWorkflowStatusNameAttribute()
+    {
+        return isset($this->workflow_status) ? $this->workflow_status->status_name : null;
+    }
+
     // user value_authoritable. it's all role data. only filter morph_type
     public function value_authoritable_users()
     {
@@ -622,7 +632,7 @@ abstract class CustomValue extends ModelBase
         // get value
         // using ValueType
         $valueType = ValueType::getEnum($label);
-        if(isset($valueType)){
+        if(!is_bool($label) && isset($valueType)){
             return $valueType->getCustomValue($item, $this);
         }
 

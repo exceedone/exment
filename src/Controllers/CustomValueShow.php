@@ -38,22 +38,33 @@ trait CustomValueShow
         //Plugin::pluginPreparing($this->plugins, 'loading');
         return new Show($this->getModelNameDV()::firstOrNew(['id' => $id]), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
-    
+
+            if(isset($id) && !$modal){
+                $show->column()->system_values()->setWidth(12, 0);
+            }
+
             // add parent link if this form is 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
             if (isset($relation)) {
                 $item = ColumnItems\ParentItem::getItem($relation->child_custom_table);
 
-                $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
+                $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item, $updateSetWidth) {
                     if (is_null($this)) {
                         return '';
                     }
                     return $item->setCustomValue($this)->html();
                 })->setEscape(false);
+
+                if($modal){
+                    $field->setWidth(9, 3);
+                }
             }
 
             // loop for custom form blocks
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+                // whether update set width 
+                $updateSetWidth = $custom_form_block->isMultipleColumn() || $modal;
+    
                 // if available is false, continue
                 if (!$custom_form_block->available) {
                     continue;
@@ -61,24 +72,23 @@ trait CustomValueShow
                 ////// default block(no relation block)
                 if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
                     $hasMultiColumn = false;
+
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
                         $item = $form_column->column_item;
                         if (!isset($item)) {
                             continue;
                         }
-                        $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
+                        $field = $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
                             ->as(function ($v) use ($form_column, $item) {
                                 if (is_null($this)) {
                                     return '';
                                 }
                                 return $item->setCustomValue($this)->html();
                             })->setEscape(false);
-                    }
-
-                    if ($custom_form_block->isMultipleColumn()) {
-                        $show->setWidth(9, 3);
-                    } elseif ($modal) {
-                        $show->setWidth(9, 3);
+                        
+                        if($updateSetWidth){
+                            $field->setWidth(9, 3);
+                        }
                     }
                 }
                 ////// relation block

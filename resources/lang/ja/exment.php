@@ -33,7 +33,7 @@ return [
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
-        'workflow_status' => 'ワークフローステータス', 
+        'workflow_status' => 'ステータス', 
         'workflow_history' => 'ワークフロー履歴',
         'trashed_user' => '(削除済ユーザー)', 
         'attachment' => '添付ファイル',   

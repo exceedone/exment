@@ -17,6 +17,7 @@ use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Show;
 use \Html;
 use PDO;
 
@@ -383,6 +384,9 @@ class Initialize
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);
         }
+
+        Show::extend('system_values', \Exceedone\Exment\Form\Show\SystemValues::class);
+
         Filter::extend('betweendatetime', \Exceedone\Exment\Grid\Filter\BetweenDatetime::class);
     }
 
