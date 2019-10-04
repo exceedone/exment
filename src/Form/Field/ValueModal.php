@@ -104,19 +104,28 @@ class ValueModal extends Field
             let valText = {$valueTextScript};
             
             // set value and text
-            $('$classname').val(valText.value);
-
-            $('$classname').closest('.block-valuemodal').find('.text-valuemodal').html(valText.text);
+            let target = getValueModalTarget();
+            target.find('.value-valuemodal').val(valText.value);
+            target.find('.text-valuemodal').html(valText.text);
 
             $('.modal').modal('hide');
         });
 
         keyname = '[data-contentname="$modalContentname"] .modal-close';
         $(document).off('click', keyname).on('click', keyname, {}, function(ev){
-            $('$classname').val(null);
-            $('$classname').closest('.block-valuemodal').find('.text-valuemodal').text('');
+            let target = getValueModalTarget();
+            target.find('.value-valuemodal').val(null);
+            target.find('.text-valuemodal').text('');
         });
 
+        function getValueModalTarget(){
+            let valueModalUuid = $('.modal .valueModalUuid').val();
+            if(hasValue(valueModalUuid)){
+                return $('.block-valuemodal[data-valuemodal_uuid="' + valueModalUuid + '"]');
+            }
+
+            return  $('$classname').closest('.block-valuemodal');
+        }
 EOT;
         $this->script = $script;
     }
@@ -161,11 +170,16 @@ EOT;
         // set script
         $this->script();
 
+        // set uuid for getting target
+        $uuid = make_uuid();
+
         return parent::render()->with([
             'text'   => $this->text,
             'buttonlabel'   => $this->buttonlabel,
             'ajax' => $this->ajax,
-            'modalContentname' => $this->modalContentname
+            'modalContentname' => $this->modalContentname,
+            'uuid' => $uuid,
+            'expand' => collect(['uuid' => $uuid])->toJson(),
         ]);
     }
 }

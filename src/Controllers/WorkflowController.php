@@ -188,19 +188,19 @@ class WorkflowController extends AdminControllerBase
                 ->config('allowClear', false)
                 ->options($workflow->getStatusOptions());
 
-            // $form->valueModal('work_targets', exmtrans("workflow.work_targets"))
-            //     ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
-            //     ->modalContentname('workflow_actions_work_targets')
-            //     ->setElementClass('workflow_actions_work_targets')
-            //     ->required()
-            //     ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
-            //     ->text(function ($value) {
-            //         if(!isset($value)){
-            //             return '全ユーザー';
-            //         }
-            //         return null;
-            //     })
-            // ;
+            $form->valueModal('work_targets', exmtrans("workflow.work_targets"))
+                ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
+                ->modalContentname('workflow_actions_work_targets')
+                ->setElementClass('workflow_actions_work_targets')
+                ->required()
+                ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
+                ->text(function ($value) {
+                    if(!isset($value)){
+                        return '全ユーザー';
+                    }
+                    return null;
+                })
+            ;
         });
 
         $form->tools(function (Form\Tools $tools) {
@@ -243,6 +243,13 @@ class WorkflowController extends AdminControllerBase
         }
     }
 
+    /**
+     * Get target modal html
+     *
+     * @param Request $request
+     * @param [type] $id
+     * @return void
+     */
     public function modalTarget(Request $request, $id){
         $workflow = Workflow::find($id);
         $custom_table = $workflow->custom_table;
@@ -258,6 +265,8 @@ class WorkflowController extends AdminControllerBase
         }
 
         $form = AuthUserOrgHelper::getUserOrgModalForm($custom_table, $value);
+
+        $form->hidden('valueModalUuid')->default($request->get('uuid'));
 
         return getAjaxResponse([
             'body'  => $form->render(),

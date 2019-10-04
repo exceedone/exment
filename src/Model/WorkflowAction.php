@@ -11,6 +11,11 @@ class WorkflowAction extends ModelBase
     protected $autority_users;
     protected $autority_organizations;
 
+    public function workflow()
+    {
+        return $this->belongsTo(Workflow::class, 'workflow_id');
+    }
+
     public function setHasAutorityUsersAttribute($value)
     {
         $this->autority_users = $value;
@@ -39,6 +44,17 @@ class WorkflowAction extends ModelBase
             ->where('related_type', SystemTableName::ORGANIZATION)->get()->pluck('related_id');
     }
 
+    public function getStatusFromNameAttribute(){
+        if(is_numeric($this->status_from)){
+            return WorkflowStatus::getEloquentDefault($this->status_from)->status_name;
+        }
+        elseif($this->status_from == 'start'){
+            return Workflow::getEloquentDefault($this->workflow_id)->start_status_name;
+        }
+
+        return null;
+    }
+
     protected static function boot() {
         parent::boot();
 
@@ -46,6 +62,7 @@ class WorkflowAction extends ModelBase
             $model->setActionAuthority();
         });
     }
+    
 
     public function deletingChildren()
     {

@@ -1,4 +1,4 @@
-<div class="block-valuemodal">
+<div class="block-valuemodal" data-valuemodal_uuid="{{$uuid}}">
     <div class="{{$viewClass['form-group']}} {!! !$errors->has($column) ?: 'has-error' !!}">
 
         <label for="{{$id}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
@@ -11,9 +11,10 @@
             data-widgetmodal_url="{{$ajax}}"
             data-widgetmodal_method="POST"
             data-widgetmodal_getdata='["{{$modalContentname}}"]'
+            data-widgetmodal_expand='{{$expand}}'
             >
             {{ $buttonlabel }}
-            <input type="hidden" name="{{$name}}" value="{{$value}}" class="{{$class}}" {!! $attributes !!} />
+            <input type="hidden" name="{{$name}}" value="{{$value}}" class="{{$class}} value-valuemodal" {!! $attributes !!} />
             </button></p>
 
             @include('admin::form.help-block')

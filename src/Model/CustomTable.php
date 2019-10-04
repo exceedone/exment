@@ -68,6 +68,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         return $this->hasMany(CustomOperation::class, 'custom_table_id');
     }
+
+    public function workflow()
+    {
+        return $this->hasOne(Workflow::class, 'custom_table_id');
+    }
+
     public function custom_relations()
     {
         return $this->hasMany(CustomRelation::class, 'parent_custom_table_id');
@@ -1543,7 +1549,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         if (is_numeric($id)) {
-            $model = getModelName($this)::find($id);
+            $model = $this->getValueModel($id);
         } else {
             $model = $id;
         }

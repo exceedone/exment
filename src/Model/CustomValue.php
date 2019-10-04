@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\ValueType;
+use Exceedone\Exment\Enums\FormActionType;
 
 abstract class CustomValue extends ModelBase
 {
@@ -94,7 +95,23 @@ abstract class CustomValue extends ModelBase
 
     public function getWorkflowStatusNameAttribute()
     {
-        return isset($this->workflow_status) ? $this->workflow_status->status_name : null;
+        if(isset($this->workflow_status)){
+            return $this->workflow_status->status_name;
+        }
+
+        // get workflow
+        $workflow = $this->custom_table->workflow;
+        if(isset($workflow)){
+            return $workflow->start_status_name;
+        }
+
+        return null;
+    }
+
+    public function getWorkflowStatusTagAttribute()
+    {
+        return $this->workflow_status_name . 
+            ($this->lockedWorkflow() ? ' <i class="fa fa-lock" aria-hidden="true"></i>' : '');
     }
 
     // user value_authoritable. it's all role data. only filter morph_type
@@ -1064,5 +1081,75 @@ abstract class CustomValue extends ModelBase
         $options['value'] = $value;
 
         return $options;
+    }
+
+    /**
+     * Is locked by workflow
+     *
+     * @return void
+     */
+    public function lockedWorkflow(){
+        // check workflow
+        if(!isset($this->workflow_status)){
+            $workflow = $this->custom_table->workflow;
+            if(!isset($workflow)){
+                return false;
+            }
+
+            return boolval($workflow->start_datalock_flg);
+        }
+
+        return boolval($this->workflow_status->datalock_flg);
+    }
+
+    /**
+     * User can edit this custom value
+     *
+     * @return void
+     */
+    public function enableEdit(){
+        if (!$this->custom_table->hasPermissionEditData($this)) {
+            return false;
+        }
+        if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
+            return false;
+        }
+        if ($this->custom_table->isOneRecord()) {
+            return false;
+        }
+
+        // check workflow
+        if($this->lockedWorkflow()){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * User can delete this custom value
+     *
+     * @return void
+     */
+    public function enableDelete(){
+        if (!$this->custom_table->hasPermissionEditData($this)) {
+            return false;
+        }
+        if ($this->custom_table->formActionDisable(FormActionType::DELETE)) {
+            return false;
+        }
+        if ($this->custom_table->isOneRecord()) {
+            return false;
+        }
+        if(boolval($this->disabled_delete)){
+            return false;
+        }
+
+        // check workflow
+        if($this->lockedWorkflow()){
+            return false;
+        }
+
+        return true;
     }
 }

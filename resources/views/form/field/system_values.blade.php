@@ -6,4 +6,4 @@
 </li>
 @endforeach
 </ul>
-<hr>
+<hr />

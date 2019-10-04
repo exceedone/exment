@@ -24,6 +24,14 @@ namespace Exment {
                     data[getdataKeys[key]] = $target.find('.' + getdataKeys[key]).val();
                 }
             }
+
+            // get expand data
+            let expand = $target.data('widgetmodal_expand');
+            if(hasValue(expand)){
+                data = $.extend(
+                    data, expand
+                );
+            }
             
             let method = hasValue($target.data('widgetmodal_method')) ? $target.data('widgetmodal_method') : 'GET';
             if(method.toUpperCase() == 'POST'){

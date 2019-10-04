@@ -140,12 +140,14 @@ trait CustomValueShow
             }
 
             // if user only view permission or one record table, disable delete and view
-            if (!$this->custom_table->hasPermissionEditData($id)) {
-                $show->panel()->tools(function ($tools) {
+            $show->panel()->tools(function ($tools) use($custom_value) {
+                if(!$custom_value->enableEdit()){
                     $tools->disableEdit();
+                }
+                if(!$custom_value->enableDelete()){
                     $tools->disableDelete();
-                });
-            }
+                }
+            });
 
             // if modal, disable list and delete
             $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
@@ -161,11 +163,6 @@ trait CustomValueShow
                     ]));
                 }
 
-                // if table has form edit disable option, disable edit.
-                if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
-                    $tools->disableEdit();
-                }
-
                 if (count($this->custom_table->getRelationTables()) > 0) {
                     $tools->append(view('exment::tools.button', [
                         'href' => $custom_value->getRelationSearchUrl(true),
@@ -175,14 +172,7 @@ trait CustomValueShow
                     ]));
                 }
 
-                if (boolval(array_get($custom_value, 'disabled_delete')) ||
-                    $this->custom_table->formActionDisable(FormActionType::DELETE)) {
-                    $tools->disableDelete();
-                }
-
                 if ($this->custom_table->isOneRecord()) {
-                    $tools->disableEdit();
-                    $tools->disableDelete();
                     $tools->disableList();
                 } elseif (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));

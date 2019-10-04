@@ -16,7 +16,7 @@ trait SystemValuesTrait
         // get label and value
         $keys = [
             SystemColumn::ID => [],
-            SystemColumn::WORKFLOW_STATUS => [],
+            SystemColumn::WORKFLOW_STATUS => ['nullHidden' => true],
             SystemColumn::CREATED_USER => [],
             SystemColumn::UPDATED_USER => [],
             SystemColumn::CREATED_AT => [],
@@ -29,6 +29,11 @@ trait SystemValuesTrait
             $option = SystemColumn::getEnum($key)->option();
             $param = array_has($option, 'tagname') ? array_get($option, 'tagname') : array_get($option, 'name');
             
+            $value = $custom_value->{$param};
+            if(boolval(array_get($options, 'nullHidden')) && empty($value)){
+                continue;
+            }
+
             $items[] = [
                 'label' => exmtrans("common.$key"),
                 'value' => $custom_value->{$param}

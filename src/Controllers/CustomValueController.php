@@ -351,6 +351,39 @@ class CustomValueController extends AdminControllerTableBase
         return getAjaxResponse(false);
     }
 
+
+    /**
+     * get action modal
+     */
+    public function actionModal(Request $request, $tableKey, $id)
+    {
+        if (is_null($id) || $request->input('action_id') === null) {
+            abort(404);
+        }
+        // get action
+        $action = WorkflowAction::find($request->input('action_id'));
+        if (!isset($action)) {
+            abort(404);
+        }
+        
+        $path = admin_urls('data', $this->custom_table->table_name, $id, 'actionClick');
+        
+        // create form fields
+        $form = new ModalForm();
+        $form->action($path);
+
+        $form->textarea('comment');
+        $form->hidden('action_id')->default($action->id);
+       
+        $form->setWidth(10, 2);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => $action->action_name
+        ]);
+    }
+
     //Function handle workflow click event
     /**
      * @param Request $request
@@ -362,7 +395,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
         // get action
-        $action = WorkflowAction::where('id', $request->input('action_id'))->first();
+        $action = WorkflowAction::find($request->input('action_id'));
         if (!isset($action)) {
             abort(404);
         }

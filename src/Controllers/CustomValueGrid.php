@@ -195,18 +195,10 @@ trait CustomValueGrid
                 }
                 
                 // if user does't edit permission disable edit row.
-                if (!$custom_table->hasPermissionEditData($actions->row)) {
-                    $actions->disableEdit();
-                    $actions->disableDelete();
-                }
-
-                // if table has form edit disable option, disable edit row.
-                if ($custom_table->formActionDisable(FormActionType::EDIT)) {
+                if(!$actions->row->enableEdit()){
                     $actions->disableEdit();
                 }
-
-                if (boolval(array_get($actions->row, 'disabled_delete')) ||
-                    $custom_table->formActionDisable(FormActionType::DELETE)) {
+                if(!$actions->row->enableDelete()){
                     $actions->disableDelete();
                 }
 
