@@ -8,7 +8,7 @@ class WorkflowAction extends ModelBase
 {
     use Traits\DatabaseJsonTrait;
 
-    protected $appends = ['work_targets', 'commentType', 'flowNextType', 'flowNextCount'];
+    protected $appends = ['work_targets', 'commentType', 'flowNextType', 'flowNextCount', 'rejectAction'];
     protected $casts = ['options' => 'json'];
 
     protected $work_targets;
@@ -72,6 +72,14 @@ class WorkflowAction extends ModelBase
     }
     public function setFlowNextCountAttribute($flowNextCount){
         $this->setOption('flowNextCount', $flowNextCount);
+        return $this;
+    }
+
+    public function getRejectActionAttribute(){
+        return $this->getOption('rejectAction');
+    }
+    public function setRejectActionAttribute($rejectAction){
+        $this->setOption('rejectAction', $rejectAction);
         return $this;
     }
 

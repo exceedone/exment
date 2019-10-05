@@ -842,6 +842,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $result = [];
 
+        $values = array_filter($values);
+
         foreach (collect($values)->chunk(100) as $chunk) {
             $query = $this->getValueModel()->query();
 

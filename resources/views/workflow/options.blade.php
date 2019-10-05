@@ -6,6 +6,28 @@
 
         @include('admin::form.error')
 
+
+        <label for="{{$id['flowNextType']}}" class="control-label small asterisk">{{exmtrans('workflow.flow_next_type')}}</label>
+        
+        <div class="radio icheck">
+            <label>
+                <input type="radio" name="{{$name['flowNextType']}}" value="some" class="minimal {{$class['flowNextType']}}" {{ (old($column['flowNextType'], $value['flowNextType']) ?? 'some' === 'some') ?'checked':'' }} />&nbsp;
+                
+                <input type="text" name="{{$name['flowNextCount']}}" style="width:50px; text-align:right;" value="{{old($column['flowNextCount'], $value['flowNextCount']) ?? 1}}" />
+                &nbsp;{{exmtrans('workflow.upper_user')}}
+            </label>
+        </div>
+
+        <div class="radio icheck">
+            <label>
+                <input type="radio" name="{{$name['flowNextType']}}" value="all" class="minimal {{$class['flowNextType']}}" {{ (old($column['flowNextType'], $value['flowNextType']) === 'all') ?'checked':'' }} />&nbsp;
+                &nbsp;
+                {{exmtrans('workflow.all_user')}}
+            </label>
+        </div>
+
+
+
         <label for="{{$id['commentType']}}" class="control-label small asterisk">{{exmtrans('common.comment')}}</label>
         <select class="form-control {{$class['commentType']}}" style="width: 100%;" name="{{$name['commentType']}}" {!! $attributes !!} >
             <option value=""></option>
@@ -16,23 +38,9 @@
 
 
 
-        <label for="{{$id['flowNextType']}}" class="control-label small asterisk">{{exmtrans('workflow.flow_next_type')}}</label>
-        
-        <div class="radio icheck">
-            <label>
-                <input type="radio" name="{{$name['flowNextType']}}" value="some" class="minimal {{$class['flowNextType']}}" {{ ($option == old($column['flowNextType'], $value['flowNextType'])) || ($value['flowNextType'] === 'some') || ($value['flowNextType'] === null) ?'checked':'' }} />&nbsp;
-                
-                <input type="text" name="{{$name['flowNextCount']}}" style="width:50px; text-align:right;" value="{{old($column['flowNextCount'], $value['flowNextCount']) ?? 1}}" />
-                &nbsp;{{exmtrans('workflow.upper_user')}}
-            </label>
-        </div>
-
-        <div class="radio icheck">
-            <label>
-                <input type="radio" name="{{$name['flowNextType']}}" value="all" class="minimal {{$class['flowNextType']}}" {{ ($option == old($column['flowNextType'], $value['flowNextType'])) || ($value['flowNextType'] === 'all') ?'checked':'' }} />&nbsp;
-                &nbsp;
-                {{exmtrans('workflow.all_user')}}
-            </label>
+        <label for="{{$id['rejectAction']}}" class="control-label small">却下フロー</label>
+        <div class="">
+            <input type="checkbox" name="{{$name['rejectAction']}}" value="1" class="{{$class['rejectAction']}}" {{ old($column['rejectAction'], $value['rejectAction']) == '1' ? 'checked' : '' }} />
         </div>
 
         @include('admin::form.help-block')

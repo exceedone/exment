@@ -21,6 +21,7 @@ class Options extends Select
         $this->column['commentType'] = 'commentType';
         $this->column['flowNextType'] = 'flowNextType';
         $this->column['flowNextCount'] = 'flowNextCount';
+        $this->column['rejectAction'] = 'rejectAction';
 
         $this->label = $this->formatLabel($arguments);
         $this->id = $this->formatId($this->column);
@@ -47,6 +48,16 @@ class Options extends Select
         return $this;
     }
 
+    public function prepare($value){
+        if(!array_has($value, 'rejectAction')){
+            $value['rejectAction'] = 0;
+        }else{
+            $value['rejectAction'] = 1;
+        }
+
+        return $value;
+    }
+    
     public function render()
     {
         $configs = array_merge([
@@ -66,6 +77,7 @@ class Options extends Select
             $this->script = <<<EOT
             $('.workflow_actions_commentType').select2($configs);
             $('.workflow_actions_flowNextType').iCheck({radioClass:'iradio_minimal-blue'});
+            $('.workflow_actions_rejectAction').iCheck({checkboxClass:'icheckbox_minimal-blue'});
 EOT;
         }
 
