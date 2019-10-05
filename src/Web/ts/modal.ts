@@ -75,6 +75,9 @@ namespace Exment {
             Exment.ModalEvent.ShowModal(target, url);
         }
         
+        /**
+         * Set Link click event in Modal
+         */
         private static setLinkClickEvent = (ev) =>{
             let a = $(ev.target).closest('a');
             if(hasValue(a.data('widgetmodal_url'))){
@@ -87,6 +90,9 @@ namespace Exment {
             $('#modal-showmodal').modal('hide');
         }
         
+        /**
+         * set modal submit event
+         */
         private static setSubmitEvent = (e) => {
             let formurl = $(e.target).parents('.modal-content').find('form').attr('action');
             let method = $(e.target).parents('.modal-content').find('form').attr('method');
@@ -219,6 +225,8 @@ namespace Exment {
             const submitlabel = res.submitlabel ? res.submitlabel : $('#modal-showmodal .modal-submit-defaultlabel').val();
             $('#modal-showmodal').find('.modal-close').text(closelabel);
             $('#modal-showmodal').find('.modal-submit').text(submitlabel);
+
+            $('#modal-showmodal').find('.modal-reset').toggle(res.showReset === true);
 
             Exment.ModalEvent.enableSubmit(button);
         }

@@ -236,8 +236,16 @@ class AuthUserOrgHelper
      *
      * @return void
      */
-    public static function getUserOrgModalForm($custom_table = null, $value = []){
+    public static function getUserOrgModalForm($custom_table = null, $value = [], $options = []){
+        $options = array_merge([
+            'prependCallback' => null
+        ], $options);
+        
         $form = new ModalForm();
+
+        if(isset($options['prependCallback'])){
+            $options['prependCallback']($form);
+        }
 
         $users = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions(
             [
@@ -248,8 +256,7 @@ class AuthUserOrgHelper
         // select target users
         $form->multipleSelect('modal_' . SystemTableName::USER, exmtrans('menu.system_definitions.user'))
             ->options($users)
-            ->default(array_get($value, SystemTableName::USER))
-            ->setWidth(9, 2);
+            ->default(array_get($value, SystemTableName::USER));
 
         if (System::organization_available()) {
             $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions(
@@ -261,8 +268,7 @@ class AuthUserOrgHelper
                 
             $form->multipleSelect('modal_' . SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
                 ->options($organizations)
-                ->default(array_get($value, SystemTableName::ORGANIZATION))
-                ->setWidth(9, 2);
+                ->default(array_get($value, SystemTableName::ORGANIZATION));
         }
 
         return $form;

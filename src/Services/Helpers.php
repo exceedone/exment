@@ -543,6 +543,10 @@ if (!function_exists('jsonToArray')) {
      */
     function jsonToArray($value)
     {
+        if(!isset($value)){
+            return [];
+        }
+        
         // convert json to array
         if (is_array($value)) {
             return $value;

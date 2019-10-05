@@ -14,6 +14,8 @@ use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
@@ -196,7 +198,7 @@ class WorkflowController extends AdminControllerBase
                 ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
                 ->text(function ($value, $data) {
                     if(is_nullorempty($value)){
-                        return '全ユーザー';
+                        return;
                     }
 
                     // set text
@@ -206,11 +208,32 @@ class WorkflowController extends AdminControllerBase
                     }
                     return $texts;
                 })
+                ->nullText(exmtrans("common.all_user"))
             ;
-            
-            $form->workflowOptions('options', exmtrans("workflow.workflow_options"))
+
+            $form->valueModal('work_conditions', exmtrans("workflow.work_conditions"))
+                ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
+                ->modalContentname('workflow_actions_work_conditions')
+                ->setElementClass('workflow_actions_work_conditions')
+                ->buttonClass('btn-sm btn-default')
+                ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
+                ->text(function ($value, $data) {
+                    if(is_nullorempty($value)){
+                        return;
+                    }
+
+                    // set text
+                    $texts = [];
+                    foreach($value as $v){
+                        $texts[] = array_get($v, 'user_organization.label');
+                    }
+                    return $texts;
+                })
+                ->nullText(exmtrans("workflow.condition_nothing"))
             ;
-        });
+
+            $form->workflowOptions('options', exmtrans("workflow.option"));
+        })->setTableColumnWidth(3, 2, 3, 3, 1);
 
         $form->tools(function (Form\Tools $tools) {
             $tools->disableDelete();
@@ -259,29 +282,90 @@ class WorkflowController extends AdminControllerBase
      * @param [type] $id
      * @return void
      */
-    public function modalTarget(Request $request, $id){
+    public function targetModal(Request $request, $id){
         $workflow = Workflow::find($id);
         $custom_table = $workflow->custom_table;
 
         // get selected value
         $value = $request->get('workflow_actions_work_targets');
-        if (!isset($value)) {
-            $value = [];
-        }
-        // convert json to array
-        if (!is_array($value) && is_json($value)) {
-            $value = json_decode($value, true);
-        }
+        $value = jsonToArray($value);
 
-        $form = AuthUserOrgHelper::getUserOrgModalForm($custom_table, $value);
+        $form = AuthUserOrgHelper::getUserOrgModalForm($custom_table, $value, [
+            'prependCallback' => function($form){
+                $form->description(exmtrans('workflow.help.target_user'));
+            }
+        ]);
+
+        // set custom column
+        $options = $custom_table->custom_columns
+            ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
+            ->pluck('column_view_name', 'id');
+        $form->multipleSelect('modal_column', exmtrans('common.custom_column'))
+            ->options($options)
+            ->default(array_get($value, 'column'));
+
+        // set workflow system column
+        $form->multipleSelect('modal_system', exmtrans('common.system'))
+            ->options(WorkflowTargetSystem::transArray('common'))
+            ->default(array_get($value, SystemTableName::SYSTEM));
 
         $form->hidden('valueModalUuid')->default($request->get('uuid'));
+
+        $form->setWidth(9, 2);
 
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
-            'title' => exmtrans('common.shared'),
-            'closelabel' => trans('admin.reset'),
+            'title' => exmtrans('workflow.work_targets'),
+            'showReset' => true,
+            'submitlabel' => trans('admin.setting'),
+            'contentname' => 'workflow_actions_work_targets',
+        ]);
+    }
+
+    /**
+     * Get condition modal html
+     *
+     * @param Request $request
+     * @param [type] $id
+     * @return void
+     */
+    public function conditionModal(Request $request, $id){
+        $workflow = Workflow::find($id);
+        $custom_table = $workflow->custom_table;
+
+        // get selected value
+        $value = $request->get('workflow_actions_work_conditions');
+        $value = jsonToArray($value);
+
+        $form = AuthUserOrgHelper::getUserOrgModalForm($custom_table, $value, [
+            'prependCallback' => function($form){
+                $form->description(exmtrans('workflow.help.target_user'));
+            }
+        ]);
+
+        // set custom column
+        $options = $custom_table->custom_columns
+            ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
+            ->pluck('column_view_name', 'id');
+        $form->multipleSelect('modal_column', exmtrans('common.custom_column'))
+            ->options($options)
+            ->default(array_get($value, 'column'));
+
+        // set workflow system column
+        $form->multipleSelect('modal_system', exmtrans('common.system'))
+            ->options(WorkflowTargetSystem::transArray('common'))
+            ->default(array_get($value, SystemTableName::SYSTEM));
+
+        $form->hidden('valueModalUuid')->default($request->get('uuid'));
+
+        $form->setWidth(9, 2);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('workflow.work_targets'),
+            'showReset' => true,
             'submitlabel' => trans('admin.setting'),
             'contentname' => 'workflow_actions_work_targets',
         ]);

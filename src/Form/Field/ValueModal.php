@@ -19,6 +19,16 @@ class ValueModal extends Field
     /**
      * @var string
      */
+    protected $text;
+
+    /**
+     * @var string
+     */
+    protected $nullText;
+
+    /**
+     * @var string
+     */
     protected $buttonlabel;
 
     /**
@@ -51,6 +61,19 @@ class ValueModal extends Field
     public function text($text = '')
     {
         $this->text = $text;
+        return $this;
+    }
+
+    /**
+     * Set nullText.
+     *
+     * @param string $nullText
+     *
+     * @return $this|mixed
+     */
+    public function nullText($nullText = '')
+    {
+        $this->nullText = $nullText;
         return $this;
     }
 
@@ -116,33 +139,38 @@ class ValueModal extends Field
 
         $script = <<<EOT
 
-        // Set to close button modal event
-        let keyname = '[data-contentname="$modalContentname"] .modal-submit';
-        $(document).off('click', keyname).on('click', keyname, {}, function(ev){
-            let valText = {$valueTextScript};
-            
-            // set value and text
-            let target = getValueModalTarget();
-            target.find('.value-valuemodal').val(valText.value);
-            target.find('.text-valuemodal').html(valText.text);
+        // Set to submit button modal event
+        {
+            let keyname = '[data-contentname="$modalContentname"] .modal-submit';
+            $(document).off('click', keyname).on('click', keyname, {}, function(ev){
+                let valText = {$valueTextScript};
+                
+                // set value and text
+                let target = getValueModalTarget();
+                target.find('.value-valuemodal').val(valText.value);
+                target.find('.text-valuemodal').html(valText.text);
 
-            $('.modal').modal('hide');
-        });
+                $('.modal').modal('hide');
+            });
 
-        keyname = '[data-contentname="$modalContentname"] .modal-close';
-        $(document).off('click', keyname).on('click', keyname, {}, function(ev){
-            let target = getValueModalTarget();
-            target.find('.value-valuemodal').val(null);
-            target.find('.text-valuemodal').text('');
-        });
+            // Set to reset event
+            keyname = '[data-contentname="$modalContentname"] .modal-reset';
+            $(document).off('click', keyname).on('click', keyname, {}, function(ev){
+                let target = getValueModalTarget();
+                target.find('.value-valuemodal').val(null);
 
-        function getValueModalTarget(){
-            let valueModalUuid = $('.modal .valueModalUuid').val();
-            if(hasValue(valueModalUuid)){
-                return $('.block-valuemodal[data-valuemodal_uuid="' + valueModalUuid + '"]');
+                let nullText = target.find('.nulltext-valuemodal').val();
+                target.find('.text-valuemodal').text(nullText);
+            });
+
+            function getValueModalTarget(){
+                let valueModalUuid = $('.modal .valueModalUuid').val();
+                if(hasValue(valueModalUuid)){
+                    return $('.block-valuemodal[data-valuemodal_uuid="' + valueModalUuid + '"]');
+                }
+
+                return  $('$classname').closest('.block-valuemodal');
             }
-
-            return  $('$classname').closest('.block-valuemodal');
         }
 EOT;
         $this->script = $script;
@@ -198,6 +226,7 @@ EOT;
 
         return parent::render()->with([
             'text'   => $this->text,
+            'nullText'   => $this->nullText,
             'buttonlabel'   => $this->buttonlabel,
             'buttonClass'   => $this->buttonClass,
             'ajax' => $this->ajax,

@@ -251,7 +251,7 @@ class DataImportExportService extends AbstractExporter
     public function getImportModal($pluginlist = null)
     {
         // create form fields
-        $form = new ModalInnerForm();
+        $form = new ModalForm();
 
         $fileOption = Define::FILE_OPTION();
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'import'))

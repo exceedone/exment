@@ -7,7 +7,9 @@
             @include('admin::form.error')
 
             <p style="padding-top:7px;" class="text-valuemodal">
-                @if(is_array($text))
+                @if(is_nullorempty($text) && isset($nullText))
+                    {{$nullText}}
+                @elseif(is_array($text))
                 @foreach($text as $t)
                     {{$t}}
                     @if(!$loop->last)
@@ -26,6 +28,7 @@
             >
             {{ $buttonlabel }}
             <input type="hidden" name="{{$name}}" value="{{$value}}" class="{{$class}} value-valuemodal" {!! $attributes !!} />
+            <input type="hidden" value="{{$nullText}}" class="nulltext-valuemodal" />
             </button></p>
 
             @include('admin::form.help-block')
