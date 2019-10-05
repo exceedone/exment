@@ -1,9 +1,9 @@
 <div class="system-values">
     <div class="system-values-flows">
     @foreach($workflows as $item)
-    <div class="system-values-flow d-inline">
-        <p class="system-values-label d-inline"><i class="fa fa-check-square-o" aria-hidden="true"></i>&nbsp;{{$item['label']}}</p>
-        <p class="d-inline">{!! $item['value'] !!}</p>
+    <div class="system-values-flow d-inline-block">
+        <p class="system-values-label d-inline-block"><i class="fa fa-check-square-o" aria-hidden="true"></i>&nbsp;{{$item['label']}}</p>
+        <p class="d-inline-block">{!! $item['value'] !!}</p>
     </div>
     @endforeach
     </div>

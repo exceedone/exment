@@ -11,6 +11,15 @@ class Workflowitem extends SystemItem
     protected $table_name = 'workflow_values';
 
     /**
+     * whether column is enabled index.
+     *
+     */
+    public function sortable()
+    {
+        return false;
+    }
+
+    /**
      * get sql query column name
      */
     protected function getSqlColumnName()

@@ -9,9 +9,9 @@ var Exment;
                 return;
             }
             NotifyNavbarEvent.notifyNavbar();
-            $(document).on('pjax:complete', function (event) {
-                NotifyNavbarEvent.notifyNavbar();
-            });
+            // $(document).on('pjax:complete', function (event) {
+            //     NotifyNavbarEvent.notifyNavbar();
+            // });
         }
         /**
          * toggle right-top help link and color

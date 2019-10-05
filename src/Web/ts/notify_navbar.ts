@@ -13,9 +13,9 @@ namespace Exment {
             
             NotifyNavbarEvent.notifyNavbar();
             
-            $(document).on('pjax:complete', function (event) {
-                NotifyNavbarEvent.notifyNavbar();
-            });
+            // $(document).on('pjax:complete', function (event) {
+            //     NotifyNavbarEvent.notifyNavbar();
+            // });
         }
 
         /**

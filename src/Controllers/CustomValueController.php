@@ -10,6 +10,7 @@ use Encore\Admin\Layout\Row;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
@@ -414,7 +415,7 @@ class CustomValueController extends AdminControllerTableBase
             'workflow_id' => array_get($action, 'workflow_id'),
             'morph_type' => $tableKey,
             'morph_id' => $id,
-            'workflow_status_id' => array_get($action, 'status_to'),
+            'workflow_status_id' => array_get($action, 'status_to') == Define::WORKFLOW_START_KEYNAME ? null :  array_get($action, 'status_to'),
             'enabled_flg' => 1
         ];
 

@@ -79,7 +79,7 @@ class CreateWorkflowTable extends Migration
             $table->integer('workflow_id')->unsigned()->index();
             $table->string('morph_type', 255);
             $table->bigInteger('morph_id')->unsigned();
-            $table->integer('workflow_status_id')->unsigned()->index();
+            $table->integer('workflow_status_id')->unsigned()->nulable();
             $table->boolean('enabled_flg')->default(false)->index();
 
             $table->timestamps();
@@ -87,6 +87,7 @@ class CreateWorkflowTable extends Migration
 
             $table->index(['morph_type', 'morph_id']);
             $table->foreign('workflow_id')->references('id')->on('workflows');
+            $table->foreign('workflow_status_id')->references('id')->on('workflow_statuses');
         });
     }
 
