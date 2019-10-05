@@ -223,6 +223,8 @@ class Define
     public const PAGER_GRID_COUNTS = [10, 20, 30, 50, 100];
     public const PAGER_DATALIST_COUNTS = [5, 10, 20];
 
+    public const WORKFLOW_START_KEYNAME = 'start';
+    
     // Template --------------------------------------------------
     public const TEMPLATE_IMPORT_EXCEL_SHEETNAME = [
         'custom_tables',

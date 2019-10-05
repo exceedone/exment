@@ -229,15 +229,21 @@ trait HasPermissions
      */
     public function filterModel($model, $custom_view = null, $callback = null)
     {
+        //TODO:workflow
+        // if simple eloquent, throw
+        if($model instanceof \Illuminate\Database\Eloquent\Model){
+            throw new \Exception;
+        }
+
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
         if (isset($custom_view)) {
             if ($callback instanceof \Closure) {
-                $model = call_user_func($callback, $model);
+                call_user_func($callback, $model);
             } else {
-                $model = $custom_view->setValueFilters($model);
+                $custom_view->setValueFilters($model);
             }
-            $model = $custom_view->setValueSort($model);
+            $custom_view->setValueSort($model);
         }
 
         ///// We don't need filter using role here because filter auto using global scope.

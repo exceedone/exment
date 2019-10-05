@@ -44,7 +44,7 @@ class WorkflowAction extends ModelBase
         if(is_numeric($this->status_from)){
             return WorkflowStatus::getEloquentDefault($this->status_from)->status_name;
         }
-        elseif($this->status_from == 'start'){
+        elseif($this->status_from == Define::WORKFLOW_START_KEYNAME){
             return Workflow::getEloquentDefault($this->workflow_id)->start_status_name;
         }
 

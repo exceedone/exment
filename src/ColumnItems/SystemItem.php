@@ -308,6 +308,8 @@ class SystemItem implements ItemInterface
             case SystemColumn::CREATED_USER:
             case SystemColumn::UPDATED_USER:
                 return ViewColumnFilterType::USER;
+            case SystemColumn::WORKFLOW_STATUS:
+                return ViewColumnFilterType::WORKFLOW;
         }
         return ViewColumnFilterType::DEFAULT;
     }

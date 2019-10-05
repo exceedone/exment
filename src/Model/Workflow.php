@@ -61,7 +61,7 @@ class Workflow extends ModelBase
     public function getStatusOptions(){
         $statuses = $this->workflow_statuses->pluck('status_name', 'id');
 
-        $statuses->prepend($this->start_status_name, 'start');
+        $statuses->prepend($this->start_status_name, Define::WORKFLOW_START_KEYNAME);
 
         return $statuses;
     }

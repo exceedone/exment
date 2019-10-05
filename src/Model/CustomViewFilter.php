@@ -98,8 +98,9 @@ class CustomViewFilter extends ModelBase
         
         if ($this->view_column_type == ViewColumnType::WORKFLOW) {
             return $model->workflowStatus($view_filter_condition, $condition_value_text);
-        } 
-        elseif ($this->view_column_type == ViewColumnType::COLUMN) {
+        }
+
+        if ($this->view_column_type == ViewColumnType::COLUMN) {
             $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
         } 
         elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {

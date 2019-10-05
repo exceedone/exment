@@ -187,7 +187,7 @@ abstract class CustomValue extends ModelBase
             ->workflow_actions
             ->filter(function($workflow_action) use($workflow_status){
                 if(!isset($workflow_status)){
-                    return $workflow_action->status_from == 'start';
+                    return $workflow_action->status_from == Define::WORKFLOW_START_KEYNAME;
                 }
                 return $workflow_action->status_from == $workflow_status->id;
             });
@@ -224,6 +224,64 @@ abstract class CustomValue extends ModelBase
         //     return $actions;
         // }
         // return [];
+    }
+
+    /**
+     * set workflow status condition
+     */
+    public function scopeWorkflowStatus($query, $condition, $status) 
+    {
+        ///// Introduction: When the workflow status is "start", one of the following two conditions is required.
+        ///// *No value in workflow_values ​​when registering data for the first time
+        ///// *When workflow_status_id of workflow_values ​​is null. Ex.Rejection
+
+        // ctreate subquery func
+        $subQueryFunc = function($subqry, $startIsNull = true) use($condition, $status){
+            $subqry->select(\DB::raw(1))
+                ->from('workflow_values')
+                ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
+                ->where('workflow_values.morph_type', $this->custom_table_name)
+                ->where('workflow_values.enabled_flg', true);
+                
+            if($status != Define::WORKFLOW_START_KEYNAME){
+                $subqry->where('workflow_values.workflow_status_id', $status);
+            }
+            elseif($startIsNull){
+                $subqry->whereNull('workflow_values.workflow_status_id');
+            }
+        };
+
+        $query->where(function ($query) use ($condition, $status, $subQueryFunc) {
+            $func = ($condition == ViewColumnFilterOption::NE) ? 'whereNotExists' : 'whereExists';
+            $query->{$func}(function ($subqry) use ($condition, $status, $subQueryFunc) {
+                $subQueryFunc($subqry);
+            });
+
+            // if $status is start
+            if($status == Define::WORKFLOW_START_KEYNAME){
+                $func = ($condition == ViewColumnFilterOption::NE) ? 'whereExists' : 'orWhereNotExists';
+                $query->{$func}(function ($subqry) use ($condition, $status, $subQueryFunc) {
+                    $subQueryFunc($subqry, false);
+                    $subqry->whereNotNull('workflow_values.workflow_status_id');
+                });
+            }
+        });
+
+        return $query;
+
+        // return $query->{$func}(function ($subqry) use ($status) {
+        //     $subqry->select(\DB::raw(1))
+        //         ->from('workflow_values')
+        //         ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
+        //         ->where('workflow_values.morph_type', $this->custom_table_name)
+        //         ->where('workflow_values.enabled_flg', true);
+                
+        //     if($status != Define::WORKFLOW_START_KEYNAME){
+        //         $subqry->where('workflow_values.workflow_status_id', $status);
+        //     }else{
+
+        //     }
+        // });
     }
 
     public function parent_custom_value()
@@ -949,50 +1007,6 @@ abstract class CustomValue extends ModelBase
         }
         $this->value = $revision_value;
         return $this;
-    }
-
-    /**
-     * set workflow status condition
-     */
-    public function scopeWorkflowStatus($query, $condition, $status) {
-        switch ($condition) {
-            case ViewColumnFilterOption::EQ:
-                return $query->whereExists(function ($subqry) use ($status) {
-                    $subqry->select(\DB::raw(1))
-                        ->from('workflow_values')
-                        ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
-                        ->where('workflow_values.morph_type', $this->custom_table_name)
-                        //->where('workflow_values.datalock_flg', false)
-                        ->where('workflow_values.workflow_status_id', $status);
-                });
-            case ViewColumnFilterOption::NE:
-                return $query->whereNotExists(function ($subqry) use ($status) {
-                    $subqry->select(\DB::raw(1))
-                        ->from('workflow_values')
-                        ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
-                        ->where('workflow_values.morph_type', $this->custom_table_name)
-                        //->where('workflow_values.datalock_flg', false)
-                        ->where('workflow_values.workflow_status_id', $status);
-                });
-            case ViewColumnFilterOption::NULL:
-                return $query->whereNotExists(function ($subqry) use ($status) {
-                    $subqry->select(\DB::raw(1))
-                        ->from('workflow_values')
-                        ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
-                        ->where('workflow_values.morph_type', $this->custom_table_name)
-                        //->where('workflow_values.datalock_flg', false)
-                        ->where(\DB::raw('ifnull(workflow_values.workflow_status_id, 0)'), '<>', 0);
-                });
-            case ViewColumnFilterOption::NOT_NULL:
-                return $query->whereExists(function ($subqry) use ($status) {
-                    $subqry->select(\DB::raw(1))
-                        ->from('workflow_values')
-                        ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
-                        ->where('workflow_values.morph_type', $this->custom_table_name)
-                        //->where('workflow_values.datalock_flg', false)
-                        ->where(\DB::raw('ifnull(workflow_values.workflow_status_id, 0)'), '<>', 0);
-                });
-        }
     }
 
     /**
