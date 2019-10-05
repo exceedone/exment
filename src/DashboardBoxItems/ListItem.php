@@ -185,7 +185,7 @@ class ListItem implements ItemInterface
             $model = $this->custom_view->getValueSummary($model, $this->custom_table->table_name);
         } else {
             // filter model
-            $model = \Exment::user()->filterModel($model, $this->custom_view);
+            \Exment::user()->filterModel($model, $this->custom_view);
         }
         
         // pager count

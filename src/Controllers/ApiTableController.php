@@ -129,7 +129,7 @@ class ApiTableController extends AdminControllerTableBase
 
         // get model filtered using role
         $model = getModelName($this->custom_table)::query();
-        $model = \Exment::user()->filterModel($model);
+        \Exment::user()->filterModel($model);
 
         $validator = Validator::make($request->all(), [
             'q' => 'required',
@@ -484,9 +484,9 @@ class ApiTableController extends AdminControllerTableBase
 
         $table_name = $this->custom_table->table_name;
         // get paginate
-        $model = $this->custom_table->getValueModel();
+        $model = $this->custom_table->getValueModel()->query();
         // filter model
-        $model = \Exment::user()->filterModel($model, $custom_view);
+        \Exment::user()->filterModel($model, $custom_view);
 
         $tasks = [];
         foreach ($custom_view->custom_view_columns as $custom_view_column) {

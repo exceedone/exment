@@ -720,7 +720,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // set custom view's filter
         if (isset($target_view)) {
-            $mainQuery = \Exment::user()->filterModel($mainQuery, $target_view);
+            \Exment::user()->filterModel($mainQuery, $target_view);
         }
 
         // return as paginate
@@ -1072,19 +1072,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
             $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission);
         } else {
-            $query = $this->getValueModel();
+            $query = $this->getValueModel()->query();
         }
 
         // filter model using view
         if (isset($target_view)) {
             $user = Admin::user();
             if (isset($user)) {
-                $query = $user->filterModel($query, $target_view);
+                $user->filterModel($query, $target_view);
             }
         }
 
         if (isset($filterCallback)) {
-            $query = $filterCallback($query);
+            $filterCallback($query);
         }
 
         return $query;
