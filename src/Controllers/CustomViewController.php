@@ -375,6 +375,7 @@ class CustomViewController extends AdminControllerTableBase
                             ->options($this->custom_table->getColumnsSelectOptions([
                                 'append_table' => true,
                                 'include_parent' => true,
+                                'include_workflow' => true,
                             ]));
                         $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                         $form->hidden('order')->default(0);
@@ -493,6 +494,7 @@ EOT;
                         'index_enabled_only' => true,
                         'include_parent' => $is_aggregate,
                         'include_child' => $is_aggregate,
+                        'include_workflow' => true,
                     ]
                 ))
                 ->attribute([
@@ -509,13 +511,6 @@ EOT;
 
                     $data = $select->data();
                     $view_column_target = array_get($data, 'view_column_target');
-
-                    // if (array_get($data, 'view_column_type') != ViewColumnType::COLUMN) {
-                    //     list($table_name, $target_id) = explode("-", $view_column_target);
-                    //     if (is_numeric($target_id)) {
-                    //         $view_column_target = $table_name . '-' . SystemColumn::getOption(['id' => $target_id])['name'];
-                    //     }
-                    // }
 
                     // get column item
                     $column_item = CustomViewFilter::getColumnItem($view_column_target);

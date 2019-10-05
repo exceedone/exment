@@ -42,7 +42,7 @@ trait ColumnOptionQueryTrait
 
             $query['view_pivot_table_id'] = CustomTable::getEloquent($view_pivot_table)->id ?? null;
         }
-       
+
         return $column_key . '?' . implode('&', collect($query)->map(function ($val, $key) {
             return $key . '=' . $val;
         })->toArray());

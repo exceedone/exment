@@ -298,15 +298,15 @@ class SystemItem implements ItemInterface
     public function getViewFilterType()
     {
         switch ($this->column_name) {
-            case 'id':
-            case 'suuid':
-            case 'parent_id':
+            case SystemColumn::ID:
+            case SystemColumn::SUUID:
+            case SystemColumn::PARENT_ID:
                 return ViewColumnFilterType::DEFAULT;
-            case 'created_at':
-            case 'updated_at':
+            case SystemColumn::CREATED_AT:
+            case SystemColumn::UPDATED_AT:
                 return ViewColumnFilterType::DAY;
-            case 'created_user':
-            case 'updated_user':
+            case SystemColumn::CREATED_USER:
+            case SystemColumn::UPDATED_USER:
                 return ViewColumnFilterType::USER;
         }
         return ViewColumnFilterType::DEFAULT;

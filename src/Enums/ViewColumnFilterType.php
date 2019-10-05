@@ -10,4 +10,5 @@ class ViewColumnFilterType extends EnumBase
     const FILE = 'file';
     const NUMBER = 'number';
     const SELECT = 'select';
+    const WORKFLOW = 'workflow';
 }

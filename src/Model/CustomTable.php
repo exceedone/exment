@@ -1131,6 +1131,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'index_enabled_only' => $index_enabled_only,
                 'include_parent' => true,
                 'include_system' => $include_system,
+                'include_workflow' => $include_workflow,
             ]
         );
 
@@ -1229,6 +1230,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'index_enabled_only' => false,
                 'include_parent' => false,
                 'include_system' => true,
+                'include_workflow' => false,
                 'table_view_name' => null,
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
@@ -1243,13 +1245,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'view_pivot_table' => $view_pivot_table,
         ];
 
-        if ($include_system) {
-            /// get system columns
-            foreach (SystemColumn::getOptions(['header' => true]) as $option) {
+        /// get system columns
+        $setSystemColumn = function($filter) use(&$options, $table_view_name, $append_table, $table_id){
+            foreach (SystemColumn::getOptions($filter) as $option) {
                 $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id);
                 $value = exmtrans('common.'.array_get($option, 'name'));
                 static::setKeyValueOption($options, $key, $value, $table_view_name);
             }
+        };
+
+        if ($include_system) {
+            $setSystemColumn(['header' => true]);
         }
 
         if ($include_parent) {
@@ -1273,15 +1279,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         if ($include_system) {
-            ///// get system columns
-            foreach (SystemColumn::getOptions(['footer' => true]) as $option) {
-                $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id, $optionKeyParams);
-                $value = exmtrans('common.'.array_get($option, 'name'));
-                static::setKeyValueOption($options, $key, $value, $table_view_name);
+            $setSystemColumn(['footer' => true]);
+
+            if ($include_workflow) {
+                $setSystemColumn(['workflow' => true]);
             }
         }
     }
-    
+
     /**
      * get number columns select options. It contains integer, decimal, currency columns.
      * @param array|CustomTable $table
@@ -1538,36 +1543,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_EDIT_CUSTOM_VALUE, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
     
-    /** 
-     * Check if current workflow status is editable.
-    */
-    protected function _isEditableWorkflow($id)
-    {
-        // if id is null(for create), return true
-        if (!isset($id)) {
-            return true;
-        }
-
-        if (is_numeric($id)) {
-            $model = $this->getValueModel($id);
-        } else {
-            $model = $id;
-        }
-
-        if (!isset($model)) {
-            return false;
-        }
-
-        $workflow_value = $model->workflow_value;
-
-        // if workflow_value is not exists, no workflow table or before flow
-        if (!isset($workflow_value)){
-            return true;
-        }
-
-        return $workflow_value->workflow_editable;
-    }
-
     /**
      * Whether login user has permission about target id data. (protected function)
      *

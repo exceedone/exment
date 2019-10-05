@@ -48,11 +48,12 @@ class Workflowitem extends SystemItem
     public function getFilterField($value_type = null)
     {
         $field = new Select($this->name(), [$this->label()]);
-        $field->options(function ($value) {
-            // get DB option value
-            return WorkflowStatus::where('workflow_id', array_get($this->custom_table, 'workflow_id'))
-                ->get()->pluck("status_name", "id");
-        });
+
+        // get workflow statuses
+        $workflow =$this->custom_table->workflow;
+        $options = $workflow->getStatusOptions() ?? [];
+
+        $field->options($options);
         $field->default($this->value);
 
         return $field;

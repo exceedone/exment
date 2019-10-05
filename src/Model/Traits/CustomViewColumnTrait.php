@@ -136,9 +136,9 @@ trait CustomViewColumnTrait
             if ($column_type_target === Define::CUSTOM_COLUMN_TYPE_PARENT_ID || $column_type_target === SystemColumn::PARENT_ID) {
                 $column_type = ViewColumnType::PARENT_ID;
                 $column_type_target = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            } elseif ($view_column_target === SystemColumn::WORKFLOW_STATUS) {
+            } elseif ($column_type_target === SystemColumn::WORKFLOW_STATUS) {
                 $column_type = ViewColumnType::WORKFLOW;
-                $column_type_target = SystemColumn::getOption(['name' => $view_column_target])['id'] ?? null;
+                $column_type_target = SystemColumn::getOption(['name' => $column_type_target])['id'] ?? null;
             } else {
                 $column_type = ViewColumnType::SYSTEM;
                 $column_type_target = SystemColumn::getOption(['name' => $column_type_target])['id'] ?? null;

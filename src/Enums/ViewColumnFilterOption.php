@@ -141,6 +141,10 @@ class ViewColumnFilterOption extends EnumBase
                 ['id' => ViewColumnFilterOption::USER_NOT_NULL, 'name' => 'not-null'],
                 ['id' => ViewColumnFilterOption::USER_NULL, 'name' => 'null'],
             ],
+            ViewColumnFilterType::WORKFLOW => [
+                ['id' => ViewColumnFilterOption::EQ, 'name' => 'eq'],
+                ['id' => ViewColumnFilterOption::NE, 'name' => 'ne'],
+            ],
         ];
     }
 }
