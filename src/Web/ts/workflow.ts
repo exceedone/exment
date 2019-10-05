@@ -11,7 +11,7 @@ namespace Exment {
         }
 
         public static GetSettingValText(){
-            const targetKeys = ['user', 'organization'];
+            const targetKeys = ['modal_user', 'modal_organization'];
 
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_targets"] form');
@@ -28,7 +28,7 @@ namespace Exment {
             }
             
             let texts = [];
-            $.each(['user', 'organization'], function(index, value){
+            $.each(targetKeys, function(index, value){
                 $.each(form.find('.' + value + '.form-control').select2('data'), function(index, value){
                     texts.push(escHtml(value.text));
                 });

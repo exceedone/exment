@@ -379,7 +379,8 @@ class Initialize
             'progressTracker'          => Field\ProgressTracker::class,
             
             ///// workflow
-            'statusSelects'          => Field\WorkFlow\StatusSelects::class,
+            'workflowStatusSelects'          => Field\WorkFlow\StatusSelects::class,
+            'workflowOptions'          => Field\WorkFlow\Options::class,
         ];
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);

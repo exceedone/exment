@@ -24,6 +24,11 @@ class ValueModal extends Field
     /**
      * @var string
      */
+    protected $buttonClass;
+
+    /**
+     * @var string
+     */
     protected $modalContentname;
 
     /**
@@ -85,6 +90,19 @@ class ValueModal extends Field
     public function buttonlabel(string $buttonlabel)
     {
         $this->buttonlabel = $buttonlabel;
+        return $this;
+    }
+
+    /**
+     * Set button class.
+     *
+     * @param string $buttonlabel
+     *
+     * @return $this
+     */
+    public function buttonClass($buttonClass)
+    {
+        $this->buttonClass = $buttonClass;
         return $this;
     }
 
@@ -153,13 +171,18 @@ EOT;
                 $this->text = $this->text->bindTo($this->form->model());
             }
 
-            $this->text(call_user_func($this->text, $this->value));
+            $this->text(call_user_func($this->text, $this->value, $this->data));
         }
 
        
         // set button label
         if (is_null($this->buttonlabel)) {
             $this->buttonlabel = exmtrans('common.change');
+        }
+ 
+        // set button class
+        if (is_null($this->buttonClass)) {
+            $this->buttonClass = 'btn-default';
         }
  
         // set button label
@@ -176,6 +199,7 @@ EOT;
         return parent::render()->with([
             'text'   => $this->text,
             'buttonlabel'   => $this->buttonlabel,
+            'buttonClass'   => $this->buttonClass,
             'ajax' => $this->ajax,
             'modalContentname' => $this->modalContentname,
             'uuid' => $uuid,

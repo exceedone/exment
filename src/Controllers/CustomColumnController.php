@@ -542,10 +542,7 @@ class CustomColumnController extends AdminControllerTableBase
         if (!isset($value)) {
             $value = [];
         }
-        // convert json to array
-        if (!is_array($value) && is_json($value)) {
-            $value = json_decode($value, true);
-        }
+        $value = jsonToArray($value);
 
         ///// get text
         foreach ($value as &$v) {

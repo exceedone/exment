@@ -25,6 +25,7 @@ class SystemTableName extends EnumBase
     const EMAIL_CODE_VERIFY = 'email_code_verifies';
     const NOTIFY_NAVBAR = 'notify_navbars';
     const PASSWORD_RESET = 'password_resets';
+    const WORKFLOW_AUTHORITY = 'workflow_authorities';
 
     public static function SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY()
     {

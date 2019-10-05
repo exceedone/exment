@@ -582,6 +582,13 @@ return [
             'exists_authority' => 'アクションの権限は必ず設定してください。',
             'reference_error' => '使用中のワークフローは削除できません。',
         ],
+        
+        'comment_options' => [
+            'required' => '必須',
+            'nullable' => '任意',
+            'not' => '使用しない',
+        ],
+        
     ],
 
     'custom_table' => [

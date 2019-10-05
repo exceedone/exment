@@ -3,10 +3,11 @@
 namespace Exceedone\Exment\Form\Field\WorkFlow;
 
 use Encore\Admin\Form\Field\Select;
+use Exceedone\Exment\Enums\WorkflowCommentType;
 
-class StatusSelects extends Select
+class Options extends Select
 {
-    protected $view = 'exment::workflow.status-selects';
+    protected $view = 'exment::workflow.options';
 
     /**
      * Column name.
@@ -17,9 +18,9 @@ class StatusSelects extends Select
 
     public function __construct($column = '', $arguments = [])
     {
-        $this->column['action_name'] = 'action_name';
-        $this->column['status_from'] = 'status_from';
-        $this->column['status_to'] = 'status_to';
+        $this->column['comment'] = 'comment';
+        $this->column['flowNextType'] = 'flowNextType';
+        $this->column['flowNextCount'] = 'flowNextCount';
 
         $this->label = $this->formatLabel($arguments);
         $this->id = $this->formatId($this->column);
@@ -45,11 +46,11 @@ class StatusSelects extends Select
 
         return $this;
     }
-    
+
     public function render()
     {
         $configs = array_merge([
-            'allowClear'  => true,
+            'allowClear'  => false,
             'language' =>  \App::getLocale(),
             'placeholder' => [
                 'id'   => '',
@@ -62,21 +63,19 @@ class StatusSelects extends Select
         // get classname
 
         if (empty($this->script)) {
-            $this->script = "$('.workflow_actions_status_from,.workflow_actions_status_to').select2($configs);";
+            $this->script = <<<EOT
+            $('.workflow_actions_comment').select2($configs);
+            $('.workflow_actions_flowNextType').iCheck({radioClass:'iradio_minimal-blue'});
+EOT;
         }
 
-        if ($this->options instanceof \Closure) {
-            if ($this->form) {
-                $this->options = $this->options->bindTo($this->form->model());
-            }
+        $options = WorkflowCommentType::transArray('workflow.comment_options');
 
-            $this->options(call_user_func($this->options, $this->value, $this));
-        }
-
-        $this->options = array_filter($this->options, 'strlen');
+        $options = array_filter($options, 'strlen');
 
         return parent::render()->with([
-            'options' => $this->options
+            'optionsComment' => $options,
+            'defaultComment' => WorkflowCommentType::NULLABLE,
         ]);
     }
 }

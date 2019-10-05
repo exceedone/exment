@@ -58,6 +58,7 @@ class CreateWorkflowTable extends Migration
             $table->string('action_name', 30);
             $table->integer('action_group_id');
             $table->integer('order');
+            $table->json('options')->nullable();
 
             $table->timestamps();
             $table->timeusers();

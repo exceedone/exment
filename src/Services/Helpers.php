@@ -142,6 +142,9 @@ if (!function_exists('is_nullorempty')) {
         if (is_string($obj) && strlen($obj) == 0) {
             return true;
         }
+        if (is_array($obj) && count($obj) == 0) {
+            return true;
+        }
         return false;
     }
 }
@@ -528,6 +531,27 @@ if (!function_exists('array_dot_only')) {
             array_set($newArray, $key, array_get($array, $key));
         }
         return $newArray;
+    }
+}
+
+if (!function_exists('jsonToArray')) {
+    /**
+     * json to array
+     *
+     * @param mixed $string
+     * @return array
+     */
+    function jsonToArray($value)
+    {
+        // convert json to array
+        if (is_array($value)) {
+            return $value;
+        }
+        // convert json to array
+        if (!is_array($value) && is_json($value)) {
+            return json_decode($value, true);
+        }
+        return $value;
     }
 }
 

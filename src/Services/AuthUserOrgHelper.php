@@ -246,7 +246,7 @@ class AuthUserOrgHelper
             ]
         );
         // select target users
-        $form->multipleSelect(SystemTableName::USER, exmtrans('menu.system_definitions.user'))
+        $form->multipleSelect('modal_' . SystemTableName::USER, exmtrans('menu.system_definitions.user'))
             ->options($users)
             ->default(array_get($value, SystemTableName::USER))
             ->setWidth(9, 2);
@@ -259,7 +259,7 @@ class AuthUserOrgHelper
                 ]
             );
                 
-            $form->multipleSelect(SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
+            $form->multipleSelect('modal_' . SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
                 ->options($organizations)
                 ->default(array_get($value, SystemTableName::ORGANIZATION))
                 ->setWidth(9, 2);

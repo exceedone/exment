@@ -6,8 +6,19 @@
         <div class="{{$viewClass['field']}}" id="{{$id}}">
             @include('admin::form.error')
 
-            <p style="padding-top:7px;" class="text-valuemodal">{{ $text }}</p>
-            <p><button type="button" class="btn btn-default btn-valuemodal" 
+            <p style="padding-top:7px;" class="text-valuemodal">
+                @if(is_array($text))
+                @foreach($text as $t)
+                    {{$t}}
+                    @if(!$loop->last)
+                    <br />
+                    @endif
+                @endforeach
+                @else
+                {{$text}}
+                @endif
+            </p>
+            <p><button type="button" class="btn {{$buttonClass}} btn-valuemodal" 
             data-widgetmodal_url="{{$ajax}}"
             data-widgetmodal_method="POST"
             data-widgetmodal_getdata='["{{$modalContentname}}"]'

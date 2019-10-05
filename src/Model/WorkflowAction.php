@@ -6,42 +6,43 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class WorkflowAction extends ModelBase
 {
-    protected $appends = ['work_targets'];
+    use Traits\DatabaseJsonTrait;
 
-    protected $autority_users;
-    protected $autority_organizations;
+    protected $appends = ['work_targets', 'comment', 'flowNextType'];
+    protected $casts = ['options' => 'json'];
+
+    protected $work_targets;
 
     public function workflow()
     {
         return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
-    public function setHasAutorityUsersAttribute($value)
-    {
-        $this->autority_users = $value;
-    }
+    // public function setHasAutorityUsersAttribute($value)
+    // {
+    //     $this->autority_users = $value;
+    // }
 
-    public function setHasAutorityOrganizationsAttribute($value)
-    {
-        $this->autority_organizations = $value;
-    }
-
-    public function getHasAutorityUsersAttribute()
-    {
-        return WorkflowAuthority::where('workflow_action_id', $this->id)
-            ->where('related_type', SystemTableName::USER)->get()->pluck('related_id');
-    }
-
-    public function getHasAutorityOrganizationsAttribute()
-    {
-        return WorkflowAuthority::where('workflow_action_id', $this->id)
-            ->where('related_type', SystemTableName::ORGANIZATION)->get()->pluck('related_id');
-    }
+    // public function setHasAutorityOrganizationsAttribute($value)
+    // {
+    //     $this->autority_organizations = $value;
+    // }
 
     public function getWorkTargetsAttribute()
     {
         return WorkflowAuthority::where('workflow_action_id', $this->id)
-            ->where('related_type', SystemTableName::ORGANIZATION)->get()->pluck('related_id');
+            ->with(['user_organization'])->get();
+    }
+
+    public function setWorkTargetsAttribute($work_targets)
+    {
+        if(is_nullorempty($work_targets)){
+            return;
+        }
+        
+        $this->work_targets = jsonToArray($work_targets);
+        
+        return $this;
     }
 
     public function getStatusFromNameAttribute(){
@@ -55,12 +56,45 @@ class WorkflowAction extends ModelBase
         return null;
     }
 
-    protected static function boot() {
-        parent::boot();
+    public function getCommentAttribute(){
+        return $this->getOption('comment');
+    }
+    public function setCommentAttribute($comment){
+        $this->setOption('comment', $comment);
+        return $this;
+    }
 
-        static::saved(function ($model) {
-            $model->setActionAuthority();
-        });
+    public function getFlowNextTypeAttribute(){
+        return $this->getOption('flowNextType');
+    }
+    public function setFlowNextTypeAttribute($flowNextType){
+        $this->setOption('flowNextType', $flowNextType);
+        return $this;
+    }
+
+    public function getFlowNextCountAttribute(){
+        return $this->getOption('flowNextCount');
+    }
+    public function setFlowNextCountAttribute($flowNextCount){
+        $this->setOption('flowNextCount', $flowNextCount);
+        return $this;
+    }
+
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
+    }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
+    }
+    public function forgetOption($key)
+    {
+        return $this->forgetJson('options', $key);
+    }
+    public function clearOption()
+    {
+        return $this->clearJson('options');
     }
     
 
@@ -72,34 +106,46 @@ class WorkflowAction extends ModelBase
     /**
      * set action authority
      */
-    public function setActionAuthority()
+    protected function setActionAuthority()
     {
-        if (!is_null($this->autority_users)) {
-            $users = [];
-            foreach($this->autority_users as $autority_user) {
-                $users[] = [
-                    'related_id' => $autority_user,
-                    'related_type' => SystemTableName::USER,
-                    'workflow_action_id' => $this->id,
+        // target keys
+        //TODO:workflow keyname
+        $keys = [SystemTableName::USER, SystemTableName::ORGANIZATION];
+        foreach($keys as $key){
+            $ids = array_get($this->work_targets, 'modal_' . $key, []);
+            $values = collect($ids)->map(function($id) use($key){
+                return [
+                    'related_id' => $id,
+                    'related_type' => $key,
+                    'workflow_action_id' => $this->id
                 ];
-            }
-            WorkflowAuthority::where('workflow_action_id', $this->id)
-                ->where('related_type', SystemTableName::USER)->delete();
-            WorkflowAuthority::insert($users);
-        }
+            })->toArray();
 
-        if (!is_null($this->autority_organizations)) {
-            $organizations = [];
-            foreach($this->autority_organizations as $autority_organization) {
-                $organizations[] = [
-                    'related_id' => $autority_organization,
-                    'related_type' => SystemTableName::ORGANIZATION,
-                    'workflow_action_id' => $this->id,
-                ];
-            }
-            WorkflowAuthority::where('workflow_action_id', $this->id)
-                ->where('related_type', SystemTableName::ORGANIZATION)->delete();
-            WorkflowAuthority::insert($organizations);
+            \Schema::insertDelete(SystemTableName::WORKFLOW_AUTHORITY, $values, [
+                'dbValueFilter' => function (&$model) use($key) {
+                    $model->where('workflow_action_id', $this->id)
+                        ->where('related_type', $key);
+                },
+                'dbDeleteFilter' => function (&$model, $dbValue) use($values) {
+                    $model->where('workflow_action_id', $this->id)
+                        ->where('related_id', array_get((array)$dbValue, 'related_id') == $values['related_id'])
+                        ->where('related_type', $values['related_type']);
+                },
+                'matchFilter' => function ($dbValue, $value) use($key) {
+                    return array_get((array)$dbValue, 'workflow_action_id') == $value['workflow_action_id']
+                        && array_get((array)$dbValue, 'related_id') == $value['related_id']
+                        && array_get((array)$dbValue, 'related_type') == $value['related_type']
+                        ;
+                },
+            ]);
         }
+    }
+    
+    protected static function boot() {
+        parent::boot();
+
+        static::saved(function ($model) {
+            $model->setActionAuthority();
+        });
     }
 }

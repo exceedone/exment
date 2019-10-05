@@ -184,7 +184,7 @@ class WorkflowController extends AdminControllerBase
         $form->display('workflow_name', exmtrans("workflow.workflow_name"));
 
         $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function($form) use($id, $workflow){
-            $form->statusSelects('status_from', exmtrans("workflow.status_name"))
+            $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
                 ->config('allowClear', false)
                 ->options($workflow->getStatusOptions());
 
@@ -192,14 +192,23 @@ class WorkflowController extends AdminControllerBase
                 ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
                 ->modalContentname('workflow_actions_work_targets')
                 ->setElementClass('workflow_actions_work_targets')
-                ->required()
+                ->buttonClass('btn-sm btn-default')
                 ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
-                ->text(function ($value) {
-                    if(!isset($value)){
+                ->text(function ($value, $data) {
+                    if(is_nullorempty($value)){
                         return '全ユーザー';
                     }
-                    return null;
+
+                    // set text
+                    $texts = [];
+                    foreach($value as $v){
+                        $texts[] = array_get($v, 'user_organization.label');
+                    }
+                    return $texts;
                 })
+            ;
+            
+            $form->workflowOptions('options', exmtrans("workflow.workflow_options"))
             ;
         });
 
