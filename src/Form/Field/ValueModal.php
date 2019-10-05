@@ -42,6 +42,11 @@ class ValueModal extends Field
     protected $modalContentname;
 
     /**
+     * @var \Closure
+     */
+    protected $hiddenFormat;
+
+    /**
      * @var string modal ajax
      */
     protected $ajax;
@@ -189,6 +194,18 @@ EOT;
     }
     
     /**
+     * Callback hidden value
+     *
+     * @param string $script
+     * @return $this|mixed
+     */
+    public function hiddenFormat($hiddenFormat){
+        $this->hiddenFormat = $hiddenFormat;
+
+        return $this;
+    }
+    
+    /**
      * {@inheritdoc}
      */
     public function render()
@@ -202,7 +219,12 @@ EOT;
             $this->text(call_user_func($this->text, $this->value, $this->data));
         }
 
-       
+        // set hidden
+        $hidden = $this->value;
+        if ($this->hiddenFormat instanceof \Closure) {
+            $hidden = call_user_func($this->hiddenFormat, $this->value, $this->data);
+        }
+
         // set button label
         if (is_null($this->buttonlabel)) {
             $this->buttonlabel = exmtrans('common.change');
@@ -226,6 +248,7 @@ EOT;
 
         return parent::render()->with([
             'text'   => $this->text,
+            'hidden' => $hidden,
             'nullText'   => $this->nullText,
             'buttonlabel'   => $this->buttonlabel,
             'buttonClass'   => $this->buttonClass,

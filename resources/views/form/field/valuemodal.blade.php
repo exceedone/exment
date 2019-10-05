@@ -27,7 +27,7 @@
             data-widgetmodal_expand='{{$expand}}'
             >
             {{ $buttonlabel }}
-            <input type="hidden" name="{{$name}}" value="{{$value}}" class="{{$class}} value-valuemodal" {!! $attributes !!} />
+            <input type="hidden" name="{{$name}}" value="{{$hidden}}" class="{{$class}} value-valuemodal" {!! $attributes !!} />
             <input type="hidden" value="{{$nullText}}" class="nulltext-valuemodal" />
             </button></p>
 

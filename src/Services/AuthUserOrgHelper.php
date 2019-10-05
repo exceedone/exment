@@ -256,7 +256,7 @@ class AuthUserOrgHelper
         // select target users
         $form->multipleSelect('modal_' . SystemTableName::USER, exmtrans('menu.system_definitions.user'))
             ->options($users)
-            ->default(array_get($value, SystemTableName::USER));
+            ->default(array_get($value, 'modal_' . SystemTableName::USER));
 
         if (System::organization_available()) {
             $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions(
@@ -268,7 +268,7 @@ class AuthUserOrgHelper
                 
             $form->multipleSelect('modal_' . SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
                 ->options($organizations)
-                ->default(array_get($value, SystemTableName::ORGANIZATION));
+                ->default(array_get($value, 'modal_' . SystemTableName::ORGANIZATION));
         }
 
         return $form;

@@ -26,7 +26,8 @@ abstract class CustomValue extends ModelBase
     protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
-    
+    protected $with = ['workflow_value'];
+
     /**
      * remove_file_columns.
      * default flow, if file column is empty, set original value.
@@ -38,14 +39,14 @@ abstract class CustomValue extends ModelBase
      * if false, don't notify
      */
     protected $saved_notify = true;
-    
+
     /**
      * already_updated.
      * if true, not call saved event again.
      */
     protected $already_updated = false;
-    
-    
+
+
     /**
      * Create a new Eloquent model instance.
      *
@@ -65,6 +66,17 @@ abstract class CustomValue extends ModelBase
         parent::__construct($attributes);
     }
 
+    public function workflow_value()
+    {
+        return $this->hasOne(WorkflowValue::class, 'morph_id')
+            ->where('morph_type', $this->custom_table->table_name)
+            ->where('enabled_flg', true)
+            ->with(['workflow_status'])
+            ->orderBy('updated_at', 'desc')
+            //->withDefault()
+            ;
+    }
+
     public function getLabelAttribute()
     {
         return $this->getLabel();
@@ -76,16 +88,6 @@ abstract class CustomValue extends ModelBase
         return System::requestSession('custom_table_' . $this->custom_table_name, function () {
             return CustomTable::getEloquent($this->custom_table_name);
         });
-    }
-
-    public function getWorkflowValueAttribute()
-    {
-        return WorkflowValue::where('morph_id', $this->id)
-            ->where('morph_type', $this->custom_table->table_name)
-            //->where('workflow_id', $this->custom_table->workflow_id)
-            ->where('enabled_flg', true)
-            ->orderBy('updated_at', 'desc')
-            ->first();
     }
 
     public function getWorkflowStatusAttribute()
@@ -110,8 +112,38 @@ abstract class CustomValue extends ModelBase
 
     public function getWorkflowStatusTagAttribute()
     {
-        return $this->workflow_status_name . 
+        return $this->workflow_status_name .
             ($this->lockedWorkflow() ? ' <i class="fa fa-lock" aria-hidden="true"></i>' : '');
+    }
+
+    public function getWorkflowWorkUsersAttribute()
+    {        
+        $workflow_actions = $this->workflow_actions();
+
+        $result = [];
+        foreach($workflow_actions as $workflow_action){
+            $work_targets = $workflow_action->work_targets;
+            
+            //array_merge($result)
+            $work_targets->each(function($work_target) use(&$result){
+                if($work_target->user_organization->custom_table->table_name == SystemTableName::ORGANIZATION){
+                    $result = array_merge($work_target->user_organization->user, $result);
+                }else{
+                    $result[] = $work_target->user_organization;
+                }
+            });
+        }
+
+        return $result;
+    }
+
+    public function getWorkflowWorkUsersTagAttribute()
+    {       
+        $users = $this->workflow_work_users;
+
+        return collect($users)->map(function($user){
+            return $user->label;
+        })->implode(',');
     }
 
     // user value_authoritable. it's all role data. only filter morph_type
@@ -138,7 +170,7 @@ abstract class CustomValue extends ModelBase
         $workflows = Workflow::where('custom_table_id', $this->custom_table->id)
             ->with(['workflow_statuses', 'workflow_actions'])
             ->get();
-        
+
         if(count($workflows) == 0){
             return [];
         }
@@ -162,7 +194,7 @@ abstract class CustomValue extends ModelBase
 
         // TODO:authority etc
 
-        //return 
+        //return
         return $workflow_actions;
 
         // $status_id = $this->workflow_status_id;
@@ -193,7 +225,7 @@ abstract class CustomValue extends ModelBase
         // }
         // return [];
     }
- 
+
     public function parent_custom_value()
     {
         return $this->morphTo();
@@ -212,7 +244,7 @@ abstract class CustomValue extends ModelBase
         $this->remove_file_columns[] = $key;
         return $this;
     }
-    
+
     public function saved_notify($disable_saved_notify)
     {
         $this->saved_notify = $disable_saved_notify;
@@ -238,7 +270,7 @@ abstract class CustomValue extends ModelBase
         });
         static::saved(function ($model) {
             $model->setFileValue();
-            
+
             // call plugins
             Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saved', [
                 'custom_table' => $model->custom_table,
@@ -261,7 +293,7 @@ abstract class CustomValue extends ModelBase
             // set revision
             $model->postSave();
         });
-        
+
         static::deleting(function ($model) {
             static::setUser($model, ['deleted_user_id']);
 
@@ -270,7 +302,7 @@ abstract class CustomValue extends ModelBase
             $model->saved_notify = false;
             $model->save();
             $model->saved_notify = $saved_notify;
-            
+
             $model->deleteRelationValues();
         });
 
@@ -331,7 +363,7 @@ abstract class CustomValue extends ModelBase
             if (empty($column_keys)) {
                 continue;
             }
-            
+
             // if all column's value is empty, continue.
             if (collect($column_keys)->filter(function ($column) use ($input) {
                 return !is_nullorempty(array_get($input, 'value.' . $column->column_name));
@@ -485,7 +517,7 @@ abstract class CustomValue extends ModelBase
         }
     }
 
-    
+
     // notify user --------------------------------------------------
     public function notify($notifySavedType)
     {
@@ -519,27 +551,27 @@ abstract class CustomValue extends ModelBase
                 ->where('parent_type', $custom_table->table_name)
                 ->delete();
         }
-        
+
         // delete custom relation is n:n value
         $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::MANY_TO_MANY);
         // loop relations
         foreach ($relations as $relation) {
             // ge pivot table
             $pivot_name = $relation->getRelationName();
-            
+
             // find keys and delete
             \DB::table($pivot_name)
                 ->where('parent_id', $this->id)
                 ->delete();
         }
-        
+
         // delete custom relation is n:n value (for children)
         $relations = CustomRelation::getRelationsByChild($custom_table, RelationType::MANY_TO_MANY);
         // loop relations
         foreach ($relations as $relation) {
             // ge pivot table
             $pivot_name = $relation->getRelationName();
-            
+
             // find keys and delete
             \DB::table($pivot_name)
                 ->where('child_id', $this->id)
@@ -551,7 +583,7 @@ abstract class CustomValue extends ModelBase
         // delete role group
         RoleGroupUserOrganization::deleteRoleGroupUserOrganization($this);
     }
-    
+
     /**
      * get Authoritable values.
      * this function selects value_authoritable, and get all values.
@@ -575,7 +607,7 @@ abstract class CustomValue extends ModelBase
     {
         return $this->setJson('value', $key, $val, $forgetIfNull);
     }
-    
+
     public function getValue($column, $label = false, $options = [])
     {
         if (is_null($column)) {
@@ -615,12 +647,12 @@ abstract class CustomValue extends ModelBase
                     if (is_null($loop_value)) {
                         return null;
                     }
-                    
+
                     // if last index, return value
                     if ($lastIndex) {
                         return $loop_value;
                     }
-                    
+
                     // get custom table. if CustomValue
                     if (!($loop_value instanceof CustomValue)) {
                         return null;
@@ -788,7 +820,7 @@ abstract class CustomValue extends ModelBase
         if (!boolval($options['list'])) {
             $url = url_join($url, $this->id);
         }
-        
+
         if (isset($options['uri'])) {
             $url = url_join($url, $options['uri']);
         }
@@ -816,7 +848,7 @@ abstract class CustomValue extends ModelBase
 
         return "<a href='$href'$widgetmodal_url>$label</a>";
     }
-    
+
     /**
      * get target custom_value's relation search url
      */
@@ -849,7 +881,7 @@ abstract class CustomValue extends ModelBase
 
         return $value;
     }
-    
+
     /**
      * get parent value
      */
@@ -861,7 +893,7 @@ abstract class CustomValue extends ModelBase
         }
         return $model->label ?? null;
     }
-    
+
     /**
      * Get Custom children value summary
      */
@@ -894,7 +926,7 @@ abstract class CustomValue extends ModelBase
                 return $returnBuilder ? $query : $query->get();
             }
         }
-    
+
         // get custom column as array
         $child_table = CustomTable::getEloquent($relation);
         $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
@@ -902,7 +934,7 @@ abstract class CustomValue extends ModelBase
         if (isset($pivot_table_name)) {
             return $returnBuilder ? $this->{$pivot_table_name}() : $this->{$pivot_table_name};
         }
-        
+
         return null;
     }
 
@@ -918,7 +950,7 @@ abstract class CustomValue extends ModelBase
         $this->value = $revision_value;
         return $this;
     }
-    
+
     /**
      * set workflow status condition
      */
@@ -962,7 +994,7 @@ abstract class CustomValue extends ModelBase
                 });
         }
     }
-        
+
     /**
      * Get Query for text search
      *
@@ -1040,7 +1072,7 @@ abstract class CustomValue extends ModelBase
                 'makeHidden' => false,
                 'searchColumns' => null,
                 'relation' => false,
-                
+
             ],
             $options
         );
@@ -1056,7 +1088,7 @@ abstract class CustomValue extends ModelBase
         if (!isset($searchColumns) || count($searchColumns) == 0) {
             return $options;
         }
-        
+
         if (System::filter_search_type() == FilterSearchType::ALL) {
             $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         } else {
@@ -1091,12 +1123,7 @@ abstract class CustomValue extends ModelBase
     public function lockedWorkflow(){
         // check workflow
         if(!isset($this->workflow_status)){
-            $workflow = $this->custom_table->workflow;
-            if(!isset($workflow)){
-                return false;
-            }
-
-            return boolval($workflow->start_datalock_flg);
+            return false;
         }
 
         return boolval($this->workflow_status->datalock_flg);

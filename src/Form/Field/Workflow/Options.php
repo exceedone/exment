@@ -18,7 +18,7 @@ class Options extends Select
 
     public function __construct($column = '', $arguments = [])
     {
-        $this->column['comment'] = 'comment';
+        $this->column['commentType'] = 'commentType';
         $this->column['flowNextType'] = 'flowNextType';
         $this->column['flowNextCount'] = 'flowNextCount';
 
@@ -64,7 +64,7 @@ class Options extends Select
 
         if (empty($this->script)) {
             $this->script = <<<EOT
-            $('.workflow_actions_comment').select2($configs);
+            $('.workflow_actions_commentType').select2($configs);
             $('.workflow_actions_flowNextType').iCheck({radioClass:'iradio_minimal-blue'});
 EOT;
         }
@@ -74,8 +74,8 @@ EOT;
         $options = array_filter($options, 'strlen');
 
         return parent::render()->with([
-            'optionsComment' => $options,
-            'defaultComment' => WorkflowCommentType::NULLABLE,
+            'optionsCommentType' => $options,
+            'defaultCommentType' => WorkflowCommentType::NULLABLE,
         ]);
     }
 }

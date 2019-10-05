@@ -28,7 +28,6 @@ class CreateWorkflowTable extends Migration
 
             $table->string('workflow_name', 30);
             $table->string('start_status_name', 30);
-            $table->boolean('start_datalock_flg')->default(false);
 
             $table->timestamps();
             $table->timeusers();

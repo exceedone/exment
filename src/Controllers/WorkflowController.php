@@ -113,13 +113,11 @@ class WorkflowController extends AdminControllerBase
         $form->text('start_status_name', exmtrans("workflow.start_status_name"))
             ->required()
             ->rules("max:30");
-        $form->switchbool('start_datalock_flg', exmtrans("workflow.datalock_flg"))
-            ->help(exmtrans('workflow.help.datalock_flg'))
-            ->default(0);
 
         $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) {
             $form->text('status_name', exmtrans("workflow.status_name"))->help(exmtrans('workflow.help.status_name'));
             $form->switchbool('datalock_flg', exmtrans("workflow.datalock_flg"))->help(exmtrans('workflow.help.editable_flg'));
+            $form->hidden('order')->default(0);
         })->setTableColumnWidth(6, 2, 2)
             ->setTableWidth(8, 2)
             ->rowUpDown('order')
@@ -196,6 +194,17 @@ class WorkflowController extends AdminControllerBase
                 ->setElementClass('workflow_actions_work_targets')
                 ->buttonClass('btn-sm btn-default')
                 ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
+                ->hiddenFormat(function($value){
+                    if(is_nullorempty($value)){
+                        return;
+                    }
+
+                    $result = [];
+                    collect($value)->each(function($v) use(&$result){
+                        $result['modal_' . array_get($v, 'related_type')][] = array_get($v, 'related_id');
+                    });
+                    return collect($result)->toJson();
+                })
                 ->text(function ($value, $data) {
                     if(is_nullorempty($value)){
                         return;

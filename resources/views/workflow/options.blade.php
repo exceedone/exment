@@ -1,16 +1,16 @@
-<div class="{{$viewClass['form-group']}} {!! ($errors->has($errorKey['comment'].'comment')) ? 'has-error' : ''  !!}">
+<div class="{{$viewClass['form-group']}} {!! ($errors->has($errorKey['commentType'].'commentType')) ? 'has-error' : ''  !!}">
 
-<label for="{{$id['comment']}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
+<label for="{{$id['commentType']}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
 
     <div class="{{$viewClass['field']}}">
 
         @include('admin::form.error')
 
-        <label for="{{$id['comment']}}" class="control-label small asterisk">{{exmtrans('common.comment')}}</label>
-        <select class="form-control {{$class['comment']}}" style="width: 100%;" name="{{$name['comment']}}" {!! $attributes !!} >
+        <label for="{{$id['commentType']}}" class="control-label small asterisk">{{exmtrans('common.comment')}}</label>
+        <select class="form-control {{$class['commentType']}}" style="width: 100%;" name="{{$name['commentType']}}" {!! $attributes !!} >
             <option value=""></option>
-            @foreach($optionsComment as $select => $option)
-                <option value="{{$select}}" {{ $select == (old($column['comment'], $value['comment']) ?? $defaultComment) ?'selected':'' }}>{{$option}}</option>
+            @foreach($optionsCommentType as $select => $option)
+                <option value="{{$select}}" {{ $select == (old($column['commentType'], $value['commentType']) ?? $defaultCommentType) ?'selected':'' }}>{{$option}}</option>
             @endforeach
         </select>
 
@@ -22,7 +22,7 @@
             <label>
                 <input type="radio" name="{{$name['flowNextType']}}" value="some" class="minimal {{$class['flowNextType']}}" {{ ($option == old($column['flowNextType'], $value['flowNextType'])) || ($value['flowNextType'] === 'some') || ($value['flowNextType'] === null) ?'checked':'' }} />&nbsp;
                 
-                <input type="text" style="width:50px; text-align:right;" value="{{old($column['flowNextCount'], $value['flowNextCount']) ?? 1}}" />
+                <input type="text" name="{{$name['flowNextCount']}}" style="width:50px; text-align:right;" value="{{old($column['flowNextCount'], $value['flowNextCount']) ?? 1}}" />
                 &nbsp;{{exmtrans('workflow.upper_user')}}
             </label>
         </div>

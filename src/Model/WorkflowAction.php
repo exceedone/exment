@@ -8,7 +8,7 @@ class WorkflowAction extends ModelBase
 {
     use Traits\DatabaseJsonTrait;
 
-    protected $appends = ['work_targets', 'comment', 'flowNextType'];
+    protected $appends = ['work_targets', 'commentType', 'flowNextType', 'flowNextCount'];
     protected $casts = ['options' => 'json'];
 
     protected $work_targets;
@@ -18,22 +18,17 @@ class WorkflowAction extends ModelBase
         return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
-    // public function setHasAutorityUsersAttribute($value)
-    // {
-    //     $this->autority_users = $value;
-    // }
-
-    // public function setHasAutorityOrganizationsAttribute($value)
-    // {
-    //     $this->autority_organizations = $value;
-    // }
+    public function workflow_authorities()
+    {
+        return $this->hasMany(WorkflowAuthority::class, 'workflow_action_id')
+            ->with(['user_organization']);
+    }
 
     public function getWorkTargetsAttribute()
     {
         return WorkflowAuthority::where('workflow_action_id', $this->id)
             ->with(['user_organization'])->get();
     }
-
     public function setWorkTargetsAttribute($work_targets)
     {
         if(is_nullorempty($work_targets)){
@@ -56,11 +51,11 @@ class WorkflowAction extends ModelBase
         return null;
     }
 
-    public function getCommentAttribute(){
-        return $this->getOption('comment');
+    public function getCommentTypeAttribute(){
+        return $this->getOption('commentType');
     }
-    public function setCommentAttribute($comment){
-        $this->setOption('comment', $comment);
+    public function setCommentTypeAttribute($commentType){
+        $this->setOption('commentType', $commentType);
         return $this;
     }
 
@@ -126,10 +121,10 @@ class WorkflowAction extends ModelBase
                     $model->where('workflow_action_id', $this->id)
                         ->where('related_type', $key);
                 },
-                'dbDeleteFilter' => function (&$model, $dbValue) use($values) {
+                'dbDeleteFilter' => function (&$model, $dbValue) use($key) {
                     $model->where('workflow_action_id', $this->id)
-                        ->where('related_id', array_get((array)$dbValue, 'related_id') == $values['related_id'])
-                        ->where('related_type', $values['related_type']);
+                        ->where('related_id', array_get((array)$dbValue, 'related_id'))
+                        ->where('related_type', $key);
                 },
                 'matchFilter' => function ($dbValue, $value) use($key) {
                     return array_get((array)$dbValue, 'workflow_action_id') == $value['workflow_action_id']

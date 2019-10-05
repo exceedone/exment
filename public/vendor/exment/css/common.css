@@ -14,12 +14,26 @@
   font-size: 0.9em;
 }
 
+.mx-auto {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.my-auto {
+  margin-top: auto !important;
+  margin-bottom: auto !important;
+}
+
 .d-block {
   display: block;
 }
 
 .d-inline {
   display: inline;
+}
+
+.d-inline-block {
+  display: inline-block;
 }
 
 .asterisk::after {
@@ -3662,29 +3676,46 @@ table img.image_html:hover {
 }
 
 .system-values {
-  display: flex;
+  margin: 0 auto;
+  width: 830px;
+}
+
+.system-values .system-values-label {
+  margin: 0 0 5px;
+  font-weight: bold;
+}
+
+.system-values p {
+  margin-bottom: 0;
+}
+
+.system-values .system-values-list {
+  display: inline-flex;
+  text-align: left;
   flex-wrap: wrap;
-  justify-content: center;
   margin: 0;
   padding: 0;
   font-size: 0.9em;
 }
 
-.system-values li {
+.system-values .system-values-list li {
   list-style: none;
   border-left: solid 6px #2d8fdd;
-  margin: 0.5em 0.2em;
-  padding: 0.5em;
-  min-width: 140px;
+  margin: 0.5em 2px;
+  padding: 0.4em 8px;
+  width: 160px;
 }
 
-.system-values li h6 {
-  margin-top: 0;
-  font-weight: bold;
+.system-values .system-values-flows {
+  margin-bottom: 0.5em;
 }
 
-.system-values li p {
-  margin-bottom: 0;
+.system-values .system-values-flows .system-values-label {
+  margin-right: 0.5em;
+}
+
+.system-values .system-values-flows .system-values-flow {
+  margin-right: 2em;
 }
 
 .skin-blue .system-values li, .skin-blue-light .system-values li {
