@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\ColumnItems\Workflowitem;
 use Carbon\Carbon;
 
 class CustomViewFilter extends ModelBase
@@ -97,7 +98,7 @@ class CustomViewFilter extends ModelBase
         $view_filter_condition = $this->view_filter_condition;
         
         if ($this->view_column_type == ViewColumnType::WORKFLOW) {
-            return $model->workflowStatus($view_filter_condition, $condition_value_text);
+            return WorkflowItem::scopeWorkflowStatus($model, $this->custom_table, $view_filter_condition, $condition_value_text);
         }
 
         if ($this->view_column_type == ViewColumnType::COLUMN) {

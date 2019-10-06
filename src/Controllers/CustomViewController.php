@@ -288,6 +288,7 @@ class CustomViewController extends AdminControllerTableBase
                             'index_enabled_only' => true,
                             'include_parent' => true,
                             'include_child' => true,
+                            'include_workflow' => true,
                         ]))
                         ->attribute([
                             'data-linkage' => json_encode(['view_group_condition' => admin_urls('view', $custom_table->table_name, 'group-condition')]),

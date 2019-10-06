@@ -531,8 +531,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 if ($column_item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
                     $group_columns[] = $column_item->sqltypename();
                 }
-                else if ($item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem) {
-                    $sub_queries[$item->getTableName()] = $item->getSubquery();
+                elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem) {
+                    \Exceedone\Exment\ColumnItems\WorkflowItem::getSubquery($query, $item->custom_table);
                 }
 
                 $this->setSummaryItem($column_item, $index, $custom_tables, $grid, [

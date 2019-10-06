@@ -126,11 +126,7 @@ abstract class CustomValue extends ModelBase
             
             //array_merge($result)
             $work_targets->each(function($work_target) use(&$result){
-                if($work_target->user_organization->custom_table->table_name == SystemTableName::ORGANIZATION){
-                    $result = array_merge($work_target->user_organization->user, $result);
-                }else{
-                    $result[] = $work_target->user_organization;
-                }
+                $result[] = $work_target->user_organization->getUrl(true);
             });
         }
 
@@ -224,64 +220,6 @@ abstract class CustomValue extends ModelBase
         //     return $actions;
         // }
         // return [];
-    }
-
-    /**
-     * set workflow status condition
-     */
-    public function scopeWorkflowStatus($query, $condition, $status) 
-    {
-        ///// Introduction: When the workflow status is "start", one of the following two conditions is required.
-        ///// *No value in workflow_values ​​when registering data for the first time
-        ///// *When workflow_status_id of workflow_values ​​is null. Ex.Rejection
-
-        // ctreate subquery func
-        $subQueryFunc = function($subqry, $startIsNull = true) use($condition, $status){
-            $subqry->select(\DB::raw(1))
-                ->from('workflow_values')
-                ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
-                ->where('workflow_values.morph_type', $this->custom_table_name)
-                ->where('workflow_values.enabled_flg', true);
-                
-            if($status != Define::WORKFLOW_START_KEYNAME){
-                $subqry->where('workflow_values.workflow_status_id', $status);
-            }
-            elseif($startIsNull){
-                $subqry->whereNull('workflow_values.workflow_status_id');
-            }
-        };
-
-        $query->where(function ($query) use ($condition, $status, $subQueryFunc) {
-            $func = ($condition == ViewColumnFilterOption::NE) ? 'whereNotExists' : 'whereExists';
-            $query->{$func}(function ($subqry) use ($condition, $status, $subQueryFunc) {
-                $subQueryFunc($subqry);
-            });
-
-            // if $status is start
-            if($status == Define::WORKFLOW_START_KEYNAME){
-                $func = ($condition == ViewColumnFilterOption::NE) ? 'whereExists' : 'orWhereNotExists';
-                $query->{$func}(function ($subqry) use ($condition, $status, $subQueryFunc) {
-                    $subQueryFunc($subqry, false);
-                    $subqry->whereNotNull('workflow_values.workflow_status_id');
-                });
-            }
-        });
-
-        return $query;
-
-        // return $query->{$func}(function ($subqry) use ($status) {
-        //     $subqry->select(\DB::raw(1))
-        //         ->from('workflow_values')
-        //         ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
-        //         ->where('workflow_values.morph_type', $this->custom_table_name)
-        //         ->where('workflow_values.enabled_flg', true);
-                
-        //     if($status != Define::WORKFLOW_START_KEYNAME){
-        //         $subqry->where('workflow_values.workflow_status_id', $status);
-        //     }else{
-
-        //     }
-        // });
     }
 
     public function parent_custom_value()
