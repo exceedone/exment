@@ -69,11 +69,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->hasMany(CustomOperation::class, 'custom_table_id');
     }
 
-    public function workflow()
-    {
-        return $this->hasOne(Workflow::class, 'custom_table_id');
-    }
-
     public function custom_relations()
     {
         return $this->hasMany(CustomRelation::class, 'parent_custom_table_id');
@@ -1283,7 +1278,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($include_system) {
             $setSystemColumn(['footer' => true]);
 
-            if ($include_workflow) {
+            if ($include_workflow && !is_null(Workflow::getWorkflowByTable($this))) {
+                // check contains workflow in table 
                 $setSystemColumn(['workflow' => true]);
             }
         }

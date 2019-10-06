@@ -12,9 +12,11 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\Model\WorkflowTable;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
@@ -39,8 +41,14 @@ class WorkflowController extends AdminControllerBase
     {
         $grid = new Grid(new Workflow);
         $grid->column('id', exmtrans("common.id"));
-        $grid->column('custom_table.table_view_name', exmtrans("custom_table.table"))->sortable();
-        $grid->column('workflow_name', exmtrans("workflow.workflow_name"))->sortable();
+        $grid->column('workflow_tables', exmtrans("custom_table.table"))->display(function($v){
+            if(is_nullorempty($v)){
+                return null;
+            }
+
+            return null;
+        });
+        $grid->column('workflow_view_name', exmtrans("workflow.workflow_view_name"))->sortable();
         
         $grid->disableExport();
         if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
@@ -99,17 +107,42 @@ class WorkflowController extends AdminControllerBase
      */
     protected function statusForm($id, $is_action)
     {
+        $workflow = Workflow::find($id);
+
         $form = new Form(new Workflow);
         $form->progressTracker()->options($this->getProgressInfo($id, $is_action));
-        $form->text('workflow_name', exmtrans("workflow.workflow_name"))
+        $form->text('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->required()
             ->rules("max:40");
-        
-        $form->select('custom_table_id')->options(function ($value) {
-            $options = CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
-            return $options;
-        })->required();
 
+        // is create
+        if(!isset($workflow)){
+            $form->select('workflow_type', exmtrans('workflow.workflow_type'))
+                ->options(WorkflowType::transKeyArray('workflow.workflow_type_options'))
+                ->attribute(['data-filtertrigger' =>true])
+                ->config('allowClear', false)
+                ->help(exmtrans('common.help.init_flg') . exmtrans('workflow.help.workflow_type'))
+                ->required();
+                
+            $form->select('custom_table_id', exmtrans('custom_table.table'))->options(function ($value) {
+                $options = CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
+                return $options;
+            })->required()
+            ->attribute(['data-filter' => json_encode(['key' => 'workflow_type', 'value' => [WorkflowType::TABLE]])])
+            ;
+            $form->ignore('custom_table_id');
+        }
+        // is update
+        else{
+            $form->display('workflow_type', exmtrans('workflow.workflow_type'))
+                ->displayText(exmtrans('workflow.workflow_type_options.'. WorkflowType::getEnum($workflow->workflow_type)->lowerKey()))
+                ;
+
+            if($workflow == WorkflowType::TABLE){
+                $form->display('custom_table_id', exmtrans('custom_table.table'));
+            }
+        }
+        
         $form->text('start_status_name', exmtrans("workflow.start_status_name"))
             ->required()
             ->rules("max:30");
@@ -127,8 +160,21 @@ class WorkflowController extends AdminControllerBase
             $this->exists = $form->model()->exists;
         });
 
+        $form->savedInTransaction(function (Form $form) use ($id) {
+            $model = $form->model();
+
+            // save table info
+            if(is_null($custom_table_id = request()->get('custom_table_id'))){
+                return;
+            }
+
+            WorkflowTable::create([
+                'custom_table_id' => $custom_table_id,
+                'workflow_id' => $model->id,
+            ]);
+        });
+
         $form->saved(function (Form $form) use ($id) {
-            // create or drop index --------------------------------------------------
             $model = $form->model();
 
             // redirect workflow action page
@@ -143,33 +189,6 @@ class WorkflowController extends AdminControllerBase
         return $form;
     }
 
-    protected function getProgressInfo($id, $is_action) {
-        $steps = [];
-        $hasAction = false;
-        $hasStatus = false;
-        $workflow_action_url = null;
-        $workflow_status_url = null;
-        if (isset($id)) {
-            $hasAction = WorkflowAction::where('workflow_id', $id)->count() > 0;
-            $hasStatus = WorkflowStatus::where('workflow_id', $id)->count() > 0;
-            $workflow_action_url = admin_urls('workflow', $id, 'edit?action=1');
-            $workflow_status_url = admin_urls('workflow', $id, 'edit');
-        }
-        $steps[] = [
-            'active' => !$is_action,
-            'complete' => $hasStatus,
-            'url' => $is_action? $workflow_status_url: null,
-            'description' => exmtrans('workflow.workflow_statuses')
-        ];
-        $steps[] = [
-            'active' => $is_action,
-            'complete' => $hasAction,
-            'url' => !$is_action? $workflow_action_url: null,
-            'description' => exmtrans('workflow.workflow_actions')
-        ];
-        return $steps;
-    }
-
     /**
      * Make a action edit form builder.
      *
@@ -181,7 +200,7 @@ class WorkflowController extends AdminControllerBase
         $form = new Form(new Workflow);
         $form->progressTracker()->options($this->getProgressInfo($id, $is_action));
         $form->hidden('action')->default(1);
-        $form->display('workflow_name', exmtrans("workflow.workflow_name"));
+        $form->display('workflow_view_name', exmtrans("workflow.workflow_view_name"));
 
         $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function($form) use($id, $workflow){
             $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
@@ -282,6 +301,33 @@ class WorkflowController extends AdminControllerBase
                 'message' => exmtrans('workflow.message.reference_error'),
             ];
         }
+    }
+
+    protected function getProgressInfo($id, $is_action) {
+        $steps = [];
+        $hasAction = false;
+        $hasStatus = false;
+        $workflow_action_url = null;
+        $workflow_status_url = null;
+        if (isset($id)) {
+            $hasAction = WorkflowAction::where('workflow_id', $id)->count() > 0;
+            $hasStatus = WorkflowStatus::where('workflow_id', $id)->count() > 0;
+            $workflow_action_url = admin_urls('workflow', $id, 'edit?action=1');
+            $workflow_status_url = admin_urls('workflow', $id, 'edit');
+        }
+        $steps[] = [
+            'active' => !$is_action,
+            'complete' => $hasStatus,
+            'url' => $is_action? $workflow_status_url: null,
+            'description' => exmtrans('workflow.workflow_statuses')
+        ];
+        $steps[] = [
+            'active' => $is_action,
+            'complete' => $hasAction,
+            'url' => !$is_action? $workflow_action_url: null,
+            'description' => exmtrans('workflow.workflow_actions')
+        ];
+        return $steps;
     }
 
     /**

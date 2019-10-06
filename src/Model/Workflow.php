@@ -5,10 +5,10 @@ namespace Exceedone\Exment\Model;
 class Workflow extends ModelBase
 {
     use Traits\AutoSUuidTrait;
-    
-    public function custom_table()
+
+    public function workflow_tables()
     {
-        return $this->belongsTo(CustomTable::class, 'custom_table_id');
+        return $this->hasMany(WorkflowTable::class, 'workflow_id');
     }
 
     /**
@@ -66,4 +66,19 @@ class Workflow extends ModelBase
         return $statuses;
     }
 
+    public static function getWorkflowByTable($custom_table){
+        $custom_table = CustomTable::getEloquent($custom_table);
+
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE, $custom_table->id);
+        return System::requestSession($key, function() use($custom_table){
+            $workflowTable = WorkflowTable::where('custom_table_id', $custom_table->id)
+            ->first();
+
+            if(!isset($workflowTable)){
+                return null;
+            }
+
+            return $workflowTable->workflow->load(['workflow_statuses', 'workflow_actions']);
+        });
+    }
 }

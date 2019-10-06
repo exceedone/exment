@@ -5,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Database\ExtendedBlueprint;
+use Exceedone\Exment\Enums\WorkflowType;
 
 class CreateWorkflowTable extends Migration
 {
@@ -24,14 +25,24 @@ class CreateWorkflowTable extends Migration
         $schema->create('workflows', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->index();
-            $table->integer('custom_table_id')->unsigned();
+            $table->integer('workflow_type')->default(WorkflowType::COMMON);
 
-            $table->string('workflow_name', 30);
+            $table->string('workflow_view_name', 30);
             $table->string('start_status_name', 30);
 
             $table->timestamps();
             $table->timeusers();
+        });
+
+        $schema->create('workflow_tables', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->integer('workflow_id')->unsigned()->index();
+            $table->integer('custom_table_id')->unsigned()->nullable();
+
+            $table->timestamps();
+            $table->timeusers();
             
+            $table->foreign('workflow_id')->references('id')->on('workflows');
             $table->foreign('custom_table_id')->references('id')->on('custom_tables');
         });
 
@@ -80,6 +91,7 @@ class CreateWorkflowTable extends Migration
             $table->string('morph_type', 255);
             $table->bigInteger('morph_id')->unsigned();
             $table->integer('workflow_status_id')->unsigned()->nulable();
+            $table->string('comment', 1000)->nulable();
             $table->boolean('enabled_flg')->default(false)->index();
 
             $table->timestamps();

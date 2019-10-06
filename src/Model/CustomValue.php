@@ -102,7 +102,7 @@ abstract class CustomValue extends ModelBase
         }
 
         // get workflow
-        $workflow = $this->custom_table->workflow;
+        $workflow = Workflow::getWorkflowByTable($this->custom_table);
         if(isset($workflow)){
             return $workflow->start_status_name;
         }
@@ -126,8 +126,12 @@ abstract class CustomValue extends ModelBase
             
             //array_merge($result)
             $work_targets->each(function($work_target) use(&$result){
-                $result[] = $work_target->user_organization->getUrl(true);
+                $result[] = $work_target->user_organization;
             });
+        }
+
+        if(count($result) == 0){
+            $result[] = exmtrans('common.all_user');
         }
 
         return $result;
@@ -138,7 +142,10 @@ abstract class CustomValue extends ModelBase
         $users = $this->workflow_work_users;
 
         return collect($users)->map(function($user){
-            return $user->label;
+            if(is_string($user)){
+                return $user;
+            }
+            return $user->getUrl(true);
         })->implode(',');
     }
 
@@ -163,16 +170,12 @@ abstract class CustomValue extends ModelBase
     // get workflow actions which has authority
     public function workflow_actions()
     {
-        $workflows = Workflow::where('custom_table_id', $this->custom_table->id)
-            ->with(['workflow_statuses', 'workflow_actions'])
-            ->get();
+        // get workflow.
+        $workflow = Workflow::getWorkflowByTable($this->custom_table);
 
-        if(count($workflows) == 0){
+        if(!isset($workflow)){
             return [];
         }
-
-        //TODO:workflow multiple workflow support
-        $workflow = $workflows->first();
 
         // get current status etc
         $workflow_value = $this->workflow_value;
