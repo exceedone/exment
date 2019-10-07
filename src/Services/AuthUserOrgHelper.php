@@ -256,6 +256,7 @@ class AuthUserOrgHelper
         // select target users
         $form->multipleSelect('modal_' . SystemTableName::USER, exmtrans('menu.system_definitions.user'))
             ->options($users)
+            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'select'])])
             ->default(array_get($value, 'modal_' . SystemTableName::USER));
 
         if (System::organization_available()) {
@@ -268,6 +269,7 @@ class AuthUserOrgHelper
                 
             $form->multipleSelect('modal_' . SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
                 ->options($organizations)
+                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'select'])])
                 ->default(array_get($value, 'modal_' . SystemTableName::ORGANIZATION));
         }
 

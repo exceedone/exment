@@ -28,6 +28,7 @@ class Workflow extends ModelBase
     {
         return $this->hasMany(WorkflowAction::class, 'workflow_id');
     }
+    
     protected static function boot()
     {
         parent::boot();
@@ -60,8 +61,13 @@ class Workflow extends ModelBase
      *
      * @return Collection
      */
-    public function getStatusOptions(){
-        $statuses = $this->workflow_statuses->pluck('status_name', 'id');
+    public function getStatusOptions($onlyStart = false)
+    {
+        //TODO:workflow performance
+        $statuses = collect();
+        if(!$onlyStart){
+            $statuses = $this->workflow_statuses->pluck('status_name', 'id');
+        }
 
         $statuses->prepend($this->start_status_name, Define::WORKFLOW_START_KEYNAME);
 

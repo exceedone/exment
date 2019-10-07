@@ -208,7 +208,9 @@ class WorkflowController extends AdminControllerBase
         $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function($form) use($id, $workflow){
             $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
                 ->config('allowClear', false)
-                ->options($workflow->getStatusOptions());
+                ->options(function($value, $field){
+                    return $this->getStatusOptions($field->getIndex() === 0);
+                });
 
             $form->valueModal('work_targets', exmtrans("workflow.work_targets"))
                 ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
@@ -248,7 +250,7 @@ class WorkflowController extends AdminControllerBase
                 ->setElementClass('workflow_actions_work_conditions')
                 ->buttonClass('btn-sm btn-default')
                 ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
-                ->text(function ($value, $data) {
+                ->text(function ($value, $field) {
                     if(is_nullorempty($value)){
                         return;
                     }
@@ -349,8 +351,12 @@ class WorkflowController extends AdminControllerBase
         $value = jsonToArray($value);
 
         $form = AuthUserOrgHelper::getUserOrgModalForm($custom_table, $value, [
-            'prependCallback' => function($form){
-                $form->description(exmtrans('workflow.help.target_user'));
+            'prependCallback' => function($form) use($value){
+                $form->radio('work_target_type', exmtrans('workflow.work_target_type'))
+                    ->help(exmtrans('workflow.help.work_target_type'))
+                    ->attribute(['data-filtertrigger' =>true])
+                    ->default(array_get($value, 'work_target_type', 'all'))
+                    ->options(['all' => exmtrans('common.all_user'), 'select' => trans('admin.choose')]);
             }
         ]);
 
@@ -367,6 +373,7 @@ class WorkflowController extends AdminControllerBase
         // set workflow system column
         $form->multipleSelect('modal_system', exmtrans('common.system'))
             ->options(WorkflowTargetSystem::transArray('common'))
+            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'select'])])
             ->default(array_get($value, SystemTableName::SYSTEM));
 
         $form->hidden('valueModalUuid')->default($request->get('uuid'));

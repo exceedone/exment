@@ -9,7 +9,7 @@ var Exment;
         static AddEvent() {
         }
         static GetSettingValText() {
-            const targetKeys = ['modal_user', 'modal_organization', 'modal_column', 'modal_system'];
+            const targetKeys = ['work_target_type', 'modal_user', 'modal_organization', 'modal_column', 'modal_system'];
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_targets"] form');
             // get value
@@ -26,11 +26,23 @@ var Exment;
             $.each(targetKeys, function (index, value) {
                 let target = form.find('.' + value + '.form-control');
                 if (!hasValue(target)) {
+                    target = form.find('.' + value + ':checked');
+                    if (!hasValue(target)) {
+                        return true;
+                    }
+                }
+                if (target.is(':hidden')) {
                     return true;
                 }
-                $.each(target.select2('data'), function (index, value) {
-                    texts.push(escHtml(value.text));
-                });
+                // if not select
+                if ($.inArray(target.prop('type'), ['select', 'select-multiple']) !== -1) {
+                    $.each(target.select2('data'), function (index, value) {
+                        texts.push(escHtml(value.text));
+                    });
+                }
+                else if (target.prop('type') == 'radio') {
+                    texts.push(escHtml(target.closest('.radio-inline').text().trim()));
+                }
             });
             return { value: JSON.stringify(values), text: texts.join('<br />') };
         }

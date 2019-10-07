@@ -216,7 +216,7 @@ EOT;
                 $this->text = $this->text->bindTo($this->form->model());
             }
 
-            $this->text(call_user_func($this->text, $this->value, $this->data));
+            $this->text(call_user_func($this->text, $this->value, $this));
         }
 
         // set hidden
