@@ -233,7 +233,7 @@ EOT;
 
         Admin::script($script);
 
-        return $script;
+        return $templateScript . $script;
     }
 
 //     /**

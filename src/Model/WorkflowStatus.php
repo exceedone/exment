@@ -15,4 +15,17 @@ class WorkflowStatus extends ModelBase
         // add default order
         static::addGlobalScope(new OrderScope('order'));
     }
+
+    public static function getWorkflowStatusName($workflow_status = null, $workflow = null){
+        if(isset($workflow_status) && $workflow_status != Define::WORKFLOW_START_KEYNAME){
+            return $workflow_status->status_name;
+        }
+
+        // get workflow
+        if(isset($workflow)){
+            return $workflow->start_status_name;
+        }
+
+        return null;
+    }
 }

@@ -13,11 +13,13 @@ use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\WorkflowTable;
+use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
@@ -220,25 +222,20 @@ class WorkflowController extends AdminControllerBase
                 ->buttonClass('btn-sm btn-default')
                 ->valueTextScript('Exment.WorkflowEvent.GetConditionSettingValText();')
                 ->hiddenFormat(function($value){
-                    if(is_nullorempty($value)){
-                        return null;
-                    }
-
-                    $result = [];
-                    collect($value)->each(function($v) use(&$result){
-                        $result['modal_' . array_get($v, 'related_type')][] = array_get($v, 'related_id');
-                    });
-                    return collect($result)->toJson();
+                    return collect($value)->toJson();
                 })
-                ->text(function ($value, $field) {
+                ->text(function ($value, $field) use($workflow) {
                     if(is_nullorempty($value)){
                         return null;
                     }
 
                     // set text
                     $texts = [];
-                    foreach($value as $v){
-                        $texts[] = array_get($v, 'user_organization.label');
+                    foreach(range(0, 2) as $index){
+                        if(!array_has($value, "work_condition_enabled_$index") || !boolval(array_get($value, "work_condition_enabled_$index"))){
+                            break;
+                        }
+                        $texts[] = WorkflowStatus::getWorkflowStatusName(array_get($value, "work_condition_status_to_$index"), $workflow);
                     }
                     return $texts;
                 })
@@ -420,7 +417,7 @@ class WorkflowController extends AdminControllerBase
         $value = $request->get('workflow_actions_work_conditions');
         $value = jsonToArray($value);
 
-        $form = new ModalForm();
+        $form = new ModalForm($value);
 
         $form->description('このアクションを実行するための条件と、実行後のステータスを設定します。条件は3つまで設定できます。<br />※常に固定のアクションを実行する場合、「条件1」の「実行後ステータス」の設定のみ行ってください。')
             ->setWidth(10, 2);
@@ -434,7 +431,7 @@ class WorkflowController extends AdminControllerBase
                 ->default(1);
             }else{
                 $form->checkboxone("work_condition_enabled_{$index}", 'work_condition_enabled')
-                ->setLabelClass(['invisible '])
+                ->setLabelClass(['invisible'])
                 ->setWidth(10, 2)
                 ->default(array_get($value, "work_condition_enabled_{$index}", 0))
                 ->attribute(['data-filtertrigger' =>true])
@@ -444,11 +441,12 @@ class WorkflowController extends AdminControllerBase
             $form->select("work_condition_status_to_{$index}", exmtrans('workflow.status_to'))
                 ->options($statusOptions)
                 ->required()
-                ->default(array_get($value, "work_condition_status_to_{$index}"))
+                //->default(array_get($value, "work_condition_status_to_{$index}"))
                 ->setElementClass('work_condition_status_to')
                 ->attribute(['data-filter' => json_encode(['key' => "work_condition_enabled_{$index}", 'value' => '1'])])
                 ->setWidth(4, 2);
 
+            $default = array_get($value, "work_condition_filter_{$index}", []);
             $form->hasManyTable("work_condition_filter_{$index}", exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $id) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                     ->options($custom_table->getColumnsSelectOptions(
@@ -497,6 +495,7 @@ class WorkflowController extends AdminControllerBase
                     ->rules("changeFieldValue:$label");
             })->setTableColumnWidth(4, 4, 3, 1)
             ->setTableWidth(10, 2)
+            ->setRelatedValue($default)
             ->attribute(['data-filter' => json_encode(['key' => "work_condition_enabled_{$index}", 'value' => '1'])])
             ->disableHeader();
         }

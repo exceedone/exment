@@ -154,7 +154,13 @@ class ValueModal extends Field
                 let target = getValueModalTarget();
                 target.find('.value-valuemodal').val(valText.value);
                 target.find('.text-valuemodal').html(valText.text);
+                
+                let forms = $('.modal form').get();
 
+                if(forms.length > 0 &&!forms[0].reportValidity()){
+                    return;
+                }
+    
                 $('.modal').modal('hide');
             });
 
