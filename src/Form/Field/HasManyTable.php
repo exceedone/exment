@@ -15,6 +15,7 @@ class HasManyTable extends HasMany
 {
     protected $tablecolumnwidths = [];
     protected $count = null;
+    protected $header = true;
 
     /**
      * Show row up down button
@@ -69,8 +70,11 @@ class HasManyTable extends HasMany
         $this->rowUpDown = $rowUpDown;
         return $this;
     }
-
     
+    public function disableHeader()
+    {
+        $this->header = false;
+    }
     
     /**
      * Available views for HasMany field.
@@ -228,64 +232,66 @@ function getPrevNextRow(row, isup){
 EOT;
 
         Admin::script($script);
+
+        return $script;
     }
 
-    /**
-     * Setup tab template script.
-     *
-     * @param string $templateScript
-     *
-     * @return void
-     */
-    protected function setupScriptForTabView($templateScript)
-    {
-        $removeClass = NestedForm::REMOVE_FLAG_CLASS;
-        $defaultKey = NestedForm::DEFAULT_KEY_NAME;
-        $count = !isset($this->value) ? 0 : count($this->value);
-        $indexName = "index_{$this->column}";
+//     /**
+//      * Setup tab template script.
+//      *
+//      * @param string $templateScript
+//      *
+//      * @return void
+//      */
+//     protected function setupScriptForTabView($templateScript)
+//     {
+//         $removeClass = NestedForm::REMOVE_FLAG_CLASS;
+//         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
+//         $count = !isset($this->value) ? 0 : count($this->value);
+//         $indexName = "index_{$this->column}";
 
-        $script = <<<EOT
+//         $script = <<<EOT
 
-$('#has-many-{$this->column} > .nav').off('click', 'i.close-tab').on('click', 'i.close-tab', function(){
-    var \$navTab = $(this).siblings('a');
-    var \$pane = $(\$navTab.attr('href'));
-    if( \$pane.hasClass('new') ){
-        \$pane.remove();
-    }else{
-        \$pane.removeClass('active').find('.$removeClass').val(1);
-    }
-    if(\$navTab.closest('li').hasClass('active')){
-        \$navTab.closest('li').remove();
-        $('#has-many-{$this->column} > .nav > li:nth-child(1) > a').tab('show');
-    }else{
-        \$navTab.closest('li').remove();
-    }
-});
+// $('#has-many-{$this->column} > .nav').off('click', 'i.close-tab').on('click', 'i.close-tab', function(){
+//     var \$navTab = $(this).siblings('a');
+//     var \$pane = $(\$navTab.attr('href'));
+//     if( \$pane.hasClass('new') ){
+//         \$pane.remove();
+//     }else{
+//         \$pane.removeClass('active').find('.$removeClass').val(1);
+//     }
+//     if(\$navTab.closest('li').hasClass('active')){
+//         \$navTab.closest('li').remove();
+//         $('#has-many-{$this->column} > .nav > li:nth-child(1) > a').tab('show');
+//     }else{
+//         \$navTab.closest('li').remove();
+//     }
+// });
 
-var $indexName = {$count};
-$('#has-many-{$this->column} > .header').off('click', '.add').on('click', '.add', function(){
-    $indexName++;
-    var navTabHtml = $('#has-many-{$this->column} > template.nav-tab-tpl').html().replace(/{$defaultKey}/g, index);
-    var paneHtml = $('#has-many-{$this->column} > template.pane-tpl').html().replace(/{$defaultKey}/g, $indexName);
-    $('#has-many-{$this->column} > .nav').append(navTabHtml);
-    $('#has-many-{$this->column} > .tab-content').append(paneHtml);
-    $('#has-many-{$this->column} > .nav > li:last-child a').tab('show');
-    {$templateScript}
-});
+// var $indexName = {$count};
+// $('#has-many-{$this->column} > .header').off('click', '.add').on('click', '.add', function(){
+//     $indexName++;
+//     var navTabHtml = $('#has-many-{$this->column} > template.nav-tab-tpl').html().replace(/{$defaultKey}/g, index);
+//     var paneHtml = $('#has-many-{$this->column} > template.pane-tpl').html().replace(/{$defaultKey}/g, $indexName);
+//     $('#has-many-{$this->column} > .nav').append(navTabHtml);
+//     $('#has-many-{$this->column} > .tab-content').append(paneHtml);
+//     $('#has-many-{$this->column} > .nav > li:last-child a').tab('show');
+//     {$templateScript}
+// });
 
-if ($('.has-error').length) {
-    $('.has-error').parent('.tab-pane').each(function () {
-        var tabId = '#'+$(this).attr('id');
-        $('li a[href="'+tabId+'"] i').removeClass('hide');
-    });
+// if ($('.has-error').length) {
+//     $('.has-error').parent('.tab-pane').each(function () {
+//         var tabId = '#'+$(this).attr('id');
+//         $('li a[href="'+tabId+'"] i').removeClass('hide');
+//     });
     
-    var first = $('.has-error:first').parent().attr('id');
-    $('li a[href="#'+first+'"]').tab('show');
-}
-EOT;
+//     var first = $('.has-error:first').parent().attr('id');
+//     $('li a[href="#'+first+'"]').tab('show');
+// }
+// EOT;
 
-        Admin::script($script);
-    }
+//         Admin::script($script);
+//     }
 
     /**
      * Prepare for a field value before update or insert.
@@ -360,6 +366,7 @@ EOT;
             'tablecolumnwidths' => $this->tablecolumnwidths,
             'description' => $this->description,
             'options'      => $this->options,
+            'header' => $this->header
         ]);
     }
 }

@@ -8,7 +8,7 @@ class WorkflowAction extends ModelBase
 {
     use Traits\DatabaseJsonTrait;
 
-    protected $appends = ['work_targets', 'commentType', 'flowNextType', 'flowNextCount', 'rejectAction'];
+    protected $appends = ['work_targets', 'work_conditions', 'commentType', 'flowNextType', 'flowNextCount', 'rejectAction'];
     protected $casts = ['options' => 'json'];
 
     protected $work_targets;
@@ -35,6 +35,23 @@ class WorkflowAction extends ModelBase
         }
         
         $this->work_targets = jsonToArray($work_targets);
+        
+        return $this;
+    }
+
+    public function getWorkConditionsAttribute()
+    {
+        return $this->getOption('work_conditions', []);
+    }
+    public function setWorkConditionsAttribute($work_conditions)
+    {
+        if(is_nullorempty($work_conditions)){
+            return $this;
+        }
+        
+        $work_conditions = jsonToArray($work_conditions);
+
+        $this->setOption('work_conditions', $work_conditions);
         
         return $this;
     }
@@ -90,15 +107,6 @@ class WorkflowAction extends ModelBase
     {
         return $this->setJson('options', $key, $val, $forgetIfNull);
     }
-    public function forgetOption($key)
-    {
-        return $this->forgetJson('options', $key);
-    }
-    public function clearOption()
-    {
-        return $this->clearJson('options');
-    }
-    
 
     public function deletingChildren()
     {

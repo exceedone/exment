@@ -19,7 +19,6 @@ class StatusSelects extends Select
     {
         $this->column['action_name'] = 'action_name';
         $this->column['status_from'] = 'status_from';
-        $this->column['status_to'] = 'status_to';
 
         $this->label = $this->formatLabel($arguments);
         $this->id = $this->formatId($this->column);
@@ -62,7 +61,7 @@ class StatusSelects extends Select
         // get classname
 
         if (empty($this->script)) {
-            $this->script = "$('.workflow_actions_status_from,.workflow_actions_status_to').select2($configs);";
+            $this->script = "$('.workflow_actions_status_from').select2($configs);";
         }
 
         if ($this->options instanceof \Closure) {

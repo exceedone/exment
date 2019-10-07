@@ -12,6 +12,7 @@ use Encore\Admin\Form\Field\HasMany as AdminHasMany;
 class HasMany extends AdminHasMany
 {
     protected $countscript;
+  
     /**
      * Render the `HasMany` field.
      *
@@ -35,6 +36,7 @@ class HasMany extends AdminHasMany
             'template'     => $template,
             'relationName' => $this->relationName,
             'options'      => $this->options,
+            'header'       => $this->header
         ]);
     }
     public function setCountScript($targets)
@@ -113,6 +115,15 @@ $('#has-many-{$this->column}').on('click', '.remove', function () {
 EOT;
 
         Admin::script($script);
+
+        return $script;
+    }
+
+    public function getScript(){
+        list($template, $script) = $this->buildNestedForm($this->column, $this->builder)
+            ->getTemplateHtmlAndScript();
+
+        return $this->setupScript($script);
     }
 
     /**

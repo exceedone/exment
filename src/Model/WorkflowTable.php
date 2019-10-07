@@ -11,4 +11,9 @@ class WorkflowTable extends ModelBase
         return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
+    public function custom_table()
+    {
+        return $this->belongsTo(CustomTable::class, 'custom_table_id');
+    }
+
 }

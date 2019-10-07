@@ -457,29 +457,6 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
         
-        $table_name = $this->custom_table->table_name;
-        $script = <<<EOT
-            $('#has-many-table-custom_view_filters').off('change').on('change', '.view_filter_condition', function (ev) {
-                $.ajax({
-                    url: admin_url("view/$table_name/filter-value"),
-                    type: "GET",
-                    data: {
-                        'target': $(this).closest('tr.has-many-table-custom_view_filters-row').find('select.view_column_target').val(),
-                        'cond_name': $(this).attr('name'),
-                        'cond_val': $(this).val(),
-                    },
-                    context: this,
-                    success: function (data) {
-                        var json = JSON.parse(data);
-                        $(this).closest('tr.has-many-table-custom_view_filters-row').find('td:nth-child(3)>div>div').html(json.html);
-                        if (json.script) {
-                            eval(json.script);
-                        }
-                    },
-                });
-            });
-EOT;
-        Admin::script($script);
         return $form;
     }
 
@@ -534,6 +511,9 @@ EOT;
                 });
             $label = exmtrans('custom_view.view_filter_condition_value_text');
             $form->changeField('view_filter_condition_value', $label)
+                ->ajax(admin_url("view/{$custom_table->table_name}/filter-value"))
+                ->setEventTrigger('.view_filter_condition')
+                ->setEventTarget('select.view_column_target')
                 ->rules("changeFieldValue:$label");
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));

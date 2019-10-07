@@ -46,6 +46,42 @@ var Exment;
             });
             return { value: JSON.stringify(values), text: texts.join('<br />') };
         }
+        static GetConditionSettingValText() {
+            const targetKeys = ['work_condition_filter', 'work_condition_status_to', 'work_condition_enabled'];
+            // get col value item list
+            let form = $('[data-contentname="workflow_actions_work_conditions"] form');
+            // get value
+            let val = serializeFromArray(form);
+            // filter
+            let values = {};
+            for (let key in val) {
+                if (!hasValue(val[key])) {
+                    continue;
+                }
+                let exists = false;
+                for (let targetKey in targetKeys) {
+                    if (!key.startsWith(targetKeys[targetKey])) {
+                        continue;
+                    }
+                    exists = true;
+                    break;
+                }
+                if (exists) {
+                    values[key] = val[key];
+                }
+            }
+            let texts = [];
+            form.find('.work_condition_status_to').each(function (index, element) {
+                let target = $(element);
+                if (target.is(':hidden')) {
+                    return;
+                }
+                $.each(target.select2('data'), function (index, value) {
+                    texts.push(escHtml(value.text));
+                });
+            });
+            return { value: JSON.stringify(values), text: texts.join(',') };
+        }
     }
     Exment.WorkflowEvent = WorkflowEvent;
 })(Exment || (Exment = {}));

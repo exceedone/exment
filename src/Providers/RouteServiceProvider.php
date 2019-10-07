@@ -93,6 +93,8 @@ class RouteServiceProvider extends ServiceProvider
             
             $router->resource('workflow', 'WorkflowController', ['except' => ['show']]);
             $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
+            $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
+            $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
 
             $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');

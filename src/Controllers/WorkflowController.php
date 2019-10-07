@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
+use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 class WorkflowController extends AdminControllerBase
@@ -49,7 +50,7 @@ class WorkflowController extends AdminControllerBase
                 return null;
             }
 
-            return $custom_table;
+            return $custom_table->table_view_name;
         });
         $grid->column('workflow_view_name', exmtrans("workflow.workflow_view_name"))->sortable();
         
@@ -212,6 +213,39 @@ class WorkflowController extends AdminControllerBase
                     return $this->getStatusOptions($field->getIndex() === 0);
                 });
 
+            $form->valueModal('work_conditions', exmtrans("workflow.work_conditions"))
+                ->ajax(admin_urls('workflow', $id, 'modal', 'condition'))
+                ->modalContentname('workflow_actions_work_conditions')
+                ->setElementClass('workflow_actions_work_conditions')
+                ->buttonClass('btn-sm btn-default')
+                ->valueTextScript('Exment.WorkflowEvent.GetConditionSettingValText();')
+                ->hiddenFormat(function($value){
+                    if(is_nullorempty($value)){
+                        return null;
+                    }
+
+                    $result = [];
+                    collect($value)->each(function($v) use(&$result){
+                        $result['modal_' . array_get($v, 'related_type')][] = array_get($v, 'related_id');
+                    });
+                    return collect($result)->toJson();
+                })
+                ->text(function ($value, $field) {
+                    if(is_nullorempty($value)){
+                        return null;
+                    }
+
+                    // set text
+                    $texts = [];
+                    foreach($value as $v){
+                        $texts[] = array_get($v, 'user_organization.label');
+                    }
+                    return $texts;
+                })
+                ->nullText(exmtrans("common.no_setting"))
+            ;
+
+            
             $form->valueModal('work_targets', exmtrans("workflow.work_targets"))
                 ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
                 ->modalContentname('workflow_actions_work_targets')
@@ -220,7 +254,7 @@ class WorkflowController extends AdminControllerBase
                 ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
                 ->hiddenFormat(function($value){
                     if(is_nullorempty($value)){
-                        return;
+                        return null;
                     }
 
                     $result = [];
@@ -242,27 +276,6 @@ class WorkflowController extends AdminControllerBase
                     return $texts;
                 })
                 ->nullText(exmtrans("common.all_user"))
-            ;
-
-            $form->valueModal('work_conditions', exmtrans("workflow.work_conditions"))
-                ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
-                ->modalContentname('workflow_actions_work_conditions')
-                ->setElementClass('workflow_actions_work_conditions')
-                ->buttonClass('btn-sm btn-default')
-                ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
-                ->text(function ($value, $field) {
-                    if(is_nullorempty($value)){
-                        return;
-                    }
-
-                    // set text
-                    $texts = [];
-                    foreach($value as $v){
-                        $texts[] = array_get($v, 'user_organization.label');
-                    }
-                    return $texts;
-                })
-                ->nullText(exmtrans("workflow.condition_nothing"))
             ;
 
             $form->workflowOptions('options', exmtrans("workflow.option"));
@@ -367,6 +380,7 @@ class WorkflowController extends AdminControllerBase
                 ->pluck('column_view_name', 'id');
             $form->multipleSelect('modal_column', exmtrans('common.custom_column'))
                 ->options($options)
+                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'select'])])
                 ->default(array_get($value, 'column'));
         }
 
@@ -399,43 +413,133 @@ class WorkflowController extends AdminControllerBase
      */
     public function conditionModal(Request $request, $id){
         $workflow = Workflow::find($id);
-        $custom_table = $workflow->custom_table;
+        $custom_table = $workflow->getDesignatedTable();
+        $statusOptions = $workflow->getStatusOptions();
 
         // get selected value
         $value = $request->get('workflow_actions_work_conditions');
         $value = jsonToArray($value);
 
-        $form = AuthUserOrgHelper::getUserOrgModalForm($custom_table, $value, [
-            'prependCallback' => function($form){
-                $form->description(exmtrans('workflow.help.target_user'));
+        $form = new ModalForm();
+
+        $form->description('このアクションを実行するための条件と、実行後のステータスを設定します。条件は3つまで設定できます。<br />※常に固定のアクションを実行する場合、「条件1」の「実行後ステータス」の設定のみ行ってください。')
+            ->setWidth(10, 2);
+
+        foreach(range(0, 2) as $index){
+            $form->exmheader('条件' . ($index + 1))
+                ->hr();
+
+            if($index === 0){
+                $form->hidden("work_condition_enabled_{$index}")
+                ->default(1);
+            }else{
+                $form->checkboxone("work_condition_enabled_{$index}", 'work_condition_enabled')
+                ->setLabelClass(['invisible '])
+                ->setWidth(10, 2)
+                ->default(array_get($value, "work_condition_enabled_{$index}", 0))
+                ->attribute(['data-filtertrigger' =>true])
+                ->option(['1' => exmtrans('custom_form.available')]);
             }
-        ]);
+            
+            $form->select("work_condition_status_to_{$index}", exmtrans('workflow.status_to'))
+                ->options($statusOptions)
+                ->required()
+                ->default(array_get($value, "work_condition_status_to_{$index}"))
+                ->setElementClass('work_condition_status_to')
+                ->attribute(['data-filter' => json_encode(['key' => "work_condition_enabled_{$index}", 'value' => '1'])])
+                ->setWidth(4, 2);
 
-        // set custom column
-        $options = $custom_table->custom_columns
-            ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
-            ->pluck('column_view_name', 'id');
-        $form->multipleSelect('modal_column', exmtrans('common.custom_column'))
-            ->options($options)
-            ->default(array_get($value, 'column'));
+            $form->hasManyTable("work_condition_filter_{$index}", exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $id) {
+                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                    ->options($custom_table->getColumnsSelectOptions(
+                        [
+                        ]
+                    ))
+                    ->attribute([
+                        'data-linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
+                        'data-change_field_target' => 'view_column_target',
+                    ]);
+    
+                $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
+                    ->options(function ($val, $select) {
+                        // if null, return empty array.
+                        if (!isset($val)) {
+                            return [];
+                        }
+    
+                        $data = $select->data();
+                        $view_column_target = array_get($data, 'view_column_target');
+    
+                        // get column item
+                        $column_item = CustomViewFilter::getColumnItem($view_column_target);
+    
+                        ///// get column_type
+                        $column_type = $column_item->getViewFilterType();
+    
+                        // if null, return []
+                        if (!isset($column_type)) {
+                            return [];
+                        }
+    
+                        // get target array
+                        $options = array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), $column_type);
+                        return collect($options)->mapWithKeys(function ($array) {
+                            return [$array['id'] => exmtrans('custom_view.filter_condition_options.'.$array['name'])];
+                        });
+    
+                        return [];
+                    });
+                $label = exmtrans('custom_view.view_filter_condition_value_text');
+                $form->changeField('view_filter_condition_value', $label)
+                    ->ajax(admin_url("workflow/{$id}/filter-value"))
+                    ->setEventTrigger('.view_filter_condition')
+                    ->setEventTarget('select.view_column_target')
+                    ->rules("changeFieldValue:$label");
+            })->setTableColumnWidth(4, 4, 3, 1)
+            ->setTableWidth(10, 2)
+            ->attribute(['data-filter' => json_encode(['key' => "work_condition_enabled_{$index}", 'value' => '1'])])
+            ->disableHeader();
+        }
 
-        // set workflow system column
-        $form->multipleSelect('modal_system', exmtrans('common.system'))
-            ->options(WorkflowTargetSystem::transArray('common'))
-            ->default(array_get($value, SystemTableName::SYSTEM));
 
         $form->hidden('valueModalUuid')->default($request->get('uuid'));
-
-        $form->setWidth(9, 2);
 
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
-            'title' => exmtrans('workflow.work_targets'),
+            'title' => exmtrans("workflow.work_conditions"),
             'showReset' => true,
             'submitlabel' => trans('admin.setting'),
-            'contentname' => 'workflow_actions_work_targets',
+            'contentname' => 'workflow_actions_work_conditions',
         ]);
     }
 
+    /**
+     * TODO:copy and paste. DO refactor.
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function getFilterValue(Request $request){
+        $data = $request->all();
+
+        if (!array_key_exists('target', $data) ||
+            !array_key_exists('cond_val', $data) ||
+            !array_key_exists('cond_name', $data)) {
+            return [];
+        }
+        $columnname = 'view_filter_condition_value';
+        $label = exmtrans('custom_view.'.$columnname.'_text');
+
+        $field = new ChangeField($columnname, $label);
+        $field->data([
+            'view_column_target' => $data['target'],
+            'view_filter_condition' => $data['cond_val']
+        ])->rules("changeFieldValue:$label");
+        $element_name = str_replace('view_filter_condition', 'view_filter_condition_value', $data['cond_name']);
+        $field->setElementName($element_name);
+
+        $view = $field->render();
+        return \json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
+    }
 }

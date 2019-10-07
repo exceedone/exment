@@ -39,6 +39,8 @@
 .asterisk::after {
   content: " *";
   color: red;
+  position: absolute;
+  margin-left: 1px;
 }
 
 .w-10 {
@@ -3617,6 +3619,7 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 .modal-body {
   max-height: calc(100vh - 200px);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .bootstrap-duallistbox-container > div:last-child select {

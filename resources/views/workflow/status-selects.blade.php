@@ -1,4 +1,4 @@
-<div class="{{$viewClass['form-group']}} {!! ($errors->has($errorKey['status_from'].'status_from') || $errors->has($errorKey['status_to'].'status_to')) ? 'has-error' : ''  !!}">
+<div class="{{$viewClass['form-group']}} {!! ($errors->has($errorKey['status_from'].'status_from')) ? 'has-error' : ''  !!}">
 
 <label for="{{$id['status_from']}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
 
@@ -17,16 +17,6 @@
             <option value=""></option>
             @foreach($options as $select => $option)
                 <option value="{{$select}}" {{ $select == old($column['status_from'], $value['status_from']) ?'selected':'' }}>{{$option}}</option>
-            @endforeach
-        </select>
-
-        <input type="hidden" name="{{$name['status_to']}}"/>
-
-        <label for="{{$id['status_to']}}" class="control-label small asterisk">{{exmtrans('workflow.status_to')}}</label>
-        <select class="form-control {{$class['status_to']}}" style="width: 100%;" name="{{$name['status_to']}}" {!! $attributes !!} >
-            <option value=""></option>
-            @foreach($options as $select => $option)
-                <option value="{{$select}}" {{ $select == old($column['status_to'], $value['status_to']) ?'selected':'' }}>{{$option}}</option>
             @endforeach
         </select>
 
