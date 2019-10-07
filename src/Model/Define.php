@@ -119,7 +119,8 @@ class Define
     public const SYSTEM_KEY_SESSION_PROVIDER_TOKEN = "provider_token";
     public const SYSTEM_KEY_SESSION_PLUGINS = "plugins";
     public const SYSTEM_KEY_SESSION_PASSWORD_LIMIT = "password_limit";
-    public const SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE = "workflow_%s";
+    public const SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE = "workflow_select_table_%s";
+    public const SYSTEM_KEY_SESSION_WORKFLOW_DESIGNATED_TABLE = "workflow_designated_table_%s";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',

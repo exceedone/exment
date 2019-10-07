@@ -41,12 +41,15 @@ class WorkflowController extends AdminControllerBase
     {
         $grid = new Grid(new Workflow);
         $grid->column('id', exmtrans("common.id"));
+        $grid->column('workflow_type', exmtrans("workflow.workflow_type"))->display(function($v){
+            return WorkflowType::getEnum($v)->transKey('workflow.workflow_type_options');
+        });
         $grid->column('workflow_tables', exmtrans("custom_table.table"))->display(function($v){
-            if(is_nullorempty($v)){
+            if(is_null($custom_table = $this->getDesignatedTable())){
                 return null;
             }
 
-            return null;
+            return $custom_table;
         });
         $grid->column('workflow_view_name', exmtrans("workflow.workflow_view_name"))->sortable();
         
@@ -135,7 +138,7 @@ class WorkflowController extends AdminControllerBase
         // is update
         else{
             $form->display('workflow_type', exmtrans('workflow.workflow_type'))
-                ->displayText(exmtrans('workflow.workflow_type_options.'. WorkflowType::getEnum($workflow->workflow_type)->lowerKey()))
+                ->displayText(WorkflowType::getEnum($workflow->workflow_type)->transKey('workflow.workflow_type_options'))
                 ;
 
             if($workflow == WorkflowType::TABLE){
@@ -339,7 +342,7 @@ class WorkflowController extends AdminControllerBase
      */
     public function targetModal(Request $request, $id){
         $workflow = Workflow::find($id);
-        $custom_table = $workflow->custom_table;
+        $custom_table = $workflow->getDesignatedTable();
 
         // get selected value
         $value = $request->get('workflow_actions_work_targets');
@@ -352,12 +355,14 @@ class WorkflowController extends AdminControllerBase
         ]);
 
         // set custom column
-        $options = $custom_table->custom_columns
-            ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
-            ->pluck('column_view_name', 'id');
-        $form->multipleSelect('modal_column', exmtrans('common.custom_column'))
-            ->options($options)
-            ->default(array_get($value, 'column'));
+        if(isset($custom_table)){
+            $options = $custom_table->custom_columns
+                ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
+                ->pluck('column_view_name', 'id');
+            $form->multipleSelect('modal_column', exmtrans('common.custom_column'))
+                ->options($options)
+                ->default(array_get($value, 'column'));
+        }
 
         // set workflow system column
         $form->multipleSelect('modal_system', exmtrans('common.system'))

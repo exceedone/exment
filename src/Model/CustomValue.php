@@ -70,7 +70,7 @@ abstract class CustomValue extends ModelBase
     {
         return $this->hasOne(WorkflowValue::class, 'morph_id')
             ->where('morph_type', $this->custom_table->table_name)
-            ->where('enabled_flg', true)
+            ->where('latest_flg', true)
             ->with(['workflow_status'])
             ->orderBy('updated_at', 'desc')
             //->withDefault()

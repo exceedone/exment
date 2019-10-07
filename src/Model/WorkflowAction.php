@@ -26,8 +26,7 @@ class WorkflowAction extends ModelBase
 
     public function getWorkTargetsAttribute()
     {
-        return WorkflowAuthority::where('workflow_action_id', $this->id)
-            ->with(['user_organization'])->get();
+        return WorkflowAuthority::where('workflow_action_id', $this->id)->get();
     }
     public function setWorkTargetsAttribute($work_targets)
     {
@@ -113,7 +112,7 @@ class WorkflowAction extends ModelBase
     {
         // target keys
         //TODO:workflow keyname
-        $keys = [SystemTableName::USER, SystemTableName::ORGANIZATION];
+        $keys = [SystemTableName::USER, SystemTableName::ORGANIZATION, 'column', 'system'];
         foreach($keys as $key){
             $ids = array_get($this->work_targets, 'modal_' . $key, []);
             $values = collect($ids)->map(function($id) use($key){
@@ -142,6 +141,47 @@ class WorkflowAction extends ModelBase
                 },
             ]);
         }
+    }
+
+    /**
+     * Execute workflow action
+     *
+     * @param CustomValue $custom_value
+     * @param array $data
+     * @return void
+     */
+    public function executeAction($custom_value, $data = []){
+        \DB::transaction(function() use($custom_value){
+            $morph_type = $custom_value->custom_table_name;
+            $morph_id = $custom_value->id;
+
+            // update old WorkflowValue
+            WorkflowValue::where([
+                'morph_type' => $morph_type, 
+                'morph_id' => $morph_id, 
+                'latest_flg' => true
+            ])->update(['latest_flg' => false]);
+
+            $data = array_merge([
+                'workflow_id' => array_get($this, 'workflow_id'),
+                'morph_type' => $morph_type,
+                'morph_id' => $morph_id,
+                'workflow_status_id' => array_get($action, 'status_to') == Define::WORKFLOW_START_KEYNAME ? null :  array_get($action, 'status_to'),
+                'latest_flg' => 1
+            ], $data);
+    
+            WorkflowValue::create($data);
+        });
+    }
+
+    /**
+     * Get user, org, column, system user.
+     *
+     * @param orgAsUser if true, convert org as user
+     * @return array user list
+     */
+    public function getWorkTargets($orgAsUser = false){
+
     }
     
     protected static function boot() {

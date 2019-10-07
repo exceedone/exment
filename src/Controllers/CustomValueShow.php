@@ -504,7 +504,7 @@ EOT;
         }
         return WorkflowValue
             ::join('workflow_statuses', 'workflow_statuses.id', 'workflow_values.workflow_status_id')
-            ->select(['workflow_values.created_at', 'workflow_values.created_user_id', 'workflow_values.enabled_flg', 'workflow_statuses.status_name'])
+            ->select(['workflow_values.created_at', 'workflow_values.created_user_id', 'workflow_values.latest_flg', 'workflow_statuses.status_name'])
             ->where('workflow_values.workflow_id', $this->custom_table->workflow_id)
             ->where('workflow_values.morph_id', $id)
             ->orderby('workflow_values.created_at')

@@ -31,6 +31,7 @@ return [
         'published_at' => '公開日時', 
         'published_date' => '公開日', 
         'all_user' => '全ユーザー',
+        'boss_user' => '上司',
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 

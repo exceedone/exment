@@ -92,7 +92,8 @@ class CreateWorkflowTable extends Migration
             $table->bigInteger('morph_id')->unsigned();
             $table->integer('workflow_status_id')->unsigned()->nulable();
             $table->string('comment', 1000)->nulable();
-            $table->boolean('enabled_flg')->default(false)->index();
+            $table->boolean('action_executed_flg')->default(false)->index();
+            $table->boolean('latest_flg')->default(false)->index();
 
             $table->timestamps();
             $table->timeusers();
@@ -114,6 +115,7 @@ class CreateWorkflowTable extends Migration
         Schema::dropIfExists('workflow_authorities');
         Schema::dropIfExists('workflow_actions');
         Schema::dropIfExists('workflow_statuses');
+        Schema::dropIfExists('workflow_tables');
         Schema::dropIfExists('workflows');
     }
 }

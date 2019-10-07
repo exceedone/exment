@@ -407,19 +407,10 @@ class CustomValueController extends AdminControllerTableBase
         if (!isset($action)) {
             abort(404);
         }
+
+        $custom_value = $this->custom_table->getValueModel($id);
         
-        $updated = WorkflowValue::where(['morph_type' => $tableKey, 'morph_id' => $id, 'enabled_flg' => 1])
-            ->update(['enabled_flg' => 0]);
-
-        $data = [
-            'workflow_id' => array_get($action, 'workflow_id'),
-            'morph_type' => $tableKey,
-            'morph_id' => $id,
-            'workflow_status_id' => array_get($action, 'status_to') == Define::WORKFLOW_START_KEYNAME ? null :  array_get($action, 'status_to'),
-            'enabled_flg' => 1
-        ];
-
-        $created = WorkflowValue::create($data);
+        $action->executeAction($custom_value);
 
         return ([
             'result'  => true,

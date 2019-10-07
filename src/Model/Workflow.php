@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\WorkflowType;
+
 class Workflow extends ModelBase
 {
     use Traits\AutoSUuidTrait;
@@ -79,6 +81,30 @@ class Workflow extends ModelBase
             }
 
             return $workflowTable->workflow->load(['workflow_statuses', 'workflow_actions']);
+        });
+    }
+
+    /**
+     * Get custom table. Only workflow type is table
+     * If workflow is common, return null
+     *
+     * @param [type] $custom_table
+     * @return void
+     */
+    public function getDesignatedTable()
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_WORKFLOW_DESIGNATED_TABLE, $this->id);
+        return System::requestSession($key, function(){
+            if($this->workflow_type == WorkflowType::COMMON){
+                return null;
+            }
+
+            $workflowTables = $this->workflow_tables;
+            if(is_nullorempty($workflowTables)){
+                return null;
+            }
+
+            return $workflowTables->first()->custom_table;
         });
     }
 }

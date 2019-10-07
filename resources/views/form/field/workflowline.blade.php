@@ -6,7 +6,7 @@
 <small>
     {{ $workflow->created_at }}&nbsp;&nbsp;&nbsp;
     ({{ exmtrans("common.updated_user") }}&nbsp;:&nbsp;{!! $workflow->created_user_tag !!})
-    @if ($workflow->enabled_flg)
+    @if ($workflow->latest_flg)
         &nbsp;<span style='color:red'>{{ exmtrans("common.available_true") }}</span>
     @endif
 </small>

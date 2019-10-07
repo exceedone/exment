@@ -9,7 +9,7 @@ var Exment;
         static AddEvent() {
         }
         static GetSettingValText() {
-            const targetKeys = ['modal_user', 'modal_organization'];
+            const targetKeys = ['modal_user', 'modal_organization', 'modal_column', 'modal_system'];
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_targets"] form');
             // get value
@@ -24,7 +24,11 @@ var Exment;
             }
             let texts = [];
             $.each(targetKeys, function (index, value) {
-                $.each(form.find('.' + value + '.form-control').select2('data'), function (index, value) {
+                let target = form.find('.' + value + '.form-control');
+                if (!hasValue(target)) {
+                    return true;
+                }
+                $.each(target.select2('data'), function (index, value) {
                     texts.push(escHtml(value.text));
                 });
             });
