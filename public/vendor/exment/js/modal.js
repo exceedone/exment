@@ -114,15 +114,15 @@ var Exment;
      * set modal submit event
      */
     ModalEvent.setSubmitEvent = (e) => {
-        let form = $('#modal-showmodal form').get()[0];
-        if (!form.reportValidity()) {
-            return;
-        }
         let formurl = $(e.target).parents('.modal-content').find('form').attr('action');
         let method = $(e.target).parents('.modal-content').find('form').attr('method');
         if (!formurl)
             return;
         e.preventDefault();
+        let form = $('#modal-showmodal form').get()[0];
+        if (!form.reportValidity()) {
+            return;
+        }
         // get button element
         let button = $(e.target).closest('button');
         button.data('buttontext', button.text());

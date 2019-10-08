@@ -13,14 +13,14 @@
             <label>
                 <input type="radio" name="{{$name['flowNextType']}}" value="some" class="minimal {{$class['flowNextType']}}" {{ (old($column['flowNextType'], $value['flowNextType']) ?? 'some' === 'some') ?'checked':'' }} />&nbsp;
                 
-                <input type="text" name="{{$name['flowNextCount']}}" style="width:50px; text-align:right;" value="{{old($column['flowNextCount'], $value['flowNextCount']) ?? 1}}" />
+                <input type="text" name="{{$name['flowNextCount']}}" style="width:50px; text-align:right;" value="{{old($column['flowNextCount'], $value['flowNextCount']) ?? 1}}" required />
                 &nbsp;{{exmtrans('workflow.upper_user')}}
             </label>
         </div>
 
         <div class="radio icheck">
             <label>
-                <input type="radio" name="{{$name['flowNextType']}}" value="all" class="minimal {{$class['flowNextType']}}" {{ (old($column['flowNextType'], $value['flowNextType']) === 'all') ?'checked':'' }} />&nbsp;
+                <input type="radio" name="{{$name['flowNextType']}}" value="all" class="minimal {{$class['flowNextType']}}" {{ (old($column['flowNextType'], $value['flowNextType']) === 'all') ?'checked':'' }} required />&nbsp;
                 &nbsp;
                 {{exmtrans('workflow.all_user')}}
             </label>
@@ -29,7 +29,7 @@
 
 
         <label for="{{$id['commentType']}}" class="control-label small asterisk">{{exmtrans('common.comment')}}</label>
-        <select class="form-control {{$class['commentType']}}" style="width: 100%;" name="{{$name['commentType']}}" {!! $attributes !!} >
+        <select class="form-control {{$class['commentType']}}" style="width: 100%;" name="{{$name['commentType']}}" {!! $attributes !!} required >
             <option value=""></option>
             @foreach($optionsCommentType as $select => $option)
                 <option value="{{$select}}" {{ $select == (old($column['commentType'], $value['commentType']) ?? $defaultCommentType) ?'selected':'' }}>{{$option}}</option>

@@ -15,5 +15,4 @@ class WorkflowTable extends ModelBase
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
-
 }

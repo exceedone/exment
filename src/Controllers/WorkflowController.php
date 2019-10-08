@@ -55,6 +55,9 @@ class WorkflowController extends AdminControllerBase
             return $custom_table->table_view_name;
         });
         $grid->column('workflow_view_name', exmtrans("workflow.workflow_view_name"))->sortable();
+        $grid->column('workflow_statuses', exmtrans("workflow.status_name"))->display(function($value){
+            return $this->getStatusesString();
+        });
         
         $grid->disableExport();
         if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
@@ -66,7 +69,7 @@ class WorkflowController extends AdminControllerBase
             // add new edit link
             $linker = (new Linker)
                 ->url(admin_urls('workflow', $actions->getKey(), 'edit?action=1'))
-                ->icon('fa-link')
+                ->icon('fa-exchange')
                 ->tooltip(exmtrans('workflow.action'));
             $actions->prepend($linker);
         });
@@ -207,6 +210,8 @@ class WorkflowController extends AdminControllerBase
         $form->progressTracker()->options($this->getProgressInfo($id, $is_action));
         $form->hidden('action')->default(1);
         $form->display('workflow_view_name', exmtrans("workflow.workflow_view_name"));
+        $form->display('workflow_status', exmtrans("workflow.status_name"))
+            ->default($workflow->getStatusesString());
 
         $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function($form) use($id, $workflow){
             $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
@@ -321,24 +326,22 @@ class WorkflowController extends AdminControllerBase
     protected function getProgressInfo($id, $is_action) {
         $steps = [];
         $hasAction = false;
-        $hasStatus = false;
         $workflow_action_url = null;
         $workflow_status_url = null;
         if (isset($id)) {
             $hasAction = WorkflowAction::where('workflow_id', $id)->count() > 0;
-            $hasStatus = WorkflowStatus::where('workflow_id', $id)->count() > 0;
             $workflow_action_url = admin_urls('workflow', $id, 'edit?action=1');
             $workflow_status_url = admin_urls('workflow', $id, 'edit');
         }
         $steps[] = [
             'active' => !$is_action,
-            'complete' => $hasStatus,
+            'complete' => false,
             'url' => $is_action? $workflow_status_url: null,
             'description' => exmtrans('workflow.workflow_statuses')
         ];
         $steps[] = [
             'active' => $is_action,
-            'complete' => $hasAction,
+            'complete' => false,
             'url' => !$is_action? $workflow_action_url: null,
             'description' => exmtrans('workflow.workflow_actions')
         ];
@@ -412,6 +415,7 @@ class WorkflowController extends AdminControllerBase
         $workflow = Workflow::find($id);
         $custom_table = $workflow->getDesignatedTable();
         $statusOptions = $workflow->getStatusOptions();
+        $workflow_type = WorkflowType::getEnum($workflow->workflow_type);
 
         // get selected value
         $value = $request->get('workflow_actions_work_conditions');
@@ -419,11 +423,16 @@ class WorkflowController extends AdminControllerBase
 
         $form = new ModalForm($value);
 
-        $form->description('このアクションを実行するための条件と、実行後のステータスを設定します。条件は3つまで設定できます。<br />※常に固定のアクションを実行する場合、「条件1」の「実行後ステータス」の設定のみ行ってください。')
-            ->setWidth(10, 2);
+        if(isset($workflow_type)){
+            $form->description(exmtrans('workflow.help.work_conditions_' . $workflow_type->lowerKey()))
+                ->setWidth(10, 2);
+        }
 
-        foreach(range(0, 2) as $index){
-            $form->exmheader('条件' . ($index + 1))
+        // set range.
+        $range = ($workflow_type == WorkflowType::COMMON) ? range(0, 0) : range(0, 2); 
+        foreach($range as $index){
+            $label = exmtrans('workflow.condition') . ($workflow_type == WorkflowType::TABLE ? ($index + 1) : null);
+            $form->exmheader($label)
                 ->hr();
 
             if($index === 0){
@@ -446,58 +455,61 @@ class WorkflowController extends AdminControllerBase
                 ->attribute(['data-filter' => json_encode(['key' => "work_condition_enabled_{$index}", 'value' => '1'])])
                 ->setWidth(4, 2);
 
-            $default = array_get($value, "work_condition_filter_{$index}", []);
-            $form->hasManyTable("work_condition_filter_{$index}", exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $id) {
-                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($custom_table->getColumnsSelectOptions(
-                        [
-                        ]
-                    ))
-                    ->attribute([
-                        'data-linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
-                        'data-change_field_target' => 'view_column_target',
-                    ]);
-    
-                $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
-                    ->options(function ($val, $select) {
-                        // if null, return empty array.
-                        if (!isset($val)) {
+            if(isset($custom_table)){
+                $default = array_get($value, "work_condition_filter_{$index}", []);
+                $form->hasManyTable("work_condition_filter_{$index}", exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $id) {
+                    $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                        ->options($custom_table->getColumnsSelectOptions(
+                            [
+                            ]
+                        ))
+                        ->attribute([
+                            'data-linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
+                            'data-change_field_target' => 'view_column_target',
+                        ]);
+        
+                    $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
+                        ->options(function ($val, $select) {
+                            // if null, return empty array.
+                            if (!isset($val)) {
+                                return [];
+                            }
+        
+                            $data = $select->data();
+                            $view_column_target = array_get($data, 'view_column_target');
+        
+                            // get column item
+                            $column_item = CustomViewFilter::getColumnItem($view_column_target);
+        
+                            ///// get column_type
+                            $column_type = $column_item->getViewFilterType();
+        
+                            // if null, return []
+                            if (!isset($column_type)) {
+                                return [];
+                            }
+        
+                            // get target array
+                            $options = array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), $column_type);
+                            return collect($options)->mapWithKeys(function ($array) {
+                                return [$array['id'] => exmtrans('custom_view.filter_condition_options.'.$array['name'])];
+                            });
+        
                             return [];
-                        }
-    
-                        $data = $select->data();
-                        $view_column_target = array_get($data, 'view_column_target');
-    
-                        // get column item
-                        $column_item = CustomViewFilter::getColumnItem($view_column_target);
-    
-                        ///// get column_type
-                        $column_type = $column_item->getViewFilterType();
-    
-                        // if null, return []
-                        if (!isset($column_type)) {
-                            return [];
-                        }
-    
-                        // get target array
-                        $options = array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), $column_type);
-                        return collect($options)->mapWithKeys(function ($array) {
-                            return [$array['id'] => exmtrans('custom_view.filter_condition_options.'.$array['name'])];
                         });
-    
-                        return [];
-                    });
-                $label = exmtrans('custom_view.view_filter_condition_value_text');
-                $form->changeField('view_filter_condition_value', $label)
-                    ->ajax(admin_url("workflow/{$id}/filter-value"))
-                    ->setEventTrigger('.view_filter_condition')
-                    ->setEventTarget('select.view_column_target')
-                    ->rules("changeFieldValue:$label");
-            })->setTableColumnWidth(4, 4, 3, 1)
-            ->setTableWidth(10, 2)
-            ->setRelatedValue($default)
-            ->attribute(['data-filter' => json_encode(['key' => "work_condition_enabled_{$index}", 'value' => '1'])])
-            ->disableHeader();
+                    $label = exmtrans('custom_view.view_filter_condition_value_text');
+                    $form->changeField('view_filter_condition_value', $label)
+                        ->ajax(admin_url("workflow/{$id}/filter-value"))
+                        ->setEventTrigger('.view_filter_condition')
+                        ->setEventTarget('select.view_column_target')
+                        ->rules("changeFieldValue:$label");
+                })->setTableColumnWidth(4, 4, 3, 1)
+                ->setTableWidth(10, 2)
+                ->setRelatedValue($default)
+                ->attribute(['data-filter' => json_encode(['key' => "work_condition_enabled_{$index}", 'value' => '1'])])
+                ->disableHeader();
+            }
+            
         }
 
 

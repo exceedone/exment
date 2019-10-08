@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\WorkflowType;
 class Workflow extends ModelBase
 {
     use Traits\AutoSUuidTrait;
+    use Traits\UseRequestSessionTrait;
 
     public function workflow_tables()
     {
@@ -54,6 +55,16 @@ class Workflow extends ModelBase
         foreach ($this->workflow_actions as $item) {
             $item->deletingChildren();
         }
+    }
+
+    /**
+     * Get status string
+     *
+     * @return Collection
+     */
+    public function getStatusesString()
+    {
+        return $this->getStatusOptions()->implode(exmtrans('common.separate_word'));
     }
 
     /**
