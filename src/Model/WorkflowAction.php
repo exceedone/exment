@@ -9,7 +9,7 @@ class WorkflowAction extends ModelBase
 {
     use Traits\DatabaseJsonTrait;
 
-    protected $appends = ['work_targets', 'work_conditions', 'commentType', 'flowNextType', 'flowNextCount', 'rejectAction'];
+    protected $appends = ['work_targets', 'work_conditions', 'comment_type', 'flow_next_type', 'flow_next_count', 'rejectAction'];
     protected $casts = ['options' => 'json'];
 
     protected $work_targets;
@@ -126,26 +126,26 @@ class WorkflowAction extends ModelBase
     }
 
     public function getCommentTypeAttribute(){
-        return $this->getOption('commentType');
+        return $this->getOption('comment_type');
     }
-    public function setCommentTypeAttribute($commentType){
-        $this->setOption('commentType', $commentType);
+    public function setCommentTypeAttribute($comment_type){
+        $this->setOption('comment_type', $comment_type);
         return $this;
     }
 
     public function getFlowNextTypeAttribute(){
-        return $this->getOption('flowNextType');
+        return $this->getOption('flow_next_type');
     }
-    public function setFlowNextTypeAttribute($flowNextType){
-        $this->setOption('flowNextType', $flowNextType);
+    public function setFlowNextTypeAttribute($flow_next_type){
+        $this->setOption('flow_next_type', $flow_next_type);
         return $this;
     }
 
     public function getFlowNextCountAttribute(){
-        return $this->getOption('flowNextCount');
+        return $this->getOption('flow_next_count');
     }
-    public function setFlowNextCountAttribute($flowNextCount){
-        $this->setOption('flowNextCount', $flowNextCount);
+    public function setFlowNextCountAttribute($flow_next_count){
+        $this->setOption('flow_next_count', $flow_next_count);
         return $this;
     }
 

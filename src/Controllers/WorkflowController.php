@@ -24,6 +24,7 @@ use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Symfony\Component\HttpFoundation\Response;
 
 class WorkflowController extends AdminControllerBase
 {
@@ -228,12 +229,18 @@ class WorkflowController extends AdminControllerBase
                 ->buttonClass('btn-sm btn-default')
                 ->valueTextScript('Exment.WorkflowEvent.GetConditionSettingValText();')
                 ->hiddenFormat(function($value){
+                    if(is_nullorempty($value)){
+                        return null;
+                    }
+
                     return collect($value)->toJson();
                 })
                 ->text(function ($value, $field) use($workflow) {
                     if(is_nullorempty($value)){
                         return null;
                     }
+
+                    $value = jsonToArray($value);
 
                     // set text
                     $texts = [];
@@ -255,9 +262,9 @@ class WorkflowController extends AdminControllerBase
                 ->setElementClass('workflow_actions_work_targets')
                 ->buttonClass('btn-sm btn-default')
                 ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
-                ->hiddenFormat(function($value){
+                ->hiddenFormat(function($value, $field){
                     if(is_nullorempty($value)){
-                        return null;
+                        return WorkflowWorkTargetType::getTargetTypeDefault($field->getIndex());
                     }
 
                     $result = [];
@@ -266,9 +273,9 @@ class WorkflowController extends AdminControllerBase
                     });
                     return collect($result)->toJson();
                 })
-                ->text(function ($value, $data) {
+                ->text(function ($value, $field) {
                     if(is_nullorempty($value)){
-                        return;
+                        return WorkflowWorkTargetType::getTargetTypeNameDefault($field->getIndex());
                     }
 
                     // set text
@@ -284,6 +291,7 @@ class WorkflowController extends AdminControllerBase
             $form->workflowOptions('options', exmtrans("workflow.option"));
         })->setTableColumnWidth(3, 2, 3, 3, 1)
            ->setRelatedValue([[]])
+           ->required()
            ->hideDeleteButtonRow(1);
 
         $form->tools(function (Form\Tools $tools) {
@@ -292,22 +300,60 @@ class WorkflowController extends AdminControllerBase
 
         $form->ignore(['action']);
 
-        $form->saving(function (Form $form) {
-            if (!is_null($form->workflow_actions)) {
-                $actions = collect($form->workflow_actions)->filter(function ($value) {
-                    return $value[Form::REMOVE_FLAG_NAME] != 1;
-                });
-                foreach($actions as $action) {
-                    if (array_get($action, 'status_from') == array_get($action, 'status_to')) {
-                        admin_toastr(exmtrans('workflow.message.status_nochange'), 'error');
-                        return back()->withInput();
-                    }
-                }
+        $form->submitted(function (Form $form) {
+            $result = $this->validateData($form);
+            if($result instanceof Response){
+                return $result; 
             }
         });
 
         return $form;
     }
+
+    /**
+     * validate before save.
+     */
+    protected function validateData(Form $form)
+    {
+        $request = request();
+
+        $data = $request->all();
+
+        // simple validation
+        $keys = collect([
+            "action_name" => 'required|max:30',
+            "status_from" => 'required',
+            "work_conditions" => 'required',
+            "work_targets" => 'required',
+            "flow_next_type" => 'required',
+            "flow_next_count" => 'required|numeric',
+            "comment_type" => 'required',
+        ]);
+        $validation = $keys->mapWithKeys(function($v, $k){
+            return ["workflow_actions.*.$k" => $v];
+        })->toArray();
+
+        $attributes = $keys->mapWithKeys(function($v, $k){
+            return ["workflow_actions.*.$k" => exmtrans("workflow.$k")];
+        })->toArray();
+
+        $validator = \Validator::make($data, $validation, [], $attributes);
+        $errors = $validator->errors();
+
+        // especially validation
+        foreach(array_get($data, 'workflow_actions', []) as $key => $workflow_action){
+            $errorKey = "workflow_actions.$key";
+            // if(is_null(array_get($workflow_action, 'work_targets'))){
+            //     $errors->add("$errorKey.work_targets", trans('validation.required', ['attribute' => exmtrans('workflow.work_targets')]));
+            // }
+        }
+
+        if (count($errors->getMessages()) > 0) {
+            return back()->withErrors($errors)
+                        ->withInput();
+        }
+    }
+
 
     /**
      * validate before delete.

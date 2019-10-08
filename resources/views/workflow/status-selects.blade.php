@@ -1,4 +1,4 @@
-<div class="{{$viewClass['form-group']}} {!! ($errors->has($errorKey['status_from'].'status_from')) ? 'has-error' : ''  !!}">
+<div class="{{$viewClass['form-group']}} {!! ($errors->has($errorKey['action_name']) || $errors->has($errorKey['status_from'])) ? 'has-error' : ''  !!}">
 
 <label for="{{$id['status_from']}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
 

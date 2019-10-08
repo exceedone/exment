@@ -228,7 +228,7 @@ EOT;
         // set hidden
         $hidden = $this->value;
         if ($this->hiddenFormat instanceof \Closure) {
-            $hidden = call_user_func($this->hiddenFormat, $this->value, $this->data);
+            $hidden = call_user_func($this->hiddenFormat, $this->value, $this);
         }
 
         // set button label

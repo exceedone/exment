@@ -1,5 +1,5 @@
 <div class="block-valuemodal" data-valuemodal_uuid="{{$uuid}}">
-    <div class="{{$viewClass['form-group']}} {!! !$errors->has($column) ?: 'has-error' !!}">
+    <div class="{{$viewClass['form-group']}} {!! !$errors->has($errorKey) ?: 'has-error' !!}">
 
         <label for="{{$id}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
 

@@ -16,4 +16,11 @@ class WorkflowActionCondition
         $this->view_filter_condition = array_get($value, 'view_filter_condition');
         $this->view_filter_condition_value = array_get($value, 'view_filter_condition_value');
     }
+
+    /**
+     * validate this model
+     */
+    public function validate(){
+        
+    }
 }

@@ -375,9 +375,9 @@ class CustomValueController extends AdminControllerTableBase
         $form = new ModalForm();
         $form->action($path);
 
-        $field = $form->textarea('commentType', exmtrans('common.comment'));
+        $field = $form->textarea('comment_type', exmtrans('common.comment'));
         // check required
-        if($action->commentType == WorkflowCommentType::REQUIRED){
+        if($action->comment_type == WorkflowCommentType::REQUIRED){
             $field->required();
         }
 

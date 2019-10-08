@@ -18,9 +18,9 @@ class Options extends Select
 
     public function __construct($column = '', $arguments = [])
     {
-        $this->column['commentType'] = 'commentType';
-        $this->column['flowNextType'] = 'flowNextType';
-        $this->column['flowNextCount'] = 'flowNextCount';
+        $this->column['comment_type'] = 'comment_type';
+        $this->column['flow_next_type'] = 'flow_next_type';
+        $this->column['flow_next_count'] = 'flow_next_count';
         $this->column['rejectAction'] = 'rejectAction';
 
         $this->label = $this->formatLabel($arguments);
@@ -75,8 +75,8 @@ class Options extends Select
 
         if (empty($this->script)) {
             $this->script = <<<EOT
-            $('.workflow_actions_commentType').select2($configs);
-            $('.workflow_actions_flowNextType').iCheck({radioClass:'iradio_minimal-blue'});
+            $('.workflow_actions_comment_type').select2($configs);
+            $('.workflow_actions_flow_next_type').iCheck({radioClass:'iradio_minimal-blue'});
             $('.workflow_actions_rejectAction').iCheck({checkboxClass:'icheckbox_minimal-blue'});
 EOT;
         }

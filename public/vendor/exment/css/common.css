@@ -24,6 +24,10 @@
   margin-bottom: auto !important;
 }
 
+.d-none {
+  display: none !important;
+}
+
 .d-block {
   display: block;
 }
@@ -3622,16 +3626,21 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   overflow-x: hidden;
 }
 
+.has-error .btn-valuemodal, .has-error .text-valuemodal {
+  color: red;
+  border-color: red;
+}
+
+.has-error .control-label {
+  text-align: left !important;
+}
+
 .bootstrap-duallistbox-container > div:last-child select {
   background-color: #fff900a3;
 }
 
 .bootstrap-duallistbox-container label {
   font-size: 0.9em;
-}
-
-.d-none {
-  display: none !important;
 }
 
 /* flexheight */
