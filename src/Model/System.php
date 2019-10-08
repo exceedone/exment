@@ -38,18 +38,26 @@ class System extends ModelBase
                 return static::$requestSession[$config_key];
             }
             $val = $value();
-            static::$requestSession[$config_key] = $val;
+            static::setRequestSession($config_key, $val);
             return $val;
         }
-        static::$requestSession[$config_key] = $value;
+        static::setRequestSession($config_key, $value);
+    }
+
+    public static function setRequestSession($key, $value){
+        static::$requestSession[$key] = $value;
     }
 
     /**
      * reset all request settion
      */
-    public static function resetRequestSession()
+    public static function resetRequestSession($key = null)
     {
-        static::$requestSession = [];
+        if(!isset($key)){
+            static::$requestSession = [];
+        }else{
+            array_forget(static::$requestSession, "exment_global.$key");
+        }
     }
 
     /**

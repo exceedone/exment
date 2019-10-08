@@ -52,11 +52,11 @@ trait CustomViewColumnTrait
         }
         // parent_id
         elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
-            return ColumnItems\ParentItem::getItem($this->custom_table);
+            return ColumnItems\ParentItem::getItem(CustomTable::getEloquent($this->view_column_table_id));
         }
         // system column
         else {
-            return ColumnItems\SystemItem::getItem($this->custom_table, $this->view_column_target);
+            return ColumnItems\SystemItem::getItem(CustomTable::getEloquent($this->view_column_table_id), $this->view_column_target);
         }
     }
     

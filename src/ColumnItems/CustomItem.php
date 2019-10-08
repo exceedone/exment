@@ -42,7 +42,7 @@ abstract class CustomItem implements ItemInterface
     public function __construct($custom_column, $custom_value, $view_column_target = null)
     {
         $this->custom_column = $custom_column;
-        $this->custom_table = $custom_column->custom_table;
+        $this->custom_table = CustomTable::getEloquent($custom_column);
         $this->setCustomValue($custom_value);
         $this->options = [];
 

@@ -857,9 +857,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSearchEnabledColumns()
     {
-        return $this->custom_columns()
-            ->indexEnabled()
-            ->get();
+        return CustomColumn::allRecords(function($custom_column){
+            if($custom_column->custom_table_id != $this->id){
+                return false;
+            }
+
+            if(!$custom_column->index_enabled){
+                return false;
+            }
+
+            return true;
+        });
     }
 
     /**
