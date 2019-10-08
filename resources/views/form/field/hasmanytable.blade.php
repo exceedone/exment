@@ -51,9 +51,12 @@
                         <i class="fa fa-arrow-up" style=""></i>
                     </a>
                     @endif
+
+                    @if($hideDeleteButtonRow === null || $hideDeleteButtonRow <= $loop->index)
                     <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-xs' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
                         <i class="fa fa-trash" style=""></i>
                     </a>
+                    @endif
                 </td>
             </tr>
             @endforeach

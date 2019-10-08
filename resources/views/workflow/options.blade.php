@@ -37,11 +37,12 @@
         </select>
 
 
-
+        @if($index !== 0)
         <label for="{{$id['rejectAction']}}" class="control-label small">却下フロー</label>
         <div class="">
             <input type="checkbox" name="{{$name['rejectAction']}}" value="1" class="{{$class['rejectAction']}}" {{ old($column['rejectAction'], $value['rejectAction']) == '1' ? 'checked' : '' }} />
         </div>
+        @endif
 
         @include('admin::form.help-block')
 

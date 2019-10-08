@@ -38,6 +38,11 @@ namespace Exment {
                 data['_token'] = LA.token;
             }
 
+            // if get index
+            if(hasValue($target.data('widgetmodal_hasmany'))){
+                data['index'] = Exment.ModalEvent.getIndex($target);
+            }
+
             data = $.extend(
                 data, params
             );
@@ -236,6 +241,31 @@ namespace Exment {
                 return;
             }
             button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
+        }
+
+        /**
+         * get row index. ignore hide row
+         * NOW ONLY has-many-table
+         * @param $target 
+         */
+        private static getIndex($target){
+            const $tr = $target.closest('tr');
+            const $table = $target.closest('table');
+
+            let count = 0;
+            $table.find('tbody tr').each(function(index, element){
+                if($(element).is(':hidden')){
+                    return;
+                }
+
+                if($(element).is($tr)){
+                    return false;
+                }
+
+                count++;
+            });
+
+            return count;
         }
     }
 }

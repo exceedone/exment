@@ -23,6 +23,7 @@
             <p><button type="button" class="btn {{$buttonClass}} btn-valuemodal" 
             data-widgetmodal_url="{{$ajax}}"
             data-widgetmodal_method="POST"
+            data-widgetmodal_hasmany="1"
             data-widgetmodal_getdata='["{{$modalContentname}}"]'
             data-widgetmodal_expand='{{$expand}}'
             >

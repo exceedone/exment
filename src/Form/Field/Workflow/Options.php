@@ -88,6 +88,7 @@ EOT;
         return parent::render()->with([
             'optionsCommentType' => $options,
             'defaultCommentType' => WorkflowCommentType::NULLABLE,
+            'index' => $this->getIndex(),
         ]);
     }
 }

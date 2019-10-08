@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
+use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
 use Exceedone\Exment\Form\Field\ChangeField;
@@ -281,7 +282,9 @@ class WorkflowController extends AdminControllerBase
             ;
 
             $form->workflowOptions('options', exmtrans("workflow.option"));
-        })->setTableColumnWidth(3, 2, 3, 3, 1);
+        })->setTableColumnWidth(3, 2, 3, 3, 1)
+           ->setRelatedValue([[]])
+           ->hideDeleteButtonRow(1);
 
         $form->tools(function (Form\Tools $tools) {
             $tools->disableDelete();
@@ -363,13 +366,31 @@ class WorkflowController extends AdminControllerBase
         $value = $request->get('workflow_actions_work_targets');
         $value = jsonToArray($value);
 
+        $index = $request->get('index');
+
         $form = AuthUserOrgHelper::getUserOrgModalForm($custom_table, $value, [
-            'prependCallback' => function($form) use($value){
+            'prependCallback' => function($form) use($workflow, $value, $index){
+                if($index > 0){
+                    $options = [
+                        WorkflowWorkTargetType::ACTION_SELECT => WorkflowWorkTargetType::ACTION_SELECT()->transKey('workflow.work_target_type_options'), 
+                        WorkflowWorkTargetType::FIX => WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options')
+                    ];
+                    $help = exmtrans('workflow.help.work_target_type2');
+                    $default = WorkflowWorkTargetType::ACTION_SELECT;
+                }else{
+                    $options = [
+                        WorkflowWorkTargetType::ALL => WorkflowWorkTargetType::ALL()->transKey('workflow.work_target_type_options'), 
+                        WorkflowWorkTargetType::FIX => WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options')
+                    ];
+                    $help = exmtrans('workflow.help.work_target_type');
+                    $default = WorkflowWorkTargetType::ALL;
+                }
+                
                 $form->radio('work_target_type', exmtrans('workflow.work_target_type'))
-                    ->help(exmtrans('workflow.help.work_target_type'))
+                    ->help($help)
                     ->attribute(['data-filtertrigger' =>true])
-                    ->default(array_get($value, 'work_target_type', 'all'))
-                    ->options(['all' => exmtrans('common.all_user'), 'select' => trans('admin.choose')]);
+                    ->default(array_get($value, 'work_target_type', $default))
+                    ->options($options);
             }
         ]);
 
@@ -380,14 +401,14 @@ class WorkflowController extends AdminControllerBase
                 ->pluck('column_view_name', 'id');
             $form->multipleSelect('modal_column', exmtrans('common.custom_column'))
                 ->options($options)
-                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'select'])])
+                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
                 ->default(array_get($value, 'column'));
         }
 
         // set workflow system column
         $form->multipleSelect('modal_system', exmtrans('common.system'))
             ->options(WorkflowTargetSystem::transArray('common'))
-            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'select'])])
+            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
             ->default(array_get($value, SystemTableName::SYSTEM));
 
         $form->hidden('valueModalUuid')->default($request->get('uuid'));

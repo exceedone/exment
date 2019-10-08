@@ -30,6 +30,10 @@ var Exment;
             if (method.toUpperCase() == 'POST') {
                 data['_token'] = LA.token;
             }
+            // if get index
+            if (hasValue($target.data('widgetmodal_hasmany'))) {
+                data['index'] = Exment.ModalEvent.getIndex($target);
+            }
             data = $.extend(data, params);
             // get ajax
             $.ajax({
@@ -86,6 +90,26 @@ var Exment;
                 return;
             }
             button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
+        }
+        /**
+         * get row index. ignore hide row
+         * NOW ONLY has-many-table
+         * @param $target
+         */
+        static getIndex($target) {
+            const $tr = $target.closest('tr');
+            const $table = $target.closest('table');
+            let count = 0;
+            $table.find('tbody tr').each(function (index, element) {
+                if ($(element).is(':hidden')) {
+                    return;
+                }
+                if ($(element).is($tr)) {
+                    return false;
+                }
+                count++;
+            });
+            return count;
         }
     }
     ModalEvent.setModalEvent = (ev) => {
