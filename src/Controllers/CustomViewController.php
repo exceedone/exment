@@ -10,6 +10,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
@@ -28,9 +29,9 @@ class CustomViewController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
 
-    public function __construct(Request $request)
+    public function __construct(CustomTable $custom_table, Request $request)
     {
-        parent::__construct($request);
+        parent::__construct($custom_table, $request);
         
         $this->setPageInfo(exmtrans("custom_view.header"), exmtrans("custom_view.header"), exmtrans("custom_view.description"), 'fa-th-list');
     }

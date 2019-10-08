@@ -315,12 +315,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         parent::boot();
         
         // add default order
-        // "order" is added v1.1.0, So if called from v1.1.0, cannot excute. So checked order column
-        if (System::requestSession(Define::SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER, function () {
-            return \Schema::hasColumn(static::getTableName(), 'order');
-        })) {
-            static::addGlobalScope(new OrderScope('order'));
-        }
+        static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
             $model->prepareJson('options');
@@ -865,9 +860,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSearchEnabledColumns()
     {
-        return $this->custom_columns()
-            ->indexEnabled()
-            ->get();
+        return CustomColumn::allRecords(function($custom_column){
+            if($custom_column->custom_table_id != $this->id){
+                return false;
+            }
+
+            if(!$custom_column->index_enabled){
+                return false;
+            }
+
+            return true;
+        });
     }
 
     /**

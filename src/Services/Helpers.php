@@ -809,6 +809,7 @@ if (!function_exists('canConnection')) {
 if (!function_exists('hasTable')) {
     /**
      * whether database has table
+     * *CANNOT USE if create table dynamic (ex. install)
      * @param string $table_name *only table name
      * @return string
      */

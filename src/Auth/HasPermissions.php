@@ -318,7 +318,7 @@ trait HasPermissions
         }
 
         // check table all data
-        $tables = CustomTable::all();
+        $tables = CustomTable::allRecords();
         foreach ($tables as $table) {
             $table_name = $table->table_name;
             if (boolval($table->getOption('all_user_editable_flg'))) {

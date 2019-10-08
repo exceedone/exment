@@ -223,7 +223,7 @@ class RouteServiceProvider extends ServiceProvider
             ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi'], 'addScope' => false],
         ];
         
-        if (canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && System::api_available()) {
+        if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
             $routes[] = ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true];
         }
 
