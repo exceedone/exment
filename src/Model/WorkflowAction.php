@@ -3,6 +3,9 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\WorkflowAuthorityType;
+use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Encore\Admin\Form;
 
 class WorkflowAction extends ModelBase
@@ -21,8 +24,8 @@ class WorkflowAction extends ModelBase
 
     public function workflow_authorities()
     {
-        return $this->hasMany(WorkflowAuthority::class, 'workflow_action_id')
-            ->with(['user_organization']);
+        return $this->hasMany(WorkflowAuthority::class, 'workflow_action_id');
+            //->with(['user_organization']);
     }
 
     public function getWorkTargetsAttribute()
@@ -238,6 +241,90 @@ class WorkflowAction extends ModelBase
     
             WorkflowValue::create($data);
         });
+    }
+
+    /**
+     * Check has workflow authority
+     * TODO:workflow 井坂さんとマージしたほうがいいかも
+     *
+     * @param [type] $targetUser
+     * @return boolean
+     */
+    public function hasAuthority($custom_value, $targetUser = null){
+        if(!isset($targetUser)){
+            $targetUser = \Exment::user()->base_user;
+        }
+
+        $workflow_authorities = $this->workflow_authorities;
+
+        foreach($workflow_authorities as $workflow_authority){
+            switch($workflow_authority->related_type){
+                case WorkflowAuthorityType::USER:
+                    if($workflow_authority->related_id == $targetUser->id){
+                        return true;
+                    }
+                    break;
+                case WorkflowAuthorityType::ORGANIZATION:
+                    $ids = $targetUser->belong_organizations->pluck('id');
+                    if(in_array($workflow_authority->related_id, $ids)){
+                        return true;
+                    }
+                    break;
+                case WorkflowAuthorityType::SYSTEM:
+                    if($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER && $custom_value->created_user_id == $targetUser->id){
+                        return true;
+                    }
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get users or organzations on this action authority
+     * 
+     * TODO:workflow 井坂さんとマージしたほうがいいかも
+     *
+     * @param [type] $targetUser
+     * @return boolean
+     */
+    public function getAuthorityTargets($custom_value){
+        $workflow_authorities = $this->workflow_authorities;
+
+        // get users and organizations
+        $userIds = [];
+        $organizationIds = [];
+
+        foreach($workflow_authorities as $workflow_authority){
+            switch($workflow_authority->related_type){
+                case WorkflowAuthorityType::USER:
+                    $userIds[] = $workflow_authority->related_id;
+                    break;
+                case WorkflowAuthorityType::ORGANIZATION:
+                    $organizationIds[] = $workflow_authority->related_id;
+                    break;
+                case WorkflowAuthorityType::SYSTEM:
+                    if($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER){
+                        $userIds[] = $custom_value->created_user_id;
+                    }
+                    break;
+            }
+        }
+
+        $result = collect();
+
+        if(count($userIds) > 0){
+            $result = getModelName(SystemTableName::USER)::find(array_unique($userIds))
+                ->merge($result);
+        }
+        
+        if(System::organization_available() && count($organizationIds) > 0){
+            $result = getModelName(SystemTableName::ORGANIZATION)::find(array_unique($organizationIds))
+                ->merge($result);
+        }
+        
+        return $result;
     }
 
     /**

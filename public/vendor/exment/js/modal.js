@@ -76,7 +76,7 @@ var Exment;
                 $('#modal-showmodal button.modal-submit').addClass('d-none');
             }
             // set modal contentname
-            $('#modal-showmodal').attr('data-contentname', res.contentname);
+            $('#modal-showmodal').attr('data-contentname', hasValue(res.contentname) ? res.contentname : null);
             // set buttonname
             const closelabel = hasValue(res.closelabel) ? res.closelabel : $('#modal-showmodal .modal-close-defaultlabel').val();
             const submitlabel = res.submitlabel ? res.submitlabel : $('#modal-showmodal .modal-submit-defaultlabel').val();

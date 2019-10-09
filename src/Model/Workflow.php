@@ -104,7 +104,7 @@ class Workflow extends ModelBase
                 return null;
             }
 
-            return $workflowTable->workflow->load(['workflow_statuses', 'workflow_actions']);
+            return $workflowTable->workflow->load(['workflow_statuses', 'workflow_actions', 'workflow_actions.workflow_authorities']);
         });
     }
 

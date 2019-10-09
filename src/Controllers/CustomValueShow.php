@@ -185,7 +185,7 @@ trait CustomValueShow
                     foreach ($listButtons as $plugin) {
                         $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
                     }
-                    foreach ($custom_value->workflow_actions() as $action) {
+                    foreach ($custom_value->workflow_actions(true)->reverse() as $action) {
                         $tools->append(new Tools\WorkflowMenuButton($action, $this->custom_table, $id));
                     }
                     foreach ($copyButtons as $copyButton) {

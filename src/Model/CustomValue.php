@@ -120,18 +120,9 @@ abstract class CustomValue extends ModelBase
     {        
         $workflow_actions = $this->workflow_actions();
 
-        $result = [];
+        $result = collect();
         foreach($workflow_actions as $workflow_action){
-            $work_targets = $workflow_action->work_targets;
-            
-            //array_merge($result)
-            $work_targets->each(function($work_target) use(&$result){
-                $result[] = $work_target->user_organization;
-            });
-        }
-
-        if(count($result) == 0){
-            $result[] = exmtrans('common.all_user');
+            $result = $workflow_action->getAuthorityTargets($this)->merge($result);
         }
 
         return $result;
@@ -167,8 +158,9 @@ abstract class CustomValue extends ModelBase
             ;
     }
 
+
     // get workflow actions which has authority
-    public function workflow_actions()
+    public function workflow_actions($onlyHasAuthority = false)
     {
         // get workflow.
         $workflow = Workflow::getWorkflowByTable($this->custom_table);
@@ -191,38 +183,14 @@ abstract class CustomValue extends ModelBase
                 return $workflow_action->status_from == $workflow_status->id;
             });
 
-        // TODO:authority etc
+        if(!$onlyHasAuthority){
+            return $workflow_actions;
+        }
 
-        //return
-        return $workflow_actions;
-
-        // $status_id = $this->workflow_status_id;
-        // if ($workflow_id) {
-        //     $user = \Exment::user()->base_user_id;
-        //     $organization = \Exment::user()->getOrganizationIds();
-        //     $actions = WorkflowAction::select()
-        //         ->leftJoin('workflow_authorities', 'workflow_authorities.workflow_action_id', '=', 'workflow_actions.id')
-        //         ->where('workflow_actions.workflow_id', $workflow_id)
-        //         ->where('workflow_actions.status_from', $status_id)
-        //         ->where(function ($query) use($user, $organization){
-        //             $query
-        //                 ->whereNull('workflow_authorities.related_id')
-        //                 ->orWhere(function ($query1) use($user) {
-        //                     $query1
-        //                         ->where('workflow_authorities.related_id', '=', $user)
-        //                         ->where('workflow_authorities.related_type', '=', SystemTableName::USER);
-        //                 });
-        //             if (count($organization) > 0) {
-        //                 $query->orWhere(function ($query2) use($organization) {
-        //                     $query2
-        //                         ->where('workflow_authorities.related_id', '=', $organization)
-        //                         ->where('workflow_authorities.related_type', '=', SystemTableName::ORGANIZATION);
-        //                 });
-        //             }
-        //         })->get();
-        //     return $actions;
-        // }
-        // return [];
+        // check authority
+        return $workflow_actions->filter(function($workflow_action){
+            return $workflow_action->hasAuthority($this);
+        });
     }
 
     public function parent_custom_value()

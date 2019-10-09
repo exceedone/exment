@@ -68,7 +68,6 @@ class CreateWorkflowTable extends Migration
             $table->increments('id');
             $table->integer('workflow_id')->unsigned()->index();
             $table->string('status_from');
-            $table->string('status_to');
             $table->string('action_name', 30);
             $table->integer('action_group_id');
             $table->integer('order');
@@ -81,7 +80,7 @@ class CreateWorkflowTable extends Migration
         });
 
         $schema->create('workflow_authorities', function (ExtendedBlueprint $table) {
-            $table->integer('related_id');
+            $table->string('related_id');
             $table->string('related_type', 255);
             $table->integer('workflow_action_id')->unsigned()->index();
 

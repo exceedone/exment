@@ -25,7 +25,7 @@ class WorkflowMenuButton
         // get label
         $label = array_get($this->action, 'action_name');
         $action_id = array_get($this->action, 'id');
-        $button_class = 'btn-warning';
+        $button_class = 'btn-success';
 
         $url = admin_urls("data", $this->custom_table->table_name, $this->id, "actionModal");
         

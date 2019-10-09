@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\WorkflowAuthorityType;
+
 class WorkflowAuthority extends ModelBase
 {
     /**
@@ -11,5 +13,4 @@ class WorkflowAuthority extends ModelBase
     {
         return $this->morphTo('user_organization', 'related_type', 'related_id');
     }
-
 }

@@ -311,7 +311,7 @@ class WorkflowController extends AdminControllerBase
                     }
                     return $texts;
                 })
-                ->nullText(exmtrans("common.all_user"))
+                ->nullText(exmtrans("common.created_user"))
             ;
 
             $form->workflowOptions('options', exmtrans("workflow.option"));
@@ -624,20 +624,14 @@ class WorkflowController extends AdminControllerBase
                     ];
                     $help = exmtrans('workflow.help.work_target_type2');
                     $default = WorkflowWorkTargetType::ACTION_SELECT;
+                    $form->radio('work_target_type', exmtrans('workflow.work_target_type'))
+                        ->help($help)
+                        ->attribute(['data-filtertrigger' =>true])
+                        ->default(array_get($value, 'work_target_type', $default))
+                        ->options($options);
                 }else{
-                    $options = [
-                        WorkflowWorkTargetType::ALL => WorkflowWorkTargetType::ALL()->transKey('workflow.work_target_type_options'), 
-                        WorkflowWorkTargetType::FIX => WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options')
-                    ];
-                    $help = exmtrans('workflow.help.work_target_type');
-                    $default = WorkflowWorkTargetType::ALL;
+                    $form->hidden('work_target_type')->default(WorkflowWorkTargetType::FIX);
                 }
-                
-                $form->radio('work_target_type', exmtrans('workflow.work_target_type'))
-                    ->help($help)
-                    ->attribute(['data-filtertrigger' =>true])
-                    ->default(array_get($value, 'work_target_type', $default))
-                    ->options($options);
             }
         ]);
 
@@ -653,10 +647,14 @@ class WorkflowController extends AdminControllerBase
         }
 
         // set workflow system column
+        $modal_system_default = array_get($value, SystemTableName::SYSTEM);
+        if (!isset($modal_system_default)) {
+            $modal_system_default = ($index == 0 ? [WorkflowTargetSystem::CREATED_USER] : null);
+        }
         $form->multipleSelect('modal_system', exmtrans('common.system'))
-            ->options(WorkflowTargetSystem::transArray('common'))
+            ->options(WorkflowTargetSystem::transKeyArray('common'))
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-            ->default(array_get($value, SystemTableName::SYSTEM));
+            ->default($modal_system_default);
 
         $form->hidden('valueModalUuid')->default($request->get('uuid'));
 

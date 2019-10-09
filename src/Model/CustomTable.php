@@ -713,6 +713,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             \Exment::user()->filterModel($mainQuery, $target_view);
         }
 
+        // set with
+        $this->setQueryWith($mainQuery);
+
         // return as paginate
         if ($paginate) {
             // get data(only id)
@@ -819,6 +822,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return null;
+    }
+
+    /**
+     * Set with query
+     *
+     * @return void
+     */
+    public function setQueryWith($query){
+        // set query workflow
+        if(!is_null(Workflow::getWorkflowByTable($this))){
+            $query->with(['workflow_value', 'workflow_value.workflow_status']);
+        }
     }
 
     /**

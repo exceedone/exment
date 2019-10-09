@@ -11,11 +11,11 @@ class WorkflowWorkTargetType extends EnumBase
 
     public static function getTargetTypeDefault($index){
         return json_encode([
-            'work_target_type' => ($index === 0 ? static::ALL : static::ACTION_SELECT)
+            'work_target_type' => ($index === 0 ? static::FIX : static::ACTION_SELECT)
         ]);
     }
     public static function getTargetTypeNameDefault($index){
-        $enum = ($index === 0 ? static::ALL() : static::ACTION_SELECT());
+        $enum = ($index === 0 ? static::FIX() : static::ACTION_SELECT());
 
         return $enum->transKey('workflow.work_target_type_options');
     }
