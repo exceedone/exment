@@ -73,7 +73,6 @@ abstract class CustomValue extends ModelBase
             ->where('latest_flg', true)
             ->with(['workflow_status'])
             ->orderBy('updated_at', 'desc')
-            //->withDefault()
             ;
     }
 
@@ -118,7 +117,7 @@ abstract class CustomValue extends ModelBase
 
     public function getWorkflowWorkUsersAttribute()
     {        
-        $workflow_actions = $this->workflow_actions();
+        $workflow_actions = $this->workflow_actions(false, true);
 
         $result = collect();
         foreach($workflow_actions as $workflow_action){
@@ -160,7 +159,7 @@ abstract class CustomValue extends ModelBase
 
 
     // get workflow actions which has authority
-    public function workflow_actions($onlyHasAuthority = false)
+    public function workflow_actions($onlyHasAuthority = false, $ignoreRejectAction = false)
     {
         // get workflow.
         $workflow = Workflow::getWorkflowByTable($this->custom_table);
@@ -183,14 +182,20 @@ abstract class CustomValue extends ModelBase
                 return $workflow_action->status_from == $workflow_status->id;
             });
 
-        if(!$onlyHasAuthority){
-            return $workflow_actions;
+        // check authority
+        if($onlyHasAuthority){
+            $workflow_actions = $workflow_actions->filter(function($workflow_action){
+                return $workflow_action->hasAuthority($this);
+            });
         }
 
-        // check authority
-        return $workflow_actions->filter(function($workflow_action){
-            return $workflow_action->hasAuthority($this);
-        });
+        if($ignoreRejectAction){
+            $workflow_actions = $workflow_actions->filter(function($workflow_action){
+                return !boolval($workflow_action->getOption('reject_action', false));
+            });
+        }
+
+        return $workflow_actions;
     }
 
     public function parent_custom_value()

@@ -225,7 +225,7 @@ EOT;
             $this->text(call_user_func($this->text, $this->value, $this));
         }
 
-        if(is_array($this->text)){
+        if(is_array($this->text) || $this->text instanceof \Illuminate\Support\Collection){
             $this->text = collect($this->text)->map(function($t){
                 return esc_html($t);
             })->implode('<br />');

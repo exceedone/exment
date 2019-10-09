@@ -6,13 +6,16 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\WorkflowAuthorityType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
+use Exceedone\Exment\Enums\WorkflowCommentType;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Encore\Admin\Form;
 
 class WorkflowAction extends ModelBase
 {
     use Traits\DatabaseJsonTrait;
+    use Traits\UseRequestSessionTrait;
 
-    protected $appends = ['work_targets', 'work_conditions', 'comment_type', 'flow_next_type', 'flow_next_count', 'rejectAction'];
+    protected $appends = ['work_targets', 'work_conditions', 'comment_type', 'flow_next_type', 'flow_next_count', 'reject_action'];
     protected $casts = ['options' => 'json'];
 
     protected $work_targets;
@@ -84,7 +87,11 @@ class WorkflowAction extends ModelBase
             preg_match('/(?<key>.+)_(?<no>[0-9])/u', $key, $match);
             if (!is_nullorempty($match)) {
                 $new_work_conditions[array_get($match, 'no')][array_get($match, 'key')] = $work_condition;
+                continue;
             }
+
+            // default
+            $new_work_conditions[$key] = $work_condition;
         }
 
         // re-loop and replace work_condition_filter
@@ -152,10 +159,10 @@ class WorkflowAction extends ModelBase
     }
 
     public function getRejectActionAttribute(){
-        return $this->getOption('rejectAction');
+        return $this->getOption('reject_action');
     }
-    public function setRejectActionAttribute($rejectAction){
-        $this->setOption('rejectAction', $rejectAction);
+    public function setRejectActionAttribute($reject_action){
+        $this->setOption('reject_action', $reject_action);
         return $this;
     }
 
@@ -179,10 +186,9 @@ class WorkflowAction extends ModelBase
     protected function setActionAuthority()
     {
         // target keys
-        //TODO:workflow keyname
-        $keys = [SystemTableName::USER, SystemTableName::ORGANIZATION, 'column', 'system'];
+        $keys = [WorkflowAuthorityType::USER, WorkflowAuthorityType::ORGANIZATION, WorkflowAuthorityType::COLUMN, WorkflowAuthorityType::SYSTEM];
         foreach($keys as $key){
-            $ids = array_get($this->work_targets, 'modal_' . $key, []);
+            $ids = array_get($this->work_targets, $key, []);
             $values = collect($ids)->map(function($id) use($key){
                 return [
                     'related_id' => $id,
@@ -289,12 +295,13 @@ class WorkflowAction extends ModelBase
      * @param [type] $targetUser
      * @return boolean
      */
-    public function getAuthorityTargets($custom_value){
+    public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false){
         $workflow_authorities = $this->workflow_authorities;
 
         // get users and organizations
         $userIds = [];
         $organizationIds = [];
+        $labels = [];
 
         foreach($workflow_authorities as $workflow_authority){
             switch($workflow_authority->related_type){
@@ -305,6 +312,11 @@ class WorkflowAction extends ModelBase
                     $organizationIds[] = $workflow_authority->related_id;
                     break;
                 case WorkflowAuthorityType::SYSTEM:
+                    if($getAsDefine){
+                        $labels[] = exmtrans('common.' . WorkflowTargetSystem::getEnum($workflow_authority->related_id)->lowerKey());
+                        break;
+                    }
+
                     if($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER){
                         $userIds[] = $custom_value->created_user_id;
                     }
@@ -320,8 +332,19 @@ class WorkflowAction extends ModelBase
         }
         
         if(System::organization_available() && count($organizationIds) > 0){
-            $result = getModelName(SystemTableName::ORGANIZATION)::find(array_unique($organizationIds))
-                ->merge($result);
+            $orgs = getModelName(SystemTableName::ORGANIZATION)::find(array_unique($organizationIds));
+
+            if($orgAsUser){
+                $result = $orgs->load('users')->users->merge($result);
+            }else{
+                $result = $orgs->merge($result);
+            }
+        }
+
+        if($getAsDefine){
+            return $result->map(function($r){
+                return $r->label;
+            })->merge(collect($labels));
         }
         
         return $result;
@@ -333,12 +356,72 @@ class WorkflowAction extends ModelBase
      * @return void
      */
     public function getStatusToId($custom_value){
-        $work_conditions = $this->work_conditions;
-
-        //TODO:workflow filtering actions
-        return collect($work_conditions)->first()['status_to'];
+        $next = $this->isActionNext($custom_value);
+        
+        if($next){
+            //TODO:workflow filtering actions
+            return collect($this->work_conditions)->first()['status_to'];
+        }else{
+            return $this->status_from;
+        }
     }
 
+    public function isActionNext($custom_value){
+        if(($flow_next_count = $this->getOption("flow_next_count", 1)) == 1){
+            return true;
+        }
+        
+        // get already execution action user's count
+        $action_executed_count = WorkflowValue::where([
+            'morph_type' => $custom_value->custom_table->table_name,
+            'morph_id' => $custom_value->id,
+            'action_executed_flg' => true,
+        ])->count();
+
+        return ($flow_next_count - 1 <= $action_executed_count);
+    }
+
+    public function actionModal($custom_value){
+        $path = admin_urls('data', $custom_value->custom_table->table_name, $custom_value->id, 'actionClick');
+        
+        // create form fields
+        $form = new ModalForm();
+        $form->action($path);
+
+        $statusFromName = WorkflowStatus::getWorkflowStatusName($this->status_from, $this->workflow);
+        $statusTo = $this->getStatusToId($custom_value);
+        $statusToName = WorkflowStatus::getWorkflowStatusName($statusTo, $this->workflow);
+        
+        $next = $this->isActionNext($custom_value);
+        if($next){
+            $form->display('status_from_to', 'ステータス')
+                ->default($statusFromName . ' → ' . $statusToName);
+
+            // get next actions
+            $toActionAuthorities = collect();
+            WorkflowStatus::getActionsByFrom($statusTo, $this->workflow)
+                ->each(function($workflow_action) use(&$toActionAuthorities, $custom_value){
+                    $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value)
+                        ->merge($toActionAuthorities);
+                });
+        }
+
+        $field = $form->textarea('comment_type', exmtrans('common.comment'));
+        // check required
+        if($this->comment_type == WorkflowCommentType::REQUIRED){
+            $field->required();
+        }
+
+        $form->hidden('action_id')->default($this->id);
+       
+        $form->setWidth(10, 2);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => $this->action_name
+        ]);
+    }
     
     protected static function boot() {
         parent::boot();

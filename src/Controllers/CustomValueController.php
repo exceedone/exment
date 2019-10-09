@@ -27,7 +27,6 @@ use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifySavedType;
-use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\FormHelper;
@@ -367,29 +366,8 @@ class CustomValueController extends AdminControllerTableBase
         if (!isset($action)) {
             abort(404);
         }
-        $workflow = $action->workflow;
-        
-        $path = admin_urls('data', $this->custom_table->table_name, $id, 'actionClick');
-        
-        // create form fields
-        $form = new ModalForm();
-        $form->action($path);
 
-        $field = $form->textarea('comment_type', exmtrans('common.comment'));
-        // check required
-        if($action->comment_type == WorkflowCommentType::REQUIRED){
-            $field->required();
-        }
-
-        $form->hidden('action_id')->default($action->id);
-       
-        $form->setWidth(10, 2);
-
-        return getAjaxResponse([
-            'body'  => $form->render(),
-            'script' => $form->getScript(),
-            'title' => $action->action_name
-        ]);
+        return $action->actionModal($this->custom_table->getValueModel($id));
     }
 
     //Function handle workflow click event

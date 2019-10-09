@@ -30,4 +30,21 @@ class WorkflowStatus extends ModelBase
 
         return null;
     }
+
+    /**
+     * Get workflow actions from status rom
+     *
+     * @param [type] $workflow_status
+     * @param [type] $workflow
+     * @return void
+     */
+    public static function getActionsByFrom($workflow_status = null, $workflow = null){
+        if(!isset($workflow_status)){
+            $workflow_status = Define::WORKFLOW_START_KEYNAME;
+        }
+
+        return WorkflowAction::where('workflow_id', $workflow->id)
+            ->where('status_from', $workflow_status)
+            ->get();
+    }
 }

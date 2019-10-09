@@ -38,9 +38,9 @@
 
 
         @if($index !== 0)
-        <label for="{{$id['rejectAction']}}" class="control-label small">却下フロー</label>
+        <label for="{{$id['reject_action']}}" class="control-label small">却下フロー</label>
         <div class="">
-            <input type="checkbox" name="{{$name['rejectAction']}}" value="1" class="{{$class['rejectAction']}}" {{ old($column['rejectAction'], $value['rejectAction']) == '1' ? 'checked' : '' }} />
+            <input type="checkbox" name="{{$name['reject_action']}}" value="1" class="{{$class['reject_action']}}" {{ old($column['reject_action'], $value['reject_action']) == '1' ? 'checked' : '' }} />
         </div>
         @endif
 

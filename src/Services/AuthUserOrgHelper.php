@@ -254,10 +254,11 @@ class AuthUserOrgHelper
             ]
         );
         // select target users
-        $form->multipleSelect('modal_' . SystemTableName::USER, exmtrans('menu.system_definitions.user'))
+        $form->multipleSelect(SystemTableName::USER, exmtrans('menu.system_definitions.user'))
             ->options($users)
+            ->setElementClass('modal_' . SystemTableName::USER)
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-            ->default(array_get($value, 'modal_' . SystemTableName::USER));
+            ->default(array_get($value, SystemTableName::USER));
 
         if (System::organization_available()) {
             $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions(
@@ -267,10 +268,11 @@ class AuthUserOrgHelper
                 ]
             );
                 
-            $form->multipleSelect('modal_' . SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
+            $form->multipleSelect(SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
                 ->options($organizations)
+                ->setElementClass('modal_' . SystemTableName::ORGANIZATION)
                 ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-                ->default(array_get($value, 'modal_' . SystemTableName::ORGANIZATION));
+                ->default(array_get($value, SystemTableName::ORGANIZATION));
         }
 
         return $form;

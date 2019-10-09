@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
+use Exceedone\Exment\Enums\WorkflowAuthorityType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Form\Tools\SwalInputButton;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
@@ -295,7 +296,7 @@ class WorkflowController extends AdminControllerBase
 
                     $result = [];
                     collect($value)->each(function($v) use(&$result){
-                        $result['modal_' . array_get($v, 'related_type')][] = array_get($v, 'related_id');
+                        $result[array_get($v, 'related_type')][] = array_get($v, 'related_id');
                     });
                     return collect($result)->toJson();
                 })
@@ -305,11 +306,13 @@ class WorkflowController extends AdminControllerBase
                     }
 
                     // set text
-                    $texts = [];
-                    foreach($value as $v){
-                        $texts[] = array_get($v, 'user_organization.label');
-                    }
-                    return $texts;
+                    return WorkflowAction::getEloquentDefault($field->data()['id'])
+                        ->getAuthorityTargets(null, false, true);
+                    // $texts = [];
+                    // foreach($value as $v){
+                    //     $texts[] = array_get($v, 'user_organization.label');
+                    // }
+                    // return $texts;
                 })
                 ->nullText(exmtrans("common.created_user"))
             ;
@@ -640,10 +643,11 @@ class WorkflowController extends AdminControllerBase
             $options = $custom_table->custom_columns
                 ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
                 ->pluck('column_view_name', 'id');
-            $form->multipleSelect('modal_column', exmtrans('common.custom_column'))
+            $form->multipleSelect(WorkflowAuthorityType::SYSTEM, exmtrans('common.custom_column'))
                 ->options($options)
+                ->setElementClass('modal_' . WorkflowAuthorityType::COLUMN)
                 ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-                ->default(array_get($value, 'column'));
+                ->default(array_get($value, WorkflowAuthorityType::COLUMN));
         }
 
         // set workflow system column
@@ -651,8 +655,9 @@ class WorkflowController extends AdminControllerBase
         if (!isset($modal_system_default)) {
             $modal_system_default = ($index == 0 ? [WorkflowTargetSystem::CREATED_USER] : null);
         }
-        $form->multipleSelect('modal_system', exmtrans('common.system'))
+        $form->multipleSelect(WorkflowAuthorityType::SYSTEM, exmtrans('common.system'))
             ->options(WorkflowTargetSystem::transKeyArray('common'))
+            ->setElementClass('modal_' . WorkflowAuthorityType::SYSTEM)
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
             ->default($modal_system_default);
 
