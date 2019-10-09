@@ -102,6 +102,8 @@ class Workflowitem extends SystemItem
         $query->joinSub($subquery, 'workflow_values',  function ($join) use($tableName) {
             $join->on($tableName . '.id', 'workflow_values.morph_id');
         });
+
+        //$query = \DB::query()->fromSub($query, 'sub');
     }
 
     
@@ -113,8 +115,6 @@ class Workflowitem extends SystemItem
         ///// Introduction: When the workflow status is "start", one of the following two conditions is required.
         ///// *No value in workflow_values ​​when registering data for the first time
         ///// *When workflow_status_id of workflow_values ​​is null. Ex.Rejection
-
-        static::getSubquery($query, $custom_table);
 
         // if $status is start
         if($status == Define::WORKFLOW_START_KEYNAME){

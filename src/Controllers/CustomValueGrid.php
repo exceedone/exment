@@ -11,8 +11,11 @@ use Exceedone\Exment\Grid\Tools\BatchUpdate;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\ColumnItems\Workflowitem;
 use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\PartialCrudService;
@@ -99,6 +102,14 @@ trait CustomValueGrid
                             $filter->where($relationQuery, $table_view_name)->select($options);
                         }
                     }
+                }
+
+                // filter workflow
+                if(!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))){
+                    $custom_table = $this->custom_table;
+                    $filter->where(function($query) use($custom_table){
+                       Workflowitem::scopeWorkflowStatus($query, $custom_table, ViewColumnFilterOption::EQ, $this->input);
+                    }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
                 }
             });
 

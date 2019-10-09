@@ -11,7 +11,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     use Traits\DatabaseJsonTrait;
     use Traits\UniqueKeyCustomColumnTrait;
 
-    protected $with = ['parent_custom_table', 'child_custom_table'];
+    //protected $with = ['parent_custom_table', 'child_custom_table'];
     protected $casts = ['options' => 'json'];
 
     public static $templateItems = [
@@ -127,7 +127,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
      */
     public function getRelationName()
     {
-        return static::getRelationNameByTables($this->parent_custom_table, $this->child_custom_table);
+        return static::getRelationNameByTables($this->parent_custom_table_id, $this->child_custom_table_id);
     }
 
     /**
