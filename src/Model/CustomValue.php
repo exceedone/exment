@@ -17,10 +17,11 @@ use Exceedone\Exment\Enums\FormActionType;
 
 abstract class CustomValue extends ModelBase
 {
-    use Traits\AutoSUuidTrait;
-    use Traits\DatabaseJsonTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
-    use \Exceedone\Exment\Revisionable\RevisionableTrait;
+    use Traits\AutoSUuidTrait, 
+    Traits\DatabaseJsonTrait,
+    Traits\HasDynamicRelationTrait,
+    \Illuminate\Database\Eloquent\SoftDeletes,
+    \Exceedone\Exment\Revisionable\RevisionableTrait;
 
     protected $casts = ['value' => 'json'];
     protected $appends = ['label'];

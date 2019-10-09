@@ -278,7 +278,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                         ->icon('fa-eye')
                         ->tooltip(trans('admin.show'))
                         ->render();
-                    if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
+                    if ($data->enableEdit()) {
                         $link .= (new Linker)
                             ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
                             ->icon('fa-edit')

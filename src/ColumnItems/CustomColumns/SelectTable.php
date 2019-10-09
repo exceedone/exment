@@ -60,41 +60,52 @@ class SelectTable extends CustomItem
         $value = $isArray ? $this->value : [$this->value];
         $result = [];
 
-        foreach ($value as $v) {
-            if (!isset($v)) {
-                continue;
-            }
-            
-            $model = $this->target_table->getValueModel($v);
-            if (is_null($model)) {
-                continue;
-            }
-            
-            // if $model is array multiple, set as array
-            if (!($model instanceof Collection)) {
-                $model = [$model];
-            }
-    
-            foreach ($model as $m) {
-                if (is_null($m)) {
+        // if can select table relation, set value
+        if(!is_null($select_table_value = array_get($this->custom_value, $this->custom_column->getSelectTableRelationName()))){
+            $result[] = $this->getResult($select_table_value, $text, $html);
+        }
+        else{
+                
+            foreach ($value as $v) {
+                if (!isset($v)) {
                     continue;
                 }
                 
-                if ($text === false) {
-                    $result[] = $m;
-                // get text column
-                } elseif ($html) {
-                    $result[] = $m->getUrl(true);
-                } else {
-                    $result[] = $m->getLabel();
+                $model = $this->target_table->getValueModel($v);
+                if (is_null($model)) {
+                    continue;
+                }
+                
+                // if $model is array multiple, set as array
+                if (!($model instanceof Collection)) {
+                    $model = [$model];
+                }
+        
+                foreach ($model as $m) {
+                    if (is_null($m)) {
+                        continue;
+                    }
+                    
+                    $result[] = $this->getResult($m, $text, $html);
                 }
             }
         }
-        
+
         if ($text === false) {
             return count($result) > 0 && !$isArray ? $result[0] : $result;
         } else {
             return implode(exmtrans('common.separate_word'), $result);
+        }
+    }
+
+    protected function getResult($model, $text, $html){
+        if ($text === false) {
+            return $model;
+        // get text column
+        } elseif ($html) {
+            return $model->getUrl(true);
+        } else {
+            return $model->getLabel();
         }
     }
     

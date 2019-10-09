@@ -4,6 +4,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
@@ -753,6 +754,8 @@ if (!function_exists('getModelName')) {
             $suuid = $table->suuid;
         } elseif ($obj instanceof CustomTable) {
             $suuid = $obj->suuid;
+        } elseif ($obj instanceof CustomColumn) {
+            $suuid = CustomTable::getEloquent($obj)->suuid;
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
             $tables = CustomTable::allRecords();

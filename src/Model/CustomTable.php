@@ -836,6 +836,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             Workflowitem::getSubQuery($query, $this);
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
+
+        // set select_table_column
+        $select_columns = $this->getSelectTableColumns();
+        foreach($select_columns as $select_column){
+            // dynamic belongs to for select_table
+            $relation_name = $select_column->getSelectTableRelationName();
+            getModelName($this)::addDynamicRelation($relation_name, function($model) use($select_column) {
+                $modelname = getModelName($select_column->select_target_table);
+                return $model->belongsTo($modelname, $select_column->index_enabled ? $select_column->getIndexColumnName() : 'value->' . $this->column_name);
+            });
+            $query->with($relation_name);
+        }
     }
 
     /**

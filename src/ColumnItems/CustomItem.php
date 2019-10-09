@@ -25,6 +25,8 @@ abstract class CustomItem implements ItemInterface
     protected $custom_column;
     
     protected $custom_table;
+    
+    protected $custom_value;
 
     /**
      * laravel-admin set required. if false, always not-set required
@@ -157,6 +159,7 @@ abstract class CustomItem implements ItemInterface
 
     public function setCustomValue($custom_value)
     {
+        $this->custom_value = $custom_value;
         $this->value = $this->getTargetValue($custom_value);
         if (isset($custom_value)) {
             $this->id = array_get($custom_value, 'id');
