@@ -9,7 +9,7 @@ trait SystemValuesTrait
 {
     public function renderSystemItem(?CustomValue $custom_value)
     {
-        if(!isset($custom_value)){
+        if(!isset($custom_value) || !isset($custom_value->id)){
             return null;
         }
         

@@ -99,9 +99,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     
     protected function getFormColumnTargetAttribute()
     {
-        if ($this->form_column_type == FormColumnType::SYSTEM) {
-            return SystemColumn::getOption(['id' => $this->form_column_target_id])['name'] ?? null;
-        } elseif ($this->form_column_type == FormColumnType::COLUMN) {
+        if ($this->form_column_type == FormColumnType::COLUMN) {
             return $this->view_column_target_id;
         } elseif ($this->form_column_type == FormColumnType::OTHER) {
             $form_column_obj = FormColumnType::getOption(['id' => $this->form_column_target_id])['column_name'] ?? null;
@@ -114,10 +112,6 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         // if tagret is number, column type is column.
         if ($this->form_column_type == FormColumnType::COLUMN) {
             return $this->custom_column->column_item ?? null;
-        }
-        // system
-        elseif ($this->form_column_type == FormColumnType::SYSTEM) {
-            return ColumnItems\SystemItem::getItem($this->custom_form_block->target_table, $this->form_column_target, null);
         }
         // other column
         else {
@@ -135,11 +129,6 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
                 return [
                     'column_name' => $this->custom_column->column_name ?? null,
                 ];
-            case FormColumnType::SYSTEM:
-                return [
-                    'column_name' => SystemColumn::getOption(['id' => $this->form_column_target_id])['name'],
-                ];
-            
             case FormColumnType::OTHER:
                 return [
                     'column_name' => FormColumnType::getOption(['id' => $this->form_column_target_id])['column_name'],
@@ -165,9 +154,6 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
                 // get column name
                 $form_column_target = CustomColumn::getEloquent($form_column_name, $options['parent']->target_table);
                 $form_column_target_id = isset($form_column_target) ? $form_column_target->id : null;
-                break;
-            case FormColumnType::SYSTEM:
-                $form_column_target_id = SystemColumn::getOption(['name' => $form_column_name])['id'] ?? null;
                 break;
             default:
                 $form_column_target_id = FormColumnType::getOption(['column_name' => $form_column_name])['id'] ?? null;
@@ -235,5 +221,9 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
 
         // add default order
         static::addGlobalScope(new OrderScope('order'));
+        
+        static::addGlobalScope('remove_system_column', function ($builder) {
+            $builder->where('form_column_type', '<>', FormColumnType::SYSTEM);
+        });
     }
 }

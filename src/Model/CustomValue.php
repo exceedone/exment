@@ -84,9 +84,7 @@ abstract class CustomValue extends ModelBase
     public function getCustomTableAttribute()
     {
         // return resuly using cache
-        return System::requestSession('custom_table_' . $this->custom_table_name, function () {
-            return CustomTable::getEloquent($this->custom_table_name);
-        });
+        return CustomTable::getEloquent($this->custom_table_name);
     }
 
     public function getWorkflowStatusAttribute()

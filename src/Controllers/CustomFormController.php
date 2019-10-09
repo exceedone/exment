@@ -249,12 +249,6 @@ class CustomFormController extends AdminControllerTableBase
                         }
                         $column_view_name = $custom_column->column_view_name;
                         break;
-                        
-                    case FormColumnType::SYSTEM:
-                        // get column name
-                        $column_form_column_name = SystemColumn::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['name'] ?? null;
-                        $column_view_name =  exmtrans("common.".$column_form_column_name);
-                        break;
                     default:
                         // get column name
                         $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
@@ -425,9 +419,7 @@ class CustomFormController extends AdminControllerTableBase
             $system_columns_footer = SystemColumn::getOptions(['footer' => true]) ?? [];
 
             $loops = [
-                ['form_column_type' => FormColumnType::SYSTEM , 'columns' => $system_columns_header],
                 ['form_column_type' => FormColumnType::COLUMN , 'columns' => $custom_columns],
-                ['form_column_type' => FormColumnType::SYSTEM ,'columns' => $system_columns_footer],
             ];
 
             // loop header, custom_columns, footer
@@ -450,27 +442,15 @@ class CustomFormController extends AdminControllerTableBase
                     }
 
                     // re-set column
-                    if ($form_column_type == FormColumnType::SYSTEM) {
-                        $custom_column = [
-                            'column_name' => array_get($custom_column, 'name'),
-                            'column_view_name' => exmtrans("common.".array_get($custom_column, 'name')),
-                            //'column_type' => null,
-                            'form_column_type' => $form_column_type,
-                            'form_column_target_id' => array_get($custom_column, 'id'),
-                            'has_custom_forms' => $has_custom_forms,
-                            'required' => boolval(array_get($custom_column, 'required')),
-                        ];
-                    } else {
-                        $custom_column = [
-                            'column_name' => array_get($custom_column, 'column_name'),
-                            'column_view_name' => array_get($custom_column, 'column_view_name'),
-                            'column_type' => array_get($custom_column, 'column_type'),
-                            'form_column_type' => $form_column_type,
-                            'form_column_target_id' => array_get($custom_column, 'id'),
-                            'has_custom_forms' => $has_custom_forms,
-                            'required' => boolval(array_get($custom_column, 'required')),
-                        ];
-                    }
+                    $custom_column = [
+                        'column_name' => array_get($custom_column, 'column_name'),
+                        'column_view_name' => array_get($custom_column, 'column_view_name'),
+                        'column_type' => array_get($custom_column, 'column_type'),
+                        'form_column_type' => $form_column_type,
+                        'form_column_target_id' => array_get($custom_column, 'id'),
+                        'has_custom_forms' => $has_custom_forms,
+                        'required' => boolval(array_get($custom_column, 'required')),
+                    ];
 
                     array_push($custom_form_columns, $custom_column);
                 }

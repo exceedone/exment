@@ -51,7 +51,7 @@ trait CustomViewColumnTrait
         }
         // workflow
         elseif ($this->view_column_type == ViewColumnType::WORKFLOW) {
-            return ColumnItems\WorkflowItem::getItem($this->custom_table, $this->view_column_target);
+            return ColumnItems\WorkflowItem::getItem(CustomTable::getEloquent($this->view_column_table_id), $this->view_column_target);
         }
         // parent_id
         elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {

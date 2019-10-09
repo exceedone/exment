@@ -20,6 +20,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
@@ -74,6 +75,10 @@ trait CustomValueShow
                     $hasMultiColumn = false;
 
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
+                        if($form_column->form_column_type == FormColumnType::SYSTEM){
+                            continue;
+                        }
+                        
                         $item = $form_column->column_item;
                         if (!isset($item)) {
                             continue;

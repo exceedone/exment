@@ -33,6 +33,10 @@ trait CustomValueForm
         $classname = $this->getModelNameDV();
         $form = new Form(new $classname);
 
+        if (isset($id)) {
+            $form->systemValues()->setWidth(12, 0);
+        }
+
         // get select_parent
         $select_parent = null;
         if ($request->has('select_parent')) {
@@ -216,9 +220,6 @@ EOT;
     {
         $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {
-                continue;
-            }
             // exclusion header and html
             if ($form_column->form_column_type == FormColumnType::OTHER) {
                 continue;
@@ -241,10 +242,6 @@ EOT;
         $custom_value = $this->getModelNameDV()::find($id);
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {
-                continue;
-            }
-            
             if (is_null($form_column->column_item)) {
                 continue;
             }

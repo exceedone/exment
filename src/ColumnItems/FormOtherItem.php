@@ -146,6 +146,10 @@ abstract class FormOtherItem implements ItemInterface
      */
     public static function findItemClass($column_type)
     {
+        if(!$column_type){
+            return false;
+        }
+        
         $class = array_get(static::$availableFields, $column_type);
 
         if (class_exists($class)) {

@@ -6,7 +6,7 @@
     id="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}" data-header_column_name="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}">
         <span class="item-label {{array_get($custom_form_column, 'required') ? 'asterisk' : ''}}">{{ $custom_form_column['column_view_name'] }}</span>
 
-        <a href="javascript:void(0);" class="delete" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};">
+        <a href="javascript:void(0);" class="delete" style="position: absolute; margin-left: 10px; display:{{!boolval($suggest) ? 'inline-block' : 'none'}};">
             <i class="fa fa-trash"></i>
         </a>
         
