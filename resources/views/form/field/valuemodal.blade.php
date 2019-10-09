@@ -7,17 +7,11 @@
             @include('admin::form.error')
 
             <p style="padding-top:7px;" class="text-valuemodal">
+            
                 @if(is_nullorempty($text) && isset($nullText))
                     {{$nullText}}
-                @elseif(is_array($text))
-                @foreach($text as $t)
-                    {{$t}}
-                    @if(!$loop->last)
-                    <br />
-                    @endif
-                @endforeach
                 @else
-                {{$text}}
+                    {!! $text !!}
                 @endif
             </p>
             <p><button type="button" class="btn {{$buttonClass}} btn-valuemodal" 

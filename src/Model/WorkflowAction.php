@@ -44,14 +44,16 @@ class WorkflowAction extends ModelBase
     {
         $work_conditions = $this->getOption('work_conditions', []);
 
-        foreach(range(0, 2) as $index){
-            $work_condition_filters = array_get($work_conditions, "work_condition_filter_$index");
-            if(!isset($work_condition_filters)){
+        foreach($work_conditions as &$work_condition){
+            $work_condition_filters = array_get($work_conditions, "work_condition_filter", []);
+            if(is_nullorempty($work_condition_filters)){
                 continue;
             }
-            $work_conditions["work_condition_filter_$index"] = collect($work_condition_filters)->map(function($work_condition_filter){
-                return new WorkflowActionCondition($work_condition_filter);
-            })->toArray();
+            foreach($work_condition_filters as $index => $work_condition_filter){
+                $work_condition["work_condition_filter"][$index] = collect($work_condition_filters)->map(function($work_condition_filter){
+                    return new WorkflowActionCondition($work_condition_filter);
+                })->toArray();
+            }
         }
 
         return $work_conditions;
@@ -67,32 +69,29 @@ class WorkflowAction extends ModelBase
         // modify work_condition_filter
         $new_work_conditions = [];
         foreach($work_conditions as $key => $work_condition){
+            // preg_match using key(as filter)
+            preg_match('/(?<key>.+)_(?<no>[0-9])+\[(?<index>.+)\]\[(?<name>.+)\]/u', $key, $match);
 
-            if(strpos($key, 'work_condition_filter') === false){
-                $new_work_conditions[$key] = $work_condition;
+            if (!is_nullorempty($match)) {
+                $new_work_conditions[array_get($match, 'no')][array_get($match, 'key')][array_get($match, 'index')][array_get($match, 'name')] = $work_condition;
                 continue;
             }
-
-            // preg_match using key
-            preg_match('/(?<filter>work_condition_filter_[0-9])+\[(?<index>.+)\]\[(?<name>.+)\]/u', $key, $match);
-
-            if(is_nullorempty($match)){
-                $new_work_conditions[$key] = $work_condition;
-                continue;
+            
+            // preg_match using key (as enabled)
+            preg_match('/(?<key>.+)_(?<no>[0-9])/u', $key, $match);
+            if (!is_nullorempty($match)) {
+                $new_work_conditions[array_get($match, 'no')][array_get($match, 'key')] = $work_condition;
             }
-
-            $new_work_conditions[array_get($match, 'filter')][array_get($match, 'index')][array_get($match, 'name')] = $work_condition;
-            //$new_work_conditions[$key]
         }
 
         // re-loop and replace work_condition_filter
-        foreach($new_work_conditions as $key => &$new_work_condition){
-            if(strpos($key, 'work_condition_filter') === false){
+        foreach($new_work_conditions as &$new_work_condition){
+            if(!array_has($new_work_condition, 'filter')){
                 continue;
             }
 
             $filters = [];
-            foreach($new_work_condition as $k => &$n){
+            foreach($new_work_condition['filter'] as $k => &$n){
                 // remove "_remove_" array
                 if(array_has($n, Form::REMOVE_FLAG_NAME)){
                     if(boolval(array_get($n, Form::REMOVE_FLAG_NAME))){
@@ -102,11 +101,11 @@ class WorkflowAction extends ModelBase
                     array_forget($n, Form::REMOVE_FLAG_NAME);
                 }
                 $filters[] = $n;
-                array_forget($new_work_condition, $k);
+                array_forget($new_work_condition['filter'], $k);
             }
 
             // replace key name "_new_1" to index
-            $new_work_conditions[$key] = $filters;
+            $new_work_condition['filter'] = $filters;
         }
 
         $this->setOption('work_conditions', $new_work_conditions);
@@ -217,8 +216,8 @@ class WorkflowAction extends ModelBase
      * @return void
      */
     public function executeAction($custom_value, $data = []){
-        \DB::transaction(function() use($custom_value){
-            $morph_type = $custom_value->custom_table_name;
+        \DB::transaction(function() use($custom_value, $data){
+            $morph_type = $custom_value->custom_table->table_name;
             $morph_id = $custom_value->id;
 
             // update old WorkflowValue
@@ -228,11 +227,12 @@ class WorkflowAction extends ModelBase
                 'latest_flg' => true
             ])->update(['latest_flg' => false]);
 
+            $status_to = $this->getStatusToId($custom_value);
             $data = array_merge([
                 'workflow_id' => array_get($this, 'workflow_id'),
                 'morph_type' => $morph_type,
                 'morph_id' => $morph_id,
-                'workflow_status_id' => array_get($action, 'status_to') == Define::WORKFLOW_START_KEYNAME ? null :  array_get($action, 'status_to'),
+                'workflow_status_id' => $status_to == Define::WORKFLOW_START_KEYNAME ? null : $status_to,
                 'latest_flg' => 1
             ], $data);
     
@@ -241,14 +241,17 @@ class WorkflowAction extends ModelBase
     }
 
     /**
-     * Get user, org, column, system user.
+     * Get status_to id. Filtering value
      *
-     * @param orgAsUser if true, convert org as user
-     * @return array user list
+     * @return void
      */
-    public function getWorkTargets($orgAsUser = false){
+    public function getStatusToId($custom_value){
+        $work_conditions = $this->work_conditions;
 
+        //TODO:workflow filtering actions
+        return collect($work_conditions)->first()['status_to'];
     }
+
     
     protected static function boot() {
         parent::boot();

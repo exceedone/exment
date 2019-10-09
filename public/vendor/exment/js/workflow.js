@@ -47,7 +47,7 @@ var Exment;
             return { value: JSON.stringify(values), text: texts.join('<br />') };
         }
         static GetConditionSettingValText() {
-            const targetKeys = ['work_condition_filter', 'work_condition_status_to', 'work_condition_enabled'];
+            const targetKeys = ['filter', 'status_to', 'enabled'];
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_conditions"] form');
             // get value
@@ -71,7 +71,7 @@ var Exment;
                 }
             }
             let texts = [];
-            form.find('.work_condition_status_to').each(function (index, element) {
+            form.find('.work_conditions_status_to').each(function (index, element) {
                 let target = $(element);
                 if (target.is(':hidden')) {
                     return;

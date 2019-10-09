@@ -29,6 +29,7 @@ class CreateWorkflowTable extends Migration
 
             $table->string('workflow_view_name', 30);
             $table->string('start_status_name', 30);
+            $table->boolean('setting_completed_flg')->default(false);
 
             $table->timestamps();
             $table->timeusers();
@@ -38,6 +39,9 @@ class CreateWorkflowTable extends Migration
             $table->increments('id');
             $table->integer('workflow_id')->unsigned()->index();
             $table->integer('custom_table_id')->unsigned()->nullable();
+            $table->boolean('active_flg')->default(false);
+            $table->date('active_start_date')->nullable();
+            $table->date('active_end_date')->nullable();
 
             $table->timestamps();
             $table->timeusers();
@@ -90,8 +94,8 @@ class CreateWorkflowTable extends Migration
             $table->integer('workflow_id')->unsigned()->index();
             $table->string('morph_type', 255);
             $table->bigInteger('morph_id')->unsigned();
-            $table->integer('workflow_status_id')->unsigned()->nulable();
-            $table->string('comment', 1000)->nulable();
+            $table->integer('workflow_status_id')->unsigned()->nullable();
+            $table->string('comment', 1000)->nullable();
             $table->boolean('action_executed_flg')->default(false)->index();
             $table->boolean('latest_flg')->default(false)->index();
 

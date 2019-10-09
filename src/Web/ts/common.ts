@@ -32,6 +32,7 @@ namespace Exment {
         public static AddEvent() {
             CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
+            CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
 
@@ -135,6 +136,7 @@ namespace Exment {
                 {
                     title: 'Swal',
                     text: null,
+                    html: null,
                     type: "warning",
                     input: null,
                     confirm: 'OK',
@@ -200,6 +202,7 @@ namespace Exment {
             };
             if(hasValue(options.input)){ swalOptions.input = options.input; }
             if(hasValue(options.text)){ swalOptions.text = options.text; }
+            if(hasValue(options.html)){ swalOptions.html = options.html; }
 
             swal(swalOptions)
                 .then(function(result) {
@@ -975,6 +978,18 @@ namespace Exment {
                 }
                 $(elem).select2(options);
             }).addClass('added-select2');
+        }
+
+        /**
+         * add field event (datepicker, icheck)
+         */
+        private static addFieldEvent() {
+            $('[data-add-date]').not('.added-datepicker').each(function (index, elem: Element) {
+                $(elem).datetimepicker({"useCurrent":false, "format":"YYYY-MM-DD", "locale":"ja", "allowInputToggle":true});
+            }).addClass('added-datepicker');
+            $('[data-add-icheck]').not('.added-icheck').each(function (index, elem: Element) {
+                $(elem).iCheck({checkboxClass:'icheckbox_minimal-blue'});
+            }).addClass('added-icheck');
         }
 
         private static getFilterVal($parent: JQuery, a) {

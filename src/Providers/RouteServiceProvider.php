@@ -92,9 +92,12 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
             
             $router->resource('workflow', 'WorkflowController', ['except' => ['show']]);
+            $router->get("workflow/beginning", 'WorkflowController@beginningForm');
+            $router->post("workflow/beginning", 'WorkflowController@beginningPost');
             $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
             $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
             $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
+            $router->post('workflow/{id}/activate', 'WorkflowController@activate');
 
             $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');

@@ -85,13 +85,20 @@ class Workflow extends ModelBase
         return $statuses;
     }
 
+    /**
+     * Get workflow filtering active using custom table
+     *
+     * @param [type] $custom_table
+     * @return void
+     */
     public static function getWorkflowByTable($custom_table){
         $custom_table = CustomTable::getEloquent($custom_table);
 
         $key = sprintf(Define::SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE, $custom_table->id);
         return System::requestSession($key, function() use($custom_table){
             $workflowTable = WorkflowTable::where('custom_table_id', $custom_table->id)
-            ->first();
+                ->active()
+                ->first();
 
             if(!isset($workflowTable)){
                 return null;
@@ -123,5 +130,29 @@ class Workflow extends ModelBase
 
             return $workflowTables->first()->custom_table;
         });
+    }
+
+    /**
+     * Check can change activate this wokflow
+     *
+     * @return boolean
+     */
+    public function canActivate(){
+        if(boolval($this->active_flg)){
+            return false;
+        }
+
+        // check statuses
+        if(count($this->workflow_statuses) == 0){
+            return false;
+        }
+
+        // check actions
+        if(count($this->workflow_actions) == 0){
+            return false;
+        }
+
+        //TODO:workflow check workflow_actions items
+        return true;
     }
 }

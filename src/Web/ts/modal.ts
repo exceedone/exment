@@ -91,6 +91,9 @@ namespace Exment {
             if(a.data('modalclose') === false){
                 return;
             }
+            if(a.data('toggle') === 'tooltip'){
+                return;
+            }
             $('#modal-showmodal .modal-body').html('');
             $('#modal-showmodal').modal('hide');
         }

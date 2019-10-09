@@ -564,7 +564,7 @@ return [
         'workflow_type' => 'ワークフロー種類',
         'workflow_statuses' => 'ステータス設定',
         'workflow_actions' => 'アクション設定',
-        'description_workflow_statuses' => 'ワークフローで使用するステータスを定義します。<br/>例：承認待ち、完了',
+        'description_workflow_statuses' => 'ワークフローで使用するステータスを定義します。例：承認待ち、完了<br />※表の最終行のステータスは、フロー完了を表すものとしてください。',
         'description_workflow_actions' => '状態を変化させるアクションを定義します。 例：申請、承認、決裁',
         'status_name' => 'ステータス名',
         'start_status_name' => '開始ステータス名',

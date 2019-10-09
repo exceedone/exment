@@ -225,6 +225,14 @@ EOT;
             $this->text(call_user_func($this->text, $this->value, $this));
         }
 
+        if(is_array($this->text)){
+            $this->text = collect($this->text)->map(function($t){
+                return esc_html($t);
+            })->implode('<br />');
+        }else{
+            $this->text = esc_html($this->text);
+        }
+
         // set hidden
         $hidden = $this->value;
         if ($this->hiddenFormat instanceof \Closure) {

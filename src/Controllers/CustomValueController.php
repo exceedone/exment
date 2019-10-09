@@ -409,8 +409,12 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $custom_value = $this->custom_table->getValueModel($id);
+
+        //TODO:validation
         
-        $action->executeAction($custom_value);
+        $action->executeAction($custom_value, [
+            'comment' => $request->get('comment')
+        ]);
 
         return ([
             'result'  => true,

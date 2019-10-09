@@ -9,7 +9,7 @@
         <label for="{{$id['action_name']}}" class="control-label small asterisk">{{exmtrans('workflow.action_name')}}</label>
         <div class="input-group">
             <span class="input-group-addon"><i class="fa fa-pencil fa-fw"></i></span>
-            <input id="$id['action_name']}}" type="text" name="{{$name['action_name']}}" value="{{ old($column['action_name'], $value['action_name'])}}" class="form-control {{$class['action_name']}}" style="max-width:999999px" required>
+            <input id="$id['action_name']}}" type="text" name="{{$name['action_name']}}" value="{{ old($column['action_name'], $value['action_name'])}}" class="form-control {{$class['action_name']}}" style="max-width:999999px" placeholder="{{exmtrans('workflow.action_name')}}" required>
         </div>
         
         <label for="{{$id['status_from']}}" class="control-label small asterisk">{{exmtrans('workflow.status_from')}}</label>

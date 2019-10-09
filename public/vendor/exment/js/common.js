@@ -31,6 +31,7 @@ var Exment;
         static AddEvent() {
             CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
+            CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
             $.numberformat('[number_format]');
@@ -123,6 +124,7 @@ var Exment;
             options = $.extend({
                 title: 'Swal',
                 text: null,
+                html: null,
                 type: "warning",
                 input: null,
                 confirm: 'OK',
@@ -182,6 +184,9 @@ var Exment;
             }
             if (hasValue(options.text)) {
                 swalOptions.text = options.text;
+            }
+            if (hasValue(options.html)) {
+                swalOptions.html = options.html;
             }
             swal(swalOptions)
                 .then(function (result) {
@@ -722,6 +727,17 @@ var Exment;
                 }
                 $(elem).select2(options);
             }).addClass('added-select2');
+        }
+        /**
+         * add field event (datepicker, icheck)
+         */
+        static addFieldEvent() {
+            $('[data-add-date]').not('.added-datepicker').each(function (index, elem) {
+                $(elem).datetimepicker({ "useCurrent": false, "format": "YYYY-MM-DD", "locale": "ja", "allowInputToggle": true });
+            }).addClass('added-datepicker');
+            $('[data-add-icheck]').not('.added-icheck').each(function (index, elem) {
+                $(elem).iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
+            }).addClass('added-icheck');
         }
         static getFilterVal($parent, a) {
             // get filter object

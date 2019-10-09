@@ -52,7 +52,7 @@
                     </a>
                     @endif
 
-                    @if($hideDeleteButtonRow === null || $hideDeleteButtonRow <= $loop->index)
+                    @if($options['allowDelete'] && ($hideDeleteButtonRow === null || $hideDeleteButtonRow <= $loop->index))
                     <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-xs' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
                         <i class="fa fa-trash" style=""></i>
                     </a>
@@ -63,11 +63,14 @@
             </tbody>
         </table>
 
+        @if($options['allowCreate'])
         <div id="has-many-table-button-{{$column}}" class="form-group">
             <div class="col-sm-12">
                 <div class="add btn btn-success btn-sm"><i class="fa fa-plus"></i>&nbsp;{{ trans('admin.new') }}</div>
             </div>
         </div>
+        @endif
+
     </div>
     <template class="{{$column}}-tpl">
         <tr class="has-many-table-{{$column}}-row">

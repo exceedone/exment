@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
+use Encore\Admin\Widgets\Form as WidgetForm;
+use Encore\Admin\Widgets\Box;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
@@ -21,6 +23,7 @@ use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Form\Tools\SwalInputButton;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
@@ -60,6 +63,13 @@ class WorkflowController extends AdminControllerBase
         $grid->column('workflow_statuses', exmtrans("workflow.status_name"))->display(function($value){
             return $this->getStatusesString();
         });
+        $grid->column('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->display(function($value){
+            if(boolval($value)){
+                return '設定済';
+            }
+
+            return null;
+        });
         
         $grid->disableExport();
         if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
@@ -70,7 +80,7 @@ class WorkflowController extends AdminControllerBase
             $actions->disableView();
             // add new edit link
             $linker = (new Linker)
-                ->url(admin_urls('workflow', $actions->getKey(), 'edit?action=1'))
+                ->url(admin_urls('workflow', $actions->getKey(), 'edit?action=2'))
                 ->icon('fa-exchange')
                 ->tooltip(exmtrans('workflow.action'));
             $actions->prepend($linker);
@@ -86,18 +96,20 @@ class WorkflowController extends AdminControllerBase
      */
     protected function form($id = null)
     {
-        // get request
-        $request = Request::capture();
-        if (!is_null($request->input('action'))) {
-            $is_action = $request->input('action');
-        } else {
-            $is_action = $request->query('action')?? '0';
+        if(!isset($id)){
+            return $this->statusForm();
         }
 
-        if ($is_action) {
-            return $this->actionForm($id, $is_action);
-        } else {
-            return $this->statusForm($id, $is_action);
+        // get request
+        $action = request()->get('action', 1);
+
+        switch($action){
+            case 2:
+                return $this->actionForm($id);
+            case 3:
+                return $this->beginningForm($id);
+            default:
+                return $this->statusForm($id);
         }
     }
 
@@ -116,12 +128,12 @@ class WorkflowController extends AdminControllerBase
      *
      * @return Form
      */
-    protected function statusForm($id, $is_action)
+    protected function statusForm($id = null)
     {
-        $workflow = Workflow::find($id);
+        $workflow = Workflow::getEloquentDefault($id);
 
         $form = new Form(new Workflow);
-        $form->progressTracker()->options($this->getProgressInfo($id, $is_action));
+        $form->progressTracker()->options($this->getProgressInfo($id, 1));
         $form->text('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->required()
             ->rules("max:40");
@@ -158,14 +170,19 @@ class WorkflowController extends AdminControllerBase
             ->required()
             ->rules("max:30");
 
-        $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) {
+        $field = $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) {
             $form->text('status_name', exmtrans("workflow.status_name"))->help(exmtrans('workflow.help.status_name'));
             $form->switchbool('datalock_flg', exmtrans("workflow.datalock_flg"))->help(exmtrans('workflow.help.editable_flg'));
             $form->hidden('order')->default(0);
-        })->setTableColumnWidth(6, 2, 2)
-            ->setTableWidth(8, 2)
-            ->rowUpDown('order')
-            ->description(sprintf(exmtrans("workflow.description_workflow_statuses")));
+        })->setTableWidth(8, 2)
+        ->setTableColumnWidth(6, 2, 2);
+        if(isset($workflow) && boolval($workflow->setting_completed_flg)){
+            $field->disableDelete()
+                ->disableCreate();
+        }else{
+            $field->rowUpDown('order')
+                ->description(sprintf(exmtrans("workflow.description_workflow_statuses")));
+        }
         
         $form->saving(function (Form $form) {
             $this->exists = $form->model()->exists;
@@ -175,6 +192,9 @@ class WorkflowController extends AdminControllerBase
             $model = $form->model();
 
             // save table info
+            if(request()->get('workflow_type') != WorkflowType::TABLE){
+                return;
+            }
             if(is_null($custom_table_id = request()->get('custom_table_id'))){
                 return;
             }
@@ -185,12 +205,18 @@ class WorkflowController extends AdminControllerBase
             ]);
         });
 
+        $self = $this;
+        $form->tools(function (Form\Tools $tools) use($self, $workflow) {
+            $tools->disableDelete();
+            $self->appendActivateButton($workflow, $tools);
+        });
+
         $form->saved(function (Form $form) use ($id) {
             $model = $form->model();
 
             // redirect workflow action page
             if (!$this->exists) {
-                $workflow_action_url = admin_urls('workflow', $model->id, 'edit?action=1');
+                $workflow_action_url = admin_urls('workflow', $model->id, 'edit?action=2');
     
                 admin_toastr(exmtrans('workflow.help.saved_redirect_column'));
                 return redirect($workflow_action_url);
@@ -205,17 +231,18 @@ class WorkflowController extends AdminControllerBase
      *
      * @return Form
      */
-    protected function actionForm($id, $is_action)
+    protected function actionForm($id)
     {
-        $workflow = Workflow::find($id);
+        $workflow = Workflow::getEloquentDefault($id);
+
         $form = new Form(new Workflow);
-        $form->progressTracker()->options($this->getProgressInfo($id, $is_action));
-        $form->hidden('action')->default(1);
+        $form->progressTracker()->options($this->getProgressInfo($id, 2));
+        $form->hidden('action')->default(2);
         $form->display('workflow_view_name', exmtrans("workflow.workflow_view_name"));
         $form->display('workflow_status', exmtrans("workflow.status_name"))
             ->default($workflow->getStatusesString());
 
-        $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function($form) use($id, $workflow){
+        $field = $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function($form) use($id, $workflow){
             $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
                 ->config('allowClear', false)
                 ->options(function($value, $field){
@@ -240,22 +267,21 @@ class WorkflowController extends AdminControllerBase
                         return null;
                     }
 
-                    $value = jsonToArray($value);
+                    $work_conditions = jsonToArray($value);
 
                     // set text
                     $texts = [];
-                    foreach(range(0, 2) as $index){
-                        if(!array_has($value, "work_condition_enabled_$index") || !boolval(array_get($value, "work_condition_enabled_$index"))){
-                            break;
+                    foreach($work_conditions as $work_condition){
+                        if(!boolval(array_get($work_condition, "enabled"))){
+                            continue;
                         }
-                        $texts[] = WorkflowStatus::getWorkflowStatusName(array_get($value, "work_condition_status_to_$index"), $workflow);
+                        $texts[] = WorkflowStatus::getWorkflowStatusName(array_get($work_condition, "status_to"), $workflow);
                     }
                     return $texts;
                 })
                 ->nullText(exmtrans("common.no_setting"))
             ;
 
-            
             $form->valueModal('work_targets', exmtrans("workflow.work_targets"))
                 ->ajax(admin_urls('workflow', $id, 'modal', 'target'))
                 ->modalContentname('workflow_actions_work_targets')
@@ -294,8 +320,10 @@ class WorkflowController extends AdminControllerBase
            ->required()
            ->hideDeleteButtonRow(1);
 
-        $form->tools(function (Form\Tools $tools) {
+        $self = $this;
+        $form->tools(function (Form\Tools $tools) use($self, $workflow) {
             $tools->disableDelete();
+            $self->appendActivateButton($workflow, $tools);
         });
 
         $form->ignore(['action']);
@@ -308,6 +336,179 @@ class WorkflowController extends AdminControllerBase
         });
 
         return $form;
+    }
+
+    /**
+     * Make a beginning form builder.
+     *
+     * @return Form
+     */
+    protected function beginningForm()
+    {
+        $content = new Content;
+        $this->AdminContent($content);
+
+        $form = new WidgetForm();
+        $form->disablereset();
+        $form->action(admin_urls('workflow', 'beginning'));
+
+        $workflowTables = WorkflowTable::with(['workflow', 'custom_table'])->get()
+            ->filter(function($workflowTable){
+                if(!boolval($workflowTable->workflow->setting_completed_flg)){
+                    return false;
+                }
+
+                return true;
+            });
+
+        // get all "common" and settinged workflows
+        $workflowCommons = Workflow::allRecords(function($workflow){
+            if($workflow->workflow_type != WorkflowType::COMMON){
+                return false;
+            }
+
+            if(!boolval($workflow->setting_completed_flg)){
+                return false;
+            }
+
+            return true;
+        });
+
+        // get all custom tables
+        $custom_tables = CustomTable::allRecords(function($custom_table){
+            return !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())
+            && !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY());
+        });
+
+        $results = [];
+        foreach($custom_tables as $custom_table){
+            $results[$custom_table->id] = [
+                'custom_table' => $custom_table,
+                'workflows' => []
+            ];
+
+            // append already setting workflow table
+            $workflowTables->filter(function($workflowTable) use($custom_table){
+                if($custom_table->id !== $workflowTable->custom_table->id){
+                    return false;
+                }
+
+                return true;
+            })->each(function($workflowTable) use(&$results, $custom_table){
+                $workflow = $workflowTable->workflow;
+                $results[$custom_table->id]['workflows'][$workflow->id] = [
+                    'workflow_view_name' => $workflow->workflow_view_name,
+                    'active_start_date' => $workflowTable->active_start_date,
+                    'active_end_date' => $workflowTable->active_end_date,
+                    'active_flg' => $workflowTable->active_flg,
+                ];
+            });
+
+            // append common workflows
+            $workflowCommons->each(function($workflow) use(&$results, $custom_table){
+                if(array_has($results[$custom_table->id]['workflows'], $workflow->id)){
+                    return;
+                }
+
+                $results[$custom_table->id]['workflows'][$workflow->id] = [
+                    'workflow_view_name' => $workflow->workflow_view_name,
+                ];;
+            });
+        }
+
+        // add form
+        $form->html(view('exment::workflow.beginning', [
+            'items' => $results
+        ])->render());
+        $form->setWidth(11, 0);
+
+        $box = new Box('利用設定', $form);
+        $box->tools(view('exment::tools.button', [
+            'href' => admin_url('workflow'),
+            'label' => trans('admin.list'),
+            'icon' => 'fa-list',
+        ])->render());
+
+        $content->row($box);
+        return $content;
+    }
+
+    /**
+     * save beginning info
+     *
+     * @return Form
+     */
+    protected function beginningPost(Request $request)
+    {
+        $workflow_tables = $request->get('workflow_tables');
+
+        //TODO:workflow validation
+
+        \DB::transaction(function() use($workflow_tables){
+            foreach($workflow_tables as $custom_table_id => $item){
+                foreach(array_get($item, 'workflows', []) as $workflow_id => $workflow_item){
+                    // get workflow table using custom table id and workflow id
+                    $workflow_table = WorkflowTable::firstOrNew(['custom_table_id' => $custom_table_id, 'workflow_id' => $workflow_id]);
+    
+                    // if active, set each parameters
+                    if(boolval(array_get($workflow_item, 'active_flg'))){
+                        $workflow_table->active_flg = true;
+                        $workflow_table->active_start_date = array_get($workflow_item, 'active_start_date');
+                        $workflow_table->active_start_date = array_get($workflow_item, 'active_end_date');
+                    }
+                    // not active, reset
+                    else{
+                        $workflow_table->active_flg = false;
+                        $workflow_table->active_start_date = null;
+                        $workflow_table->active_start_date = null;
+                    }
+
+                    $workflow_table->save();
+                }
+            }
+        });
+        
+        admin_toastr(trans('admin.save_succeeded'));
+        return back();
+    }
+
+    public function appendActivateButton($workflow, $tools){
+        if(isset($workflow) && $workflow->canActivate()){
+            $tools->append(new SwalInputButton(
+                [
+                    'title' => '設定完了する',
+                    'label' => '設定完了する',
+                    'confirmKeyword' => 'yes',
+                    'icon' => 'fa-check-circle-o',
+                    'html' => 'このワークフローの設定を完了します。設定完了すると、以下の内容が実施できなくなります。<br />・ワークフローの削除<br />・ステータスの追加、削除、順番変更<br />よろしければ、「yes」と入力してください。',
+                    'url' => admin_urls('workflow', $workflow->id, 'activate'),
+                ]
+            ));
+        }
+    }
+
+    /**
+     * Activate workflow
+     *
+     * @param Request $request
+     * @param [type] $id
+     * @return void
+     */
+    public function activate(Request $request, $id){
+        $workflow = Workflow::getEloquentDefault($id);
+        if(!$workflow->canActivate()){
+            // TODO:workflow already activate
+            return back();
+        }
+
+        $workflow->setting_completed_flg = true;
+        $workflow->save();
+
+        return response()->json([
+            'result'  => true,
+            'toastr' => trans('admin.save_succeeded'),
+            'redirect' => admin_url('workflow/beginning'),
+        ]);
     }
 
     /**
@@ -372,26 +573,26 @@ class WorkflowController extends AdminControllerBase
         }
     }
 
-    protected function getProgressInfo($id, $is_action) {
+    protected function getProgressInfo($id, $action) {
         $steps = [];
         $hasAction = false;
         $workflow_action_url = null;
         $workflow_status_url = null;
         if (isset($id)) {
             $hasAction = WorkflowAction::where('workflow_id', $id)->count() > 0;
-            $workflow_action_url = admin_urls('workflow', $id, 'edit?action=1');
+            $workflow_action_url = admin_urls('workflow', $id, 'edit?action=2');
             $workflow_status_url = admin_urls('workflow', $id, 'edit');
         }
         $steps[] = [
-            'active' => !$is_action,
+            'active' => ($action == 1),
             'complete' => false,
-            'url' => $is_action? $workflow_status_url: null,
+            'url' => ($action != 1)? $workflow_status_url: null,
             'description' => exmtrans('workflow.workflow_statuses')
         ];
         $steps[] = [
-            'active' => $is_action,
+            'active' => ($action == 2),
             'complete' => false,
-            'url' => !$is_action? $workflow_action_url: null,
+            'url' => ($action != 2)? $workflow_action_url: null,
             'description' => exmtrans('workflow.workflow_actions')
         ];
         return $steps;
@@ -405,7 +606,7 @@ class WorkflowController extends AdminControllerBase
      * @return void
      */
     public function targetModal(Request $request, $id){
-        $workflow = Workflow::find($id);
+        $workflow = Workflow::getEloquentDefault($id);
         $custom_table = $workflow->getDesignatedTable();
 
         // get selected value
@@ -498,33 +699,37 @@ class WorkflowController extends AdminControllerBase
         // set range.
         $range = ($workflow_type == WorkflowType::COMMON) ? range(0, 0) : range(0, 2); 
         foreach($range as $index){
-            $label = exmtrans('workflow.condition') . ($workflow_type == WorkflowType::TABLE ? ($index + 1) : null);
-            $form->exmheader($label)
-                ->hr();
+            $work_condition = array_get($value, $index, []);
+            if($workflow_type == WorkflowType::TABLE){
+                $label = exmtrans('workflow.condition') .  ($index + 1);
+                $form->exmheader($label)
+                    ->hr();
+            }
 
             if($index === 0){
-                $form->hidden("work_condition_enabled_{$index}")
+                $form->hidden("enabled_{$index}")
                 ->default(1);
             }else{
-                $form->checkboxone("work_condition_enabled_{$index}", 'work_condition_enabled')
+                $form->checkboxone("enabled_{$index}", 'enabled')
                 ->setLabelClass(['invisible'])
                 ->setWidth(10, 2)
-                ->default(array_get($value, "work_condition_enabled_{$index}", 0))
+                ->setElementClass('work_conditions_enabled')
+                ->default(array_get($work_condition, "enabled", 0))
                 ->attribute(['data-filtertrigger' =>true])
                 ->option(['1' => exmtrans('custom_form.available')]);
             }
             
-            $form->select("work_condition_status_to_{$index}", exmtrans('workflow.status_to'))
+            $form->select("status_to_{$index}", exmtrans('workflow.status_to'))
                 ->options($statusOptions)
                 ->required()
-                //->default(array_get($value, "work_condition_status_to_{$index}"))
-                ->setElementClass('work_condition_status_to')
-                ->attribute(['data-filter' => json_encode(['key' => "work_condition_enabled_{$index}", 'value' => '1'])])
+                ->default(array_get($work_condition, "status_to"))
+                ->setElementClass('work_conditions_status_to')
+                ->attribute(['data-filter' => json_encode(['key' => "enabled_{$index}", 'value' => '1'])])
                 ->setWidth(4, 2);
 
             if(isset($custom_table)){
-                $default = array_get($value, "work_condition_filter_{$index}", []);
-                $form->hasManyTable("work_condition_filter_{$index}", exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $id) {
+                $default = array_get($work_condition, "filter", []);
+                $form->hasManyTable("filter_{$index}", exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $id) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                         ->options($custom_table->getColumnsSelectOptions(
                             [
@@ -572,8 +777,9 @@ class WorkflowController extends AdminControllerBase
                         ->rules("changeFieldValue:$label");
                 })->setTableColumnWidth(4, 4, 3, 1)
                 ->setTableWidth(10, 2)
+                ->setElementClass('work_conditions_filter')
                 ->setRelatedValue($default)
-                ->attribute(['data-filter' => json_encode(['key' => "work_condition_enabled_{$index}", 'value' => '1'])])
+                ->attribute(['data-filter' => json_encode(['key' => "enabled_{$index}", 'value' => '1'])])
                 ->disableHeader();
             }
             
