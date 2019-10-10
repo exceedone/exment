@@ -14,6 +14,7 @@ use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -220,136 +221,15 @@ trait CustomValueShow
      */
     protected function setOptionBoxes($row, $id, $modal = false)
     {
-        $custom_value = $this->getModelNameDV()::find($id);
-        $documents = $this->getDocuments($id, $modal);
-        $useFileUpload = $this->useFileUpload($id, $modal);
-        $useComment = $this->useComment($modal);
+        $custom_value = $this->custom_table->getValueModel($id);
+        
+        $this->setDocumentBox($row, $custom_value, $id, $modal);
+
+        $this->setRevisionBox($row, $custom_value, $id, $modal);
  
-        $revisions = $this->getRevisions($id, $modal);
+        $this->setCommentBox($row,  $custom_value, $id, $modal);
 
-        if (count($documents) > 0 || $useFileUpload) {
-            $form = new WidgetForm;
-            $form->disableReset();
-            $form->disableSubmit();
-
-            // show document list
-            if (isset($id)) {
-                if (count($documents) > 0) {
-                    $html = [];
-                    foreach ($documents as $index => $d) {
-                        $html[] = "<p>" . view('exment::form.field.documentlink', [
-                            'document' => $d,
-                            'candelete' => $custom_value->enableDelete(),
-                        ])->render() . "</p>";
-                    }
-                    // loop and add as link
-                    $form->html(implode("", $html))
-                        ->plain()
-                        ->setWidth(8, 3);
-                }
-            }
-
-            // add file uploader
-            if ($useFileUpload) {
-                $options = [
-                    'showUpload' => true,
-                    'showPreview' => false,
-                    'showCancel' => false,
-                    'uploadUrl' => admin_urls('data', $this->custom_table->table_name, $id, 'fileupload'),
-                    'uploadExtraData'=> [
-                        '_token' => csrf_token()
-                    ],
-                ];
-                $options_json = json_encode($options);
-
-                $input_id = 'file_data';
-
-                if($custom_value->enableEdit()){
-                    $form->file($input_id, trans('admin.upload'))
-                    ->options($options)
-                    ->setLabelClass(['d-none'])
-                    ->setWidth(12, 0);
-                    $script = <<<EOT
-        $(".$input_id").on('fileuploaded', function(e, params) {
-            console.log('file uploaded', e, params);
-            $.pjax.reload('#pjax-container');
-        });
-EOT;
-                    Admin::script($script);    
-                }
-            }
-
-            $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
-        }
-
-        if (count($revisions) > 0) {
-            $form = new WidgetForm;
-            $form->disableReset();
-            $form->disableSubmit();
-            $form->attribute(['class' => 'form-horizontal form-revision']);
-    
-            foreach ($revisions as $index => $revision) {
-                $form->html(
-                    view('exment::form.field.revisionlink', [
-                        'revision' => $revision,
-                        'link' => admin_urls('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid),
-                        'index' => $index,
-                    ])->render(),
-                    'No.'.($revision->revision_no)
-                )->setWidth(9, 2);
-            }
-            $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
-        }
-
-        if ($useComment) {
-            $comments = $this->getComments($id, $modal);
-            $form = new WidgetForm;
-            $form->disableReset();
-            $form->action(admin_urls('data', $this->custom_table->table_name, $id, 'addcomment'));
-            $form->setWidth(10, 2);
-
-            if (count($comments) > 0) {
-                $html = [];
-                foreach ($comments as $index => $comment) {
-                    $html[] = "<p>" . view('exment::form.field.commentline', [
-                        'comment' => $comment,
-                        'table_name' => $this->custom_table->table_name,
-                        'isAbleRemove' => ($comment->created_user_id == \Exment::user()->base_user_id),
-                    ])->render() . "</p>";
-                }
-                // loop and add as link
-                $form->html(implode("", $html))
-                    ->plain()
-                    ->setWidth(8, 3);
-            }
-            $form->textarea('comment', exmtrans("common.comment"))
-                ->rows(3)
-                ->required()
-                ->setLabelClass(['d-none'])
-                ->setWidth(12, 0);
-            $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
-        }
-
-        if ($this->useWorkflow($modal)) {
-            $workflows = $this->getWorkflows($id, $modal);
-            $form = new WidgetForm;
-            $form->disableReset();
-            $form->disableSubmit();
-
-            if (count($workflows) > 0) {
-                $html = [];
-                foreach ($workflows as $index => $workflow) {
-                    $form->html(
-                        view('exment::form.field.workflowline', [
-                            'workflow' => $workflow,
-                            'index' => $index,
-                        ])->render(),
-                        'No.'. ($index + 1)
-                    )->setWidth(10, 2);
-                }
-            }
-            $row->column(6, (new Box(exmtrans("common.workflow_history"), $form))->style('info'));
-        }
+        $this->setWorkflowBox($row,  $custom_value, $id, $modal);
     }
     
     /**
@@ -451,16 +331,41 @@ EOT;
         
         return view("exment::custom-value.revision-compare", $prms);
     }
-    
 
+    protected function setRevisionBox($row, $custom_value, $id, $modal = false)
+    {
+        $revisions = $this->getRevisions($id, $modal);
+
+        if (count($revisions) == 0) {
+            return;
+        }
+    
+        $form = new WidgetForm;
+        $form->disableReset();
+        $form->disableSubmit();
+        $form->attribute(['class' => 'form-horizontal form-revision']);
+
+        foreach ($revisions as $index => $revision) {
+            $form->html(
+                view('exment::form.field.revisionlink', [
+                    'revision' => $revision,
+                    'link' => admin_urls('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid),
+                    'index' => $index,
+                ])->render(),
+                'No.'.($revision->revision_no)
+            )->setWidth(9, 2);
+        }
+        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
+    }
+    
     /**
      * whether file upload field
      */
-    protected function useFileUpload($id, $modal = false)
+    protected function useFileUpload($custom_value, $modal = false)
     {
         // if no permission, return
-        if (!$this->custom_table->hasPermissionEditData($id)) {
-            return [];
+        if (!$custom_value->enableEdit()) {
+            return false;
         }
         
         return !$modal && boolval($this->custom_table->getOption('attachment_flg') ?? true);
@@ -474,14 +379,6 @@ EOT;
         return !$modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
     
-    /**
-     * whether workflow field
-     */
-    protected function useWorkflow($modal = false)
-    {
-        return !$modal && isset($this->custom_table->workflow_id);
-    }
-
     protected function getDocuments($id, $modal = false)
     {
         if ($modal) {
@@ -493,6 +390,68 @@ EOT;
             ->get();
     }
     
+    protected function setDocumentBox($row, $custom_value, $id, $modal = false)
+    {        
+        $documents = $this->getDocuments($id, $modal);
+        $useFileUpload = $this->useFileUpload($custom_value, $modal);
+
+        if (count($documents) == 0 && !$useFileUpload) {
+            return;
+        }
+
+        $form = new WidgetForm;
+        $form->disableReset();
+        $form->disableSubmit();
+
+        // show document list
+        if (isset($id)) {
+            if (count($documents) > 0) {
+                $html = [];
+                foreach ($documents as $index => $d) {
+                    $html[] = "<p>" . view('exment::form.field.documentlink', [
+                        'document' => $d,
+                        'candelete' => $custom_value->enableDelete(),
+                    ])->render() . "</p>";
+                }
+                // loop and add as link
+                $form->html(implode("", $html))
+                    ->plain()
+                    ->setWidth(8, 3);
+            }
+        }
+
+        // add file uploader
+        if ($useFileUpload) {
+            $options = [
+                'showUpload' => true,
+                'showPreview' => false,
+                'showCancel' => false,
+                'uploadUrl' => admin_urls('data', $this->custom_table->table_name, $id, 'fileupload'),
+                'uploadExtraData'=> [
+                    '_token' => csrf_token()
+                ],
+            ];
+            $options_json = json_encode($options);
+
+            $input_id = 'file_data';
+
+            $form->file($input_id, trans('admin.upload'))
+                ->options($options)
+                ->setLabelClass(['d-none'])
+                ->setWidth(12, 0);
+                $script = <<<EOT
+    $(".$input_id").on('fileuploaded', function(e, params) {
+        console.log('file uploaded', e, params);
+        $.pjax.reload('#pjax-container');
+    });
+EOT;
+
+            Admin::script($script);    
+        }
+
+        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
+    }
+    
     protected function getComments($id, $modal = false)
     {
         if ($modal) {
@@ -502,6 +461,43 @@ EOT;
             ::where('parent_id', $id)
             ->where('parent_type', $this->custom_table->table_name)
             ->get();
+    }
+    
+    protected function setCommentBox($row, $custom_value, $id, $modal = false)
+    {
+        $useComment = $this->useComment($modal);
+        if (!$useComment) {
+            return;
+        }
+
+        $comments = $this->getComments($id, $modal);
+        $form = new WidgetForm;
+        $form->disableReset();
+        $form->action(admin_urls('data', $this->custom_table->table_name, $id, 'addcomment'));
+        $form->setWidth(10, 2);
+
+        if (count($comments) > 0) {
+            $html = [];
+            foreach ($comments as $index => $comment) {
+                $html[] = "<p>" . view('exment::form.field.commentline', [
+                    'comment' => $comment,
+                    'table_name' => $this->custom_table->table_name,
+                    'isAbleRemove' => ($comment->created_user_id == \Exment::user()->base_user_id),
+                ])->render() . "</p>";
+            }
+            // loop and add as link
+            $form->html(implode("", $html))
+                ->plain()
+                ->setWidth(8, 3);
+        }
+
+        $form->textarea('comment', exmtrans("common.comment"))
+            ->rows(3)
+            ->required()
+            ->setLabelClass(['d-none'])
+            ->setWidth(12, 0);
+
+        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
     
     protected function getWorkflows($id, $modal = false)
@@ -516,6 +512,35 @@ EOT;
             ->where('workflow_values.morph_id', $id)
             ->orderby('workflow_values.created_at')
             ->get();
+    }
+
+    protected function setWorkflowBox($row, $custom_value, $id, $modal = false)
+    {
+        if($modal || is_null(Workflow::getWorkflowByTable($this->custom_table))){
+            return;
+        }
+
+        $workflows = $this->getWorkflows($id, $modal);
+        $form = new WidgetForm;
+        $form->disableReset();
+        $form->disableSubmit();
+
+        if (count($workflows) == 0) {
+            return;
+        }
+
+        $html = [];
+        foreach ($workflows as $index => $workflow) {
+            $form->html(
+                view('exment::form.field.workflowline', [
+                    'workflow' => $workflow,
+                    'index' => $index,
+                ])->render(),
+                'No.'. ($index + 1)
+            )->setWidth(10, 2);
+        }
+        
+        $row->column(6, (new Box(exmtrans("common.workflow_history"), $form))->style('info'));
     }
 
     /**
