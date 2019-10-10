@@ -43,16 +43,20 @@ class CustomTableAction implements ActionInterface
         $data_imports = [];
 
         foreach ($datalist as $table_name => &$data) {
-            //$target_table = $data['custom_table'];
-            $provider = $this->getProvider($table_name);
-            if (!isset($provider)) {
+            if($table_name == Define::SETTING_SHEET_NAME){
                 continue;
             }
-
+            
             // get setting info
             if (array_has($datalist, Define::SETTING_SHEET_NAME)) {
                 $settings = $this->getImportTableSetting($datalist[Define::SETTING_SHEET_NAME], $table_name);
                 $options['setting'] = $settings;
+            }
+ 
+            //$target_table = $data['custom_table'];
+            $provider = $this->getProvider($table_name);
+            if (!isset($provider)) {
+                continue;
             }
 
             $dataObject = $provider->getDataObject($data, $options);

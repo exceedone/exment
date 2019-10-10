@@ -40,7 +40,7 @@ trait CustomValueShow
             $custom_value = $this->custom_table->getValueModel($id);
 
             if(isset($id) && !$modal){
-                $show->column()->system_values()->setWidth(12, 0);
+                $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
             }
 
             // add parent link if this form is 1:n relation
@@ -230,7 +230,6 @@ trait CustomValueShow
         if (count($documents) > 0 || $useFileUpload) {
             $form = new WidgetForm;
             $form->disableReset();
-            //$form->action($custom_value->getUrl(['uri' => 'fileupload']));
             $form->disableSubmit();
 
             // show document list
@@ -239,7 +238,8 @@ trait CustomValueShow
                     $html = [];
                     foreach ($documents as $index => $d) {
                         $html[] = "<p>" . view('exment::form.field.documentlink', [
-                            'document' => $d
+                            'document' => $d,
+                            'candelete' => $custom_value->enableDelete(),
                         ])->render() . "</p>";
                     }
                     // loop and add as link
@@ -263,19 +263,22 @@ trait CustomValueShow
                 $options_json = json_encode($options);
 
                 $input_id = 'file_data';
-                $form->file($input_id, trans('admin.upload'))
-                ->options($options)
-                ->setLabelClass(['d-none'])
-                ->setWidth(12, 0);
-                $script = <<<EOT
-    $(".$input_id").on('fileuploaded', function(e, params) {
-        console.log('file uploaded', e, params);
-        $.pjax.reload('#pjax-container');
-    });
 
+                if($custom_value->enableEdit()){
+                    $form->file($input_id, trans('admin.upload'))
+                    ->options($options)
+                    ->setLabelClass(['d-none'])
+                    ->setWidth(12, 0);
+                    $script = <<<EOT
+        $(".$input_id").on('fileuploaded', function(e, params) {
+            console.log('file uploaded', e, params);
+            $.pjax.reload('#pjax-container');
+        });
 EOT;
-                Admin::script($script);
+                    Admin::script($script);    
+                }
             }
+
             $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
         }
 
@@ -424,7 +427,7 @@ EOT;
             'newest_revision_suuid' => $newest_revision_suuid,
             'old_revision' => $old_revision,
             'revision_suuid' => $revision_suuid,
-            'has_edit_permission' => $this->custom_table->hasPermissionEditData($id),
+            'has_edit_permission' => $custom_value->enableEdit($id),
             'form_url' => admin_urls('data', $table_name, $id, 'compare'),
             'has_diff' => collect($table_columns)->filter(function ($table_column) {
                 return array_get($table_column, 'diff', false);

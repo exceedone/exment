@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
 
 trait UserTrait
@@ -81,6 +82,6 @@ trait UserTrait
         }
 
         // get default avatar
-        return asset('vendor/exment/images/user.png');
+        return asset(Define::USER_IMAGE_LINK);
     }
 }

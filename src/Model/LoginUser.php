@@ -72,7 +72,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         if ($avatar) {
             return Storage::disk(config('admin.upload.disk'))->url($avatar);
         }
-        return asset('vendor/exment/images/user.png');
+        return asset(Define::USER_IMAGE_LINK);
     }
     
     public function isLoginProvider()

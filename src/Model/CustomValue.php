@@ -110,8 +110,9 @@ abstract class CustomValue extends ModelBase
 
     public function getWorkflowStatusTagAttribute()
     {
+        $icon = ' <i class="fa fa-lock" aria-hidden="true" data-toggle="tooltip" title="' . esc_html(exmtrans('workflow.message.locked')) . '"></i>';
         return $this->workflow_status_name .
-            ($this->lockedWorkflow() ? ' <i class="fa fa-lock" aria-hidden="true"></i>' : '');
+            ($this->lockedWorkflow() ? $icon : '');
     }
 
     public function getWorkflowWorkUsersAttribute()
@@ -821,7 +822,7 @@ abstract class CustomValue extends ModelBase
 
         if (!is_nullorempty($label) && (boolval($options['add_avatar']) || boolval($options['only_avatar'])) && method_exists($this, 'getDisplayAvatarAttribute')) {
             $img = "<img src='{$this->display_avatar}' class='user-avatar' />";
-            $label = $img . $label;
+            $label = '<span class="d-inline-block">' . $img . $label . '</span>';
 
             if(boolval($options['only_avatar'])){
                 return $label;

@@ -18,6 +18,13 @@ class WorkflowStatus extends ModelBase
         static::addGlobalScope(new OrderScope('order'));
     }
 
+    /**
+     * Get workflow status name
+     *
+     * @param [type] $workflow_status
+     * @param [type] $workflow
+     * @return void
+     */
     public static function getWorkflowStatusName($workflow_status = null, $workflow = null){
         if(isset($workflow_status) && $workflow_status != Define::WORKFLOW_START_KEYNAME){
             return WorkflowStatus::getEloquentDefault($workflow_status)->status_name;
@@ -32,7 +39,23 @@ class WorkflowStatus extends ModelBase
     }
 
     /**
-     * Get workflow actions from status rom
+     * Get workflow status is completed
+     *
+     * @param [type] $workflow_status
+     * @param [type] $workflow
+     * @return void
+     */
+    public static function getWorkflowStatusCompleted($workflow_status = null){
+        if(!isset($workflow_status) || $workflow_status == Define::WORKFLOW_START_KEYNAME){
+            return false;
+        }
+
+        $model = static::getEloquentDefault($workflow_status);
+        return isset($model) && boolval($model->completed_flg);
+    }
+
+    /**
+     * Get workflow actions from status
      *
      * @param [type] $workflow_status
      * @param [type] $workflow

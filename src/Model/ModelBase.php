@@ -90,6 +90,11 @@ class ModelBase extends Model
         if (!isset($obj)) {
             return null;
         }
+
+        
+        if (is_object($obj) && get_class($obj) == get_called_class()) {
+            return $obj;
+        }
         
         // get table
         $obj = static::allRecords(function ($table) use ($query_key, $obj) {

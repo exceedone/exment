@@ -18,6 +18,8 @@ class Define
     public const COMPOSER_VERSION_CHECK_URL = 'https://repo.packagist.org/p/exceedone/exment.json';
     public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
     public const EXMENT_NEWS_LINK = 'https://exment.net/archives/category/news';
+    public const USER_IMAGE_LINK = 'vendor/exment/images/user.png';
+    public const ORGANIZATION_IMAGE_LINK = 'vendor/exment/images/organization.png';
 
     public const RULES_REGEX_VALUE_FORMAT = '\${(.*?)\}';
     public const RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN = '^[a-zA-Z0-9\-_]*$';

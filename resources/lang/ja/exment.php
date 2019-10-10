@@ -601,6 +601,7 @@ return [
             'status_nochange' => '開始と終了には異なる状態を選択してください。',
             'exists_authority' => 'アクションの権限は必ず設定してください。',
             'reference_error' => '使用中のワークフローは削除できません。',
+            'locked' => 'このデータは、ワークフロー設定によりロックされています。',
         ],
         
         'comment_options' => [

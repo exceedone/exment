@@ -229,7 +229,7 @@ class WorkflowAction extends ModelBase
                     }
                     break;
                 case WorkflowAuthorityType::ORGANIZATION:
-                    $ids = $targetUser->belong_organizations->pluck('id');
+                    $ids = $targetUser->belong_organizations->pluck('id')->toArray();
                     if(in_array($workflow_authority->related_id, $ids)){
                         return true;
                     }
@@ -353,6 +353,7 @@ class WorkflowAction extends ModelBase
         $form = new ModalForm();
         $form->action($path);
 
+        // get suatus info
         $statusFromName = esc_html(WorkflowStatus::getWorkflowStatusName($this->status_from, $this->workflow));
         $statusTo = $this->getStatusToId($custom_value);
         $statusToName = esc_html(WorkflowStatus::getWorkflowStatusName($statusTo, $this->workflow));
@@ -369,7 +370,8 @@ class WorkflowAction extends ModelBase
             ->displayText(($statusFromName != $statusToName) ? "<span class='red bold'>$statusToName</span>" : $statusToName);
         
         $next = $this->isActionNext($custom_value);
-        if($next){
+        $completed = WorkflowStatus::getWorkflowStatusCompleted($statusTo);
+        if($next && !$completed){
             // get next actions
             $toActionAuthorities = collect();
 
