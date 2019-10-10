@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\WorkflowAuthorityType;
+use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
@@ -338,29 +339,66 @@ class WorkflowAction extends ModelBase
         return ($flow_next_count - 1 <= $action_executed_count);
     }
 
+    /**
+     * Get action modal form
+     *
+     * @param [type] $custom_value
+     * @return void
+     */
     public function actionModal($custom_value){
-        $path = admin_urls('data', $custom_value->custom_table->table_name, $custom_value->id, 'actionClick');
+        $custom_table = $custom_value->custom_table;
+        $path = admin_urls('data', $custom_table->table_name, $custom_value->id, 'actionClick');
         
         // create form fields
         $form = new ModalForm();
         $form->action($path);
 
-        $statusFromName = WorkflowStatus::getWorkflowStatusName($this->status_from, $this->workflow);
+        $statusFromName = esc_html(WorkflowStatus::getWorkflowStatusName($this->status_from, $this->workflow));
         $statusTo = $this->getStatusToId($custom_value);
-        $statusToName = WorkflowStatus::getWorkflowStatusName($statusTo, $this->workflow);
+        $statusToName = esc_html(WorkflowStatus::getWorkflowStatusName($statusTo, $this->workflow));
+
+        $form->description('以下のアクションを実行します。');
+        
+        $form->display('action_name', exmtrans('workflow.action_name'))
+            ->default($this->action_name);
+        
+        $form->display('status_from', exmtrans('common.workflow_status'))
+            ->displayText($statusFromName);
+    
+        $form->display('status_to', exmtrans('workflow.status_to'))
+            ->displayText(($statusFromName != $statusToName) ? "<span class='red bold'>$statusToName</span>" : $statusToName);
         
         $next = $this->isActionNext($custom_value);
         if($next){
-            $form->display('status_from_to', 'ステータス')
-                ->default($statusFromName . ' → ' . $statusToName);
-
             // get next actions
             $toActionAuthorities = collect();
-            WorkflowStatus::getActionsByFrom($statusTo, $this->workflow)
-                ->each(function($workflow_action) use(&$toActionAuthorities, $custom_value){
+
+            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow, true);
+            $nextActions->each(function($workflow_action) use(&$toActionAuthorities, $custom_value){
                     $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value)
                         ->merge($toActionAuthorities);
                 });
+
+            // show target users text
+            $select = $nextActions->contains(function($nextAction){
+                return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
+            });
+
+            // if select, show options
+            if($select){
+                $options = CustomValueAuthoritable::getUserOrgSelectOptions($custom_table, null, true);
+                $form->multipleSelect('next_work_user', exmtrans('workflow.next_work_user'))
+                    ->options($options)->required();
+            }else{
+                // only display
+                $form->display('next_work_user', exmtrans('workflow.next_work_user'))
+                    ->displayText($toActionAuthorities->map(function($toActionAuthority){
+                        return $toActionAuthority->getUrl([
+                            'tag' => true,
+                            'only_avatar' => true,
+                        ]);
+                    })->implode(exmtrans('common.separate_word')));
+            }
         }
 
         if($this->comment_type != WorkflowCommentType::NOTUSE){

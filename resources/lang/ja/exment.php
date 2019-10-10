@@ -583,6 +583,7 @@ return [
         'all_user' => '全員実行',
         'status_from' => '実行前ステータス',
         'status_to' => '実行後ステータス',
+        'next_work_user' => '次の作業ユーザー', 
         'beginning' => '利用設定',
 
         'help' => [

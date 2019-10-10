@@ -181,7 +181,7 @@ class CustomValueAuthoritable extends ModelBase
      * @param [type] $custom_table
      * @return void
      */
-    public static function getUserOrgSelectOptions($custom_table, $permission = null)
+    public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false)
     {
         // get options
         $users = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions(
@@ -196,6 +196,14 @@ class CustomValueAuthoritable extends ModelBase
             $users = collect($users);
         }
         
+        // get self user id
+        if($ignoreLoginUser){
+            $user_id = \Exment::user()->base_user_id;
+            $users = $users->filter(function($user, $id) use($user_id){
+                return $id != $user_id;
+            });
+        }
+
         $users = $users->mapWithKeys(function ($item, $key) {
             return [SystemTableName::USER . '_' . $key => $item];
         });

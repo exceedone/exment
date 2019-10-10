@@ -64,4 +64,23 @@ trait UserTrait
             return true;
         }
     }
+
+    /**
+     * Get avatar
+     *
+     * @return void
+     */
+    public function getDisplayAvatarAttribute(){
+        // get login user
+        $login_user = $this->login_users->first(function($login_user){
+            return isset($login_user->avatar);
+        });
+
+        if(isset($login_user)){
+            return $login_user->display_avatar;
+        }
+
+        // get default avatar
+        return asset('vendor/exment/images/user.png');
+    }
 }

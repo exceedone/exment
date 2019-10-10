@@ -134,7 +134,7 @@ abstract class CustomValue extends ModelBase
             if(is_string($user)){
                 return $user;
             }
-            return $user->getUrl(true);
+            return getUserName($user, true);
         })->implode(',');
     }
 
@@ -773,6 +773,8 @@ abstract class CustomValue extends ModelBase
                 'icon' => null,
                 'modal' => true,
                 'add_id' => false,
+                'add_avatar' => false,
+                'only_avatar' => false,
             ],
             $options
         );
@@ -815,6 +817,15 @@ abstract class CustomValue extends ModelBase
 
         if (boolval($options['add_id'])) {
             $widgetmodal_url .= " data-id='{$this->id}'";
+        }
+
+        if (!is_nullorempty($label) && (boolval($options['add_avatar']) || boolval($options['only_avatar'])) && method_exists($this, 'getDisplayAvatarAttribute')) {
+            $img = "<img src='{$this->display_avatar}' class='user-avatar' />";
+            $label = $img . $label;
+
+            if(boolval($options['only_avatar'])){
+                return $label;
+            }
         }
 
         return "<a href='$href'$widgetmodal_url>$label</a>";

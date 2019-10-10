@@ -1622,7 +1622,13 @@ if (!function_exists('getUserName')) {
      */
     function getUserName($id, $link = false)
     {
-        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
+        if($id instanceof CustomValue){
+            $user = $id;    
+        }
+        else{
+            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
+        }
+        
         if (!isset($user)) {
             return null;
         }
@@ -1631,7 +1637,10 @@ if (!function_exists('getUserName')) {
         }
 
         if ($link) {
-            return $user->getUrl(true);
+            return $user->getUrl([
+                'tag' => true,
+                'add_avatar' => true,
+            ]);
         }
         return $user->getLabel();
     }

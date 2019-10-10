@@ -38,13 +38,20 @@ class WorkflowStatus extends ModelBase
      * @param [type] $workflow
      * @return void
      */
-    public static function getActionsByFrom($workflow_status = null, $workflow = null){
+    public static function getActionsByFrom($workflow_status = null, $workflow = null, $ignoreReject = false){
         if(!isset($workflow_status)){
             $workflow_status = Define::WORKFLOW_START_KEYNAME;
         }
 
         return WorkflowAction::where('workflow_id', $workflow->id)
             ->where('status_from', $workflow_status)
-            ->get();
+            ->get()
+            ->filter(function($action) use($ignoreReject){
+                if(!$ignoreReject){
+                    return true;
+                }
+
+                return !boolval($action->getOption('reject_action'));
+            });
     }
 }
