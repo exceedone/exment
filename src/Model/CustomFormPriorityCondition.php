@@ -100,7 +100,7 @@ class CustomFormPriorityCondition extends ModelBase
     /**
      * check if custom_value and user(organization, role) match for conditions.
      */
-    public function isMatch($custom_value)
+    public function isMatchCondition($custom_value)
     {
         switch ($this->form_priority_type) {
             case FormPriorityType::COLUMN:

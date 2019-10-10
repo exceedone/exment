@@ -155,13 +155,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $list;
     }
 
+    /**
+     * Get priority form using condition
+     *
+     * @param [type] $id
+     * @return void
+     */
     public function getPriorityForm($id = null)
     {
         $custom_value = $this->getValueModel($id);
 
         $custom_form_priorities = $this->custom_form_priorities->sortBy('order');
         foreach ($custom_form_priorities as $custom_form_priority) {
-            if ($custom_form_priority->isMatch($custom_value)) {
+            if ($custom_form_priority->isMatchCondition($custom_value)) {
                 return $custom_form_priority->custom_form;
             }
         }

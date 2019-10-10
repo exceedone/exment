@@ -20,10 +20,10 @@ class CustomFormPriority extends ModelBase
     /**
      * check if custom_value and user(organization, role) match for conditions.
      */
-    public function isMatch($custom_value)
+    public function isMatchCondition($custom_value)
     {
         foreach ($this->custom_form_priority_conditions as $condition) {
-            if (!$condition->isMatch($custom_value)) {
+            if (!$condition->isMatchCondition($custom_value)) {
                 return false;
             }
         }
