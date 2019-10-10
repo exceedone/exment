@@ -1,4 +1,5 @@
 <?php
+use Encore\Admin\Form\Field;
 use Exceedone\Exment\Services\ClassBuilder;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -13,6 +14,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
+use Exceedone\Exment\Enums\FormPriorityType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Illuminate\Support\Str;
@@ -1689,15 +1691,30 @@ if (!function_exists('useLoginProvider')) {
     if (!function_exists('getCustomField')) {
         function getCustomField($data, $field_label = null)
         {
-            $view_column_target = array_get($data, 'view_column_target');
-            $view_filter_condition = array_get($data, 'view_filter_condition');
+            $form_priority_target = array_get($data, 'form_priority_target');
+
+            if (isset($form_priority_target)) {
+                list($form_priority_type, $target_column_id) = explode('-', $form_priority_target) + [null, null];
+
+                if ($form_priority_target == FormPriorityType::COLUMN) {
+                    $view_column_target = $target_column_id;
+                } else {
+                    $options = FormPriorityType::SYSTEM_TABLE_OPTIONS($form_priority_type);
+                    $label = $field_label?? FormPriorityType::getEnum($form_priority_type)->transKey('custom_form.form_priority_type_options');
+                    $field = new Field\MultipleSelect('form_filter_condition_value', [$label]);
+                    return $field->options($options);
+                }
+            } else {
+                $view_column_target = array_get($data, 'view_column_target');
+                $view_filter_condition = array_get($data, 'view_filter_condition');
+            }
 
             if (!isset($view_column_target)) {
                 return null;
             }
-    
+
             $value_type = null;
-    
+
             if (isset($view_filter_condition)) {
                 $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($view_filter_condition);
     
@@ -1705,7 +1722,7 @@ if (!function_exists('useLoginProvider')) {
                     return null;
                 }
             }
-    
+        
             // get column item
             $column_item = CustomViewFilter::getColumnItem($view_column_target);
             if (isset($field_label)) {

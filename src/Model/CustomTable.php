@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\FormPriorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
@@ -100,6 +101,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id');
     }
 
+    public function custom_form_priorities()
+    {
+        return $this->hasManyThrough(CustomFormPriority::class, CustomForm::class, 'custom_table_id', 'custom_form_id');
+    }
+
     public function multi_uniques()
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
@@ -147,6 +153,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
         $list = $list->filter()->toArray();
         return $list;
+    }
+
+    public function getPriorityForm($id = null)
+    {
+        $custom_value = $this->getValueModel($id);
+
+        $custom_form_priorities = $this->custom_form_priorities->sortBy('order');
+        foreach ($custom_form_priorities as $custom_form_priority) {
+            if ($custom_form_priority->isMatch($custom_value)) {
+                return $custom_form_priority->custom_form;
+            }
+        }
+        return null;
     }
 
     /**
@@ -1418,6 +1437,33 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $options[static::getOptionKey(array_get($option, 'name'))] = exmtrans('common.'.array_get($option, 'name'));
         }
 
+        return $options;
+    }
+
+    /**
+     * get select columns select options. It contains select, select_table, select_valtext.
+     *
+     */
+    public function getPrioritySelectOptions()
+    {
+        $array = [];
+        foreach (FormPriorityType::toArray() as $key => $value) {
+            if ($value != FormPriorityType::COLUMN) {
+                $array[$value] = strtolower($key);
+            }
+        }
+        $options = getTransArrayValue($array, 'custom_form.form_priority_type_options');
+
+        ///// get table columns
+        $custom_columns = $this->custom_columns;
+        foreach ($custom_columns as $option) {
+            $column_type = array_get($option, 'column_type');
+            if (ColumnType::isSelectForm($column_type)) {
+                $key = FormPriorityType::COLUMN . '-'. array_get($option, 'id');
+                $options[$key] = array_get($option, 'column_view_name');
+            }
+        }
+        
         return $options;
     }
         

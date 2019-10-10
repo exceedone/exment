@@ -29,6 +29,11 @@ trait CustomValueForm
     {
         $request = request();
         $this->setFormViewInfo($request);
+        
+        $custom_form = $this->custom_table->getPriorityForm($id);
+        if (isset($custom_form)) {
+            $this->custom_form =$custom_form;
+        }
 
         $classname = $this->getModelNameDV();
         $form = new Form(new $classname);

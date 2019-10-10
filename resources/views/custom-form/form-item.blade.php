@@ -38,6 +38,13 @@
                     </div>
                     
                     <div class="form-group">
+                        <span class="small control-label col-sm-5">{{exmtrans('custom_form.required')}}</span>
+                        <div class="col-sm-7" style="padding-top:4px;">
+                                {{ Form::checkbox("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][required]", 1, array_get($custom_form_column, 'options.required'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__required_{$loop->index}", 'class' => 'icheck']) }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
                         <span class="small control-label col-sm-5">{{exmtrans('custom_form.changedata')}}</span>
                         <div class="col-sm-7" style="padding-top:4px;">
                                 <a class="btn btn-sm btn-default changedata-modal" href="javascript:void(0);">@lang('admin.setting')</a> 

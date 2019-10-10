@@ -150,6 +150,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("column/{tableKey}/calcModal", 'CustomColumnController@calcModal');
             $router->post("column/{tableKey}/{id}/calcModal", 'CustomColumnController@calcModal');
             $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
+            $router->get("formpriority/{tableKey}/filter-value", 'CustomFormPriorityController@getFilterValue');
+
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
                         
             $router->get('api/table/{id}', 'ApiController@table');
@@ -165,6 +167,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
             $this->setTableResouce($router, 'form', 'CustomFormController');
+            $this->setTableResouce($router, 'formpriority', 'CustomFormPriorityController');
             $this->setTableResouce($router, 'view', 'CustomViewController');
             $this->setTableResouce($router, 'relation', 'CustomRelationController');
             $this->setTableResouce($router, 'copy', 'CustomCopyController');

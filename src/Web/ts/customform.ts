@@ -13,6 +13,7 @@ namespace Exment {
 
             CustomFromEvent.addDragEvent();
             CustomFromEvent.addCollapseEvent();
+            CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
             CustomFromEvent.appendIcheckEvent($('.icheck:visible,.icheck.icheck_hasmany_type'));
             $('form').on('submit', CustomFromEvent.ignoreSuggests);
         }
@@ -251,6 +252,21 @@ namespace Exment {
             return true;
         }
 
+        static appendSwitchEvent($elem) {
+            $elem.each(function (index, elem) {
+                var $e = $(elem);
+                $e.bootstrapSwitch({
+                    size:'small',
+                    onText: 'YES',
+                    offText: 'NO',
+                    onColor: 'primary',
+                    offColor: 'default',
+                    onSwitchChange: function(event, state) {
+                        $(event.target).closest('.bootstrap-switch').next().val(state ? '1' : '0').change();
+                    }
+                });
+            });
+        }
         private static appendIcheckEvent($elem: JQuery<Element>) {
             $elem.each(function(index, elem){
                 var $e = $(elem);

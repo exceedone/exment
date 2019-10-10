@@ -7,8 +7,6 @@ use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomForm;
 use App\Http\Controllers\Controller;
 
 class AdminControllerTableBase extends Controller
@@ -32,8 +30,6 @@ class AdminControllerTableBase extends Controller
         $this->custom_columns = $this->custom_table->custom_columns;
 
         getModelName($this->custom_table);
-
-        $this->setFormViewInfo($request);
     }
 
     protected function getModelNameDV()
@@ -86,19 +82,6 @@ class AdminControllerTableBase extends Controller
             return false;
         }
         return true;
-    }
-
-    /**
-     * set view and form info.
-     * use session etc
-     */
-    protected function setFormViewInfo(Request $request)
-    {
-        // set view
-        $this->custom_view = CustomView::getDefault($this->custom_table);
-
-        // set form
-        $this->custom_form = CustomForm::getDefault($this->custom_table);
     }
     
     /**

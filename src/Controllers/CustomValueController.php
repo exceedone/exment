@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\WorkflowAction;
@@ -700,5 +701,18 @@ class CustomValueController extends AdminControllerTableBase
                 ];
             }
         }
+    }
+
+    /**
+     * set view and form info.
+     * use session etc
+     */
+    protected function setFormViewInfo(Request $request)
+    {
+        // set view
+        $this->custom_view = CustomView::getDefault($this->custom_table);
+
+        // set form
+        $this->custom_form = CustomForm::getDefault($this->custom_table);
     }
 }

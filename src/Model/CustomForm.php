@@ -53,6 +53,11 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         return $this->hasMany(CustomFormBlock::class, 'custom_form_id');
     }
+
+    public function custom_form_priorities()
+    {
+        return $this->hasMany(CustomFormPriority::class, 'custom_form_id');
+    }
     
     public function custom_form_columns()
     {
@@ -64,38 +69,16 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
      * get default form using table
      *
      * @param mixed $tableObj table_name, object or id eic
-     * @param boolean $getSettingValue if true, getting from UserSetting table
      * @return void
      */
-    public static function getDefault($tableObj, $getSettingValue = true)
+    public static function getDefault($tableObj)
     {
         $user = Admin::user();
         $tableObj = CustomTable::getEloquent($tableObj);
-        // get request
-        $request = Req::capture();
 
-        // get form using query
-        if (!is_null($request->input('form'))) {
-            // if query has form id, set form.
-            $suuid = $request->input('form');
-            $form = static::findBySuuid($suuid);
+        // get default form.
+        $form = $tableObj->custom_forms()->where('default_flg', true)->first();
 
-            // set suuid
-            if (!is_null($user)) {
-                $user->setSettingValue(implode(".", [UserSetting::FORM, $tableObj->table_name]), $suuid);
-            }
-        }
-        // if url doesn't contain form query, get form user setting.
-        if (!isset($form) && !is_null($user) && $getSettingValue) {
-            // get suuid
-            $suuid = $user->getSettingValue(implode(".", [UserSetting::FORM, $tableObj->table_name]));
-            $form = CustomForm::findBySuuid($suuid);
-        }
-
-        // if not exists, get default.
-        if (!isset($form)) {
-            $form = $tableObj->custom_forms()->where('default_flg', true)->first();
-        }
         // if not exists, get first.
         if (!isset($form)) {
             $form = $tableObj->custom_forms()->first();
@@ -175,6 +158,9 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
             $model->setDefaultFlgInTable();
         });
         static::updating(function ($model) {
+            $model->setDefaultFlgInTable();
+        });
+        static::saving(function ($model) {
             $model->setDefaultFlgInTable();
         });
         

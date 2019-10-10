@@ -87,6 +87,17 @@ class ColumnType extends EnumBase
         ];
     }
 
+    public static function COLUMN_TYPE_SELECT_FORM()
+    {
+        return [
+            ColumnType::SELECT,
+            ColumnType::SELECT_VALTEXT,
+            ColumnType::SELECT_TABLE,
+            ColumnType::YESNO,
+            ColumnType::BOOLEAN,
+        ];
+    }
+
     public static function COLUMN_TYPE_MULTIPLE_ENABLED()
     {
         return [
@@ -159,6 +170,10 @@ class ColumnType extends EnumBase
     public static function isNotEscape($column_type)
     {
         return in_array($column_type, static::COLUMN_TYPE_SHOW_NOT_ESCAPE());
+    }
+    public static function isSelectForm($column_type)
+    {
+        return in_array($column_type, static::COLUMN_TYPE_SELECT_FORM());
     }
 
     /**

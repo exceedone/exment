@@ -45,7 +45,6 @@ class CustomColumnController extends AdminControllerTableBase
      */
     public function index(Request $request, Content $content)
     {
-        $this->setFormViewInfo($request);
         //Validation table value
         if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
@@ -61,8 +60,6 @@ class CustomColumnController extends AdminControllerTableBase
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
-        $this->setFormViewInfo($request);
-        
         //Validation table value
         if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
@@ -80,7 +77,6 @@ class CustomColumnController extends AdminControllerTableBase
      */
     public function create(Request $request, Content $content)
     {
-        $this->setFormViewInfo($request);
         //Validation table value
         if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
@@ -605,7 +601,7 @@ class CustomColumnController extends AdminControllerTableBase
         // set custom form columns --------------------------------------------------
         $add_custom_form_flg = app('request')->input('add_custom_form_flg');
         if (boolval($add_custom_form_flg)) {
-            $form = CustomForm::getDefault($this->custom_table, false);
+            $form = CustomForm::getDefault($this->custom_table);
             $form_block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
             
             // get order

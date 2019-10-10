@@ -851,6 +851,7 @@ return [
         'form_block_name' => 'フォームブロック名',
         'view_only' => '表示専用',
         'hidden' => '隠しフィールド',
+        'required' => '必須項目',
         'text' => 'テキスト',
         'html' => 'HTML',
         'available' => '使用する',
@@ -865,6 +866,21 @@ return [
         'changedata_target_column_when' => 'の項目を選択したとき',
         'changedata_column' => 'リンク列を選択',
         'changedata_column_then' => 'の値をコピーする',
+        'default_flg' => '既定のフォーム',
+
+        'form_priority_type_options' => [
+            'user' => 'ユーザー',
+            'organization' => '組織',
+            'role' => '役割',
+            'column' => '列の値',
+        ],
+
+        'priority' => [
+            'title' => 'フォーム表示条件設定',
+            'form_view_name' => '表示フォーム',
+            'form_priority_text' => '条件',
+            'order' => '優先順',
+        ],
 
         'form_column_type_other_options' => [
             'header' => '見出し',
@@ -880,6 +896,20 @@ return [
 
         'message' => [
             'no_exists_column' => '必須項目が設定されていません。',
+        ],
+    ],
+
+    'custom_form_priority' => [
+        'header' => 'カスタムフォーム優先度設定',
+        'description' => 'フォーム画面を表示する条件と優先度を設定します。このページで設定した内容に応じて、フォーム画面が切り替わります。',
+        'custom_form_id' => '対象フォーム',
+        'order' => '優先順',
+        'custom_form_priority_conditions' => '表示条件',
+        'form_priority_target' => '条件項目',
+        'form_filter_condition_value' => '比較値',
+        'help'=> [
+            'order' => 'フォームの表示優先順位を設定します。',
+            'custom_form_priority_conditions' => 'カスタムフォームを表示する条件を設定します。ユーザー、組織、役割、選択型のカスタム列を選択できます。<br>複数条件を設定した場合はそのすべてを満たす必要があります。',
         ],
     ],
 
