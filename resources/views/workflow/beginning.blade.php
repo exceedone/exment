@@ -3,17 +3,15 @@
 <div class="worlfow_beginning">
 
     <div class="row">
-        <div class="col-sm-7">
-            <h3>{{ $item['custom_table']['table_view_name'] }}</h3>
-            <input type="hidden" name="workflow_tables[{{$custom_table_id}}][custom_table]['table_view_name']" value="{{ $item['custom_table']['table_view_name'] }}" />
+        <div class="col-sm-12">
+            <h4>{{ $item['custom_table']['table_view_name'] }}</h4>
+            <input type="hidden" name="workflow_tables[{{$custom_table_id}}][custom_table][table_view_name]" value="{{ $item['custom_table']['table_view_name'] }}" />
         </div>
     </div>
 
     <div class="row text-center">
         <div class="col-sm-3 col-sm-offset-1 bold">{{ exmtrans('workflow.workflow_view_name') }}</div>
         <div class="col-sm-2 bold">使用する</div>
-        <div class="col-sm-1 bold">進行中</div>
-        <div class="col-sm-1 bold">完了</div>
         <div class="col-sm-2 bold">使用開始日</div>
         <div class="col-sm-2 bold">使用終了日</div>
     </div>
@@ -31,17 +29,6 @@
             <input type="checkbox" data-add-icheck name="workflow_tables[{{$custom_table_id}}][workflows][{{$workflow_id}}][active_flg]" value="1" class="workflows_active_flg" {{ array_get($workflow, 'active_flg') == '1' ? 'checked' : '' }} />
         </div>
 
-        <div class="col-sm-1">
-            <div class="form-control" style="border:none;">
-                 
-            </div>
-        </div>
-
-        <div class="col-sm-1">
-            <div class="form-control" style="border:none;">
-                
-            </div>
-        </div>
 
         <div class="col-sm-2">
             <input type="text" data-add-date name="workflow_tables[{{$custom_table_id}}][workflows][{{$workflow_id}}][active_start_date]" value="{{ array_get($workflow, 'active_start_date') }}" class="form-control w-100">

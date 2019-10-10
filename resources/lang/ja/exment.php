@@ -605,6 +605,7 @@ return [
         'comment_options' => [
             'required' => '必須',
             'nullable' => '任意',
+            'not_use' => '使用しない',
         ],
 
         'workflow_type_options' => [

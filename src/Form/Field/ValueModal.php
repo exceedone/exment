@@ -196,7 +196,7 @@ class ValueModal extends Field
             function getValueModalTarget(){
                 let valueModalUuid = $('.modal .valueModalUuid').val();
                 if(hasValue(valueModalUuid)){
-                    return $('.block-valuemodal[data-valuemodal_uuid="' + valueModalUuid + '"]');
+                    return $('[data-widgetmodal_uuid="' + valueModalUuid + '"]').closest('.block-valuemodal');
                 }
 
                 return  $('$classname').closest('.block-valuemodal');
@@ -281,9 +281,6 @@ EOT;
         // set script
         $this->script();
 
-        // set uuid for getting target
-        $uuid = make_uuid();
-
         return parent::render()->with([
             'text'   => $this->text,
             'hidden' => $hidden,
@@ -293,8 +290,6 @@ EOT;
             'buttonClass'   => $this->buttonClass,
             'ajax' => $this->ajax,
             'modalContentname' => $this->modalContentname,
-            'uuid' => $uuid,
-            'expand' => collect(['uuid' => $uuid])->toJson(),
         ]);
     }
 }

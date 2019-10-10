@@ -1,4 +1,4 @@
-<div class="block-valuemodal" data-valuemodal_uuid="{{$uuid}}">
+<div class="block-valuemodal">
     <div class="{{$viewClass['form-group']}} {!! !$errors->has($errorKey) ?: 'has-error' !!}">
 
         <label for="{{$id}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
@@ -19,7 +19,6 @@
             data-widgetmodal_method="POST"
             data-widgetmodal_hasmany="1"
             data-widgetmodal_getdata='["{{$modalContentname}}"]'
-            data-widgetmodal_expand='{{$expand}}'
             >
             {{ $buttonlabel }}
             <input type="hidden" name="{{$name}}" value="{{$hidden}}" class="{{$class}} value-valuemodal" {!! $attributes !!} />

@@ -11,8 +11,9 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 
 class WorkflowAction extends ModelBase
 {
-    use Traits\DatabaseJsonTrait;
-    use Traits\UseRequestSessionTrait;
+    use Traits\DatabaseJsonTrait,
+    Traits\UseRequestSessionTrait,
+    \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $appends = ['work_targets', 'work_conditions', 'comment_type', 'flow_next_type', 'flow_next_count', 'reject_action'];
     protected $casts = ['options' => 'json'];
@@ -196,6 +197,7 @@ class WorkflowAction extends ModelBase
                 'workflow_id' => array_get($this, 'workflow_id'),
                 'morph_type' => $morph_type,
                 'morph_id' => $morph_id,
+                'workflow_action_id' => $this->id,
                 'workflow_status_id' => $status_to == Define::WORKFLOW_START_KEYNAME ? null : $status_to,
                 'latest_flg' => 1
             ], $data);
@@ -361,10 +363,12 @@ class WorkflowAction extends ModelBase
                 });
         }
 
-        $field = $form->textarea('comment_type', exmtrans('common.comment'));
-        // check required
-        if($this->comment_type == WorkflowCommentType::REQUIRED){
-            $field->required();
+        if($this->comment_type != WorkflowCommentType::NOTUSE){
+            $field = $form->textarea('comment_type', exmtrans('common.comment'));
+            // check required
+            if($this->comment_type == WorkflowCommentType::REQUIRED){
+                $field->required();
+            }    
         }
 
         $form->hidden('action_id')->default($this->id);

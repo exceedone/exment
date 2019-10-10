@@ -163,4 +163,15 @@ class Workflow extends ModelBase
             return boolval($workflow->setting_completed_flg);
         })->count() > 0;
     }
+    
+    /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        return boolval($this->setting_completed_flg);
+    }
+
 }

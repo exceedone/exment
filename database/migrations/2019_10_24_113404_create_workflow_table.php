@@ -75,6 +75,7 @@ class CreateWorkflowTable extends Migration
             $table->json('options')->nullable();
 
             $table->timestamps();
+            $table->softDeletes();
             $table->timeusers();
             
             $table->foreign('workflow_id')->references('id')->on('workflows');
@@ -94,7 +95,8 @@ class CreateWorkflowTable extends Migration
             $table->integer('workflow_id')->unsigned()->index();
             $table->string('morph_type', 255);
             $table->bigInteger('morph_id')->unsigned();
-            $table->integer('workflow_status_id')->unsigned()->nullable();
+            $table->integer('workflow_action_id')->unsigned()->nullable()->index();
+            $table->integer('workflow_status_id')->unsigned()->nullable()->index();
             $table->string('comment', 1000)->nullable();
             $table->boolean('action_executed_flg')->default(false)->index();
             $table->boolean('latest_flg')->default(false)->index();

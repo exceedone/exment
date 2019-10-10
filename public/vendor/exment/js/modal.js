@@ -21,6 +21,10 @@ var Exment;
                     data[getdataKeys[key]] = $target.find('.' + getdataKeys[key]).val();
                 }
             }
+            // set uuid
+            const uuid = getUuid();
+            $target.attr('data-widgetmodal_uuid', uuid);
+            data['widgetmodal_uuid'] = uuid;
             // get expand data
             let expand = $target.data('widgetmodal_expand');
             if (hasValue(expand)) {

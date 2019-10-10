@@ -30,6 +30,7 @@ use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Symfony\Component\HttpFoundation\Response;
+use \Carbon\Carbon;
 
 class WorkflowController extends AdminControllerBase
 {
@@ -67,7 +68,7 @@ class WorkflowController extends AdminControllerBase
         });
         $grid->column('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->display(function($value){
             if(boolval($value)){
-                return '設定済';
+                return getTrueMark($value);
             }
 
             return null;
@@ -80,15 +81,21 @@ class WorkflowController extends AdminControllerBase
 
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
+
             // add new edit link
             $linker = (new Linker)
                 ->url(admin_urls('workflow', $actions->getKey(), 'edit?action=2'))
                 ->icon('fa-exchange')
                 ->tooltip(exmtrans('workflow.action'));
             $actions->prepend($linker);
+            
+            if ($actions->row->disabled_delete) {
+                $actions->disableDelete();
+            }
         });
 
         $grid->tools(function ($tools) {
+            
             if(Workflow::hasSettingCompleted()){
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_url('workflow/beginning'),
@@ -188,6 +195,7 @@ class WorkflowController extends AdminControllerBase
             $form->switchbool('datalock_flg', exmtrans("workflow.datalock_flg"))->help(exmtrans('workflow.help.editable_flg'));
             $form->hidden('order')->default(0);
         })->setTableWidth(8, 2)
+        ->required()
         ->setTableColumnWidth(6, 2, 2);
         if(isset($workflow) && boolval($workflow->setting_completed_flg)){
             $field->disableDelete()
@@ -228,9 +236,9 @@ class WorkflowController extends AdminControllerBase
 
         $self = $this;
         $form->tools(function (Form\Tools $tools) use($self, $workflow) {
-            $tools->disableDelete();
             $self->appendActivateButton($workflow, $tools);
             $self->appendTableSettingButton($workflow, $tools);
+            $self->disableDelete($workflow, $tools);
         });
 
         $form->saved(function (Form $form) use ($id) {
@@ -359,9 +367,9 @@ class WorkflowController extends AdminControllerBase
 
         $self = $this;
         $form->tools(function (Form\Tools $tools) use($self, $workflow) {
-            $tools->disableDelete();
             $self->appendActivateButton($workflow, $tools);
             $self->appendTableSettingButton($workflow, $tools);
+            $self->disableDelete($workflow, $tools);
         });
 
         $form->ignore(['action']);
@@ -390,79 +398,81 @@ class WorkflowController extends AdminControllerBase
         $form->disablereset();
         $form->action(admin_urls('workflow', 'beginning'));
 
-        $workflowTables = WorkflowTable::with(['workflow', 'custom_table'])->get()
-            ->filter(function($workflowTable){
-                if(!boolval($workflowTable->workflow->setting_completed_flg)){
+        $results = [];
+
+        if (is_null($results = old('workflow_tables'))) {
+            $workflowTables = WorkflowTable::with(['workflow', 'custom_table'])->get()
+            ->filter(function ($workflowTable) {
+                if (!boolval($workflowTable->workflow->setting_completed_flg)) {
                     return false;
                 }
 
                 return true;
             });
 
-        // get all "common" and settinged workflows
-        $workflowCommons = Workflow::allRecords(function($workflow){
-            if($workflow->workflow_type != WorkflowType::COMMON){
-                return false;
-            }
+            // get all "common" and settinged workflows
+            $workflowCommons = Workflow::allRecords(function ($workflow) {
+                if ($workflow->workflow_type != WorkflowType::COMMON) {
+                    return false;
+                }
 
-            if(!boolval($workflow->setting_completed_flg)){
-                return false;
-            }
-
-            return true;
-        });
-
-        // get all custom tables
-        $custom_tables = CustomTable::allRecords(function($custom_table){
-            return !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())
-            && !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY());
-        });
-
-        $results = [];
-        foreach($custom_tables as $custom_table){
-            $results[$custom_table->id] = [
-                'custom_table' => $custom_table,
-                'workflows' => []
-            ];
-
-            // append already setting workflow table
-            $workflowTables->filter(function($workflowTable) use($custom_table){
-                if($custom_table->id !== $workflowTable->custom_table->id){
+                if (!boolval($workflow->setting_completed_flg)) {
                     return false;
                 }
 
                 return true;
-            })->each(function($workflowTable) use(&$results, $custom_table){
-                $workflow = $workflowTable->workflow;
-                $results[$custom_table->id]['workflows'][$workflow->id] = [
+            });
+
+            // get all custom tables
+            $custom_tables = CustomTable::allRecords(function ($custom_table) {
+                return !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())
+            && !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY());
+            });
+
+            foreach ($custom_tables as $custom_table) {
+                $results[$custom_table->id] = [
+                'custom_table' => $custom_table,
+                'workflows' => []
+            ];
+
+                // append already setting workflow table
+                $workflowTables->filter(function ($workflowTable) use ($custom_table) {
+                    if ($custom_table->id !== $workflowTable->custom_table->id) {
+                        return false;
+                    }
+
+                    return true;
+                })->each(function ($workflowTable) use (&$results, $custom_table) {
+                    $workflow = $workflowTable->workflow;
+                    $results[$custom_table->id]['workflows'][$workflow->id] = [
                     'workflow_view_name' => $workflow->workflow_view_name,
                     'active_start_date' => $workflowTable->active_start_date,
                     'active_end_date' => $workflowTable->active_end_date,
                     'active_flg' => $workflowTable->active_flg,
                 ];
-            });
+                });
 
-            // append common workflows
-            $workflowCommons->each(function($workflow) use(&$results, $custom_table){
-                if(array_has($results[$custom_table->id]['workflows'], $workflow->id)){
-                    return;
-                }
+                // append common workflows
+                $workflowCommons->each(function ($workflow) use (&$results, $custom_table) {
+                    if (array_has($results[$custom_table->id]['workflows'], $workflow->id)) {
+                        return;
+                    }
 
-                $results[$custom_table->id]['workflows'][$workflow->id] = [
+                    $results[$custom_table->id]['workflows'][$workflow->id] = [
                     'workflow_view_name' => $workflow->workflow_view_name,
-                ];;
-            });
+                ];
+                    ;
+                });
+            }
         }
 
-        $form->setWidth(11, 0);
-
         // add form
-        $form->description('各テーブルごとに、使用するワークフローを選択します。<br />※使用するワークフローを変更した場合でも、現在進行中のワークフローは、変更前のワークフローで実行されます。<br />' . exmtrans('workflow.help.workflow_help'))
-            ->setWidth(10, 2);
+        $form->description('各テーブルごとに、使用するワークフローを1件まで選択します。<br />※使用するワークフローを変更した場合でも、現在進行中のワークフローは、変更前のワークフローで実行されます。<br />' . exmtrans('workflow.help.workflow_help'))
+            ;
 
         $form->html(view('exment::workflow.beginning', [
             'items' => $results
-        ])->render())->setWidth(11, 0);
+        ])->render());
 
         $box = new Box(exmtrans('workflow.beginning'), $form);
         $box->tools(view('exment::tools.button', [
@@ -484,7 +494,38 @@ class WorkflowController extends AdminControllerBase
     {
         $workflow_tables = $request->get('workflow_tables');
 
-        //TODO:workflow validation
+        //workflow validation
+        $vavidator = \Validator::make($request->all(), [
+            'workflow_tables.*.workflows.*.active_start_date' => ['nullable', 'date', 'before_or_equal:workflow_tables.*.workflows.*.active_end_date'],
+            'workflow_tables.*.workflows.*.active_end_date' => ['nullable', 'date']
+        ]);
+
+        $errors = $vavidator->errors();
+
+        foreach ($workflow_tables as $custom_table_id => $item) {
+            // get active_flg's count
+            $workflows = array_get($item, 'workflows', []);
+            if(collect($workflows)->filter(function($workflow_item){
+                return boolval(array_get($workflow_item, 'active_flg'));
+            })->count() >= 2){
+                // check date
+                $searchDates = collect($workflows)->map(function($workflow_item){
+                    return [
+                        'start' => Carbon::parse(array_get($workflow_item, 'active_start_date') ?? '1900-01-01'),
+                        'end' => Carbon::parse(array_get($workflow_item, 'active_end_date') ?? '9999-12-31'),
+                    ];
+                });
+
+                if(hasDuplicateDate($searchDates)){
+                    $errors->add("workflow_tables.$custom_table_id.custom_table", 'ワークフローが重複しています。');
+                }
+            }
+        }
+
+        if (count($errors->getMessages()) > 0) {
+            return back()->withErrors($errors)
+                        ->withInput();
+        }
 
         \DB::transaction(function() use($workflow_tables){
             foreach($workflow_tables as $custom_table_id => $item){
@@ -496,13 +537,13 @@ class WorkflowController extends AdminControllerBase
                     if(boolval(array_get($workflow_item, 'active_flg'))){
                         $workflow_table->active_flg = true;
                         $workflow_table->active_start_date = array_get($workflow_item, 'active_start_date');
-                        $workflow_table->active_start_date = array_get($workflow_item, 'active_end_date');
+                        $workflow_table->active_end_date = array_get($workflow_item, 'active_end_date');
                     }
                     // not active, reset
                     else{
                         $workflow_table->active_flg = false;
                         $workflow_table->active_start_date = null;
-                        $workflow_table->active_start_date = null;
+                        $workflow_table->active_end_date = null;
                     }
 
                     $workflow_table->save();
@@ -543,6 +584,11 @@ class WorkflowController extends AdminControllerBase
         }
     }
 
+    public function disableDelete($workflow, $tools){
+        if(isset($workflow) && $workflow->disabled_delete){
+            $tools->disableDelete();
+        }
+    }
     /**
      * Activate workflow
      *
@@ -736,7 +782,7 @@ class WorkflowController extends AdminControllerBase
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
             ->default($modal_system_default);
 
-        $form->hidden('valueModalUuid')->default($request->get('uuid'));
+        $form->hidden('valueModalUuid')->default($request->get('widgetmodal_uuid'));
 
         $form->setWidth(9, 2);
 
@@ -862,8 +908,7 @@ class WorkflowController extends AdminControllerBase
             }
         }
 
-
-        $form->hidden('valueModalUuid')->default($request->get('uuid'));
+        $form->hidden('valueModalUuid')->default($request->get('widgetmodal_uuid'));
 
         return getAjaxResponse([
             'body'  => $form->render(),

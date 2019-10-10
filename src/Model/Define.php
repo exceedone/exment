@@ -162,7 +162,7 @@ class Define
         ],
         'workflow' => [
             'uri' => 'workflow',
-            'icon' => 'fa-code-fork',
+            'icon' => 'fa-share-alt',
         ],
         'backup' => [
             'uri' => 'backup',

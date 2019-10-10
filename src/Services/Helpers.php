@@ -446,6 +446,33 @@ if (!function_exists('isApiEndpoint')) {
     }
 }
 
+// date --------------------------------------------------
+if (!function_exists('hasDuplicateDate')) {
+    /**
+     * Check dates Duplicate
+     *
+     * @param array $dates array of between ['start':Carbon, 'end':Carbon]
+     * @return boolean Duplicate:true
+     */
+    function hasDuplicateDate($dates)
+    {
+        $dates = collect($dates);
+
+        for($i = 0; $i < count($dates) - 1; $i++){
+            $date = $dates->values()->get($i);
+            $searchDates = $dates->slice($i + 1);
+
+            if($searchDates->contains(function($searchDate) use($date){
+                return $date['start']->lte($searchDate['end']) && $date['end']->gte($searchDate['start']);
+            })){
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 // array --------------------------------------------------
 if (!function_exists('array_keys_exists')) {
     /**
