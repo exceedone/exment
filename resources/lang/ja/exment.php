@@ -868,13 +868,6 @@ return [
         'changedata_column_then' => 'の値をコピーする',
         'default_flg' => '既定のフォーム',
 
-        'form_priority_type_options' => [
-            'user' => 'ユーザー',
-            'organization' => '組織',
-            'role' => '役割',
-            'column' => '列の値',
-        ],
-
         'priority' => [
             'title' => 'フォーム表示条件設定',
             'form_view_name' => '表示フォーム',
@@ -905,8 +898,8 @@ return [
         'custom_form_id' => '対象フォーム',
         'order' => '優先順',
         'custom_form_priority_conditions' => '表示条件',
-        'form_priority_target' => '条件項目',
-        'form_filter_condition_value' => '比較値',
+        'condition_target' => '条件項目',
+        'condition_value' => '比較値',
         'help'=> [
             'order' => 'フォームの表示優先順位を設定します。',
             'custom_form_priority_conditions' => 'カスタムフォームを表示する条件を設定します。ユーザー、組織、役割、選択型のカスタム列を選択できます。<br>複数条件を設定した場合はそのすべてを満たす必要があります。',
@@ -1497,4 +1490,16 @@ return [
         'client_secret' => 'Client Secret',
         'redirect' => 'リダイレクトURL',
     ],
+
+    'condition' => [
+        'condition_target' => '条件項目',
+        'condition_key' => '検索条件',
+        'condition_options' => [
+            'user' => 'ユーザー',
+            'organization' => '組織',
+            'role' => '役割グループ',
+            'system' => 'システム',
+            'column' => '列の値',
+        ],
+    ]
 ];

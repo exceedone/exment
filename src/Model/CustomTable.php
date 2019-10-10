@@ -10,7 +10,7 @@ use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
-use Exceedone\Exment\Enums\FormPriorityType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
@@ -1176,8 +1176,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_parent' => false,
                 'include_child' => false,
                 'include_select_table' => false,
+                'include_column' => true,
                 'include_system' => true,
                 'include_workflow' => false,
+                'include_condition' => false,
             ],
             $selectOptions
         );
@@ -1185,19 +1187,34 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $options = [];
         
+        if ($include_condition) {
+            $this->setColumnOptions(
+                $options,
+                [],
+                null,
+                [
+                    'include_system' => false,
+                    'include_condition' => true,
+                ]
+            );
+        }
+
+
         // getting this table's column options
-        $this->setColumnOptions(
-            $options,
-            $this->custom_columns,
-            $this->id,
-            [
-                'append_table' => $append_table,
-                'index_enabled_only' => $index_enabled_only,
-                'include_parent' => true,
-                'include_system' => $include_system,
-                'include_workflow' => $include_workflow,
-            ]
-        );
+        if ($include_column) {
+            $this->setColumnOptions(
+                $options,
+                $this->custom_columns,
+                $this->id,
+                [
+                    'append_table' => $append_table,
+                    'index_enabled_only' => $index_enabled_only,
+                    'include_parent' => $include_parent,
+                    'include_system' => $include_system,
+                    'include_workflow' => $include_workflow,
+                ]
+            );
+        }
 
         if ($include_parent) {
             ///// get child table columns
@@ -1293,8 +1310,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'append_table' => false,
                 'index_enabled_only' => false,
                 'include_parent' => false,
+                'include_column' => true,
                 'include_system' => true,
                 'include_workflow' => false,
+                'include_condition' => false,
                 'table_view_name' => null,
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
@@ -1332,14 +1351,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
         }
 
-        foreach ($custom_columns as $custom_column) {
-            // if $index_enabled_only = true and options.index_enabled_only is false, continue
-            if ($index_enabled_only && !$custom_column->index_enabled) {
-                continue;
+        if ($include_condition) {
+            foreach (ConditionType::toArray() as $key => $value) {
+                if (in_array($value, [ConditionType::COLUMN, ConditionType::SYSTEM])) {
+                    continue;
+                }
+                $array[$key] = strtolower($key);
             }
-            $key = static::getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id, $optionKeyParams);
-            $value = array_get($custom_column, 'column_view_name');
-            static::setKeyValueOption($options, $key, $value, $table_view_name);
+            $options = getTransArrayValue($array, 'condition.condition_options');
+        }
+
+        if ($include_column) {
+            foreach ($custom_columns as $custom_column) {
+                // if $index_enabled_only = true and options.index_enabled_only is false, continue
+                if ($index_enabled_only && !$custom_column->index_enabled) {
+                    continue;
+                }
+                $key = static::getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id, $optionKeyParams);
+                $value = array_get($custom_column, 'column_view_name');
+                static::setKeyValueOption($options, $key, $value, $table_view_name);
+            }
         }
 
         if ($include_system) {
@@ -1446,33 +1477,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $options;
     }
 
-    /**
-     * get select columns select options. It contains select, select_table, select_valtext.
-     *
-     */
-    public function getPrioritySelectOptions()
-    {
-        $array = [];
-        foreach (FormPriorityType::toArray() as $key => $value) {
-            if ($value != FormPriorityType::COLUMN) {
-                $array[$value] = strtolower($key);
-            }
-        }
-        $options = getTransArrayValue($array, 'custom_form.form_priority_type_options');
-
-        ///// get table columns
-        $custom_columns = $this->custom_columns;
-        foreach ($custom_columns as $option) {
-            $column_type = array_get($option, 'column_type');
-            if (ColumnType::isSelectForm($column_type)) {
-                $key = FormPriorityType::COLUMN . '-'. array_get($option, 'id');
-                $options[$key] = array_get($option, 'column_view_name');
-            }
-        }
-        
-        return $options;
-    }
-        
     /**
      * Get relation tables list.
      * It contains search_type(select_table, one_to_many, many_to_many)

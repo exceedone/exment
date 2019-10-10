@@ -37,6 +37,8 @@ class Morph
                 
             $morphMaps = [
                 "table" => Model\CustomTable::class,
+                "custom_form_priority" => Model\CustomFormPriority::class,
+                "workflow_action" => Model\WorkflowAction::class,
             ];
             foreach ($tables as $table) {
                 // morphmap

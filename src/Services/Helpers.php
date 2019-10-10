@@ -14,7 +14,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
-use Exceedone\Exment\Enums\FormPriorityType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Illuminate\Support\Str;
@@ -1691,17 +1691,18 @@ if (!function_exists('useLoginProvider')) {
     if (!function_exists('getCustomField')) {
         function getCustomField($data, $field_label = null)
         {
-            $form_priority_target = array_get($data, 'form_priority_target');
+            $condition_target = array_get($data, 'condition_target');
 
-            if (isset($form_priority_target)) {
-                list($form_priority_type, $target_column_id) = explode('-', $form_priority_target) + [null, null];
+            if (isset($condition_target)) {
+                //list($form_priority_type, $target_column_id) = explode('-', $condition_target) + [null, null];
 
-                if ($form_priority_target == FormPriorityType::COLUMN) {
+                if (!ConditionType::isValidKey($condition_target)) {
                     $view_column_target = $target_column_id;
                 } else {
-                    $options = FormPriorityType::SYSTEM_TABLE_OPTIONS($form_priority_type);
-                    $label = $field_label?? FormPriorityType::getEnum($form_priority_type)->transKey('custom_form.form_priority_type_options');
-                    $field = new Field\MultipleSelect('form_filter_condition_value', [$label]);
+                    $condition_target_value = array_get($data, 'condition_target_value');
+                    $options = ConditionType::SYSTEM_TABLE_OPTIONS($condition_target_value);
+                    $label = $field_label ?? ConditionType::getEnum($condition_target_value)->transKey('custom_form.form_priority_type_options');
+                    $field = new Field\MultipleSelect('condition_value', [$label]);
                     return $field->options($options);
                 }
             } else {

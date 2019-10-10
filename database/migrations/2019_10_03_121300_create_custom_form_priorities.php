@@ -28,14 +28,18 @@ class CreateCustomFormPriorities extends Migration
             $table->timeusers();
         });
 
-        $schema->create('custom_form_priority_conditions', function (ExtendedBlueprint $table) {
+        $schema->create('conditions', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->integer('custom_form_priority_id')->unsigned();
-            $table->integer('form_priority_type');
+            $table->string('morph_type');
+            $table->integer('morph_id')->unsigned();
+            $table->integer('condition_type');
+            $table->integer('target_table_id')->nullable();
             $table->integer('target_column_id')->nullable();
-            $table->string('form_filter_condition_value', 256)->nullable();
+            $table->json('condition_value')->nullable();
             $table->timestamps();
             $table->timeusers();
+            
+            $table->index(['morph_type', 'morph_id']);
         });
     }
 

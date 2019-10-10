@@ -14,7 +14,7 @@ class CustomFormPriority extends ModelBase
 
     public function custom_form_priority_conditions()
     {
-        return $this->hasMany(CustomFormPriorityCondition::class, 'custom_form_priority_id');
+        return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');
     }
 
     /**
