@@ -156,6 +156,7 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->get('webapi/menu/menutype', 'MenuController@menutype');
             $router->post('webapi/menu/menutargetvalue', 'MenuController@menutargetvalue');
+            $router->get('webapi/menu/menutargetview', 'MenuController@menutargetview');
         });
     }
 
