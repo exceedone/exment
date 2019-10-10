@@ -10,13 +10,25 @@ class WorkflowWorkTargetType extends EnumBase
 
 
     public static function getTargetTypeDefault($index){
-        return json_encode([
+        $result = [
             'work_target_type' => ($index === 0 ? static::FIX : static::ACTION_SELECT)
-        ]);
+        ];
+
+        if($index === 0){
+            $result[WorkflowAuthorityType::SYSTEM] = WorkflowTargetSystem::CREATED_USER;
+        }
+
+        return json_encode($result);
     }
     public static function getTargetTypeNameDefault($index){
-        $enum = ($index === 0 ? static::FIX() : static::ACTION_SELECT());
+        $targetTypeDefault = jsonToArray(static::getTargetTypeDefault($index));
 
+        if(array_has($targetTypeDefault, WorkflowAuthorityType::SYSTEM)){
+            $enum = WorkflowTargetSystem::getEnum(array_get($targetTypeDefault, WorkflowAuthorityType::SYSTEM));
+            return exmtrans('common.' . $enum->lowerkey());
+        }
+
+        $enum = static::getEnum(array_get($targetTypeDefault, 'work_target_type'));
         return $enum->transKey('workflow.work_target_type_options');
     }
 }

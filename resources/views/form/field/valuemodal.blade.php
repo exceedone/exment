@@ -24,6 +24,7 @@
             {{ $buttonlabel }}
             <input type="hidden" name="{{$name}}" value="{{$hidden}}" class="{{$class}} value-valuemodal" {!! $attributes !!} />
             <input type="hidden" value="{{$nullText}}" class="nulltext-valuemodal" />
+            <input type="hidden" value="{{$nullValue}}" class="nullvalue-valuemodal" />
             </button></p>
 
             @include('admin::form.help-block')

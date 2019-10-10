@@ -41,7 +41,9 @@ class Workflow extends ModelBase
             
             $model->workflow_statuses()->delete();
             $model->workflow_actions()->delete();
+            $model->workflow_tables()->delete();
         });
+        
     }
     
     /**
@@ -138,7 +140,7 @@ class Workflow extends ModelBase
      * @return boolean
      */
     public function canActivate(){
-        if(boolval($this->active_flg)){
+        if(boolval($this->setting_completed_flg)){
             return false;
         }
 
@@ -154,5 +156,11 @@ class Workflow extends ModelBase
 
         //TODO:workflow check workflow_actions items
         return true;
+    }
+
+    public static function hasSettingCompleted(){
+        return static::allRecords(function($workflow){
+            return boolval($workflow->setting_completed_flg);
+        })->count() > 0;
     }
 }

@@ -164,7 +164,7 @@ abstract class CustomValue extends ModelBase
         $workflow = Workflow::getWorkflowByTable($this->custom_table);
 
         if(!isset($workflow)){
-            return [];
+            return collect();
         }
 
         // get current status etc
@@ -939,13 +939,18 @@ abstract class CustomValue extends ModelBase
 
         // crate union query
         $queries = [];
-        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
-            $searchColumn = $searchColumns[$i];
+        $index = 0;
+        foreach ($searchColumns as $searchColumn) {
+            if($index >= count($searchColumns) - 1){
+                break;
+            }
+
             $query = static::query();
             $query->where($searchColumn, $mark, $value)->select('id');
             $query->take($takeCount);
 
             $queries[] = $query;
+            $index++;
         }
 
         $searchColumn = $searchColumns->last();

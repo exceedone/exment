@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\WorkflowAuthorityType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
-use Encore\Admin\Form;
 
 class WorkflowAction extends ModelBase
 {
@@ -42,6 +41,8 @@ class WorkflowAction extends ModelBase
         }
         
         $this->work_targets = jsonToArray($work_targets);
+
+        $this->setOption('work_target_type', array_get($this->work_targets, 'work_target_type'));
         
         return $this;
     }
@@ -70,55 +71,9 @@ class WorkflowAction extends ModelBase
             return $this;
         }
         
-        $work_conditions = jsonToArray($work_conditions);
+        $work_conditions = WorkflowActionCondition::getWorkConditions($work_conditions);
 
-        // modify work_condition_filter
-        $new_work_conditions = [];
-        foreach($work_conditions as $key => $work_condition){
-            // preg_match using key(as filter)
-            preg_match('/(?<key>.+)_(?<no>[0-9])+\[(?<index>.+)\]\[(?<name>.+)\]/u', $key, $match);
-
-            if (!is_nullorempty($match)) {
-                $new_work_conditions[array_get($match, 'no')][array_get($match, 'key')][array_get($match, 'index')][array_get($match, 'name')] = $work_condition;
-                continue;
-            }
-            
-            // preg_match using key (as enabled)
-            preg_match('/(?<key>.+)_(?<no>[0-9])/u', $key, $match);
-            if (!is_nullorempty($match)) {
-                $new_work_conditions[array_get($match, 'no')][array_get($match, 'key')] = $work_condition;
-                continue;
-            }
-
-            // default
-            $new_work_conditions[$key] = $work_condition;
-        }
-
-        // re-loop and replace work_condition_filter
-        foreach($new_work_conditions as &$new_work_condition){
-            if(!array_has($new_work_condition, 'filter')){
-                continue;
-            }
-
-            $filters = [];
-            foreach($new_work_condition['filter'] as $k => &$n){
-                // remove "_remove_" array
-                if(array_has($n, Form::REMOVE_FLAG_NAME)){
-                    if(boolval(array_get($n, Form::REMOVE_FLAG_NAME))){
-                        array_forget($new_work_condition, $k);
-                        break;
-                    }
-                    array_forget($n, Form::REMOVE_FLAG_NAME);
-                }
-                $filters[] = $n;
-                array_forget($new_work_condition['filter'], $k);
-            }
-
-            // replace key name "_new_1" to index
-            $new_work_condition['filter'] = $filters;
-        }
-
-        $this->setOption('work_conditions', $new_work_conditions);
+        $this->setOption('work_conditions', $work_conditions);
         
         return $this;
     }

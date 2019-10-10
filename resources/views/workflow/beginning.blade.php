@@ -1,6 +1,7 @@
 @foreach($items as $custom_table_id => $item)
 
-<div class="">
+<div class="worlfow_beginning">
+
     <div class="row">
         <div class="col-sm-7">
             <h3>{{ $item['custom_table']['table_view_name'] }}</h3>
@@ -11,7 +12,7 @@
     <div class="row text-center">
         <div class="col-sm-3 col-sm-offset-1 bold">{{ exmtrans('workflow.workflow_view_name') }}</div>
         <div class="col-sm-2 bold">使用する</div>
-        <div class="col-sm-1 bold">実施中</div>
+        <div class="col-sm-1 bold">進行中</div>
         <div class="col-sm-1 bold">完了</div>
         <div class="col-sm-2 bold">使用開始日</div>
         <div class="col-sm-2 bold">使用終了日</div>
@@ -53,5 +54,6 @@
     </div>
 @endforeach
 
+<hr />
 </div>
 @endforeach

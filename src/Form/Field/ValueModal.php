@@ -29,6 +29,11 @@ class ValueModal extends Field
     /**
      * @var string
      */
+    protected $nullValue;
+
+    /**
+     * @var string
+     */
     protected $buttonlabel;
 
     /**
@@ -79,6 +84,19 @@ class ValueModal extends Field
     public function nullText($nullText = '')
     {
         $this->nullText = $nullText;
+        return $this;
+    }
+
+    /**
+     * Set nullValue.
+     *
+     * @param string $nullValue
+     *
+     * @return $this|mixed
+     */
+    public function nullValue($nullValue = '')
+    {
+        $this->nullValue = $nullValue;
         return $this;
     }
 
@@ -168,7 +186,8 @@ class ValueModal extends Field
             keyname = '[data-contentname="$modalContentname"] .modal-reset';
             $(document).off('click', keyname).on('click', keyname, {}, function(ev){
                 let target = getValueModalTarget();
-                target.find('.value-valuemodal').val(null);
+                let nullValue = target.find('.nullvalue-valuemodal').val();
+                target.find('.value-valuemodal').val(nullValue);
 
                 let nullText = target.find('.nulltext-valuemodal').val();
                 target.find('.text-valuemodal').text(nullText);
@@ -238,6 +257,11 @@ EOT;
         if ($this->hiddenFormat instanceof \Closure) {
             $hidden = call_user_func($this->hiddenFormat, $this->value, $this);
         }
+        
+        $nullValue = $this->nullValue;
+        if ($this->nullValue instanceof \Closure) {
+            $nullValue = call_user_func($this->nullValue, $this->value, $this);
+        }
 
         // set button label
         if (is_null($this->buttonlabel)) {
@@ -264,6 +288,7 @@ EOT;
             'text'   => $this->text,
             'hidden' => $hidden,
             'nullText'   => $this->nullText,
+            'nullValue'   => $nullValue,
             'buttonlabel'   => $this->buttonlabel,
             'buttonClass'   => $this->buttonClass,
             'ajax' => $this->ajax,

@@ -714,9 +714,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             \Exment::user()->filterModel($mainQuery, $target_view);
         }
 
-        // set with
-        $this->setQueryWith($mainQuery);
-
         // return as paginate
         if ($paginate) {
             // get data(only id)
@@ -728,7 +725,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             });
 
             // set pager items
-            $paginates->setCollection(getModelName($this)::whereIn('id', $ids->toArray())->get());
+            $query = getModelName($this)::whereIn('id', $ids->toArray());
+
+            // set with
+            $this->setQueryWith($query);
+                
+            $paginates->setCollection($query->get());
             
             if (boolval($makeHidden)) {
                 $data = $paginates->makeHidden($this->getMakeHiddenArray());
@@ -740,10 +742,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // return default
         $ids = $mainQuery->select('id')->take($maxCount)->get()->pluck('id');
-        return getModelName($this)
-            ::whereIn('id', $ids)
-            ->take($maxCount)
-            ->get();
+        
+        $query = getModelName($this)::whereIn('id', $ids);
+        
+        // set with
+        $this->setQueryWith($query);
+
+        return $query->take($maxCount)->get();
     }
 
     /**
@@ -831,6 +836,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @return void
      */
     public function setQueryWith($query){
+        if(!method_exists($query, 'with')){
+            return;
+        }
+
         // set query workflow
         if(!is_null(Workflow::getWorkflowByTable($this))){
             Workflowitem::getSubQuery($query, $this);
@@ -846,6 +855,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $modelname = getModelName($select_column->select_target_table);
                 return $model->belongsTo($modelname, $select_column->index_enabled ? $select_column->getIndexColumnName() : 'value->' . $this->column_name);
             });
+            
             $query->with($relation_name);
         }
     }

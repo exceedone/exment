@@ -57,6 +57,7 @@ class CreateWorkflowTable extends Migration
             $table->integer('order')->unsigned()->index();
             $table->string('status_name', 30);
             $table->boolean('datalock_flg')->default(false);
+            $table->boolean('completed_flg')->default(false);
 
             $table->timestamps();
             $table->timeusers();

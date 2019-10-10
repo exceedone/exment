@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\WorkflowTable;
+use Exceedone\Exment\Model\WorkflowActionCondition;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -87,6 +88,17 @@ class WorkflowController extends AdminControllerBase
             $actions->prepend($linker);
         });
 
+        $grid->tools(function ($tools) {
+            if(Workflow::hasSettingCompleted()){
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_url('workflow/beginning'),
+                    'label' => exmtrans('workflow.beginning'),
+                    'icon' => 'fa-cog',
+                    'btn_class' => 'btn-primary',
+                ]));
+            }
+        });
+
         return $grid;
     }
 
@@ -134,7 +146,7 @@ class WorkflowController extends AdminControllerBase
         $workflow = Workflow::getEloquentDefault($id);
 
         $form = new Form(new Workflow);
-        $form->progressTracker()->options($this->getProgressInfo($id, 1));
+        $form->progressTracker()->options($this->getProgressInfo($workflow, 1));
         $form->text('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->required()
             ->rules("max:40");
@@ -192,6 +204,14 @@ class WorkflowController extends AdminControllerBase
         $form->savedInTransaction(function (Form $form) use ($id) {
             $model = $form->model();
 
+            // get workflow_statuses and set completed fig
+            $statuses = $model->workflow_statuses()->orderby('order', 'desc')->get();
+
+            foreach($statuses as $index => $status){
+                $status->completed_flg = ($index === 0);
+                $status->save();
+            }
+
             // save table info
             if(request()->get('workflow_type') != WorkflowType::TABLE){
                 return;
@@ -210,6 +230,7 @@ class WorkflowController extends AdminControllerBase
         $form->tools(function (Form\Tools $tools) use($self, $workflow) {
             $tools->disableDelete();
             $self->appendActivateButton($workflow, $tools);
+            $self->appendTableSettingButton($workflow, $tools);
         });
 
         $form->saved(function (Form $form) use ($id) {
@@ -237,7 +258,7 @@ class WorkflowController extends AdminControllerBase
         $workflow = Workflow::getEloquentDefault($id);
 
         $form = new Form(new Workflow);
-        $form->progressTracker()->options($this->getProgressInfo($id, 2));
+        $form->progressTracker()->options($this->getProgressInfo($workflow, 2));
         $form->hidden('action')->default(2);
         $form->display('workflow_view_name', exmtrans("workflow.workflow_view_name"));
         $form->display('workflow_status', exmtrans("workflow.status_name"))
@@ -261,6 +282,8 @@ class WorkflowController extends AdminControllerBase
                         return null;
                     }
 
+                    $value = WorkflowActionCondition::getWorkConditions($value);
+
                     return collect($value)->toJson();
                 })
                 ->text(function ($value, $field) use($workflow) {
@@ -268,7 +291,7 @@ class WorkflowController extends AdminControllerBase
                         return null;
                     }
 
-                    $work_conditions = jsonToArray($value);
+                    $work_conditions = WorkflowActionCondition::getWorkConditions($value);
 
                     // set text
                     $texts = [];
@@ -294,10 +317,20 @@ class WorkflowController extends AdminControllerBase
                         return WorkflowWorkTargetType::getTargetTypeDefault($field->getIndex());
                     }
 
-                    $result = [];
-                    collect($value)->each(function($v) use(&$result){
-                        $result[array_get($v, 'related_type')][] = array_get($v, 'related_id');
-                    });
+                    $value = jsonToArray($value);
+
+                    // if is not vector array(as callback error response)
+                    if(!is_vector($value)){
+                        $result = $value;
+                    }else{
+                        $result = [];
+                        collect($value)->each(function($v) use(&$result){
+                            $result[array_get($v, 'related_type')][] = array_get($v, 'related_id');
+                        });
+                    }
+
+                    $result['work_target_type'] = array_get($field->data(), 'options.work_target_type');
+
                     return collect($result)->toJson();
                 })
                 ->text(function ($value, $field) {
@@ -305,16 +338,17 @@ class WorkflowController extends AdminControllerBase
                         return WorkflowWorkTargetType::getTargetTypeNameDefault($field->getIndex());
                     }
 
-                    // set text
-                    return WorkflowAction::getEloquentDefault($field->data()['id'])
-                        ->getAuthorityTargets(null, false, true);
-                    // $texts = [];
-                    // foreach($value as $v){
-                    //     $texts[] = array_get($v, 'user_organization.label');
-                    // }
-                    // return $texts;
+                    $action = WorkflowAction::getEloquentDefault($field->data()['id']);
+                    if(!isset($action)){
+                        return WorkflowWorkTargetType::getTargetTypeNameDefault($field->getIndex());
+                    }
+                    
+                    return $action->getAuthorityTargets(null, false, true);
                 })
                 ->nullText(exmtrans("common.created_user"))
+                ->nullValue(function($value, $field){
+                    return WorkflowWorkTargetType::getTargetTypeDefault($field->getIndex());
+                })
             ;
 
             $form->workflowOptions('options', exmtrans("workflow.option"));
@@ -327,11 +361,12 @@ class WorkflowController extends AdminControllerBase
         $form->tools(function (Form\Tools $tools) use($self, $workflow) {
             $tools->disableDelete();
             $self->appendActivateButton($workflow, $tools);
+            $self->appendTableSettingButton($workflow, $tools);
         });
 
         $form->ignore(['action']);
 
-        $form->submitted(function (Form $form) {
+        $form->saving(function (Form $form) {
             $result = $this->validateData($form);
             if($result instanceof Response){
                 return $result; 
@@ -419,13 +454,17 @@ class WorkflowController extends AdminControllerBase
             });
         }
 
-        // add form
-        $form->html(view('exment::workflow.beginning', [
-            'items' => $results
-        ])->render());
         $form->setWidth(11, 0);
 
-        $box = new Box('利用設定', $form);
+        // add form
+        $form->description('各テーブルごとに、使用するワークフローを選択します。<br />※使用するワークフローを変更した場合でも、現在進行中のワークフローは、変更前のワークフローで実行されます。<br />' . exmtrans('workflow.help.workflow_help'))
+            ->setWidth(10, 2);
+
+        $form->html(view('exment::workflow.beginning', [
+            'items' => $results
+        ])->render())->setWidth(11, 0);
+
+        $box = new Box(exmtrans('workflow.beginning'), $form);
         $box->tools(view('exment::tools.button', [
             'href' => admin_url('workflow'),
             'label' => trans('admin.list'),
@@ -491,6 +530,20 @@ class WorkflowController extends AdminControllerBase
     }
 
     /**
+     * Append table setting button
+     */
+    public function appendTableSettingButton($workflow, $tools){
+        if(isset($workflow) && boolval($workflow->setting_completed_flg)){
+            $tools->append(view('exment::tools.button', [
+                'href' => admin_url('workflow/beginning'),
+                'label' => exmtrans('workflow.beginning'),
+                'icon' => 'fa-cog',
+                'btn_class' => 'btn-primary',
+            ]));
+        }
+    }
+
+    /**
      * Activate workflow
      *
      * @param Request $request
@@ -530,7 +583,7 @@ class WorkflowController extends AdminControllerBase
             "work_conditions" => 'required',
             "work_targets" => 'required',
             "flow_next_type" => 'required',
-            "flow_next_count" => 'required|numeric',
+            "flow_next_count" => 'required|numeric|min:0|max:10',
             "comment_type" => 'required',
         ]);
         $validation = $keys->mapWithKeys(function($v, $k){
@@ -547,9 +600,17 @@ class WorkflowController extends AdminControllerBase
         // especially validation
         foreach(array_get($data, 'workflow_actions', []) as $key => $workflow_action){
             $errorKey = "workflow_actions.$key";
-            // if(is_null(array_get($workflow_action, 'work_targets'))){
-            //     $errors->add("$errorKey.work_targets", trans('validation.required', ['attribute' => exmtrans('workflow.work_targets')]));
-            // }
+
+            // get action conditions
+            $workflow_conditions = WorkflowActionCondition::getWorkConditions(array_get($workflow_action, 'work_conditions'));
+            
+            foreach($workflow_conditions as $workflow_condition){
+                if(array_get($workflow_condition, 'status_to') == array_get($workflow_action, 'status_from')){
+                    $errors->add("$errorKey.status_from", '実行前ステータスと実行後ステータスは、異なるステータスに設定してください。');
+                    break;
+                }
+            }
+
         }
 
         if (count($errors->getMessages()) > 0) {
@@ -576,7 +637,9 @@ class WorkflowController extends AdminControllerBase
         }
     }
 
-    protected function getProgressInfo($id, $action) {
+    protected function getProgressInfo($workflow, $action) {
+        $id = $workflow->id ?? null;
+
         $steps = [];
         $hasAction = false;
         $workflow_action_url = null;
@@ -586,18 +649,30 @@ class WorkflowController extends AdminControllerBase
             $workflow_action_url = admin_urls('workflow', $id, 'edit?action=2');
             $workflow_status_url = admin_urls('workflow', $id, 'edit');
         }
+        
         $steps[] = [
             'active' => ($action == 1),
             'complete' => false,
             'url' => ($action != 1)? $workflow_status_url: null,
             'description' => exmtrans('workflow.workflow_statuses')
         ];
+
         $steps[] = [
             'active' => ($action == 2),
             'complete' => false,
             'url' => ($action != 2)? $workflow_action_url: null,
             'description' => exmtrans('workflow.workflow_actions')
         ];
+
+        if (isset($workflow) && boolval($workflow->setting_completed_flg)) {
+            $steps[] = [
+                'active' => ($action == 3),
+                'complete' => false,
+                'url' => ($action != 3) ? admin_url('workflow/beginning') : null,
+                'description' => exmtrans('workflow.beginning'),
+            ];
+        }
+        
         return $steps;
     }
 
@@ -785,7 +860,6 @@ class WorkflowController extends AdminControllerBase
                 ->attribute(['data-filter' => json_encode(['key' => "enabled_{$index}", 'value' => '1'])])
                 ->disableHeader();
             }
-            
         }
 
 

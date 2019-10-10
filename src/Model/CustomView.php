@@ -26,7 +26,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected $appends = ['view_calendar_target', 'pager_count'];
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json'];
-    protected $with = ['custom_table', 'custom_view_columns'];
+    //protected $with = ['custom_table', 'custom_view_columns'];
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target', 'pager_count'],
@@ -174,7 +174,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $custom_table = $this->custom_table;
         // get view columns
-        $custom_view_columns = $this->custom_view_columns;
+        $custom_view_columns = $this->load('custom_view_columns')->custom_view_columns;
         foreach ($custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item
                 ->label(array_get($custom_view_column, 'view_column_name'))
@@ -201,7 +201,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         // set with
-        $this->custom_table->setQueryWith($grid->model());
+        $custom_table->setQueryWith($grid->model());
     }
     
     /**
@@ -745,7 +745,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $results = [];
         // set grouping columns
-        foreach ($this->custom_view_columns as $custom_view_column) {
+        foreach ($this->load('custom_view_columns')->custom_view_columns as $custom_view_column) {
             $results[] = [
                 'index' => ViewKindType::DEFAULT . '_' . $custom_view_column->id,
                 'item' => $custom_view_column,
@@ -771,7 +771,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $options = [];
         
-        foreach ($this->custom_view_columns as $custom_view_column) {
+        foreach ($this->load('custom_view_columns')->custom_view_columns as $custom_view_column) {
             $option = $this->getSelectColumn(ViewKindType::DEFAULT, $custom_view_column);
             if (is_null($is_number) || array_get($option, 'is_number') == $is_number) {
                 $options[] = $option;

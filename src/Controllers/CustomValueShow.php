@@ -36,7 +36,6 @@ trait CustomValueShow
      */
     protected function createShowForm($id = null, $modal = false)
     {
-        //Plugin::pluginPreparing($this->plugins, 'loading');
         return new Show($this->getModelNameDV()::firstOrNew(['id' => $id]), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
 
@@ -49,7 +48,7 @@ trait CustomValueShow
             if (isset($relation)) {
                 $item = ColumnItems\ParentItem::getItem($relation->child_custom_table);
 
-                $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item, $updateSetWidth) {
+                $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
                     if (is_null($this)) {
                         return '';
                     }
