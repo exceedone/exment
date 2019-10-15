@@ -456,7 +456,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 abort(404);
             }
         } else {
-            $tableKey = $endpoint;
+            $keys = explode('/', $endpoint);
+            $tableKey = $keys[0];
         }
 
         $custom_table = static::getEloquent($tableKey);
