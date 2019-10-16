@@ -862,7 +862,6 @@ class WorkflowController extends AdminControllerBase
                     'name' => "filter_{$index}",
                     'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
                     'targetOptions' => $custom_table->getColumnsSelectOptions([
-                        'include_condition' => true,
                         'include_system' => false,
                     ]),
                 ]);

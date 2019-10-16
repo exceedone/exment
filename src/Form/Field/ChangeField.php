@@ -39,6 +39,8 @@ class ChangeField extends Field
      */
     protected  $adminField;
 
+    protected static $scripts = [];
+
     protected function getElementClass()
     {
         if (preg_match('/(^[^\[\]]+)\[([^\[\]]+)\]\[([^\[\]]+)\]$/', $this->elementName, $array_result)) {
@@ -88,7 +90,14 @@ class ChangeField extends Field
             Exment.ChangeFieldEvent.ChangeFieldEvent('$ajax', '$eventTriggerSelector', '$eventTargetSelector');
 EOT;
 
-        $this->script = $script;
+        static::$scripts[] = $script;
+    }
+
+    public function getScript(){
+        $script = collect(static::$scripts)->filter()->unique()->implode("");
+        //static::$scripts = [];
+        \Admin::script($script);
+        return $script;
     }
 
     public function render()
@@ -114,7 +123,7 @@ EOT;
                 ->setElementClass($this->getElementClass());
             $field->forgetHelp();
             $view = $field->render();
-            $this->script .= $field->getScript();
+            static::$scripts[] = $field->getScript();
             return $view;
         } else {
             return parent::render();
