@@ -32,7 +32,7 @@ trait ColumnOptionQueryTrait
         $query = [];
         
         if ($append_table && isset($table_id)) {
-            $query = ['table_id' => $table_id ?? null];
+            $query['table_id'] = $table_id;
         }
 
         // set as select_table key
@@ -54,6 +54,10 @@ trait ColumnOptionQueryTrait
             }
 
             $query['view_pivot_table_id'] = CustomTable::getEloquent($view_pivot_table)->id ?? null;
+        }
+
+        if(count($query) == 0){
+            return $column_key;
         }
 
         return $column_key . '?' . implode('&', collect($query)->map(function ($val, $key) {

@@ -131,7 +131,7 @@ EOT;
             }
             
             $field->setWidth(12, 0)->setLabelClass(['hidden'])->setElementClass(['w-100'])->attribute(['style' => 'max-width:999999px']);
-            $field->value($this->value);
+            $field->value($this->value());
             $field->setElementName($this->elementName)
                 ->setErrorKey($this->getErrorKey())
                 ->setElementClass($this->getElementClass());
@@ -148,5 +148,19 @@ EOT;
         :self {
         $this->adminField = $adminField;
         return $this;
+    }
+
+    public function prepareRecord($value, $record)
+    {
+        if(isset($this->adminField)){
+            $func = $this->adminField;
+            $field = $func($record, $this);
+        }
+
+        if(!isset($field)){
+            return $value;
+        }
+
+        return $field->prepare($value);
     }
 }

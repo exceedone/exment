@@ -18,7 +18,7 @@ class Condition extends ModelBase
 
     protected $guarded = ['id'];
     protected $appends = ['condition_target', 'condition_text'];
-    protected $casts = ['condition_value' => 'json'];
+    //protected $casts = ['condition_value' => 'json'];
 
     // public function custom_form_priority()
     // {
@@ -32,12 +32,7 @@ class Condition extends ModelBase
 
     public function getConditionTargetAttribute()
     {
-        $key = static::getOptionKey($this->target_column_id);
-        if ($this->condition_type == ConditionType::COLUMN) {
-            return ConditionType::COLUMN . '-'. $this->target_column_id;
-        } else {
-            return $this->condition_type;
-        }
+        return $this->getConditionTarget();
     }
     
     /**
@@ -52,6 +47,26 @@ class Condition extends ModelBase
     }
 
     /**
+     * Get target condition.
+     *
+     * @return void
+     */
+    public function getConditionTarget()
+    {
+        switch ($this->condition_type) {
+            case ViewColumnType::CONDITION:
+                $condition_type = ConditionType::getEnum($this->target_column_id);
+                if(!isset($condition_type)){
+                    return null;
+                }
+
+                return $condition_type->getKey();
+        }
+
+        return $this->target_column_id;
+    }
+    
+    /**
      * get priority condition text.
      */
     public function getConditionTextAttribute()
@@ -61,13 +76,13 @@ class Condition extends ModelBase
         } else {
             $condition_type = ConditionType::getEnum($this->condition_type)->transKey('condition.condition_type_options');
         }
-        return $condition_type . ' : ' . $this->getCondition();
+        return $condition_type . ' : ' . $this->getConditionText();
     }
 
     /**
      * get condition value text.
      */
-    public function getCondition() {
+    public function getConditionText() {
         switch ($this->condition_type) {
             case ViewColumnType::CONDITION:
                 if($this->target_column_id == ConditionType::USER){
@@ -114,6 +129,36 @@ class Condition extends ModelBase
     }
     
     
+    /**
+     * get edited condition_value_text.
+     */
+    public function getConditionValueAttribute($condition_value)
+    {
+        if (is_string($this->condition_value)) {
+            $array = json_decode($this->condition_value);
+            if (is_array($array)) {
+                return array_filter($array, function ($val) {
+                    return !is_null($val);
+                });
+            }
+        }
+        return $this->condition_value;
+    }
+    
+    /**
+     * set condition_value_text.
+     * * we have to convert int if view_filter_condition_value is array*
+     */
+    public function setConditionValueAttribute($condition_value)
+    {
+        if (is_array($condition_value)) {
+            $array = array_filter($condition_value, function ($val) {
+                return !is_null($val);
+            });
+            $this->condition_value = json_encode($array);
+        }
+    }
+
     /**
      * check if custom_value and user(organization, role) match for conditions.
      */

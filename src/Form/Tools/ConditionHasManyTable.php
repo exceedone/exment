@@ -6,6 +6,7 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Validator\ChangeFieldRule;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
 
 /**
  * ConditionHasManyTable
@@ -17,6 +18,7 @@ class ConditionHasManyTable
     protected $linkage;
     protected $targetOptions;
     protected $name;
+    protected $custom_table;
 
     public function __construct(&$form, $options = [])
     {
@@ -40,32 +42,21 @@ class ConditionHasManyTable
 
             $form->select('condition_key', exmtrans("condition.condition_key"))->required()
                 ->options(function ($val, $select) {
-                    // if null, return empty array.
                     if (!isset($val)) {
                         return [];
                     }
 
                     $data = $select->data();
-                    $view_column_target = array_get($data, 'view_column_target');
+                    $condition_target = array_get($data, 'condition_target');
 
-                    // get column item
-                    $column_item = CustomViewFilter::getColumnItem($view_column_target);
-
-                    ///// get column_type
-                    $column_type = $column_item->getViewFilterType();
-
-                    // if null, return []
-                    if (!isset($column_type)) {
-                        return [];
+                    $item = ChangeFieldItem::getItem($this->custom_table, $condition_target);
+                    if(!isset($item)){
+                        return null;
                     }
-
-                    // get target array
-                    $options = array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), $column_type);
-                    return collect($options)->mapWithKeys(function ($array) {
-                        return [$array['id'] => exmtrans('custom_view.filter_condition_options.'.$array['name'])];
+                    
+                    return $item->getFilterCondition()->mapWithKeys(function($item){
+                        return [$item['id'] => $item['text']];
                     });
-
-                    return [];
                 });
 
             $label = exmtrans('custom_view.view_filter_condition_value_text');
@@ -73,7 +64,19 @@ class ConditionHasManyTable
                 ->ajax($this->ajax)
                 ->setEventTrigger('select.condition_key')
                 ->setEventTarget('select.condition_target')
-                ->rules([new ChangeFieldRule(null, $label, 'condition_target')]);
+                ->adminField(function($data, $field){
+                    if(is_null($data)){
+                        return null;
+                    }
+                    $item = ChangeFieldItem::getItem($this->custom_table, array_get($data, 'condition_target'));
+                                
+                    $label = exmtrans('custom_form_priority.condition_value');
+                    $item->setElement($field->getElementName(), 'condition_value', $label);
+
+                    return $item->getChangeField(array_get($data, 'condition_key'));
+                });
+                //->rules([new ChangeFieldRule(null, $label, 'condition_target')])
+                ;
         })->setTableColumnWidth(4, 4, 3, 1)
         ->setTableWidth(10, 1)
         ->setElementClass('work_conditions_filter')

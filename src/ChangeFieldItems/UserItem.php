@@ -12,7 +12,7 @@ use Exceedone\Exment\Enums\ViewColumnFilterType;
 class UserItem extends ChangeFieldItem
 {
     public function getFilterOption(){
-        return array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), ViewColumnFilterType::SELECT);
+        return $this->getFilterOptionConditon();
     }
     
     /**

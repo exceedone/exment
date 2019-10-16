@@ -5,6 +5,8 @@ namespace Exceedone\Exment\ChangeFieldItems;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Validator\ChangeFieldRule;
 
@@ -107,5 +109,9 @@ abstract class ChangeFieldItem
 
         $view = $field->render();
         return json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
+    }
+
+    protected function getFilterOptionConditon(){
+        return array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), ViewColumnFilterType::SELECT);
     }
 }
