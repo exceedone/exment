@@ -15,7 +15,7 @@ use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\WorkflowTable;
-use Exceedone\Exment\Model\WorkflowActionCondition;
+use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -170,8 +170,10 @@ class WorkflowController extends AdminControllerBase
                 ->required();
                 
             $form->select('custom_table_id', exmtrans('custom_table.table'))->options(function ($value) {
-                $options = CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
-                return $options;
+                return CustomTable::allRecords(function ($custom_table) {
+                    return !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())
+                && !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY());
+                })->pluck('table_view_name', 'id')->toArray();
             })->required()
             ->attribute(['data-filter' => json_encode(['key' => 'workflow_type', 'value' => [WorkflowType::TABLE]])])
             ;
@@ -292,7 +294,7 @@ class WorkflowController extends AdminControllerBase
                         return null;
                     }
 
-                    $value = WorkflowActionCondition::getWorkConditions($value);
+                    $value = Condition::getWorkConditions($value);
 
                     return collect($value)->toJson();
                 })
@@ -301,12 +303,12 @@ class WorkflowController extends AdminControllerBase
                         return null;
                     }
 
-                    $work_conditions = WorkflowActionCondition::getWorkConditions($value);
+                    $work_conditions = Condition::getWorkConditions($value);
 
                     // set text
                     $texts = [];
                     foreach($work_conditions as $work_condition){
-                        if(!boolval(array_get($work_condition, "enabled"))){
+                        if(!boolval(array_get($work_condition, 'enabled_flg'))){
                             continue;
                         }
                         $texts[] = WorkflowStatus::getWorkflowStatusName(array_get($work_condition, "status_to"), $workflow);
@@ -650,7 +652,7 @@ class WorkflowController extends AdminControllerBase
             $errorKey = "workflow_actions.$key";
 
             // get action conditions
-            $workflow_conditions = WorkflowActionCondition::getWorkConditions(array_get($workflow_action, 'work_conditions'));
+            $workflow_conditions = Condition::getWorkConditions(array_get($workflow_action, 'work_conditions'));
             
             foreach($workflow_conditions as $workflow_condition){
                 if(array_get($workflow_condition, 'status_to') == array_get($workflow_action, 'status_from')){
@@ -664,24 +666,6 @@ class WorkflowController extends AdminControllerBase
         if (count($errors->getMessages()) > 0) {
             return back()->withErrors($errors)
                         ->withInput();
-        }
-    }
-
-
-    /**
-     * validate before delete.
-     */
-    protected function validateDestroy($id)
-    {
-        // check referenced from customtable
-        $refer_count = CustomTable::where('workflow_id', $id)
-            ->count();
-
-        if ($refer_count > 0) {
-            return [
-                'status'  => false,
-                'message' => exmtrans('workflow.message.reference_error'),
-            ];
         }
     }
 
@@ -833,14 +817,14 @@ class WorkflowController extends AdminControllerBase
             }
 
             if($index === 0){
-                $form->hidden("enabled_{$index}")
+                $form->hidden("enabled_flg_{$index}")
                 ->default(1);
             }else{
-                $form->checkboxone("enabled_{$index}", 'enabled')
+                $form->checkboxone("enabled_flg_{$index}", 'enabled')
                 ->setLabelClass(['invisible'])
                 ->setWidth(10, 2)
                 ->setElementClass('work_conditions_enabled')
-                ->default(array_get($work_condition, "enabled", 0))
+                ->default(array_get($work_condition, 'enabled_flg', 0))
                 ->attribute(['data-filtertrigger' =>true])
                 ->option(['1' => exmtrans('custom_form.available')]);
             }
@@ -850,25 +834,26 @@ class WorkflowController extends AdminControllerBase
                 ->required()
                 ->default(array_get($work_condition, "status_to"))
                 ->setElementClass('work_conditions_status_to')
-                ->attribute(['data-filter' => json_encode(['key' => "enabled_{$index}", 'value' => '1'])])
+                ->attribute(['data-filter' => json_encode(['key' => "enabled_flg_{$index}", 'value' => '1'])])
                 ->setWidth(4, 2);
 
             if(isset($custom_table)){
-                $default = array_get($work_condition, "filter", []);
+                $default = array_get($work_condition, "workflow_conditions", []);
                 
                 // filter setting
                 $hasManyTable = new ConditionHasManyTable($form, [
                     'ajax' => admin_url("webapi/{$id}/filter-value"),
-                    'name' => "filter_{$index}",
+                    'name' => "workflow_conditions_{$index}",
                     'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
                     'targetOptions' => $custom_table->getColumnsSelectOptions([
                         'include_system' => false,
                     ]),
+                    'custom_table' => $custom_table,
                 ]);
 
                 $hasManyTable->callbackField(function($field) use($default, $index){
                     $field->setRelatedValue($default)
-                        ->attribute(['data-filter' => json_encode(['key' => "enabled_{$index}", 'value' => '1'])])
+                        ->attribute(['data-filter' => json_encode(['key' => "enabled_flg_{$index}", 'value' => '1'])])
                     ;
                 });
 

@@ -20,6 +20,7 @@ class WorkflowAction extends ModelBase
     protected $casts = ['options' => 'json'];
 
     protected $work_targets;
+    protected $work_condition_headers;
 
     public function workflow()
     {
@@ -30,6 +31,11 @@ class WorkflowAction extends ModelBase
     {
         return $this->hasMany(WorkflowAuthority::class, 'workflow_action_id');
             //->with(['user_organization']);
+    }
+
+    public function workflow_condition_headers()
+    {
+        return $this->hasMany(WorkflowConditionHeader::class, 'workflow_action_id');
     }
 
     public function getWorkTargetsAttribute()
@@ -51,21 +57,20 @@ class WorkflowAction extends ModelBase
 
     public function getWorkConditionsAttribute()
     {
-        $work_conditions = $this->getOption('work_conditions', []);
+        $headers = $this->workflow_condition_headers()
+            ->with('workflow_conditions')
+            ->get()->toArray();
 
-        foreach($work_conditions as &$work_condition){
-            $work_condition_filters = array_get($work_conditions, "work_condition_filter", []);
-            if(is_nullorempty($work_condition_filters)){
-                continue;
-            }
-            foreach($work_condition_filters as $index => $work_condition_filter){
-                $work_condition["work_condition_filter"][$index] = collect($work_condition_filters)->map(function($work_condition_filter){
-                    return new WorkflowActionCondition($work_condition_filter);
-                })->toArray();
-            }
-        }
-
-        return $work_conditions;
+        return collect($headers)->map(function($header){
+            $header['workflow_conditions'] = collect(array_get($header, 'workflow_conditions', []))->map(function($h){
+                return array_only($h, 
+                    ['id', 'condition_target', 'condition_type', 'condition_key', 'condition_value']
+                );
+            })->toArray();
+            return array_only($header, 
+                ['id', 'status_to', 'enabled_flg', 'workflow_conditions']
+            );
+        });
     }
     public function setWorkConditionsAttribute($work_conditions)
     {
@@ -73,9 +78,9 @@ class WorkflowAction extends ModelBase
             return $this;
         }
         
-        $work_conditions = WorkflowActionCondition::getWorkConditions($work_conditions);
+        $work_conditions = Condition::getWorkConditions($work_conditions);
 
-        $this->setOption('work_conditions', $work_conditions);
+        $this->work_condition_headers = $work_conditions;
         
         return $this;
     }
@@ -143,7 +148,11 @@ class WorkflowAction extends ModelBase
     protected function setActionAuthority()
     {
         // target keys
-        $keys = [ConditionTypeDetail::USER, ConditionTypeDetail::ORGANIZATION, ConditionTypeDetail::COLUMN, ConditionTypeDetail::SYSTEM];
+        $keys = [ConditionTypeDetail::USER()->lowerKey(), 
+            ConditionTypeDetail::ORGANIZATION()->lowerKey(), 
+            ConditionTypeDetail::COLUMN()->lowerKey(),
+            ConditionTypeDetail::SYSTEM()->lowerKey(),
+        ];
         foreach($keys as $key){
             $ids = array_get($this->work_targets, $key, []);
             $values = collect($ids)->map(function($id) use($key){
@@ -171,6 +180,21 @@ class WorkflowAction extends ModelBase
                         ;
                 },
             ]);
+        }
+    }
+
+    /**
+     * set action conditions
+     */
+    protected function setActionCondition()
+    {
+        $this->workflow_condition_headers()->delete();
+        foreach($this->work_condition_headers as $work_condition_header){
+            $work_condition_header['workflow_action_id'] = $this->id;
+
+            $conditions = array_pull($work_condition_header, 'workflow_conditions', []);
+            $header = WorkflowConditionHeader::create($work_condition_header);
+            $header->workflow_conditions()->createMany($conditions);
         }
     }
 
@@ -209,7 +233,6 @@ class WorkflowAction extends ModelBase
 
     /**
      * Check has workflow authority
-     * TODO:workflow 井坂さんとマージしたほうがいいかも
      *
      * @param [type] $targetUser
      * @return boolean
@@ -223,18 +246,18 @@ class WorkflowAction extends ModelBase
 
         foreach($workflow_authorities as $workflow_authority){
             switch($workflow_authority->related_type){
-                case ConditionTypeDetail::USER:
+                case ConditionTypeDetail::USER()->lowerKey():
                     if($workflow_authority->related_id == $targetUser->id){
                         return true;
                     }
                     break;
-                case ConditionTypeDetail::ORGANIZATION:
+                case ConditionTypeDetail::ORGANIZATION()->lowerKey():
                     $ids = $targetUser->belong_organizations->pluck('id')->toArray();
                     if(in_array($workflow_authority->related_id, $ids)){
                         return true;
                     }
                     break;
-                case ConditionTypeDetail::SYSTEM:
+                case ConditionTypeDetail::SYSTEM()->lowerKey():
                     if($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER && $custom_value->created_user_id == $targetUser->id){
                         return true;
                     }
@@ -247,8 +270,6 @@ class WorkflowAction extends ModelBase
 
     /**
      * Get users or organzations on this action authority
-     * 
-     * TODO:workflow 井坂さんとマージしたほうがいいかも
      *
      * @param [type] $targetUser
      * @return boolean
@@ -263,13 +284,13 @@ class WorkflowAction extends ModelBase
 
         foreach($workflow_authorities as $workflow_authority){
             switch($workflow_authority->related_type){
-                case ConditionTypeDetail::USER:
+                case ConditionTypeDetail::USER()->lowerKey():
                     $userIds[] = $workflow_authority->related_id;
                     break;
-                case ConditionTypeDetail::ORGANIZATION:
+                case ConditionTypeDetail::ORGANIZATION()->lowerKey():
                     $organizationIds[] = $workflow_authority->related_id;
                     break;
-                case ConditionTypeDetail::SYSTEM:
+                case ConditionTypeDetail::SYSTEM()->lowerKey():
                     if($getAsDefine){
                         $labels[] = exmtrans('common.' . WorkflowTargetSystem::getEnum($workflow_authority->related_id)->lowerKey());
                         break;
@@ -427,6 +448,7 @@ class WorkflowAction extends ModelBase
 
         static::saved(function ($model) {
             $model->setActionAuthority();
+            $model->setActionCondition();
         });
     }
 }

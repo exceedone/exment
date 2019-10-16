@@ -9,12 +9,14 @@
         </div>
     </div>
 
+@if(isset($item['workflows']) && count($item['workflows']) > 0)
     <div class="row text-center">
         <div class="col-sm-3 col-sm-offset-1 bold">{{ exmtrans('workflow.workflow_view_name') }}</div>
         <div class="col-sm-2 bold">使用する</div>
         <div class="col-sm-2 bold">使用開始日</div>
         <div class="col-sm-2 bold">使用終了日</div>
     </div>
+@endif
 
 @foreach($item['workflows'] as $workflow_id => $workflow)
     <div class="row form-group text-center">

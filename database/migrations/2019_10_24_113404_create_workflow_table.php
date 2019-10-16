@@ -81,6 +81,18 @@ class CreateWorkflowTable extends Migration
             $table->foreign('workflow_id')->references('id')->on('workflows');
         });
 
+        $schema->create('workflow_condition_headers', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->integer('workflow_action_id')->unsigned()->index();
+            $table->string('status_to');
+            $table->boolean('enabled_flg')->default(false);
+
+            $table->timestamps();
+            $table->timeusers();
+            
+            $table->foreign('workflow_action_id')->references('id')->on('workflow_actions');
+        });
+
         $schema->create('workflow_authorities', function (ExtendedBlueprint $table) {
             $table->string('related_id');
             $table->string('related_type', 255);
@@ -119,6 +131,7 @@ class CreateWorkflowTable extends Migration
     {
         Schema::dropIfExists('workflow_values');
         Schema::dropIfExists('workflow_authorities');
+        Schema::dropIfExists('workflow_condition_headers');
         Schema::dropIfExists('workflow_actions');
         Schema::dropIfExists('workflow_statuses');
         Schema::dropIfExists('workflow_tables');

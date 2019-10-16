@@ -217,12 +217,13 @@ class CustomValueController extends AdminControllerTableBase
     public function show(Request $request, Content $content, $tableKey, $id)
     {
         $modal = boolval($request->get('modal'));
-        if ($modal) {
-            return $this->createShowForm($id, $modal);
-        }
 
         if (($response = $this->firstFlow($request, $id, true)) instanceof Response) {
             return $response;
+        }
+
+        if ($modal) {
+            return $this->createShowForm($id, $modal);
         }
 
         $this->AdminContent($content);
