@@ -150,8 +150,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("column/{tableKey}/calcModal", 'CustomColumnController@calcModal');
             $router->post("column/{tableKey}/{id}/calcModal", 'CustomColumnController@calcModal');
             $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
-            $router->get("formpriority/{tableKey}/filter-condition", 'CustomFormPriorityController@getFilterCondition');
-            $router->get("formpriority/{tableKey}/filter-value", 'CustomFormPriorityController@getFilterValue');
 
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
                         
@@ -176,6 +174,10 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->get('webapi/menu/menutype', 'MenuController@menutype');
             $router->post('webapi/menu/menutargetvalue', 'MenuController@menutargetvalue');
+
+            // only webapi api function
+            $router->get("webapi/{tableKey}/filter-condition", 'ApiTableController@getFilterCondition');
+            $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
         });
     }
 

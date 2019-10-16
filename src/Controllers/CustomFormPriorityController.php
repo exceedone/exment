@@ -50,9 +50,9 @@ class CustomFormPriorityController extends AdminControllerTableBase
 
         // filter setting
         $hasManyTable = new Tools\ConditionHasManyTable($form, [
-            'ajax' => admin_urls('formpriority', $custom_table->table_name, 'filter-value'),
+            'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
             'name' => 'custom_form_priority_conditions',
-            'linkage' => json_encode(['condition_key' => admin_urls('formpriority', $custom_table->table_name, 'filter-condition')]),
+            'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
             'targetOptions' => $custom_table->getColumnsSelectOptions([
                 'include_condition' => true,
                 'include_system' => false,
@@ -107,41 +107,5 @@ class CustomFormPriorityController extends AdminControllerTableBase
 // EOT;
 //         Admin::script($script);
         return $form;
-    }
-
-    /**
-     * get filter condition
-     */
-    public function getFilterCondition(Request $request)
-    {
-        $item = $this->getChangeFieldItem($request, $request->get('q'));
-        if(!isset($item)){
-            return [];
-        }
-        return $item->getFilterCondition();
-    }
-    /**
-     * get filter condition
-     */
-    public function getFilterValue(Request $request)
-    {
-        $item = $this->getChangeFieldItem($request, $request->get('target'));
-        if(!isset($item)){
-            return [];
-        }
-        return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
-    }
-
-    protected function getChangeFieldItem(Request $request, $target){
-        $item = ChangeFieldItem::getItem($this->custom_table, $target);
-        if(!isset($item)){
-            return null;
-        }
-
-        $elementName = str_replace('condition_key', 'condition_value', $request->get('cond_name'));
-        $label = exmtrans('custom_form_priority.condition_value');
-        $item->setElement($elementName, 'condition_value', $label);
-
-        return $item;
     }
 }

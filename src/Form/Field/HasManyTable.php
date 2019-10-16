@@ -82,6 +82,8 @@ class HasManyTable extends HasMany
     public function disableHeader()
     {
         $this->header = false;
+
+        return $this;
     }
     
     /**

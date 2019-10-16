@@ -10,8 +10,9 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
+use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
 use Carbon\Carbon;
 use Validator;
 
@@ -325,7 +326,6 @@ class ApiTableController extends AdminControllerTableBase
         return json_encode($list);
     }
 
-    
     protected function saveData($request, $custom_value = null)
     {
         $is_single = false;
@@ -490,7 +490,7 @@ class ApiTableController extends AdminControllerTableBase
 
         $tasks = [];
         foreach ($custom_view->custom_view_columns as $custom_view_column) {
-            if ($custom_view_column->view_column_type == ConditionType::COLUMN) {
+            if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
                 $target_start_column = $custom_view_column->custom_column->getIndexColumnName();
             } else {
                 $target_start_column = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'];
@@ -498,7 +498,7 @@ class ApiTableController extends AdminControllerTableBase
 
             if (isset($custom_view_column->view_column_end_date)) {
                 $end_date_target = $custom_view_column->getOption('end_date_target');
-                if ($custom_view_column->view_column_end_date_type == ConditionType::COLUMN) {
+                if ($custom_view_column->view_column_end_date_type == ViewColumnType::COLUMN) {
                     $target_end_custom_column = CustomColumn::getEloquent($end_date_target);
                     $target_end_column = $target_end_custom_column->getIndexColumnName();
                 } else {
@@ -639,5 +639,42 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         return $count;
+    }
+    
+    /**
+     * get filter condition
+     */
+    public function getFilterCondition(Request $request)
+    {
+        $item = $this->getChangeFieldItem($request, $request->get('q'));
+        if(!isset($item)){
+            return [];
+        }
+        return $item->getFilterCondition();
+    }
+    
+    /**
+     * get filter condition
+     */
+    public function getFilterValue(Request $request)
+    {
+        $item = $this->getChangeFieldItem($request, $request->get('target'));
+        if(!isset($item)){
+            return [];
+        }
+        return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
+    }
+
+    protected function getChangeFieldItem(Request $request, $target){
+        $item = ChangeFieldItem::getItem($this->custom_table, $target);
+        if(!isset($item)){
+            return null;
+        }
+
+        $elementName = str_replace('condition_key', 'condition_value', $request->get('cond_name'));
+        $label = exmtrans('custom_form_priority.condition_value');
+        $item->setElement($elementName, 'condition_value', $label);
+
+        return $item;
     }
 }

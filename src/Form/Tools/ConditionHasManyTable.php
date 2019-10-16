@@ -20,6 +20,8 @@ class ConditionHasManyTable
     protected $name;
     protected $custom_table;
 
+    protected $callbackField;
+
     public function __construct(&$form, $options = [])
     {
         $this->form = $form;
@@ -32,7 +34,7 @@ class ConditionHasManyTable
 
     public function render()
     {
-        $this->form->hasManyTable($this->name, exmtrans("custom_view.custom_view_filters"), function ($form) {
+        $field = $this->form->hasManyTable($this->name, exmtrans("custom_view.custom_view_filters"), function ($form) {
             $form->select('condition_target', exmtrans("condition.condition_target"))->required()
                 ->options($this->targetOptions)
                 ->attribute([
@@ -79,10 +81,18 @@ class ConditionHasManyTable
                 ;
         })->setTableColumnWidth(4, 4, 3, 1)
         ->setTableWidth(10, 1)
-        ->setElementClass('work_conditions_filter')
-        //->setRelatedValue($default)
-        //->attribute(['data-filter' => json_encode(['key' => "enabled_{$index}", 'value' => '1'])])
         ->disableHeader();
+
+        if(isset($this->callbackField)){
+            $func = $this->callbackField;
+            $func($field);
+        }
+    }
+
+    public function callbackField($callbackField){
+        $this->callbackField = $callbackField;
+
+        return $this;
     }
     
     /**
