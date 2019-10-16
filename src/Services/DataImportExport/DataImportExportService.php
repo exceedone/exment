@@ -120,6 +120,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function export()
     {
+        set_time_limit(240);
         $datalist = $this->exportAction->datalist();
 
         $files = $this->format
@@ -350,13 +351,13 @@ class DataImportExportService extends AbstractExporter
                     continue;
                 }
 
-                if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
-                    && boolval(array_get($target_column, 'options.multiple_enabled'))) {
-                    $value = explode(",", $value);
-                }
-
                 // convert target key's id
                 if (isset($value)) {
+                    if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
+                        && boolval(array_get($target_column, 'options.multiple_enabled'))) {
+                        $value = explode(",", $value);
+                    }
+
                     if (array_has($options, 'setting')) {
                         $s = collect($options['setting'])->filter(function ($s) use ($key) {
                             return isset($s['target_column_name']) && $s['column_name'] == $key;
