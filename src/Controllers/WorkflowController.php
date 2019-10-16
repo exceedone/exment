@@ -23,7 +23,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
-use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Form\Tools\SwalInputButton;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
@@ -765,11 +765,11 @@ class WorkflowController extends AdminControllerBase
             $options = $custom_table->custom_columns
                 ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
                 ->pluck('column_view_name', 'id');
-            $form->multipleSelect(ConditionType::SYSTEM, exmtrans('common.custom_column'))
+            $form->multipleSelect(ConditionTypeDetail::SYSTEM, exmtrans('common.custom_column'))
                 ->options($options)
-                ->setElementClass('modal_' . ConditionType::COLUMN)
+                ->setElementClass('modal_' . ConditionTypeDetail::COLUMN)
                 ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-                ->default(array_get($value, ConditionType::COLUMN));
+                ->default(array_get($value, ConditionTypeDetail::COLUMN));
         }
 
         // set workflow system column
@@ -777,9 +777,9 @@ class WorkflowController extends AdminControllerBase
         if (!isset($modal_system_default)) {
             $modal_system_default = ($index == 0 ? [WorkflowTargetSystem::CREATED_USER] : null);
         }
-        $form->multipleSelect(ConditionType::SYSTEM, exmtrans('common.system'))
+        $form->multipleSelect(ConditionTypeDetail::SYSTEM, exmtrans('common.system'))
             ->options(WorkflowTargetSystem::transKeyArray('common'))
-            ->setElementClass('modal_' . ConditionType::SYSTEM)
+            ->setElementClass('modal_' . ConditionTypeDetail::SYSTEM)
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
             ->default($modal_system_default);
 

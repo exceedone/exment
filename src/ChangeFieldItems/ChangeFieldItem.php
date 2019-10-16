@@ -4,7 +4,7 @@ namespace Exceedone\Exment\ChangeFieldItems;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewFilter;
-use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Form\Field\ChangeField;
@@ -59,8 +59,8 @@ abstract class ChangeFieldItem
             return null;
         }
         
-        if(ConditionType::isValidKey($target)){
-            $enum = ConditionType::getEnum(strtolower($target));
+        if(ConditionTypeDetail::isValidKey($target)){
+            $enum = ConditionTypeDetail::getEnum(strtolower($target));
             return $enum->getConditionItem($custom_table, $target);
         }else{
             // get column item

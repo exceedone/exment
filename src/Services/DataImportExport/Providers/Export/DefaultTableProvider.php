@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
 use Illuminate\Support\Collection;
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\File as ExmentFile;
@@ -140,7 +140,7 @@ class DefaultTableProvider extends ProviderBase
             $body_items = [];
             // add items
             $body_items = array_merge($body_items, $this->getBodyItems($record, $firstColumns));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_column_names, "value.", ViewColumnType::COLUMN));
+            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_column_names, "value.", ConditionType::COLUMN));
             $body_items = array_merge($body_items, $this->getBodyItems($record, $lastColumns));
 
             $bodies[] = $body_items;
@@ -152,7 +152,7 @@ class DefaultTableProvider extends ProviderBase
     /**
      * get export body items
      */
-    protected function getBodyItems($record, $columns, $array_header_key = null, $view_column_type = ViewColumnType::SYSTEM)
+    protected function getBodyItems($record, $columns, $array_header_key = null, $view_column_type = ConditionType::SYSTEM)
     {
         $body_items = [];
         foreach ($columns as $column) {
@@ -164,7 +164,7 @@ class DefaultTableProvider extends ProviderBase
             }
 
             // if $view_column_type is column, get customcolumn
-            if ($view_column_type == ViewColumnType::COLUMN) {
+            if ($view_column_type == ConditionType::COLUMN) {
                 $custom_column = CustomColumn::getEloquent($column, $this->custom_table);
                 if (!isset($custom_column)) {
                     continue;

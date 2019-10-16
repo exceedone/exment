@@ -4,7 +4,7 @@ namespace Exceedone\Exment\ChangeFieldItems;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewFilter;
-use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 
 class ColumnItem extends ChangeFieldItem

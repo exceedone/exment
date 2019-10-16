@@ -18,7 +18,7 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
@@ -635,7 +635,7 @@ class CustomColumnController extends AdminControllerTableBase
 
             $custom_view_column = new CustomViewColumn;
             $custom_view_column->custom_view_id = $view->id;
-            $custom_view_column->view_column_type = ViewColumnType::COLUMN;
+            $custom_view_column->view_column_type = ConditionType::COLUMN;
             $custom_view_column->view_column_target = $model->id;
             $custom_view_column->order = $order;
 

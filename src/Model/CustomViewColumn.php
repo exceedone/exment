@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemColumn;
 
 class CustomViewColumn extends ModelBase
@@ -50,7 +50,7 @@ class CustomViewColumn extends ModelBase
             ],
         ],
         'enums' => [
-            'view_column_type' => ViewColumnType::class,
+            'view_column_type' => ConditionType::class,
         ],
     ];
 
@@ -172,12 +172,12 @@ class CustomViewColumn extends ModelBase
 
         $table_name = CustomTable::getEloquent($this->view_pivot_table_id)->table_name;
         switch ($this->view_column_type) {
-            case ViewColumnType::COLUMN:
+            case ConditionType::COLUMN:
                 return [
                     'table_name' => $table_name,
                     'column_name' => CustomColumn::getEloquent($this->view_pivot_column_id)->column_name ?? null,
                 ];
-            case ViewColumnType::SYSTEM:
+            case ConditionType::SYSTEM:
                 return [
                     'table_name' => $table_name,
                     'column_name' => SystemColumn::getOption(['id' => $this->view_pivot_column_id])['name'] ?? null,

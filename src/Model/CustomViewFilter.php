@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\ColumnItems\Workflowitem;
@@ -41,7 +41,7 @@ class CustomViewFilter extends ModelBase
             ],
         ],
         'enums' => [
-            'view_column_type' => ViewColumnType::class,
+            'view_column_type' => ConditionType::class,
             'view_filter_condition' => ViewColumnFilterOption::class,
         ],
     ];
@@ -97,18 +97,18 @@ class CustomViewFilter extends ModelBase
         $condition_value_text = $this->view_filter_condition_value_text;
         $view_filter_condition = $this->view_filter_condition;
         
-        if ($this->view_column_type == ViewColumnType::WORKFLOW) {
+        if ($this->view_column_type == ConditionType::WORKFLOW) {
             return WorkflowItem::scopeWorkflowStatus($model, $this->custom_table, $view_filter_condition, $condition_value_text);
         }
 
-        if ($this->view_column_type == ViewColumnType::COLUMN) {
+        if ($this->view_column_type == ConditionType::COLUMN) {
             $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
         } 
-        elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
+        elseif ($this->view_column_type == ConditionType::PARENT_ID) {
             //TODO: set as 1:n. develop as n:n
             $view_column_target = 'parent_id';
         } 
-        elseif ($this->view_column_type == ViewColumnType::SYSTEM) {
+        elseif ($this->view_column_type == ConditionType::SYSTEM) {
             $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['sqlname'] ?? null;
         }
 

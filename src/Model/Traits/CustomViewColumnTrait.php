@@ -8,7 +8,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSummary;
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\ColumnItems;
@@ -24,7 +24,7 @@ trait CustomViewColumnTrait
     
     public function custom_column()
     {
-        if ($this->view_column_type == ViewColumnType::COLUMN) {
+        if ($this->view_column_type == ConditionType::COLUMN) {
             return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
         }
     }
@@ -46,15 +46,15 @@ trait CustomViewColumnTrait
     public function getColumnItemAttribute()
     {
         // if tagret is number, column type is column.
-        if ($this->view_column_type == ViewColumnType::COLUMN) {
+        if ($this->view_column_type == ConditionType::COLUMN) {
             return ColumnItems\CustomItem::getItem($this->custom_column, null, $this->view_column_target);
         }
         // workflow
-        elseif ($this->view_column_type == ViewColumnType::WORKFLOW) {
+        elseif ($this->view_column_type == ConditionType::WORKFLOW) {
             return ColumnItems\WorkflowItem::getItem(CustomTable::getEloquent($this->view_column_table_id), $this->view_column_target);
         }
         // parent_id
-        elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
+        elseif ($this->view_column_type == ConditionType::PARENT_ID) {
             return ColumnItems\ParentItem::getItem(CustomTable::getEloquent($this->view_column_table_id));
         }
         // system column
@@ -86,9 +86,9 @@ trait CustomViewColumnTrait
             return null;
         }
 
-        if ($column_type == ViewColumnType::COLUMN) {
+        if ($column_type == ConditionType::COLUMN) {
             $column_type = $column_type_target;
-        } elseif ($column_type == ViewColumnType::PARENT_ID) {
+        } elseif ($column_type == ConditionType::PARENT_ID) {
             $column_type = 'parent_id';
         } else {
             // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
@@ -133,16 +133,16 @@ trait CustomViewColumnTrait
     protected static function getColumnAndTableId($view_column_type, $column_name, $custom_table = null)
     {
         if (!isset($view_column_type)) {
-            $view_column_type = ViewColumnType::COLUMN;
+            $view_column_type = ConditionType::COLUMN;
         } else {
-            $view_column_type = ViewColumnType::getEnumValue($view_column_type);
+            $view_column_type = ConditionType::getEnumValue($view_column_type);
         }
 
         $target_column_id = null;
         $target_table_id = null;
         switch ($view_column_type) {
             // for table column
-            case ViewColumnType::COLUMN:
+            case ConditionType::COLUMN:
                 $target_column = CustomColumn::getEloquent($column_name, $custom_table);
                 // get table and column id
                 if (isset($target_column)) {
@@ -153,7 +153,7 @@ trait CustomViewColumnTrait
             // system column
             default:
                 // set parent id
-                if ($column_name == ViewColumnType::PARENT_ID || $view_column_type == ViewColumnType::PARENT_ID) {
+                if ($column_name == ConditionType::PARENT_ID || $view_column_type == ConditionType::PARENT_ID) {
                     $target_column_id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
                     // get parent table
                     if (isset($custom_table)) {
@@ -183,21 +183,21 @@ trait CustomViewColumnTrait
         }
 
         switch ($this->view_column_type) {
-            case ViewColumnType::COLUMN:
+            case ConditionType::COLUMN:
                 return [
                     'table_name' => $table_name,
                     'column_name' => $this->custom_column->column_name,
                     'column_type' => $this->view_column_type,
                 ];
-            case ViewColumnType::SYSTEM:
-            case ViewColumnType::WORKFLOW:
+            case ConditionType::SYSTEM:
+            case ConditionType::WORKFLOW:
                 return [
                     'table_name' => $table_name,
                     'column_name' => SystemColumn::getOption(['id' => $this->view_column_target_id])['name'],
                     'column_type' => $this->view_column_type,
                 ];
             
-            case ViewColumnType::PARENT_ID:
+            case ConditionType::PARENT_ID:
                 return [
                     'table_name' => $table_name,
                     'column_name' => Define::CUSTOM_COLUMN_TYPE_PARENT_ID,

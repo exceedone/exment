@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowCommentType;
@@ -143,7 +143,7 @@ class WorkflowAction extends ModelBase
     protected function setActionAuthority()
     {
         // target keys
-        $keys = [ConditionType::USER, ConditionType::ORGANIZATION, ConditionType::COLUMN, ConditionType::SYSTEM];
+        $keys = [ConditionTypeDetail::USER, ConditionTypeDetail::ORGANIZATION, ConditionTypeDetail::COLUMN, ConditionTypeDetail::SYSTEM];
         foreach($keys as $key){
             $ids = array_get($this->work_targets, $key, []);
             $values = collect($ids)->map(function($id) use($key){
@@ -223,18 +223,18 @@ class WorkflowAction extends ModelBase
 
         foreach($workflow_authorities as $workflow_authority){
             switch($workflow_authority->related_type){
-                case ConditionType::USER:
+                case ConditionTypeDetail::USER:
                     if($workflow_authority->related_id == $targetUser->id){
                         return true;
                     }
                     break;
-                case ConditionType::ORGANIZATION:
+                case ConditionTypeDetail::ORGANIZATION:
                     $ids = $targetUser->belong_organizations->pluck('id')->toArray();
                     if(in_array($workflow_authority->related_id, $ids)){
                         return true;
                     }
                     break;
-                case ConditionType::SYSTEM:
+                case ConditionTypeDetail::SYSTEM:
                     if($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER && $custom_value->created_user_id == $targetUser->id){
                         return true;
                     }
@@ -263,13 +263,13 @@ class WorkflowAction extends ModelBase
 
         foreach($workflow_authorities as $workflow_authority){
             switch($workflow_authority->related_type){
-                case ConditionType::USER:
+                case ConditionTypeDetail::USER:
                     $userIds[] = $workflow_authority->related_id;
                     break;
-                case ConditionType::ORGANIZATION:
+                case ConditionTypeDetail::ORGANIZATION:
                     $organizationIds[] = $workflow_authority->related_id;
                     break;
-                case ConditionType::SYSTEM:
+                case ConditionTypeDetail::SYSTEM:
                     if($getAsDefine){
                         $labels[] = exmtrans('common.' . WorkflowTargetSystem::getEnum($workflow_authority->related_id)->lowerKey());
                         break;

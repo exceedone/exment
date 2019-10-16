@@ -14,7 +14,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
-use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Illuminate\Support\Str;

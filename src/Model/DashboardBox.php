@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewKindType;
 
 class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -198,15 +198,15 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         $view_column_type = array_get($json, $view_column_type_key);
 
         switch ($view_column_type) {
-            case ViewColumnType::COLUMN:
+            case ConditionType::COLUMN:
                 $custom_column = CustomColumn::getEloquent($column_name, $table_name);
                 $id = array_get($custom_column, 'id');
                 break;
-            case ViewColumnType::SYSTEM:
+            case ConditionType::SYSTEM:
                 $custom_column = SystemColumn::getOption(['name' => $column_name]);
                 $id = array_get($custom_column, 'id');
                 break;
-            case ViewColumnType::PARENT_ID:
+            case ConditionType::PARENT_ID:
                 $id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
                 break;
         }

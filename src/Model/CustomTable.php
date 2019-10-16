@@ -10,7 +10,7 @@ use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
-use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
@@ -1353,8 +1353,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         if ($include_condition) {
-            foreach (ConditionType::toArray() as $key => $value) {
-                if (in_array($value, [ConditionType::COLUMN, ConditionType::SYSTEM])) {
+            foreach (ConditionTypeDetail::toArray() as $key => $value) {
+                if (in_array($value, [ConditionTypeDetail::COLUMN, ConditionTypeDetail::SYSTEM])) {
                     continue;
                 }
                 $array[$key] = strtolower($key);

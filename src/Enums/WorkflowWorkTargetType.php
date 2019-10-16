@@ -15,7 +15,7 @@ class WorkflowWorkTargetType extends EnumBase
         ];
 
         if($index === 0){
-            $result[ConditionType::SYSTEM] = WorkflowTargetSystem::CREATED_USER;
+            $result[ConditionTypeDetail::SYSTEM] = WorkflowTargetSystem::CREATED_USER;
         }
 
         return json_encode($result);
@@ -23,8 +23,8 @@ class WorkflowWorkTargetType extends EnumBase
     public static function getTargetTypeNameDefault($index){
         $targetTypeDefault = jsonToArray(static::getTargetTypeDefault($index));
 
-        if(array_has($targetTypeDefault, ConditionType::SYSTEM)){
-            $enum = WorkflowTargetSystem::getEnum(array_get($targetTypeDefault, ConditionType::SYSTEM));
+        if(array_has($targetTypeDefault, ConditionTypeDetail::SYSTEM)){
+            $enum = WorkflowTargetSystem::getEnum(array_get($targetTypeDefault, ConditionTypeDetail::SYSTEM));
             return exmtrans('common.' . $enum->lowerkey());
         }
 

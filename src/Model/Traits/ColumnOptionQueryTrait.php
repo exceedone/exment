@@ -6,8 +6,8 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 
 trait ColumnOptionQueryTrait
 {
@@ -126,17 +126,17 @@ trait ColumnOptionQueryTrait
 
         if (!is_numeric($column_type_target)) {
             if ($column_type_target === Define::CUSTOM_COLUMN_TYPE_PARENT_ID || $column_type_target === SystemColumn::PARENT_ID) {
-                $column_type = ViewColumnType::PARENT_ID;
+                $column_type = ConditionType::PARENT_ID;
                 $column_type_target = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            } elseif (ConditionType::isValidKey($column_type_target)) {
-                $column_type = ViewColumnType::CONDITION;
-                $column_type_target = ConditionType::getEnum(strtolower($column_type_target))->getValue();
+            } elseif (ConditionTypeDetail::isValidKey($column_type_target)) {
+                $column_type = ConditionType::CONDITION;
+                $column_type_target = ConditionTypeDetail::getEnum(strtolower($column_type_target))->getValue();
             } else {
-                $column_type = ViewColumnType::SYSTEM;
+                $column_type = ConditionType::SYSTEM;
                 $column_type_target = SystemColumn::getOption(['name' => $column_type_target])['id'] ?? null;
             }
         } else {
-            $column_type = ViewColumnType::COLUMN;
+            $column_type = ConditionType::COLUMN;
         }
 
         return [$column_type, $column_table_id, $column_type_target, $view_pivot_column_id, $view_pivot_table_id];

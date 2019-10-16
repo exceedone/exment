@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ConditionType;
-use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Form\Field\ChangeField;
@@ -54,8 +54,8 @@ class Condition extends ModelBase
     public function getConditionTarget()
     {
         switch ($this->condition_type) {
-            case ViewColumnType::CONDITION:
-                $condition_type = ConditionType::getEnum($this->target_column_id);
+            case ConditionType::CONDITION:
+                $condition_type = ConditionTypeDetail::getEnum($this->target_column_id);
                 if(!isset($condition_type)){
                     return null;
                 }
@@ -71,10 +71,10 @@ class Condition extends ModelBase
      */
     public function getConditionTextAttribute()
     {
-        if ($this->condition_type == ConditionType::COLUMN) {
+        if ($this->condition_type == ConditionTypeDetail::COLUMN) {
             $condition_type = $this->custom_column->column_view_name;
         } else {
-            $condition_type = ConditionType::getEnum($this->condition_type)->transKey('condition.condition_type_options');
+            $condition_type = ConditionTypeDetail::getEnum($this->condition_type)->transKey('condition.condition_type_options');
         }
         return $condition_type . ' : ' . $this->getConditionText();
     }
@@ -84,8 +84,8 @@ class Condition extends ModelBase
      */
     public function getConditionText() {
         switch ($this->condition_type) {
-            case ViewColumnType::CONDITION:
-                if($this->target_column_id == ConditionType::USER){
+            case ConditionType::CONDITION:
+                if($this->target_column_id == ConditionTypeDetail::USER){
                     $model = getModelName(SystemTableName::USER)::find($this->condition_value);
                     if ($model instanceof Collection) {
                         return $model->map(function($row) {
@@ -95,7 +95,7 @@ class Condition extends ModelBase
                         return $model->getValue('user_name');
                     }
                 }
-                elseif($this->target_column_id == ConditionType::ORGANIZATION){
+                elseif($this->target_column_id == ConditionTypeDetail::ORGANIZATION){
                     $model = getModelName(SystemTableName::ORGANIZATION)::find($this->condition_value);
                     if ($model instanceof Collection) {
                         return $model->map(function($row) {
@@ -105,7 +105,7 @@ class Condition extends ModelBase
                         return $model->getValue('organization_name');
                     }
                 }
-                elseif($this->target_column_id == ConditionType::ROLE){
+                elseif($this->target_column_id == ConditionTypeDetail::ROLE){
                     $model = RoleGroup::find($this->condition_value);
                     if ($model instanceof Collection) {
                         return $model->map(function($row) {
@@ -115,12 +115,12 @@ class Condition extends ModelBase
                         return $model->role_group_view_name;
                     }
                 }
-                elseif($this->target_column_id == ConditionType::COLUMN){
+                elseif($this->target_column_id == ConditionTypeDetail::COLUMN){
                     $column_name = $this->custom_column->column_name;
                     $column_item = $this->custom_column->column_item;
                     return $column_item->setCustomValue(["value.$column_name" => $this->condition_value])->text();
                 }
-                elseif($this->target_column_id == ConditionType::SYSTEM){
+                elseif($this->target_column_id == ConditionTypeDetail::SYSTEM){
                     //TODO:worlflow
                 }
                 break;
@@ -132,17 +132,22 @@ class Condition extends ModelBase
     /**
      * get edited condition_value_text.
      */
-    public function getConditionValueAttribute($condition_value)
+    public function getConditionValueAttribute()
     {
-        if (is_string($this->condition_value)) {
-            $array = json_decode($this->condition_value);
+        $condition_value = array_get($this->attributes, 'condition_value');
+        if(is_null($condition_value)){
+            return null;
+        }
+
+        if (is_string($condition_value)) {
+            $array = json_decode($condition_value);
             if (is_array($array)) {
                 return array_filter($array, function ($val) {
                     return !is_null($val);
                 });
             }
         }
-        return $this->condition_value;
+        return $condition_value;
     }
     
     /**
@@ -180,25 +185,36 @@ class Condition extends ModelBase
                         return $value == $this->condition_value;
                     }
                 });
-
-            case ConditionType::USER:
-                $user = \Exment::user();
-                return collect($this->condition_value)->contains($user->id);
-
-            case ConditionType::ORGANIZATION:
-                $organizations = \Exment::user()->base_user->belong_organizations;
-                foreach ($organizations as $organization) {
-                    if (collect($this->condition_value)->filter()->contains($organization->id)) {
-                        return true;
-                    }
+            case ConditionType::CONDITION:
+                if($this->target_column_id == ConditionTypeDetail::USER){
+                    $user = \Exment::user();
+                    return collect($this->condition_value)->contains($user->id);
                 }
-                break;
-            case ConditionType::ROLE:
-                $role_groups = \Exment::user()->base_user->belong_role_groups();
-                foreach ($role_groups as $role_group) {
-                    if (collect($this->condition_value)->filter()->contains($role_group->id)) {
-                        return true;
+                elseif($this->target_column_id == ConditionTypeDetail::ORGANIZATION){
+                    $organizations = \Exment::user()->base_user->belong_organizations;
+                    foreach ($organizations as $organization) {
+                        if (collect($this->condition_value)->filter()->contains($organization->id)) {
+                            return true;
+                        }
                     }
+                    return false;
+                }
+                elseif($this->target_column_id == ConditionTypeDetail::ROLE){
+                    $role_groups = \Exment::user()->base_user->belong_role_groups();
+                    foreach ($role_groups as $role_group) {
+                        if (collect($this->condition_value)->filter()->contains($role_group->id)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                elseif($this->target_column_id == ConditionTypeDetail::COLUMN){
+                    $column_name = $this->custom_column->column_name;
+                    $column_item = $this->custom_column->column_item;
+                    return $column_item->setCustomValue(["value.$column_name" => $this->condition_value])->text();
+                }
+                elseif($this->target_column_id == ConditionTypeDetail::SYSTEM){
+                    //TODO:worlflow
                 }
                 break;
         }
