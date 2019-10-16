@@ -125,7 +125,7 @@ abstract class CustomValue extends ModelBase
             // re-get field data --------------------------------------------------
             $model->prepareValue();
 
-            // call plugins
+            // call saving trigger plugins
             Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saving', [
                 'custom_table' => $model->custom_table,
                 'custom_value' => $model,
@@ -191,12 +191,30 @@ abstract class CustomValue extends ModelBase
      */
     public function validatorSaving($input)
     {
+        // validate multiple column set is unique
+        $errors = $this->validatorMultiUniques();
+
+        // call plugin validator
+        $errors = array_merge_recursive($errors, Plugin::pluginValidator(Plugin::getPluginsByTable($this->custom_table), [
+            'custom_table' => $this->custom_table,
+            'custom_value' => $this,
+            'input_value' => array_get($input, 'value'),
+        ]));
+
+        return count($errors) > 0 ? $errors : true;
+    }
+
+    protected function validatorMultiUniques()
+    {
         $errors = [];
+
         // getting custom_table's custom_column_multi_uniques
         $multi_uniques = $this->custom_table->getMultipleUniques();
+
         if (!isset($multi_uniques) || count($multi_uniques) == 0) {
-            return true;
+            return $errors;
         }
+
         foreach ($multi_uniques as $multi_unique) {
             $query = static::query();
             $column_keys = [];
@@ -251,10 +269,8 @@ abstract class CustomValue extends ModelBase
                 }
             }
         }
-
-        return count($errors) > 0 ? $errors : true;
+        return $errors;
     }
-
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
     protected function prepareValue()

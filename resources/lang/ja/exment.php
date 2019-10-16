@@ -386,6 +386,7 @@ return [
             'script' => 'スクリプト',
             'style' => 'スタイル',
             'dashboard' => 'ダッシュボード',
+            'validator' => 'バリデーション',
         ],
     ],
 
