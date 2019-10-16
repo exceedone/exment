@@ -19,9 +19,9 @@ class CustomCopyController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
 
-    public function __construct(Request $request)
+    public function __construct(CustomTable $custom_table, Request $request)
     {
-        parent::__construct($request);
+        parent::__construct($custom_table, $request);
         
         $this->setPageInfo(exmtrans("custom_copy.header"), exmtrans("custom_copy.header"), exmtrans("custom_copy.description"), 'fa-copy');
     }

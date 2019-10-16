@@ -17,7 +17,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
      */
     public function map()
     {
-        if (canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && System::api_available()) {
+        if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
             $this->forAuthorization();
             $this->forAccessTokens();
             $this->forTransientTokens();

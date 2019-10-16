@@ -317,6 +317,9 @@ class File extends ModelBase
      */
     protected static function getData($pathOrUuid)
     {
+        if(is_nullorempty($pathOrUuid)){
+            return null;
+        }
         // get by uuid
         $file = static::where('uuid', $pathOrUuid)->first();
         if (is_null($file)) {

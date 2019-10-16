@@ -8,6 +8,7 @@ use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
@@ -199,6 +200,9 @@ class ExmentServiceProvider extends ServiceProvider
         // bind plugin for page
         $this->app->bind(PluginPublicBase::class, function ($app) {
             return Plugin::getPluginPageModel();
+        });
+        $this->app->bind(CustomTable::class, function ($app) {
+            return CustomTable::findByEndpoint();
         });
         
         Passport::ignoreMigrations();
