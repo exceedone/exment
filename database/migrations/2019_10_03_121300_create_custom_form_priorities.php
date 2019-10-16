@@ -33,6 +33,7 @@ class CreateCustomFormPriorities extends Migration
             $table->string('morph_type');
             $table->integer('morph_id')->unsigned();
             $table->integer('condition_type');
+            $table->integer('condition_key');
             $table->integer('target_table_id')->nullable();
             $table->integer('target_column_id')->nullable();
             $table->json('condition_value')->nullable();
@@ -51,7 +52,7 @@ class CreateCustomFormPriorities extends Migration
     public function down()
     {
         // remove custom_form_priorities
+        Schema::dropIfExists('conditions');
         Schema::dropIfExists('custom_form_priorities');
-        Schema::dropIfExists('custom_form_priority_conditions');
     }
 }

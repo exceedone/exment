@@ -4,7 +4,10 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 
 trait ColumnOptionQueryTrait
 {
@@ -22,18 +25,28 @@ trait ColumnOptionQueryTrait
             [
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
+                'codition_type' => null,
             ],
             $options
         ));
-
-        if (!$append_table || !isset($table_id)) {
-            return $column_key;
+        $query = [];
+        
+        if ($append_table && isset($table_id)) {
+            $query = ['table_id' => $table_id ?? null];
         }
-
-        $query = ['table_id' => $table_id ?? null];
 
         // set as select_table key
         if (isset($view_pivot_column)) {
+            if ($view_pivot_column == SystemColumn::PARENT_ID) {
+                $query['view_pivot_column_id'] = SystemColumn::PARENT_ID;
+            } else {
+                $query['view_pivot_column_id'] = CustomColumn::getEloquent($view_pivot_column)->id ?? null;
+            }
+
+            $query['view_pivot_table_id'] = CustomTable::getEloquent($view_pivot_table)->id ?? null;
+        }
+
+        if (isset($codition_type)) {
             if ($view_pivot_column == SystemColumn::PARENT_ID) {
                 $query['view_pivot_column_id'] = SystemColumn::PARENT_ID;
             } else {
@@ -81,5 +94,47 @@ trait ColumnOptionQueryTrait
         }
 
         return $params;
+    }
+    
+    /**
+     * Get ViewColumnTargetItems using $view_column_target.
+     * it contains $column_type, $column_table_id, $column_type_target
+     *
+     * @param mixed $view_column_target
+     * @param string $column_table_name_key
+     * @return array [$column_type, $column_table_id, $column_type_target]
+     */
+    protected function getViewColumnTargetItems($view_column_target, $column_table_name_key = 'custom_view')
+    {
+        $column_type_target = explode("?", $view_column_target)[0];
+        
+        if(isset($column_table_name_key) && isset($this->{$column_table_name_key})){
+            $custom_table_id = $this->{$column_table_name_key}->custom_table_id;
+        }else{
+            $custom_table_id = null;
+        }
+
+        $params = static::getOptionParams($view_column_target, $custom_table_id);
+
+        $view_pivot_column_id = array_get($params, 'view_pivot_column_id');
+        $view_pivot_table_id = array_get($params, 'view_pivot_table_id');
+        $column_table_id = array_get($params, 'column_table_id');
+
+        if (!is_numeric($column_type_target)) {
+            if ($column_type_target === Define::CUSTOM_COLUMN_TYPE_PARENT_ID || $column_type_target === SystemColumn::PARENT_ID) {
+                $column_type = ViewColumnType::PARENT_ID;
+                $column_type_target = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
+            } elseif (ConditionType::isValidKey($column_type_target)) {
+                $column_type = ViewColumnType::CONDITION;
+                $column_type_target = ConditionType::getEnum(strtolower($column_type_target))->getValue();
+            } else {
+                $column_type = ViewColumnType::SYSTEM;
+                $column_type_target = SystemColumn::getOption(['name' => $column_type_target])['id'] ?? null;
+            }
+        } else {
+            $column_type = ViewColumnType::COLUMN;
+        }
+
+        return [$column_type, $column_table_id, $column_type_target, $view_pivot_column_id, $view_pivot_table_id];
     }
 }

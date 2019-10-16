@@ -229,6 +229,7 @@ abstract class CustomItem implements ItemInterface
 
         return $this->getCustomField($classname);
     }
+    
     protected function getFilterFieldClass()
     {
         return $this->getAdminFieldClass();

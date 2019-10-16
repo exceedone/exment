@@ -9,6 +9,7 @@ use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -113,13 +114,34 @@ class CustomFormPriorityController extends AdminControllerTableBase
      */
     public function getFilterCondition(Request $request)
     {
-        return Condition::getFilterCondition($request->get('q'));
+        $item = $this->getChangeFieldItem($request, $request->get('q'));
+        if(!isset($item)){
+            return [];
+        }
+        return $item->getFilterCondition();
     }
     /**
      * get filter condition
      */
     public function getFilterValue(Request $request)
     {
-        return Condition::getFilterValue($request->get('target'), $request->get('cond_val'), $request->get('cond_name'));
+        $item = $this->getChangeFieldItem($request, $request->get('target'));
+        if(!isset($item)){
+            return [];
+        }
+        return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
+    }
+
+    protected function getChangeFieldItem(Request $request, $target){
+        $item = ChangeFieldItem::getItem($this->custom_table, $target);
+        if(!isset($item)){
+            return null;
+        }
+
+        $elementName = str_replace('condition_key', 'condition_value', $request->get('cond_name'));
+        $label = exmtrans('custom_form_priority.condition_value');
+        $item->setElement($elementName, 'condition_value', $label);
+
+        return $item;
     }
 }

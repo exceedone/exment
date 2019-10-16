@@ -3,16 +3,17 @@
 namespace Exceedone\Exment\Enums;
 
 use Exceedone\Exment\Model\RoleGroup;
+use Exceedone\Exment\ChangeFieldItems;
 
 class ConditionType extends EnumBase
 {
     use EnumOptionTrait;
     
-    const USER = 1;
-    const ORGANIZATION = 2;
-    const ROLE = 3;
-    const SYSTEM = 4;
-    const COLUMN = 9;
+    const USER = "1";
+    const ORGANIZATION = "2";
+    const ROLE = "3";
+    const SYSTEM = "4";
+    const COLUMN = "9";
 
     public static function SYSTEM_TABLE_OPTIONS($form_priority_type)
     {
@@ -43,18 +44,14 @@ class ConditionType extends EnumBase
         return $result;
     }
     
-    public static function CONDITION_OPTIONS()
-    {
-        return [
-            static::USER => [
-                ['id' => ViewColumnFilterOption::EQ, 'name' => 'eq'],
-            ],
-            static::ORGANIZATION => [
-                ['id' => ViewColumnFilterOption::EQ, 'name' => 'eq'],
-            ],
-            static::ROLE => [
-                ['id' => ViewColumnFilterOption::EQ, 'name' => 'eq'],
-            ],
-        ];
+    public function getConditionItem($custom_table, $target){
+        switch($this){
+            case ConditionType::USER:
+                return new ChangeFieldItems\UserItem($custom_table, $target);
+            case ConditionType::ORGANIZATION:
+                return new ChangeFieldItems\OrganizationItem($custom_table, $target);
+            case ConditionType::ROLE:
+                return new ChangeFieldItems\RoleGroupItem($custom_table, $target);
+        }
     }
 }

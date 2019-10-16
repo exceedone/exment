@@ -23,12 +23,13 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
-use Exceedone\Exment\Enums\WorkflowAuthorityType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Form\Tools\SwalInputButton;
 use Exceedone\Exment\Form\Field\WorkFlow as WorkFlowField;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Validator\ChangeFieldRule;
 use Symfony\Component\HttpFoundation\Response;
 use \Carbon\Carbon;
 
@@ -764,11 +765,11 @@ class WorkflowController extends AdminControllerBase
             $options = $custom_table->custom_columns
                 ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
                 ->pluck('column_view_name', 'id');
-            $form->multipleSelect(WorkflowAuthorityType::SYSTEM, exmtrans('common.custom_column'))
+            $form->multipleSelect(ConditionType::SYSTEM, exmtrans('common.custom_column'))
                 ->options($options)
-                ->setElementClass('modal_' . WorkflowAuthorityType::COLUMN)
+                ->setElementClass('modal_' . ConditionType::COLUMN)
                 ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-                ->default(array_get($value, WorkflowAuthorityType::COLUMN));
+                ->default(array_get($value, ConditionType::COLUMN));
         }
 
         // set workflow system column
@@ -776,9 +777,9 @@ class WorkflowController extends AdminControllerBase
         if (!isset($modal_system_default)) {
             $modal_system_default = ($index == 0 ? [WorkflowTargetSystem::CREATED_USER] : null);
         }
-        $form->multipleSelect(WorkflowAuthorityType::SYSTEM, exmtrans('common.system'))
+        $form->multipleSelect(ConditionType::SYSTEM, exmtrans('common.system'))
             ->options(WorkflowTargetSystem::transKeyArray('common'))
-            ->setElementClass('modal_' . WorkflowAuthorityType::SYSTEM)
+            ->setElementClass('modal_' . ConditionType::SYSTEM)
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
             ->default($modal_system_default);
 
@@ -898,7 +899,7 @@ class WorkflowController extends AdminControllerBase
                         ->ajax(admin_url("workflow/{$id}/filter-value"))
                         ->setEventTrigger('.view_filter_condition')
                         ->setEventTarget('select.view_column_target')
-                        ->rules("changeFieldValue:$label");
+                        ->rules([new ChangeFieldRule(null, $label)]);
                 })->setTableColumnWidth(4, 4, 3, 1)
                 ->setTableWidth(10, 2)
                 ->setElementClass('work_conditions_filter')
@@ -930,7 +931,7 @@ class WorkflowController extends AdminControllerBase
         $data = $request->all();
 
         if (!array_key_exists('target', $data) ||
-            !array_key_exists('cond_val', $data) ||
+            !array_key_exists('cond_key', $data) ||
             !array_key_exists('cond_name', $data)) {
             return [];
         }
@@ -940,7 +941,7 @@ class WorkflowController extends AdminControllerBase
         $field = new ChangeField($columnname, $label);
         $field->data([
             'view_column_target' => $data['target'],
-            'view_filter_condition' => $data['cond_val']
+            'view_filter_condition' => $data['cond_key']
         ])->rules("changeFieldValue:$label");
         $element_name = str_replace('view_filter_condition', 'view_filter_condition_value', $data['cond_name']);
         $field->setElementName($element_name);

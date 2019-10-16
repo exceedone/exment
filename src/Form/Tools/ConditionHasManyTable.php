@@ -3,6 +3,9 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Validator\ChangeFieldRule;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
 
 /**
  * ConditionHasManyTable
@@ -70,9 +73,9 @@ class ConditionHasManyTable
                 ->ajax($this->ajax)
                 ->setEventTrigger('select.condition_key')
                 ->setEventTarget('select.condition_target')
-                ->rules("changeFieldValue:$label");
+                ->rules([new ChangeFieldRule(null, $label, 'condition_target')]);
         })->setTableColumnWidth(4, 4, 3, 1)
-        ->setTableWidth(10, 2)
+        ->setTableWidth(10, 1)
         ->setElementClass('work_conditions_filter')
         //->setRelatedValue($default)
         //->attribute(['data-filter' => json_encode(['key' => "enabled_{$index}", 'value' => '1'])])

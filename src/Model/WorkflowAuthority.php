@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\WorkflowAuthorityType;
+use Exceedone\Exment\Enums\ConditionType;
 
 class WorkflowAuthority extends ModelBase
 {

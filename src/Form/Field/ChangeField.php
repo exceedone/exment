@@ -11,11 +11,33 @@ class ChangeField extends Field
 {
     protected $view = 'exment::form.field.changefield';
 
+    /**
+     * ajax url
+     *
+     * @var string
+     */
     protected $ajax;
 
+    /**
+     * Selector name that call event dynamic field type
+     *
+     * @var string
+     */
     protected $eventTriggerSelector;
 
+    /**
+     * Selector name that decide dynamic field type
+     *
+     * @var string
+     */
     protected $eventTargetSelector;
+
+    /**
+     * decide admin field element Closure fucntioon
+     *
+     * @var Closure
+     */
+    protected  $adminField;
 
     protected function getElementClass()
     {
@@ -75,7 +97,7 @@ class ChangeField extends Field
                     data: {
                         'target': $(this).closest('tr').find('{$eventTargetSelector}').val(),
                         'cond_name': $(this).attr('name'),
-                        'cond_val': $(this).val(),
+                        'cond_key': $(this).val(),
                     },
                     context: this,
                     success: function (data) {
@@ -94,8 +116,10 @@ EOT;
 
     public function render()
     {
-        // $viewClass = $this->getViewElementClasses();
-        $field = getCustomField($this->data);
+        if(isset($this->adminField)){
+            $func = $this->adminField;
+            $field = $func($this->data, $this);
+        }
 
         $this->script();
 
@@ -105,6 +129,7 @@ EOT;
                     $field->required();
                 }
             }
+            
             $field->setWidth(12, 0)->setLabelClass(['hidden'])->setElementClass(['w-100'])->attribute(['style' => 'max-width:999999px']);
             $field->value($this->value);
             $field->setElementName($this->elementName)
@@ -117,5 +142,11 @@ EOT;
         } else {
             return parent::render();
         }
+    }
+
+    public function adminField($adminField)
+        :self {
+        $this->adminField = $adminField;
+        return $this;
     }
 }

@@ -385,6 +385,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         // if target form doesn't have columns, add columns for has_index_columns columns.
+        $view->load('custom_view_columns');
         if (is_null($view->custom_view_columns) || count($view->custom_view_columns) == 0) {
             // get view id for after
             $view->createDefaultViewColumns();

@@ -116,41 +116,6 @@ trait CustomViewColumnTrait
     }
     
     /**
-     * Get ViewColumnTargetItems using $view_column_target.
-     * it contains $column_type, $column_table_id, $column_type_target
-     *
-     * @param mixed $view_column_target
-     * @param string $column_table_name_key
-     * @return array [$column_type, $column_table_id, $column_type_target]
-     */
-    protected function getViewColumnTargetItems($view_column_target, $column_table_name_key = 'custom_view')
-    {
-        $column_type_target = explode("?", $view_column_target)[0];
-        $params = static::getOptionParams($view_column_target, $this->{$column_table_name_key}->custom_table_id ?? null);
-
-        $view_pivot_column_id = array_get($params, 'view_pivot_column_id');
-        $view_pivot_table_id = array_get($params, 'view_pivot_table_id');
-        $column_table_id = array_get($params, 'column_table_id');
-
-        if (!is_numeric($column_type_target)) {
-            if ($column_type_target === Define::CUSTOM_COLUMN_TYPE_PARENT_ID || $column_type_target === SystemColumn::PARENT_ID) {
-                $column_type = ViewColumnType::PARENT_ID;
-                $column_type_target = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            } elseif ($column_type_target === SystemColumn::WORKFLOW_STATUS) {
-                $column_type = ViewColumnType::WORKFLOW;
-                $column_type_target = SystemColumn::getOption(['name' => $column_type_target])['id'] ?? null;
-            } else {
-                $column_type = ViewColumnType::SYSTEM;
-                $column_type_target = SystemColumn::getOption(['name' => $column_type_target])['id'] ?? null;
-            }
-        } else {
-            $column_type = ViewColumnType::COLUMN;
-        }
-
-        return [$column_type, $column_table_id, $column_type_target, $view_pivot_column_id, $view_pivot_table_id];
-    }
-
-    /**
      * get column item using view_column_target
      */
     public static function getColumnItem($view_column_target)

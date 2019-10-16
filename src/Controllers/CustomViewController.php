@@ -586,7 +586,7 @@ class CustomViewController extends AdminControllerTableBase
         $data = $request->all();
 
         if (!array_key_exists('target', $data) ||
-            !array_key_exists('cond_val', $data) ||
+            !array_key_exists('cond_key', $data) ||
             !array_key_exists('cond_name', $data)) {
             return [];
         }
@@ -596,7 +596,7 @@ class CustomViewController extends AdminControllerTableBase
         $field = new ChangeField($columnname, $label);
         $field->data([
             'view_column_target' => $data['target'],
-            'view_filter_condition' => $data['cond_val']
+            'view_filter_condition' => $data['cond_key']
         ])->rules("changeFieldValue:$label");
         $element_name = str_replace('view_filter_condition', 'view_filter_condition_value', $data['cond_name']);
         $field->setElementName($element_name);

@@ -1358,7 +1358,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 }
                 $array[$key] = strtolower($key);
             }
-            $options = getTransArrayValue($array, 'condition.condition_options');
+            $options = getTransArrayValue($array, 'condition.condition_type_options');
         }
 
         if ($include_column) {

@@ -1494,7 +1494,7 @@ return [
     'condition' => [
         'condition_target' => '条件項目',
         'condition_key' => '検索条件',
-        'condition_options' => [
+        'condition_type_options' => [
             'user' => 'ユーザー',
             'organization' => '組織',
             'role' => '役割グループ',
