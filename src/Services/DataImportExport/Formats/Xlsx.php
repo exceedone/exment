@@ -16,7 +16,12 @@ class Xlsx extends FormatBase
     public function createResponse($files)
     {
         return response()->stream(function () use ($files) {
-            $files[0]['writer']->save('php://output');
+            $writer = $this->createWriter($files[0]['spreadsheet']);
+            $writer->save('php://output');
+            // close workbook and release memory
+            $files[0]['spreadsheet']->disconnectWorksheets();
+            $files[0]['spreadsheet']->garbageCollect();
+            unset($writer);
         }, 200, $this->getDefaultHeaders());
     }
 
@@ -46,10 +51,18 @@ class Xlsx extends FormatBase
         $spreadsheet = $reader->load($path);
 
         $datalist = [];
-        // get all data
-        foreach ($spreadsheet->getSheetNames() as $sheetName) {
-            $sheet = $spreadsheet->getSheetByName($sheetName);
-            $datalist[$sheetName] = getDataFromSheet($sheet, 0, false, true);
+
+        try {
+            // get all data
+            foreach ($spreadsheet->getSheetNames() as $sheetName) {
+                $sheet = $spreadsheet->getSheetByName($sheetName);
+                $datalist[$sheetName] = getDataFromSheet($sheet, 0, false, true);
+            }
+        } finally {
+            // close workbook and release memory
+            $spreadsheet->disconnectWorksheets();
+            $spreadsheet->garbageCollect();
+            unset($spreadsheet, $reader);
         }
 
         return $datalist;
