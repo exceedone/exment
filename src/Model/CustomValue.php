@@ -826,7 +826,7 @@ abstract class CustomValue extends ModelBase
         // crate union query
         $queries = [];
         for ($i = 0; $i < count($searchColumns) - 1; $i++) {
-            $searchColumn = $searchColumns[$i];
+            $searchColumn = collect($searchColumns)->values()->get($i);
             $query = static::query();
             $query->where($searchColumn, $mark, $value)->select('id');
             $query->take($takeCount);
