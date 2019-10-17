@@ -5,7 +5,7 @@ namespace Exceedone\Exment\ChangeFieldItems;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\FilterOption;
 
 class ColumnSystemItem extends ChangeFieldItem
 {
@@ -21,7 +21,7 @@ class ColumnSystemItem extends ChangeFieldItem
             return [];
         }
 
-        return array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), $column_type);
+        return array_get(FilterOption::FILTER_OPTIONS(), $column_type);
     }
 
     /**
@@ -40,7 +40,7 @@ class ColumnSystemItem extends ChangeFieldItem
         $value_type = null;
 
         if (isset($key)) {
-            $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($key);
+            $value_type = FilterOption::VALUE_TYPE($key);
 
             if ($value_type == 'none') {
                 return null;

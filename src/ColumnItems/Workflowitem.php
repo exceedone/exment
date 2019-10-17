@@ -5,7 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Encore\Admin\Form\Field\Select;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\Define;
 
@@ -118,10 +118,10 @@ class Workflowitem extends SystemItem
 
         // if $status is start
         if($status == Define::WORKFLOW_START_KEYNAME){
-            $func = ($condition == ViewColumnFilterOption::NE) ? 'whereNotNull' : 'whereNull';
+            $func = ($condition == FilterOption::NE) ? 'whereNotNull' : 'whereNull';
             $query->{$func}('workflow_status_id');
         }else{
-            $mark = ($condition == ViewColumnFilterOption::NE) ? '<>' : '=';
+            $mark = ($condition == FilterOption::NE) ? '<>' : '=';
             $query->where('workflow_status_id', $mark, $status);
         }
 

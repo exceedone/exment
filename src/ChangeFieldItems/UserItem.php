@@ -6,8 +6,8 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
-use Exceedone\Exment\Enums\ViewColumnFilterType;
+use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\FilterType;
 
 class UserItem extends ChangeFieldItem
 {

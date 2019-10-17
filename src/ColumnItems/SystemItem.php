@@ -9,7 +9,7 @@ use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ViewColumnFilterType;
+use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
@@ -301,17 +301,17 @@ class SystemItem implements ItemInterface
             case SystemColumn::ID:
             case SystemColumn::SUUID:
             case SystemColumn::PARENT_ID:
-                return ViewColumnFilterType::DEFAULT;
+                return FilterType::DEFAULT;
             case SystemColumn::CREATED_AT:
             case SystemColumn::UPDATED_AT:
-                return ViewColumnFilterType::DAY;
+                return FilterType::DAY;
             case SystemColumn::CREATED_USER:
             case SystemColumn::UPDATED_USER:
-                return ViewColumnFilterType::USER;
+                return FilterType::USER;
             case SystemColumn::WORKFLOW_STATUS:
-                return ViewColumnFilterType::WORKFLOW;
+                return FilterType::WORKFLOW;
         }
-        return ViewColumnFilterType::DEFAULT;
+        return FilterType::DEFAULT;
     }
 
     protected function getSystemColumnOption()

@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Form\Tools;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Validator\ChangeFieldRule;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
 
 /**

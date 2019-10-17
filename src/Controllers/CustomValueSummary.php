@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ViewKindType;
 
 trait CustomValueSummary
@@ -97,7 +97,7 @@ trait CustomValueSummary
             $custom_view_filter->view_column_type = $custom_view_column->view_column_type;
             $custom_view_filter->view_column_target = $custom_view_column->view_column_target;
             $custom_view_filter->view_group_condition = $custom_view_column->view_group_condition;
-            $custom_view_filter->view_filter_condition = ViewColumnFilterOption::EQ;
+            $custom_view_filter->view_filter_condition = FilterOption::EQ;
             $custom_view_filter->view_filter_condition_value_text = $value;
             $filters[] = $custom_view_filter;
         }

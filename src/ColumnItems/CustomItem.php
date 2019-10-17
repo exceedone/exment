@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ViewColumnFilterType;
+use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
@@ -208,13 +208,13 @@ abstract class CustomItem implements ItemInterface
             return $field->default('');
         } else {
             switch ($value_type) {
-                case ViewColumnFilterType::DAY:
+                case FilterType::DAY:
                     $classname = Field\Date::class;
                     break;
-                case ViewColumnFilterType::NUMBER:
+                case FilterType::NUMBER:
                     $classname = Field\Number::class;
                     break;
-                case ViewColumnFilterType::SELECT:
+                case FilterType::SELECT:
                     $classname = Field\Select::class;
                     break;
                 default:
@@ -381,21 +381,21 @@ abstract class CustomItem implements ItemInterface
             case ColumnType::INTEGER:
             case ColumnType::DECIMAL:
             case ColumnType::CURRENCY:
-                return ViewColumnFilterType::NUMBER;
+                return FilterType::NUMBER;
             case ColumnType::SELECT:
             case ColumnType::SELECT_VALTEXT:
             case ColumnType::SELECT_TABLE:
-                return ViewColumnFilterType::SELECT;
+                return FilterType::SELECT;
             case ColumnType::DATE:
             case ColumnType::DATETIME:
-                return ViewColumnFilterType::DAY;
+                return FilterType::DAY;
             case ColumnType::IMAGE:
             case ColumnType::FILE:
-                return ViewColumnFilterType::FILE;
+                return FilterType::FILE;
             case SystemTableName::USER:
-                return ViewColumnFilterType::USER;
+                return FilterType::USER;
             default:
-                return ViewColumnFilterType::DEFAULT;
+                return FilterType::DEFAULT;
         }
     }
 

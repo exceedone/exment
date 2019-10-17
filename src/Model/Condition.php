@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Illuminate\Database\Eloquent\Collection;
 use Encore\Admin\Form;
