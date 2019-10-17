@@ -24,6 +24,7 @@ var Exment;
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
+            $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
@@ -32,9 +33,7 @@ var Exment;
             CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
             CommonEvent.setFormFilter($('[data-filter]'));
-            if (!$('#gridrow_select_disabled').val()) {
-                CommonEvent.tableHoverLink();
-            }
+            CommonEvent.tableHoverLink();
             $.numberformat('[number_format]');
         }
         /**
@@ -75,6 +74,13 @@ var Exment;
             // if not exists, default help
             $manual.prop('href', manual_base_uri);
             $manual.children('i').removeClass('help_personal');
+        }
+        /**
+         * Add Help modal event
+         */
+        static showHelpModalEvent(ev) {
+            let elem = $(ev.target).closest('[data-help-text]');
+            swal(elem.data('help-title'), elem.data('help-text'), 'info');
         }
         /**
          *
@@ -213,22 +219,12 @@ var Exment;
                 if ($(ev.target).closest('.popover').length > 0) {
                     return;
                 }
-                var editFlg = $('#gridrow_select_edit').val();
                 var linkElem = $(ev.target).closest('tr').find('.rowclick');
-                if (editFlg) {
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
-                    }
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                    }
-                } else {
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                    }
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
-                    }
+                if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                }
+                if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-edit');
                 }
                 if (!hasValue(linkElem)) {
                     linkElem = $(ev.target).closest('tr').find('.fa-external-link');

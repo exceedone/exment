@@ -42,6 +42,7 @@ class Bootstrap
 
         Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
+            $navbar->left(new \Exceedone\Exment\Form\Navbar\Hidden);
             $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav);
             $navbar->right(new \Exceedone\Exment\Form\Navbar\NotifyNav);
         });
@@ -116,46 +117,12 @@ class Bootstrap
 
         Ad::js(asset('vendor/exment/js/customscript.js?ver='.$ver));
 
-        // add admin_url and file delete confirm
-        $delete_confirm = trans('admin.delete_confirm');
-        $prefix = config('admin.route.prefix') ?? '';
-        $base_uri = trim(app('request')->getBaseUrl(), '/') ?? '';
-        $admin_url = admin_url();
-
         // delete object
         $delete_confirm = trans('admin.delete_confirm');
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
-        $gridrow_select_edit = config('exment.gridrow_select_edit', 0);
-        $gridrow_select_disabled = config('exment.gridrow_select_disabled', 0);
         
         $script = <<<EOT
-        $('body').append($('<input/>', {
-            'type':'hidden',
-            'id': 'admin_prefix',
-            'value': '$prefix'
-        }));
-        $('body').append($('<input/>', {
-            'type':'hidden',
-            'id': 'admin_base_uri',
-            'value': '$base_uri'
-        }));
-        $('body').append($('<input/>', {
-            'type':'hidden',
-            'id': 'admin_uri',
-            'value': '$admin_url'
-        }));
-        $('body').append($('<input/>', {
-            'type':'hidden',
-            'id': 'gridrow_select_edit',
-            'value': '$gridrow_select_edit'
-        }));
-        $('body').append($('<input/>', {
-            'type':'hidden',
-            'id': 'gridrow_select_disabled',
-            'value': '$gridrow_select_disabled'
-        }));
-        
     ///// delete click event
     $(document).off('click', '[data-exment-delete]').on('click', '[data-exment-delete]', {}, function(ev){
         // get url
@@ -167,15 +134,6 @@ class Bootstrap
             method: 'delete',
             cancel:"$cancel",
         });
-    });
-    
-    $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, function(ev){
-        var elem = $(ev.target).closest('[data-help-text]');
-        swal(
-            elem.data('help-title'),
-            elem.data('help-text'),
-            'info'
-        );
     });
 
 EOT;
