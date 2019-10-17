@@ -110,6 +110,6 @@ abstract class ChangeFieldItem
     }
 
     protected function getFilterOptionConditon(){
-        return array_get(FilterOption::FILTER_OPTIONS(), FilterType::SELECT);
+        return array_get(FilterOption::FILTER_OPTIONS(), FilterType::CONDITION);
     }
 }

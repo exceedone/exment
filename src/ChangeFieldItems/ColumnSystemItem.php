@@ -59,7 +59,6 @@ class ColumnSystemItem extends ChangeFieldItem
     protected function getFormColumnItem(){
         return CustomViewFilter::getColumnItem($this->target)
         ->options([
-            //'view_column_target' => true,
         ]);
     }
 }

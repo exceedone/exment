@@ -78,6 +78,7 @@ class FilterOption extends EnumBase
                 return 'none';
         }
     }
+
     public static function FILTER_OPTIONS()
     {
         return [
@@ -144,6 +145,9 @@ class FilterOption extends EnumBase
             FilterType::WORKFLOW => [
                 ['id' => FilterOption::EQ, 'name' => 'eq'],
                 ['id' => FilterOption::NE, 'name' => 'ne'],
+            ],
+            FilterType::CONDITION => [
+                ['id' => FilterOption::EQ, 'name' => 'eq'],
             ],
         ];
     }

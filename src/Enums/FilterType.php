@@ -11,4 +11,5 @@ class FilterType extends EnumBase
     const NUMBER = 'number';
     const SELECT = 'select';
     const WORKFLOW = 'workflow';
+    const CONDITION = 'condition';
 }
