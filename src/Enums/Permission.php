@@ -15,12 +15,15 @@ class Permission extends EnumBase
     const CUSTOM_VALUE_VIEW = 'custom_value_view';
     const CUSTOM_VALUE_ACCESS = 'custom_value_access';
     const CUSTOM_VALUE_SHARE = 'custom_value_share';
+    const CUSTOM_VALUE_IMPORT = 'custom_value_import';
+    const CUSTOM_VALUE_EXPORT = 'custom_value_export';
     const PLUGIN_ACCESS = 'plugin_access';
     const PLUGIN_SETTING = 'plugin_setting';
     const LOGIN_USER = 'login_user';
     const ROLE_GROUP_ALL = 'role_group_all';
     const ROLE_GROUP_PERMISSION = 'role_group_permission';
     const ROLE_GROUP_USER_ORGANIZATION = 'role_group_user_organization';
+    const WORKFLOW = 'workflow';
 
 
     public const AVAILABLE_ACCESS_CUSTOM_VALUE = [self::CUSTOM_TABLE, self::CUSTOM_VALUE_EDIT_ALL, self::CUSTOM_VALUE_VIEW_ALL, self::CUSTOM_VALUE_ACCESS_ALL, self::CUSTOM_VALUE_EDIT, self::CUSTOM_VALUE_VIEW];
@@ -34,6 +37,7 @@ class Permission extends EnumBase
         self::CUSTOM_TABLE,
         self::CUSTOM_VALUE_EDIT_ALL,
         self::LOGIN_USER,
+        self::WORKFLOW,
     ];
     public const ROLE_GROUP_ROLE_PERMISSION = [
         self::ROLE_GROUP_ALL,
@@ -46,6 +50,8 @@ class Permission extends EnumBase
         self::CUSTOM_VIEW,
         self::CUSTOM_VALUE_EDIT_ALL,
         self::CUSTOM_VALUE_VIEW_ALL,
+        self::CUSTOM_VALUE_IMPORT,
+        self::CUSTOM_VALUE_EXPORT,
     ];
     
     public const TABLE_ROLE_PERMISSION = [
@@ -56,5 +62,7 @@ class Permission extends EnumBase
         self::CUSTOM_VALUE_EDIT,
         self::CUSTOM_VALUE_VIEW,
         self::CUSTOM_VALUE_SHARE,
+        self::CUSTOM_VALUE_IMPORT,
+        self::CUSTOM_VALUE_EXPORT,
     ];
 }

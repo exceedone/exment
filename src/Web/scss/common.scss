@@ -280,6 +280,19 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     min-width: 45px;
 }
 
+// checkbox table
+.checkboxtable{
+    .checkboxtable-header{
+        height:50px;
+        vertical-align: bottom;
+    }
+
+    .checkboxtable-body{
+        height:30px;
+        vertical-align: middle;
+    }
+}
+
 .calc_formula_modal{
     .col-value-item{
         margin:2px;

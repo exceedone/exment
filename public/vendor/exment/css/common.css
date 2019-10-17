@@ -3559,6 +3559,16 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   min-width: 45px;
 }
 
+.checkboxtable .checkboxtable-header {
+  height: 50px;
+  vertical-align: bottom;
+}
+
+.checkboxtable .checkboxtable-body {
+  height: 30px;
+  vertical-align: middle;
+}
+
 .calc_formula_modal .col-value-item {
   margin: 2px;
   padding: 4px 5px;
