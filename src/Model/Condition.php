@@ -163,7 +163,9 @@ class Condition extends ModelBase
             $array = array_filter($condition_value, function ($val) {
                 return !is_null($val);
             });
-            $this->condition_value = json_encode($array);
+            $this->attributes['condition_value'] = json_encode($array);
+        }else{
+            $this->attributes['condition_value'] = $condition_value;
         }
     }
 

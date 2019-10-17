@@ -797,7 +797,7 @@ class WorkflowController extends AdminControllerBase
 
         // get selected value
         $value = $request->get('workflow_actions_work_conditions');
-        $value = jsonToArray($value);
+        $value = Condition::getWorkConditions($value);
 
         $form = new ModalForm($value);
 

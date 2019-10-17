@@ -36,7 +36,7 @@ class CreateCustomFormPriorities extends Migration
             $table->integer('condition_key');
             $table->integer('target_table_id')->nullable();
             $table->integer('target_column_id')->nullable();
-            $table->json('condition_value')->nullable();
+            $table->string('condition_value', 1024)->nullable();
             $table->timestamps();
             $table->timeusers();
             
