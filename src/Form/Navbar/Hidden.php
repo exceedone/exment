@@ -14,7 +14,7 @@ class Hidden implements Renderable
         $values = [
             'admin_prefix' => config('admin.route.prefix') ?? '',
             'admin_base_uri' => trim(app('request')->getBaseUrl(), '/') ?? '',
-            'admin_url' => admin_url(),
+            'admin_ur' => admin_url(),
             'gridrow_select_edit' => config('exment.gridrow_select_edit', 0),
             'gridrow_select_disabled' => config('exment.gridrow_select_disabled', 0),
         ];
