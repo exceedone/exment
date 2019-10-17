@@ -127,6 +127,7 @@ class Bootstrap
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
         $gridrow_select_edit = config('exment.gridrow_select_edit', 0);
+        $gridrow_select_disabled = config('exment.gridrow_select_disabled', 0);
         
         $script = <<<EOT
         $('body').append($('<input/>', {
@@ -148,6 +149,11 @@ class Bootstrap
             'type':'hidden',
             'id': 'gridrow_select_edit',
             'value': '$gridrow_select_edit'
+        }));
+        $('body').append($('<input/>', {
+            'type':'hidden',
+            'id': 'gridrow_select_disabled',
+            'value': '$gridrow_select_disabled'
         }));
         
     ///// delete click event

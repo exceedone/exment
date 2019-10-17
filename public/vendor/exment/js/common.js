@@ -32,7 +32,9 @@ var Exment;
             CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
             CommonEvent.setFormFilter($('[data-filter]'));
-            CommonEvent.tableHoverLink();
+            if (!$('#gridrow_select_disabled').val()) {
+                CommonEvent.tableHoverLink();
+            }
             $.numberformat('[number_format]');
         }
         /**
