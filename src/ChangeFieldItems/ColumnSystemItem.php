@@ -7,7 +7,7 @@ use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 
-class ColumnItem extends ChangeFieldItem
+class ColumnSystemItem extends ChangeFieldItem
 {
     public function getFilterOption(){
         // get column item

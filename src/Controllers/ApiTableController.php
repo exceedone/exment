@@ -672,7 +672,7 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         $elementName = str_replace('condition_key', 'condition_value', $request->get('cond_name'));
-        $label = exmtrans('custom_form_priority.condition_value');
+        $label = exmtrans('condition.condition_value');
         $item->setElement($elementName, 'condition_value', $label);
 
         return $item;

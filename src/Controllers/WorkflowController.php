@@ -853,64 +853,12 @@ class WorkflowController extends AdminControllerBase
 
                 $hasManyTable->callbackField(function($field) use($default, $index){
                     $field->setRelatedValue($default)
+                        ->disableHeader()
                         ->attribute(['data-filter' => json_encode(['key' => "enabled_flg_{$index}", 'value' => '1'])])
                     ;
                 });
 
                 $hasManyTable->render();
-                
-                // $form->hasManyTable("filter_{$index}", exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $id) {
-                //     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                //         ->options($custom_table->getColumnsSelectOptions(
-                //             [
-                //             ]
-                //         ))
-                //         ->attribute([
-                //             'data-linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
-                //             'data-change_field_target' => 'view_column_target',
-                //         ]);
-        
-                //     $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
-                //         ->options(function ($val, $select) {
-                //             // if null, return empty array.
-                //             if (!isset($val)) {
-                //                 return [];
-                //             }
-        
-                //             $data = $select->data();
-                //             $view_column_target = array_get($data, 'view_column_target');
-        
-                //             // get column item
-                //             $column_item = CustomViewFilter::getColumnItem($view_column_target);
-        
-                //             ///// get column_type
-                //             $column_type = $column_item->getViewFilterType();
-        
-                //             // if null, return []
-                //             if (!isset($column_type)) {
-                //                 return [];
-                //             }
-        
-                //             // get target array
-                //             $options = array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), $column_type);
-                //             return collect($options)->mapWithKeys(function ($array) {
-                //                 return [$array['id'] => exmtrans('custom_view.filter_condition_options.'.$array['name'])];
-                //             });
-        
-                //             return [];
-                //         });
-                //     $label = exmtrans('custom_view.view_filter_condition_value_text');
-                //     $form->changeField('view_filter_condition_value', $label)
-                //         ->ajax(admin_url("workflow/{$id}/filter-value"))
-                //         ->setEventTrigger('.view_filter_condition')
-                //         ->setEventTarget('select.view_column_target')
-                //         ->rules([new ChangeFieldRule(null, $label)]);
-                // })->setTableColumnWidth(4, 4, 3, 1)
-                // ->setTableWidth(10, 2)
-                // ->setElementClass('work_conditions_filter')
-                // ->setRelatedValue($default)
-                // ->attribute(['data-filter' => json_encode(['key' => "enabled_{$index}", 'value' => '1'])])
-                // ->disableHeader();
             }
         }
 

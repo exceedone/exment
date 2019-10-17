@@ -229,7 +229,6 @@ trait HasPermissions
      */
     public function filterModel($model, $custom_view = null, $callback = null)
     {
-        //TODO:workflow
         // if simple eloquent, throw
         if($model instanceof \Illuminate\Database\Eloquent\Model){
             throw new \Exception;

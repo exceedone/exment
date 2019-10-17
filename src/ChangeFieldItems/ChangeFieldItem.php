@@ -36,7 +36,6 @@ abstract class ChangeFieldItem
      */
     protected $label;
 
-
     public function __construct(?CustomTable $custom_table, $target){
         $this->custom_table = $custom_table;
         $this->target = $target;
@@ -49,8 +48,7 @@ abstract class ChangeFieldItem
 
         return $this;
     } 
-
-    /**
+        /**
      * get filter condition
      */
     public static function getItem(?CustomTable $custom_table, $target)
@@ -70,10 +68,10 @@ abstract class ChangeFieldItem
                 ]);
         
             if($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem){
-                return new ColumnItem($custom_table, $target);
+                return new ColumnSystemItem($custom_table, $target);
             }
             elseif($column_item instanceof \Exceedone\Exment\ColumnItems\SystemItem){
-                return new SystemItem($custom_table, $target);
+                return new ColumnSystemItem($custom_table, $target);
             }
         }
     }

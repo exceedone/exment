@@ -24,6 +24,8 @@ use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Form\Field\ChangeField;
+use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
+use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
 
 class CustomViewController extends AdminControllerTableBase
 {
@@ -460,60 +462,32 @@ class CustomViewController extends AdminControllerTableBase
     protected function setFilterFields(&$form, $custom_table, $is_aggregate = false)
     {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+
         // filter setting
-        $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $is_aggregate) {
-            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(
-                    [
-                        'append_table' => true,
-                        'index_enabled_only' => true,
-                        'include_parent' => $is_aggregate,
-                        'include_child' => $is_aggregate,
-                        'include_workflow' => true,
-                    ]
-                ))
-                ->attribute([
-                    'data-linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
-                    'data-change_field_target' => 'view_column_target',
-                ]);
+        $hasManyTable = new ConditionHasManyTable($form, [
+            'ajax' => admin_url("view/{$custom_table->table_name}/filter-value"),
+            'name' => "custom_view_filters",
+            'linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
+            'targetOptions' => $custom_table->getColumnsSelectOptions(
+                [
+                    'append_table' => true,
+                    'index_enabled_only' => true,
+                    'include_parent' => $is_aggregate,
+                    'include_child' => $is_aggregate,
+                    'include_workflow' => true,
+                ]
+            ),
+            'custom_table' => $custom_table,
+            'condition_target_name' => 'view_column_target',
+            'condition_key_name' => 'view_filter_condition',
+            'condition_value_name' => 'view_filter_condition_value',
+        ]);
 
-            $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
-                ->options(function ($val, $select) {
-                    // if null, return empty array.
-                    if (!isset($val)) {
-                        return [];
-                    }
+        $hasManyTable->callbackField(function($field) use($manualUrl){
+            $field->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
+        });
 
-                    $data = $select->data();
-                    $view_column_target = array_get($data, 'view_column_target');
-
-                    // get column item
-                    $column_item = CustomViewFilter::getColumnItem($view_column_target);
-
-                    ///// get column_type
-                    $column_type = $column_item->getViewFilterType();
-
-                    // if null, return []
-                    if (!isset($column_type)) {
-                        return [];
-                    }
-
-                    // get target array
-                    $options = array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), $column_type);
-                    return collect($options)->mapWithKeys(function ($array) {
-                        return [$array['id'] => exmtrans('custom_view.filter_condition_options.'.$array['name'])];
-                    });
-
-                    return [];
-                });
-            $label = exmtrans('custom_view.view_filter_condition_value_text');
-            $form->changeField('view_filter_condition_value', $label)
-                ->ajax(admin_url("view/{$custom_table->table_name}/filter-value"))
-                ->setEventTrigger('.view_filter_condition')
-                ->setEventTarget('select.view_column_target')
-                ->rules("changeFieldValue:$label");
-        })->setTableColumnWidth(4, 4, 3, 1)
-        ->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
+        $hasManyTable->render();
     }
 
     protected function hasSystemPermission()
@@ -578,64 +552,6 @@ class CustomViewController extends AdminControllerTableBase
         });
     }
 
-    /**
-     * get filter condition
-     */
-    public function getFilterValue(Request $request)
-    {
-        $data = $request->all();
-
-        if (!array_key_exists('target', $data) ||
-            !array_key_exists('cond_key', $data) ||
-            !array_key_exists('cond_name', $data)) {
-            return [];
-        }
-        $columnname = 'view_filter_condition_value';
-        $label = exmtrans('custom_view.'.$columnname.'_text');
-
-        $field = new ChangeField($columnname, $label);
-        $field->data([
-            'view_column_target' => $data['target'],
-            'view_filter_condition' => $data['cond_key']
-        ])->rules("changeFieldValue:$label");
-        $element_name = str_replace('view_filter_condition', 'view_filter_condition_value', $data['cond_name']);
-        $field->setElementName($element_name);
-
-        $view = $field->render();
-        return \json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
-    }
-
-    /**
-     * get filter condition
-     */
-    public function getFilterCondition(Request $request)
-    {
-        $view_column_target = $request->get('q');
-        if (!isset($view_column_target)) {
-            return [];
-        }
-        
-        // get column item
-        $column_item = CustomViewFilter::getColumnItem($view_column_target)
-            ->options([
-                'view_column_target' => true,
-            ]);
-
-        ///// get column_type
-        $column_type = $column_item->getViewFilterType();
-
-        // if null, return []
-        if (!isset($column_type)) {
-            return [];
-        }
-
-        // get target array
-        $options = array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), $column_type);
-        return collect($options)->map(function ($array) {
-            return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.filter_condition_options.'.array_get($array, 'name'))];
-        });
-    }
-    
     protected function getMenuItems()
     {
         $view_kind_types = [
@@ -671,5 +587,42 @@ class CustomViewController extends AdminControllerTableBase
             return false;
         }
         return parent::validateTable($table, $role_name);
+    }
+    
+    /**
+     * get filter condition
+     */
+    public function getFilterCondition(Request $request)
+    {
+        $item = $this->getChangeFieldItem($request, $request->get('q'));
+        if(!isset($item)){
+            return [];
+        }
+        return $item->getFilterCondition();
+    }
+    
+    /**
+     * get filter condition
+     */
+    public function getFilterValue(Request $request)
+    {
+        $item = $this->getChangeFieldItem($request, $request->get('target'));
+        if(!isset($item)){
+            return [];
+        }
+        return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
+    }
+
+    protected function getChangeFieldItem(Request $request, $target){
+        $item = ChangeFieldItem::getItem($this->custom_table, $target);
+        if(!isset($item)){
+            return null;
+        }
+
+        $elementName = str_replace('view_filter_condition', 'view_filter_condition_value', $request->get('cond_name'));
+        $label = exmtrans('condition.condition_value');
+        $item->setElement($elementName, 'view_filter_condition_value', $label);
+
+        return $item;
     }
 }

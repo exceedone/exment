@@ -154,7 +154,6 @@ class Workflow extends ModelBase
             return false;
         }
 
-        //TODO:workflow check workflow_actions items
         return true;
     }
 

@@ -898,8 +898,6 @@ return [
         'custom_form_id' => '対象フォーム',
         'order' => '優先順',
         'custom_form_priority_conditions' => '表示条件',
-        'condition_target' => '条件項目',
-        'condition_value' => '比較値',
         'help'=> [
             'order' => 'フォームの表示優先順位を設定します。',
             'custom_form_priority_conditions' => 'カスタムフォームを表示する条件を設定します。ユーザー、組織、役割、選択型のカスタム列を選択できます。<br>複数条件を設定した場合はそのすべてを満たす必要があります。',
@@ -1495,6 +1493,7 @@ return [
     'condition' => [
         'condition_target' => '条件項目',
         'condition_key' => '検索条件',
+        'condition_value' => '条件値',
         'condition_type_options' => [
             'user' => 'ユーザー',
             'organization' => '組織',

@@ -13,10 +13,6 @@ use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-//TODO:workflow remove
-use Exceedone\Exment\Model\CustomViewFilter;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
-
 /**
  * Custom Form Controller
  */
@@ -58,19 +54,12 @@ class CustomFormPriorityController extends AdminControllerTableBase
                 'include_system' => false,
             ]),
         ]);
+
+        $hasManyTable->callbackField(function($field){
+            $field->disableHeader();
+        });
+
         $hasManyTable->render();
-
-        // $form->hasManyTable('custom_form_priority_conditions', exmtrans("custom_form_priority.custom_form_priority_conditions"), function ($form) use ($custom_table) {
-        //     $form->select('form_priority_target', exmtrans("custom_form_priority.form_priority_target"))->required()
-        //         ->options($custom_table->getPrioritySelectOptions());
-
-        //     $label = exmtrans('custom_form_priority.form_filter_condition_value');
-        //     $form->changeField('form_filter_condition_value', $label)
-        //         ->required()
-        //         ->rules("changeFieldValue:$label");
-        // })->setTableColumnWidth(4, 7, 1)
-        // ->description(exmtrans('custom_form_priority.help.custom_form_priority_conditions'));
-
 
         $form->tools(function (Form\Tools $tools) use($custom_table) {
             $tools->add((new Tools\GridChangePageMenu('form', $custom_table, false))->render());
@@ -85,27 +74,6 @@ class CustomFormPriorityController extends AdminControllerTableBase
             return redirect(admin_url("form/$table_name"));
         });
 
-//         $script = <<<EOT
-//             $('#has-many-table-custom_form_priority_conditions').off('change').on('change', '.condition_target', function (ev) {
-//                 $.ajax({
-//                     url: admin_url("formpriority/$table_name/filter-value"),
-//                     type: "GET",
-//                     data: {
-//                         'target_name': $(this).attr('name'),
-//                         'target_val': $(this).val(),
-//                     },
-//                     context: this,
-//                     success: function (data) {
-//                         var json = JSON.parse(data);
-//                         $(this).closest('tr.has-many-table-custom_form_priority_conditions-row').find('td:nth-child(2)>div>div').html(json.html);
-//                         if (json.script) {
-//                             eval(json.script);
-//                         }
-//                     },
-//                 });
-//             });
-// EOT;
-//         Admin::script($script);
         return $form;
     }
 }

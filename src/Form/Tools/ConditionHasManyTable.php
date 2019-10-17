@@ -22,6 +22,10 @@ class ConditionHasManyTable
 
     protected $callbackField;
 
+    protected $condition_target_name = 'condition_target';
+    protected $condition_key_name = 'condition_key';
+    protected $condition_value_name = 'condition_value';
+
     public function __construct(&$form, $options = [])
     {
         $this->form = $form;
@@ -34,22 +38,27 @@ class ConditionHasManyTable
 
     public function render()
     {
-        $field = $this->form->hasManyTable($this->name, exmtrans("custom_view.custom_view_filters"), function ($form) {
-            $form->select('condition_target', exmtrans("condition.condition_target"))->required()
+        // get key name
+        $condition_target_name = $this->condition_target_name;
+        $condition_key_name = $this->condition_key_name;
+        $condition_value_name = $this->condition_value_name;
+
+        $field = $this->form->hasManyTable($this->name, exmtrans("custom_view.custom_view_filters"), function ($form) use($condition_target_name, $condition_key_name, $condition_value_name) {
+            $form->select($condition_target_name, exmtrans("condition.condition_target"))->required()
                 ->options($this->targetOptions)
                 ->attribute([
                     'data-linkage' => $this->linkage,
-                    'data-change_field_target' => 'condition_target',
+                    'data-change_field_target' => $condition_target_name,
                 ]);
 
-            $form->select('condition_key', exmtrans("condition.condition_key"))->required()
-                ->options(function ($val, $select) {
+            $form->select($condition_key_name, exmtrans("condition.condition_key"))->required()
+                ->options(function ($val, $select) use($condition_target_name, $condition_key_name, $condition_value_name) {
                     if (!isset($val)) {
                         return [];
                     }
 
                     $data = $select->data();
-                    $condition_target = array_get($data, 'condition_target');
+                    $condition_target = array_get($data, $condition_target_name);
 
                     $item = ChangeFieldItem::getItem($this->custom_table, $condition_target);
                     if(!isset($item)){
@@ -61,27 +70,26 @@ class ConditionHasManyTable
                     });
                 });
 
-            $label = exmtrans('custom_view.view_filter_condition_value_text');
-            $form->changeField('condition_value', $label)
+            $label = exmtrans('condition.condition_value');
+            $form->changeField($condition_value_name, $label)
                 ->ajax($this->ajax)
-                ->setEventTrigger('select.condition_key')
-                ->setEventTarget('select.condition_target')
-                ->adminField(function($data, $field){
+                ->setEventTrigger("select.$condition_key_name")
+                ->setEventTarget("select.$condition_target_name")
+                ->adminField(function($data, $field) use($condition_target_name, $condition_key_name, $condition_value_name){
                     if(is_null($data)){
                         return null;
                     }
-                    $item = ChangeFieldItem::getItem($this->custom_table, array_get($data, 'condition_target'));
+                    $item = ChangeFieldItem::getItem($this->custom_table, array_get($data, $condition_target_name));
                                 
-                    $label = exmtrans('custom_form_priority.condition_value');
-                    $item->setElement($field->getElementName(), 'condition_value', $label);
+                    $label = exmtrans('condition.condition_value');
+                    $item->setElement($field->getElementName(), $condition_value_name, $label);
 
-                    return $item->getChangeField(array_get($data, 'condition_key'));
+                    return $item->getChangeField(array_get($data, $condition_key_name));
                 });
                 //->rules([new ChangeFieldRule(null, $label, 'condition_target')])
                 ;
         })->setTableColumnWidth(4, 4, 3, 1)
-        ->setTableWidth(10, 1)
-        ->disableHeader();
+        ->setTableWidth(10, 1);
 
         if(isset($this->callbackField)){
             $func = $this->callbackField;
