@@ -322,47 +322,71 @@ class MenuController extends AdminControllerBase
         switch ($type) {
             case MenuType::SYSTEM:
                 $item = array_get(Define::MENU_SYSTEM_DEFINITION, $value);
-                return [
+                $result = [
                     'menu_name' => $value,
                     'title' => exmtrans("menu.system_definitions.".$value),
                     'icon' => array_get($item, 'icon'),
                     'uri' => array_get($item, 'uri'),
                 ];
+                break;
             case MenuType::PLUGIN:
                 $item = Plugin::getEloquent($value);
-                return [
+                $result = [
                     'menu_name' => array_get($item, 'plugin_name'),
                     'title' => array_get($item, 'plugin_view_name'),
                     'icon' => array_get($item, 'options.icon'),
                     'uri' => $item->getRouteUri(),
                 ];
-                return Plugin::getEloquent($value);
+                break;
             case MenuType::TABLE:
                 $item = CustomTable::getEloquent($value);
-                return [
+                $result = [
                     'menu_name' => array_get($item, 'table_name'),
                     'title' => array_get($item, 'table_view_name'),
                     'icon' => array_get($item, 'options.icon'),
                     'uri' => array_get($item, 'table_name'),
                 ];
+                break;
             case MenuType::CUSTOM:
-                return [
+                $result = [
                     'menu_name' => '',
                     'title' => '',
                     'icon' => '',
                     'uri' => '',
                 ];
-                
+                break;
             case MenuType::PARENT_NODE:
-                return [
+                $result = [
                     'menu_name' => '',
                     'title' => '',
                     'icon' => '',
                     'uri' => '#',
                 ];
+                break;
         }
 
-        return [];
+        if(!isset($result) || is_nullorempty(array_get($result, 'menu_name'))){
+            return [];
+        }
+
+
+        // check same menu name
+        $menu_name_base = array_get($result, 'menu_name');
+        $menu_name = $menu_name_base;
+        $menus = Menu::all();
+        
+        for($i = 1; $i < 1000; $i++){
+            if(!$menus->contains(function($menu) use($menu_name){
+                return $menu_name == $menu->menu_name;
+            })){
+                $result['menu_name'] = $menu_name;
+                return $result;
+            }
+
+            $menu_name = "{$menu_name_base}_{$i}";
+        }
+
+        return $result;
     }
 
     /**
