@@ -25,6 +25,8 @@ namespace Exment {
 
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
 
+            $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
+
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
@@ -80,6 +82,18 @@ namespace Exment {
             // if not exists, default help
             $manual.prop('href', manual_base_uri);
             $manual.children('i').removeClass('help_personal');
+        }
+        
+        /**
+         * Add Help modal event
+         */
+        public static showHelpModalEvent(ev){
+            let elem = $(ev.target).closest('[data-help-text]');
+            swal(
+                elem.data('help-title'),
+                elem.data('help-text'),
+                'info'
+            );
         }
         
         /**

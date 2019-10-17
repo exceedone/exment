@@ -24,6 +24,7 @@ var Exment;
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
+            $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
@@ -74,6 +75,13 @@ var Exment;
             // if not exists, default help
             $manual.prop('href', manual_base_uri);
             $manual.children('i').removeClass('help_personal');
+        }
+        /**
+         * Add Help modal event
+         */
+        static showHelpModalEvent(ev) {
+            let elem = $(ev.target).closest('[data-help-text]');
+            swal(elem.data('help-title'), elem.data('help-text'), 'info');
         }
         /**
          *

@@ -172,10 +172,11 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
             $this->setTableResouce($router, 'operation', 'CustomOperationController');
 
+            // only webapi api function
             $router->get('webapi/menu/menutype', 'MenuController@menutype');
             $router->post('webapi/menu/menutargetvalue', 'MenuController@menutargetvalue');
+            $router->get('webapi/menu/menutargetview', 'MenuController@menutargetview');
 
-            // only webapi api function
             $router->get("webapi/{tableKey}/filter-condition", 'ApiTableController@getFilterCondition');
             $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
         });

@@ -409,6 +409,16 @@ return [
     |
     */
     'gridrow_select_edit' => env('EXMENT_GRIDROW_SELECT_EDIT', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled show detail or edit page when row click
+    |--------------------------------------------------------------------------
+    |
+    | Disabled Show detail page when grid-row selected
+    |
+    */
+    'gridrow_select_disabled' => env('EXMENT_GRIDROW_SELECT_DISABLED', false),
     
     /*
     |--------------------------------------------------------------------------
