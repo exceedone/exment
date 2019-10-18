@@ -769,6 +769,17 @@ if (!function_exists('replaceBreak')) {
     }
 }
 
+if (!function_exists('explodeBreak')) {
+    /**
+     * explode new line code
+     * @return string
+     */
+    function explodeBreak($text)
+    {
+        return explode("\r\n", preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "\r\n", $text));
+    }
+}
+
 // Laravel, laravel-admin --------------------------------------------------
 if (!function_exists('getModelName')) {
     /**

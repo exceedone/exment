@@ -254,6 +254,12 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     background-color: #DFDFDF;
     cursor:pointer;
 }
+
+.column-__actions__ a{
+    padding:1px;
+    min-width: 50px;
+}
+
 .ul-hover > li:hover {
     background-color: #DFDFDF;
     cursor: pointer;

@@ -201,6 +201,21 @@ $('#has-many-table-{$this->column}').off('click', '.row-move').on('click', '.row
     var row = $(ev.target).closest('tr');
     var isup = $(ev.target).closest('.row-move').hasClass('row-move-up');
     
+    let getPrevNextRow = function(row, isup){
+        while(true){
+            var targetRow = isup ? row.prev() : row.next();
+            if(!hasValue(targetRow)){
+                return;
+            }
+            if(targetRow.is(':visible')){
+                return targetRow;
+            }
+            row = targetRow;
+        }
+    
+        return null;
+    };
+    
     var targetRow = getPrevNextRow(row, isup);
     if(!hasValue(targetRow)){
         return;
@@ -222,22 +237,8 @@ $("button[type='submit']").click(function(){
         };
     }
     return true;
-})
+});
 
-function getPrevNextRow(row, isup){
-    while(true){
-        var targetRow = isup ? row.prev() : row.next();
-        if(!hasValue(targetRow)){
-            return;
-        }
-        if(targetRow.is(':visible')){
-            return targetRow;
-        }
-        row = targetRow;
-    }
-
-    return null;
-}
 
 EOT;
 
