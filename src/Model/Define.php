@@ -119,6 +119,7 @@ class Define
     public const SYSTEM_KEY_SESSION_PROVIDER_TOKEN = "provider_token";
     public const SYSTEM_KEY_SESSION_PLUGINS = "plugins";
     public const SYSTEM_KEY_SESSION_PASSWORD_LIMIT = "password_limit";
+    public const SYSTEM_KEY_SESSION_UPDATE_NEWS = "update_news";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
