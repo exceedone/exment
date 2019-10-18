@@ -5,6 +5,7 @@ namespace Exceedone\Exment\DashboardBoxItems\SystemItems;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Encore\Admin\Widgets\Table as WidgetTable;
+use Carbon\Carbon;
 
 class News
 {
@@ -25,15 +26,37 @@ class News
         }
 
         try {
-            $client = new \GuzzleHttp\Client();
-            $response = $client->request('GET', Define::EXMENT_NEWS_API_URL, [
-                'http_errors' => false,
-                'query' => $this->getQuery(),
-            ]);
-    
-            $contents = $response->getBody()->getContents();
-            if ($response->getStatusCode() != 200) {
-                return null;
+            // get update news from session
+            $update_news = session()->get(Define::SYSTEM_KEY_SESSION_UPDATE_NEWS);
+
+            // if already executed
+            if (isset($update_news)) {
+                $update_news = json_decode($update_news, true);
+                $update_time = array_get($update_news, 'update_time');
+                if (isset($update_time)) {
+                    $update_time = new Carbon($update_time);
+                    if ($update_time->diffInMinutes(Carbon::now()) <= 60) {
+                        $contents = array_get($update_news, 'contents');
+                    }
+                }
+            }
+
+            if (!isset($contents)) {
+                // get update news from api
+                $client = new \GuzzleHttp\Client();
+                $response = $client->request('GET', Define::EXMENT_NEWS_API_URL, [
+                    'http_errors' => false,
+                    'query' => $this->getQuery(),
+                ]);
+        
+                $contents = $response->getBody()->getContents();
+                if ($response->getStatusCode() != 200) {
+                    return null;
+                }
+                session()->put(Define::SYSTEM_KEY_SESSION_UPDATE_NEWS, json_encode([
+                    'update_time' => Carbon::now()->toDateTimeString(),
+                    'contents' => $contents
+                ]));
             }
     
             // get wordpress items
