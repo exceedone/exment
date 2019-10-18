@@ -35,7 +35,7 @@ class DashboardMenu
 
         if (Dashboard::hasPermission()) {
             //role check
-            $editflg = Dashboard::hasDashboardEditAuth($this->current_dashboard->id);
+            $editflg = $this->current_dashboard->hasEditPermission();
 
             if ($editflg) {
                 $settings[] = ['url' => admin_urls('dashboard', $this->current_dashboard->id, 'edit'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.current_dashboard_edit')];

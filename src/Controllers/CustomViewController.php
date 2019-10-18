@@ -69,16 +69,10 @@ class CustomViewController extends AdminControllerTableBase
         }
 
         // check has system permission
-        if (!$this->hasSystemPermission()) {
-            $view = CustomView::getEloquent($id);
-
-            if ($view->view_type == Enums\ViewType::SYSTEM) {
-                Checker::error();
-                return false;
-            } elseif ($view->created_user_id != \Exment::user()->base_user_id) {
-                Checker::error();
-                return false;
-            }
+        $view = CustomView::getEloquent($id);
+        if (!$view->hasEditPermission()) {
+            Checker::error();
+            return false;
         }
         
         return parent::edit($request, $content, $tableKey, $id);
@@ -114,13 +108,13 @@ class CustomViewController extends AdminControllerTableBase
         $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('view_view_name', exmtrans("custom_view.view_view_name"))->sortable();
-        if ($this->hasSystemPermission()) {
+        if ($this->custom_table->hasSystemViewPermission()) {
             $grid->column('view_type', exmtrans("custom_view.view_type"))->sortable()->display(function ($view_type) {
                 return Enums\ViewType::getEnum($view_type)->transKey("custom_view.custom_view_type_options");
             });
         }
 
-        if (!$this->hasSystemPermission()) {
+        if (!$this->custom_table->hasSystemViewPermission()) {
             $grid->model()->where('view_type', Enums\ViewType::USER);
         }
         
@@ -251,7 +245,7 @@ class CustomViewController extends AdminControllerTableBase
             $form->hidden('view_type')->default(Enums\ViewType::SYSTEM);
         } else {
             // select view type
-            if ($this->hasSystemPermission() && (is_null($view_type) || $view_type == Enums\ViewType::USER)) {
+            if ($this->custom_table->hasSystemViewPermission() && (is_null($view_type) || $view_type == Enums\ViewType::USER)) {
                 $form->select('view_type', exmtrans('custom_view.view_type'))
                     ->default(Enums\ViewType::SYSTEM)
                     ->config('allowClear', false)
@@ -490,11 +484,6 @@ class CustomViewController extends AdminControllerTableBase
         $hasManyTable->render();
     }
 
-    protected function hasSystemPermission()
-    {
-        return $this->custom_table->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VIEW]);
-    }
-
     /**
      * get filter condition
      */
@@ -560,7 +549,7 @@ class CustomViewController extends AdminControllerTableBase
             ['name' => 'create_calendar', 'uri' => 'create?view_kind_type=2'],
         ];
 
-        if ($this->hasSystemPermission()) {
+        if ($this->custom_table->hasSystemViewPermission()) {
             $view_kind_types[] = ['name' => 'create_filter', 'uri' => 'create?view_kind_type=3'];
         }
 

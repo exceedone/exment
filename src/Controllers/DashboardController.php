@@ -50,7 +50,8 @@ class DashboardController extends AdminControllerBase
         $this->setDashboardInfo($request);
         
         // check has system permission
-        if (!Dashboard::hasDashboardEditAuth($id)) {
+        $dashboard = Dashboard::find($id);
+        if (!$dashboard->hasEditPermission()) {
             Checker::error();
             return false;
         }
@@ -315,7 +316,7 @@ EOT;
     {
         $content->row(function ($row) use ($content, $row_column_count, $row_no) {
             // check role.
-            $has_role = Dashboard::hasDashboardEditAuth($this->dashboard->id);
+            $has_role = $this->dashboard->hasEditPermission();
             for ($i = 1; $i <= $row_column_count; $i++) {
                 $func = "dashboard_row{$row_no}_boxes";
                 // get $boxes as $row_no

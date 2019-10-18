@@ -1622,8 +1622,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasViewPermission()
     {
-        return !boolval(config('exment.userview_disabled', false)) ||
-            $this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VIEW]);
+        return !boolval(config('exment.userview_disabled', false)) || $this->hasSystemViewPermission();
+    }
+    
+    /**
+     * Whether login user has system permission about view.
+     */
+    public function hasSystemViewPermission()
+    {
+        return $this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VIEW]);
     }
     
     /**

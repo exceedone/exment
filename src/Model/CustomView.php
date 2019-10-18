@@ -872,4 +872,22 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         return boolval($this->view_kind_type == ViewKindType::ALLDATA);
     }
+
+    /**
+     * Whether login user has edit permission about this view.
+     */
+    public function hasEditPermission()
+    {
+        if($this->custom_table->hasSystemViewPermission()){
+            return true;
+        }
+
+        if ($this->view_type == ViewType::SYSTEM) {
+            return false;
+        } elseif ($this->created_user_id != \Exment::user()->base_user_id) {
+            return false;
+        }
+
+        return true;
+    }
 }
