@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -1280,17 +1281,29 @@ if (! function_exists('abortJson')) {
      * *Have to return object.
      *
      * @param  \Symfony\Component\HttpFoundation\Response|int     $code
-     * @param  string  $message
-     * @param  array   $headers
+     * @param  string|array|ErrorCode  $message
+     * @param  ErrorCode  $errorCode
      * @return void
      */
-    function abortJson($code, $message = null)
+    function abortJson($code, $message = null, $errorCode = null)
     {
-        if (!is_null($message) && is_string($message)) {
-            return response()->json(['message' => $message], $code);
+        $result = [];
+        if (!is_null($message)) {
+            if(is_string($message)){
+                $result['message'] = $message;
+            }elseif($message instanceof ErrorCode){
+                $result['code'] = $message->getValue();
+                $result['message'] = $message->getMessage();
+            }elseif(is_array($message)){
+                $result = $message;
+            }
         }
 
-        return response()->json($message, $code);
+        if (!is_null($errorCode)) {
+            $result['code'] = $errorCode->getValue();
+        }
+
+        return response()->json($result, $code);
     }
 }
 

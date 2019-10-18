@@ -14,7 +14,6 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\ColumnItems\Workflowitem;
-use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
@@ -139,16 +138,14 @@ trait CustomValueGrid
         $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
             $listButtons = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
             
-            // have edit flg
-            $edit_flg = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
-            // if user have edit permission, add button
-            if ($edit_flg) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid));
-                if (!$this->custom_table->formActionDisable(FormActionType::CREATE)) {
-                    $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
-                }
+            if (($import = $this->custom_table->enableImport()) === true || $this->custom_table->enableExport() === true) {
+                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $import !== true));
             }
             
+            if ($this->custom_table->enableCreate(true) === true) {
+                $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
+            }
+
             // add page change button(contains view seting)
             $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
@@ -161,9 +158,9 @@ trait CustomValueGrid
             }
             
             // manage batch --------------------------------------------------
-            $tools->batch(function ($batch) use ($edit_flg) {
+            $tools->batch(function ($batch) {
                 // if cannot edit, disable delete and update operations
-                if ($edit_flg) {
+                if ($this->custom_table->enableEdit()) {
                     foreach ($this->custom_table->custom_operations as $custom_operation) {
                         $batch->add($custom_operation->operation_name, new BatchUpdate($custom_operation));
                     }
@@ -206,10 +203,10 @@ trait CustomValueGrid
                 }
                 
                 // if user does't edit permission disable edit row.
-                if(!$actions->row->enableEdit()){
+                if($actions->row->enableEdit(true) !== true){
                     $actions->disableEdit();
                 }
-                if(!$actions->row->enableDelete()){
+                if($actions->row->enableDelete(true) !== true){
                     $actions->disableDelete();
                 }
 

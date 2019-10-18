@@ -146,10 +146,10 @@ trait CustomValueShow
 
             // if user only view permission or one record table, disable delete and view
             $show->panel()->tools(function ($tools) use($custom_value) {
-                if(!$custom_value->enableEdit()){
+                if($custom_value->enableEdit(true) !== true){
                     $tools->disableEdit();
                 }
-                if(!$custom_value->enableDelete()){
+                if($custom_value->enableDelete(true) !== true){
                     $tools->disableDelete();
                 }
             });
@@ -307,7 +307,7 @@ trait CustomValueShow
             'newest_revision_suuid' => $newest_revision_suuid,
             'old_revision' => $old_revision,
             'revision_suuid' => $revision_suuid,
-            'has_edit_permission' => $custom_value->enableEdit($id),
+            'has_edit_permission' => $custom_value->enableEdit(true) === true,
             'form_url' => admin_urls('data', $table_name, $id, 'compare'),
             'has_diff' => collect($table_columns)->filter(function ($table_column) {
                 return array_get($table_column, 'diff', false);
@@ -364,7 +364,7 @@ EOT;
     protected function useFileUpload($custom_value, $modal = false)
     {
         // if no permission, return
-        if (!$custom_value->enableEdit()) {
+        if ($custom_value->enableEdit() !== true) {
             return false;
         }
         
@@ -410,7 +410,7 @@ EOT;
                 foreach ($documents as $index => $d) {
                     $html[] = "<p>" . view('exment::form.field.documentlink', [
                         'document' => $d,
-                        'candelete' => $custom_value->enableDelete(),
+                        'candelete' => $custom_value->enableDelete(true) === true,
                     ])->render() . "</p>";
                 }
                 // loop and add as link

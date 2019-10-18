@@ -11,6 +11,8 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
@@ -478,8 +480,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 abort(404);
             }
         } else {
-            $keys = explode('/', $endpoint);
-            $tableKey = $keys[0];
+            $tableKey = explode('/', $endpoint)[0];
+            $tableKey = explode('?', $tableKey)[0];
         }
 
         $custom_table = static::getEloquent($tableKey);
@@ -1740,6 +1742,101 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $disable_actions = $this->getOption('form_action_disable_flg', []);
         return in_array($action_type, $disable_actions);
+    }
+
+    /**
+     * User can access this custom value
+     *
+     * @return void
+     */
+    public function enableAccess(){
+        if(!$this->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)){
+            return ErrorCode::PERMISSION_DENY();
+        }
+        
+        return true;
+    }
+
+    /**
+     * User can view this custom value
+     *
+     * @return void
+     */
+    public function enableView(){
+        if(!$this->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)){
+            return ErrorCode::PERMISSION_DENY();
+        }
+        
+        return true;
+    }
+
+    /**
+     * User can create value custom value
+     *
+     * @return void
+     */
+    public function enableCreate($checkFormAction = false){
+        if(!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        if ($checkFormAction && $this->formActionDisable(FormActionType::CREATE)) {
+            return ErrorCode::FORM_ACTION_DISABLED();
+        }
+        
+        return true;
+    }
+
+    /**
+     * User can edit value custom value
+     * *This function checks as table. If have to check as data, please call $custom_value->enableEdit().
+     *
+     * @return void
+     */
+    public function enableEdit($checkFormAction = false){
+        if(!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        if ($checkFormAction && $this->formActionDisable(FormActionType::EDIT)) {
+            return ErrorCode::FORM_ACTION_DISABLED();
+        }
+        
+        return true;
+    }
+    
+    /**
+     * User can export this custom value
+     *
+     * @return void
+     */
+    public function enableExport(){
+        if(!$this->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)){
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        if(!$this->hasPermission(Permission::CUSTOM_VALUE_EXPORT)){
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        return true;
+    }
+
+    /**
+     * User can import this custom value
+     *
+     * @return void
+     */
+    public function enableImport(){
+        if(!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        if(!$this->hasPermission(Permission::CUSTOM_VALUE_IMPORT)){
+            return ErrorCode::PERMISSION_DENY();
+        }
+        
+        return true;
     }
 
     /**

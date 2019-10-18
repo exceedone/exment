@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Enums\ErrorCode;
 
 abstract class CustomValue extends ModelBase
 {
@@ -1074,24 +1075,43 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
+     * User can access this custom value
+     *
+     * @return void
+     */
+    public function enableAccess(){
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return $code;
+        }
+
+        if (!$this->custom_table->hasPermissionData($this)) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        return true;
+    }
+
+    /**
      * User can edit this custom value
      *
      * @return void
      */
-    public function enableEdit(){
+    public function enableEdit($checkFormAction = false){
+        if (($code = $this->custom_table->enableEdit($checkFormAction)) !== true) {
+            return $code;
+        }
+
         if (!$this->custom_table->hasPermissionEditData($this)) {
-            return false;
+            return ErrorCode::PERMISSION_DENY();
         }
-        if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
-            return false;
-        }
+        
         if ($this->custom_table->isOneRecord()) {
-            return false;
+            return ErrorCode::PERMISSION_DENY();
         }
 
         // check workflow
         if($this->lockedWorkflow()){
-            return false;
+            return ErrorCode::WORKFLOW_LOCK();
         }
 
         return true;
@@ -1102,23 +1122,23 @@ abstract class CustomValue extends ModelBase
      *
      * @return void
      */
-    public function enableDelete(){
+    public function enableDelete($checkFormAction = false){
         if (!$this->custom_table->hasPermissionEditData($this)) {
-            return false;
+            return ErrorCode::PERMISSION_DENY();
         }
-        if ($this->custom_table->formActionDisable(FormActionType::DELETE)) {
+        if ($checkFormAction && $this->custom_table->formActionDisable(FormActionType::DELETE)) {
             return false;
         }
         if ($this->custom_table->isOneRecord()) {
-            return false;
+            return ErrorCode::PERMISSION_DENY();
         }
         if(boolval($this->disabled_delete)){
-            return false;
+            return ErrorCode::DELETE_DISABLED();
         }
 
         // check workflow
         if($this->lockedWorkflow()){
-            return false;
+            return ErrorCode::WORKFLOW_LOCK();
         }
 
         return true;
