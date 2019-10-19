@@ -13,12 +13,12 @@ class Child extends ItemBase
     public function replace($format, $options = [])
     {
         if (!isset($this->custom_value)) {
-            return '';
+            return null;
         }
 
         // get sum value from children model
         elseif (count($this->length_array) <= 3) {
-            return '';
+            return null;
         }
         //else, getting value using cihldren
         else {

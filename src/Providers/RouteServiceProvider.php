@@ -80,6 +80,7 @@ class RouteServiceProvider extends ServiceProvider
             
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
+            $router->get('notify/notify_action_target_workflow', 'NotifyController@notify_action_target_workflow');
             $router->post('notify/notifytrigger_template', 'NotifyController@getNotifyTriggerTemplate');
             $router->resource('notify', 'NotifyController', ['except' => ['show']]);
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);

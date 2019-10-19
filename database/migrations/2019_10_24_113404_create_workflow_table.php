@@ -123,7 +123,7 @@ class CreateWorkflowTable extends Migration
 
         Schema::table('notifies', function($table)
         {
-            $table->integer('workflow_id')->unsigned()->nullable();
+            $table->integer('workflow_id')->unsigned()->nullable()->after('custom_table_id');
         });
     }
 

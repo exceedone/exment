@@ -212,7 +212,10 @@ class WorkflowAction extends ModelBase
      * @return void
      */
     public function executeAction($custom_value, $data = []){
-        \DB::transaction(function() use($custom_value, $data){
+        $workflow = Workflow::getEloquentDefault(array_get($this, 'workflow_id'));
+
+        $workflow_value = null;
+        \DB::transaction(function() use($custom_value, $data, &$workflow_value){
             $morph_type = $custom_value->custom_table->table_name;
             $morph_id = $custom_value->id;
 
@@ -233,8 +236,16 @@ class WorkflowAction extends ModelBase
                 'latest_flg' => 1
             ], $data);
     
-            WorkflowValue::create($data);
+            $workflow_value = WorkflowValue::create($data);
         });
+
+        // notify workflow
+        $next = $this->isActionNext($custom_value);
+        if($next && isset($workflow_value)){
+            foreach ($workflow->notifies as $notify) {
+                $notify->notifyWorkflow($custom_value, $this, $workflow_value);
+            }    
+        }
     }
 
     /**
@@ -263,7 +274,9 @@ class WorkflowAction extends ModelBase
     /**
      * Get users or organzations on this action authority
      *
-     * @param [type] $targetUser
+     * @param CustomValue $custom_value
+     * @param boolean $orgAsUser if true, convert organization to users
+     * @param boolean $getAsDefine if true, contains label "created_user", etc
      * @return boolean
      */
     public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false){
@@ -448,7 +461,7 @@ class WorkflowAction extends ModelBase
         }
 
         if($this->comment_type != WorkflowCommentType::NOTUSE){
-            $field = $form->textarea('comment_type', exmtrans('common.comment'));
+            $field = $form->textarea('comment', exmtrans('common.comment'));
             // check required
             if($this->comment_type == WorkflowCommentType::REQUIRED){
                 $field->required();

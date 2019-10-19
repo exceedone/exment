@@ -13,7 +13,7 @@ class ValueUrl extends ItemBase
     public function replace($format, $options = [])
     {
         if (!isset($this->custom_value)) {
-            return '';
+            return null;
         }
 
         //else, getting url

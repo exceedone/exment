@@ -6,6 +6,9 @@ use Tests\TestCase;
 use Exceedone\Exment\Services\ReplaceFormat\ReplaceFormatService;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Model\WorkflowValue;
+use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Enums\SystemColumn;
 
 class ReplaceFormatTest extends TestCase
@@ -97,14 +100,44 @@ class ReplaceFormatTest extends TestCase
     public function testReplaceSystem()
     {
         $keys = [
-            'site_name' => System::site_name() ?? '', 
-            'site_name_short' => System::site_name_short() ?? '',
-            'system_mail_from' => System::system_mail_from() ?? '',
+            'site_name' => System::site_name(), 
+            'site_name_short' => System::site_name_short(),
+            'system_mail_from' => System::system_mail_from(),
             'system_url' => admin_url(),
             'login_url' => admin_url('auth/login'),
         ];
         foreach($keys as $key => $value){
             $text = ReplaceFormatService::replaceTextFromFormat('${system:' . $key . '}');
+            $this->assertTrue($text == $value);
+        }
+    }
+    
+    public function testReplaceWorkflow()
+    {
+        // get workflow last value
+        $workflow_value = WorkflowValue::orderBy('id', 'desc')->first();
+        if(!isset($workflow_value)){
+            return;
+        }
+
+        $workflow_action = $workflow_value->workflow_action;
+        $workflow = Workflow::getEloquentDefault($workflow_value->workflow_id);
+        
+        $custom_value = CustomTable::getEloquent($workflow_value->morph_type)->getValueModel($workflow_value->morph_id);
+        $statusTo = $workflow_action->getStatusToId($custom_value);
+
+        $keys = [
+            'action_user' => $workflow_value->created_user, 
+            'action_name' => $workflow_action->action_name,
+            'status_name' => WorkflowStatus::getWorkflowStatusName($statusTo, $workflow),
+            'status_from_name' => WorkflowStatus::getWorkflowStatusName($workflow_action->status_from, $workflow),
+            'comment' => $workflow_value->comment,
+        ];
+        foreach($keys as $key => $value){
+            $text = ReplaceFormatService::replaceTextFromFormat('${workflow:' . $key . '}', $custom_value, [
+                'workflow_action' => $workflow_action,
+                'workflow_value' => $workflow_value,
+            ]);
             $this->assertTrue($text == $value);
         }
     }

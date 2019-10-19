@@ -14,7 +14,7 @@ class System extends ItemBase
     public function replace($format, $options = [])
     {
         if (count($this->length_array) < 2) {
-            return '';
+            return null;
         }
 
         $key_system = $this->length_array[1];

@@ -17,4 +17,9 @@ class WorkflowValue extends ModelBase
 
         return isset($status)? ($status->editable_flg == 1): true;
     }
+    
+    public function getWorkflowActionAttribute()
+    {
+        return WorkflowAction::getEloquentDefault($this->workflow_action_id);
+    }
 }

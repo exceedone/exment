@@ -9,8 +9,9 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\WorkflowTargetSystem;
 
-class ColumnSystemItem extends ConditionItem
+class SystemItem extends ConditionItem
 {
     use ColumnSystemItemTrait;
     

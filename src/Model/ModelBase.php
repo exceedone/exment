@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Database\Eloquent\Model;
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class ModelBase extends Model
 {
@@ -16,6 +17,15 @@ class ModelBase extends Model
     public function getUpdatedUserAttribute()
     {
         return $this->getUser('updated_user_id');
+    }
+
+    public function getCreatedUserValueAttribute()
+    {
+        return $this->getUserValue('created_user_id');
+    }
+    public function getUpdatedUserValueAttribute()
+    {
+        return $this->getUserValue('updated_user_id');
     }
 
     public function getCreatedUserTagAttribute()
@@ -118,5 +128,13 @@ class ModelBase extends Model
     protected function getUser($column, $link = false)
     {
         return getUserName($this->{$column}, $link);
+    }
+
+    /**
+     * get user from id
+     */
+    protected function getUserValue($column)
+    {
+        return CustomTable::getEloquent(SystemTableName::USER)->getValueModel($this->{$column}, true);
     }
 }

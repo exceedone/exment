@@ -1371,6 +1371,7 @@ return [
         'header_action' => '通知アクション設定',
         'description' => '特定の条件で、通知を行うための設定を行います。',
         'notify_view_name' => '通知表示名',
+        'notify_target' => '対象',
         'custom_table_id' => '対象テーブル',
         'custom_view_id' => '対象ビュー',
         'workflow_id' => '対象ワークフロー',
@@ -1397,7 +1398,7 @@ return [
             'notify_beforeafter' => '通知を行うのが、登録している日付の「前」か「後」かを選択します。<br/>例：「通知日」が7、「通知前後」が「前」の場合、指定したフィールドの日付の7日前に通知実行',
             'notify_hour' => '通知を実行する時間です。0～23で入力します。 例：「6」と入力した場合、6:00に通知実行',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
-            'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」「作成者」と、カスタム列の「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
+            'notify_action_target' => '通知先の対象を選択します。',
             'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
             'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 <br/>SlackとTeamsの両立はできません。',
         ],
@@ -1422,6 +1423,7 @@ return [
         'notify_action_target_options' => [
             'has_roles' => '権限のあるユーザー',
             'created_user' => '作成者',
+            'work_user' => '次の作業ユーザー',
         ],
     ],
     

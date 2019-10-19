@@ -29,7 +29,12 @@ class Workflow extends ModelBase
     {
         return $this->hasMany(WorkflowAction::class, 'workflow_id');
     }
-    
+        
+    public function notifies()
+    {
+        return $this->hasMany(Notify::class, 'workflow_id');
+    }
+
     protected static function boot()
     {
         parent::boot();

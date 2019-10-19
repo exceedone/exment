@@ -13,7 +13,7 @@ class ParentValue extends ItemBase
     public function replace($format, $options = [])
     {
         if (!isset($this->custom_value)) {
-            return '';
+            return null;
         }
         
         // get value from model

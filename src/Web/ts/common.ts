@@ -563,20 +563,40 @@ namespace Exment {
          * call select2 items using linkage
          */
         private static setLinkageEvent = (ev: JQueryEventObject) => {
-            var $base = $(ev.target).closest('[data-linkage]');
+            let $base = $(ev.target).closest('[data-linkage]');
             if (!hasValue($base)) {
                 return;
             }
-            var $parent = CommonEvent.getParentRow($base);
-            var linkages = $base.data('linkage');
+            let $parent = CommonEvent.getParentRow($base);
+            let linkages = $base.data('linkage');
             if (!hasValue(linkages)) {
                 return;
             }
 
             // get expand data
-            var expand = $base.data('linkage-expand');
+            let expand = $base.data('linkage-expand');
+            if(!hasValue(expand)){
+                expand = {};
+            }
+
+            // get input data
+            let getdata = $base.data('linkage-getdata');
+            if(hasValue(getdata)){
+                // execute linkage event
+                for (let i = 0;  i < getdata.length; i++) {
+                    let g = getdata[i];
+                    let $getdata = $parent;
+                    if(hasValue(g.parent)){
+                        $getdata = CommonEvent.getParentRow($parent);
+                    }
+
+                    let key = g.key;
+                    let $target = $parent.find(CommonEvent.getClassKey(key));
+                    expand[key] = $target.val();
+                }
+            }
             
-            var linkage_text = $base.data('linkage-text');
+            let linkage_text = $base.data('linkage-text');
             // execute linkage event
             for (var key in linkages) {
                 var link = linkages[key];
@@ -672,7 +692,6 @@ namespace Exment {
                                 isShow = false;
                             }
 
-                            // その値が、a.valueに含まれているか
                             if (a.value) {
                                 if(!CommonEvent.findValue(filterVal, a.value)){
                                     isShow = false;
@@ -680,7 +699,7 @@ namespace Exment {
                             }
                             
                             if (a.notValue) {
-                                if(!CommonEvent.findValue(filterVal, a.notValue)){
+                                if(!hasValue(filterVal) || CommonEvent.findValue(filterVal, a.notValue)){
                                     isShow = false;
                                 }
                             }

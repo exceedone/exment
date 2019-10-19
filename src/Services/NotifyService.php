@@ -254,7 +254,8 @@ class NotifyService
                     'subject' => null,
                     'body' => null,
                     'attach_files' => null,
-                    'is_chat' => false
+                    'is_chat' => false,
+                    'replaceOptions' => []
                 ],
                 $params
             )
@@ -314,8 +315,8 @@ class NotifyService
                     array_set($prms, 'system.site_name', $custom_value->label);
             
                     // replace value
-                    $mail_subject = static::replaceWord($subject, $custom_value, $prms);
-                    $mail_body = static::replaceWord($body, $custom_value, $prms);
+                    $mail_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
+                    $mail_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
 
                     $notify_navbar = new NotifyNavbar;
                     $notify_navbar->notify_id = array_get($notify, 'id');
@@ -331,8 +332,8 @@ class NotifyService
 
                 case NotifyAction::SLACK:
                     // replace word
-                    $slack_subject = static::replaceWord($subject, $custom_value, $prms);
-                    $slack_body = static::replaceWord($body, $custom_value, $prms);
+                    $slack_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
+                    $slack_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
                     $slack_content = Notifications\SlackSender::editContent($slack_subject, $slack_body);
                     // send slack message
                     $notify->notify(new Notifications\SlackSender($slack_content));
@@ -340,8 +341,8 @@ class NotifyService
     
                 case NotifyAction::MICROSOFT_TEAMS:
                     // replace word
-                    $slack_subject = static::replaceWord($subject, $custom_value, $prms);
-                    $slack_body = static::replaceWord($body, $custom_value, $prms);
+                    $slack_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
+                    $slack_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
                     $slack_content = Notifications\MicrosoftTeamsSender::editContent($slack_subject, $slack_body);
                     // send slack message
                     $notify->notify(new Notifications\MicrosoftTeamsSender($slack_subject, $slack_content));
@@ -379,9 +380,9 @@ class NotifyService
     /**
      * replace subject or body words.
      */
-    public static function replaceWord($target, $custom_value = null, $prms = null)
+    public static function replaceWord($target, $custom_value = null, $prms = null, $replaceOptions = [])
     {
-        $target = replaceTextFromFormat($target, $custom_value, [
+        $replaceOptions = array_merge([
             'matchBeforeCallback' => function ($length_array, $matchKey, $format, $custom_value, $options) use ($prms) {
                 // if has prms using $match, return value
                 $matchKey = str_replace(":", ".", $matchKey);
@@ -390,7 +391,9 @@ class NotifyService
                 }
                 return null;
             }
-        ]);
+        ], $replaceOptions);
+
+        $target = replaceTextFromFormat($target, $custom_value, $replaceOptions);
 
         return $target;
     }

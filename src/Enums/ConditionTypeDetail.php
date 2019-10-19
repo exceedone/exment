@@ -52,6 +52,8 @@ class ConditionTypeDetail extends EnumBase
                 return new ConditionItems\OrganizationItem($custom_table, $target);
             case ConditionTypeDetail::ROLE:
                 return new ConditionItems\RoleGroupItem($custom_table, $target);
+            case ConditionTypeDetail::SYSTEM:
+                return new ConditionItems\SystemItem($custom_table, $target);
         }
     }
 }
