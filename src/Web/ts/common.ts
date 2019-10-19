@@ -1059,7 +1059,11 @@ namespace Exment {
             return '.' + prefix + key + ',.' + prefix + 'value_' + key;
         }
 
-        private static findValue(keys, values){
+        private static findValue(values, keys){
+            if(!hasValue(values)){
+                return false;
+            }
+
             keys = !Array.isArray(keys) ? keys.split(',') : keys;
             values = !Array.isArray(values) ? values.split(',') : values;
             for(let i = 0; i < keys.length; i++){

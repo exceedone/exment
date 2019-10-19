@@ -13,7 +13,7 @@ use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Validator\ChangeFieldRule;
 
-abstract class ConditionItem
+abstract class ConditionItemBase
 {
     protected $custom_table;
     protected $target;
@@ -33,6 +33,13 @@ abstract class ConditionItem
     protected $className;
 
     /**
+     * filter option is view filter 
+     *
+     * @var bool
+     */
+    protected $viewFilter;
+
+    /**
      * Dynamic field label
      *
      * @var string
@@ -48,6 +55,12 @@ abstract class ConditionItem
         $this->elementName = $elementName;
         $this->className = $className;
         $this->label = $label;
+
+        return $this;
+    } 
+    
+    public function viewFilter($viewFilter = true){
+        $this->viewFilter = $viewFilter;
 
         return $this;
     } 
@@ -122,6 +135,48 @@ abstract class ConditionItem
     }
 
     protected function getFilterOptionConditon(){
-        return array_get(FilterOption::FILTER_OPTIONS(), FilterType::CONDITION);
+        return array_get($this->viewFilter ? FilterOption::FILTER_OPTIONS() : FilterOption::FILTER_CONDITION_OPTIONS(), FilterType::CONDITION);
+    }
+
+    /**
+     * compare condition value and saved value
+     *
+     * @param [type] $condition
+     * @param [type] $value
+     * @return void
+     */
+    protected function compareValue($condition, $value){
+        if (is_nullorempty($value) || is_nullorempty($condition->condition_value)) {
+            return false;
+        }
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        $condition_value = $condition->condition_value;
+        if (!is_array($condition_value)) {
+            $condition_value = [$condition_value];
+        }
+
+        $compareOption = FilterOption::getCompareOptions($condition->condition_key);
+        return collect($value)->filter()->contains(function ($v) use($condition_value, $compareOption) {
+            return collect($condition_value)->contains(function($condition_value) use($v, $compareOption){
+                switch($compareOption){
+                    case FilterOption::EQ:
+                        return $v == $condition_value;
+                    case FilterOption::NE:
+                        return $v != $condition_value;
+                    case FilterOption::NUMBER_GT:
+                        return $v > $condition_value;
+                    case FilterOption::NUMBER_GTE:
+                        return $v >= $condition_value; 
+                    case FilterOption::NUMBER_LT:
+                        return $v < $condition_value;
+                    case FilterOption::NUMBER_LTE:
+                        return $v <= $condition_value; 
+                }
+                return false;
+            });
+        });
     }
 }

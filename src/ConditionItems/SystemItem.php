@@ -11,7 +11,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 
-class SystemItem extends ConditionItem
+class SystemItem extends ConditionItemBase
 {
     use ColumnSystemItemTrait;
     

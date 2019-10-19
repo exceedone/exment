@@ -11,7 +11,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
 
-class UserItem extends ConditionItem
+class UserItem extends ConditionItemBase
 {
     public function getFilterOption(){
         return $this->getFilterOptionConditon();

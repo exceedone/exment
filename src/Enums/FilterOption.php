@@ -51,28 +51,28 @@ class FilterOption extends EnumBase
     public static function VALUE_TYPE($filter_option)
     {
         switch ($filter_option) {
-            case FilterOption::DAY_ON:
-            case FilterOption::DAY_ON_OR_AFTER:
-            case FilterOption::DAY_ON_OR_BEFORE:
+            case static::DAY_ON:
+            case static::DAY_ON_OR_AFTER:
+            case static::DAY_ON_OR_BEFORE:
                 return FilterType::DAY;
-            case FilterOption::USER_EQ:
-            case FilterOption::USER_NE:
-            case FilterOption::EQ:
-            case FilterOption::NE:
-            case FilterOption::LIKE:
-            case FilterOption::NOT_LIKE:
-            case FilterOption::NUMBER_GT:
-            case FilterOption::NUMBER_LT:
-            case FilterOption::NUMBER_GTE:
-            case FilterOption::NUMBER_LTE:
+            case static::USER_EQ:
+            case static::USER_NE:
+            case static::EQ:
+            case static::NE:
+            case static::LIKE:
+            case static::NOT_LIKE:
+            case static::NUMBER_GT:
+            case static::NUMBER_LT:
+            case static::NUMBER_GTE:
+            case static::NUMBER_LTE:
                 return null;
-            case FilterOption::DAY_LAST_X_DAY_OR_AFTER:
-            case FilterOption::DAY_LAST_X_DAY_OR_BEFORE:
-            case FilterOption::DAY_NEXT_X_DAY_OR_AFTER:
-            case FilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
+            case static::DAY_LAST_X_DAY_OR_AFTER:
+            case static::DAY_LAST_X_DAY_OR_BEFORE:
+            case static::DAY_NEXT_X_DAY_OR_AFTER:
+            case static::DAY_NEXT_X_DAY_OR_BEFORE:
                 return FilterType::NUMBER;
-            case FilterOption::SELECT_EXISTS:
-            case FilterOption::SELECT_NOT_EXISTS:
+            case static::SELECT_EXISTS:
+            case static::SELECT_NOT_EXISTS:
                 return FilterType::SELECT;
             default:
                 return 'none';
@@ -83,72 +83,139 @@ class FilterOption extends EnumBase
     {
         return [
             FilterType::DEFAULT => [
-                ['id' => FilterOption::EQ, 'name' => 'eq'],
-                ['id' => FilterOption::NE, 'name' => 'ne'],
-                ['id' => FilterOption::LIKE, 'name' => 'like'],
-                ['id' => FilterOption::NOT_LIKE, 'name' => 'not-like'],
-                ['id' => FilterOption::NOT_NULL, 'name' => 'not-null'],
-                ['id' => FilterOption::NULL, 'name' => 'null'],
+                ['id' => static::EQ, 'name' => 'eq'],
+                ['id' => static::NE, 'name' => 'ne'],
+                ['id' => static::LIKE, 'name' => 'like'],
+                ['id' => static::NOT_LIKE, 'name' => 'not-like'],
+                ['id' => static::NOT_NULL, 'name' => 'not-null'],
+                ['id' => static::NULL, 'name' => 'null'],
             ],
             FilterType::NUMBER => [
-                ['id' => FilterOption::EQ, 'name' => 'eq'],
-                ['id' => FilterOption::NE, 'name' => 'ne'],
-                ['id' => FilterOption::NUMBER_GT, 'name' => 'gt'],
-                ['id' => FilterOption::NUMBER_LT, 'name' => 'lt'],
-                ['id' => FilterOption::NUMBER_GTE, 'name' => 'gte'],
-                ['id' => FilterOption::NUMBER_LTE, 'name' => 'lte'],
-                ['id' => FilterOption::NOT_NULL, 'name' => 'not-null'],
-                ['id' => FilterOption::NULL, 'name' => 'null'],
+                ['id' => static::EQ, 'name' => 'eq'],
+                ['id' => static::NE, 'name' => 'ne'],
+                ['id' => static::NUMBER_GT, 'name' => 'gt'],
+                ['id' => static::NUMBER_LT, 'name' => 'lt'],
+                ['id' => static::NUMBER_GTE, 'name' => 'gte'],
+                ['id' => static::NUMBER_LTE, 'name' => 'lte'],
+                ['id' => static::NOT_NULL, 'name' => 'not-null'],
+                ['id' => static::NULL, 'name' => 'null'],
             ],
             FilterType::SELECT => [
-                ['id' => FilterOption::SELECT_EXISTS, 'name' => 'select-eq'],
-                ['id' => FilterOption::SELECT_NOT_EXISTS, 'name' => 'select-ne'],
-                ['id' => FilterOption::NOT_NULL, 'name' => 'not-null'],
-                ['id' => FilterOption::NULL, 'name' => 'null'],
+                ['id' => static::SELECT_EXISTS, 'name' => 'select-eq'],
+                ['id' => static::SELECT_NOT_EXISTS, 'name' => 'select-ne'],
+                ['id' => static::NOT_NULL, 'name' => 'not-null'],
+                ['id' => static::NULL, 'name' => 'null'],
             ],
             FilterType::FILE => [
-                ['id' => FilterOption::NOT_NULL, 'name' => 'not-null'],
-                ['id' => FilterOption::NULL, 'name' => 'null'],
+                ['id' => static::NOT_NULL, 'name' => 'not-null'],
+                ['id' => static::NULL, 'name' => 'null'],
             ],
             FilterType::DAY => [
-                ['id' => FilterOption::DAY_ON, 'name' => 'on'],
-                ['id' => FilterOption::DAY_ON_OR_AFTER, 'name' => 'on-or-after'],
-                ['id' => FilterOption::DAY_ON_OR_BEFORE, 'name' => 'on-or-before'],
-                ['id' => FilterOption::DAY_TODAY, 'name' => 'today'],
-                ['id' => FilterOption::DAY_TODAY_OR_AFTER, 'name' => 'today-or-after'],
-                ['id' => FilterOption::DAY_TODAY_OR_BEFORE, 'name' => 'today-or-before'],
-                ['id' => FilterOption::DAY_YESTERDAY, 'name' => 'yesterday'],
-                ['id' => FilterOption::DAY_TOMORROW, 'name' => 'tomorrow'],
-                ['id' => FilterOption::DAY_THIS_MONTH, 'name' => 'this-month'],
-                ['id' => FilterOption::DAY_LAST_MONTH, 'name' => 'last-month'],
-                ['id' => FilterOption::DAY_NEXT_MONTH, 'name' => 'next-month'],
-                ['id' => FilterOption::DAY_THIS_YEAR, 'name' => 'this-year'],
-                ['id' => FilterOption::DAY_LAST_YEAR, 'name' => 'last-year'],
-                ['id' => FilterOption::DAY_NEXT_YEAR, 'name' => 'next-year'],
+                ['id' => static::DAY_ON, 'name' => 'on'],
+                ['id' => static::DAY_ON_OR_AFTER, 'name' => 'on-or-after'],
+                ['id' => static::DAY_ON_OR_BEFORE, 'name' => 'on-or-before'],
+                ['id' => static::DAY_TODAY, 'name' => 'today'],
+                ['id' => static::DAY_TODAY_OR_AFTER, 'name' => 'today-or-after'],
+                ['id' => static::DAY_TODAY_OR_BEFORE, 'name' => 'today-or-before'],
+                ['id' => static::DAY_YESTERDAY, 'name' => 'yesterday'],
+                ['id' => static::DAY_TOMORROW, 'name' => 'tomorrow'],
+                ['id' => static::DAY_THIS_MONTH, 'name' => 'this-month'],
+                ['id' => static::DAY_LAST_MONTH, 'name' => 'last-month'],
+                ['id' => static::DAY_NEXT_MONTH, 'name' => 'next-month'],
+                ['id' => static::DAY_THIS_YEAR, 'name' => 'this-year'],
+                ['id' => static::DAY_LAST_YEAR, 'name' => 'last-year'],
+                ['id' => static::DAY_NEXT_YEAR, 'name' => 'next-year'],
                 
-                ['id' => FilterOption::DAY_LAST_X_DAY_OR_AFTER, 'name' => 'last-x-day-after'],
-                ['id' => FilterOption::DAY_NEXT_X_DAY_OR_AFTER, 'name' => 'next-x-day-after'],
-                ['id' => FilterOption::DAY_LAST_X_DAY_OR_BEFORE, 'name' => 'last-x-day-or-before'],
-                ['id' => FilterOption::DAY_NEXT_X_DAY_OR_BEFORE, 'name' => 'next-x-day-or-before'],
+                ['id' => static::DAY_LAST_X_DAY_OR_AFTER, 'name' => 'last-x-day-after'],
+                ['id' => static::DAY_NEXT_X_DAY_OR_AFTER, 'name' => 'next-x-day-after'],
+                ['id' => static::DAY_LAST_X_DAY_OR_BEFORE, 'name' => 'last-x-day-or-before'],
+                ['id' => static::DAY_NEXT_X_DAY_OR_BEFORE, 'name' => 'next-x-day-or-before'],
                 
-                ['id' => FilterOption::DAY_NOT_NULL, 'name' => 'not-null'],
-                ['id' => FilterOption::DAY_NULL, 'name' => 'null'],
+                ['id' => static::DAY_NOT_NULL, 'name' => 'not-null'],
+                ['id' => static::DAY_NULL, 'name' => 'null'],
             ],
             FilterType::USER => [
-                ['id' => FilterOption::USER_EQ_USER, 'name' => 'eq-user'],
-                ['id' => FilterOption::USER_NE_USER, 'name' => 'ne-user'],
-                ['id' => FilterOption::USER_EQ, 'name' => 'eq'],
-                ['id' => FilterOption::USER_NE, 'name' => 'ne'],
-                ['id' => FilterOption::USER_NOT_NULL, 'name' => 'not-null'],
-                ['id' => FilterOption::USER_NULL, 'name' => 'null'],
+                ['id' => static::USER_EQ_USER, 'name' => 'eq-user'],
+                ['id' => static::USER_NE_USER, 'name' => 'ne-user'],
+                ['id' => static::USER_EQ, 'name' => 'eq'],
+                ['id' => static::USER_NE, 'name' => 'ne'],
+                ['id' => static::USER_NOT_NULL, 'name' => 'not-null'],
+                ['id' => static::USER_NULL, 'name' => 'null'],
             ],
             FilterType::WORKFLOW => [
-                ['id' => FilterOption::EQ, 'name' => 'eq'],
-                ['id' => FilterOption::NE, 'name' => 'ne'],
+                ['id' => static::EQ, 'name' => 'eq'],
+                ['id' => static::NE, 'name' => 'ne'],
             ],
             FilterType::CONDITION => [
-                ['id' => FilterOption::EQ, 'name' => 'eq'],
+                ['id' => static::EQ, 'name' => 'eq'],
             ],
         ];
+    }
+    
+    /**
+     * Get option for condition
+     *
+     * @return void
+     */
+    public static function FILTER_CONDITION_OPTIONS()
+    {
+        return [
+            FilterType::DEFAULT => [
+                ['id' => static::EQ, 'name' => 'eq'],
+                ['id' => static::NE, 'name' => 'ne'],
+            ],
+            FilterType::NUMBER => [
+                ['id' => static::EQ, 'name' => 'eq'],
+                ['id' => static::NE, 'name' => 'ne'],
+                ['id' => static::NUMBER_GT, 'name' => 'gt'],
+                ['id' => static::NUMBER_LT, 'name' => 'lt'],
+                ['id' => static::NUMBER_GTE, 'name' => 'gte'],
+                ['id' => static::NUMBER_LTE, 'name' => 'lte'],
+            ],
+            FilterType::SELECT => [
+                ['id' => static::SELECT_EXISTS, 'name' => 'select-eq'],
+                ['id' => static::SELECT_NOT_EXISTS, 'name' => 'select-ne'],
+            ],
+            FilterType::FILE => [
+            ],
+            FilterType::DAY => [
+                ['id' => static::DAY_ON, 'name' => 'on'],
+                ['id' => static::DAY_ON_OR_AFTER, 'name' => 'on-or-after'],
+                ['id' => static::DAY_ON_OR_BEFORE, 'name' => 'on-or-before'],
+            ],
+            FilterType::USER => [
+                ['id' => static::USER_EQ, 'name' => 'eq'],
+                ['id' => static::USER_NE, 'name' => 'ne'],
+            ],
+            FilterType::WORKFLOW => [
+                ['id' => static::EQ, 'name' => 'eq'],
+                ['id' => static::NE, 'name' => 'ne'],
+            ],
+            FilterType::CONDITION => [
+                ['id' => static::EQ, 'name' => 'eq'],
+                ['id' => static::NE, 'name' => 'ne'],
+            ],
+        ];
+    }
+    
+    public static function getCompareOptions($enum)
+    {
+        switch($enum){
+            case static::NUMBER_GT:
+                return static::NUMBER_GT;
+            case static::NUMBER_LT:
+                return static::NUMBER_LT;
+            case static::NUMBER_GTE:
+            case static::DAY_ON_OR_AFTER:
+                return static::NUMBER_GTE;
+            case static::NUMBER_LTE:
+            case static::DAY_ON_OR_BEFORE:
+                return static::NUMBER_LTE;
+            case static::NE:
+            case static::SELECT_NOT_EXISTS:
+                return static::NE;
+        }
+
+        return static::EQ;
     }
 }

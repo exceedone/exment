@@ -9,7 +9,7 @@ use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\ConditionItems\ConditionItem;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 

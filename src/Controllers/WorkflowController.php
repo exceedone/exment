@@ -185,8 +185,10 @@ class WorkflowController extends AdminControllerBase
                 ->displayText(WorkflowType::getEnum($workflow->workflow_type)->transKey('workflow.workflow_type_options'))
                 ;
 
-            if($workflow == WorkflowType::TABLE){
-                $form->display('custom_table_id', exmtrans('custom_table.table'));
+            if($workflow->workflow_type == WorkflowType::TABLE){
+                $custom_table = $workflow->getDesignatedTable();
+                $form->display('custom_table_id', exmtrans('custom_table.table'))
+                    ->default($custom_table->table_view_name ?? null);
             }
         }
         
@@ -823,7 +825,6 @@ class WorkflowController extends AdminControllerBase
                 $form->checkboxone("enabled_flg_{$index}", 'enabled')
                 ->setLabelClass(['invisible'])
                 ->setWidth(10, 2)
-                ->setElementClass('work_conditions_enabled')
                 ->default(array_get($work_condition, 'enabled_flg', 0))
                 ->attribute(['data-filtertrigger' =>true])
                 ->option(['1' => exmtrans('custom_form.available')]);

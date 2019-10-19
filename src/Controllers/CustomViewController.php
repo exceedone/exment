@@ -25,7 +25,7 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
-use Exceedone\Exment\ConditionItems\ConditionItem;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 class CustomViewController extends AdminControllerTableBase
 {
@@ -472,6 +472,7 @@ class CustomViewController extends AdminControllerTableBase
                 ]
             ),
             'custom_table' => $custom_table,
+            'viewFilter' => true,
             'condition_target_name' => 'view_column_target',
             'condition_key_name' => 'view_filter_condition',
             'condition_value_name' => 'view_filter_condition_value',
@@ -603,7 +604,7 @@ class CustomViewController extends AdminControllerTableBase
     }
 
     protected function getConditionItem(Request $request, $target){
-        $item = ConditionItem::getItem($this->custom_table, $target);
+        $item = ConditionItemBase::getItem($this->custom_table, $target);
         if(!isset($item)){
             return null;
         }

@@ -9,7 +9,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
 
-class RoleGroupItem extends ConditionItem
+class RoleGroupItem extends ConditionItemBase
 {
     public function getFilterOption(){
         return $this->getFilterOptionConditon();
@@ -22,13 +22,12 @@ class RoleGroupItem extends ConditionItem
      * @return boolean
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value){
-        $role_groups = \Exment::user()->base_user->belong_role_groups();
-        foreach ($role_groups as $role_group) {
-            if (collect($this->condition_value)->filter()->contains($role_group->id)) {
-                return true;
-            }
-        }
-        return false;
+        $role_groups = \Exment::user()->base_user->belong_role_groups
+        ->map(function($role_group){
+            return $role_group->id;
+        });
+
+        return $this->compareValue($condition, $role_groups);
     }
     
     /**

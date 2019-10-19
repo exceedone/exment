@@ -776,7 +776,10 @@ var Exment;
         static getClassKey(key, prefix = '') {
             return '.' + prefix + key + ',.' + prefix + 'value_' + key;
         }
-        static findValue(keys, values) {
+        static findValue(values, keys) {
+            if (!hasValue(values)) {
+                return false;
+            }
             keys = !Array.isArray(keys) ? keys.split(',') : keys;
             values = !Array.isArray(values) ? values.split(',') : values;
             for (let i = 0; i < keys.length; i++) {

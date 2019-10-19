@@ -9,7 +9,7 @@ use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
-use Exceedone\Exment\ConditionItems\ConditionItem;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 class WorkflowAction extends ModelBase
 {
@@ -262,7 +262,7 @@ class WorkflowAction extends ModelBase
         $workflow_authorities = $this->workflow_authorities;
 
         foreach($workflow_authorities as $workflow_authority){
-            $item = ConditionItem::getItemByAuthority($custom_value->custom_table, $workflow_authority);
+            $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_authority);
             if($item->hasAuthority($workflow_authority, $custom_value, $targetUser)){
                 return true;
             }

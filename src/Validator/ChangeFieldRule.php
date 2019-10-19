@@ -3,7 +3,7 @@ namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\ConditionItems\ConditionItem;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 /**
  * Validation for change field
@@ -28,7 +28,7 @@ class ChangeFieldRule implements Rule
     {
 //        $prefix = substr($attribute, 0, strrpos($attribute, '.'));
 
-        $item = ConditionItem::getItem($this->custom_table, $this->target);
+        $item = ConditionItemBase::getItem($this->custom_table, $this->target);
         $field = getCustomField(array_get($this->data, $prefix), $field_label);
 
         if (!$validator = $field->getValidator([$field->column() => $value])) {

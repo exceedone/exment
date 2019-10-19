@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 
-class ColumnItem extends ConditionItem
+class ColumnItem extends ConditionItemBase
 {
     use ColumnSystemItemTrait;
     
@@ -22,20 +22,9 @@ class ColumnItem extends ConditionItem
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value){
         $custom_column = CustomColumn::getEloquent($condition->target_column_id);
-        $column_value = array_get($custom_value, 'value.' . $custom_column->column_name);
-        if (is_null($column_value)) {
-            return false;
-        }
-        if (!is_array($column_value)) {
-            $column_value = [$column_value];
-        }
-        return collect($column_value)->filter()->contains(function ($value) use($condition) {
-            if (is_array($condition->condition_value)) {
-                return collect($condition->condition_value)->filter()->contains($value);
-            } else {
-                return $value == $condition->condition_value;
-            }
-        });
+        $value = array_get($custom_value, 'value.' . $custom_column->column_name);
+
+        return $this->compareValue($condition, $value);
     }
     
     /**

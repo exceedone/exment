@@ -13,7 +13,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
-use Exceedone\Exment\ConditionItems\ConditionItem;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Carbon\Carbon;
 use Validator;
 
@@ -667,7 +667,7 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     protected function getConditionItem(Request $request, $target){
-        $item = ConditionItem::getItem($this->custom_table, $target);
+        $item = ConditionItemBase::getItem($this->custom_table, $target);
         if(!isset($item)){
             return null;
         }

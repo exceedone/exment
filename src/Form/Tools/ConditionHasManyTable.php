@@ -6,7 +6,7 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Validator\ChangeFieldRule;
 use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\ConditionItems\ConditionItem;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 /**
  * ConditionHasManyTable
@@ -25,6 +25,7 @@ class ConditionHasManyTable
     protected $condition_target_name = 'condition_target';
     protected $condition_key_name = 'condition_key';
     protected $condition_value_name = 'condition_value';
+    protected $viewFilter = false;
 
     public function __construct(&$form, $options = [])
     {
@@ -60,11 +61,12 @@ class ConditionHasManyTable
                     $data = $select->data();
                     $condition_target = array_get($data, $condition_target_name);
 
-                    $item = ConditionItem::getItem($this->custom_table, $condition_target);
+                    $item = ConditionItemBase::getItem($this->custom_table, $condition_target);
                     if(!isset($item)){
                         return null;
                     }
-                    
+                    $item->viewFilter($this->viewFilter);
+
                     return $item->getFilterCondition()->mapWithKeys(function($item){
                         return [$item['id'] => $item['text']];
                     });
@@ -79,7 +81,7 @@ class ConditionHasManyTable
                     if(is_null($data)){
                         return null;
                     }
-                    $item = ConditionItem::getItem($this->custom_table, array_get($data, $condition_target_name));
+                    $item = ConditionItemBase::getItem($this->custom_table, array_get($data, $condition_target_name));
                                 
                     $label = exmtrans('condition.condition_value');
                     $item->setElement($field->getElementName(), $condition_value_name, $label);
