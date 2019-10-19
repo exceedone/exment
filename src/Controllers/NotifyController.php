@@ -250,7 +250,10 @@ class NotifyController extends AdminControllerBase
                 ->required()
                 ->rules([new RequiredIfExRule(['notify_actions', '1', '2'])])
                 ->attribute([
-                    'data-filter' => json_encode(['parent' => 1, 'key' => 'notify_actions', 'value' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE]])
+                    'data-filter' => json_encode([
+                        ['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME, NotifyTrigger::CREATE_UPDATE_DATA, NotifyTrigger::BUTTON]],
+                        ['parent' => 1, 'key' => 'notify_actions', 'value' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE]]
+                    ])
                 ])
                 ->help(exmtrans("notify.help.notify_action_target"));
 

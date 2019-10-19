@@ -80,6 +80,9 @@ class PatchDataCommand extends Command
             case 'zip_password':
                 $this->importZipPasswordTemplate();
                 return;
+            case 'workflow_mail_template':
+                $this->importWorkflowTemplate();
+                return;
             case 'system_flg_column':
                 $this->patchSystemFlgColumn();
                 return;
@@ -228,6 +231,18 @@ class PatchDataCommand extends Command
         return $this->patchMailTemplate([
             'password_notify',
             'password_notify_header',
+        ]);
+    }
+    
+    /**
+     * import mail template for workflow
+     *
+     * @return void
+     */
+    protected function importWorkflowTemplate()
+    {
+        return $this->patchMailTemplate([
+            'workflow_notify',
         ]);
     }
     

@@ -20,6 +20,9 @@ class NotifyTrigger extends EnumBase
 
             case static::BUTTON:
                 return null;
+                
+            case static::WORKFLOW:
+                return MailKeyName::WORKFLOW_NOTIFY;
         }
     }
 }
