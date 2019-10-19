@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\ChangeFieldItems;
 
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
@@ -68,10 +70,10 @@ abstract class ChangeFieldItem
                 ]);
         
             if($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem){
-                return new ColumnSystemItem($custom_table, $target);
+                return new ColumnItem($custom_table, $target);
             }
             elseif($column_item instanceof \Exceedone\Exment\ColumnItems\SystemItem){
-                return new ColumnSystemItem($custom_table, $target);
+                return new SystemItem($custom_table, $target);
             }
         }
     }

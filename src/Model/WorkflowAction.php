@@ -55,6 +55,11 @@ class WorkflowAction extends ModelBase
         return $this;
     }
 
+    /**
+     * Get work conditions. Contains status_to, enabled_flg, workflow_conditions, etc
+     *
+     * @return void
+     */
     public function getWorkConditionsAttribute()
     {
         $headers = $this->workflow_condition_headers()
@@ -245,19 +250,20 @@ class WorkflowAction extends ModelBase
         $workflow_authorities = $this->workflow_authorities;
 
         foreach($workflow_authorities as $workflow_authority){
-            switch($workflow_authority->related_type){
-                case ConditionTypeDetail::USER()->lowerKey():
+            $type = ConditionTypeDetail::getEnum($workflow_authority->related_type);
+            switch($type){
+                case ConditionTypeDetail::USER:
                     if($workflow_authority->related_id == $targetUser->id){
                         return true;
                     }
                     break;
-                case ConditionTypeDetail::ORGANIZATION()->lowerKey():
+                case ConditionTypeDetail::ORGANIZATION:
                     $ids = $targetUser->belong_organizations->pluck('id')->toArray();
                     if(in_array($workflow_authority->related_id, $ids)){
                         return true;
                     }
                     break;
-                case ConditionTypeDetail::SYSTEM()->lowerKey():
+                case ConditionTypeDetail::SYSTEM:
                     if($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER && $custom_value->created_user_id == $targetUser->id){
                         return true;
                     }
@@ -283,14 +289,15 @@ class WorkflowAction extends ModelBase
         $labels = [];
 
         foreach($workflow_authorities as $workflow_authority){
-            switch($workflow_authority->related_type){
-                case ConditionTypeDetail::USER()->lowerKey():
+            $type = ConditionTypeDetail::getEnum($workflow_authority->related_type);
+            switch($type){
+                case ConditionTypeDetail::USER:
                     $userIds[] = $workflow_authority->related_id;
                     break;
-                case ConditionTypeDetail::ORGANIZATION()->lowerKey():
+                case ConditionTypeDetail::ORGANIZATION:
                     $organizationIds[] = $workflow_authority->related_id;
                     break;
-                case ConditionTypeDetail::SYSTEM()->lowerKey():
+                case ConditionTypeDetail::SYSTEM:
                     if($getAsDefine){
                         $labels[] = exmtrans('common.' . WorkflowTargetSystem::getEnum($workflow_authority->related_id)->lowerKey());
                         break;
@@ -338,13 +345,43 @@ class WorkflowAction extends ModelBase
         $next = $this->isActionNext($custom_value);
         
         if($next){
-            //TODO:workflow filtering actions
-            return collect($this->work_conditions)->first()['status_to'];
+            // get matched condition
+            $condition = $this->getMatchedCondtionHeader($custom_value);
+            if(is_null($condition)){
+                return null;
+            }
+
+            return $condition['status_to'];
         }else{
             return $this->status_from;
         }
     }
 
+    /**
+     * Filtering condtions. use action condtion
+     *
+     * @return void
+     */
+    public function getMatchedCondtionHeader($custom_value){
+        if(count($this->workflow_condition_headers) == 0){
+            return null;
+        }
+
+        foreach($this->workflow_condition_headers as $workflow_condition_header){
+            if($workflow_condition_header->isMatchCondition($custom_value)){
+                return $workflow_condition_header;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Whether this action is next.
+     *
+     * @param [type] $custom_value
+     * @return boolean
+     */
     public function isActionNext($custom_value){
         if(($flow_next_count = $this->getOption("flow_next_count", 1)) == 1){
             return true;

@@ -186,7 +186,8 @@ abstract class CustomValue extends ModelBase
         // check authority
         if($onlyHasAuthority){
             $workflow_actions = $workflow_actions->filter(function($workflow_action){
-                return $workflow_action->hasAuthority($this);
+                // has authority, and has MatchedCondtionHeader.
+                return $workflow_action->hasAuthority($this) && !is_null($workflow_action->getMatchedCondtionHeader($this));
             });
         }
 

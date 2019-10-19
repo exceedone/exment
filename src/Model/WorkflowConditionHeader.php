@@ -17,4 +17,17 @@ class WorkflowConditionHeader extends ModelBase
         return $this->morphMany(Condition::class, 'morph', 'morph_type', 'morph_id');
     }
 
+    /**
+     * check if custom_value and user(organization, role) match for conditions.
+     */
+    public function isMatchCondition($custom_value)
+    {
+        foreach ($this->workflow_conditions as $condition) {
+            if (!$condition->isMatchCondition($custom_value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

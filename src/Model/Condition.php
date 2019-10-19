@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Form\Field\ChangeField;
+use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
 use Illuminate\Database\Eloquent\Collection;
 use Encore\Admin\Form;
 
@@ -83,56 +84,6 @@ class Condition extends ModelBase
     }
 
     /**
-     * get condition value text.
-     */
-    public function getConditionText() {
-        switch ($this->condition_type) {
-            case ConditionType::CONDITION:
-                if($this->target_column_id == ConditionTypeDetail::USER){
-                    $model = getModelName(SystemTableName::USER)::find($this->condition_value);
-                    if ($model instanceof Collection) {
-                        return $model->map(function($row) {
-                            return $row->getValue('user_name');
-                        })->implode(',');
-                    } else {
-                        return $model->getValue('user_name');
-                    }
-                }
-                elseif($this->target_column_id == ConditionTypeDetail::ORGANIZATION){
-                    $model = getModelName(SystemTableName::ORGANIZATION)::find($this->condition_value);
-                    if ($model instanceof Collection) {
-                        return $model->map(function($row) {
-                            return $row->getValue('organization_name');
-                        })->implode(',');
-                    } else {
-                        return $model->getValue('organization_name');
-                    }
-                }
-                elseif($this->target_column_id == ConditionTypeDetail::ROLE){
-                    $model = RoleGroup::find($this->condition_value);
-                    if ($model instanceof Collection) {
-                        return $model->map(function($row) {
-                            return $row->role_group_view_name;
-                        })->implode(',');
-                    } else {
-                        return $model->role_group_view_name;
-                    }
-                }
-                elseif($this->target_column_id == ConditionTypeDetail::COLUMN){
-                    $column_name = $this->custom_column->column_name;
-                    $column_item = $this->custom_column->column_item;
-                    return $column_item->setCustomValue(["value.$column_name" => $this->condition_value])->text();
-                }
-                elseif($this->target_column_id == ConditionTypeDetail::SYSTEM){
-                    //TODO:worlflow
-                }
-                break;
-        }
-        return $this->condition_value;
-    }
-    
-    
-    /**
      * get edited condition_value_text.
      */
     public function getConditionValueAttribute()
@@ -174,58 +125,18 @@ class Condition extends ModelBase
      */
     public function isMatchCondition($custom_value)
     {
-        switch ($this->condition_type) {
-            case ConditionType::COLUMN:
-                $column_value = array_get($custom_value, 'value.' . $this->custom_column->column_name);
-                if (is_null($column_value)) {
-                    return false;
-                }
-                if (!is_array($column_value)) {
-                    $column_value = [$column_value];
-                }
-                return collect($column_value)->filter()->contains(function ($value) {
-                    if (is_array($this->condition_value)) {
-                        return collect($this->condition_value)->filter()->contains($value);
-                    } else {
-                        return $value == $this->condition_value;
-                    }
-                });
-            case ConditionType::CONDITION:
-                if($this->target_column_id == ConditionTypeDetail::USER){
-                    $user = \Exment::user();
-                    return collect($this->condition_value)->contains($user->id);
-                }
-                elseif($this->target_column_id == ConditionTypeDetail::ORGANIZATION){
-                    $organizations = \Exment::user()->base_user->belong_organizations;
-                    foreach ($organizations as $organization) {
-                        if (collect($this->condition_value)->filter()->contains($organization->id)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                elseif($this->target_column_id == ConditionTypeDetail::ROLE){
-                    $role_groups = \Exment::user()->base_user->belong_role_groups();
-                    foreach ($role_groups as $role_group) {
-                        if (collect($this->condition_value)->filter()->contains($role_group->id)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-                elseif($this->target_column_id == ConditionTypeDetail::COLUMN){
-                    $column_name = $this->custom_column->column_name;
-                    $column_item = $this->custom_column->column_item;
-                    return $column_item->setCustomValue(["value.$column_name" => $this->condition_value])->text();
-                }
-                elseif($this->target_column_id == ConditionTypeDetail::SYSTEM){
-                    //TODO:worlflow
-                }
-                break;
-        }
-        return false;
+        $item = ChangeFieldItem::getItem($custom_value->custom_table, $this->condition_target);
+        return $item->isMatchCondition($this, $custom_value);
     }
 
+    /**
+     * get condition value text.
+     */
+    public function getConditionText() {
+        $item = ChangeFieldItem::getItem($custom_value->custom_table, $this->condition_target);
+        return $item->getConditionText($this, $custom_value);
+    }
+    
     
     /**
      * get work conditions.

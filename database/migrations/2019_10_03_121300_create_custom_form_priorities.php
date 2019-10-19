@@ -34,7 +34,6 @@ class CreateCustomFormPriorities extends Migration
             $table->integer('morph_id')->unsigned();
             $table->integer('condition_type');
             $table->integer('condition_key');
-            $table->integer('target_table_id')->nullable();
             $table->integer('target_column_id')->nullable();
             $table->string('condition_value', 1024)->nullable();
             $table->timestamps();

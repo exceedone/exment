@@ -3,11 +3,14 @@
 namespace Exceedone\Exment\ChangeFieldItems;
 
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 
-class ColumnSystemItem extends ChangeFieldItem
+trait ColumnSystemItemTrait
 {
     public function getFilterOption(){
         // get column item
