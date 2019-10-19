@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\ChangeFieldItems;
+namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 
-class ColumnSystemItem extends ChangeFieldItem
+class ColumnSystemItem extends ConditionItem
 {
     use ColumnSystemItemTrait;
     

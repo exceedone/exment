@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Enums;
 
 use Exceedone\Exment\Model\RoleGroup;
-use Exceedone\Exment\ChangeFieldItems;
+use Exceedone\Exment\ConditionItems;
 
 class ConditionTypeDetail extends EnumBase
 {
@@ -47,11 +47,11 @@ class ConditionTypeDetail extends EnumBase
     public function getConditionItem($custom_table, $target){
         switch($this){
             case ConditionTypeDetail::USER:
-                return new ChangeFieldItems\UserItem($custom_table, $target);
+                return new ConditionItems\UserItem($custom_table, $target);
             case ConditionTypeDetail::ORGANIZATION:
-                return new ChangeFieldItems\OrganizationItem($custom_table, $target);
+                return new ConditionItems\OrganizationItem($custom_table, $target);
             case ConditionTypeDetail::ROLE:
-                return new ChangeFieldItems\RoleGroupItem($custom_table, $target);
+                return new ConditionItems\RoleGroupItem($custom_table, $target);
         }
     }
 }

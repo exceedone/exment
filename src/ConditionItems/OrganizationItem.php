@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\ChangeFieldItems;
+namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
@@ -8,7 +8,7 @@ use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\SystemTableName;
 
-class OrganizationItem extends ChangeFieldItem
+class OrganizationItem extends ConditionItem
 {
     public function getFilterOption(){
         return $this->getFilterOptionConditon();

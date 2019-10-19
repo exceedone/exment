@@ -13,7 +13,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
-use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
+use Exceedone\Exment\ConditionItems\ConditionItem;
 use Carbon\Carbon;
 use Validator;
 
@@ -647,7 +647,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function getFilterCondition(Request $request)
     {
-        $item = $this->getChangeFieldItem($request, $request->get('q'));
+        $item = $this->getConditionItem($request, $request->get('q'));
         if(!isset($item)){
             return [];
         }
@@ -659,15 +659,15 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function getFilterValue(Request $request)
     {
-        $item = $this->getChangeFieldItem($request, $request->get('target'));
+        $item = $this->getConditionItem($request, $request->get('target'));
         if(!isset($item)){
             return [];
         }
         return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
     }
 
-    protected function getChangeFieldItem(Request $request, $target){
-        $item = ChangeFieldItem::getItem($this->custom_table, $target);
+    protected function getConditionItem(Request $request, $target){
+        $item = ConditionItem::getItem($this->custom_table, $target);
         if(!isset($item)){
             return null;
         }

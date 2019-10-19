@@ -25,7 +25,7 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
-use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
+use Exceedone\Exment\ConditionItems\ConditionItem;
 
 class CustomViewController extends AdminControllerTableBase
 {
@@ -583,7 +583,7 @@ class CustomViewController extends AdminControllerTableBase
      */
     public function getFilterCondition(Request $request)
     {
-        $item = $this->getChangeFieldItem($request, $request->get('q'));
+        $item = $this->getConditionItem($request, $request->get('q'));
         if(!isset($item)){
             return [];
         }
@@ -595,15 +595,15 @@ class CustomViewController extends AdminControllerTableBase
      */
     public function getFilterValue(Request $request)
     {
-        $item = $this->getChangeFieldItem($request, $request->get('target'));
+        $item = $this->getConditionItem($request, $request->get('target'));
         if(!isset($item)){
             return [];
         }
         return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
     }
 
-    protected function getChangeFieldItem(Request $request, $target){
-        $item = ChangeFieldItem::getItem($this->custom_table, $target);
+    protected function getConditionItem(Request $request, $target){
+        $item = ConditionItem::getItem($this->custom_table, $target);
         if(!isset($item)){
             return null;
         }

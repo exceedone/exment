@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\ChangeFieldItems;
+namespace Exceedone\Exment\ConditionItems;
 
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Model\CustomTable;
@@ -11,7 +11,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
 
-class UserItem extends ChangeFieldItem
+class UserItem extends ConditionItem
 {
     public function getFilterOption(){
         return $this->getFilterOptionConditon();

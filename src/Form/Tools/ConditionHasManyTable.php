@@ -6,7 +6,7 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Validator\ChangeFieldRule;
 use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
+use Exceedone\Exment\ConditionItems\ConditionItem;
 
 /**
  * ConditionHasManyTable
@@ -60,7 +60,7 @@ class ConditionHasManyTable
                     $data = $select->data();
                     $condition_target = array_get($data, $condition_target_name);
 
-                    $item = ChangeFieldItem::getItem($this->custom_table, $condition_target);
+                    $item = ConditionItem::getItem($this->custom_table, $condition_target);
                     if(!isset($item)){
                         return null;
                     }
@@ -79,7 +79,7 @@ class ConditionHasManyTable
                     if(is_null($data)){
                         return null;
                     }
-                    $item = ChangeFieldItem::getItem($this->custom_table, array_get($data, $condition_target_name));
+                    $item = ConditionItem::getItem($this->custom_table, array_get($data, $condition_target_name));
                                 
                     $label = exmtrans('condition.condition_value');
                     $item->setElement($field->getElementName(), $condition_value_name, $label);

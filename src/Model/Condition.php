@@ -7,7 +7,7 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Form\Field\ChangeField;
-use Exceedone\Exment\ChangeFieldItems\ChangeFieldItem;
+use Exceedone\Exment\ConditionItems\ConditionItem;
 use Illuminate\Database\Eloquent\Collection;
 use Encore\Admin\Form;
 
@@ -125,7 +125,7 @@ class Condition extends ModelBase
      */
     public function isMatchCondition($custom_value)
     {
-        $item = ChangeFieldItem::getItem($custom_value->custom_table, $this->condition_target);
+        $item = ConditionItem::getItem($custom_value->custom_table, $this->condition_target);
         return $item->isMatchCondition($this, $custom_value);
     }
 
@@ -133,7 +133,7 @@ class Condition extends ModelBase
      * get condition value text.
      */
     public function getConditionText() {
-        $item = ChangeFieldItem::getItem($custom_value->custom_table, $this->condition_target);
+        $item = ConditionItem::getItem($custom_value->custom_table, $this->condition_target);
         return $item->getConditionText($this, $custom_value);
     }
     

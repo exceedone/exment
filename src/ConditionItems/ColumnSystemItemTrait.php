@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\ChangeFieldItems;
+namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
