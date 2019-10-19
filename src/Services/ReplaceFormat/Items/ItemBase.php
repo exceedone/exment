@@ -93,4 +93,8 @@ abstract class ItemBase
             return new $classname($custom_value, $length_array, $matchOptions);
         }
     }
+
+    public function getLink($str){
+        return "<a href='$str'>$str</a>";
+    }
 }

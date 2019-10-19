@@ -85,7 +85,7 @@ class ReplaceFormatService
                     }
 
                     if (array_key_value_exists('link', $matchOptions)) {
-                        $str = "<a href='$str'>$str</a>";
+                        $str = $item->getLink($str);
                     }
 
                     // replace

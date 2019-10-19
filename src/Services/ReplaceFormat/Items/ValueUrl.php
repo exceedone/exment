@@ -23,4 +23,8 @@ class ValueUrl extends ItemBase
 
         return $str;
     }
+    
+    public function getLink($str){
+        return $str;
+    }
 }
