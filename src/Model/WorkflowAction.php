@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\ConditionItems\ConditionItem;
 
 class WorkflowAction extends ModelBase
 {
@@ -250,24 +251,9 @@ class WorkflowAction extends ModelBase
         $workflow_authorities = $this->workflow_authorities;
 
         foreach($workflow_authorities as $workflow_authority){
-            $type = ConditionTypeDetail::getEnum($workflow_authority->related_type);
-            switch($type){
-                case ConditionTypeDetail::USER:
-                    if($workflow_authority->related_id == $targetUser->id){
-                        return true;
-                    }
-                    break;
-                case ConditionTypeDetail::ORGANIZATION:
-                    $ids = $targetUser->belong_organizations->pluck('id')->toArray();
-                    if(in_array($workflow_authority->related_id, $ids)){
-                        return true;
-                    }
-                    break;
-                case ConditionTypeDetail::SYSTEM:
-                    if($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER && $custom_value->created_user_id == $targetUser->id){
-                        return true;
-                    }
-                    break;
+            $item = ConditionItem::getItemByAuthority($custom_value->custom_table, $workflow_authority);
+            if($item->hasAuthority($workflow_authority, $custom_value, $targetUser)){
+                return true;
             }
         }
 

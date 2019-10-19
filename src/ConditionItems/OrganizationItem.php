@@ -46,4 +46,15 @@ class OrganizationItem extends ConditionItem
             return $model->getValue('organization_name');
         }
     }
+
+    /**
+     * Check has workflow authority
+     *
+     * @param CustomValue $custom_value
+     * @return boolean
+     */
+    public function hasAuthority($workflow_authority, $custom_value, $targetUser){
+        $ids = $targetUser->belong_organizations->pluck('id')->toArray();
+        return in_array($workflow_authority->related_id, $ids);
+    }
 }

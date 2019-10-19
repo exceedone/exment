@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
@@ -50,7 +51,8 @@ abstract class ConditionItem
 
         return $this;
     } 
-        /**
+    
+    /**
      * get filter condition
      */
     public static function getItem(?CustomTable $custom_table, $target)
@@ -78,6 +80,14 @@ abstract class ConditionItem
         }
     }
 
+    /**
+     * get filter condition by authority
+     */
+    public static function getItemByAuthority(?CustomTable $custom_table, WorkflowAuthority $authority)
+    {
+        $enum = ConditionTypeDetail::getEnum($authority->related_type);
+        return $enum->getConditionItem($custom_table, null);
+    }
 
     /**
      * get filter condition

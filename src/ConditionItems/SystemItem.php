@@ -33,4 +33,14 @@ class ColumnSystemItem extends ConditionItem
     public function getConditionText(Condition $condition, CustomValue $custom_value){
         return null;
     }
+    
+    /**
+     * Check has workflow authority
+     *
+     * @param CustomValue $custom_value
+     * @return boolean
+     */
+    public function hasAuthority($workflow_authority, $custom_value, $targetUser){
+        return $workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER && $custom_value->created_user_id == $targetUser->id;
+    }
 }

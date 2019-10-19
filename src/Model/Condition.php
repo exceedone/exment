@@ -20,17 +20,6 @@ class Condition extends ModelBase
 
     protected $guarded = ['id'];
     protected $appends = ['condition_target'];
-    //protected $casts = ['condition_value' => 'json'];
-
-    // public function custom_form_priority()
-    // {
-    //     return $this->belongsTo(CustomFormPriority::class, 'custom_form_priority_id');
-    // }
-
-    // public function custom_column()
-    // {
-    //     return $this->belongsTo(CustomColumn::class, 'target_column_id');
-    // }
 
     public function getConditionTargetAttribute()
     {

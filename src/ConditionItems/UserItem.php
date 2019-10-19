@@ -59,4 +59,15 @@ class UserItem extends ConditionItem
             return $model->getValue('user_name');
         }
     }
+    
+    /**
+     * Check has workflow authority
+     *
+     * @param CustomValue $custom_value
+     * @return boolean
+     */
+    public function hasAuthority($workflow_authority, $custom_value, $targetUser){
+        return $workflow_authority->related_id == $targetUser->id;
+    }
+    
 }
