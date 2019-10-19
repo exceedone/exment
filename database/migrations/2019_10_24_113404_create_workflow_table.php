@@ -120,6 +120,11 @@ class CreateWorkflowTable extends Migration
             $table->foreign('workflow_id')->references('id')->on('workflows');
             $table->foreign('workflow_status_id')->references('id')->on('workflow_statuses');
         });
+
+        Schema::table('notifies', function($table)
+        {
+            $table->integer('workflow_id')->unsigned()->nullable();
+        });
     }
 
     /**

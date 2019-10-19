@@ -776,11 +776,14 @@ var Exment;
         static getClassKey(key, prefix = '') {
             return '.' + prefix + key + ',.' + prefix + 'value_' + key;
         }
-        static findValue(key, values) {
+        static findValue(keys, values) {
+            keys = !Array.isArray(keys) ? keys.split(',') : keys;
             values = !Array.isArray(values) ? values.split(',') : values;
-            for (var i = 0; i < values.length; i++) {
-                if (values[i] == key) {
-                    return true;
+            for (let i = 0; i < keys.length; i++) {
+                for (let j = 0; j < values.length; j++) {
+                    if (keys[i] == values[j]) {
+                        return true;
+                    }
                 }
             }
             return false;

@@ -13,6 +13,7 @@ use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
@@ -134,9 +135,19 @@ class NotifyController extends AdminControllerBase
                   'url' => admin_url('webapi/table/filterviews'),
                   'text' => 'view_view_name',
                 ]
-            ])
+            ]),
+            'data-filter' => json_encode(['key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME, NotifyTrigger::CREATE_UPDATE_DATA, NotifyTrigger::BUTTON]])
         ])
         ->help(exmtrans("notify.help.custom_table_id"));
+
+        $form->select('workflow_id', exmtrans("notify.workflow_id"))
+        ->required()
+        ->options(function ($workflow_id) {
+            return Workflow::all()->pluck('workflow_view_name', 'id');
+        })->attribute([
+            'data-filter' => json_encode(['key' => 'notify_trigger', 'value' => [NotifyTrigger::WORKFLOW]])
+        ])
+        ->help(exmtrans("notify.help.workflow_id"));
 
         $form->select('custom_view_id', exmtrans("notify.custom_view_id"))
             ->help(exmtrans("notify.help.custom_view_id"))
@@ -154,7 +165,9 @@ class NotifyController extends AdminControllerBase
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
                     })->pluck('view_view_name', 'id');
-            });
+            })->attribute([
+                'data-filter' => json_encode(['key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME, NotifyTrigger::CREATE_UPDATE_DATA, NotifyTrigger::BUTTON]])
+            ]);
 
         $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) use ($copy_id) {
             // Notify Time --------------------------------------------------
@@ -211,22 +224,34 @@ class NotifyController extends AdminControllerBase
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
             ->default([NotifyAction::SHOW_PAGE])
             ->required()
+            ->attribute([
+                'data-filtertrigger' =>true,
+            ])
             ->config('allowClear', false)
             ->help(exmtrans("notify.help.notify_action"))
             ;
 
         $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form) {
             $controller = $this;
+            
             $form->text('webhook_url', exmtrans("notify.webhook_url"))
                 ->rules(["max:300", new RequiredIfExRule(['notify_actions', '3'])])
-                ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify')));
+                ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify_webhook')))
+                ->required()
+                ->attribute([
+                    'data-filter' => json_encode(['parent' => 1, 'key' => 'notify_actions', 'value' => [NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS]])
+                ]);
 
             $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
                 ->options(function ($val) use ($controller) {
                     return $controller->getNotifyActionTargetOptions($this->custom_table_id ?? null, false);
                 })
                 ->default(NotifyActionTarget::HAS_ROLES)
+                ->required()
                 ->rules([new RequiredIfExRule(['notify_actions', '1', '2'])])
+                ->attribute([
+                    'data-filter' => json_encode(['parent' => 1, 'key' => 'notify_actions', 'value' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE]])
+                ])
                 ->help(exmtrans("notify.help.notify_action_target"));
 
             // get notify mail template

@@ -1373,6 +1373,7 @@ return [
         'notify_view_name' => '通知表示名',
         'custom_table_id' => '対象テーブル',
         'custom_view_id' => '対象ビュー',
+        'workflow_id' => '対象ワークフロー',
         'notify_trigger' => '実施トリガー',
         'trigger_settings' => '通知実施設定',
         'notify_target_column' => '日付対象列',
@@ -1390,6 +1391,7 @@ return [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
             'custom_table_id' => '通知を行う条件として使用する、テーブルを選択します。',
             'custom_view_id' => '対象テーブルのデータを絞り込む場合に、条件ビューを指定します。条件ビューは、先にカスタムテーブルの設定画面で作成してください。',
+            'workflow_id' => '通知を行うワークフローを選択します。',
             'notify_trigger' => '通知を行う条件となる内容を選択してください。',
             'trigger_settings' => '通知を行うかどうかの判定を行う、日付・日時のフィールドを選択します。',
             'notify_beforeafter' => '通知を行うのが、登録している日付の「前」か「後」かを選択します。<br/>例：「通知日」が7、「通知前後」が「前」の場合、指定したフィールドの日付の7日前に通知実行',
@@ -1404,6 +1406,7 @@ return [
             'time' => '時間の経過',
             'create_update_data' => 'データ新規作成・更新・共有・コメント',
             'button' => 'ボタン',
+            'workflow' => 'ワークフロー実行',
         ],
         'notify_beforeafter_options' => [
             'before' => '前', 
