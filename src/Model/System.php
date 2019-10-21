@@ -29,43 +29,6 @@ class System extends ModelBase
     }
 
     /**
-     * Get and set from cache. 
-     *
-     * @param string $key key name.
-     * @param mixed $value setting value.
-     * @return void
-     */
-    public static function cache($config_key, $value = null)
-    {
-        if (is_null($value)) {
-            return Cache::get($config_key);
-        } elseif ($value instanceof \Closure) {
-            if(Cache::has($config_key)){
-                return Cache::get($config_key);
-            }
-            // get value
-            $val = $value();
-
-            // set session
-            Cache::put($config_key, $val, 10);
-            return $val;
-        }
-        Cache::put($config_key, $value, 10);
-    }
-
-    /**
-     * reset Cache
-     */
-    public static function resetCache($key = null)
-    {
-        if(!isset($key)){
-            Cache::flush();
-        }else{
-            Cache::forget($key);
-        }
-    }
-
-    /**
      * Get request session. This value avaibables only one request.
      *
      * @param string $key key name.
@@ -74,13 +37,21 @@ class System extends ModelBase
      */
     public static function requestSession($config_key, $value = null)
     {
+        
         if (is_null($value)) {
-            return static::$requestSession[$config_key] ?? null;
+            // check array_has
+            if (array_has(static::$requestSession, $config_key)) {
+                return static::$requestSession[$config_key];
+            }
+
+            return null;
+
         } elseif ($value instanceof \Closure) {
             // check array_has
             if (array_has(static::$requestSession, $config_key)) {
                 return static::$requestSession[$config_key];
             }
+
             $val = $value();
             static::setRequestSession($config_key, $val);
             return $val;
@@ -101,6 +72,64 @@ class System extends ModelBase
             static::$requestSession = [];
         }else{
             array_forget(static::$requestSession, $key);
+        }
+    }
+
+    /**
+     * Get and set from cache. 
+     *
+     * @param string $key key name.
+     * @param mixed $value setting value.
+     * @return void
+     */
+    protected static function cache($config_key, $value = null)
+    {
+        if (is_null($value)) {
+            // first, check request session
+            if(!is_null($val = static::requestSession($config_key))){
+                return $val;
+            }
+
+            if(Cache::has($config_key)){
+                $val = Cache::get($config_key);
+                static::setRequestSession($config_key, $val);
+                return $val;
+            }
+
+            return null;
+        } elseif ($value instanceof \Closure) {
+            if(!is_null($val = static::requestSession($config_key))){
+                return $val;
+            }
+            
+            if(Cache::has($config_key)){
+                $val = Cache::get($config_key);
+                static::setRequestSession($config_key, $val);
+                return $val;
+            }
+
+            // get value
+            $val = $value();
+
+            // set session
+            Cache::put($config_key, $val, 10);
+            static::setRequestSession($config_key, $val);
+            return $val;
+        }
+
+        static::setRequestSession($config_key, $value);
+        Cache::put($config_key, $value, 10);
+    }
+
+    /**
+     * reset Cache
+     */
+    protected static function resetCache($key = null)
+    {
+        if(!isset($key)){
+            Cache::flush();
+        }else{
+            Cache::forget($key);
         }
     }
 

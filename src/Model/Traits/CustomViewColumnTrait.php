@@ -22,10 +22,10 @@ trait CustomViewColumnTrait
         return $this->belongsTo(CustomView::class, 'custom_view_id');
     }
     
-    public function custom_column()
+    public function getCustomColumnAttribute()
     {
         if ($this->view_column_type == ConditionType::COLUMN) {
-            return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
+            return CustomColumn::getEloquent($this->view_column_target_id);
         }
     }
     
