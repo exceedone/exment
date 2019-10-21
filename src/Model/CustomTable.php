@@ -1084,6 +1084,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return [];
             }
         }
+        
         return $query->get()->pluck("label", "id");
     }
 
@@ -1100,6 +1101,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return null;
         }
         return admin_urls("webapi", 'data', array_get($this, 'table_name'), "select");
+    }
+
+    /**
+     * get options for select and ajax url
+     *
+     * @param array $options
+     * @return offset 0 is select options, 1 is ajax url
+     */
+    public function getSelectOptionsAndAjaxUrl($options = [])
+    {
+        return [
+            $this->getSelectOptions($options),
+            $this->getOptionAjaxUrl($options)
+        ];
     }
 
     /**

@@ -290,6 +290,8 @@ class WorkflowController extends AdminControllerBase
                 ->modalContentname('workflow_actions_work_conditions')
                 ->setElementClass('workflow_actions_work_conditions')
                 ->buttonClass('btn-sm btn-default')
+                ->help(exmtrans("workflow.help.work_conditions"))
+                ->required()
                 ->valueTextScript('Exment.WorkflowEvent.GetConditionSettingValText();')
                 ->hiddenFormat(function($value){
                     if(is_nullorempty($value)){
@@ -326,6 +328,8 @@ class WorkflowController extends AdminControllerBase
                 ->setElementClass('workflow_actions_work_targets')
                 ->buttonClass('btn-sm btn-default')
                 ->valueTextScript('Exment.WorkflowEvent.GetSettingValText();')
+                ->help(exmtrans("workflow.help.work_targets"))
+                ->required()
                 ->hiddenFormat(function($value, $field){
                     if(is_nullorempty($value)){
                         return WorkflowWorkTargetType::getTargetTypeDefault($field->getIndex());
@@ -752,9 +756,8 @@ class WorkflowController extends AdminControllerBase
             $options = $custom_table->custom_columns
                 ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
                 ->pluck('column_view_name', 'id');
-            $form->multipleSelect(ConditionTypeDetail::SYSTEM, exmtrans('common.custom_column'))
+            $form->multipleSelect('modal_' . ConditionTypeDetail::SYSTEM, exmtrans('common.custom_column'))
                 ->options($options)
-                ->setElementClass('modal_' . ConditionTypeDetail::COLUMN)
                 ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
                 ->default(array_get($value, ConditionTypeDetail::COLUMN));
         }
@@ -764,9 +767,8 @@ class WorkflowController extends AdminControllerBase
         if (!isset($modal_system_default)) {
             $modal_system_default = ($index == 0 ? [WorkflowTargetSystem::CREATED_USER] : null);
         }
-        $form->multipleSelect(ConditionTypeDetail::SYSTEM, exmtrans('common.system'))
+        $form->multipleSelect('modal_' . ConditionTypeDetail::SYSTEM, exmtrans('common.system'))
             ->options(WorkflowTargetSystem::transKeyArray('common'))
-            ->setElementClass('modal_' . ConditionTypeDetail::SYSTEM)
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
             ->default($modal_system_default);
 

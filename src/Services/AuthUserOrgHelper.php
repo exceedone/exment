@@ -247,30 +247,28 @@ class AuthUserOrgHelper
             $options['prependCallback']($form);
         }
 
-        $users = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions(
-            [
-                'display_table' => $custom_table,
-                'notAjax' => true,
-            ]
-        );
+        list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
+            'display_table' => $custom_table,
+            'selected_value' => array_get($value, SystemTableName::USER),
+        ]);
+
         // select target users
-        $form->multipleSelect(SystemTableName::USER, exmtrans('menu.system_definitions.user'))
+        $form->multipleSelect('modal_' . SystemTableName::USER, exmtrans('menu.system_definitions.user'))
             ->options($users)
-            ->setElementClass('modal_' . SystemTableName::USER)
+            ->ajax($ajax)
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
             ->default(array_get($value, SystemTableName::USER));
 
         if (System::organization_available()) {
-            $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions(
-                [
-                    'display_table' => $custom_table,
-                    'noAjax' => true,
-                ]
-            );
                 
-            $form->multipleSelect(SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
+            list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
+                'display_table' => $custom_table,
+                'selected_value' => array_get($value, SystemTableName::ORGANIZATION),
+            ]);
+                
+            $form->multipleSelect('modal_' . SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
                 ->options($organizations)
-                ->setElementClass('modal_' . SystemTableName::ORGANIZATION)
+                ->ajax($ajax)
                 ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
                 ->default(array_get($value, SystemTableName::ORGANIZATION));
         }

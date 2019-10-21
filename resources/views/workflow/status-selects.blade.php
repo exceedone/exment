@@ -5,7 +5,7 @@
     <div class="{{$viewClass['field']}}">
 
 
-        <div class="{!! !$errors->has($errorKey['action_name']) ?: 'has-error' !!}">
+        <div class="workflow_table_item {!! !$errors->has($errorKey['action_name']) ?: 'has-error' !!}">
             @include('exment::form.field.error', ['errorKeyFix' => $errorKey['action_name']])
 
             <label for="{{$id['action_name']}}" class="control-label small asterisk">{{exmtrans('workflow.action_name')}}</label>
@@ -15,10 +15,14 @@
             </div>
         </div>
         
-        <div class="{!! !$errors->has($errorKey['status_from']) ?: 'has-error' !!}">
+        <div class="workflow_table_item {!! !$errors->has($errorKey['status_from']) ?: 'has-error' !!}">
             @include('exment::form.field.error', ['errorKeyFix' => $errorKey['status_from']])
 
-            <label for="{{$id['status_from']}}" class="control-label small asterisk">{{exmtrans('workflow.status_from')}}</label>
+            <label for="{{$id['status_from']}}" class="control-label small asterisk">
+                {{exmtrans('workflow.status_from')}}
+                <i class="fa fa-info-circle" data-help-text="{{exmtrans('workflow.help.status_from')}}" data-help-title="{{exmtrans('workflow.status_from')}}"></i>
+            </label>
+
             <select class="form-control {{$class['status_from']}}" style="width: 100%;" name="{{$name['status_from']}}" {!! $attributes !!} required >
                 <option value=""></option>
                 @foreach($options as $select => $option)
