@@ -473,7 +473,7 @@ class WorkflowController extends AdminControllerBase
         }
 
         // add form
-        $form->description('各テーブルごとに、使用するワークフローを1件まで選択します。<br />※使用するワークフローを変更した場合でも、現在進行中のワークフローは、変更前のワークフローで実行されます。<br />' . exmtrans('workflow.help.workflow_help'))
+        $form->description(exmtrans('workflow.help.beginning') . '<br />' . exmtrans('workflow.help.workflow_help'))
             ;
 
         $form->html(view('exment::workflow.beginning', [
@@ -523,7 +523,7 @@ class WorkflowController extends AdminControllerBase
                 });
 
                 if(hasDuplicateDate($searchDates)){
-                    $errors->add("workflow_tables.$custom_table_id.custom_table", 'ワークフローが重複しています。');
+                    $errors->add("workflow_tables.$custom_table_id.custom_table", exmtrans('workflow.message.same_custom_table'));
                 }
             }
         }
@@ -565,11 +565,11 @@ class WorkflowController extends AdminControllerBase
         if(isset($workflow) && $workflow->canActivate()){
             $tools->append(new SwalInputButton(
                 [
-                    'title' => '設定完了する',
-                    'label' => '設定完了する',
+                    'title' => exmtrans('workflow.setting_complete'),
+                    'label' => exmtrans('workflow.setting_complete'),
                     'confirmKeyword' => 'yes',
                     'icon' => 'fa-check-circle-o',
-                    'html' => 'このワークフローの設定を完了します。設定完了すると、以下の内容が実施できなくなります。<br />・ワークフローの削除<br />・ステータスの追加、削除、順番変更<br />よろしければ、「yes」と入力してください。',
+                    'html' => exmtrans('workflow.help.setting_complete'),
                     'url' => admin_urls('workflow', $workflow->id, 'activate'),
                 ]
             ));
@@ -658,7 +658,7 @@ class WorkflowController extends AdminControllerBase
             
             foreach($workflow_conditions as $workflow_condition){
                 if(array_get($workflow_condition, 'status_to') == array_get($workflow_action, 'status_from')){
-                    $errors->add("$errorKey.status_from", '実行前ステータスと実行後ステータスは、異なるステータスに設定してください。');
+                    $errors->add("$errorKey.status_from", exmtrans("workflow.message.same_action"));
                     break;
                 }
             }
@@ -734,9 +734,9 @@ class WorkflowController extends AdminControllerBase
                         WorkflowWorkTargetType::ACTION_SELECT => WorkflowWorkTargetType::ACTION_SELECT()->transKey('workflow.work_target_type_options'), 
                         WorkflowWorkTargetType::FIX => WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options')
                     ];
-                    $help = exmtrans('workflow.help.work_target_type2');
+                    $help = exmtrans('workflow.help.work_targets2');
                     $default = WorkflowWorkTargetType::ACTION_SELECT;
-                    $form->radio('work_target_type', exmtrans('workflow.work_target_type'))
+                    $form->radio('work_target_type', exmtrans('workflow.work_targets'))
                         ->help($help)
                         ->attribute(['data-filtertrigger' =>true])
                         ->default(array_get($value, 'work_target_type', $default))
@@ -827,7 +827,7 @@ class WorkflowController extends AdminControllerBase
                 ->setWidth(10, 2)
                 ->default(array_get($work_condition, 'enabled_flg', 0))
                 ->attribute(['data-filtertrigger' =>true])
-                ->option(['1' => exmtrans('custom_form.available')]);
+                ->option(['1' => exmtrans('common.available')]);
             }
             
             $form->select("status_to_{$index}", exmtrans('workflow.status_to'))

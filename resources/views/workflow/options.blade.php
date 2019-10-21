@@ -38,7 +38,9 @@
 
 
         @if($index !== 0)
-        <label for="{{$id['reject_action']}}" class="control-label small">却下フロー</label>
+        <label for="{{$id['reject_action']}}" class="control-label small">{{exmtrans('workflow.reject_action')}}</label>
+        <i class="fa fa-info-circle" data-help-text="{{exmtrans('workflow.help.reject_action')}}" data-help-title="{{exmtrans('workflow.reject_action')}}" style="margin-left:2px;"></i>
+
         <div class="">
             <input type="checkbox" name="{{$name['reject_action']}}" value="1" class="{{$class['reject_action']}}" {{ old($column['reject_action'], $value['reject_action']) == '1' ? 'checked' : '' }} />
         </div>

@@ -52,7 +52,7 @@
             <div class="custom_form_block_available">
                 {{ Form::checkbox("{$custom_form_block['header_name']}[available]", 1, $custom_form_block['available'], ['id' => "custom_form_block_{$custom_form_block['id']}__available_",
                 'class' => 'icheck icheck_toggleblock']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__available_",
-                exmtrans('custom_form.available')) }}
+                exmtrans('common.available')) }}
             </div>
             @else {{ Form::hidden("{$custom_form_block['header_name']}[available]", $custom_form_block['available']) }} @endif
             <div class="custom_form_block" style="display:{{ boolval($custom_form_block['available']) ? 'block' : 'none' }}">

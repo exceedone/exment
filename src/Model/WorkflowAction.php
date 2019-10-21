@@ -415,7 +415,7 @@ class WorkflowAction extends ModelBase
         $statusTo = $this->getStatusToId($custom_value);
         $statusToName = esc_html(WorkflowStatus::getWorkflowStatusName($statusTo, $this->workflow));
 
-        $form->description('以下のアクションを実行します。');
+        $form->description(exmtrans('workflow.message.action_execute'));
         
         $form->display('action_name', exmtrans('workflow.action_name'))
             ->default($this->action_name);
