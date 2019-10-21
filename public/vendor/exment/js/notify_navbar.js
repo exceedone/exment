@@ -9,9 +9,16 @@ var Exment;
                 return;
             }
             NotifyNavbarEvent.notifyNavbar();
-            // $(document).on('pjax:complete', function (event) {
-            //     NotifyNavbarEvent.notifyNavbar();
-            // });
+            // click item after notify list
+            $(document).on('click', '.notifications-menu-dropdown li', {}, function (event) {
+                NotifyNavbarEvent.reget_flg = true;
+            });
+            $(document).on('pjax:complete', function (event) {
+                if (NotifyNavbarEvent.reget_flg) {
+                    NotifyNavbarEvent.notifyNavbar();
+                    NotifyNavbarEvent.reget_flg = false;
+                }
+            });
         }
         /**
          * toggle right-top help link and color
