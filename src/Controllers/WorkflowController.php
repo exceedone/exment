@@ -198,7 +198,7 @@ class WorkflowController extends AdminControllerBase
 
         $field = $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) {
             $form->text('status_name', exmtrans("workflow.status_name"))->help(exmtrans('workflow.help.status_name'));
-            $form->switchbool('datalock_flg', exmtrans("workflow.datalock_flg"))->help(exmtrans('workflow.help.editable_flg'));
+            $form->switchbool('datalock_flg', exmtrans("workflow.datalock_flg"))->help(exmtrans('workflow.help.datalock_flg'));
             $form->hidden('order')->default(0);
         })->setTableWidth(8, 2)
         ->required()
