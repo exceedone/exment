@@ -133,6 +133,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/actionClick", 'CustomValueController@actionClick');
             $router->get("data/{tableKey}/{id}/notifyClick", 'CustomValueController@notifyClick');
             $router->get("data/{tableKey}/{id}/shareClick", 'CustomValueController@shareClick');
+            $router->get("data/{tableKey}/{id}/workflowHistoryModal", 'CustomValueController@workflowHistoryModal');
             $router->post("data/{tableKey}/{id}/sendMail", 'CustomValueController@sendMail');
             $router->post("data/{tableKey}/{id}/sendTargetUsers", 'CustomValueController@sendTargetUsers');
             $router->post("data/{tableKey}/{id}/sendShares", 'CustomValueController@sendShares');

@@ -33,6 +33,17 @@ class HasManyTable extends HasMany
     protected $hideDeleteButtonRow = null;
 
     /**
+     * Options for template.
+     *
+     * @var array
+     */
+    protected $options = [
+        'allowCreate' => true,
+        'allowDelete' => true,
+        'allowOptions' => true,
+    ];
+
+    /**
      * Width for table and set offset.
      *
      * @var array
@@ -86,6 +97,18 @@ class HasManyTable extends HasMany
         return $this;
     }
     
+    /**
+     * Disable Options.
+     *
+     * @return $this
+     */
+    public function disableOptions()
+    {
+        $this->options['allowOptions'] = false;
+
+        return $this;
+    }
+
     /**
      * Available views for HasMany field.
      *

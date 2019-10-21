@@ -100,7 +100,7 @@ trait ModalTrait
         
         $this->modalInnerAttributes = array_merge([
             'role' => 'document',
-            'class' => 'modal-dialog modal-lg',
+            'class' => 'exment-modal-dialog modal-dialog modal-lg',
         ], $this->modalInnerAttributes);
     }
 }

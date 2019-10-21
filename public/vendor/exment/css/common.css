@@ -3760,6 +3760,18 @@ table img.image_html:hover {
   margin-bottom: 0.7em;
 }
 
+.has-many-table-workflow_histories-table th, .has-many-table-workflow_histories-table td {
+  text-align: center;
+}
+
+.has-many-table-workflow_histories-table tr td:nth-last-child(2) {
+  text-align: left;
+}
+
+.has-many-table-workflow_histories-table .box-body {
+  padding: 0;
+}
+
 .skin-blue .system-values li, .skin-blue-light .system-values li {
   border-left-color: #3c8dbc;
 }
@@ -3922,4 +3934,22 @@ fieldset[disabled] .btn.btn-purple.active {
 
 #tile-template .row-eq-height > [class^="col-"] {
   margin-bottom: 10px;
+}
+
+@media (min-width: 768px) {
+  .modal-dialog.modal-xl {
+    width: 600px;
+  }
+}
+
+@media (min-width: 992px) {
+  .modal-dialog.modal-xl {
+    width: 900px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .modal-dialog.modal-xl {
+    width: 1140px;
+  }
 }

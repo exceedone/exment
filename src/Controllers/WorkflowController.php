@@ -204,8 +204,7 @@ class WorkflowController extends AdminControllerBase
         ->required()
         ->setTableColumnWidth(6, 2, 2);
         if(isset($workflow) && boolval($workflow->setting_completed_flg)){
-            $field->disableDelete()
-                ->disableCreate();
+            $field->disableOptions();
         }else{
             $field->rowUpDown('order')
                 ->description(sprintf(exmtrans("workflow.description_workflow_statuses")));

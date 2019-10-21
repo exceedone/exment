@@ -28,7 +28,12 @@
                         @endif
                     </th>
                 @endforeach
+
+                @if($options['allowOptions'])
                 <th class="text-center {{count($tableitems) < count($tablecolumnwidths) ? 'col-sm-'.$tablecolumnwidths[count($tableitems)] : ''}}">{{trans('admin.action')}}</th>
+                @else
+                <th style="display:none;"></th>
+                @endif
             </tr>
             </thead>
             <tbody>
@@ -38,6 +43,7 @@
                 <td style="vertical-align:middle;">{!! $tableitem->render() !!}</td>
                 @endforeach
 
+                @if($options['allowOptions'])
                 <td class="text-center" style="vertical-align:middle;">
                     @foreach($form['hiddens'] as $hidden)
                     {!! $hidden->render() !!}
@@ -58,12 +64,19 @@
                     </a>
                     @endif
                 </td>
+                @else
+                <td style="display:none;">
+                @foreach($form['hiddens'] as $hidden)
+                    {!! $hidden->render() !!}
+                @endforeach
+                </td>
+                @endif
             </tr>
             @endforeach
             </tbody>
         </table>
 
-        @if($options['allowCreate'])
+        @if($options['allowOptions'] && $options['allowCreate'])
         <div id="has-many-table-button-{{$column}}" class="form-group">
             <div class="col-sm-12">
                 <div class="add btn btn-success btn-sm"><i class="fa fa-plus"></i>&nbsp;{{ trans('admin.new') }}</div>

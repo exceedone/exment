@@ -118,7 +118,7 @@ abstract class CustomValue extends ModelBase
 
     public function getWorkflowWorkUsersAttribute()
     {        
-        $workflow_actions = $this->workflow_actions(false, true);
+        $workflow_actions = $this->getWorkflowActions(false, true);
 
         $result = collect();
         foreach($workflow_actions as $workflow_action){
@@ -160,7 +160,7 @@ abstract class CustomValue extends ModelBase
 
 
     // get workflow actions which has authority
-    public function workflow_actions($onlyHasAuthority = false, $ignoreRejectAction = false)
+    public function getWorkflowActions($onlyHasAuthority = false, $ignoreRejectAction = false)
     {
         // get workflow.
         $workflow = Workflow::getWorkflowByTable($this->custom_table);
@@ -198,6 +198,31 @@ abstract class CustomValue extends ModelBase
         }
 
         return $workflow_actions;
+    }
+
+    /**
+     * get workflow histories
+     *
+     * @return void
+     */
+    public function getWorkflowHistories($appendsStatus = false)
+    {
+        $values = WorkflowValue::where('morph_type', $this->custom_table->table_name)
+            ->where('morph_id', $this->id)
+            ->orderby('workflow_values.created_at', 'desc')
+            ->with(['workflow', 'workflow_action'])
+            ->get();
+
+        if($appendsStatus){
+            foreach($values as $v){
+                $v->append('created_user');
+                $v->workflow_action->append('status_from_name');
+                $v->workflow_action->status_to_name = $v->workflow_action->getStatusToName($this);
+                $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', $v->workflow_action->status_from_name, $v->workflow_action->status_to_name);
+            }
+        }
+
+        return $values;
     }
 
     public function parent_custom_value()

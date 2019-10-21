@@ -357,6 +357,19 @@ class WorkflowAction extends ModelBase
     }
 
     /**
+     * Get status_to name. Filtering value
+     *
+     * @return void
+     */
+    public function getStatusToName($custom_value){
+        if(is_null($statusTo = $this->getStatusToId($custom_value))){
+            return null;
+        }
+
+        return esc_html(WorkflowStatus::getWorkflowStatusName($statusTo, $this->workflow));
+    }
+
+    /**
      * Filtering condtions. use action condtion
      *
      * @return void

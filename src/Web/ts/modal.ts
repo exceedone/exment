@@ -242,6 +242,18 @@ namespace Exment {
 
             $('#modal-showmodal').find('.modal-reset').toggle(res.showReset === true);
 
+            let showSubmit = true;
+            if(res.showSubmit !== undefined){
+                showSubmit = res.showSubmit;
+            }
+            $('#modal-showmodal').find('.modal-submit').toggle(showSubmit);
+
+            let modalSize = 'modal-lg';
+            if(hasValue(res.modalSize)){
+                modalSize = res.modalSize;
+            }
+            $('.exment-modal-dialog').removeClass().addClass('exment-modal-dialog modal-dialog ' + modalSize);
+
             Exment.ModalEvent.enableSubmit(button);
         }
 

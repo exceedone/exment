@@ -480,8 +480,23 @@ table img.image_html{
     }
 }
 
+// workflow
 .workflow_table_item{
     margin-bottom: 0.7em;
+}
+
+.has-many-table-workflow_histories-table{
+    th, td{
+        text-align: center;
+    }
+
+    tr td:nth-last-child(2){
+        text-align: left;
+    }
+
+    .box-body{
+        padding: 0;
+    }
 }
 
 .skin-blue .system-values li, .skin-blue-light .system-values li{
@@ -646,5 +661,23 @@ table img.image_html{
 
     .row-eq-height > [class^="col-"]{
         margin-bottom:10px;
+    }
+}
+
+@media (min-width: 768px){
+    .modal-dialog.modal-xl {
+        width: 600px;
+    }    
+}
+
+@media (min-width: 992px){
+    .modal-dialog.modal-xl {
+        width: 900px;
+    }    
+}
+
+@media (min-width: 1200px){
+    .modal-dialog.modal-xl {
+        width: 1140px;
     }
 }

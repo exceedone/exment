@@ -354,6 +354,25 @@ class CustomValueController extends AdminControllerTableBase
         return getAjaxResponse(false);
     }
 
+    //Function handle workflow history click event
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function workflowHistoryModal(Request $request, $tableKey, $id = null)
+    {
+        // execute history
+        $custom_value = $this->custom_table->getValueModel($id);
+        $form = $this->getWorkflowHistory($custom_value, $id);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.workflow_history'),
+            'showSubmit' => false,
+            'modalSize' => 'modal-xl',
+        ]);
+    }
 
     /**
      * get action modal
@@ -575,6 +594,7 @@ class CustomValueController extends AdminControllerTableBase
         return $service;
     }
 
+    
     /**
      * @return string
      */

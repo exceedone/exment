@@ -11,6 +11,12 @@ class WorkflowValue extends ModelBase
         return $this->belongsTo(WorkflowStatus::class, 'workflow_status_id');
     }
 
+    public function getWorkflowStatusNameAttribute()
+    {
+        return WorkflowStatus::getWorkflowStatusName($this->workflow_status_id, $this->workflow_id);
+        //return $this->belongsTo(WorkflowStatus::class, 'workflow_status_id');
+    }
+
     public function getWorkflowEditableAttribute()
     {
         $status = $this->getWorkflowStatusAttribute();
@@ -18,8 +24,13 @@ class WorkflowValue extends ModelBase
         return isset($status)? ($status->editable_flg == 1): true;
     }
     
-    public function getWorkflowActionAttribute()
+    public function workflow()
     {
-        return WorkflowAction::getEloquentDefault($this->workflow_action_id);
+        return $this->belongsTo(Workflow::class, 'workflow_id');
+    }
+
+    public function workflow_action()
+    {
+        return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
     }
 }

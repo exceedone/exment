@@ -45,7 +45,7 @@ class Workflow extends ModelBase
             $model->deletingChildren();
             
             $model->workflow_statuses()->delete();
-            $model->workflow_actions()->delete();
+            $model->getWorkflowActions()->delete();
             $model->workflow_tables()->delete();
         });
         

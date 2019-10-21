@@ -18,6 +18,7 @@ trait SystemValuesTrait
             'workflows' => [
                 SystemColumn::WORKFLOW_STATUS => ['nullHidden' => true],
                 SystemColumn::WORKFLOW_WORK_USER => ['nullHidden' => true],
+                'show_workflow_histories' => ['nullHidden' => true, 'function' => 'showWorkflowHistories'],
             ],
             'bodies' => [
                 SystemColumn::ID => [],
@@ -42,10 +43,22 @@ trait SystemValuesTrait
     protected function getValues($custom_value, $items){
         $result = [];
         foreach($items as $key => $options){
+            if(array_has($options, 'function')){
+                $func = array_get($options, 'function');
+                $funcResult = $this->{$func}($custom_value);
+
+                if(!isset($funcResult)){
+                    continue;
+                }
+
+                $result[] = $funcResult;
+                continue;
+            }
+        
             $option = SystemColumn::getEnum($key)->option();
             $param = array_has($option, 'tagname') ? array_get($option, 'tagname') : array_get($option, 'name');
-            
             $value = $custom_value->{$param};
+
             if(boolval(array_get($options, 'nullHidden')) && empty($value)){
                 continue;
             }
@@ -57,6 +70,19 @@ trait SystemValuesTrait
         }
 
         return $result;
+    }
+    
+    protected function showWorkflowHistories($custom_value){
+        $workflowHistories = $custom_value->getWorkflowHistories();
+        if(count($workflowHistories) == 0){
+            return null;
+        }
+
+        $link = url_join($custom_value->getUrl(), 'workflowHistoryModal');
+        return [
+            'label' => exmtrans('common.history'),
+            'value' => '<a href="javascript:void(0);" data-widgetmodal_url="' . $link . '">' . trans('admin.show') . '</a>'
+        ];
     }
     
 }

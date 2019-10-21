@@ -1,6 +1,6 @@
 <div style='display:inline-block;min-width:70px;padding-top:5px'>
     <small>
-    {{ $workflow->status_name }}
+    {{ $workflow->workflow_status_name }}
     </small>
 </div>
 <small>

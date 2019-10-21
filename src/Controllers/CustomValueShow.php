@@ -11,6 +11,7 @@ use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
@@ -190,7 +191,7 @@ trait CustomValueShow
                     foreach ($listButtons as $plugin) {
                         $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
                     }
-                    foreach ($custom_value->workflow_actions(true)->reverse() as $action) {
+                    foreach ($custom_value->getWorkflowActions(true)->reverse() as $action) {
                         $tools->append(new Tools\WorkflowMenuButton($action, $this->custom_table, $id));
                     }
                     foreach ($copyButtons as $copyButton) {
@@ -228,8 +229,6 @@ trait CustomValueShow
         $this->setRevisionBox($row, $custom_value, $id, $modal);
  
         $this->setCommentBox($row,  $custom_value, $id, $modal);
-
-        $this->setWorkflowBox($row,  $custom_value, $id, $modal);
     }
     
     /**
@@ -500,47 +499,47 @@ EOT;
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
     
-    protected function getWorkflows($id, $modal = false)
+    protected function getWorkflowHistory($custom_value, $id)
     {
-        if ($modal) {
-            return [];
-        }
-        return WorkflowValue
-            ::join('workflow_statuses', 'workflow_statuses.id', 'workflow_values.workflow_status_id')
-            ->select(['workflow_values.created_at', 'workflow_values.created_user_id', 'workflow_values.latest_flg', 'workflow_statuses.status_name'])
-            ->where('workflow_values.workflow_id', $this->custom_table->workflow_id)
-            ->where('workflow_values.morph_id', $id)
-            ->orderby('workflow_values.created_at')
-            ->get();
-    }
-
-    protected function setWorkflowBox($row, $custom_value, $id, $modal = false)
-    {
-        if($modal || is_null(Workflow::getWorkflowByTable($this->custom_table))){
-            return;
-        }
-
-        $workflows = $this->getWorkflows($id, $modal);
-        $form = new WidgetForm;
-        $form->disableReset();
-        $form->disableSubmit();
-
+        $workflows = $custom_value->getWorkflowHistories(true)->toArray();
         if (count($workflows) == 0) {
             return;
         }
 
-        $html = [];
-        foreach ($workflows as $index => $workflow) {
-            $form->html(
-                view('exment::form.field.workflowline', [
-                    'workflow' => $workflow,
-                    'index' => $index,
-                ])->render(),
-                'No.'. ($index + 1)
-            )->setWidth(10, 2);
-        }
+        $form = new ModalForm;
+
+        $workflow = Workflow::getWorkflowByTable($custom_value->custom_table);
+
+        $form->display('workflow_view_name', exmtrans('workflow.execute_workflow'))
+            ->default($workflow->workflow_view_name ?? null);
+
+        $form->display('current_status_name', exmtrans('workflow.current_status_name'))
+            ->default($custom_value->workflow_status_name);
+
+        $form->hasManyTable('workflow_histories', exmtrans('common.workflow_history'), function ($form) {
+            $form->display('created_at', exmtrans("workflow.executed_at"));
+            $form->display('workflow_action.action_name', exmtrans("workflow.action_name"));
+            $form->display('workflow_action.status_from_to_name', exmtrans("workflow.status"));
+            $form->display('created_user', exmtrans("workflow.executed_user"));
+            $form->display('comment', exmtrans("common.comment"));
+        })->setTableWidth(12, 0)
+        ->disableOptions()
+        ->disableHeader()
+        ->setRelatedValue($workflows)
+        ->setTableColumnWidth(2, 2, 2, 2, 4, 0);
+
+        // $html = [];
+        // foreach ($workflows as $index => $workflow) {
+        //     $form->html(
+        //         view('exment::form.field.workflowline', [
+        //             'workflow' => $workflow,
+        //             'index' => $index,
+        //         ])->render(),
+        //         'No.'. ($index + 1)
+        //     )->setWidth(10, 2);
+        // }
         
-        $row->column(6, (new Box(exmtrans("common.workflow_history"), $form))->style('info'));
+        return $form;
     }
 
     /**
