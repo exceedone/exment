@@ -232,16 +232,32 @@ class WorkflowAction extends ModelBase
             ])->update(['latest_flg' => false]);
 
             $status_to = $this->getStatusToId($custom_value);
-            $data = array_merge([
+            $createData = [
                 'workflow_id' => array_get($this, 'workflow_id'),
                 'morph_type' => $morph_type,
                 'morph_id' => $morph_id,
                 'workflow_action_id' => $this->id,
                 'workflow_status_id' => $status_to == Define::WORKFLOW_START_KEYNAME ? null : $status_to,
                 'latest_flg' => 1
-            ], $data);
+            ];
+            $createData['comment'] = array_get($data, 'comment');
     
-            $workflow_value = WorkflowValue::create($data);
+            $workflow_value = WorkflowValue::create($createData);
+
+            // if contains next_work_users, set workflow_value_authorities
+            if(array_key_value_exists('next_work_users', $data)){
+                $user_organizations = $data['next_work_users'];
+                $user_organizations = collect($user_organizations)->filter()->map(function ($user_organization) use ($workflow_value) {
+                    list($authoritable_user_org_type, $authoritable_target_id) = explode('_', $user_organization);
+                    return [
+                        'related_id' => $authoritable_target_id,
+                        'related_type' => $authoritable_user_org_type,
+                        'workflow_value_id' => $workflow_value->id,
+                    ];
+                });
+
+                WorkflowValueAuthority::insert($user_organizations->toArray());
+            }
         });
 
         // notify workflow
@@ -264,8 +280,18 @@ class WorkflowAction extends ModelBase
             $targetUser = \Exment::user()->base_user;
         }
 
-        $workflow_authorities = $this->workflow_authorities;
+        // check as workflow_value_authorities
+        $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
+        $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
+        foreach($workflow_value_authorities as $workflow_value_authority){
+            $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_value_authority);
+            if($item->hasAuthority($workflow_value_authority, $custom_value, $targetUser)){
+                return true;
+            }
+        }
 
+        $this->load(['workflow_authorities']);
+        $workflow_authorities = $this->workflow_authorities;
         foreach($workflow_authorities as $workflow_authority){
             $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_authority);
             if($item->hasAuthority($workflow_authority, $custom_value, $targetUser)){
@@ -464,11 +490,11 @@ class WorkflowAction extends ModelBase
             // if select, show options
             if($select){
                 $options = CustomValueAuthoritable::getUserOrgSelectOptions($custom_table, null, true);
-                $form->multipleSelect('next_work_user', exmtrans('workflow.next_work_user'))
+                $form->multipleSelect('next_work_users', exmtrans('workflow.next_work_users'))
                     ->options($options)->required();
             }else{
                 // only display
-                $form->display('next_work_user', exmtrans('workflow.next_work_user'))
+                $form->display('next_work_users', exmtrans('workflow.next_work_users'))
                     ->displayText($toActionAuthorities->map(function($toActionAuthority){
                         return $toActionAuthority->getUrl([
                             'tag' => true,

@@ -30,6 +30,7 @@ class System extends ModelBase
     public static function requestSession($key, $value = null)
     {
         $config_key = "exment_global.$key";
+
         if (is_null($value)) {
             return static::$requestSession[$config_key] ?? null;
         } elseif ($value instanceof \Closure) {

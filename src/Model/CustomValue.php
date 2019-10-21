@@ -28,7 +28,6 @@ abstract class CustomValue extends ModelBase
     protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
-    protected $with = ['workflow_value'];
 
     /**
      * remove_file_columns.

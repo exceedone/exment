@@ -95,8 +95,12 @@ abstract class ConditionItemBase
 
     /**
      * get filter condition by authority
+     *
+     * @param CustomTable|null $custom_table
+     * @param WorkflowAuthority|WorkflowValueAuthority $authority
+     * @return void
      */
-    public static function getItemByAuthority(?CustomTable $custom_table, WorkflowAuthority $authority)
+    public static function getItemByAuthority(?CustomTable $custom_table, $authority)
     {
         $enum = ConditionTypeDetail::getEnum($authority->related_type);
         return $enum->getConditionItem($custom_table, null);

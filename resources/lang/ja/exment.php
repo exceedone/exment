@@ -592,7 +592,7 @@ return [
         'all_user' => '全員実行',
         'executed_user' => '実行ユーザー', 
         'executed_at' => '実行日時', 
-        'next_work_user' => '次の作業ユーザー', 
+        'next_work_users' => '次の作業ユーザー', 
         'reject_action' => '却下アクション',
         'beginning' => '利用設定',
         'active_start_date' => '使用開始日',

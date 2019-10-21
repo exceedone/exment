@@ -150,6 +150,14 @@ class SupportForV220 extends Migration
             $table->foreign('workflow_status_id')->references('id')->on('workflow_statuses');
         });
 
+        $schema->create('workflow_value_authorities', function (ExtendedBlueprint $table) {
+            $table->string('related_id');
+            $table->string('related_type', 255);
+            $table->integer('workflow_value_id')->unsigned()->index();
+
+            $table->index(['related_id', 'related_type']);
+        });
+
         Schema::table('notifies', function($table)
         {
             $table->integer('workflow_id')->unsigned()->nullable()->after('custom_table_id');
@@ -163,6 +171,7 @@ class SupportForV220 extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('workflow_value_authorities');
         Schema::dropIfExists('workflow_values');
         Schema::dropIfExists('workflow_authorities');
         Schema::dropIfExists('workflow_condition_headers');

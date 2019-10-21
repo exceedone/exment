@@ -399,7 +399,7 @@ class Plugin extends ModelBase
                 }
                 
                 return true;
-            });
+            }, false);
 
             return collect($plugins);
         });

@@ -412,7 +412,8 @@ class CustomValueController extends AdminControllerTableBase
         //TODO:validation
         
         $action->executeAction($custom_value, [
-            'comment' => $request->get('comment')
+            'comment' => $request->get('comment'),
+            'next_work_users' => $request->get('next_work_users'),
         ]);
 
         return ([
