@@ -3,11 +3,11 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Database\ExtendedBlueprint;
+use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\WorkflowType;
 
-class CreateWorkflowTable extends Migration
+class SupportForV220 extends Migration
 {
     /**
      * Run the migrations.
@@ -22,6 +22,35 @@ class CreateWorkflowTable extends Migration
             return new ExtendedBlueprint($table, $callback);
         });
 
+        $schema->create('custom_form_priorities', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->integer('custom_form_id')->unsigned();
+            $table->integer('order')->unsigned()->default(0);
+            $table->timestamps();
+            $table->timeusers();
+        });
+
+        $schema->create('conditions', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->string('morph_type');
+            $table->integer('morph_id')->unsigned();
+            $table->integer('condition_type');
+            $table->integer('condition_key');
+            $table->integer('target_column_id')->nullable();
+            $table->string('condition_value', 1024)->nullable();
+            $table->timestamps();
+            $table->timeusers();
+            
+            $table->index(['morph_type', 'morph_id']);
+        });
+
+        if(!Schema::hasColumn('admin_menu', 'options')){
+            Schema::table('admin_menu', function (Blueprint $table) {
+                $table->json('options')->after('uri')->nullable();
+            });
+        }
+
+        
         $schema->create('workflows', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->index();
@@ -141,5 +170,13 @@ class CreateWorkflowTable extends Migration
         Schema::dropIfExists('workflow_statuses');
         Schema::dropIfExists('workflow_tables');
         Schema::dropIfExists('workflows');
+
+        Schema::table('admin_menu', function($table) {
+            $table->dropColumn('options');
+        });
+
+        // remove custom_form_priorities
+        Schema::dropIfExists('conditions');
+        Schema::dropIfExists('custom_form_priorities');
     }
 }

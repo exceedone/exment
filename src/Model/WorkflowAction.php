@@ -51,8 +51,6 @@ class WorkflowAction extends ModelBase
         
         $this->work_targets = jsonToArray($work_targets);
 
-        $this->setOption('work_target_type', array_get($this->work_targets, 'work_target_type'));
-        
         return $this;
     }
 
@@ -153,6 +151,13 @@ class WorkflowAction extends ModelBase
      */
     protected function setActionAuthority()
     {
+        $work_target_type = array_get($this->work_targets, 'work_target_type');
+        if(isset($work_target_type)){
+            $this->setOption('work_target_type', $work_target_type);
+            array_forget($this->work_targets, 'work_target_type');
+            $this->save();
+        }
+        
         // target keys
         $keys = [ConditionTypeDetail::USER()->lowerKey(), 
             ConditionTypeDetail::ORGANIZATION()->lowerKey(), 
