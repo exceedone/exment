@@ -800,14 +800,19 @@ if (!function_exists('getModelName')) {
             $suuid = CustomTable::getEloquent($obj)->suuid;
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
-            $tables = CustomTable::allRecords();
-
-            $table = collect($tables)->first(function ($table) use ($obj) {
+            $table = CustomTable::allRecordsCache(function($table) use ($obj){
                 if (is_numeric($obj)) {
                     return array_get($table, 'id') == $obj;
                 }
                 return array_get($table, 'table_name') == $obj;
-            });
+            })->first();
+
+            // $table = collect($tables)->first(function ($table) use ($obj) {
+            //     if (is_numeric($obj)) {
+            //         return array_get($table, 'id') == $obj;
+            //     }
+            //     return array_get($table, 'table_name') == $obj;
+            // });
             $suuid = array_get($table, 'suuid');
         }
 
@@ -825,7 +830,6 @@ if (!function_exists('getModelName')) {
             if (!isset($suuid)) {
                 return null;
             }
-            // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
             if (!is_null($table)) {
                 $table->createTable();
@@ -844,7 +848,8 @@ if (!function_exists('canConnection')) {
      */
     function canConnection()
     {
-        return System::requestSession(Define::SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE, function () {
+        // Use session. Not request session
+        return System::cache(Define::SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE, function () {
             // get all table names
             return DB::canConnection();
         });
@@ -860,7 +865,7 @@ if (!function_exists('hasTable')) {
      */
     function hasTable($table_name)
     {
-        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function () {
+        $tables = System::cache(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function () {
             // get all table names
             return DB::connection()->getDoctrineSchemaManager()->listTableNames();
         });
@@ -879,7 +884,7 @@ if (!function_exists('hasColumn')) {
     function hasColumn($table_name, $column_name)
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE, $table_name);
-        $columns = System::requestSession($key, function () use ($table_name) {
+        $columns = System::cache($key, function () use ($table_name) {
             // get all table names
             return DB::connection()->getSchemaBuilder()->getColumnListing($table_name);
         });

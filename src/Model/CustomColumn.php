@@ -189,15 +189,14 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         parent::boot();
                 
         // add default order
-        // "order" is added v1.1.0, So if called from v1.1.0, cannot excute. So checked order column
-        if (System::requestSession(Define::SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER, function () {
-            return \Schema::hasColumn(static::getTableName(), 'order');
-        })) {
-            static::addGlobalScope(new OrderScope('order'));
-        }
+        static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
             $model->prepareJson('options');
+        });
+
+        static::saved(function ($model) {
+            $model->clearCache();
         });
 
         // delete event
@@ -208,6 +207,17 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             // execute alter column
             $model->alterColumn(true);
         });
+    }
+
+    /**
+     * Clear cache
+     *
+     * @return void
+     */
+    public function clearCache(){
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE, getDBTableName($this->custom_table));
+        System::resetCache($key);
+        static::resetAllRecordsCache();
     }
     
     /**
@@ -233,7 +243,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
         
         if (is_numeric($column_obj)) {
-            return static::allRecords(function ($record) use ($column_obj) {
+            return static::allRecordsCache(function ($record) use ($column_obj) {
                 return $record->id == $column_obj;
             })->first();
         }
@@ -246,7 +256,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                 return null;
             }
             
-            return static::allRecords(function ($record) use ($table_obj, $column_obj) {
+            return static::allRecordsCache(function ($record) use ($table_obj, $column_obj) {
                 return $record->column_name == $column_obj && $record->custom_table_id == $table_obj->id;
             })->first();
         }
@@ -282,10 +292,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         // if column exists and (index_enabled = false or forceDropIndex)
         if ($exists && ($forceDropIndex || (!boolval($index_enabled)))) {
             \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+            $this->clearCache();
         }
         // if index_enabled = true, not exists, then create index
         elseif ($index_enabled && !$exists) {
             \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
+            $this->clearCache();
         }
     }
     

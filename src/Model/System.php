@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Carbon\Carbon;
 use Storage;
+use Cache;
 
 class System extends ModelBase
 {
@@ -27,10 +28,52 @@ class System extends ModelBase
         return parent::__callStatic($name, $argments);
     }
 
-    public static function requestSession($key, $value = null)
+    /**
+     * Get and set from cache. 
+     *
+     * @param string $key key name.
+     * @param mixed $value setting value.
+     * @return void
+     */
+    public static function cache($config_key, $value = null)
     {
-        $config_key = "exment_global.$key";
+        if (is_null($value)) {
+            return Cache::get($config_key);
+        } elseif ($value instanceof \Closure) {
+            if(Cache::has($config_key)){
+                return Cache::get($config_key);
+            }
+            // get value
+            $val = $value();
 
+            // set session
+            Cache::put($config_key, $val, 10);
+            return $val;
+        }
+        Cache::put($config_key, $value, 10);
+    }
+
+    /**
+     * reset Cache
+     */
+    public static function resetCache($key = null)
+    {
+        if(!isset($key)){
+            Cache::flush();
+        }else{
+            Cache::forget($key);
+        }
+    }
+
+    /**
+     * Get request session. This value avaibables only one request.
+     *
+     * @param string $key key name.
+     * @param mixed $value setting value.
+     * @return void
+     */
+    public static function requestSession($config_key, $value = null)
+    {
         if (is_null($value)) {
             return static::$requestSession[$config_key] ?? null;
         } elseif ($value instanceof \Closure) {
@@ -45,7 +88,7 @@ class System extends ModelBase
         static::setRequestSession($config_key, $value);
     }
 
-    public static function setRequestSession($key, $value){
+    protected static function setRequestSession($key, $value){
         static::$requestSession[$key] = $value;
     }
 
@@ -57,7 +100,7 @@ class System extends ModelBase
         if(!isset($key)){
             static::$requestSession = [];
         }else{
-            array_forget(static::$requestSession, "exment_global.$key");
+            array_forget(static::$requestSession, $key);
         }
     }
 
@@ -113,7 +156,7 @@ class System extends ModelBase
     protected static function get_system_value($name, $setting)
     {
         $config_key = static::getConfigKey($name);
-        return static::requestSession($config_key, function () use ($name, $setting) {
+        return static::cache($config_key, function () use ($name, $setting) {
             $system = static::allRecords(function ($record) use ($name) {
                 return $record->system_name == $name;
             }, false)->first();
@@ -207,7 +250,7 @@ class System extends ModelBase
         
         // update config
         $config_key = static::getConfigKey($name);
-        static::requestSession($config_key, $system->system_value);
+        static::cache($config_key, $system->system_value);
 
         return $system;
     }
@@ -242,5 +285,14 @@ class System extends ModelBase
     protected static function getConfigKey($name)
     {
         return sprintf(Define::SYSTEM_KEY_SESSION_SYSTEM_CONFIG, $name);
+    }
+    
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::saved(function ($model) {
+            static::resetAllRecordsCache();
+        });
     }
 }

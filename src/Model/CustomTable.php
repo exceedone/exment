@@ -349,6 +349,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->prepareJson('options');
         });
 
+        static::saved(function ($model) {
+            $model->clearCache();
+        });
+
         // delete event
         static::deleting(function ($model) {
             // delete custom values table
@@ -370,6 +374,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
+    /**
+     * Clear cache
+     *
+     * @return void
+     */
+    public function clearCache(){
+        System::resetCache(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES);
+        static::resetAllRecordsCache();
+    }
+    
     /**
      * validation custom_value using each column setting.
      *
@@ -598,7 +612,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         if (isset($query_key)) {
             // get table
-            $obj = static::allRecords(function ($table) use ($query_key, $obj) {
+            $obj = static::allRecordsCache(function ($table) use ($query_key, $obj) {
                 return array_get($table, $query_key) == $obj;
             })->first();
             if (!isset($obj)) {
@@ -953,19 +967,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             throw new Exception('table name is not found. please tell system administrator.');
         }
 
-        // check already execute
-        $key = 'create_table.'.$table_name;
-        if (boolval(System::requestSession($key))) {
-            return;
-        }
-
         // CREATE TABLE from custom value table.
         if (hasTable($table_name)) {
             return;
         }
 
         \Schema::createValueTable($table_name);
-        System::requestSession($key, 1);
+
+        $this->clearCache();
     }
 
     public function dropTable()
@@ -975,6 +984,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
         \Schema::dropIfExists($table_name);
+
+        $this->clearCache();
     }
     
     /**

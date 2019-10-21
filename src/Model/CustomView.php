@@ -65,9 +65,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     ];
 
 
-    public function custom_table()
+    //public function custom_table()
+    public function getCustomTableAttribute()
     {
-        return $this->belongsTo(CustomTable::class, 'custom_table_id');
+        return CustomTable::getEloquent($this->custom_table_id);
+        //return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
     public function custom_view_columns()
