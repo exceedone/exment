@@ -871,6 +871,7 @@ class WorkflowController extends AdminControllerBase
             'script' => $form->getScript(),
             'title' => exmtrans("workflow.work_conditions"),
             'showReset' => true,
+            'modalSize' => ($workflow_type == WorkflowType::COMMON) ? 'modal-lg' : 'modal-xl',
             'submitlabel' => trans('admin.setting'),
             'contentname' => 'workflow_actions_work_conditions',
         ]);

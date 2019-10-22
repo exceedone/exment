@@ -43,10 +43,6 @@ class Workflow extends ModelBase
         static::deleting(function ($model) {
             // Delete items
             $model->deletingChildren();
-            
-            $model->workflow_statuses()->delete();
-            $model->getWorkflowActions()->delete();
-            $model->workflow_tables()->delete();
         });
         
     }
@@ -56,12 +52,22 @@ class Workflow extends ModelBase
      */
     public function deletingChildren()
     {
-        foreach ($this->workflow_statuses as $item) {
+        $keys = ['workflow_statuses', 'workflow_tables', 'notifies'];
+        $this->load($keys);
+        foreach($keys as $key){
+            foreach ($this->{$key} as $item) {
+                $item->deletingChildren();
+            }
+
+            $this->{$key}()->delete();
+        
+        }
+        
+        foreach ($this->workflow_actions()->withTrashed()->get() as $item) {
             $item->deletingChildren();
         }
-        foreach ($this->workflow_actions as $item) {
-            $item->deletingChildren();
-        }
+
+        $this->workflow_actions()->forceDelete();
     }
 
     /**
@@ -177,5 +183,4 @@ class Workflow extends ModelBase
     {
         return boolval($this->setting_completed_flg);
     }
-
 }

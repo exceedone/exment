@@ -141,11 +141,6 @@ class WorkflowAction extends ModelBase
         return $this->setJson('options', $key, $val, $forgetIfNull);
     }
 
-    public function deletingChildren()
-    {
-        WorkflowAuthority::where('workflow_action_id', $this->id)->delete();
-    }
-
     /**
      * set action authority
      */
@@ -290,6 +285,7 @@ class WorkflowAction extends ModelBase
             }
         }
 
+        // check as workflow_authorities
         $this->load(['workflow_authorities']);
         $workflow_authorities = $this->workflow_authorities;
         foreach($workflow_authorities as $workflow_authority){
@@ -311,6 +307,24 @@ class WorkflowAction extends ModelBase
      * @return boolean
      */
     public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false){
+
+        // add as workflow_value_authorities
+        $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
+        $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
+        foreach($workflow_value_authorities as $workflow_value_authority){
+            $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
+            switch($type){
+                case ConditionTypeDetail::USER:
+                    $userIds[] = $workflow_value_authority->related_id;
+                    break;
+                case ConditionTypeDetail::ORGANIZATION:
+                    $organizationIds[] = $workflow_value_authority->related_id;
+                    break;
+            }
+        }
+
+        // add as workflow_authorities
+        $this->load(['workflow_authorities']);
         $workflow_authorities = $this->workflow_authorities;
 
         // get users and organizations
@@ -530,5 +544,22 @@ class WorkflowAction extends ModelBase
             $model->setActionAuthority();
             $model->setActionCondition();
         });
+        
+        static::deleting(function ($model) {
+            $model->deletingChildren();
+        });
+    }
+    
+    public function deletingChildren()
+    {
+        $keys = ['workflow_authorities', 'workflow_condition_headers'];
+        $this->load($keys);
+        foreach($keys as $key){
+            foreach ($this->{$key} as $item) {
+                $item->deletingChildren();
+            }
+
+            $this->{$key}()->delete();
+        }
     }
 }

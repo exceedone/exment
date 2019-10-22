@@ -30,4 +30,20 @@ class WorkflowConditionHeader extends ModelBase
         return true;
     }
 
+    protected static function boot() {
+        parent::boot();
+
+        static::deleting(function ($model) {
+            $model->deletingChildren();
+        });
+    }
+    
+    public function deletingChildren()
+    {
+        $keys = ['workflow_conditions'];
+        $this->load($keys);
+        foreach($keys as $key){
+            $this->{$key}()->delete();
+        }
+    }
 }
