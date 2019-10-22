@@ -276,12 +276,14 @@ class WorkflowAction extends ModelBase
         }
 
         // check as workflow_value_authorities
-        $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-        $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
-        foreach($workflow_value_authorities as $workflow_value_authority){
-            $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_value_authority);
-            if($item->hasAuthority($workflow_value_authority, $custom_value, $targetUser)){
-                return true;
+        if(isset($custom_value)){
+            $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
+            $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
+            foreach($workflow_value_authorities as $workflow_value_authority){
+                $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_value_authority);
+                if($item->hasAuthority($workflow_value_authority, $custom_value, $targetUser)){
+                    return true;
+                }
             }
         }
 
@@ -309,17 +311,19 @@ class WorkflowAction extends ModelBase
     public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false){
 
         // add as workflow_value_authorities
-        $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-        $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
-        foreach($workflow_value_authorities as $workflow_value_authority){
-            $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
-            switch($type){
-                case ConditionTypeDetail::USER:
-                    $userIds[] = $workflow_value_authority->related_id;
-                    break;
-                case ConditionTypeDetail::ORGANIZATION:
-                    $organizationIds[] = $workflow_value_authority->related_id;
-                    break;
+        if(isset($custom_value)){
+            $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
+            $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
+            foreach($workflow_value_authorities as $workflow_value_authority){
+                $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
+                switch($type){
+                    case ConditionTypeDetail::USER:
+                        $userIds[] = $workflow_value_authority->related_id;
+                        break;
+                    case ConditionTypeDetail::ORGANIZATION:
+                        $organizationIds[] = $workflow_value_authority->related_id;
+                        break;
+                }
             }
         }
 
