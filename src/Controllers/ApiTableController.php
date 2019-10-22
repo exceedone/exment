@@ -22,6 +22,8 @@ use Validator;
  */
 class ApiTableController extends AdminControllerTableBase
 {
+    use ApiTrait;
+
     protected $custom_table;
 
     // custom_value --------------------------------------------------
@@ -139,7 +141,7 @@ class ApiTableController extends AdminControllerTableBase
         if ($validator->fails()) {
             return abortJson(400, [
                 'errors' => $this->getErrorMessages($validator)
-            ], ErrorCode::VALIDATION_ERROR);
+            ], ErrorCode::VALIDATION_ERROR());
         }
 
         // filtered query
@@ -439,25 +441,6 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
-     * Get error message from validator
-     *
-     * @param [type] $validator
-     * @return array error messages
-     */
-    protected function getErrorMessages($validator)
-    {
-        $errors = [];
-        foreach ($validator->errors()->messages() as $key => $message) {
-            if (is_array($message)) {
-                $errors[$key] = $message[0];
-            } else {
-                $errors[$key] = $message;
-            }
-        }
-        return $errors;
-    }
-
-    /**
      * get calendar data
      * @return mixed
      */
@@ -620,28 +603,6 @@ class ApiTableController extends AdminControllerTableBase
         $task['allDayBetween'] = $allDayBetween;
     }
 
-    /**
-     * Get count parameter for list count
-     *
-     * @param [type] $request
-     * @return void
-     */
-    protected function getCount($request)
-    {
-        // get and check query parameter
-        
-        if (!$request->has('count')) {
-            return config('exment.api_default_data_count', 20);
-        }
-
-        $count = $request->get('count');
-        if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
-            return abortJson(400, exmtrans('api.errors.over_maxcount'));
-        }
-
-        return $count;
-    }
-    
     /**
      * get filter condition
      */

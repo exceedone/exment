@@ -503,9 +503,10 @@ class WorkflowAction extends ModelBase
 
             // if select, show options
             if($select){
-                $options = CustomValueAuthoritable::getUserOrgSelectOptions($custom_table, null, true);
+                list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions($custom_table, null, true);
                 $form->multipleSelect('next_work_users', exmtrans('workflow.next_work_users'))
-                    ->options($options)->required();
+                    ->options($options)
+                    ->required();
             }else{
                 // only display
                 $form->display('next_work_users', exmtrans('workflow.next_work_users'))

@@ -71,15 +71,21 @@ class CustomValueAuthoritable extends ModelBase
         $form->description(exmtrans('role_group.share_description'))->setWidth(9, 2);
 
         // select target users
+        $default = static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_EDIT);
+        list($options, $ajax) = static::getUserOrgSelectOptions($custom_value->custom_table, null, false, $default);
         $form->multipleSelect('custom_value_edit', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
-            ->options(static::getUserOrgSelectOptions($custom_value->custom_table))
-            ->default(static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_EDIT))
+            ->options($options)
+            ->ajax($ajax)
+            ->default($default)
             ->help(exmtrans('role_group.role_type_option_value.custom_value_edit.help'))
             ->setWidth(9, 2);
 
+        $default = static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_VIEW);
+        list($options, $ajax) = static::getUserOrgSelectOptions($custom_value->custom_table, null, false, $default);
         $form->multipleSelect('custom_value_view', exmtrans('role_group.role_type_option_value.custom_value_view.label'))
-            ->options(static::getUserOrgSelectOptions($custom_value->custom_table))
-            ->default(static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_VIEW))
+            ->options($options)
+            ->ajax($ajax)
+            ->default($default)
             ->help(exmtrans('role_group.role_type_option_value.custom_value_view.help'))
             ->setWidth(9, 2);
 
@@ -181,53 +187,41 @@ class CustomValueAuthoritable extends ModelBase
      * @param [type] $custom_table
      * @return void
      */
-    public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false)
+    public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false, $default = null)
     {
-        // get options
-        $users = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions(
-            [
+        $options = collect();
+        $ajax = null;
+
+        $keys = [SystemTableName::USER];
+        if(System::organization_available()){
+            $keys[] = SystemTableName::ORGANIZATION;
+        }
+
+        foreach($keys as $key){
+            list($optionItem, $ajaxItem) = CustomTable::getEloquent($key)->getSelectOptionsAndAjaxUrl([
                 'display_table' => $custom_table,
+                'selected_value' => str_replace("{$key}_", "", $default),
                 'permission' => $permission,
-                'notAjax' => true,
-            ]
-        );
-        // get mapkey
-        if (is_array($users)) {
-            $users = collect($users);
-        }
-        
-        // get self user id
-        if($ignoreLoginUser){
-            $user_id = \Exment::user()->base_user_id;
-            $users = $users->filter(function($user, $id) use($user_id){
-                return $id != $user_id;
-            });
-        }
+            ]);
 
-        $users = $users->mapWithKeys(function ($item, $key) {
-            return [SystemTableName::USER . '_' . $key => $item];
-        });
-        $options = $users->toArray();
-
-        if (System::organization_available()) {
-            $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions(
-                [
-                    'display_table' => $custom_table,
-                    'permission' => $permission,
-                    'noAjax' => true,
-                ]
-            );
-            if (is_array($organizations)) {
-                $organizations = collect($organizations);
+            if($ignoreLoginUser && $key == SystemTableName::USER){
+                $user_id = \Exment::user()->base_user_id;
+                $optionItem = $optionItem->filter(function($user, $id) use($user_id){
+                    return $id != $user_id;
+                });
             }
-            
-            $organizations = $organizations->mapWithKeys(function ($item, $key) {
-                return [SystemTableName::ORGANIZATION . '_' . $key => $item];
-            });
-        
-            $options = array_merge($options, $organizations->toArray());
+                
+            $options = $options->merge(collect($optionItem)->mapWithKeys(function ($i, $k) use($key) {
+                return [$key . '_' . $k => $i];
+            }), $options);
+         
+            // add ajax
+            if(isset($ajaxItem)){
+                $ajax = admin_url('webapi/user_organization/select');
+            }
         }
-        return $options;
+
+        return [$options->toArray(), $ajax];
     }
 
     /**
