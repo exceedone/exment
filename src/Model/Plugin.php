@@ -88,7 +88,7 @@ class Plugin extends ModelBase
             return [];
         }
 
-        return static::getByPluginTypes([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])->filter(function ($plugin) use ($custom_table) {
+        return static::getByPluginTypes([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT, PluginType::VALIDATOR])->filter(function ($plugin) use ($custom_table) {
             $target_tables = array_get($plugin, 'options.target_tables');
             if (!in_array(CustomTable::getEloquent($custom_table)->table_name, $target_tables)) {
                 return false;
@@ -325,6 +325,29 @@ class Plugin extends ModelBase
             }
         }
         return $itemlist;
+    }
+
+    /**
+     * execute custom plugin validate
+     */
+    public static function pluginValidator($plugins, $options = [])
+    {
+        $messages = [];
+
+        if (count($plugins) > 0) {
+            foreach ($plugins as $plugin) {
+                // if $plugin_types is not validator, continue
+                if (!$plugin->matchPluginType(PluginType::VALIDATOR)) {
+                    continue;
+                }
+                
+                $class = $plugin->getClass(PluginType::VALIDATOR, $options);
+                if (!$class->validate()) {
+                    $messages = array_merge_recursive($messages, $class->messages());
+                }
+            }
+        }
+        return $messages;
     }
 
     /**
