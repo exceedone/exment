@@ -160,7 +160,7 @@ abstract class CustomValue extends ModelBase
 
 
     // get workflow actions which has authority
-    public function getWorkflowActions($onlyHasAuthority = false, $ignoreRejectAction = false)
+    public function getWorkflowActions($onlyHasAuthority = false, $ignoreNextWork = false)
     {
         // get workflow.
         $workflow = Workflow::getWorkflowByTable($this->custom_table);
@@ -191,9 +191,9 @@ abstract class CustomValue extends ModelBase
             });
         }
 
-        if($ignoreRejectAction){
+        if($ignoreNextWork){
             $workflow_actions = $workflow_actions->filter(function($workflow_action){
-                return !boolval($workflow_action->getOption('reject_action', false));
+                return !boolval($workflow_action->getOption('ignore_work', false));
             });
         }
 

@@ -21,7 +21,7 @@ class Options extends Select
         $this->column['comment_type'] = 'comment_type';
         $this->column['flow_next_type'] = 'flow_next_type';
         $this->column['flow_next_count'] = 'flow_next_count';
-        $this->column['reject_action'] = 'reject_action';
+        $this->column['ignore_work'] = 'ignore_work';
 
         $this->label = $this->formatLabel($arguments);
         $this->id = $this->formatId($this->column);
@@ -49,10 +49,10 @@ class Options extends Select
     }
 
     public function prepare($value){
-        if(!array_has($value, 'reject_action')){
-            $value['reject_action'] = 0;
+        if(!array_has($value, 'ignore_work')){
+            $value['ignore_work'] = 0;
         }else{
-            $value['reject_action'] = 1;
+            $value['ignore_work'] = 1;
         }
 
         return $value;
@@ -77,7 +77,7 @@ class Options extends Select
             $this->script = <<<EOT
             $('.workflow_actions_comment_type').select2($configs);
             $('.workflow_actions_flow_next_type').iCheck({radioClass:'iradio_minimal-blue'});
-            $('.workflow_actions_reject_action').iCheck({checkboxClass:'icheckbox_minimal-blue'});
+            $('.workflow_actions_ignore_work').iCheck({checkboxClass:'icheckbox_minimal-blue'});
 EOT;
         }
 

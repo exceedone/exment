@@ -17,7 +17,7 @@ class WorkflowAction extends ModelBase
     Traits\UseRequestSessionTrait,
     \Illuminate\Database\Eloquent\SoftDeletes;
 
-    protected $appends = ['work_targets', 'work_conditions', 'comment_type', 'flow_next_type', 'flow_next_count', 'reject_action'];
+    protected $appends = ['work_targets', 'work_conditions', 'comment_type', 'flow_next_type', 'flow_next_count', 'ignore_work'];
     protected $casts = ['options' => 'json'];
 
     protected $work_targets;
@@ -124,11 +124,11 @@ class WorkflowAction extends ModelBase
         return $this;
     }
 
-    public function getRejectActionAttribute(){
-        return $this->getOption('reject_action');
+    public function getIgnoreWorkAttribute(){
+        return $this->getOption('ignore_work');
     }
-    public function setRejectActionAttribute($reject_action){
-        $this->setOption('reject_action', $reject_action);
+    public function setIgnoreWorkAttribute($ignore_work){
+        $this->setOption('ignore_work', $ignore_work);
         return $this;
     }
 

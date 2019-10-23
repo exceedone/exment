@@ -44,13 +44,13 @@
 
         @if($index !== 0)
         <div class="workflow_table_item">
-            <label for="{{$id['reject_action']}}" class="control-label small">
-                {{exmtrans('workflow.reject_action')}}
-                <i class="fa fa-info-circle" data-help-text="{{exmtrans('workflow.help.reject_action')}}" data-help-title="{{exmtrans('workflow.reject_action')}}"></i>
+            <label for="{{$id['ignore_work']}}" class="control-label small">
+                {{exmtrans('workflow.ignore_work')}}
+                <i class="fa fa-info-circle" data-help-text="{{exmtrans('workflow.help.ignore_work')}}" data-help-title="{{exmtrans('workflow.ignore_work')}}"></i>
             </label>
 
             <div class="">
-                <input type="checkbox" name="{{$name['reject_action']}}" value="1" class="{{$class['reject_action']}}" {{ old($column['reject_action'], $value['reject_action']) == '1' ? 'checked' : '' }} />
+                <input type="checkbox" name="{{$name['ignore_work']}}" value="1" class="{{$class['ignore_work']}}" {{ old($column['ignore_work'], $value['ignore_work']) == '1' ? 'checked' : '' }} />
             </div>
         </div>
         @endif
