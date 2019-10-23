@@ -52,6 +52,21 @@ class ModelBase extends Model
         return $this->getUser('updated_user_id', true);
     }
 
+    
+    /**
+     * Get CreatedUser. Append avatar
+     *
+     * @return void
+     */
+    public function getCreatedUserAvatarAttribute()
+    {
+        return $this->getUser('created_user_id', true, true);
+    }
+    public function getUpdatedUserAvatarAttribute()
+    {
+        return $this->getUser('updated_user_id', true, true);
+    }
+
     /**
      * Whether this model disable delete
      *
@@ -140,9 +155,9 @@ class ModelBase extends Model
     /**
      * get user from id
      */
-    protected function getUser($column, $link = false)
+    protected function getUser($column, $link = false, $addAvatar = false)
     {
-        return getUserName($this->{$column}, $link);
+        return getUserName($this->{$column}, $link, $addAvatar);
     }
 
     /**

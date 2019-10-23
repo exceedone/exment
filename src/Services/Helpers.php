@@ -1398,6 +1398,10 @@ if (!function_exists('getUserName')) {
      */
     function getUserName($id, $link = false, $addAvatar = false)
     {
+        if(is_nullorempty($id)){
+            return null;
+        }
+
         if($id instanceof CustomValue){
             $user = $id;    
         }
