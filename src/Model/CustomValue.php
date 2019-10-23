@@ -84,6 +84,20 @@ abstract class CustomValue extends ModelBase
         // return resuly using cache
         return CustomTable::getEloquent($this->custom_table_name);
     }
+    
+    /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        if(method_exists($this, 'disabled_delete_trait') && $this->disabled_delete_trait()){
+            return true;
+        }
+        
+        return $this->enableDelete() !== true;
+    }
 
     public function getWorkflowStatusAttribute()
     {
@@ -1181,9 +1195,9 @@ abstract class CustomValue extends ModelBase
         if ($this->custom_table->isOneRecord()) {
             return ErrorCode::PERMISSION_DENY();
         }
-        if (boolval($this->disabled_delete)) {
-            return ErrorCode::DELETE_DISABLED();
-        }
+        // if (boolval($this->disabled_delete)) {
+        //     return ErrorCode::DELETE_DISABLED();
+        // }
 
         // check workflow
         if ($this->lockedWorkflow()) {
