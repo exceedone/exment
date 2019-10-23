@@ -12,8 +12,9 @@ class FormColumnType extends EnumBase
     
     protected static $options = [
         1 => ['id' => 1, 'column_name' => 'header'],
-            2 => ['id' => 2, 'column_name' => 'explain'],
-            3 => ['id' => 3, 'column_name' => 'html'],
+        2 => ['id' => 2, 'column_name' => 'explain'],
+        3 => ['id' => 3, 'column_name' => 'html'],
+        4 => ['id' => 4, 'column_name' => 'exhtml', 'view_only' => true],
     ];
     
     public static function getEnum($value, $default = null)

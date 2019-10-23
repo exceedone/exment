@@ -247,6 +247,16 @@ EOT;
         $custom_value = $this->getModelNameDV()::find($id);
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
+            if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {
+                continue;
+            }
+
+            if ($form_column->form_column_type == FormColumnType::OTHER) {
+                if (FormColumnType::getOption(['id' => $form_column->form_column_target_id])['view_only'] ?? false) {
+                    continue;
+                }
+            }
+            
             if (is_null($form_column->column_item)) {
                 continue;
             }

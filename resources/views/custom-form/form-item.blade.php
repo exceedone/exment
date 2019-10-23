@@ -69,7 +69,7 @@
                     </div>
                     @endif
 
-                    @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[3]))
+                    @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[3,4]))
                     <div class="form-group">
                             <span class="control-label col-sm-3">{{exmtrans('custom_form.html')}}</span>
                             <div class="col-sm-9">

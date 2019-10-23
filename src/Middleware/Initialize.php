@@ -201,6 +201,7 @@ class Initialize
             'header'        => FormOthers\Header::class,
             'explain'        => FormOthers\Explain::class,
             'html'        => FormOthers\Html::class,
+            'exhtml'      => FormOthers\ExHtml::class,
         ];
         foreach ($map as $abstract => $class) {
             FormOtherItem::extend($abstract, $class);

@@ -15,6 +15,14 @@ class Html extends FormOtherItem
         return array_get($this->form_column, 'options.html');
     }
 
+    /**
+     * get column name
+     */
+    public function name()
+    {
+        return $this->form_column->id;
+    }
+
     protected function getAdminFieldClass()
     {
         return Field\Html::class;
