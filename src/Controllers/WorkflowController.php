@@ -476,8 +476,7 @@ class WorkflowController extends AdminControllerBase
         }
 
         // add form
-        $form->description(exmtrans('workflow.help.beginning') . '<br />' . exmtrans('workflow.help.workflow_help'))
-            ;
+        $form->description(exmtrans('workflow.help.beginning') . '<br />' . exmtrans('workflow.help.workflow_help'));
 
         $form->html(view('exment::workflow.beginning', [
             'items' => $results
@@ -755,18 +754,19 @@ class WorkflowController extends AdminControllerBase
             $options = $custom_table->custom_columns
                 ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
                 ->pluck('column_view_name', 'id');
-            $form->multipleSelect('modal_' . ConditionTypeDetail::SYSTEM, exmtrans('common.custom_column'))
+
+            $form->multipleSelect('modal_' . ConditionTypeDetail::COLUMN()->lowerkey(), exmtrans('common.custom_column'))
                 ->options($options)
                 ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-                ->default(array_get($value, ConditionTypeDetail::COLUMN));
+                ->default(array_get($value, ConditionTypeDetail::COLUMN()->lowerkey()));
         }
 
         // set workflow system column
-        $modal_system_default = array_get($value, SystemTableName::SYSTEM);
+        $modal_system_default = array_get($value, SystemTableName::SYSTEM()->lowerkey());
         if (!isset($modal_system_default)) {
-            $modal_system_default = ($index == 0 ? [WorkflowTargetSystem::CREATED_USER] : null);
+            $modal_system_default = (!isset($value) && $index == 0 ? [WorkflowTargetSystem::CREATED_USER] : null);
         }
-        $form->multipleSelect('modal_' . ConditionTypeDetail::SYSTEM, exmtrans('common.system'))
+        $form->multipleSelect('modal_' . ConditionTypeDetail::SYSTEM()->lowerkey(), exmtrans('common.system'))
             ->options(WorkflowTargetSystem::transKeyArray('common'))
             ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
             ->default($modal_system_default);

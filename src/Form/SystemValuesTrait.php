@@ -56,7 +56,7 @@ trait SystemValuesTrait
             }
         
             $option = SystemColumn::getEnum($key)->option();
-            $param = array_has($option, 'tagname') ? array_get($option, 'tagname') : array_get($option, 'name');
+            $param = array_get($option, 'avatarname') ?: array_get($option, 'tagname') ?: array_get($option, 'name');
             $value = $custom_value->{$param};
 
             if(boolval(array_get($options, 'nullHidden')) && empty($value)){

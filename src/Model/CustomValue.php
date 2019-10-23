@@ -139,8 +139,8 @@ abstract class CustomValue extends ModelBase
             if(is_string($user)){
                 return $user;
             }
-            return getUserName($user, true);
-        })->implode(',');
+            return getUserName($user, true, true);
+        })->implode('');
     }
 
     // user value_authoritable. it's all role data. only filter morph_type

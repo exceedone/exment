@@ -10,6 +10,11 @@ class ModelBase extends Model
 {
     protected $guarded = ['id'];
     
+    /**
+     * Get CreatedUser. Only name.
+     *
+     * @return void
+     */
     public function getCreatedUserAttribute()
     {
         return $this->getUser('created_user_id');
@@ -18,7 +23,12 @@ class ModelBase extends Model
     {
         return $this->getUser('updated_user_id');
     }
-
+    
+    /**
+     * Get CreatedUser. As custom value object
+     *
+     * @return void
+     */
     public function getCreatedUserValueAttribute()
     {
         return $this->getUserValue('created_user_id');
@@ -27,7 +37,12 @@ class ModelBase extends Model
     {
         return $this->getUserValue('updated_user_id');
     }
-
+    
+    /**
+     * Get CreatedUser. As HTML
+     *
+     * @return void
+     */
     public function getCreatedUserTagAttribute()
     {
         return $this->getUser('created_user_id', true);
@@ -35,6 +50,21 @@ class ModelBase extends Model
     public function getUpdatedUserTagAttribute()
     {
         return $this->getUser('updated_user_id', true);
+    }
+
+    
+    /**
+     * Get CreatedUser. Append avatar
+     *
+     * @return void
+     */
+    public function getCreatedUserAvatarAttribute()
+    {
+        return $this->getUser('created_user_id', true, true);
+    }
+    public function getUpdatedUserAvatarAttribute()
+    {
+        return $this->getUser('updated_user_id', true, true);
     }
 
     /**
@@ -125,9 +155,9 @@ class ModelBase extends Model
     /**
      * get user from id
      */
-    protected function getUser($column, $link = false)
+    protected function getUser($column, $link = false, $addAvatar = false)
     {
-        return getUserName($this->{$column}, $link);
+        return getUserName($this->{$column}, $link, $addAvatar);
     }
 
     /**

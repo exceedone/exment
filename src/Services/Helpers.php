@@ -150,6 +150,9 @@ if (!function_exists('is_nullorempty')) {
         if (is_array($obj) && count($obj) == 0) {
             return true;
         }
+        if ($obj instanceof \Illuminate\Database\Eloquent\Collection && $obj->count() == 0) {
+            return true;
+        }
         return false;
     }
 }
@@ -1393,8 +1396,12 @@ if (!function_exists('getUserName')) {
      * @param string $id
      * @return string user name
      */
-    function getUserName($id, $link = false)
+    function getUserName($id, $link = false, $addAvatar = false)
     {
+        if(is_nullorempty($id)){
+            return null;
+        }
+
         if($id instanceof CustomValue){
             $user = $id;    
         }
@@ -1412,7 +1419,7 @@ if (!function_exists('getUserName')) {
         if ($link) {
             return $user->getUrl([
                 'tag' => true,
-                'add_avatar' => true,
+                'add_avatar' => $addAvatar,
             ]);
         }
         return $user->getLabel();

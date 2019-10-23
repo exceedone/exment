@@ -43,6 +43,7 @@ trait CustomValueShow
 
             if(isset($id) && !$modal){
                 $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
+                $field->border = false;
             }
 
             // add parent link if this form is 1:n relation
