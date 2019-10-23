@@ -215,7 +215,8 @@ class WorkflowAction extends ModelBase
         $workflow = Workflow::getEloquentDefault(array_get($this, 'workflow_id'));
 
         $workflow_value = null;
-        \DB::transaction(function() use($custom_value, $data, &$workflow_value){
+        $status_to = null;
+        \DB::transaction(function() use($custom_value, $data, &$workflow_value, &$status_to){
             $morph_type = $custom_value->custom_table->table_name;
             $morph_id = $custom_value->id;
 
@@ -259,7 +260,7 @@ class WorkflowAction extends ModelBase
         $next = $this->isActionNext($custom_value);
         if($next && isset($workflow_value)){
             foreach ($workflow->notifies as $notify) {
-                $notify->notifyWorkflow($custom_value, $this, $workflow_value);
+                $notify->notifyWorkflow($custom_value, $this, $workflow_value, $status_to);
             }    
         }
     }

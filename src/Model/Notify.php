@@ -220,7 +220,7 @@ class Notify extends ModelBase
      * notify workflow
      * *Contains Comment, share
      */
-    public function notifyWorkflow($custom_value, $workflow_action, $workflow_value)
+    public function notifyWorkflow($custom_value, $workflow_action, $workflow_value, $statusTo)
     {
         $users = collect();
 
@@ -235,10 +235,13 @@ class Notify extends ModelBase
         }
 
         if(in_array(NotifyActionTarget::WORK_USER, $notify_action_target)){
-            $users = $users->merge(
-                $workflow_action->getAuthorityTargets($custom_value, true),
-                $users
-            );
+            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow, true);
+            $nextActions->each(function($workflow_action) use(&$users, $custom_value){
+                $users = $users->merge(
+                    $workflow_action->getAuthorityTargets($custom_value, true),
+                    $users
+                );
+            });
         }
 
         $users = $users->unique();
