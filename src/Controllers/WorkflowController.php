@@ -751,8 +751,9 @@ class WorkflowController extends AdminControllerBase
 
         // set custom column
         if(isset($custom_table)){
-            $options = $custom_table->custom_columns
+            $options = $custom_table->custom_columns()
                 ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
+                ->indexEnabled()
                 ->pluck('column_view_name', 'id');
 
             $form->multipleSelect('modal_' . ConditionTypeDetail::COLUMN()->lowerkey(), exmtrans('common.custom_column'))

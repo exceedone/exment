@@ -81,11 +81,13 @@ abstract class ConditionItemBase
             // get column item
             $column_item = CustomViewFilter::getColumnItem($target)
                 ->options([
-                    //'view_column_target' => true,
                 ]);
         
             if($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem){
                 return new ColumnItem($custom_table, $target);
+            }
+            elseif($column_item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem){
+                return new WorkflowItem($custom_table, $target);
             }
             elseif($column_item instanceof \Exceedone\Exment\ColumnItems\SystemItem){
                 return new SystemItem($custom_table, $target);

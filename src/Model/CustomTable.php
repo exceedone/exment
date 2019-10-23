@@ -877,14 +877,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function setQueryWith($query){
+    public function setQueryWith($query, $custom_view = null){
         if(!method_exists($query, 'with')){
             return;
         }
 
         // set query workflow
         if(!is_null(Workflow::getWorkflowByTable($this))){
-            Workflowitem::getSubQuery($query, $this);
+            Workflowitem::getStatusSubquery($query, $this);
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
 
@@ -899,6 +899,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             });
             
             $query->with($relation_name);
+        }
+
+        // if contains custom_view_filters workflow query
+        if(
+            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
+            $custom_view->load(['custom_view_filters'])->custom_view_filters->contains(function($custom_view_filter){
+            return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
+        })){
+            // add query 
+            Workflowitem::getWorkUsersSubQuery($query, $this);
         }
     }
 
@@ -1208,6 +1218,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_column' => true,
                 'include_system' => true,
                 'include_workflow' => false,
+                'include_workflow_work_users' => false,
                 'include_condition' => false,
             ],
             $selectOptions
@@ -1241,6 +1252,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'include_parent' => $include_parent,
                     'include_system' => $include_system,
                     'include_workflow' => $include_workflow,
+                    'include_workflow_work_users' => $include_workflow_work_users,
                 ]
             );
         }
@@ -1407,7 +1419,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             if ($include_workflow && !is_null(Workflow::getWorkflowByTable($this))) {
                 // check contains workflow in table 
-                $setSystemColumn(['workflow' => true]);
+                $setSystemColumn(['name' => 'workflow_status']);
+            }
+            if ($include_workflow_work_users && !is_null(Workflow::getWorkflowByTable($this))) {
+                // check contains workflow in table 
+                $setSystemColumn(['name' => 'workflow_work_users']);
             }
         }
     }

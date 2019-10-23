@@ -146,6 +146,10 @@ class FilterOption extends EnumBase
                 ['id' => static::EQ, 'name' => 'eq'],
                 ['id' => static::NE, 'name' => 'ne'],
             ],
+            FilterType::WORKFLOW_WORK_USER => [
+                ['id' => static::USER_EQ_USER, 'name' => 'eq-user'],
+                ['id' => static::USER_EQ, 'name' => 'eq'],
+            ],
             FilterType::CONDITION => [
                 ['id' => static::EQ, 'name' => 'eq'],
             ],
@@ -190,6 +194,10 @@ class FilterOption extends EnumBase
             FilterType::WORKFLOW => [
                 ['id' => static::EQ, 'name' => 'eq'],
                 ['id' => static::NE, 'name' => 'ne'],
+            ],
+            FilterType::WORKFLOW_WORK_USER => [
+                ['id' => static::USER_EQ_USER, 'name' => 'eq-user'],
+                ['id' => static::USER_EQ, 'name' => 'eq'],
             ],
             FilterType::CONDITION => [
                 ['id' => static::EQ, 'name' => 'eq'],

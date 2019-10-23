@@ -8,6 +8,8 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Grid\Tools\BatchUpdate;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
@@ -36,16 +38,16 @@ trait CustomValueGrid
         
         // get search_enabled_columns and loop
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
+
+        // filter
+        Admin::user()->filterModel($grid->model(), $this->custom_view, $filter_func);
+        $this->setCustomGridFilters($grid, $search_enabled_columns);
     
         // create grid
         $this->custom_view->setGrid($grid);
 
         // manage row action
         $this->manageRowAction($grid);
-
-        // filter
-        Admin::user()->filterModel($grid->model(), $this->custom_view, $filter_func);
-        $this->setCustomGridFilters($grid, $search_enabled_columns);
 
         // manage tool button
         $this->manageMenuToolButton($grid);
@@ -109,6 +111,13 @@ trait CustomValueGrid
                     $filter->where(function($query) use($custom_table){
                        Workflowitem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
                     }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
+
+                    $field = $filter->where(function($query) use($custom_table){
+                    }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
+
+                    if(boolval(request()->get($field->getFilter()->getId()))){
+                        System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
+                    }
                 }
             });
 

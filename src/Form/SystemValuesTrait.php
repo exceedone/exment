@@ -17,7 +17,7 @@ trait SystemValuesTrait
         $keys = [
             'workflows' => [
                 SystemColumn::WORKFLOW_STATUS => ['nullHidden' => true],
-                SystemColumn::WORKFLOW_WORK_USER => ['nullHidden' => true],
+                SystemColumn::WORKFLOW_WORK_USERS => ['nullHidden' => true],
                 'show_workflow_histories' => ['nullHidden' => true, 'function' => 'showWorkflowHistories'],
             ],
             'bodies' => [

@@ -203,7 +203,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         // set with
-        $custom_table->setQueryWith($grid->model());
+        $custom_table->setQueryWith($grid->model(), $this);
     }
     
     /**

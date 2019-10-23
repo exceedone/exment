@@ -98,7 +98,7 @@ class CustomViewFilter extends ModelBase
         $view_filter_condition = $this->view_filter_condition;
         
         if ($this->view_column_type == ConditionType::WORKFLOW) {
-            return WorkflowItem::scopeWorkflowStatus($model, $this->custom_table, $view_filter_condition, $condition_value_text);
+            return WorkflowItem::scopeWorkflow($model, $this->view_column_target_id, $this->custom_table, $view_filter_condition, $condition_value_text);
         }
 
         if ($this->view_column_type == ConditionType::COLUMN) {

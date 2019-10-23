@@ -17,7 +17,7 @@ class SystemColumn extends EnumBase
     const UPDATED_USER = 'updated_user';
     const DELETED_USER = 'deleted_user';
     const WORKFLOW_STATUS = 'workflow_status';
-    const WORKFLOW_WORK_USER = 'workflow_work_user';
+    const WORKFLOW_WORK_USERS = 'workflow_work_users';
     
     protected static $options = [
         'id' => ['id' => 1, 'name' => 'id', 'sqlname' => 'id', 'default' => true, 'order' => 1, 'header' => true, 'summary' => true, 'min_width' => 30, 'max_width' => 100],
@@ -30,8 +30,8 @@ class SystemColumn extends EnumBase
         'created_user' => ['id' => 98, 'type' => 'user', 'name' => 'created_user', 'sqlname' => 'created_user_id', 'tagname' => 'created_user_tag', 'avatarname' => 'created_user_avatar', 'default' => false, 'order' => 91, 'footer' => true, 'min_width' => 100, 'max_width' => 300],
         'updated_user' => ['id' => 99, 'type' => 'user', 'name' => 'updated_user', 'sqlname' => 'updated_user_id', 'tagname' => 'updated_user_tag', 'avatarname' => 'updated_user_avatar', 'default' => false, 'order' => 92, 'footer' => true, 'min_width' => 100, 'max_width' => 300],
         'deleted_user' => ['id' => 102, 'type' => 'user', 'name' => 'deleted_user', 'sqlname' => 'deleted_user_id', 'tagname' => 'deleted_user_tag', 'default' => false, 'order' => 93, 'min_width' => 100, 'max_width' => 300],
-        'workflow_status' => ['id' => 201, 'type' => 'workflow', 'name' => 'workflow_status', 'tagname' => 'workflow_status_tag', 'sqlname' => 'workflow_status_id', 'default' => false, 'workflow' => true],
-        'workflow_work_user' => ['id' => 202, 'name' => 'workflow_work_users', 'tagname' => 'workflow_work_users_tag', 'sqlname' => '', 'default' => false],
+        'workflow_status' => ['id' => 201, 'type' => 'workflow', 'name' => 'workflow_status', 'tagname' => 'workflow_status_tag', 'sqlname' => 'workflow_status_id', 'default' => false],
+        'workflow_work_users' => ['id' => 202, 'name' => 'workflow_work_users', 'tagname' => 'workflow_work_users_tag', 'sqlname' => '', 'default' => false],
     ];
 
     public function id()
@@ -43,6 +43,10 @@ class SystemColumn extends EnumBase
     {
         return $this->lowerKey();
     }
+
+    public static function isWorkflow($key){
+        return in_array($key, [static::WORKFLOW_STATUS, static::WORKFLOW_WORK_USERS]);
+    } 
     
     public static function getEnum($value, $default = null)
     {

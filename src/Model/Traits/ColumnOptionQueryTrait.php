@@ -131,6 +131,9 @@ trait ColumnOptionQueryTrait
             } elseif (ConditionTypeDetail::isValidKey($column_type_target)) {
                 $column_type = ConditionType::CONDITION;
                 $column_type_target = ConditionTypeDetail::getEnum(strtolower($column_type_target))->getValue();
+            } elseif (SystemColumn::isWorkflow($column_type_target)) {
+                $column_type = ConditionType::WORKFLOW;
+                $column_type_target = SystemColumn::getOption(['name' => $column_type_target])['id'] ?? null;
             } else {
                 $column_type = ConditionType::SYSTEM;
                 $column_type_target = SystemColumn::getOption(['name' => $column_type_target])['id'] ?? null;

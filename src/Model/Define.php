@@ -124,6 +124,7 @@ class Define
     public const SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE = "workflow_select_table_%s";
     public const SYSTEM_KEY_SESSION_WORKFLOW_DESIGNATED_TABLE = "workflow_designated_table_%s";
     public const SYSTEM_KEY_SESSION_UPDATE_NEWS = "update_news";
+    public const SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK = "worlflow_filter_check";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',

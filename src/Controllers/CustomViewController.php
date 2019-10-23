@@ -475,6 +475,7 @@ class CustomViewController extends AdminControllerTableBase
                     'include_parent' => $is_aggregate,
                     'include_child' => $is_aggregate,
                     'include_workflow' => true,
+                    'include_workflow_work_users' => true,
                 ]
             ),
             'custom_table' => $custom_table,

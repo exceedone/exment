@@ -69,5 +69,11 @@ class UserItem extends ConditionItemBase
     public function hasAuthority($workflow_authority, $custom_value, $targetUser){
         return $workflow_authority->related_id == $targetUser->id;
     }
-    
+
+    public static function setConditionQuery($query, $tableName){
+        $query->orWhere(function($query) use($tableName){
+            $query->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_id', \Exment::user()->base_user_id)
+                ->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_type', ConditionTypeDetail::USER()->lowerkey());
+        });
+    }
 }

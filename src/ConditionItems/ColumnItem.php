@@ -7,7 +7,9 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterOption;
 
 class ColumnItem extends ConditionItemBase
@@ -40,5 +42,39 @@ class ColumnItem extends ConditionItemBase
         $column_item = $custom_column->column_item;
 
         return $column_item->setCustomValue(["value.$column_name" => $condition->condition_value])->text();
+    }
+
+    
+    public static function setConditionQuery($query, $tableName, $custom_table){
+        /// get user or organization list
+        $custom_columns = CustomColumn::allRecordsCache(function($custom_column) use($custom_table){
+            if($custom_table->id != $custom_column->custom_table_id){
+                return false;
+            }
+            if(!$custom_column->index_enabled){
+                return false;
+            }
+            if(!ColumnType::isUserOrganization($custom_column->column_type)){
+                return false;
+            }
+            return true;
+        });
+
+        foreach($custom_columns as $custom_column){
+            $query->orWhere(function($query) use($custom_column, $tableName){
+                $indexName = $custom_column->getIndexName();
+                
+                $query->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_id', $custom_column->id)
+                    ->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_type', ConditionTypeDetail::COLUMN()->lowerkey());
+                    
+                if($custom_column->column_type == ColumnType::USER){
+                    $query->where($tableName . '.' . $indexName, \Exment::user()->id);
+                }
+                else{
+                    $query->whereIn($tableName . '.' . $indexName, $ids);
+                }
+            });
+                
+        }
     }
 }
