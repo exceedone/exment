@@ -609,7 +609,7 @@ class ApiTableController extends AdminControllerTableBase
     public function getFilterCondition(Request $request)
     {
         $item = $this->getConditionItem($request, $request->get('q'));
-        if(!isset($item)){
+        if (!isset($item)) {
             return [];
         }
         return $item->getFilterCondition();
@@ -621,15 +621,16 @@ class ApiTableController extends AdminControllerTableBase
     public function getFilterValue(Request $request)
     {
         $item = $this->getConditionItem($request, $request->get('target'));
-        if(!isset($item)){
+        if (!isset($item)) {
             return [];
         }
         return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
     }
 
-    protected function getConditionItem(Request $request, $target){
+    protected function getConditionItem(Request $request, $target)
+    {
         $item = ConditionItemBase::getItem($this->custom_table, $target);
-        if(!isset($item)){
+        if (!isset($item)) {
             return null;
         }
 

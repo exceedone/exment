@@ -2,9 +2,7 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form\Field;
-use Illuminate\Contracts\Support\Renderable;
 
 /**
  * Open Modal and set value selecting modal body.
@@ -212,7 +210,8 @@ EOT;
      * @param string $script
      * @return $this|mixed
      */
-    public function valueTextScript($script){
+    public function valueTextScript($script)
+    {
         $this->valueTextScript = $script;
 
         return $this;
@@ -224,7 +223,8 @@ EOT;
      * @param string $script
      * @return $this|mixed
      */
-    public function hiddenFormat($hiddenFormat){
+    public function hiddenFormat($hiddenFormat)
+    {
         $this->hiddenFormat = $hiddenFormat;
 
         return $this;
@@ -244,11 +244,11 @@ EOT;
             $this->text(call_user_func($this->text, $this->value, $this));
         }
 
-        if(is_array($this->text) || $this->text instanceof \Illuminate\Support\Collection){
-            $this->text = collect($this->text)->map(function($t){
+        if (is_array($this->text) || $this->text instanceof \Illuminate\Support\Collection) {
+            $this->text = collect($this->text)->map(function ($t) {
                 return esc_html($t);
             })->implode('<br />');
-        }else{
+        } else {
             $this->text = esc_html($this->text);
         }
 
@@ -276,7 +276,7 @@ EOT;
         // set button label
         if (is_array($this->value)) {
             $this->value = json_encode($this->value);
-        }   
+        }
 
         // set script
         $this->script();

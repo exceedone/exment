@@ -8,7 +8,7 @@ trait BuilderTrait
 {
     /**
      * insert and delete rows
-     * dbValueFilter: Query to retrieve values ​​stored in the database 
+     * dbValueFilter: Query to retrieve values ​​stored in the database
      * dbDeleteFilter: Query that retrieves data to be deleted
      * matchFilter: Query to determine if the data exists in the database
      *
@@ -18,7 +18,7 @@ trait BuilderTrait
     {
         $settings = array_merge(
             [
-                // Query to retrieve values ​​stored in the database 
+                // Query to retrieve values ​​stored in the database
                 'dbValueFilter' => null,
 
                 // Query that retrieves data to be deleted

@@ -44,7 +44,6 @@ class Workflow extends ModelBase
             // Delete items
             $model->deletingChildren();
         });
-        
     }
     
     /**
@@ -54,9 +53,9 @@ class Workflow extends ModelBase
     {
         $keys = ['workflow_statuses', 'workflow_tables', 'notifies'];
         $this->load($keys);
-        foreach($keys as $key){
+        foreach ($keys as $key) {
             foreach ($this->{$key} as $item) {
-                if(!method_exists($item, 'deletingChildren')){
+                if (!method_exists($item, 'deletingChildren')) {
                     continue;
                 }
                 $item->deletingChildren();
@@ -91,7 +90,7 @@ class Workflow extends ModelBase
     {
         //TODO:workflow performance
         $statuses = collect();
-        if(!$onlyStart){
+        if (!$onlyStart) {
             $statuses = $this->workflow_statuses->pluck('status_name', 'id');
         }
 
@@ -106,16 +105,17 @@ class Workflow extends ModelBase
      * @param [type] $custom_table
      * @return void
      */
-    public static function getWorkflowByTable($custom_table){
+    public static function getWorkflowByTable($custom_table)
+    {
         $custom_table = CustomTable::getEloquent($custom_table);
 
         $key = sprintf(Define::SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE, $custom_table->id);
-        return System::requestSession($key, function() use($custom_table){
+        return System::requestSession($key, function () use ($custom_table) {
             $workflowTable = WorkflowTable::where('custom_table_id', $custom_table->id)
                 ->active()
                 ->first();
 
-            if(!isset($workflowTable)){
+            if (!isset($workflowTable)) {
                 return null;
             }
 
@@ -133,13 +133,13 @@ class Workflow extends ModelBase
     public function getDesignatedTable()
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_WORKFLOW_DESIGNATED_TABLE, $this->id);
-        return System::requestSession($key, function(){
-            if($this->workflow_type == WorkflowType::COMMON){
+        return System::requestSession($key, function () {
+            if ($this->workflow_type == WorkflowType::COMMON) {
                 return null;
             }
 
             $workflowTables = $this->workflow_tables;
-            if(is_nullorempty($workflowTables)){
+            if (is_nullorempty($workflowTables)) {
                 return null;
             }
 
@@ -152,26 +152,28 @@ class Workflow extends ModelBase
      *
      * @return boolean
      */
-    public function canActivate(){
-        if(boolval($this->setting_completed_flg)){
+    public function canActivate()
+    {
+        if (boolval($this->setting_completed_flg)) {
             return false;
         }
 
         // check statuses
-        if(count($this->workflow_statuses) == 0){
+        if (count($this->workflow_statuses) == 0) {
             return false;
         }
 
         // check actions
-        if(count($this->workflow_actions) == 0){
+        if (count($this->workflow_actions) == 0) {
             return false;
         }
 
         return true;
     }
 
-    public static function hasSettingCompleted(){
-        return static::allRecords(function($workflow){
+    public static function hasSettingCompleted()
+    {
+        return static::allRecords(function ($workflow) {
             return boolval($workflow->setting_completed_flg);
         })->count() > 0;
     }

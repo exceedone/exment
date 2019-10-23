@@ -527,7 +527,8 @@ class CustomColumnController extends AdminControllerTableBase
         return $form;
     }
     
-    public function calcModal(Request $request, $tableKey, $id){
+    public function calcModal(Request $request, $tableKey, $id)
+    {
         // get other columns
         // return $id is null(calling create fuction) or not match $id and row id.
         $custom_column_options = $this->getCalcCustomColumnOptions($id, $this->custom_table);

@@ -2,17 +2,13 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
-use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Model\Condition;
-use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 
 trait ColumnSystemItemTrait
 {
-    public function getFilterOption(){
+    public function getFilterOption()
+    {
         // get column item
         $column_item = $this->getFormColumnItem();
 
@@ -34,8 +30,8 @@ trait ColumnSystemItemTrait
      * @param [type] $key
      * @return void
      */
-    public function getChangeField($key){
-
+    public function getChangeField($key)
+    {
         if (!isset($this->target)) {
             return null;
         }
@@ -59,7 +55,8 @@ trait ColumnSystemItemTrait
         return $column_item->getFilterField($value_type);
     }
 
-    protected function getFormColumnItem(){
+    protected function getFormColumnItem()
+    {
         return CustomViewFilter::getColumnItem($this->target)
         ->options([
         ]);

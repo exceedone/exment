@@ -37,7 +37,7 @@ class ChangeField extends Field
      *
      * @var Closure
      */
-    protected  $adminField;
+    protected $adminField;
 
     protected static $scripts = [];
 
@@ -51,7 +51,8 @@ class ChangeField extends Field
         return [];
     }
 
-    public function ajax($ajax){
+    public function ajax($ajax)
+    {
         $this->ajax = $ajax;
 
         return $this;
@@ -63,7 +64,8 @@ class ChangeField extends Field
      * @param [type] $ajax
      * @return void
      */
-    public function setEventTrigger($eventTriggerSelector){
+    public function setEventTrigger($eventTriggerSelector)
+    {
         $this->eventTriggerSelector = $eventTriggerSelector;
 
         return $this;
@@ -75,13 +77,15 @@ class ChangeField extends Field
      * @param [type] $ajax
      * @return void
      */
-    public function setEventTarget($eventTargetSelector){
+    public function setEventTarget($eventTargetSelector)
+    {
         $this->eventTargetSelector = $eventTargetSelector;
 
         return $this;
     }
 
-    protected function script(){
+    protected function script()
+    {
         $ajax = $this->ajax;
         $eventTriggerSelector = $this->eventTriggerSelector;
         $eventTargetSelector = $this->eventTargetSelector;
@@ -93,7 +97,8 @@ EOT;
         static::$scripts[] = $script;
     }
 
-    public function getScript(){
+    public function getScript()
+    {
         $script = collect(static::$scripts)->filter()->unique()->implode("");
         //static::$scripts = [];
         \Admin::script($script);
@@ -102,7 +107,7 @@ EOT;
 
     public function render()
     {
-        if(isset($this->adminField)){
+        if (isset($this->adminField)) {
             $func = $this->adminField;
             $field = $func($this->data, $this);
         }
@@ -131,19 +136,20 @@ EOT;
     }
 
     public function adminField($adminField)
-        :self {
+        :self
+    {
         $this->adminField = $adminField;
         return $this;
     }
 
     public function prepareRecord($value, $record)
     {
-        if(isset($this->adminField)){
+        if (isset($this->adminField)) {
             $func = $this->adminField;
             $field = $func($record, $this);
         }
 
-        if(!isset($field)){
+        if (!isset($field)) {
             return $value;
         }
 

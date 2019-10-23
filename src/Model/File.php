@@ -30,7 +30,7 @@ class File extends ModelBase
 
     public function getExtensionAttribute()
     {
-        if(!isset($this->local_filename)){
+        if (!isset($this->local_filename)) {
             return null;
         }
 
@@ -84,9 +84,9 @@ class File extends ModelBase
             return null;
         }
 
-        if(isset($file->extension)){
-            $name = "files/".$file->uuid . '.' . $file->extension;   
-        }else{
+        if (isset($file->extension)) {
+            $name = "files/".$file->uuid . '.' . $file->extension;
+        } else {
             $name = "files/".$file->uuid;
         }
         return admin_url($name);
@@ -333,7 +333,7 @@ class File extends ModelBase
      */
     protected static function getData($pathOrUuid)
     {
-        if(is_nullorempty($pathOrUuid)){
+        if (is_nullorempty($pathOrUuid)) {
             return null;
         }
 

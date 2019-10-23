@@ -25,13 +25,14 @@ class WorkflowStatus extends ModelBase
      * @param [type] $workflow
      * @return void
      */
-    public static function getWorkflowStatusName($workflow_status = null, $workflow = null){
-        if(!is_nullorempty($workflow_status) && $workflow_status != Define::WORKFLOW_START_KEYNAME){
+    public static function getWorkflowStatusName($workflow_status = null, $workflow = null)
+    {
+        if (!is_nullorempty($workflow_status) && $workflow_status != Define::WORKFLOW_START_KEYNAME) {
             return WorkflowStatus::getEloquentDefault($workflow_status)->status_name;
         }
 
         // get workflow
-        if(isset($workflow)){
+        if (isset($workflow)) {
             return $workflow->start_status_name;
         }
 
@@ -45,8 +46,9 @@ class WorkflowStatus extends ModelBase
      * @param [type] $workflow
      * @return void
      */
-    public static function getWorkflowStatusCompleted($workflow_status = null){
-        if(!isset($workflow_status) || $workflow_status == Define::WORKFLOW_START_KEYNAME){
+    public static function getWorkflowStatusCompleted($workflow_status = null)
+    {
+        if (!isset($workflow_status) || $workflow_status == Define::WORKFLOW_START_KEYNAME) {
             return false;
         }
 
@@ -61,16 +63,17 @@ class WorkflowStatus extends ModelBase
      * @param [type] $workflow
      * @return void
      */
-    public static function getActionsByFrom($workflow_status = null, $workflow = null, $ignoreReject = false){
-        if(!isset($workflow_status)){
+    public static function getActionsByFrom($workflow_status = null, $workflow = null, $ignoreReject = false)
+    {
+        if (!isset($workflow_status)) {
             $workflow_status = Define::WORKFLOW_START_KEYNAME;
         }
 
         return WorkflowAction::where('workflow_id', $workflow->id)
             ->where('status_from', $workflow_status)
             ->get()
-            ->filter(function($action) use($ignoreReject){
-                if(!$ignoreReject){
+            ->filter(function ($action) use ($ignoreReject) {
+                if (!$ignoreReject) {
                     return true;
                 }
 

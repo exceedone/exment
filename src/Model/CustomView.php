@@ -461,7 +461,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             return $model;
         }
         foreach ($this->custom_view_sorts as $custom_view_sort) {
-            switch($custom_view_sort->view_column_type) {
+            switch ($custom_view_sort->view_column_type) {
             case ConditionType::COLUMN:
                 $view_column_target = $custom_view_sort->custom_column->column_item->getSortColumn();
                 $sort_order = $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc';
@@ -536,8 +536,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 // parent_id need parent_type
                 if ($column_item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
                     $group_columns[] = $column_item->sqltypename();
-                }
-                elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem) {
+                } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem) {
                     \Exceedone\Exment\ColumnItems\WorkflowItem::getSubquery($query, $item->custom_table);
                 }
 
@@ -880,7 +879,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function hasEditPermission()
     {
-        if($this->custom_table->hasSystemViewPermission()){
+        if ($this->custom_table->hasSystemViewPermission()) {
             return true;
         }
 

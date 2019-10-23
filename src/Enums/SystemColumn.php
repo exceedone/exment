@@ -44,9 +44,10 @@ class SystemColumn extends EnumBase
         return $this->lowerKey();
     }
 
-    public static function isWorkflow($key){
+    public static function isWorkflow($key)
+    {
         return in_array($key, [static::WORKFLOW_STATUS, static::WORKFLOW_WORK_USERS]);
-    } 
+    }
     
     public static function getEnum($value, $default = null)
     {

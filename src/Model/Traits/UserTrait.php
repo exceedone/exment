@@ -71,13 +71,14 @@ trait UserTrait
      *
      * @return void
      */
-    public function getDisplayAvatarAttribute(){
+    public function getDisplayAvatarAttribute()
+    {
         // get login user
-        $login_user = $this->login_users->first(function($login_user){
+        $login_user = $this->login_users->first(function ($login_user) {
             return isset($login_user->avatar);
         });
 
-        if(isset($login_user)){
+        if (isset($login_user)) {
             return $login_user->display_avatar;
         }
 

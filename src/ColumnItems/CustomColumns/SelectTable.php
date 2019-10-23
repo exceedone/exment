@@ -61,11 +61,9 @@ class SelectTable extends CustomItem
         $result = [];
 
         // if can select table relation, set value
-        if(!is_null($select_table_value = array_get($this->custom_value, $this->custom_column->getSelectTableRelationName()))){
+        if (!is_null($select_table_value = array_get($this->custom_value, $this->custom_column->getSelectTableRelationName()))) {
             $result[] = $this->getResult($select_table_value, $text, $html);
-        }
-        else{
-                
+        } else {
             foreach ($value as $v) {
                 if (!isset($v)) {
                     continue;
@@ -98,7 +96,8 @@ class SelectTable extends CustomItem
         }
     }
 
-    protected function getResult($model, $text, $html){
+    protected function getResult($model, $text, $html)
+    {
         if ($text === false) {
             return $model;
         // get text column

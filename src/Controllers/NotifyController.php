@@ -65,10 +65,10 @@ class NotifyController extends AdminControllerBase
 
         $grid->column('custom_table_id', exmtrans("notify.notify_target"))->sortable()->display(function ($val) {
             $custom_table = CustomTable::getEloquent($val);
-            if(isset($custom_table)){
+            if (isset($custom_table)) {
                 return esc_html($custom_table->table_view_name ?? null);
             }
-            if(isset($this->workflow_id)){
+            if (isset($this->workflow_id)) {
                 return Workflow::getEloquentDefault($this->workflow_id)->workflow_view_name;
             }
 
@@ -162,7 +162,7 @@ class NotifyController extends AdminControllerBase
                 }
 
                 $custom_table = CustomTable::getEloquent($select_target_table);
-                if(!isset($custom_table)){
+                if (!isset($custom_table)) {
                     return [];
                 }
                 
@@ -211,7 +211,7 @@ class NotifyController extends AdminControllerBase
                 }
 
                 $custom_column = CustomColumn::getEloquent($val);
-                if(!isset($custom_column)){
+                if (!isset($custom_column)) {
                     return [];
                 }
                 
@@ -278,7 +278,7 @@ class NotifyController extends AdminControllerBase
 
             $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
                 ->options(function ($val) use ($controller) {
-                    if($this->workflow_id){
+                    if ($this->workflow_id) {
                         return $controller->getNotifyActionTargetWorkflowOptions(false);
                     }
                     return $controller->getNotifyActionTargetOptions($this->custom_table_id ?? null, false);

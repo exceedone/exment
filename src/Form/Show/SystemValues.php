@@ -15,5 +15,4 @@ class SystemValues extends AbstractField
     {
         return $this->renderSystemItem($this->model);
     }
-
 }

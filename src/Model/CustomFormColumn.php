@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\SystemColumn;
 
 class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {

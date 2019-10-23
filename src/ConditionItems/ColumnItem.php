@@ -2,15 +2,12 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\FilterOption;
 
 class ColumnItem extends ConditionItemBase
 {
@@ -22,7 +19,8 @@ class ColumnItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function isMatchCondition(Condition $condition, CustomValue $custom_value){
+    public function isMatchCondition(Condition $condition, CustomValue $custom_value)
+    {
         $custom_column = CustomColumn::getEloquent($condition->target_column_id);
         $value = array_get($custom_value, 'value.' . $custom_column->column_name);
 
@@ -35,7 +33,8 @@ class ColumnItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function getConditionText(Condition $condition, CustomValue $custom_value){
+    public function getConditionText(Condition $condition, CustomValue $custom_value)
+    {
         $custom_column = CustomColumn::getEloquent($condition->target_column_id);
         
         $column_name = $custom_column->column_name;
@@ -45,36 +44,35 @@ class ColumnItem extends ConditionItemBase
     }
 
     
-    public static function setConditionQuery($query, $tableName, $custom_table){
+    public static function setConditionQuery($query, $tableName, $custom_table)
+    {
         /// get user or organization list
-        $custom_columns = CustomColumn::allRecordsCache(function($custom_column) use($custom_table){
-            if($custom_table->id != $custom_column->custom_table_id){
+        $custom_columns = CustomColumn::allRecordsCache(function ($custom_column) use ($custom_table) {
+            if ($custom_table->id != $custom_column->custom_table_id) {
                 return false;
             }
-            if(!$custom_column->index_enabled){
+            if (!$custom_column->index_enabled) {
                 return false;
             }
-            if(!ColumnType::isUserOrganization($custom_column->column_type)){
+            if (!ColumnType::isUserOrganization($custom_column->column_type)) {
                 return false;
             }
             return true;
         });
 
-        foreach($custom_columns as $custom_column){
-            $query->orWhere(function($query) use($custom_column, $tableName){
+        foreach ($custom_columns as $custom_column) {
+            $query->orWhere(function ($query) use ($custom_column, $tableName) {
                 $indexName = $custom_column->getIndexName();
                 
                 $query->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_id', $custom_column->id)
                     ->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_type', ConditionTypeDetail::COLUMN()->lowerkey());
                     
-                if($custom_column->column_type == ColumnType::USER){
+                if ($custom_column->column_type == ColumnType::USER) {
                     $query->where($tableName . '.' . $indexName, \Exment::user()->id);
-                }
-                else{
+                } else {
                     $query->whereIn($tableName . '.' . $indexName, $ids);
                 }
             });
-                
         }
     }
 }

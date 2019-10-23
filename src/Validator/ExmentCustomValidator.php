@@ -10,7 +10,6 @@ use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
-use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Illuminate\Validation\Validator as AdminValidator;
 
 /**

@@ -2,10 +2,7 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use Encore\Admin\Facades\Admin;
-use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Validator\ChangeFieldRule;
-use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 /**
@@ -30,8 +27,8 @@ class ConditionHasManyTable
     public function __construct(&$form, $options = [])
     {
         $this->form = $form;
-        foreach($options as $key => $value){
-            if(property_exists($this, $key)){
+        foreach ($options as $key => $value) {
+            if (property_exists($this, $key)) {
                 $this->{$key} = $value;
             }
         }
@@ -44,7 +41,7 @@ class ConditionHasManyTable
         $condition_key_name = $this->condition_key_name;
         $condition_value_name = $this->condition_value_name;
 
-        $field = $this->form->hasManyTable($this->name, exmtrans("custom_view.custom_view_filters"), function ($form) use($condition_target_name, $condition_key_name, $condition_value_name) {
+        $field = $this->form->hasManyTable($this->name, exmtrans("custom_view.custom_view_filters"), function ($form) use ($condition_target_name, $condition_key_name, $condition_value_name) {
             $form->select($condition_target_name, exmtrans("condition.condition_target"))->required()
                 ->options($this->targetOptions)
                 ->attribute([
@@ -53,7 +50,7 @@ class ConditionHasManyTable
                 ]);
 
             $form->select($condition_key_name, exmtrans("condition.condition_key"))->required()
-                ->options(function ($val, $select) use($condition_target_name, $condition_key_name, $condition_value_name) {
+                ->options(function ($val, $select) use ($condition_target_name, $condition_key_name, $condition_value_name) {
                     if (!isset($val)) {
                         return [];
                     }
@@ -62,12 +59,12 @@ class ConditionHasManyTable
                     $condition_target = array_get($data, $condition_target_name);
 
                     $item = ConditionItemBase::getItem($this->custom_table, $condition_target);
-                    if(!isset($item)){
+                    if (!isset($item)) {
                         return null;
                     }
                     $item->viewFilter($this->viewFilter);
 
-                    return $item->getFilterCondition()->mapWithKeys(function($item){
+                    return $item->getFilterCondition()->mapWithKeys(function ($item) {
                         return [$item['id'] => $item['text']];
                     });
                 });
@@ -77,8 +74,8 @@ class ConditionHasManyTable
                 ->ajax($this->ajax)
                 ->setEventTrigger("select.$condition_key_name")
                 ->setEventTarget("select.$condition_target_name")
-                ->adminField(function($data, $field) use($condition_target_name, $condition_key_name, $condition_value_name){
-                    if(is_null($data)){
+                ->adminField(function ($data, $field) use ($condition_target_name, $condition_key_name, $condition_value_name) {
+                    if (is_null($data)) {
                         return null;
                     }
                     $item = ConditionItemBase::getItem($this->custom_table, array_get($data, $condition_target_name));
@@ -88,18 +85,19 @@ class ConditionHasManyTable
 
                     return $item->getChangeField(array_get($data, $condition_key_name));
                 });
-                //->rules([new ChangeFieldRule(null, $label, 'condition_target')])
-                ;
+            //->rules([new ChangeFieldRule(null, $label, 'condition_target')])
+            ;
         })->setTableColumnWidth(4, 4, 3, 1)
         ->setTableWidth(10, 1);
 
-        if(isset($this->callbackField)){
+        if (isset($this->callbackField)) {
             $func = $this->callbackField;
             $func($field);
         }
     }
 
-    public function callbackField($callbackField){
+    public function callbackField($callbackField)
+    {
         $this->callbackField = $callbackField;
 
         return $this;

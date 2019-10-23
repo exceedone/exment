@@ -208,7 +208,7 @@ class FilterOption extends EnumBase
     
     public static function getCompareOptions($enum)
     {
-        switch($enum){
+        switch ($enum) {
             case static::NUMBER_GT:
                 return static::NUMBER_GT;
             case static::NUMBER_LT:

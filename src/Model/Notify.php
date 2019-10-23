@@ -226,7 +226,7 @@ class Notify extends ModelBase
 
         $notify_action_target = $this->getActionSetting('notify_action_target', []);
         
-        if(in_array(NotifyActionTarget::CREATED_USER, $notify_action_target)){
+        if (in_array(NotifyActionTarget::CREATED_USER, $notify_action_target)) {
             $created_user = $custom_value->created_user_value;
             $users = $users->merge(
                 collect([$created_user]),
@@ -234,17 +234,17 @@ class Notify extends ModelBase
             );
         }
 
-        if(in_array(NotifyActionTarget::WORK_USER, $notify_action_target)){
+        if (in_array(NotifyActionTarget::WORK_USER, $notify_action_target)) {
             WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow, true)
-                ->each(function($workflow_action) use(&$users, $custom_value){
-                $users = $users->merge(
+                ->each(function ($workflow_action) use (&$users, $custom_value) {
+                    $users = $users->merge(
                     $workflow_action->getAuthorityTargets($custom_value, true),
                     $users
                 );
-            });
+                });
         }
 
-        $users = $users->unique()->filter(function($user){
+        $users = $users->unique()->filter(function ($user) {
             return \Exment::user()->base_user_id != $user->id;
         });
 
@@ -491,7 +491,7 @@ class Notify extends ModelBase
         parent::boot();
 
         static::saving(function ($model) {
-            if(is_null($model->custom_table_id)){
+            if (is_null($model->custom_table_id)) {
                 $model->custom_table_id = 0;
             }
         });

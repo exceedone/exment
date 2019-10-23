@@ -37,7 +37,6 @@ class System extends ModelBase
      */
     public static function requestSession($key, $value = null)
     {
-        
         if (is_null($value)) {
             // check array_has
             if (array_has(static::$requestSession, $key)) {
@@ -45,7 +44,6 @@ class System extends ModelBase
             }
 
             return null;
-
         } elseif ($value instanceof \Closure) {
             // check array_has
             if (array_has(static::$requestSession, $key)) {
@@ -59,7 +57,8 @@ class System extends ModelBase
         static::setRequestSession($key, $value);
     }
 
-    protected static function setRequestSession($key, $value){
+    protected static function setRequestSession($key, $value)
+    {
         static::$requestSession[$key] = $value;
     }
 
@@ -68,15 +67,15 @@ class System extends ModelBase
      */
     public static function resetRequestSession($key = null)
     {
-        if(!isset($key)){
+        if (!isset($key)) {
             static::$requestSession = [];
-        }else{
+        } else {
             array_forget(static::$requestSession, $key);
         }
     }
 
     /**
-     * Get and set from cache. 
+     * Get and set from cache.
      *
      * @param string $key key name.
      * @param mixed $value setting value.
@@ -86,11 +85,11 @@ class System extends ModelBase
     {
         if (is_null($value)) {
             // first, check request session
-            if(!is_null($val = static::requestSession($key))){
+            if (!is_null($val = static::requestSession($key))) {
                 return $val;
             }
 
-            if(Cache::has($key)){
+            if (Cache::has($key)) {
                 $val = Cache::get($key);
                 static::setRequestSession($key, $val);
                 return $val;
@@ -98,11 +97,11 @@ class System extends ModelBase
 
             return null;
         } elseif ($value instanceof \Closure) {
-            if(!is_null($val = static::requestSession($key))){
+            if (!is_null($val = static::requestSession($key))) {
                 return $val;
             }
             
-            if(Cache::has($key)){
+            if (Cache::has($key)) {
                 $val = Cache::get($key);
                 static::setRequestSession($key, $val);
                 return $val;
@@ -127,9 +126,9 @@ class System extends ModelBase
     protected static function resetCache($key = null)
     {
         static::resetRequestSession($key);
-        if(!isset($key)){
+        if (!isset($key)) {
             Cache::flush();
-        }else{
+        } else {
             Cache::forget($key);
         }
     }

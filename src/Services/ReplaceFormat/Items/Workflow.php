@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
-use Carbon\Carbon;
 use Exceedone\Exment\Model\Workflow as WorkflowModel;
 use Exceedone\Exment\Model\WorkflowStatus;
 
@@ -19,18 +18,18 @@ class Workflow extends ItemBase
         $workflow_action = array_get($options, 'workflow_action');
         $workflow_value = array_get($options, 'workflow_value');
 
-        if(!isset($workflow_action) || !isset($workflow_value)){
+        if (!isset($workflow_action) || !isset($workflow_value)) {
             return null;
         }
         
         $workflow = WorkflowModel::getEloquentDefault(array_get($workflow_value, 'workflow_id'));
 
         $subkey = count($this->length_array) > 1 ? $this->length_array[1] : null;
-        if(is_nullorempty($subkey)){
+        if (is_nullorempty($subkey)) {
             return null;
         }
 
-        switch($subkey){
+        switch ($subkey) {
             case 'action_user':
                 return $workflow_value->created_user;
             case 'action_name':

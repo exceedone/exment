@@ -130,7 +130,7 @@ trait InitializeFormTrait
                 ->help(exmtrans('system.help.system_admin_users'))
                 ->required()
                 ->ajax(CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl())
-                ->options(function ($option) use($admin_users) {
+                ->options(function ($option) use ($admin_users) {
                     return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
                         'selected_value' => $admin_users,
                     ]);

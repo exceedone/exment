@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
-
 /**
  * replace value
  */

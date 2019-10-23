@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
-
 /**
  * replace value
  */
@@ -24,7 +23,8 @@ class ValueUrl extends ItemBase
         return $str;
     }
     
-    public function getLink($str){
+    public function getLink($str)
+    {
         return $str;
     }
 }

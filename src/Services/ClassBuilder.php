@@ -233,7 +233,7 @@ class ClassBuilder
             // case many to many
             else {
                 // Create pivot table
-                if(!hasTable($pivot_table_name)){
+                if (!hasTable($pivot_table_name)) {
                     \Schema::createRelationValueTable($pivot_table_name);
                 }
 

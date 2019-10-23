@@ -8,12 +8,11 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Enums\FilterType;
 
 class UserItem extends ConditionItemBase
 {
-    public function getFilterOption(){
+    public function getFilterOption()
+    {
         return $this->getFilterOptionConditon();
     }
     
@@ -24,7 +23,8 @@ class UserItem extends ConditionItemBase
      * @param [type] $key
      * @return void
      */
-    public function getChangeField($key){
+    public function getChangeField($key)
+    {
         $options = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
             'display_table' => $this->custom_table
         ]);
@@ -38,7 +38,8 @@ class UserItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function isMatchCondition(Condition $condition, CustomValue $custom_value){
+    public function isMatchCondition(Condition $condition, CustomValue $custom_value)
+    {
         $user = \Exment::user();
         return collect($this->condition_value)->contains($user->id);
     }
@@ -49,10 +50,11 @@ class UserItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function getConditionText(Condition $condition, CustomValue $custom_value){
+    public function getConditionText(Condition $condition, CustomValue $custom_value)
+    {
         $model = getModelName(SystemTableName::USER)::find($this->condition_value);
         if ($model instanceof Collection) {
-            return $model->map(function($row) {
+            return $model->map(function ($row) {
                 return $row->getValue('user_name');
             })->implode(',');
         } else {
@@ -66,12 +68,14 @@ class UserItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function hasAuthority($workflow_authority, $custom_value, $targetUser){
+    public function hasAuthority($workflow_authority, $custom_value, $targetUser)
+    {
         return $workflow_authority->related_id == $targetUser->id;
     }
 
-    public static function setConditionQuery($query, $tableName){
-        $query->orWhere(function($query) use($tableName){
+    public static function setConditionQuery($query, $tableName)
+    {
+        $query->orWhere(function ($query) use ($tableName) {
             $query->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_id', \Exment::user()->base_user_id)
                 ->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_type', ConditionTypeDetail::USER()->lowerkey());
         });

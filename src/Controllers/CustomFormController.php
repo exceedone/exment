@@ -73,12 +73,11 @@ class CustomFormController extends AdminControllerTableBase
         if (isset($this->custom_table)) {
             $grid->model()
                 ->select(['custom_form_priorities.*', 'custom_forms.form_view_name'])
-                ->join('custom_forms','custom_forms.id','=','custom_form_priorities.custom_form_id')
+                ->join('custom_forms', 'custom_forms.id', '=', 'custom_form_priorities.custom_form_id')
                 ->where('custom_forms.custom_table_id', $this->custom_table->id);
         }
         
         $grid->tools(function (Grid\Tools $tools) {
-            
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
             });
@@ -113,9 +112,8 @@ class CustomFormController extends AdminControllerTableBase
             if ($result) {
                 admin_toastr(trans('admin.save_succeeded'));
             }
-    //            return back()->withInput();
+            //            return back()->withInput();
         }
-
     }
 
     /**

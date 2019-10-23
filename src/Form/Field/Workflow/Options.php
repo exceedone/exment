@@ -38,7 +38,7 @@ class Options extends Select
      */
     public function setElementClass($class)
     {
-        $classItem = collect($class)->map(function($c){
+        $classItem = collect($class)->map(function ($c) {
             return is_array($c) ? implode("_", $c) : $c;
         })->toArray();
         $this->elementClass = array_merge($this->elementClass, $classItem);
@@ -48,10 +48,11 @@ class Options extends Select
         return $this;
     }
 
-    public function prepare($value){
-        if(!array_has($value, 'ignore_work')){
+    public function prepare($value)
+    {
+        if (!array_has($value, 'ignore_work')) {
             $value['ignore_work'] = 0;
-        }else{
+        } else {
             $value['ignore_work'] = 1;
         }
 

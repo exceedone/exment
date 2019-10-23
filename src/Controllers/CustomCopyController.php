@@ -249,7 +249,7 @@ class CustomCopyController extends AdminControllerTableBase
      * Create new button for modal.
      */
     protected function newModal()
-    {        
+    {
         $table_name = $this->custom_table->table_name;
         $path = admin_urls('copy', $table_name, 'create');
         // create form fields

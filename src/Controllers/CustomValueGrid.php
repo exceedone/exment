@@ -106,16 +106,16 @@ trait CustomValueGrid
                 }
 
                 // filter workflow
-                if(!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))){
+                if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
                     $custom_table = $this->custom_table;
-                    $filter->where(function($query) use($custom_table){
-                       Workflowitem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
+                    $filter->where(function ($query) use ($custom_table) {
+                        Workflowitem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
                     }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
 
-                    $field = $filter->where(function($query) use($custom_table){
+                    $field = $filter->where(function ($query) use ($custom_table) {
                     }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
 
-                    if(boolval(request()->get($field->getFilter()->getId()))){
+                    if (boolval(request()->get($field->getFilter()->getId()))) {
                         System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
                     }
                 }
@@ -212,10 +212,10 @@ trait CustomValueGrid
                 }
                 
                 // if user does't edit permission disable edit row.
-                if($actions->row->enableEdit(true) !== true){
+                if ($actions->row->enableEdit(true) !== true) {
                     $actions->disableEdit();
                 }
-                if($actions->row->enableDelete(true) !== true){
+                if ($actions->row->enableDelete(true) !== true) {
                     $actions->disableDelete();
                 }
 

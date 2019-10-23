@@ -265,9 +265,9 @@ class MenuController extends AdminControllerBase
         $options = [];
 
         CustomView::where('view_type', ViewType::SYSTEM)
-            ->where('custom_table_id', $menu_target)->get()->each(function($item) use(&$options) {
-            $options[] = ['id' => $item->id, 'text' =>  $item->view_view_name ];
-        });
+            ->where('custom_table_id', $menu_target)->get()->each(function ($item) use (&$options) {
+                $options[] = ['id' => $item->id, 'text' =>  $item->view_view_name ];
+            });
 
         // if api, return
         if ($isApi) {
@@ -365,7 +365,7 @@ class MenuController extends AdminControllerBase
                 break;
         }
 
-        if(!isset($result) || is_nullorempty(array_get($result, 'menu_name'))){
+        if (!isset($result) || is_nullorempty(array_get($result, 'menu_name'))) {
             return [];
         }
 
@@ -375,10 +375,10 @@ class MenuController extends AdminControllerBase
         $menu_name = $menu_name_base;
         $menus = Menu::all();
         
-        for($i = 1; $i < 1000; $i++){
-            if(!$menus->contains(function($menu) use($menu_name){
+        for ($i = 1; $i < 1000; $i++) {
+            if (!$menus->contains(function ($menu) use ($menu_name) {
                 return $menu_name == $menu->menu_name;
-            })){
+            })) {
                 $result['menu_name'] = $menu_name;
                 return $result;
             }

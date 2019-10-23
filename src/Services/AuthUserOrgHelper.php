@@ -236,14 +236,15 @@ class AuthUserOrgHelper
      *
      * @return void
      */
-    public static function getUserOrgModalForm($custom_table = null, $value = [], $options = []){
+    public static function getUserOrgModalForm($custom_table = null, $value = [], $options = [])
+    {
         $options = array_merge([
             'prependCallback' => null
         ], $options);
         
         $form = new ModalForm();
 
-        if(isset($options['prependCallback'])){
+        if (isset($options['prependCallback'])) {
             $options['prependCallback']($form);
         }
 
@@ -260,7 +261,6 @@ class AuthUserOrgHelper
             ->default(array_get($value, SystemTableName::USER));
 
         if (System::organization_available()) {
-                
             list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
                 'display_table' => $custom_table,
                 'selected_value' => array_get($value, SystemTableName::ORGANIZATION),

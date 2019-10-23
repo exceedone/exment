@@ -60,7 +60,8 @@ trait OrganizationTrait
      *
      * @return void
      */
-    public function getDisplayAvatarAttribute(){
+    public function getDisplayAvatarAttribute()
+    {
         // get default avatar
         return asset(Define::ORGANIZATION_IMAGE_LINK);
     }

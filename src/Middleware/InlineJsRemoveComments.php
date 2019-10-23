@@ -21,17 +21,17 @@ class InlineJsRemoveComments extends PageSpeed
             $matches
         );
 
-        foreach($matches['body'] as $index => $body){
-            if(empty($body)){
+        foreach ($matches['body'] as $index => $body) {
+            if (empty($body)) {
                 continue;
             }
 
             $bodies = explodeBreak($body);
 
             $newbodies = [];
-            foreach($bodies as $line){
+            foreach ($bodies as $line) {
                 $l = trim($line);
-                if(strpos($l, '//') === 0){
+                if (strpos($l, '//') === 0) {
                     continue;
                 }
                 $newbodies[] = $line;
@@ -48,7 +48,6 @@ class InlineJsRemoveComments extends PageSpeed
     private function injectStyle()
     {
         collect($this->class)->each(function ($attributes, $class) {
-
             $this->inline[] = ".{$class}{ {$attributes} }";
 
             $this->style[] = [

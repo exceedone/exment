@@ -41,7 +41,7 @@ class PluginValidatorBase
                 $message = [$message];
             }
             if (strpos($key, 'value.') !== 0) {
-                $key = "value.$key";                
+                $key = "value.$key";
             }
             $messages[$key] = $message;
         }

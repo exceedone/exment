@@ -44,8 +44,9 @@ class ConditionTypeDetail extends EnumBase
         return $result;
     }
     
-    public function getConditionItem($custom_table, $target){
-        switch($this){
+    public function getConditionItem($custom_table, $target)
+    {
+        switch ($this) {
             case ConditionTypeDetail::USER:
                 return new ConditionItems\UserItem($custom_table, $target);
             case ConditionTypeDetail::ORGANIZATION:

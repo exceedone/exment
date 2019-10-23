@@ -4,9 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\FormBlockType;
-use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\FormColumnType;
-use Illuminate\Http\Request as Req;
 
 class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterface
 {

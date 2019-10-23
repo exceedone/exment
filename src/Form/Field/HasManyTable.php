@@ -276,7 +276,8 @@ EOT;
      * @param int $rowNo
      * @return void
      */
-    public function hideDeleteButtonRow($rowNo){
+    public function hideDeleteButtonRow($rowNo)
+    {
         $this->hideDeleteButtonRow = $rowNo;
 
         return $this;

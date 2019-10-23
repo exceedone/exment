@@ -94,7 +94,8 @@ abstract class ItemBase
         }
     }
 
-    public function getLink($str){
+    public function getLink($str)
+    {
         return "<a href='$str'>$str</a>";
     }
 }

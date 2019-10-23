@@ -2,13 +2,9 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 
@@ -22,7 +18,8 @@ class SystemItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function isMatchCondition(Condition $condition, CustomValue $custom_value){
+    public function isMatchCondition(Condition $condition, CustomValue $custom_value)
+    {
         return false;
     }
 
@@ -32,7 +29,8 @@ class SystemItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function getConditionText(Condition $condition, CustomValue $custom_value){
+    public function getConditionText(Condition $condition, CustomValue $custom_value)
+    {
         return null;
     }
     
@@ -42,12 +40,14 @@ class SystemItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function hasAuthority($workflow_authority, $custom_value, $targetUser){
+    public function hasAuthority($workflow_authority, $custom_value, $targetUser)
+    {
         return $workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER && $custom_value->created_user_id == $targetUser->id;
     }
 
-    public static function setConditionQuery($query, $tableName){
-        $query->orWhere(function($query) use($tableName){
+    public static function setConditionQuery($query, $tableName)
+    {
+        $query->orWhere(function ($query) use ($tableName) {
             $query->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_id', WorkflowTargetSystem::CREATED_USER)
                 ->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_type', ConditionTypeDetail::SYSTEM()->lowerkey())
                 ->where($tableName . '.created_user_id', \Exment::user()->id);

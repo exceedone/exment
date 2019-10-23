@@ -56,7 +56,7 @@ class GridChangeView extends AbstractTool
         if ($this->custom_table->hasViewPermission()) {
             $query_str = '?view_kind_type='.$this->current_custom_view->view_kind_type.'&from_data=1';
 
-            if($this->current_custom_view->hasEditPermission()){
+            if ($this->current_custom_view->hasEditPermission()) {
                 $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit'.$query_str), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.current_view_edit')];
             }
 

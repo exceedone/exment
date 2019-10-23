@@ -20,7 +20,7 @@ class Hidden implements Renderable
         ];
 
         $html = '';
-        foreach($values as $key => $value){
+        foreach ($values as $key => $value) {
             $html .= <<<HTML
             <input type="hidden" id="{$key}" value="{$value}" />
 HTML;

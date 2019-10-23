@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Form\Field;
 
 use Encore\Admin\Form\Field;
-use Illuminate\Contracts\Support\Arrayable;
 use Exceedone\Exment\Form\SystemValuesTrait;
 
 class SystemValues extends Field

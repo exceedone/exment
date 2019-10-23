@@ -236,14 +236,15 @@ class ApiController extends AdminControllerBase
      * @param Request $request
      * @return void
      */
-    public function userOrganizationSelect(Request $request){
+    public function userOrganizationSelect(Request $request)
+    {
         $keys = [SystemTableName::USER];
-        if(System::organization_available()){
+        if (System::organization_available()) {
             $keys[] = SystemTableName::ORGANIZATION;
         }
 
         $results = collect();
-        foreach($keys as $key){
+        foreach ($keys as $key) {
             $custom_table = CustomTable::getEloquent($key);
 
             if (($code = $custom_table->enableAccess()) !== true) {
@@ -277,12 +278,14 @@ class ApiController extends AdminControllerBase
 
             // if call as select ajax, return id and text array
             $results = $results->merge(
-                $result->map(function ($value) use($key) {
+                $result->map(function ($value) use ($key) {
                     return [
                         'id' => $key . '_' . $value->id,
                         'text' => $value->label,
                     ];
-                }), $results);
+                }),
+                $results
+            );
         }
 
         // get as paginator

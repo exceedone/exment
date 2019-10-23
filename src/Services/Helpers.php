@@ -1,5 +1,4 @@
 <?php
-use Encore\Admin\Form\Field;
 use Exceedone\Exment\Services\ClassBuilder;
 use Exceedone\Exment\Services\ReplaceFormat\ReplaceFormatService;
 use Exceedone\Exment\Model\Define;
@@ -7,16 +6,12 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
-use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Illuminate\Support\Str;
@@ -465,13 +460,13 @@ if (!function_exists('hasDuplicateDate')) {
     {
         $dates = collect($dates);
 
-        for($i = 0; $i < count($dates) - 1; $i++){
+        for ($i = 0; $i < count($dates) - 1; $i++) {
             $date = $dates->values()->get($i);
             $searchDates = $dates->slice($i + 1);
 
-            if($searchDates->contains(function($searchDate) use($date){
+            if ($searchDates->contains(function ($searchDate) use ($date) {
                 return $date['start']->lte($searchDate['end']) && $date['end']->gte($searchDate['start']);
-            })){
+            })) {
                 return true;
             }
         }
@@ -578,7 +573,7 @@ if (!function_exists('jsonToArray')) {
      */
     function jsonToArray($value)
     {
-        if(!isset($value)){
+        if (!isset($value)) {
             return [];
         }
         
@@ -803,7 +798,7 @@ if (!function_exists('getModelName')) {
             $suuid = CustomTable::getEloquent($obj)->suuid;
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
-            $table = CustomTable::allRecordsCache(function($table) use ($obj){
+            $table = CustomTable::allRecordsCache(function ($table) use ($obj) {
                 if (is_numeric($obj)) {
                     return array_get($table, 'id') == $obj;
                 }
@@ -1050,12 +1045,12 @@ if (! function_exists('abortJson')) {
     {
         $result = [];
         if (!is_null($message)) {
-            if(is_string($message)){
+            if (is_string($message)) {
                 $result['message'] = $message;
-            }elseif($message instanceof ErrorCode){
+            } elseif ($message instanceof ErrorCode) {
                 $result['code'] = $message->getValue();
                 $result['message'] = $message->getMessage();
-            }elseif(is_array($message)){
+            } elseif (is_array($message)) {
                 $result = $message;
             }
         }
@@ -1398,14 +1393,13 @@ if (!function_exists('getUserName')) {
      */
     function getUserName($id, $link = false, $addAvatar = false)
     {
-        if(is_nullorempty($id)){
+        if (is_nullorempty($id)) {
             return null;
         }
 
-        if($id instanceof CustomValue){
-            $user = $id;    
-        }
-        else{
+        if ($id instanceof CustomValue) {
+            $user = $id;
+        } else {
             $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
         }
         

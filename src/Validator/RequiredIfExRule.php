@@ -15,9 +15,9 @@ class RequiredIfExRule implements Rule
 
     public function __construct($parameters)
     {
-        if(is_array($parameters)){
+        if (is_array($parameters)) {
             $this->settings = $parameters;
-        }else{
+        } else {
             $this->settings[] = [$parameters];
         }
     }
@@ -31,7 +31,7 @@ class RequiredIfExRule implements Rule
     */
     public function passes($attribute, $value)
     {
-        foreach($this->settings as $setting){
+        foreach ($this->settings as $setting) {
             $is_requied = false;
             $target = $setting[0];
             $compares = array_slice($setting, 1);

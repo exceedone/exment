@@ -2,9 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\SystemTableName;
-use Encore\Admin\Form;
-
 class WorkflowConditionHeader extends ModelBase
 {
     public function workflow_action()
@@ -30,7 +27,8 @@ class WorkflowConditionHeader extends ModelBase
         return true;
     }
 
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
 
         static::deleting(function ($model) {
@@ -42,7 +40,7 @@ class WorkflowConditionHeader extends ModelBase
     {
         $keys = ['workflow_conditions'];
         $this->load($keys);
-        foreach($keys as $key){
+        foreach ($keys as $key) {
             $this->{$key}()->delete();
         }
     }

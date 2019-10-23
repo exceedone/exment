@@ -17,10 +17,8 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\NotifyTrigger;
@@ -41,7 +39,7 @@ trait CustomValueShow
         return new Show($this->getModelNameDV()::firstOrNew(['id' => $id]), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
 
-            if(isset($id) && !$modal){
+            if (isset($id) && !$modal) {
                 $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
                 $field->border = false;
             }
@@ -58,14 +56,14 @@ trait CustomValueShow
                     return $item->setCustomValue($this)->html();
                 })->setEscape(false);
 
-                if($modal){
+                if ($modal) {
                     $field->setWidth(9, 3);
                 }
             }
 
             // loop for custom form blocks
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
-                // whether update set width 
+                // whether update set width
                 $updateSetWidth = $custom_form_block->isMultipleColumn() || $modal;
     
                 // if available is false, continue
@@ -77,7 +75,7 @@ trait CustomValueShow
                     $hasMultiColumn = false;
 
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
-                        if($form_column->form_column_type == FormColumnType::SYSTEM){
+                        if ($form_column->form_column_type == FormColumnType::SYSTEM) {
                             continue;
                         }
                         
@@ -93,7 +91,7 @@ trait CustomValueShow
                                 return $item->setCustomValue($this)->html();
                             })->setEscape(false);
                         
-                        if($updateSetWidth){
+                        if ($updateSetWidth) {
                             $field->setWidth(9, 3);
                         }
                     }
@@ -147,11 +145,11 @@ trait CustomValueShow
             }
 
             // if user only view permission or one record table, disable delete and view
-            $show->panel()->tools(function ($tools) use($custom_value) {
-                if($custom_value->enableEdit(true) !== true){
+            $show->panel()->tools(function ($tools) use ($custom_value) {
+                if ($custom_value->enableEdit(true) !== true) {
                     $tools->disableEdit();
                 }
-                if($custom_value->enableDelete(true) !== true){
+                if ($custom_value->enableDelete(true) !== true) {
                     $tools->disableDelete();
                 }
             });
@@ -229,7 +227,7 @@ trait CustomValueShow
 
         $this->setRevisionBox($row, $custom_value, $id, $modal);
  
-        $this->setCommentBox($row,  $custom_value, $id, $modal);
+        $this->setCommentBox($row, $custom_value, $id, $modal);
     }
     
     /**
@@ -391,7 +389,7 @@ EOT;
     }
     
     protected function setDocumentBox($row, $custom_value, $id, $modal = false)
-    {        
+    {
         $documents = $this->getDocuments($id, $modal);
         $useFileUpload = $this->useFileUpload($custom_value, $modal);
 
@@ -439,14 +437,14 @@ EOT;
                 ->options($options)
                 ->setLabelClass(['d-none'])
                 ->setWidth(12, 0);
-                $script = <<<EOT
+            $script = <<<EOT
     $(".$input_id").on('fileuploaded', function(e, params) {
         console.log('file uploaded', e, params);
         $.pjax.reload('#pjax-container');
     });
 EOT;
 
-            Admin::script($script);    
+            Admin::script($script);
         }
 
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));

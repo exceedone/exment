@@ -9,7 +9,7 @@ trait SystemValuesTrait
 {
     public function renderSystemItem(?CustomValue $custom_value)
     {
-        if(!isset($custom_value) || !isset($custom_value->id)){
+        if (!isset($custom_value) || !isset($custom_value->id)) {
             return null;
         }
         
@@ -40,14 +40,15 @@ trait SystemValuesTrait
         ]);
     }
 
-    protected function getValues($custom_value, $items){
+    protected function getValues($custom_value, $items)
+    {
         $result = [];
-        foreach($items as $key => $options){
-            if(array_has($options, 'function')){
+        foreach ($items as $key => $options) {
+            if (array_has($options, 'function')) {
                 $func = array_get($options, 'function');
                 $funcResult = $this->{$func}($custom_value);
 
-                if(!isset($funcResult)){
+                if (!isset($funcResult)) {
                     continue;
                 }
 
@@ -59,7 +60,7 @@ trait SystemValuesTrait
             $param = array_get($option, 'avatarname') ?: array_get($option, 'tagname') ?: array_get($option, 'name');
             $value = $custom_value->{$param};
 
-            if(boolval(array_get($options, 'nullHidden')) && empty($value)){
+            if (boolval(array_get($options, 'nullHidden')) && empty($value)) {
                 continue;
             }
 
@@ -72,9 +73,10 @@ trait SystemValuesTrait
         return $result;
     }
     
-    protected function showWorkflowHistories($custom_value){
+    protected function showWorkflowHistories($custom_value)
+    {
         $workflowHistories = $custom_value->getWorkflowHistories();
-        if(count($workflowHistories) == 0){
+        if (count($workflowHistories) == 0) {
             return null;
         }
 
@@ -84,5 +86,4 @@ trait SystemValuesTrait
             'value' => '<a href="javascript:void(0);" data-widgetmodal_url="' . $link . '">' . trans('admin.show') . '</a>'
         ];
     }
-    
 }

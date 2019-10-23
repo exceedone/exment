@@ -3,16 +3,6 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\NotifyNavbar;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ViewKindType;
-use Exceedone\Exment\Enums\ErrorCode;
 
 /**
  * Api about target table
@@ -59,5 +49,4 @@ trait ApiTrait
 
         return $count;
     }
-    
 }

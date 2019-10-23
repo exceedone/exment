@@ -19,12 +19,13 @@ class ValueType extends EnumBase
      *
      * @return void
      */
-    public function getCustomValue(?CustomItem $item, ?CustomValue $custom_value){
-        if(!isset($item) || !isset($custom_value)){
+    public function getCustomValue(?CustomItem $item, ?CustomValue $custom_value)
+    {
+        if (!isset($item) || !isset($custom_value)) {
             return null;
         }
 
-        switch($this){
+        switch ($this) {
             case static::VALUE:
                 return $item->value();
                 

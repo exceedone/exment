@@ -76,6 +76,4 @@ trait UseRequestSessionTrait
         }
         return $records;
     }
-
-    
 }

@@ -2,10 +2,8 @@
 
 namespace Exceedone\Exment\Form\Widgets;
 
-use Encore\Admin\Facades\Admin;
-
 /**
- * 
+ *
  */
 class Modal
 {

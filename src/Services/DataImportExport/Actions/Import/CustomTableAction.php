@@ -43,7 +43,7 @@ class CustomTableAction implements ActionInterface
         $data_imports = [];
 
         foreach ($datalist as $table_name => &$data) {
-            if($table_name == Define::SETTING_SHEET_NAME){
+            if ($table_name == Define::SETTING_SHEET_NAME) {
                 continue;
             }
             

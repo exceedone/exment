@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use Encore\Admin\Facades\Admin;
-
 /**
  * Plugin menu button.
  */

@@ -147,7 +147,7 @@ abstract class FormOtherItem implements ItemInterface
      */
     public static function findItemClass($column_type)
     {
-        if(!$column_type){
+        if (!$column_type) {
             return false;
         }
         

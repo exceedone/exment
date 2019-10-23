@@ -230,7 +230,7 @@ trait HasPermissions
     public function filterModel($model, $custom_view = null, $callback = null)
     {
         // if simple eloquent, throw
-        if($model instanceof \Illuminate\Database\Eloquent\Model){
+        if ($model instanceof \Illuminate\Database\Eloquent\Model) {
             throw new \Exception;
         }
 

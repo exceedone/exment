@@ -2,16 +2,11 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Model\CustomFormPriority;
-use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Custom Form Controller
@@ -55,13 +50,13 @@ class CustomFormPriorityController extends AdminControllerTableBase
             ]),
         ]);
 
-        $hasManyTable->callbackField(function($field){
+        $hasManyTable->callbackField(function ($field) {
             $field->disableHeader();
         });
 
         $hasManyTable->render();
 
-        $form->tools(function (Form\Tools $tools) use($custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add((new Tools\GridChangePageMenu('form', $custom_table, false))->render());
 
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
@@ -69,7 +64,7 @@ class CustomFormPriorityController extends AdminControllerTableBase
 
         $table_name = $this->custom_table->table_name;
 
-        $form->saved(function ($form) use($table_name) {
+        $form->saved(function ($form) use ($table_name) {
             admin_toastr(trans('admin.update_succeeded'));
             return redirect(admin_url("form/$table_name"));
         });

@@ -35,7 +35,7 @@ class StatusSelects extends Select
      */
     public function setElementClass($class)
     {
-        $classItem = collect($class)->map(function($c){
+        $classItem = collect($class)->map(function ($c) {
             return is_array($c) ? implode("_", $c) : $c;
         })->toArray();
         $this->elementClass = array_merge($this->elementClass, $classItem);

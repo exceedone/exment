@@ -12,8 +12,9 @@ class ErrorCode extends EnumBase
     const DELETE_DISABLED = '105';
     const WORKFLOW_LOCK = '201';
 
-    public function getMessage(){
-        if($this == static::PERMISSION_DENY){
+    public function getMessage()
+    {
+        if ($this == static::PERMISSION_DENY) {
             return trans('admin.deny');
         }
 

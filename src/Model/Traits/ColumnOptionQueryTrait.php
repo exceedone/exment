@@ -56,7 +56,7 @@ trait ColumnOptionQueryTrait
             $query['view_pivot_table_id'] = CustomTable::getEloquent($view_pivot_table)->id ?? null;
         }
 
-        if(count($query) == 0){
+        if (count($query) == 0) {
             return $column_key;
         }
 
@@ -112,9 +112,9 @@ trait ColumnOptionQueryTrait
     {
         $column_type_target = explode("?", $view_column_target)[0];
         
-        if(isset($column_table_name_key) && isset($this->{$column_table_name_key})){
+        if (isset($column_table_name_key) && isset($this->{$column_table_name_key})) {
             $custom_table_id = $this->{$column_table_name_key}->custom_table_id;
-        }else{
+        } else {
             $custom_table_id = null;
         }
 

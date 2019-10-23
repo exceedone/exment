@@ -8,9 +8,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\FormActionType;
@@ -18,7 +15,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 
 abstract class CustomValue extends ModelBase
 {
-    use Traits\AutoSUuidTrait, 
+    use Traits\AutoSUuidTrait,
     Traits\DatabaseJsonTrait,
     Traits\HasDynamicRelationTrait,
     \Illuminate\Database\Eloquent\SoftDeletes,
@@ -95,16 +92,16 @@ abstract class CustomValue extends ModelBase
 
     public function getWorkflowStatusNameAttribute()
     {
-        if(isset($this->workflow_status)){
+        if (isset($this->workflow_status)) {
             return $this->workflow_status->status_name;
         }
 
         // get workflow
         $workflow = isset($this->workflow_value) ? $this->workflow_value->workflow : null;
-        if(!isset($workflow)){
+        if (!isset($workflow)) {
             $workflow = Workflow::getWorkflowByTable($this->custom_table);
         }
-        if(isset($workflow)){
+        if (isset($workflow)) {
             return $workflow->start_status_name;
         }
 
@@ -119,11 +116,11 @@ abstract class CustomValue extends ModelBase
     }
 
     public function getWorkflowWorkUsersAttribute()
-    {        
+    {
         $workflow_actions = $this->getWorkflowActions(false, true);
 
         $result = collect();
-        foreach($workflow_actions as $workflow_action){
+        foreach ($workflow_actions as $workflow_action) {
             $result = $workflow_action->getAuthorityTargets($this)->merge($result);
         }
 
@@ -131,11 +128,11 @@ abstract class CustomValue extends ModelBase
     }
 
     public function getWorkflowWorkUsersTagAttribute()
-    {       
+    {
         $users = $this->workflow_work_users;
 
-        return collect($users)->map(function($user){
-            if(is_string($user)){
+        return collect($users)->map(function ($user) {
+            if (is_string($user)) {
                 return $user;
             }
             return getUserName($user, true, true);
@@ -168,11 +165,11 @@ abstract class CustomValue extends ModelBase
 
         // get workflow.
         $workflow = isset($workflow_value) ? $workflow_value->workflow : null;
-        if(!isset($workflow)){
+        if (!isset($workflow)) {
             $workflow = Workflow::getWorkflowByTable($this->custom_table);
         }
 
-        if(!isset($workflow)){
+        if (!isset($workflow)) {
             return collect();
         }
 
@@ -182,23 +179,23 @@ abstract class CustomValue extends ModelBase
         // get matched actions
         $workflow_actions = $workflow
             ->workflow_actions
-            ->filter(function($workflow_action) use($workflow_status){
-                if(!isset($workflow_status)){
+            ->filter(function ($workflow_action) use ($workflow_status) {
+                if (!isset($workflow_status)) {
                     return $workflow_action->status_from == Define::WORKFLOW_START_KEYNAME;
                 }
                 return $workflow_action->status_from == $workflow_status->id;
             });
 
         // check authority
-        if($onlyHasAuthority){
-            $workflow_actions = $workflow_actions->filter(function($workflow_action){
+        if ($onlyHasAuthority) {
+            $workflow_actions = $workflow_actions->filter(function ($workflow_action) {
                 // has authority, and has MatchedCondtionHeader.
                 return $workflow_action->hasAuthority($this) && !is_null($workflow_action->getMatchedCondtionHeader($this));
             });
         }
 
-        if($ignoreNextWork){
-            $workflow_actions = $workflow_actions->filter(function($workflow_action){
+        if ($ignoreNextWork) {
+            $workflow_actions = $workflow_actions->filter(function ($workflow_action) {
                 return !boolval($workflow_action->getOption('ignore_work', false));
             });
         }
@@ -219,8 +216,8 @@ abstract class CustomValue extends ModelBase
             ->with(['workflow', 'workflow_action'])
             ->get();
 
-        if($appendsStatus){
-            foreach($values as $v){
+        if ($appendsStatus) {
+            foreach ($values as $v) {
                 $v->append('created_user');
                 $v->workflow_action->append('status_from_name');
                 $v->workflow_action->status_to_name = $v->workflow_action->getStatusToName($this);
@@ -702,7 +699,7 @@ abstract class CustomValue extends ModelBase
         // get value
         // using ValueType
         $valueType = ValueType::getEnum($label);
-        if(!is_bool($label) && isset($valueType)){
+        if (!is_bool($label) && isset($valueType)) {
             return $valueType->getCustomValue($item, $this);
         }
 
@@ -873,7 +870,7 @@ abstract class CustomValue extends ModelBase
             $img = "<img src='{$this->display_avatar}' class='user-avatar' />";
             $label = '<span class="d-inline-block">' . $img . $label . '</span>';
 
-            if(boolval($options['only_avatar'])){
+            if (boolval($options['only_avatar'])) {
                 return $label;
             }
         }
@@ -1002,7 +999,7 @@ abstract class CustomValue extends ModelBase
         $queries = [];
         $index = 0;
         foreach ($searchColumns as $searchColumn) {
-            if($index >= count($searchColumns) - 1){
+            if ($index >= count($searchColumns) - 1) {
                 break;
             }
 
@@ -1113,9 +1110,10 @@ abstract class CustomValue extends ModelBase
      *
      * @return void
      */
-    public function lockedWorkflow(){
+    public function lockedWorkflow()
+    {
         // check workflow
-        if(!isset($this->workflow_status)){
+        if (!isset($this->workflow_status)) {
             return false;
         }
 
@@ -1127,7 +1125,8 @@ abstract class CustomValue extends ModelBase
      *
      * @return void
      */
-    public function enableAccess(){
+    public function enableAccess()
+    {
         if (($code = $this->custom_table->enableAccess()) !== true) {
             return $code;
         }
@@ -1144,7 +1143,8 @@ abstract class CustomValue extends ModelBase
      *
      * @return void
      */
-    public function enableEdit($checkFormAction = false){
+    public function enableEdit($checkFormAction = false)
+    {
         if (($code = $this->custom_table->enableEdit($checkFormAction)) !== true) {
             return $code;
         }
@@ -1158,7 +1158,7 @@ abstract class CustomValue extends ModelBase
         }
 
         // check workflow
-        if($this->lockedWorkflow()){
+        if ($this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
         }
 
@@ -1170,7 +1170,8 @@ abstract class CustomValue extends ModelBase
      *
      * @return void
      */
-    public function enableDelete($checkFormAction = false){
+    public function enableDelete($checkFormAction = false)
+    {
         if (!$this->custom_table->hasPermissionEditData($this)) {
             return ErrorCode::PERMISSION_DENY();
         }
@@ -1180,12 +1181,12 @@ abstract class CustomValue extends ModelBase
         if ($this->custom_table->isOneRecord()) {
             return ErrorCode::PERMISSION_DENY();
         }
-        if(boolval($this->disabled_delete)){
+        if (boolval($this->disabled_delete)) {
             return ErrorCode::DELETE_DISABLED();
         }
 
         // check workflow
-        if($this->lockedWorkflow()){
+        if ($this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
         }
 

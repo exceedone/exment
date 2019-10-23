@@ -379,7 +379,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function clearCache(){
+    public function clearCache()
+    {
         System::resetCache(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES);
         static::resetAllRecordsCache();
     }
@@ -546,7 +547,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * Save database information about filter and sort order to user setting database.
-     * 
+     *
      * @param string $path.
      * @return void
      */
@@ -575,7 +576,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Get custom table eloquent. key is id, table_name, etc.
      * Since the results are kept in memory, access to the database is minimized.
-     * 
+     *
      * @param mixed $obj id table_name CustomTable_object CustomValue_object.
      * @return null|CustomTable matched custom_table.
      */
@@ -877,23 +878,24 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function setQueryWith($query, $custom_view = null){
-        if(!method_exists($query, 'with')){
+    public function setQueryWith($query, $custom_view = null)
+    {
+        if (!method_exists($query, 'with')) {
             return;
         }
 
         // set query workflow
-        if(!is_null(Workflow::getWorkflowByTable($this))){
+        if (!is_null(Workflow::getWorkflowByTable($this))) {
             Workflowitem::getStatusSubquery($query, $this);
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
 
         // set select_table_column
         $select_columns = $this->getSelectTableColumns();
-        foreach($select_columns as $select_column){
+        foreach ($select_columns as $select_column) {
             // dynamic belongs to for select_table
             $relation_name = $select_column->getSelectTableRelationName();
-            getModelName($this)::addDynamicRelation($relation_name, function($model) use($select_column) {
+            getModelName($this)::addDynamicRelation($relation_name, function ($model) use ($select_column) {
                 $modelname = getModelName($select_column->select_target_table);
                 return $model->belongsTo($modelname, $select_column->index_enabled ? $select_column->getIndexColumnName() : 'value->' . $this->column_name);
             });
@@ -902,12 +904,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // if contains custom_view_filters workflow query
-        if(
+        if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
-            $custom_view->load(['custom_view_filters'])->custom_view_filters->contains(function($custom_view_filter){
-            return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
-        })){
-            // add query 
+            $custom_view->load(['custom_view_filters'])->custom_view_filters->contains(function ($custom_view_filter) {
+                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
+            })) {
+            // add query
             Workflowitem::getWorkUsersSubQuery($query, $this);
         }
     }
@@ -951,12 +953,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSearchEnabledColumns()
     {
-        return CustomColumn::allRecords(function($custom_column){
-            if($custom_column->custom_table_id != $this->id){
+        return CustomColumn::allRecords(function ($custom_column) {
+            if ($custom_column->custom_table_id != $this->id) {
                 return false;
             }
 
-            if(!$custom_column->index_enabled){
+            if (!$custom_column->index_enabled) {
                 return false;
             }
 
@@ -1370,7 +1372,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ];
 
         /// get system columns
-        $setSystemColumn = function($filter) use(&$options, $table_view_name, $append_table, $table_id){
+        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id) {
             foreach (SystemColumn::getOptions($filter) as $option) {
                 $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id);
                 $value = exmtrans('common.'.array_get($option, 'name'));
@@ -1418,11 +1420,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $setSystemColumn(['footer' => true]);
 
             if ($include_workflow && !is_null(Workflow::getWorkflowByTable($this))) {
-                // check contains workflow in table 
+                // check contains workflow in table
                 $setSystemColumn(['name' => 'workflow_status']);
             }
             if ($include_workflow_work_users && !is_null(Workflow::getWorkflowByTable($this))) {
-                // check contains workflow in table 
+                // check contains workflow in table
                 $setSystemColumn(['name' => 'workflow_work_users']);
             }
         }
@@ -1577,7 +1579,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * Get CustomValue's model.
-     * 
+     *
      * @param null|int|string $id CustomValue's id
      * @param bool $withTrashed if true, get already trashed value.
      * @return CustomValue CustomValue's model.
@@ -1798,8 +1800,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function enableAccess(){
-        if(!$this->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)){
+    public function enableAccess()
+    {
+        if (!$this->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return ErrorCode::PERMISSION_DENY();
         }
         
@@ -1811,8 +1814,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function enableView(){
-        if(!$this->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)){
+    public function enableView()
+    {
+        if (!$this->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             return ErrorCode::PERMISSION_DENY();
         }
         
@@ -1824,8 +1828,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function enableCreate($checkFormAction = false){
-        if(!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+    public function enableCreate($checkFormAction = false)
+    {
+        if (!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return ErrorCode::PERMISSION_DENY();
         }
 
@@ -1842,8 +1847,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function enableEdit($checkFormAction = false){
-        if(!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+    public function enableEdit($checkFormAction = false)
+    {
+        if (!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return ErrorCode::PERMISSION_DENY();
         }
 
@@ -1859,12 +1865,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function enableExport(){
-        if(!$this->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)){
+    public function enableExport()
+    {
+        if (!$this->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if(!$this->hasPermission(Permission::CUSTOM_VALUE_EXPORT)){
+        if (!$this->hasPermission(Permission::CUSTOM_VALUE_EXPORT)) {
             return ErrorCode::PERMISSION_DENY();
         }
 
@@ -1876,12 +1883,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function enableImport(){
-        if(!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+    public function enableImport()
+    {
+        if (!$this->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if(!$this->hasPermission(Permission::CUSTOM_VALUE_IMPORT)){
+        if (!$this->hasPermission(Permission::CUSTOM_VALUE_IMPORT)) {
             return ErrorCode::PERMISSION_DENY();
         }
         

@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Encore\Admin\Facades\Admin;
-use Exceedone\Exment\Services\FormHelper;
 
 /**
  * Copy menu button.
@@ -83,9 +82,9 @@ EOT;
 
         // get copy input fields
         $copy_input_columns = $this->copy->custom_copy_input_columns ?? [];
-        if(count($copy_input_columns) > 0){
+        if (count($copy_input_columns) > 0) {
             $script = $this->scriptModal($uuid);
-        }else{
+        } else {
             $script = $this->scriptSwal($uuid, $label);
         }
         Admin::script($script);

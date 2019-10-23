@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\WorkflowAuthority;
@@ -33,7 +32,7 @@ abstract class ConditionItemBase
     protected $className;
 
     /**
-     * filter option is view filter 
+     * filter option is view filter
      *
      * @var bool
      */
@@ -46,24 +45,27 @@ abstract class ConditionItemBase
      */
     protected $label;
 
-    public function __construct(?CustomTable $custom_table, $target){
+    public function __construct(?CustomTable $custom_table, $target)
+    {
         $this->custom_table = $custom_table;
         $this->target = $target;
     }
 
-    public function setElement($elementName, $className, $label){
+    public function setElement($elementName, $className, $label)
+    {
         $this->elementName = $elementName;
         $this->className = $className;
         $this->label = $label;
 
         return $this;
-    } 
+    }
     
-    public function viewFilter($viewFilter = true){
+    public function viewFilter($viewFilter = true)
+    {
         $this->viewFilter = $viewFilter;
 
         return $this;
-    } 
+    }
     
     /**
      * get filter condition
@@ -74,22 +76,20 @@ abstract class ConditionItemBase
             return null;
         }
         
-        if(ConditionTypeDetail::isValidKey($target)){
+        if (ConditionTypeDetail::isValidKey($target)) {
             $enum = ConditionTypeDetail::getEnum(strtolower($target));
             return $enum->getConditionItem($custom_table, $target);
-        }else{
+        } else {
             // get column item
             $column_item = CustomViewFilter::getColumnItem($target)
                 ->options([
                 ]);
         
-            if($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem){
+            if ($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem) {
                 return new ColumnItem($custom_table, $target);
-            }
-            elseif($column_item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem){
+            } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem) {
                 return new WorkflowItem($custom_table, $target);
-            }
-            elseif($column_item instanceof \Exceedone\Exment\ColumnItems\SystemItem){
+            } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\SystemItem) {
                 return new SystemItem($custom_table, $target);
             }
         }
@@ -125,13 +125,13 @@ abstract class ConditionItemBase
      */
     public function getFilterValue($target_key, $target_name)
     {
-        if(is_nullorempty($this->target) || is_nullorempty($target_key) || is_nullorempty($target_name)){
+        if (is_nullorempty($this->target) || is_nullorempty($target_key) || is_nullorempty($target_name)) {
             return [];
         }
 
         $field = new ChangeField($this->className, $this->label);
         $field->rules([new ChangeFieldRule($this->custom_table, $this->label, $this->target)]);
-        $field->adminField(function() use($target_key){
+        $field->adminField(function () use ($target_key) {
             return $this->getChangeField($target_key);
         });
         $field->setElementName($this->elementName);
@@ -140,7 +140,8 @@ abstract class ConditionItemBase
         return json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
     }
 
-    protected function getFilterOptionConditon(){
+    protected function getFilterOptionConditon()
+    {
         return array_get($this->viewFilter ? FilterOption::FILTER_OPTIONS() : FilterOption::FILTER_CONDITION_OPTIONS(), FilterType::CONDITION);
     }
 
@@ -151,7 +152,8 @@ abstract class ConditionItemBase
      * @param [type] $value
      * @return void
      */
-    protected function compareValue($condition, $value){
+    protected function compareValue($condition, $value)
+    {
         if (is_nullorempty($value) || is_nullorempty($condition->condition_value)) {
             return false;
         }
@@ -165,9 +167,9 @@ abstract class ConditionItemBase
         }
 
         $compareOption = FilterOption::getCompareOptions($condition->condition_key);
-        return collect($value)->filter()->contains(function ($v) use($condition_value, $compareOption) {
-            return collect($condition_value)->contains(function($condition_value) use($v, $compareOption){
-                switch($compareOption){
+        return collect($value)->filter()->contains(function ($v) use ($condition_value, $compareOption) {
+            return collect($condition_value)->contains(function ($condition_value) use ($v, $compareOption) {
+                switch ($compareOption) {
                     case FilterOption::EQ:
                         return $v == $condition_value;
                     case FilterOption::NE:
@@ -175,11 +177,11 @@ abstract class ConditionItemBase
                     case FilterOption::NUMBER_GT:
                         return $v > $condition_value;
                     case FilterOption::NUMBER_GTE:
-                        return $v >= $condition_value; 
+                        return $v >= $condition_value;
                     case FilterOption::NUMBER_LT:
                         return $v < $condition_value;
                     case FilterOption::NUMBER_LTE:
-                        return $v <= $condition_value; 
+                        return $v <= $condition_value;
                 }
                 return false;
             });

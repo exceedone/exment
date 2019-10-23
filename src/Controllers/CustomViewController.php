@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 //use Encore\Admin\Widgets\Form;
@@ -13,17 +12,12 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
-use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewKindType;
-use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
@@ -106,11 +100,11 @@ class CustomViewController extends AdminControllerTableBase
     {
         $grid = new Grid(new CustomView);
         $grid->column('table_name', exmtrans("custom_table.table_name"))
-            ->display(function(){
+            ->display(function () {
                 return $this->custom_table->table_name;
             });
         $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))
-            ->display(function(){
+            ->display(function () {
                 return $this->custom_table->table_view_name;
             });
         $grid->column('view_view_name', exmtrans("custom_view.view_view_name"))->sortable();
@@ -485,7 +479,7 @@ class CustomViewController extends AdminControllerTableBase
             'condition_value_name' => 'view_filter_condition_value',
         ]);
 
-        $hasManyTable->callbackField(function($field) use($manualUrl){
+        $hasManyTable->callbackField(function ($field) use ($manualUrl) {
             $field->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
         });
 
@@ -592,7 +586,7 @@ class CustomViewController extends AdminControllerTableBase
     public function getFilterCondition(Request $request)
     {
         $item = $this->getConditionItem($request, $request->get('q'));
-        if(!isset($item)){
+        if (!isset($item)) {
             return [];
         }
         return $item->getFilterCondition();
@@ -604,15 +598,16 @@ class CustomViewController extends AdminControllerTableBase
     public function getFilterValue(Request $request)
     {
         $item = $this->getConditionItem($request, $request->get('target'));
-        if(!isset($item)){
+        if (!isset($item)) {
             return [];
         }
         return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
     }
 
-    protected function getConditionItem(Request $request, $target){
+    protected function getConditionItem(Request $request, $target)
+    {
         $item = ConditionItemBase::getItem($this->custom_table, $target);
-        if(!isset($item)){
+        if (!isset($item)) {
             return null;
         }
 

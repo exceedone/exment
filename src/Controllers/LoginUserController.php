@@ -85,7 +85,8 @@ class LoginUserController extends AdminControllerBase
         return $service->getImportModal();
     }
     
-    protected function getImportExportService($grid = null){
+    protected function getImportExportService($grid = null)
+    {
         // create exporter
         return (new DataImportExport\DataImportExportService())
             ->exportAction(new DataImportExport\Actions\Export\LoginUserAction(
