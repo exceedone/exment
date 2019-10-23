@@ -88,7 +88,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
-        'laravel-page-speed.space' => \RenatoMarinho\LaravelPageSpeed\Middleware\CollapseWhitespace::class,
+        'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
         'laravel-page-speed.jscomments' => \Exceedone\Exment\Middleware\InlineJsRemoveComments::class,
         'laravel-page-speed.comments' => \RenatoMarinho\LaravelPageSpeed\Middleware\RemoveComments::class,
     ];
