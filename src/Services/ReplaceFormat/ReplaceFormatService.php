@@ -88,6 +88,10 @@ class ReplaceFormatService
                         $str = $item->getLink($str);
                     }
 
+                    if ($options['escapeValue'] ?? false) {
+                        $str = esc_html($str);
+                    }
+
                     // replace
                     $format = str_replace($matchString, $str, $format);
                 }
