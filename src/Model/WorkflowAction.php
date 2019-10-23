@@ -276,7 +276,7 @@ class WorkflowAction extends ModelBase
         }
 
         // check as workflow_value_authorities
-        if(isset($custom_value)){
+        if(isset($custom_value) && isset($custom_value->workflow_value)){
             $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
             $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
             foreach($workflow_value_authorities as $workflow_value_authority){
@@ -308,10 +308,15 @@ class WorkflowAction extends ModelBase
      * @param boolean $getAsDefine if true, contains label "created_user", etc
      * @return boolean
      */
-    public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false){
+    public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false)
+    {
+        // get users and organizations
+        $userIds = [];
+        $organizationIds = [];
+        $labels = [];
 
         // add as workflow_value_authorities
-        if(isset($custom_value)){
+        if(isset($custom_value) && isset($custom_value->workflow_value)){
             $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
             $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
             foreach($workflow_value_authorities as $workflow_value_authority){
@@ -330,11 +335,6 @@ class WorkflowAction extends ModelBase
         // add as workflow_authorities
         $this->load(['workflow_authorities']);
         $workflow_authorities = $this->workflow_authorities;
-
-        // get users and organizations
-        $userIds = [];
-        $organizationIds = [];
-        $labels = [];
 
         foreach($workflow_authorities as $workflow_authority){
             $type = ConditionTypeDetail::getEnum($workflow_authority->related_type);
