@@ -235,8 +235,8 @@ class Notify extends ModelBase
         }
 
         if(in_array(NotifyActionTarget::WORK_USER, $notify_action_target)){
-            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow, true);
-            $nextActions->each(function($workflow_action) use(&$users, $custom_value){
+            WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow, true)
+                ->each(function($workflow_action) use(&$users, $custom_value){
                 $users = $users->merge(
                     $workflow_action->getAuthorityTargets($custom_value, true),
                     $users
@@ -244,7 +244,9 @@ class Notify extends ModelBase
             });
         }
 
-        $users = $users->unique();
+        $users = $users->unique()->filter(function($user){
+            return \Exment::user()->base_user_id != $user->id;
+        });
 
         // convert as NotifyTarget
         $users = $users->map(function ($user) {

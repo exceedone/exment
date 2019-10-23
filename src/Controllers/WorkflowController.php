@@ -525,7 +525,7 @@ class WorkflowController extends AdminControllerBase
                 });
 
                 if(hasDuplicateDate($searchDates)){
-                    $errors->add("workflow_tables.$custom_table_id.custom_table", exmtrans('workflow.message.same_custom_table'));
+                    $errors->add("workflow_tables.$custom_table_id", exmtrans('workflow.message.same_custom_table'));
                 }
             }
         }
