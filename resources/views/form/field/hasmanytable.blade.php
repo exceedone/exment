@@ -1,5 +1,6 @@
 
-<div id="has-many-table-{{$column}}" class="has-many-table-div">
+<div id="has-many-table-{{$column}}" class="form-group has-many-table-div">
+    @if($header)
     <div class="row">
         <div class="col-sm-12">
             <h4 class="field-header">{{ $label }}</h4>
@@ -7,6 +8,8 @@
     </div>
 
     <hr style="margin-top: 0px;">
+    @endif
+    
     @if(isset($description))
         <div class="col-sm-{{$tablewidth['width']}} col-sm-offset-{{$tablewidth['offset']}}" style="margin-bottom:20px;">
             {!! $description !!}
@@ -25,48 +28,67 @@
                         @endif
                     </th>
                 @endforeach
+
+                @if($options['allowOptions'])
                 <th class="text-center {{count($tableitems) < count($tablecolumnwidths) ? 'col-sm-'.$tablecolumnwidths[count($tableitems)] : ''}}">{{trans('admin.action')}}</th>
+                @else
+                <th style="display:none;"></th>
+                @endif
             </tr>
             </thead>
             <tbody>
             @foreach($forms as $pk => $form)
             <tr class="has-many-table-{{$column}}-row">
                 @foreach($form['tableitems'] as $tableitem)
-                <td>{!! $tableitem->render() !!}</td>
+                <td style="vertical-align:middle;">{!! $tableitem->render() !!}</td>
                 @endforeach
 
+                @if($options['allowOptions'])
                 <td class="text-center" style="vertical-align:middle;">
                     @foreach($form['hiddens'] as $hidden)
                     {!! $hidden->render() !!}
                     @endforeach
                     
                     @if($hasRowUpDown)
-                    <a href="javascript:void(0);" class="btn btn-xs btn-primary row-move row-move-down" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}">
+                    <a href="javascript:void(0);" class="btn btn-xs btn-primary row-move row-move-down" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
                         <i class="fa fa-arrow-down" style=""></i>
                     </a>
-                    <a href="javascript:void(0);" class="btn btn-xs btn-success row-move row-move-up" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}">
+                    <a href="javascript:void(0);" class="btn btn-xs btn-success row-move row-move-up" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
                         <i class="fa fa-arrow-up" style=""></i>
                     </a>
                     @endif
+
+                    @if($options['allowDelete'] && ($hideDeleteButtonRow === null || $hideDeleteButtonRow <= $loop->index))
                     <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-xs' : ''}} btn-warning remove" data-toggle="tooltip" title="{{trans('admin.delete')}}">
                         <i class="fa fa-trash" style=""></i>
                     </a>
+                    @endif
                 </td>
+                @else
+                <td style="display:none;">
+                @foreach($form['hiddens'] as $hidden)
+                    {!! $hidden->render() !!}
+                @endforeach
+                </td>
+                @endif
             </tr>
             @endforeach
             </tbody>
         </table>
 
+        @if($options['allowOptions'] && $options['allowCreate'])
         <div id="has-many-table-button-{{$column}}" class="form-group">
             <div class="col-sm-12">
                 <div class="add btn btn-success btn-sm"><i class="fa fa-plus"></i>&nbsp;{{ trans('admin.new') }}</div>
             </div>
         </div>
+        @endif
+
     </div>
     <template class="{{$column}}-tpl">
         <tr class="has-many-table-{{$column}}-row">
             @foreach($tableitems as $tableitem)
-                <td>{!! $tableitem->render() !!}</td>
+                <td style="vertical-align:middle;">{!! $tableitem->render() !!}</td>
             @endforeach
             
             <td class="text-center" style="vertical-align:middle;">
@@ -74,10 +96,10 @@
                 {!! $hidden->render() !!}
                 @endforeach
                 @if($hasRowUpDown)
-                <a href="javascript:void(0);" class="btn btn-xs btn-primary row-move row-move-down" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}">
+                <a href="javascript:void(0);" class="btn btn-xs btn-primary row-move row-move-down" data-toggle="tooltip" title="{{exmtrans('common.row_down')}}" style="margin-right:2px;">
                     <i class="fa fa-arrow-down" style=""></i>
                 </a>
-                <a href="javascript:void(0);" class="btn btn-xs btn-success row-move row-move-up" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}">
+                <a href="javascript:void(0);" class="btn btn-xs btn-success row-move row-move-up" data-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
                     <i class="fa fa-arrow-up" style=""></i>
                 </a>
                 @endif

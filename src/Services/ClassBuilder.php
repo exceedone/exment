@@ -212,7 +212,9 @@ class ClassBuilder
             // case many to many
             else {
                 // Create pivot table
-                \Schema::createRelationValueTable($pivot_table_name);
+                if (!hasTable($pivot_table_name)) {
+                    \Schema::createRelationValueTable($pivot_table_name);
+                }
 
                 $function_string = 'return $this->belongsToMany("'.getModelName($relation->child_custom_table).'", "'.$pivot_table_name.'", "parent_id", "child_id")->withPivot("id");';
             }
@@ -231,7 +233,9 @@ class ClassBuilder
             // case many to many
             else {
                 // Create pivot table
-                \Schema::createRelationValueTable($pivot_table_name);
+                if(!hasTable($pivot_table_name)){
+                    \Schema::createRelationValueTable($pivot_table_name);
+                }
 
                 $function_string = 'return $this->belongsToMany("'.getModelName($relation->parent_custom_table, true).'", "'.$pivot_table_name.'", "child_id", "parent_id")->withPivot("id");';
             }

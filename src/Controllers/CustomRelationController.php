@@ -18,9 +18,9 @@ class CustomRelationController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
 
-    public function __construct(Request $request)
+    public function __construct(CustomTable $custom_table, Request $request)
     {
-        parent::__construct($request);
+        parent::__construct($custom_table, $request);
         
         $this->setPageInfo(exmtrans("custom_relation.header"), exmtrans("custom_relation.header"), exmtrans("custom_relation.description"), 'fa-compress');
     }
@@ -32,7 +32,6 @@ class CustomRelationController extends AdminControllerTableBase
      */
     public function index(Request $request, Content $content)
     {
-        $this->setFormViewInfo($request);
         //Validation table value
         if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
@@ -48,8 +47,6 @@ class CustomRelationController extends AdminControllerTableBase
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
-        $this->setFormViewInfo($request);
-        
         //Validation table value
         if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
@@ -67,7 +64,6 @@ class CustomRelationController extends AdminControllerTableBase
      */
     public function create(Request $request, Content $content)
     {
-        $this->setFormViewInfo($request);
         //Validation table value
         if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;

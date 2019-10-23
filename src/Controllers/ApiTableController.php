@@ -11,7 +11,9 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Carbon\Carbon;
 use Validator;
 
@@ -20,6 +22,8 @@ use Validator;
  */
 class ApiTableController extends AdminControllerTableBase
 {
+    use ApiTrait;
+
     protected $custom_table;
 
     // custom_value --------------------------------------------------
@@ -30,8 +34,8 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataList(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, $code);
         }
 
         // get and check query parameter
@@ -49,15 +53,15 @@ class ApiTableController extends AdminControllerTableBase
                 $values = preg_split("/\s+/", trim($param));
                 $column_name = $values[0];
                 if (count($values) > 1 && !preg_match('/^asc|desc$/i', $values[1])) {
-                    return abortJson(400, exmtrans('api.errors.invalid_params'));
+                    return abortJson(400, ErrorCode::INVALID_PARAMS());
                 }
                 if (SystemColumn::isValid($column_name)) {
                 } else {
                     $column = CustomColumn::getEloquent($column_name, $this->custom_table);
                     if (!isset($column) && $column->index_enabled) {
-                        return abortJson(400, exmtrans('api.errors.invalid_params'));
+                        return abortJson(400, ErrorCode::INVALID_PARAMS());
                     } elseif (!$column->index_enabled) {
-                        return abortJson(400, exmtrans('api.errors.not_index_enabled'));
+                        return abortJson(400, ErrorCode::NOT_INDEX_ENABLED());
                     }
                     $column_name = $column->getIndexColumnName();
                 }
@@ -123,13 +127,13 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataQuery(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, $code);
         }
 
         // get model filtered using role
         $model = getModelName($this->custom_table)::query();
-        $model = \Exment::user()->filterModel($model);
+        \Exment::user()->filterModel($model);
 
         $validator = Validator::make($request->all(), [
             'q' => 'required',
@@ -137,7 +141,7 @@ class ApiTableController extends AdminControllerTableBase
         if ($validator->fails()) {
             return abortJson(400, [
                 'errors' => $this->getErrorMessages($validator)
-            ]);
+            ], ErrorCode::VALIDATION_ERROR());
         }
 
         // filtered query
@@ -176,8 +180,8 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataFind(Request $request, $tableKey, $id)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
         }
 
         $model = getModelName($this->custom_table->table_name)::find($id);
@@ -186,8 +190,8 @@ class ApiTableController extends AdminControllerTableBase
             return [];
         }
 
-        if (!$this->custom_table->hasPermissionData($model)) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $model->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
         }
 
         $result = $model->makeHidden($this->custom_table->getMakeHiddenArray())
@@ -204,8 +208,8 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataCreate(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $this->custom_table->enableCreate()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
         }
 
         return $this->saveData($request);
@@ -218,7 +222,7 @@ class ApiTableController extends AdminControllerTableBase
     public function dataUpdate(Request $request, $tableKey, $id)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         $custom_value = getModelName($this->custom_table)::find($id);
@@ -226,8 +230,8 @@ class ApiTableController extends AdminControllerTableBase
             abort(400);
         }
 
-        if (!$this->custom_table->hasPermissionData($custom_value, Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $model->enableEdit()) !== true) {
+            return abortJson(403, $code);
         }
 
         return $this->saveData($request, $custom_value);
@@ -240,7 +244,7 @@ class ApiTableController extends AdminControllerTableBase
     public function dataDelete(Request $request, $tableKey, $id)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         $custom_value = getModelName($this->custom_table)::find($id);
@@ -248,8 +252,8 @@ class ApiTableController extends AdminControllerTableBase
             abort(400);
         }
 
-        if (!$this->custom_table->hasPermissionData($custom_value, Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $model->enableDelete()) !== true) {
+            return abortJson(403, $code());
         }
 
         $custom_value->delete();
@@ -268,8 +272,8 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function relatedLinkage(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, $code);
         }
 
         // get children table id
@@ -295,8 +299,8 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function tableColumns(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, $code);
         }
 
         return $this->custom_columns;
@@ -307,7 +311,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function columnData(Request $request, $tableKey, $column_name)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        if (!$this->custom_table->enableAccess()) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -325,7 +329,6 @@ class ApiTableController extends AdminControllerTableBase
         return json_encode($list);
     }
 
-    
     protected function saveData($request, $custom_value = null)
     {
         $is_single = false;
@@ -336,7 +339,7 @@ class ApiTableController extends AdminControllerTableBase
         if ($validator->fails()) {
             return abortJson(400, [
                 'errors' => $this->getErrorMessages($validator)
-            ]);
+            ], ErrorCode::VALIDATION_ERROR());
         }
 
         $values = $request->get('value');
@@ -355,7 +358,7 @@ class ApiTableController extends AdminControllerTableBase
         if ($findResult !== true) {
             return abortJson(400, [
                 'errors' => $findResult
-            ]);
+            ], ErrorCode::VALIDATION_ERROR());
         }
 
         $validates = [];
@@ -385,7 +388,7 @@ class ApiTableController extends AdminControllerTableBase
         if (count($validates) > 0) {
             return abortJson(400, [
                 'errors' => $validates
-            ]);
+            ], ErrorCode::VALIDATION_ERROR());
         }
 
         $response = [];
@@ -438,32 +441,13 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
-     * Get error message from validator
-     *
-     * @param [type] $validator
-     * @return array error messages
-     */
-    protected function getErrorMessages($validator)
-    {
-        $errors = [];
-        foreach ($validator->errors()->messages() as $key => $message) {
-            if (is_array($message)) {
-                $errors[$key] = $message[0];
-            } else {
-                $errors[$key] = $message;
-            }
-        }
-        return $errors;
-    }
-
-    /**
      * get calendar data
      * @return mixed
      */
     public function calendarList(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, $code);
         }
 
         // filtered query
@@ -484,9 +468,9 @@ class ApiTableController extends AdminControllerTableBase
 
         $table_name = $this->custom_table->table_name;
         // get paginate
-        $model = $this->custom_table->getValueModel();
+        $model = $this->custom_table->getValueModel()->query();
         // filter model
-        $model = \Exment::user()->filterModel($model, $custom_view);
+        \Exment::user()->filterModel($model, $custom_view);
 
         $tasks = [];
         foreach ($custom_view->custom_view_columns as $custom_view_column) {
@@ -620,24 +604,39 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
-     * Get count parameter for list count
-     *
-     * @param [type] $request
-     * @return void
+     * get filter condition
      */
-    protected function getCount($request)
+    public function getFilterCondition(Request $request)
     {
-        // get and check query parameter
-        
-        if (!$request->has('count')) {
-            return config('exment.api_default_data_count', 20);
+        $item = $this->getConditionItem($request, $request->get('q'));
+        if(!isset($item)){
+            return [];
+        }
+        return $item->getFilterCondition();
+    }
+    
+    /**
+     * get filter condition
+     */
+    public function getFilterValue(Request $request)
+    {
+        $item = $this->getConditionItem($request, $request->get('target'));
+        if(!isset($item)){
+            return [];
+        }
+        return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
+    }
+
+    protected function getConditionItem(Request $request, $target){
+        $item = ConditionItemBase::getItem($this->custom_table, $target);
+        if(!isset($item)){
+            return null;
         }
 
-        $count = $request->get('count');
-        if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
-            return abortJson(400, exmtrans('api.errors.over_maxcount'));
-        }
+        $elementName = str_replace('condition_key', 'condition_value', $request->get('cond_name'));
+        $label = exmtrans('condition.condition_value');
+        $item->setElement($elementName, 'condition_value', $label);
 
-        return $count;
+        return $item;
     }
 }

@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Notifications\Notifiable;
 use Carbon\Carbon;
@@ -100,7 +101,7 @@ class Notify extends ModelBase
                 // send mail
                 try {
                     NotifyService::executeNotifyAction($this, [
-                        'prms' => array_merge(['user' => $user], $prms),
+                        'prms' => array_merge(['user' => $user->toArray()], $prms),
                         'user' => $user,
                         'custom_value' => $custom_value,
                     ]);
@@ -202,9 +203,88 @@ class Notify extends ModelBase
             try {
                 NotifyService::executeNotifyAction($this, [
                     'mail_template' => $mail_template,
-                    'prms' => array_merge(['user' => $user], $prms),
+                    'prms' => array_merge(['user' => $user->toArray()], $prms),
                     'user' => $user,
                     'custom_value' => $custom_value,
+                ]);
+            }
+            // throw mailsend Exception
+            catch (\Swift_TransportException $ex) {
+                // show warning message
+                admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
+            }
+        }
+    }
+    
+    /**
+     * notify workflow
+     * *Contains Comment, share
+     */
+    public function notifyWorkflow($custom_value, $workflow_action, $workflow_value, $statusTo)
+    {
+        $users = collect();
+
+        $notify_action_target = $this->getActionSetting('notify_action_target', []);
+        
+        if(in_array(NotifyActionTarget::CREATED_USER, $notify_action_target)){
+            $created_user = $custom_value->created_user_value;
+            $users = $users->merge(
+                collect([$created_user]),
+                $users
+            );
+        }
+
+        if(in_array(NotifyActionTarget::WORK_USER, $notify_action_target)){
+            WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow, true)
+                ->each(function($workflow_action) use(&$users, $custom_value){
+                $users = $users->merge(
+                    $workflow_action->getAuthorityTargets($custom_value, true),
+                    $users
+                );
+            });
+        }
+
+        $users = $users->unique()->filter(function($user){
+            return \Exment::user()->base_user_id != $user->id;
+        });
+
+        // convert as NotifyTarget
+        $users = $users->map(function ($user) {
+            return NotifyTarget::getModelAsUser($user);
+        })->toArray();
+
+        $mail_template = $this->getMailTemplate();
+
+        $prms = [
+            'notify' => $this,
+        ];
+
+        if (NotifyAction::isChatMessage($this->notify_actions)) {
+            // send slack message
+            NotifyService::executeNotifyAction($this, [
+                'mail_template' => $mail_template,
+                'prms' => $prms,
+                'custom_value' => $custom_value,
+                'is_chat' => true,
+                'replaceOptions' => [
+                    'workflow_action' => $workflow_action,
+                    'workflow_value' => $workflow_value,
+                ]
+            ]);
+        }
+
+        foreach ($users as $user) {
+            // send mail
+            try {
+                NotifyService::executeNotifyAction($this, [
+                    'mail_template' => $mail_template,
+                    'prms' => array_merge(['user' => $user->toArray()], $prms),
+                    'user' => $user,
+                    'custom_value' => $custom_value,
+                    'replaceOptions' => [
+                        'workflow_action' => $workflow_action,
+                        'workflow_value' => $workflow_value,
+                    ]
                 ]);
             }
             // throw mailsend Exception
@@ -404,5 +484,16 @@ class Notify extends ModelBase
     protected function routeNotificationForMicrosoftTeams()
     {
         return array_get($this->action_settings, 'webhook_url');
+    }
+    
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            if(is_null($model->custom_table_id)){
+                $model->custom_table_id = 0;
+            }
+        });
     }
 }

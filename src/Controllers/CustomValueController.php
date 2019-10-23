@@ -10,22 +10,29 @@ use Encore\Admin\Layout\Row;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\Services\FormHelper;
 use Symfony\Component\HttpFoundation\Response;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 
 class CustomValueController extends AdminControllerTableBase
 {
@@ -42,9 +49,9 @@ class CustomValueController extends AdminControllerTableBase
      * CustomValueController constructor.
      * @param Request $request
      */
-    public function __construct(Request $request)
+    public function __construct(CustomTable $custom_table, Request $request)
     {
-        parent::__construct($request);
+        parent::__construct($custom_table, $request);
 
         if (!isset($this->custom_table)) {
             return;
@@ -69,8 +76,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
-        $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
-        if ($one_record_flg) {
+        if ($this->custom_table->isOneRecord()) {
             // get record list
             $record = $this->getModelNameDV()::first();
             $id = isset($record)? $record->id: null;
@@ -82,12 +88,22 @@ class CustomValueController extends AdminControllerTableBase
 
             // has record, execute
             if (isset($record)) {
+                // check if form edit action disabled
+                if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
+                    admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+                    return $this->show($request, $content, $this->custom_table->table_name, $id);
+                }
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
                 $row = new Row($form);
             }
             // no record
             else {
+                // check if form create action disabled
+                if ($this->custom_table->formActionDisable(FormActionType::CREATE)) {
+                    admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+                    return redirect(admin_url('/'));
+                }
                 $form = $this->form(null);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
                 $row = new Row($form);
@@ -139,6 +155,12 @@ class CustomValueController extends AdminControllerTableBase
         if (($response = $this->firstFlow($request)) instanceof Response) {
             return $response;
         }
+        // check if form create action disabled
+        if ($this->custom_table->formActionDisable(FormActionType::CREATE)) {
+            admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+            return redirect(admin_urls('data', $this->custom_table->table_name));
+        }
+
         $this->AdminContent($content);
         
         Plugin::pluginPreparing($this->plugins, 'loading');
@@ -168,6 +190,13 @@ class CustomValueController extends AdminControllerTableBase
         if (isset($redirect)) {
             return $redirect;
         }
+
+        // check if form edit action disabled
+        if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
+            admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+            return redirect(admin_urls('data', $this->custom_table->table_name));
+        }
+
         $this->AdminContent($content);
         Plugin::pluginPreparing($this->plugins, 'loading');
 
@@ -188,12 +217,13 @@ class CustomValueController extends AdminControllerTableBase
     public function show(Request $request, Content $content, $tableKey, $id)
     {
         $modal = boolval($request->get('modal'));
-        if ($modal) {
-            return $this->createShowForm($id, $modal);
-        }
 
         if (($response = $this->firstFlow($request, $id, true)) instanceof Response) {
             return $response;
+        }
+
+        if ($modal) {
+            return $this->createShowForm($id, $modal);
         }
 
         $this->AdminContent($content);
@@ -282,37 +312,19 @@ class CustomValueController extends AdminControllerTableBase
     }
  
     /**
-     * for file upload function.
+     * get import modal
      */
-    public function fileupload(Request $request, $tableKey, $id)
+    public function importModal(Request $request, $tableKey)
     {
-        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
+        if (($response = $this->firstFlow($request)) instanceof Response) {
             return $response;
         }
 
-        $httpfile = $request->file('file_data');
-        // file put(store)
-        $filename = $httpfile->getClientOriginalName();
-        // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
-        // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
-        $custom_value = $this->getModelNameDV()::find($id);
-        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
-            ->saveCustomValue($custom_value->id, null, $this->custom_table);
-
-        // save document model
-        $document_model = $file->saveDocumentModel($custom_value, $filename);
-        
-        // loop for $notifies
-        foreach ($custom_value->custom_table->notifies as $notify) {
-            $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::ATTACHMENT, ['attachment' => $filename]);
-        }
-        
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.update_succeeded'),
-        ]);
+        $service = $this->getImportExportService();
+        $importlist = Plugin::pluginPreparingImport($this->plugins);
+        return $service->getImportModal($importlist);
     }
-
+    
     //Function handle plugin click event
     /**
      * @param Request $request
@@ -341,6 +353,125 @@ class CustomValueController extends AdminControllerTableBase
         }
         return getAjaxResponse(false);
     }
+
+    //Function handle workflow history click event
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function workflowHistoryModal(Request $request, $tableKey, $id = null)
+    {
+        // execute history
+        $custom_value = $this->custom_table->getValueModel($id);
+        $form = $this->getWorkflowHistory($custom_value, $id);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.workflow_history'),
+            'showSubmit' => false,
+            'modalSize' => 'modal-xl',
+        ]);
+    }
+
+    /**
+     * get action modal
+     */
+    public function actionModal(Request $request, $tableKey, $id)
+    {
+        if (is_null($id) || $request->input('action_id') === null) {
+            abort(404);
+        }
+        // get action
+        $action = WorkflowAction::find($request->input('action_id'));
+        if (!isset($action)) {
+            abort(404);
+        }
+
+        return $action->actionModal($this->custom_table->getValueModel($id));
+    }
+
+    //Function handle workflow click event
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function actionClick(Request $request, $tableKey, $id)
+    {
+        if (is_null($id) || $request->input('action_id') === null) {
+            abort(404);
+        }
+        // get action
+        $action = WorkflowAction::find($request->input('action_id'));
+        if (!isset($action)) {
+            abort(404);
+        }
+
+        $custom_value = $this->custom_table->getValueModel($id);
+
+        //TODO:validation
+        
+        $action->executeAction($custom_value, [
+            'comment' => $request->get('comment'),
+            'next_work_users' => $request->get('next_work_users'),
+        ]);
+
+        return ([
+            'result'  => true,
+            'toastr' => sprintf(exmtrans('common.message.success_execute')),
+        ]);
+    }
+
+    /**
+     * get copy modal
+     */
+    public function copyModal(Request $request, $tableKey, $id)
+    {
+        if ($request->input('uuid') === null) {
+            abort(404);
+        }
+        // get copy eloquent
+        $uuid = $request->input('uuid');
+        $copy = CustomCopy::findBySuuid($uuid);
+        if (!isset($copy)) {
+            abort(404);
+        }
+
+        $from_table_view_name = $this->custom_table->table_view_name;
+        $to_table_view_name = $copy->to_custom_table->table_view_name;
+        $path = admin_urls('data', $this->custom_table->table_name, $id, 'copyClick');
+        
+        // create form fields
+        $form = new ModalForm();
+        $form->action($path);
+        $form->method('POST');
+
+        $copy_input_columns = $copy->custom_copy_input_columns ?? [];
+
+        // add form
+        $form->description(sprintf(exmtrans('custom_copy.dialog_description'), $from_table_view_name, $to_table_view_name, $to_table_view_name));
+        foreach ($copy_input_columns as $copy_input_column) {
+            $field = FormHelper::getFormField($this->custom_table, $copy_input_column->to_custom_column, null);
+            $form->pushField($field);
+        }
+        $form->hidden('uuid')->default($uuid);
+        
+        $form->setWidth(10, 2);
+
+        // get label
+        if (!is_null(array_get($copy, 'options.label'))) {
+            $label = array_get($copy, 'options.label');
+        } else {
+            $label = exmtrans('common.copy');
+        }
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => $label
+        ]);
+    }
+
 
     //Function handle copy click event
     /**
@@ -464,6 +595,7 @@ class CustomValueController extends AdminControllerTableBase
         return $service;
     }
 
+    
     /**
      * @return string
      */
@@ -591,5 +723,18 @@ class CustomValueController extends AdminControllerTableBase
                 ];
             }
         }
+    }
+
+    /**
+     * set view and form info.
+     * use session etc
+     */
+    protected function setFormViewInfo(Request $request)
+    {
+        // set view
+        $this->custom_view = CustomView::getDefault($this->custom_table);
+
+        // set form
+        $this->custom_form = CustomForm::getDefault($this->custom_table);
     }
 }

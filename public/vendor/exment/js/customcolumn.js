@@ -7,13 +7,34 @@ var Exment;
         static AddEvent() {
         }
         static AddEventOnce() {
-            $(document).off('click', '.button-addcalcitem').on('click', '.button-addcalcitem', {}, CustomColumnEvent.calcButtonAddItemEvent);
-            $(document).off('click', '.button-setting').on('click', '.button-setting', {}, CustomColumnEvent.calcButtonSettingEvent);
-            $(document).off('click', '.button-reset').on('click', '.button-reset', {}, CustomColumnEvent.calcButtonResetEvent);
-            $(document).off('click', '.col-value-item-remove').on('click', '.col-value-item-remove', {}, CustomColumnEvent.calcRemoveItemEvent);
+            $(document).off('click', '[data-contentname="options_calc_formula"] .button-addcalcitem').on('click', '[data-contentname="options_calc_formula"] .button-addcalcitem', {}, CustomColumnEvent.calcButtonAddItemEvent);
+            $(document).off('click', '[data-contentname="options_calc_formula"] .col-value-item-remove').on('click', '[data-contentname="options_calc_formula"] .col-value-item-remove', {}, CustomColumnEvent.calcRemoveItemEvent);
             $(document).on('pjax:complete', function (event) {
                 CustomColumnEvent.AddEvent();
             });
+        }
+        static GetSettingValText() {
+            // get col value item list
+            let values = $('.calc_formula_area').find('.col-value-item');
+            // get items and texts
+            let items = [];
+            let texts = [];
+            for (var i = 0; i < values.length; i++) {
+                // get value
+                let val = values.eq(i);
+                // push value
+                let itemval = { 'type': val.data('type'), 'val': val.data('val') };
+                if (hasValue(val.data('from'))) {
+                    itemval['from'] = val.data('from');
+                }
+                if (hasValue(val.data('table'))) {
+                    itemval['table'] = val.data('table');
+                }
+                items.push(itemval);
+                // push text
+                texts.push(escHtml(val.text()));
+            }
+            return { value: JSON.stringify(items), text: texts.join(' ') };
         }
     }
     CustomColumnEvent.calcButtonAddItemEvent = (ev) => {
@@ -58,40 +79,6 @@ var Exment;
         }
         // set item
         $('.calc_formula_area').append(clone);
-    };
-    CustomColumnEvent.calcButtonSettingEvent = (ev) => {
-        // get col value item list
-        var values = $(ev.target).closest('.modal').find('.calc_formula_area').find('.col-value-item');
-        // get items and texts
-        var items = [];
-        var texts = [];
-        for (var i = 0; i < values.length; i++) {
-            // get value
-            var val = values.eq(i);
-            // push value
-            let itemval = { 'type': val.data('type'), 'val': val.data('val') };
-            if (hasValue(val.data('from'))) {
-                itemval['from'] = val.data('from');
-            }
-            if (hasValue(val.data('table'))) {
-                itemval['table'] = val.data('table');
-            }
-            items.push(itemval);
-            // push text
-            texts.push(val.text());
-        }
-        // set value and text
-        $('.options_calc_formula').val(JSON.stringify(items));
-        $('#calc_formula').find('.text-valuemodal').text(texts.join(' '));
-        $('.modal').modal('hide');
-    };
-    CustomColumnEvent.calcButtonResetEvent = (ev) => {
-        // remove item
-        $(ev.target).closest('.modal').find('.calc_formula_area').children().remove();
-        // set value and text
-        $('.options_calc_formula').val(null);
-        $('#calc_formula').find('.text-valuemodal').text('');
-        $('.modal').modal('hide');
     };
     CustomColumnEvent.calcRemoveItemEvent = (ev) => {
         // remove item

@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\FormActionType;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -117,11 +118,11 @@ class CustomTableController extends AdminControllerBase
             ->help(exmtrans('common.help.view_name'));
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
-        
         $form->number('order', exmtrans("custom_table.order"))->rules("integer")
             ->help(sprintf(exmtrans("common.help.order"), exmtrans('common.custom_table')));
-        
+
         $form->exmheader(exmtrans('common.detail_setting'))->hr();
+
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
@@ -349,8 +350,12 @@ HTML;
         ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
 
         if (boolval(config('exment.expart_mode', false))) {
-            $form->embeds('options', exmtrans("custom_table.custom_column_multi.table_label_format"), function ($form) {
-                $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format_string"))
+            $form->embeds('options', exmtrans("custom_table.custom_column_multi.options_label"), function ($form) {
+                $form->checkbox('form_action_disable_flg', exmtrans("custom_table.custom_column_multi.form_action_disable_flg"))
+                    ->help(exmtrans("custom_table.custom_column_multi.help.form_action_disable_flg"))
+                    ->options(FormActionType::transArray('custom_table.custom_column_multi.form_action_options'))
+                ;
+                $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format"))
                     ->rules("max:200")
                     ->help(sprintf(exmtrans("custom_table.custom_column_multi.help.table_label_format"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_label_format'))));
             });

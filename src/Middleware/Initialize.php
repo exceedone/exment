@@ -17,6 +17,7 @@ use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Show;
 use \Html;
 use PDO;
 
@@ -28,7 +29,7 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        if (!canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)) {
+        if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
             $path = trim(admin_base_path('install'), '/');
             if (!$request->is($path)) {
                 return redirect()->guest(admin_base_path('install'));
@@ -367,7 +368,6 @@ class Initialize
             'pivotMultiSelect'          => Field\PivotMultiSelect::class,
             'checkboxone'          => Field\Checkboxone::class,
             'checkboxTable'          => Field\CheckboxTable::class,
-            'checkboxTableHeader'          => Field\CheckboxTableHeader::class,
             'tile'          => Field\Tile::class,
             'hasMany'           => Field\HasMany::class,
             'hasManyTable'           => Field\HasManyTable::class,
@@ -377,10 +377,18 @@ class Initialize
             'valueModal'          => Field\ValueModal::class,
             'changeField'          => Field\ChangeField::class,
             'progressTracker'          => Field\ProgressTracker::class,
+            'systemValues'          => Field\SystemValues::class,
+            
+            ///// workflow
+            'workflowStatusSelects'          => Field\WorkFlow\StatusSelects::class,
+            'workflowOptions'          => Field\WorkFlow\Options::class,
         ];
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);
         }
+
+        Show::extend('system_values', \Exceedone\Exment\Form\Show\SystemValues::class);
+
         Filter::extend('betweendatetime', \Exceedone\Exment\Grid\Filter\BetweenDatetime::class);
     }
 

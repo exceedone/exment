@@ -72,7 +72,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         if ($avatar) {
             return Storage::disk(config('admin.upload.disk'))->url($avatar);
         }
-        return asset('vendor/exment/images/user.png');
+        return asset(Define::USER_IMAGE_LINK);
     }
     
     public function isLoginProvider()
@@ -128,14 +128,23 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             return $default;
         }
         // get settings from settion
-        $settings = Session::get("user_setting.$key");
-        // if empty, get User Setting table
-        if (!isset($settings)) {
+        $settings = System::requestSession("user_setting", function() use($key, $default){
             $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
             $settings = $usersetting->settings ?? [];
-        }
-        return array_get($settings, $key) ?? $default;
+            return $settings;
+        });
+
+        return array_get($settings, $key) ?? $default; 
+
+        // $settings = Session::get("user_setting.$key");
+        // // if empty, get User Setting table
+        // if (!isset($settings)) {
+        //     $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
+        //     $settings = $usersetting->settings ?? [];
+        // }
+        // return array_get($settings, $key) ?? $default;
     }
+
     public function setSettingValue($key, $value)
     {
         if (is_null($this->base_user)) {
@@ -152,8 +161,8 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         $usersetting->settings = $settings;
         $usersetting->saveOrFail();
 
-        // put session
-        Session::put("user_setting.$key", $settings);
+        // set settings from settion
+        System::resetRequestSession("user_setting");
     }
 
     protected function setBcryptPassword()
@@ -175,7 +184,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             $this->password = bcrypt($password);
 
             // only default login
-            if(!isset($this->login_provider)){
+            if (!isset($this->login_provider)) {
                 $this->changePassword = true;
             }
         }

@@ -84,7 +84,12 @@ class Csv extends FormatBase
         // save as csv
         if (count($files) == 1) {
             return response()->stream(function () use ($files) {
-                $files[0]['writer']->save('php://output');
+                $writer = $this->createWriter($files[0]['spreadsheet']);
+                $writer->save('php://output');
+                // close workbook and release memory
+                $files[0]['spreadsheet']->disconnectWorksheets();
+                $files[0]['spreadsheet']->garbageCollect();
+                unset($writer);
             }, 200, $this->getDefaultHeaders());
         }
         // save as zip
@@ -106,10 +111,17 @@ class Csv extends FormatBase
                 // csv path
                 $csv_name = $f['name'] . '.csv';
                 $csv_path = path_join($csvdir, $csv_name);
-                $f['writer']->save($csv_path);
+                $writer = $this->createWriter($f['spreadsheet']);
+                $writer->save($csv_path);
                 $zip->addFile($csv_path, $csv_name);
                 $csv_paths[] = $csv_path;
+
+                // close workbook and release memory
+                $f['spreadsheet']->disconnectWorksheets();
+                $f['spreadsheet']->garbageCollect();
+                unset($writer);
             }
+
             $zip->close();
             \File::deleteDirectory($csvdir);
 

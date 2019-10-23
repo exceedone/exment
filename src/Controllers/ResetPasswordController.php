@@ -56,7 +56,7 @@ class ResetPasswordController extends Controller
     {
         // get email
         $email = $this->getEmailByToken($token);
-        if(!isset($email)){
+        if (!isset($email)) {
             admin_toastr(trans('passwords.token'));
             return redirect($this->redirectTo);
         }
@@ -78,7 +78,7 @@ class ResetPasswordController extends Controller
 
         // get email
         $email = $this->getEmailByToken($request->get('token'));
-        if(!isset($email)){
+        if (!isset($email)) {
             admin_toastr(trans('passwords.token'));
             return back()->withInput();
         }
@@ -151,14 +151,15 @@ class ResetPasswordController extends Controller
      *
      * @return void
      */
-    protected function getEmailByToken($token){
+    protected function getEmailByToken($token)
+    {
         $broker = $this->broker();
         // get email by table 'password_resets'
         $records = \DB::table(SystemTableName::PASSWORD_RESET)->get()->toArray();
 
-        foreach($records as $record){
+        foreach ($records as $record) {
             // if match token
-            if($broker->getRepository()->getHasher()->check($token, $record->token)){
+            if ($broker->getRepository()->getHasher()->check($token, $record->token)) {
                 return $record->email;
             }
         }

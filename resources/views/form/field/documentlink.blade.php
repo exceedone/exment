@@ -5,6 +5,8 @@
     &nbsp;{{ exmtrans("common.created_user") }}&nbsp;:&nbsp;{{ $document->created_user }})
 </small>
 
+@if($candelete)
 <a href="javascript:void(0);" data-exment-delete="{{admin_urls('files', $document->getValue('file_uuid'))}}">
     <i class="fa fa-trash"></i>
 </a>
+@endif

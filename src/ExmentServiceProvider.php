@@ -8,6 +8,7 @@ use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
@@ -86,6 +87,10 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.session'    => AdminMiddleware\Session::class,
 
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
+
+        'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
+        'laravel-page-speed.jscomments' => \Exceedone\Exment\Middleware\InlineJsRemoveComments::class,
+        'laravel-page-speed.comments' => \RenatoMarinho\LaravelPageSpeed\Middleware\RemoveComments::class,
     ];
 
     /**
@@ -101,6 +106,9 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.password-limit',
             'admin.morph',
             'admin.bootstrap2',
+            'laravel-page-speed.space',
+            'laravel-page-speed.jscomments',
+            'laravel-page-speed.comments',
             'admin.pjax',
             'admin.log',
             'admin.bootstrap',
@@ -199,6 +207,9 @@ class ExmentServiceProvider extends ServiceProvider
         // bind plugin for page
         $this->app->bind(PluginPublicBase::class, function ($app) {
             return Plugin::getPluginPageModel();
+        });
+        $this->app->bind(CustomTable::class, function ($app) {
+            return CustomTable::findByEndpoint();
         });
         
         Passport::ignoreMigrations();

@@ -88,7 +88,7 @@ class Plugin extends ModelBase
             return [];
         }
 
-        return static::getByPluginTypes([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])->filter(function ($plugin) use ($custom_table) {
+        return static::getByPluginTypes([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT, PluginType::VALIDATOR])->filter(function ($plugin) use ($custom_table) {
             $target_tables = array_get($plugin, 'options.target_tables');
             if (!in_array(CustomTable::getEloquent($custom_table)->table_name, $target_tables)) {
                 return false;
@@ -328,6 +328,29 @@ class Plugin extends ModelBase
     }
 
     /**
+     * execute custom plugin validate
+     */
+    public static function pluginValidator($plugins, $options = [])
+    {
+        $messages = [];
+
+        if (count($plugins) > 0) {
+            foreach ($plugins as $plugin) {
+                // if $plugin_types is not validator, continue
+                if (!$plugin->matchPluginType(PluginType::VALIDATOR)) {
+                    continue;
+                }
+                
+                $class = $plugin->getClass(PluginType::VALIDATOR, $options);
+                if (!$class->validate()) {
+                    $messages = array_merge_recursive($messages, $class->messages());
+                }
+            }
+        }
+        return $messages;
+    }
+
+    /**
      * Get plugin pages by selecting plugin_type
      */
     public static function getByPluginTypes($plugin_types, $getAsClass = false)
@@ -362,7 +385,7 @@ class Plugin extends ModelBase
      */
     protected static function getPluginPublicSessions($targetPluginTypes, $getAsClass = false)
     {
-        $plugins = static::getPluginsReqSession();
+        $plugins = static::getPluginsCache();
         $plugins = $plugins->filter(function ($plugin) use ($targetPluginTypes) {
             if (!$plugin->matchPluginType($targetPluginTypes)) {
                 return false;
@@ -388,18 +411,18 @@ class Plugin extends ModelBase
         })->filter();
     }
 
-    protected static function getPluginsReqSession()
+    protected static function getPluginsCache()
     {
         // get plugin page's
-        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGINS, function () {
+        return System::cache(Define::SYSTEM_KEY_SESSION_PLUGINS, function () {
             // get plugin
-            $plugins = Plugin::allRecords(function ($plugin) {
+            $plugins = Plugin::allRecordsCache(function ($plugin) {
                 if (!boolval(array_get($plugin, 'active_flg'))) {
                     return false;
                 }
                 
                 return true;
-            });
+            }, false);
 
             return collect($plugins);
         });
@@ -424,7 +447,7 @@ class Plugin extends ModelBase
             $pluginName = $matches[1];
             
             // get target plugin
-            $plugin = static::getPluginsReqSession()->first(function ($plugin) use ($pluginName) {
+            $plugin = static::getPluginsCache()->first(function ($plugin) use ($pluginName) {
                 return $plugin->matchPluginType(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS())
                     && (
                         pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
@@ -531,6 +554,11 @@ class Plugin extends ModelBase
         static::saving(function ($model) {
             $model->prepareJson('options');
             $model->prepareJson('custom_options');
+        });
+
+        static::saved(function ($model) {
+            System::resetCache(Define::SYSTEM_KEY_SESSION_PLUGINS);
+            static::resetAllRecordsCache();
         });
     }
 }

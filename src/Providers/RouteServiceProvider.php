@@ -80,6 +80,7 @@ class RouteServiceProvider extends ServiceProvider
             
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
+            $router->get('notify/notify_action_target_workflow', 'NotifyController@notify_action_target_workflow');
             $router->post('notify/notifytrigger_template', 'NotifyController@getNotifyTriggerTemplate');
             $router->resource('notify', 'NotifyController', ['except' => ['show']]);
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
@@ -90,6 +91,16 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
+            
+            $router->resource('workflow', 'WorkflowController', ['except' => ['show']]);
+            $router->get("workflow/beginning", 'WorkflowController@beginningForm');
+            $router->post("workflow/beginning", 'WorkflowController@beginningPost');
+            $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
+            $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
+            $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
+            $router->post('workflow/{id}/activate', 'WorkflowController@activate');
+
+            $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
             
@@ -108,30 +119,39 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('backup/save', 'BackupController@save');
             $router->post('backup/setting', 'BackupController@postSetting');
             $router->post('backup/import', 'BackupController@import');
+            $router->get('backup/importModal', 'BackupController@importModal');
             $router->get('backup/download/{ymdhms}', 'BackupController@download');
         
+            $router->get("data/{tableKey}/importModal", 'CustomValueController@importModal');
             $router->post("data/{tableKey}/import", 'CustomValueController@import');
             $router->post("data/{tableKey}/pluginClick", 'CustomValueController@pluginClick');
             $router->get("data/{tableKey}/{id}/compare", 'CustomValueController@compare');
             $router->get("data/{tableKey}/{id}/compareitem", 'CustomValueController@compareitem');
             $router->post("data/{tableKey}/{id}/compare", 'CustomValueController@restoreRevision');
             $router->post("data/{tableKey}/{id}/pluginClick", 'CustomValueController@pluginClick');
+            $router->get("data/{tableKey}/{id}/actionModal", 'CustomValueController@actionModal');
+            $router->post("data/{tableKey}/{id}/actionClick", 'CustomValueController@actionClick');
             $router->get("data/{tableKey}/{id}/notifyClick", 'CustomValueController@notifyClick');
             $router->get("data/{tableKey}/{id}/shareClick", 'CustomValueController@shareClick');
+            $router->get("data/{tableKey}/{id}/workflowHistoryModal", 'CustomValueController@workflowHistoryModal');
             $router->post("data/{tableKey}/{id}/sendMail", 'CustomValueController@sendMail');
             $router->post("data/{tableKey}/{id}/sendTargetUsers", 'CustomValueController@sendTargetUsers');
             $router->post("data/{tableKey}/{id}/sendShares", 'CustomValueController@sendShares');
+            $router->get("data/{tableKey}/{id}/copyModal", 'CustomValueController@copyModal');
             $router->post("data/{tableKey}/{id}/copyClick", 'CustomValueController@copyClick');
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
             $router->post("data/{tableKey}/{id}/rowUpdate/{rowid}", 'CustomValueController@rowUpdate');
 
-            $router->post("view/{tableKey}/filterDialog", 'CustomViewController@getFilterDialogHtml');
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
+
+            $router->get("column/{tableKey}/calcModal", 'CustomColumnController@calcModal');
+            $router->post("column/{tableKey}/{id}/calcModal", 'CustomColumnController@calcModal');
+            $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
 
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
                         
@@ -148,14 +168,19 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
             $this->setTableResouce($router, 'form', 'CustomFormController');
+            $this->setTableResouce($router, 'formpriority', 'CustomFormPriorityController');
             $this->setTableResouce($router, 'view', 'CustomViewController');
             $this->setTableResouce($router, 'relation', 'CustomRelationController');
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
             $this->setTableResouce($router, 'operation', 'CustomOperationController');
-            $this->setTableResouce($router, 'data', 'CustomValueController');
 
+            // only webapi api function
             $router->get('webapi/menu/menutype', 'MenuController@menutype');
             $router->post('webapi/menu/menutargetvalue', 'MenuController@menutargetvalue');
+            $router->get('webapi/menu/menutargetview', 'MenuController@menutargetview');
+
+            $router->get("webapi/{tableKey}/filter-condition", 'ApiTableController@getFilterCondition');
+            $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
         });
     }
 
@@ -210,7 +235,7 @@ class RouteServiceProvider extends ServiceProvider
             ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi'], 'addScope' => false],
         ];
         
-        if (canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && System::api_available()) {
+        if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
             $routes[] = ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true];
         }
 
@@ -249,6 +274,9 @@ class RouteServiceProvider extends ServiceProvider
 
                 // User, LoginUser --------------------------------------------------
                 $router->get("me", 'ApiController@me')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ME));
+
+                // User, Organization --------------------------------------------------
+                $router->get("user_organization/select", 'ApiController@userOrganizationSelect')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
             });
         }
     }

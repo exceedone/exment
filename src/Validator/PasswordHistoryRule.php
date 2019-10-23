@@ -2,7 +2,6 @@
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
-use Exceedone\Exment\Providers\CustomUserProvider;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\PasswordHistory;

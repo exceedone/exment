@@ -6,7 +6,7 @@ use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\CalcFormulaType;
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Illuminate\Support\Facades\DB;
 
 class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -90,7 +90,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     public function custom_view_columns()
     {
         return $this->hasMany(CustomViewColumn::class, 'view_column_target_id')
-            ->where('view_column_type', ViewColumnType::COLUMN);
+            ->where('view_column_type', ConditionType::COLUMN);
     }
 
     public function scopeIndexEnabled($query)
@@ -189,15 +189,14 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         parent::boot();
                 
         // add default order
-        // "order" is added v1.1.0, So if called from v1.1.0, cannot excute. So checked order column
-        if (System::requestSession(Define::SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER, function () {
-            return \Schema::hasColumn(static::getTableName(), 'order');
-        })) {
-            static::addGlobalScope(new OrderScope('order'));
-        }
+        static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
             $model->prepareJson('options');
+        });
+
+        static::saved(function ($model) {
+            $model->clearCache();
         });
 
         // delete event
@@ -208,6 +207,17 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             // execute alter column
             $model->alterColumn(true);
         });
+    }
+
+    /**
+     * Clear cache
+     *
+     * @return void
+     */
+    public function clearCache(){
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE, getDBTableName($this->custom_table));
+        System::resetCache($key);
+        static::resetAllRecordsCache();
     }
     
     /**
@@ -233,7 +243,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
         
         if (is_numeric($column_obj)) {
-            return static::allRecords(function ($record) use ($column_obj) {
+            return static::allRecordsCache(function ($record) use ($column_obj) {
                 return $record->id == $column_obj;
             })->first();
         }
@@ -246,7 +256,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                 return null;
             }
             
-            return static::allRecords(function ($record) use ($table_obj, $column_obj) {
+            return static::allRecordsCache(function ($record) use ($table_obj, $column_obj) {
                 return $record->column_name == $column_obj && $record->custom_table_id == $table_obj->id;
             })->first();
         }
@@ -282,10 +292,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         // if column exists and (index_enabled = false or forceDropIndex)
         if ($exists && ($forceDropIndex || (!boolval($index_enabled)))) {
             \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+            $this->clearCache();
         }
         // if index_enabled = true, not exists, then create index
         elseif ($index_enabled && !$exists) {
             \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
+            $this->clearCache();
         }
     }
     
@@ -304,6 +316,19 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         if ($alterColumn && !hasColumn($db_table_name, $name)) {
             $this->alterColumn();
         }
+        return $name;
+    }
+
+    
+    /**
+     * Get select table relation name.
+     * @param CustomColumn|array $obj
+     * @param boolean $alterColumn if not exists column on db, execute alter column. if false, only get name
+     * @return string
+     */
+    public function getSelectTableRelationName()
+    {
+        $name = 'select_table_'.array_get($this->custom_table, 'suuid') . '_' . $this->select_target_table->suuid . '_' . $this->id;
         return $name;
     }
 

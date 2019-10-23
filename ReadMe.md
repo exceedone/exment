@@ -41,7 +41,6 @@ And more and more and more functions....
 - Microsoft Edge
 
 ## Screen Shot
-------------
 
 ![Custom Table and Column](https://exment.net/docs/img/common/screenshot_table_and_column.jpg)  
   
@@ -108,15 +107,17 @@ APP_LOCALE=en
 
 
 - Access exment page.  
-URL is http://127.0.0.1/admin
+URL is http://127.0.0.1:8000/admin
 
 ~~~
 php artisan serve
 ~~~
 
 
-
-------------
 # Develop
 If you'd like to help with the development of Exment, please visit this site and see how to set it up.  
 [Setup for Develop](Develop.md)
+
+
+# issues
+Please write issues using English or Japanese.  / issuesには英語または日本語で記載してください。

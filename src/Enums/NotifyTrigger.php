@@ -7,6 +7,7 @@ class NotifyTrigger extends EnumBase
     const TIME = "1";
     const CREATE_UPDATE_DATA = "2";
     const BUTTON = "3";
+    const WORKFLOW = "4";
 
     public function getDefaultMailKeyName()
     {
@@ -19,6 +20,9 @@ class NotifyTrigger extends EnumBase
 
             case static::BUTTON:
                 return null;
+                
+            case static::WORKFLOW:
+                return MailKeyName::WORKFLOW_NOTIFY;
         }
     }
 }

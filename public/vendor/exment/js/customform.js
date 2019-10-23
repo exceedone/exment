@@ -11,6 +11,7 @@ var Exment;
             $(document).off('click', '#changedata-button-reset').on('click', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
             CustomFromEvent.addDragEvent();
             CustomFromEvent.addCollapseEvent();
+            CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
             CustomFromEvent.appendIcheckEvent($('.icheck:visible,.icheck.icheck_hasmany_type'));
             $('form').on('submit', CustomFromEvent.ignoreSuggests);
         }
@@ -157,6 +158,21 @@ var Exment;
             var header_name = $li.closest('.box-custom_form_block').find('.header_name').val();
             var header_column_name = $li.find('.header_column_name').val();
             return header_name + header_column_name;
+        }
+        static appendSwitchEvent($elem) {
+            $elem.each(function (index, elem) {
+                var $e = $(elem);
+                $e.bootstrapSwitch({
+                    size: 'small',
+                    onText: 'YES',
+                    offText: 'NO',
+                    onColor: 'primary',
+                    offColor: 'default',
+                    onSwitchChange: function (event, state) {
+                        $(event.target).closest('.bootstrap-switch').next().val(state ? '1' : '0').change();
+                    }
+                });
+            });
         }
         static appendIcheckEvent($elem) {
             $elem.each(function (index, elem) {

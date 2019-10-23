@@ -18,6 +18,8 @@ class Define
     public const COMPOSER_VERSION_CHECK_URL = 'https://repo.packagist.org/p/exceedone/exment.json';
     public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
     public const EXMENT_NEWS_LINK = 'https://exment.net/archives/category/news';
+    public const USER_IMAGE_LINK = 'vendor/exment/images/user.png';
+    public const ORGANIZATION_IMAGE_LINK = 'vendor/exment/images/organization.png';
 
     public const RULES_REGEX_VALUE_FORMAT = '\${(.*?)\}';
     public const RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN = '^[a-zA-Z0-9\-_]*$';
@@ -119,6 +121,10 @@ class Define
     public const SYSTEM_KEY_SESSION_PROVIDER_TOKEN = "provider_token";
     public const SYSTEM_KEY_SESSION_PLUGINS = "plugins";
     public const SYSTEM_KEY_SESSION_PASSWORD_LIMIT = "password_limit";
+    public const SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE = "workflow_select_table_%s";
+    public const SYSTEM_KEY_SESSION_WORKFLOW_DESIGNATED_TABLE = "workflow_designated_table_%s";
+    public const SYSTEM_KEY_SESSION_UPDATE_NEWS = "update_news";
+    public const SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK = "worlflow_filter_check";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
@@ -157,6 +163,10 @@ class Define
         'template' => [
             'uri' => 'template',
             'icon' => 'fa-clone',
+        ],
+        'workflow' => [
+            'uri' => 'workflow',
+            'icon' => 'fa-share-alt',
         ],
         'backup' => [
             'uri' => 'backup',
@@ -219,6 +229,8 @@ class Define
     public const PAGER_GRID_COUNTS = [10, 20, 30, 50, 100];
     public const PAGER_DATALIST_COUNTS = [5, 10, 20];
 
+    public const WORKFLOW_START_KEYNAME = 'start';
+    
     // Template --------------------------------------------------
     public const TEMPLATE_IMPORT_EXCEL_SHEETNAME = [
         'custom_tables',

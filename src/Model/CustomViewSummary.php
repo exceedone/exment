@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 
 class CustomViewSummary extends ModelBase
 {
@@ -34,7 +34,7 @@ class CustomViewSummary extends ModelBase
             ],
         ],
         'enums' => [
-            'view_column_type' => ViewColumnType::class,
+            'view_column_type' => ConditionType::class,
         ],
     ];
 
@@ -45,7 +45,7 @@ class CustomViewSummary extends ModelBase
     
     public function custom_column()
     {
-        if ($this->view_column_type != ViewColumnType::COLUMN) {
+        if ($this->view_column_type != ConditionType::COLUMN) {
             return null;
         }
         return $this->belongsTo(CustomColumn::class, 'view_column_target_id');

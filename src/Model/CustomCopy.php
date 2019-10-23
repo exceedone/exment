@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Model;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 
 class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -199,10 +199,10 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected static function getColumnKey($column_type, $column_type_target, $custom_column)
     {
         // check column_type
-        if ($column_type == ViewColumnType::SYSTEM) {
+        if ($column_type == ConditionType::SYSTEM) {
             // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
             return SystemColumn::getOption(['id' => $column_type_target])['name'] ?? null;
-        } elseif ($column_type == ViewColumnType::PARENT_ID) {
+        } elseif ($column_type == ConditionType::PARENT_ID) {
             return Define::PARENT_ID_NAME;
         } else {
             return "value.{$custom_column->column_name}";

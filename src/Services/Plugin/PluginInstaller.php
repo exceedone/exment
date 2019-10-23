@@ -13,7 +13,7 @@ use File;
 use Validator;
 
 /**
- * Install Plugin
+ * Plugin Installer
  */
 class PluginInstaller
 {
@@ -74,7 +74,7 @@ class PluginInstaller
             // get config.json
             $json = json_decode(File::get($config_path), true);
 
-            //If $json nothing, then delete folder extracted, return admin/plugin with error message 'config.jsonファイルが不正です'
+            //If $json nothing, then delete folder extracted, return admin/plugin with error message 'config.json wrong'
             if ($json == null) {
                 $response = back()->with('errorMess', exmtrans('common.message.wrongconfig'));
             } else {

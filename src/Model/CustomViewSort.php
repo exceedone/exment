@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 
 class CustomViewSort extends ModelBase
 {
@@ -31,7 +31,7 @@ class CustomViewSort extends ModelBase
             ],
         ],
         'enums' => [
-            'view_column_type' => ViewColumnType::class,
+            'view_column_type' => ConditionType::class,
         ],
     ];
 

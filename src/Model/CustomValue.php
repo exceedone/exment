@@ -8,20 +8,27 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\ValueType;
+use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Enums\ErrorCode;
 
-class CustomValue extends ModelBase
+abstract class CustomValue extends ModelBase
 {
-    use Traits\AutoSUuidTrait;
-    use Traits\DatabaseJsonTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
-    use \Exceedone\Exment\Revisionable\RevisionableTrait;
+    use Traits\AutoSUuidTrait, 
+    Traits\DatabaseJsonTrait,
+    Traits\HasDynamicRelationTrait,
+    \Illuminate\Database\Eloquent\SoftDeletes,
+    \Exceedone\Exment\Revisionable\RevisionableTrait;
 
     protected $casts = ['value' => 'json'];
     protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
-    
+
     /**
      * remove_file_columns.
      * default flow, if file column is empty, set original value.
@@ -33,14 +40,14 @@ class CustomValue extends ModelBase
      * if false, don't notify
      */
     protected $saved_notify = true;
-    
+
     /**
      * already_updated.
      * if true, not call saved event again.
      */
     protected $already_updated = false;
-    
-    
+
+
     /**
      * Create a new Eloquent model instance.
      *
@@ -60,6 +67,16 @@ class CustomValue extends ModelBase
         parent::__construct($attributes);
     }
 
+    public function workflow_value()
+    {
+        return $this->hasOne(WorkflowValue::class, 'morph_id')
+            ->where('morph_type', $this->custom_table->table_name)
+            ->where('latest_flg', true)
+            ->with(['workflow_status'])
+            ->orderBy('updated_at', 'desc')
+            ;
+    }
+
     public function getLabelAttribute()
     {
         return $this->getLabel();
@@ -68,9 +85,61 @@ class CustomValue extends ModelBase
     public function getCustomTableAttribute()
     {
         // return resuly using cache
-        return System::requestSession('custom_table_' . $this->custom_table_name, function () {
-            return CustomTable::getEloquent($this->custom_table_name);
-        });
+        return CustomTable::getEloquent($this->custom_table_name);
+    }
+
+    public function getWorkflowStatusAttribute()
+    {
+        return isset($this->workflow_value) ? $this->workflow_value->workflow_status : null;
+    }
+
+    public function getWorkflowStatusNameAttribute()
+    {
+        if(isset($this->workflow_status)){
+            return $this->workflow_status->status_name;
+        }
+
+        // get workflow
+        $workflow = isset($this->workflow_value) ? $this->workflow_value->workflow : null;
+        if(!isset($workflow)){
+            $workflow = Workflow::getWorkflowByTable($this->custom_table);
+        }
+        if(isset($workflow)){
+            return $workflow->start_status_name;
+        }
+
+        return null;
+    }
+
+    public function getWorkflowStatusTagAttribute()
+    {
+        $icon = ' <i class="fa fa-lock" aria-hidden="true" data-toggle="tooltip" title="' . esc_html(exmtrans('workflow.message.locked')) . '"></i>';
+        return $this->workflow_status_name .
+            ($this->lockedWorkflow() ? $icon : '');
+    }
+
+    public function getWorkflowWorkUsersAttribute()
+    {        
+        $workflow_actions = $this->getWorkflowActions(false, true);
+
+        $result = collect();
+        foreach($workflow_actions as $workflow_action){
+            $result = $workflow_action->getAuthorityTargets($this)->merge($result);
+        }
+
+        return $result;
+    }
+
+    public function getWorkflowWorkUsersTagAttribute()
+    {       
+        $users = $this->workflow_work_users;
+
+        return collect($users)->map(function($user){
+            if(is_string($user)){
+                return $user;
+            }
+            return getUserName($user, true, true);
+        })->implode('');
     }
 
     // user value_authoritable. it's all role data. only filter morph_type
@@ -91,6 +160,77 @@ class CustomValue extends ModelBase
             ;
     }
 
+
+    // get workflow actions which has authority
+    public function getWorkflowActions($onlyHasAuthority = false, $ignoreNextWork = false)
+    {
+        $workflow_value = $this->workflow_value;
+
+        // get workflow.
+        $workflow = isset($workflow_value) ? $workflow_value->workflow : null;
+        if(!isset($workflow)){
+            $workflow = Workflow::getWorkflowByTable($this->custom_table);
+        }
+
+        if(!isset($workflow)){
+            return collect();
+        }
+
+        // get current status etc
+        $workflow_status = isset($workflow_value) ? $workflow_value->workflow_status : null;
+
+        // get matched actions
+        $workflow_actions = $workflow
+            ->workflow_actions
+            ->filter(function($workflow_action) use($workflow_status){
+                if(!isset($workflow_status)){
+                    return $workflow_action->status_from == Define::WORKFLOW_START_KEYNAME;
+                }
+                return $workflow_action->status_from == $workflow_status->id;
+            });
+
+        // check authority
+        if($onlyHasAuthority){
+            $workflow_actions = $workflow_actions->filter(function($workflow_action){
+                // has authority, and has MatchedCondtionHeader.
+                return $workflow_action->hasAuthority($this) && !is_null($workflow_action->getMatchedCondtionHeader($this));
+            });
+        }
+
+        if($ignoreNextWork){
+            $workflow_actions = $workflow_actions->filter(function($workflow_action){
+                return !boolval($workflow_action->getOption('ignore_work', false));
+            });
+        }
+
+        return $workflow_actions;
+    }
+
+    /**
+     * get workflow histories
+     *
+     * @return void
+     */
+    public function getWorkflowHistories($appendsStatus = false)
+    {
+        $values = WorkflowValue::where('morph_type', $this->custom_table->table_name)
+            ->where('morph_id', $this->id)
+            ->orderby('workflow_values.created_at', 'desc')
+            ->with(['workflow', 'workflow_action'])
+            ->get();
+
+        if($appendsStatus){
+            foreach($values as $v){
+                $v->append('created_user');
+                $v->workflow_action->append('status_from_name');
+                $v->workflow_action->status_to_name = $v->workflow_action->getStatusToName($this);
+                $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', $v->workflow_action->status_from_name, $v->workflow_action->status_to_name);
+            }
+        }
+
+        return $values;
+    }
+
     public function parent_custom_value()
     {
         return $this->morphTo();
@@ -109,7 +249,7 @@ class CustomValue extends ModelBase
         $this->remove_file_columns[] = $key;
         return $this;
     }
-    
+
     public function saved_notify($disable_saved_notify)
     {
         $this->saved_notify = $disable_saved_notify;
@@ -124,7 +264,7 @@ class CustomValue extends ModelBase
             // re-get field data --------------------------------------------------
             $model->prepareValue();
 
-            // call plugins
+            // call saving trigger plugins
             Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saving', [
                 'custom_table' => $model->custom_table,
                 'custom_value' => $model,
@@ -135,7 +275,7 @@ class CustomValue extends ModelBase
         });
         static::saved(function ($model) {
             $model->setFileValue();
-            
+
             // call plugins
             Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saved', [
                 'custom_table' => $model->custom_table,
@@ -158,7 +298,7 @@ class CustomValue extends ModelBase
             // set revision
             $model->postSave();
         });
-        
+
         static::deleting(function ($model) {
             static::setUser($model, ['deleted_user_id']);
 
@@ -167,7 +307,7 @@ class CustomValue extends ModelBase
             $model->saved_notify = false;
             $model->save();
             $model->saved_notify = $saved_notify;
-            
+
             $model->deleteRelationValues();
         });
 
@@ -190,12 +330,30 @@ class CustomValue extends ModelBase
      */
     public function validatorSaving($input)
     {
+        // validate multiple column set is unique
+        $errors = $this->validatorMultiUniques();
+
+        // call plugin validator
+        $errors = array_merge_recursive($errors, Plugin::pluginValidator(Plugin::getPluginsByTable($this->custom_table), [
+            'custom_table' => $this->custom_table,
+            'custom_value' => $this,
+            'input_value' => array_get($input, 'value'),
+        ]));
+
+        return count($errors) > 0 ? $errors : true;
+    }
+
+    protected function validatorMultiUniques()
+    {
         $errors = [];
+
         // getting custom_table's custom_column_multi_uniques
         $multi_uniques = $this->custom_table->getMultipleUniques();
+
         if (!isset($multi_uniques) || count($multi_uniques) == 0) {
-            return true;
+            return $errors;
         }
+
         foreach ($multi_uniques as $multi_unique) {
             $query = static::query();
             $column_keys = [];
@@ -228,7 +386,7 @@ class CustomValue extends ModelBase
             if (empty($column_keys)) {
                 continue;
             }
-            
+
             // if all column's value is empty, continue.
             if (collect($column_keys)->filter(function ($column) use ($input) {
                 return !is_nullorempty(array_get($input, 'value.' . $column->column_name));
@@ -250,10 +408,8 @@ class CustomValue extends ModelBase
                 }
             }
         }
-
-        return count($errors) > 0 ? $errors : true;
+        return $errors;
     }
-
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
     protected function prepareValue()
@@ -382,7 +538,7 @@ class CustomValue extends ModelBase
         }
     }
 
-    
+
     // notify user --------------------------------------------------
     public function notify($notifySavedType)
     {
@@ -416,27 +572,27 @@ class CustomValue extends ModelBase
                 ->where('parent_type', $custom_table->table_name)
                 ->delete();
         }
-        
+
         // delete custom relation is n:n value
         $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::MANY_TO_MANY);
         // loop relations
         foreach ($relations as $relation) {
             // ge pivot table
             $pivot_name = $relation->getRelationName();
-            
+
             // find keys and delete
             \DB::table($pivot_name)
                 ->where('parent_id', $this->id)
                 ->delete();
         }
-        
+
         // delete custom relation is n:n value (for children)
         $relations = CustomRelation::getRelationsByChild($custom_table, RelationType::MANY_TO_MANY);
         // loop relations
         foreach ($relations as $relation) {
             // ge pivot table
             $pivot_name = $relation->getRelationName();
-            
+
             // find keys and delete
             \DB::table($pivot_name)
                 ->where('child_id', $this->id)
@@ -448,7 +604,7 @@ class CustomValue extends ModelBase
         // delete role group
         RoleGroupUserOrganization::deleteRoleGroupUserOrganization($this);
     }
-    
+
     /**
      * get Authoritable values.
      * this function selects value_authoritable, and get all values.
@@ -472,7 +628,7 @@ class CustomValue extends ModelBase
     {
         return $this->setJson('value', $key, $val, $forgetIfNull);
     }
-    
+
     public function getValue($column, $label = false, $options = [])
     {
         if (is_null($column)) {
@@ -512,12 +668,12 @@ class CustomValue extends ModelBase
                     if (is_null($loop_value)) {
                         return null;
                     }
-                    
+
                     // if last index, return value
                     if ($lastIndex) {
                         return $loop_value;
                     }
-                    
+
                     // get custom table. if CustomValue
                     if (!($loop_value instanceof CustomValue)) {
                         return null;
@@ -542,7 +698,15 @@ class CustomValue extends ModelBase
         }
 
         $item->options($options);
-        if ($label) {
+
+        // get value
+        // using ValueType
+        $valueType = ValueType::getEnum($label);
+        if(!is_bool($label) && isset($valueType)){
+            return $valueType->getCustomValue($item, $this);
+        }
+
+        if ($label === true) {
             return $item->text();
         }
         return $item->value();
@@ -659,6 +823,8 @@ class CustomValue extends ModelBase
                 'icon' => null,
                 'modal' => true,
                 'add_id' => false,
+                'add_avatar' => false,
+                'only_avatar' => false,
             ],
             $options
         );
@@ -677,7 +843,7 @@ class CustomValue extends ModelBase
         if (!boolval($options['list'])) {
             $url = url_join($url, $this->id);
         }
-        
+
         if (isset($options['uri'])) {
             $url = url_join($url, $options['uri']);
         }
@@ -703,9 +869,18 @@ class CustomValue extends ModelBase
             $widgetmodal_url .= " data-id='{$this->id}'";
         }
 
+        if (!is_nullorempty($label) && (boolval($options['add_avatar']) || boolval($options['only_avatar'])) && method_exists($this, 'getDisplayAvatarAttribute')) {
+            $img = "<img src='{$this->display_avatar}' class='user-avatar' />";
+            $label = '<span class="d-inline-block">' . $img . $label . '</span>';
+
+            if(boolval($options['only_avatar'])){
+                return $label;
+            }
+        }
+
         return "<a href='$href'$widgetmodal_url>$label</a>";
     }
-    
+
     /**
      * get target custom_value's relation search url
      */
@@ -738,7 +913,7 @@ class CustomValue extends ModelBase
 
         return $value;
     }
-    
+
     /**
      * get parent value
      */
@@ -750,7 +925,7 @@ class CustomValue extends ModelBase
         }
         return $model->label ?? null;
     }
-    
+
     /**
      * Get Custom children value summary
      */
@@ -783,7 +958,7 @@ class CustomValue extends ModelBase
                 return $returnBuilder ? $query : $query->get();
             }
         }
-    
+
         // get custom column as array
         $child_table = CustomTable::getEloquent($relation);
         $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
@@ -791,7 +966,7 @@ class CustomValue extends ModelBase
         if (isset($pivot_table_name)) {
             return $returnBuilder ? $this->{$pivot_table_name}() : $this->{$pivot_table_name};
         }
-        
+
         return null;
     }
 
@@ -825,13 +1000,18 @@ class CustomValue extends ModelBase
 
         // crate union query
         $queries = [];
-        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
-            $searchColumn = $searchColumns[$i];
+        $index = 0;
+        foreach ($searchColumns as $searchColumn) {
+            if($index >= count($searchColumns) - 1){
+                break;
+            }
+
             $query = static::query();
             $query->where($searchColumn, $mark, $value)->select('id');
             $query->take($takeCount);
 
             $queries[] = $query;
+            $index++;
         }
 
         $searchColumn = $searchColumns->last();
@@ -885,7 +1065,7 @@ class CustomValue extends ModelBase
                 'makeHidden' => false,
                 'searchColumns' => null,
                 'relation' => false,
-                
+
             ],
             $options
         );
@@ -901,7 +1081,7 @@ class CustomValue extends ModelBase
         if (!isset($searchColumns) || count($searchColumns) == 0) {
             return $options;
         }
-        
+
         if (System::filter_search_type() == FilterSearchType::ALL) {
             $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         } else {
@@ -926,5 +1106,89 @@ class CustomValue extends ModelBase
         $options['value'] = $value;
 
         return $options;
+    }
+
+    /**
+     * Is locked by workflow
+     *
+     * @return void
+     */
+    public function lockedWorkflow(){
+        // check workflow
+        if(!isset($this->workflow_status)){
+            return false;
+        }
+
+        return boolval($this->workflow_status->datalock_flg);
+    }
+
+    /**
+     * User can access this custom value
+     *
+     * @return void
+     */
+    public function enableAccess(){
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return $code;
+        }
+
+        if (!$this->custom_table->hasPermissionData($this)) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        return true;
+    }
+
+    /**
+     * User can edit this custom value
+     *
+     * @return void
+     */
+    public function enableEdit($checkFormAction = false){
+        if (($code = $this->custom_table->enableEdit($checkFormAction)) !== true) {
+            return $code;
+        }
+
+        if (!$this->custom_table->hasPermissionEditData($this)) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+        
+        if ($this->custom_table->isOneRecord()) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        // check workflow
+        if($this->lockedWorkflow()){
+            return ErrorCode::WORKFLOW_LOCK();
+        }
+
+        return true;
+    }
+
+    /**
+     * User can delete this custom value
+     *
+     * @return void
+     */
+    public function enableDelete($checkFormAction = false){
+        if (!$this->custom_table->hasPermissionEditData($this)) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+        if ($checkFormAction && $this->custom_table->formActionDisable(FormActionType::DELETE)) {
+            return false;
+        }
+        if ($this->custom_table->isOneRecord()) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+        if(boolval($this->disabled_delete)){
+            return ErrorCode::DELETE_DISABLED();
+        }
+
+        // check workflow
+        if($this->lockedWorkflow()){
+            return ErrorCode::WORKFLOW_LOCK();
+        }
+
+        return true;
     }
 }

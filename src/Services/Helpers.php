@@ -1,9 +1,12 @@
 <?php
+use Encore\Admin\Form\Field;
 use Exceedone\Exment\Services\ClassBuilder;
+use Exceedone\Exment\Services\ReplaceFormat\ReplaceFormatService;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
@@ -12,7 +15,9 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -140,6 +145,12 @@ if (!function_exists('is_nullorempty')) {
             return true;
         }
         if (is_string($obj) && strlen($obj) == 0) {
+            return true;
+        }
+        if (is_array($obj) && count($obj) == 0) {
+            return true;
+        }
+        if ($obj instanceof \Illuminate\Database\Eloquent\Collection && $obj->count() == 0) {
             return true;
         }
         return false;
@@ -442,6 +453,33 @@ if (!function_exists('isApiEndpoint')) {
     }
 }
 
+// date --------------------------------------------------
+if (!function_exists('hasDuplicateDate')) {
+    /**
+     * Check dates Duplicate
+     *
+     * @param array $dates array of between ['start':Carbon, 'end':Carbon]
+     * @return boolean Duplicate:true
+     */
+    function hasDuplicateDate($dates)
+    {
+        $dates = collect($dates);
+
+        for($i = 0; $i < count($dates) - 1; $i++){
+            $date = $dates->values()->get($i);
+            $searchDates = $dates->slice($i + 1);
+
+            if($searchDates->contains(function($searchDate) use($date){
+                return $date['start']->lte($searchDate['end']) && $date['end']->gte($searchDate['start']);
+            })){
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 // array --------------------------------------------------
 if (!function_exists('array_keys_exists')) {
     /**
@@ -528,6 +566,31 @@ if (!function_exists('array_dot_only')) {
             array_set($newArray, $key, array_get($array, $key));
         }
         return $newArray;
+    }
+}
+
+if (!function_exists('jsonToArray')) {
+    /**
+     * json to array
+     *
+     * @param mixed $string
+     * @return array
+     */
+    function jsonToArray($value)
+    {
+        if(!isset($value)){
+            return [];
+        }
+        
+        // convert json to array
+        if (is_array($value)) {
+            return $value;
+        }
+        // convert json to array
+        if (!is_array($value) && is_json($value)) {
+            return json_decode($value, true);
+        }
+        return $value;
     }
 }
 
@@ -706,7 +769,18 @@ if (!function_exists('replaceBreak')) {
      */
     function replaceBreak($text, $isescape = true)
     {
-        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $isescape ? esc_script_tag($text) : $text);
+        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $isescape ? esc_html($text) : $text);
+    }
+}
+
+if (!function_exists('explodeBreak')) {
+    /**
+     * explode new line code
+     * @return string
+     */
+    function explodeBreak($text)
+    {
+        return explode("\r\n", preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "\r\n", $text));
     }
 }
 
@@ -725,16 +799,23 @@ if (!function_exists('getModelName')) {
             $suuid = $table->suuid;
         } elseif ($obj instanceof CustomTable) {
             $suuid = $obj->suuid;
+        } elseif ($obj instanceof CustomColumn) {
+            $suuid = CustomTable::getEloquent($obj)->suuid;
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
-            $tables = CustomTable::allRecords();
-
-            $table = collect($tables)->first(function ($table) use ($obj) {
+            $table = CustomTable::allRecordsCache(function($table) use ($obj){
                 if (is_numeric($obj)) {
                     return array_get($table, 'id') == $obj;
                 }
                 return array_get($table, 'table_name') == $obj;
-            });
+            })->first();
+
+            // $table = collect($tables)->first(function ($table) use ($obj) {
+            //     if (is_numeric($obj)) {
+            //         return array_get($table, 'id') == $obj;
+            //     }
+            //     return array_get($table, 'table_name') == $obj;
+            // });
             $suuid = array_get($table, 'suuid');
         }
 
@@ -752,7 +833,6 @@ if (!function_exists('getModelName')) {
             if (!isset($suuid)) {
                 return null;
             }
-            // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
             if (!is_null($table)) {
                 $table->createTable();
@@ -771,7 +851,8 @@ if (!function_exists('canConnection')) {
      */
     function canConnection()
     {
-        return System::requestSession(Define::SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE, function () {
+        // Use session. Not request session
+        return System::cache(Define::SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE, function () {
             // get all table names
             return DB::canConnection();
         });
@@ -781,12 +862,13 @@ if (!function_exists('canConnection')) {
 if (!function_exists('hasTable')) {
     /**
      * whether database has table
+     * *CANNOT USE if create table dynamic (ex. install)
      * @param string $table_name *only table name
      * @return string
      */
     function hasTable($table_name)
     {
-        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function () {
+        $tables = System::cache(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function () {
             // get all table names
             return DB::connection()->getDoctrineSchemaManager()->listTableNames();
         });
@@ -805,7 +887,7 @@ if (!function_exists('hasColumn')) {
     function hasColumn($table_name, $column_name)
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE, $table_name);
-        $columns = System::requestSession($key, function () use ($table_name) {
+        $columns = System::cache($key, function () use ($table_name) {
             // get all table names
             return DB::connection()->getSchemaBuilder()->getColumnListing($table_name);
         });
@@ -880,270 +962,7 @@ if (!function_exists('replaceTextFromFormat')) {
      */
     function replaceTextFromFormat($format, $custom_value = null, $options = [])
     {
-        if (is_null($format)) {
-            return null;
-        }
-
-        $options = array_merge(
-            [
-                'matchBeforeCallback' => null,
-                'afterCallBack' => null,
-            ],
-            $options
-        );
-
-        try {
-            // check string
-            preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $format, $matches);
-            if (isset($matches)) {
-                // loop for matches. because we want to get inner {}, loop $matches[1].
-                for ($i = 0; $i < count($matches[1]); $i++) {
-                    $str = null;
-                    $matchString = null;
-                    try {
-                        $match = $matches[1][$i];
-                        $matchString = $matches[0][$i];
-                        
-                        //split semi-coron
-                        $length_array = explode("/", $match);
-                        $matchOptions = [];
-                        if (count($length_array) > 1) {
-                            $targetFormat = $length_array[0];
-                            // $item is splited comma, key=value string
-                            foreach (explode(',', $length_array[1]) as $item) {
-                                $kv = explode('=', $item);
-                                if (count($kv) <= 1) {
-                                    continue;
-                                }
-                                $matchOptions[$kv[0]] = $kv[1];
-                            }
-                        } else {
-                            $targetFormat = $length_array[0];
-                        }
-
-                        //$targetFormat = strtolower($targetFormat);
-                        // get length
-                        $length_array = explode(":", $targetFormat);
-                        $key = $length_array[0];
-                        
-                        $systemValues = collect(SystemColumn::getOptions())->pluck('name')->toArray();
-                        // define date array
-                        $dateStrings = [
-                            'ymdhms' => 'YmdHis',
-                            'ymdhm' => 'YmdHi',
-                            'ymdh' => 'YmdH',
-                            'ymd' => 'Ymd',
-                            'ym' => 'Ym',
-                            'hms' => 'His',
-                            'hm' => 'Hi',
-
-                            'ymdhis' => 'YmdHis',
-                            'ymdhi' => 'YmdHi',
-                            'his' => 'His',
-                            'hi' => 'Hi',
-                        ];
-                        $dateValues = [
-                            'year' => 'year',
-                            'month' => 'month',
-                            'day' => 'day',
-                            'hour' => 'hour',
-                            'minute' => 'minute',
-                            'second' => 'second',
-                            'y' => 'year',
-                            'm' => 'month',
-                            'd' => 'day',
-                            'h' => 'hour',
-                            'i' => 'minute',
-                            's' => 'second',
-                        ];
-
-                        $callbacked = false;
-                        if (array_key_value_exists('matchBeforeCallback', $options)) {
-                            // execute callback
-                            $callbackFunc = $options['matchBeforeCallback'];
-                            $result = $callbackFunc($length_array, $match, $format, $custom_value, $options);
-                            if ($result) {
-                                $str = $result;
-                                $callbacked = true;
-                            }
-                        }
-
-                        if (!$callbacked) {
-                            ///// System value
-                            if (in_array($key, $systemValues)) {
-                                if (!isset($custom_value)) {
-                                    $str = '';
-                                }
-                                //else, get system value
-                                else {
-                                    $str = $custom_value->{$key};
-                                    if (count($length_array) > 1) {
-                                        $str = sprintf('%0'.$length_array[1].'d', $str);
-                                    }
-                                }
-                            }
-                            ///// value_url
-                            elseif ($key == "value_url") {
-                                if (!isset($custom_value)) {
-                                    $str = '';
-                                }
-
-                                //else, getting url
-                                else {
-                                    $tag = array_key_value_exists('link', $matchOptions);
-                                    $str = $custom_value->getUrl(['tag' => $tag, 'modal' => false]) ?? '';
-                                    array_forget($matchOptions, 'link');
-                                }
-                            }
-                            ///// value
-                            ///// base_info
-                            elseif (in_array($key, ["value", SystemTableName::BASEINFO])) {
-                                if ($key == "value") {
-                                    $target_value = $custom_value;
-                                } else {
-                                    $target_value = getModelName(SystemTableName::BASEINFO)::first();
-                                }
-                                if (!isset($target_value)) {
-                                    $str = '';
-                                }
-                                // get value from model
-                                elseif (count($length_array) <= 1) {
-                                    $str = $target_value->getLabel();
-                                } else {
-                                    // get comma string from index 1.
-                                    $length_array = array_slice($length_array, 1);
-
-                                    $str = $target_value->getValue(implode(',', $length_array), true, $matchOptions) ?? '';
-                                }
-                            }
-                            ///// sum
-                            elseif ($key == "sum") {
-                                if (!isset($custom_value)) {
-                                    $str = '';
-                                }
-
-                                // get sum value from children model
-                                elseif (count($length_array) <= 2) {
-                                    $str = '';
-                                }
-                                //else, getting value using cihldren
-                                else {
-                                    // get children values
-                                    $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
-                                    // looping
-                                    $sum = 0;
-                                    foreach ($children as $child) {
-                                        // get value
-                                        $sum += intval(str_replace(',', '', $child->getValue($length_array[2]) ?? 0));
-                                    }
-                                    $str = strval($sum);
-                                }
-                            }
-                            ///// child
-                            elseif ($key == "child") {
-                                if (!isset($custom_value)) {
-                                    $str = '';
-                                }
-
-                                // get sum value from children model
-                                elseif (count($length_array) <= 3) {
-                                    $str = '';
-                                }
-                                //else, getting value using cihldren
-                                else {
-                                    // get children values
-                                    $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
-                                    // get length
-                                    $index = intval($length_array[3]);
-                                    // get value
-                                    if (count($children) <= $index) {
-                                        $str = '';
-                                    } else {
-                                        $str = $children[$index]->getValue($length_array[2], true, $matchOptions) ?? '';
-                                    }
-                                }
-                            }
-                            ///// parent
-                            elseif ($key == 'parent') {
-                                if (!isset($custom_value)) {
-                                    $str = '';
-                                }
-                                // get value from model
-                                elseif (count($length_array) <= 1) {
-                                    $str = $custom_value->getParentValue(true);
-                                } else {
-                                    $parentModel = $custom_value->getParentValue(false);
-                                    $str = $parentModel->getValue($length_array[1], true, $matchOptions) ?? '';
-                                }
-                            }
-                            // suuid
-                            elseif ($key == "suuid") {
-                                $str = short_uuid();
-                            }
-                            // uuid
-                            elseif ($key == "uuid") {
-                                $str = make_uuid();
-                            }
-                            // system
-                            elseif ($key == "system") {
-                                if (count($length_array) < 2) {
-                                    $str = '';
-                                } else {
-                                    $key_system = $length_array[1];
-                                    if (System::hasFunction($key_system)) {
-                                        $str = System::{$key_system}();
-                                    }
-                                    // get static value
-                                    elseif ($key_system == "login_url") {
-                                        $str = admin_url("auth/login");
-                                    } elseif ($key_system == "system_url") {
-                                        $str = admin_url("");
-                                    }
-                                }
-                            }
-                            // if has $datestrings, conbert using date string
-                            elseif (array_key_exists(strtolower($key), $dateStrings)) {
-                                $str = Carbon::now()->format($dateStrings[strtolower($key)]);
-                            }
-                            // if has $dateValues, conbert using date value
-                            elseif (array_key_exists(strtolower($key), $dateValues)) {
-                                $str = Carbon::now()->{$dateValues[strtolower($key)]};
-                                // if user input length
-                                if (count($length_array) > 1) {
-                                    $length = $length_array[1];
-                                }
-                                // default 2
-                                else {
-                                    $length = 1;
-                                }
-                                $str = sprintf('%0'.$length.'d', $str);
-                            }
-                        }
-                    } catch (\Exception $e) {
-                        $str = '';
-                    }
-
-                    if (array_key_value_exists('link', $matchOptions)) {
-                        $str = "<a href='$str'>$str</a>";
-                    }
-
-                    if ($options['escapeValue']?? false) {
-                        $str = esc_html($str);
-                    }
-
-                    // replace
-                    $format = str_replace($matchString, $str, $format);
-                }
-            }
-        } catch (\Exception $e) {
-        }
-
-        if (array_key_value_exists('afterCallback', $options)) {
-            // execute callback
-            $callbackFunc = $options['afterCallback'];
-            $format = $callbackFunc($format, $custom_value, $options);
-        }
-        return $format;
+        return ReplaceFormatService::replaceTextFromFormat($format, $custom_value, $options);
     }
 }
 
@@ -1223,17 +1042,29 @@ if (! function_exists('abortJson')) {
      * *Have to return object.
      *
      * @param  \Symfony\Component\HttpFoundation\Response|int     $code
-     * @param  string  $message
-     * @param  array   $headers
+     * @param  string|array|ErrorCode  $message
+     * @param  ErrorCode  $errorCode
      * @return void
      */
-    function abortJson($code, $message = null)
+    function abortJson($code, $message = null, $errorCode = null)
     {
-        if (!is_null($message) && is_string($message)) {
-            return response()->json(['message' => $message], $code);
+        $result = [];
+        if (!is_null($message)) {
+            if(is_string($message)){
+                $result['message'] = $message;
+            }elseif($message instanceof ErrorCode){
+                $result['code'] = $message->getValue();
+                $result['message'] = $message->getMessage();
+            }elseif(is_array($message)){
+                $result = $message;
+            }
         }
 
-        return response()->json($message, $code);
+        if (!is_null($errorCode)) {
+            $result['code'] = $errorCode->getValue();
+        }
+
+        return response()->json($result, $code);
     }
 }
 
@@ -1565,9 +1396,19 @@ if (!function_exists('getUserName')) {
      * @param string $id
      * @return string user name
      */
-    function getUserName($id, $link = false)
+    function getUserName($id, $link = false, $addAvatar = false)
     {
-        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
+        if(is_nullorempty($id)){
+            return null;
+        }
+
+        if($id instanceof CustomValue){
+            $user = $id;    
+        }
+        else{
+            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
+        }
+        
         if (!isset($user)) {
             return null;
         }
@@ -1576,7 +1417,10 @@ if (!function_exists('getUserName')) {
         }
 
         if ($link) {
-            return $user->getUrl(true);
+            return $user->getUrl([
+                'tag' => true,
+                'add_avatar' => $addAvatar,
+            ]);
         }
         return $user->getLabel();
     }
@@ -1619,36 +1463,6 @@ if (!function_exists('useLoginProvider')) {
             $path = trim($path, '/');
     
             return $path?? '/';
-        }
-    }
-
-    if (!function_exists('getCustomField')) {
-        function getCustomField($data, $field_label = null)
-        {
-            $view_column_target = array_get($data, 'view_column_target');
-            $view_filter_condition = array_get($data, 'view_filter_condition');
-
-            if (!isset($view_column_target)) {
-                return null;
-            }
-    
-            $value_type = null;
-    
-            if (isset($view_filter_condition)) {
-                $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($view_filter_condition);
-    
-                if ($value_type == 'none') {
-                    return null;
-                }
-            }
-    
-            // get column item
-            $column_item = CustomViewFilter::getColumnItem($view_column_target);
-            if (isset($field_label)) {
-                $column_item->setLabel($field_label);
-            }
-    
-            return $column_item->getFilterField($value_type);
         }
     }
 }

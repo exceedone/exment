@@ -9,6 +9,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomOperation;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Field\ChangeField;
@@ -17,9 +18,9 @@ class CustomOperationController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
 
-    public function __construct(Request $request)
+    public function __construct(CustomTable $custom_table, Request $request)
     {
-        parent::__construct($request);
+        parent::__construct($custom_table, $request);
         
         $this->setPageInfo(exmtrans("custom_operation.header"), exmtrans("custom_operation.header"), exmtrans("custom_operation.description"), 'fa-th-list');
     }
@@ -31,7 +32,6 @@ class CustomOperationController extends AdminControllerTableBase
      */
     public function index(Request $request, Content $content)
     {
-        $this->setFormViewInfo($request);
         return parent::index($request, $content);
     }
 
@@ -43,8 +43,6 @@ class CustomOperationController extends AdminControllerTableBase
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
-        $this->setFormViewInfo($request);
-        
         //Validation table value
         if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             return;
@@ -73,7 +71,6 @@ class CustomOperationController extends AdminControllerTableBase
      */
     public function create(Request $request, Content $content)
     {
-        $this->setFormViewInfo($request);
         //Validation table value
         if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             return;

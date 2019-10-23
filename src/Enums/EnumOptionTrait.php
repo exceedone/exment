@@ -4,9 +4,9 @@ namespace Exceedone\Exment\Enums;
 
 trait EnumOptionTrait
 {
-    protected function option()
+    public function option()
     {
-        return array_get(static::options, $this, null);
+        return array_get(static::$options, $this->lowerKey(), null);
     }
 
     public static function getOptions($filters = [])

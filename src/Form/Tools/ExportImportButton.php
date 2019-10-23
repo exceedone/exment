@@ -77,7 +77,7 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
                     'label' => exmtrans('common.import'),
                     'items' =>[
                         ['href' => $import_template, 'text' => $import_template_trans, 'target' => '_blank'],
-                        ['href' => 'javascript:void(0);', 'text' => $import, 'data-toggle' => 'modal', 'data-target' => '#data_import_modal', 'format_query' => false],
+                        ['href' => 'javascript:void(0);', 'text' => $import,  'data-widgetmodal_url' => url_join($this->endpoint, 'importModal'), 'format_query' => false],
                     ]
                 ];
             }
@@ -89,7 +89,7 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
 
         return view('exment::tools.exportimport-button', [
             'buttons' => $buttons,
-            'button_caption' => $import_export
+            'button_caption' => $import_export,
         ]);
     }
 }

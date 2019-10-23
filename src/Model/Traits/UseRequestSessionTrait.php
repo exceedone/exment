@@ -13,9 +13,34 @@ trait UseRequestSessionTrait
      */
     public static function allRecords(Closure $filter = null, $isGetAll = true)
     {
+        return static::_allRecords('requestSession', $filter, $isGetAll);
+    }
+    
+    /**
+     * get all records. use cache
+     */
+    public static function allRecordsCache(Closure $filter = null, $isGetAll = true)
+    {
+        return static::_allRecords('cache', $filter, $isGetAll);
+    }
+    
+    /**
+     * reset all records. use cache
+     */
+    public static function resetAllRecordsCache()
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
+        System::resetCache($key);
+    }
+    
+    /**
+     * get all records.
+     */
+    protected static function _allRecords($func, Closure $filter = null, $isGetAll = true)
+    {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
         // get from request session
-        $records = System::requestSession($key, function () {
+        $records = System::{$func}($key, function () {
             return self::all();
         });
 
@@ -37,7 +62,7 @@ trait UseRequestSessionTrait
 
         // else, get all again
         $records = self::all();
-        System::requestSession($key, $records);
+        System::{$func}($key, $records);
 
         if (!isset($records)) {
             return $records;
@@ -51,4 +76,6 @@ trait UseRequestSessionTrait
         }
         return $records;
     }
+
+    
 }

@@ -174,6 +174,11 @@ class Permission
                     return array_key_exists(PermissionEnum::LOGIN_USER, $this->permission_details);
                 }
                 return false;
+            case "workflow":
+                if ($systemRole) {
+                    return array_keys_exists(PermissionEnum::WORKFLOW, $this->permission_details);
+                }
+                return false;
             case "role":
             case "role_group":
                 if ($systemRole) {

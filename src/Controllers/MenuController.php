@@ -4,8 +4,10 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
@@ -169,6 +171,20 @@ class MenuController extends AdminControllerBase
                 }
                 return $contoller->getMenuType(array_get($menu, 'menu_type'), false);
             })
+            ->attribute([
+                'data-linkage' => json_encode(['menu_target_view' => admin_url('webapi/menu/menutargetview')])
+            ]);
+        $form->select('menu_target_view', exmtrans("menu.menu_target_view"))
+            ->attribute(['data-filter' => json_encode([
+                'key' => 'menu_type', 'value' => [MenuType::TABLE]
+            ])])
+            ->options(function ($option) use ($menu, $contoller) {
+                // get model
+                if (!isset($menu)) {
+                    return [];
+                }
+                return $contoller->getViewList(array_get($menu, 'menu_target'), false);
+            })
         ;
         $form->text('uri', trans('admin.uri'))
             ->attribute(['data-filter' => json_encode([
@@ -232,6 +248,35 @@ class MenuController extends AdminControllerBase
         return $this->getMenuType($type, true);
     }
 
+    // get menu target view(calling from menu_target)
+    public function menutargetview(Request $request)
+    {
+        $menu_target = $request->input('q');
+        return $this->getViewList($menu_target, true);
+    }
+
+    /**
+     * get view option array
+     * @param string menu_target string
+     * @param boolean isApi is api. if true, return id and value array. if false, return array(key:id, value:name)
+     */
+    protected function getViewList($menu_target, $isApi)
+    {
+        $options = [];
+
+        CustomView::where('view_type', ViewType::SYSTEM)
+            ->where('custom_table_id', $menu_target)->get()->each(function($item) use(&$options) {
+            $options[] = ['id' => $item->id, 'text' =>  $item->view_view_name ];
+        });
+
+        // if api, return
+        if ($isApi) {
+            return $options;
+        }
+        // if not api, return key:id, value:text array
+        return collect($options)->pluck('text', 'id')->toArray();
+    }
+
     /**
      * get menu type option array
      * @param string menu_type string
@@ -277,47 +322,71 @@ class MenuController extends AdminControllerBase
         switch ($type) {
             case MenuType::SYSTEM:
                 $item = array_get(Define::MENU_SYSTEM_DEFINITION, $value);
-                return [
+                $result = [
                     'menu_name' => $value,
                     'title' => exmtrans("menu.system_definitions.".$value),
                     'icon' => array_get($item, 'icon'),
                     'uri' => array_get($item, 'uri'),
                 ];
+                break;
             case MenuType::PLUGIN:
                 $item = Plugin::getEloquent($value);
-                return [
+                $result = [
                     'menu_name' => array_get($item, 'plugin_name'),
                     'title' => array_get($item, 'plugin_view_name'),
                     'icon' => array_get($item, 'options.icon'),
                     'uri' => $item->getRouteUri(),
                 ];
-                return Plugin::getEloquent($value);
+                break;
             case MenuType::TABLE:
                 $item = CustomTable::getEloquent($value);
-                return [
+                $result = [
                     'menu_name' => array_get($item, 'table_name'),
                     'title' => array_get($item, 'table_view_name'),
                     'icon' => array_get($item, 'options.icon'),
                     'uri' => array_get($item, 'table_name'),
                 ];
+                break;
             case MenuType::CUSTOM:
-                return [
+                $result = [
                     'menu_name' => '',
                     'title' => '',
                     'icon' => '',
                     'uri' => '',
                 ];
-                
+                break;
             case MenuType::PARENT_NODE:
-                return [
+                $result = [
                     'menu_name' => '',
                     'title' => '',
                     'icon' => '',
                     'uri' => '#',
                 ];
+                break;
         }
 
-        return [];
+        if(!isset($result) || is_nullorempty(array_get($result, 'menu_name'))){
+            return [];
+        }
+
+
+        // check same menu name
+        $menu_name_base = array_get($result, 'menu_name');
+        $menu_name = $menu_name_base;
+        $menus = Menu::all();
+        
+        for($i = 1; $i < 1000; $i++){
+            if(!$menus->contains(function($menu) use($menu_name){
+                return $menu_name == $menu->menu_name;
+            })){
+                $result['menu_name'] = $menu_name;
+                return $result;
+            }
+
+            $menu_name = "{$menu_name_base}_{$i}";
+        }
+
+        return $result;
     }
 
     /**

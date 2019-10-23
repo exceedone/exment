@@ -1,5 +1,5 @@
 <small>
-    {!! $comment->created_user_tag !!}
+    {!! $comment->created_user_avatar !!}
     &nbsp;{{ $comment->created_at }}
 </small>
 
