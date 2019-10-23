@@ -343,9 +343,11 @@ class WorkflowAction extends ModelBase
                 case ConditionTypeDetail::USER:
                     $userIds[] = $workflow_authority->related_id;
                     break;
+
                 case ConditionTypeDetail::ORGANIZATION:
                     $organizationIds[] = $workflow_authority->related_id;
                     break;
+
                 case ConditionTypeDetail::SYSTEM:
                     if($getAsDefine){
                         $labels[] = exmtrans('common.' . WorkflowTargetSystem::getEnum($workflow_authority->related_id)->lowerKey());
@@ -354,6 +356,21 @@ class WorkflowAction extends ModelBase
 
                     if($workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER){
                         $userIds[] = $custom_value->created_user_id;
+                    }
+                    break;
+                    
+                case ConditionTypeDetail::COLUMN:
+                    if($getAsDefine){
+                        $column = CustomColumn::getEloquent($workflow_authority->related_id);
+                        $labels[] = $column->column_view_name ?? null;
+                        break;
+                    }
+
+                    if($custom_value->custom_table_name == SYstemTableName::USER){
+                        $userIds[] = $workflow_authority->related_id;
+                    }
+                    else{
+                        $organizationIds[] = $workflow_authority->related_id;
                     }
                     break;
             }
@@ -562,6 +579,9 @@ class WorkflowAction extends ModelBase
         $this->load($keys);
         foreach($keys as $key){
             foreach ($this->{$key} as $item) {
+                if(!method_exists($item, 'deletingChildren')){
+                    continue;
+                }
                 $item->deletingChildren();
             }
 

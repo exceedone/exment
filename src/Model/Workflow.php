@@ -56,11 +56,13 @@ class Workflow extends ModelBase
         $this->load($keys);
         foreach($keys as $key){
             foreach ($this->{$key} as $item) {
+                if(!method_exists($item, 'deletingChildren')){
+                    continue;
+                }
                 $item->deletingChildren();
             }
 
             $this->{$key}()->delete();
-        
         }
         
         foreach ($this->workflow_actions()->withTrashed()->get() as $item) {
