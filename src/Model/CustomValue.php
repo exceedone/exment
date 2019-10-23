@@ -101,7 +101,10 @@ abstract class CustomValue extends ModelBase
         }
 
         // get workflow
-        $workflow = Workflow::getWorkflowByTable($this->custom_table);
+        $workflow = isset($this->workflow_value) ? $this->workflow_value->workflow : null;
+        if(!isset($workflow)){
+            $workflow = Workflow::getWorkflowByTable($this->custom_table);
+        }
         if(isset($workflow)){
             return $workflow->start_status_name;
         }
@@ -162,15 +165,19 @@ abstract class CustomValue extends ModelBase
     // get workflow actions which has authority
     public function getWorkflowActions($onlyHasAuthority = false, $ignoreNextWork = false)
     {
+        $workflow_value = $this->workflow_value;
+
         // get workflow.
-        $workflow = Workflow::getWorkflowByTable($this->custom_table);
+        $workflow = isset($workflow_value) ? $workflow_value->workflow : null;
+        if(!isset($workflow)){
+            $workflow = Workflow::getWorkflowByTable($this->custom_table);
+        }
 
         if(!isset($workflow)){
             return collect();
         }
 
         // get current status etc
-        $workflow_value = $this->workflow_value;
         $workflow_status = isset($workflow_value) ? $workflow_value->workflow_status : null;
 
         // get matched actions
