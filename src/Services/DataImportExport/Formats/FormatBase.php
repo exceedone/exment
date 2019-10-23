@@ -68,7 +68,7 @@ abstract class FormatBase
                 $spreadsheet->removeSheetByIndex(0);
                 $files[] = [
                     'name' => $sheet_name,
-                    'writer' => $this->createWriter($spreadsheet)
+                    'spreadsheet' => $spreadsheet
                 ];
                 $spreadsheet = new Spreadsheet();
             } else {
@@ -80,7 +80,7 @@ abstract class FormatBase
             $spreadsheet->removeSheetByIndex(0);
             $files[] = [
                 'name' => $sheet_name,
-                'writer' => $this->createWriter($spreadsheet)
+                'spreadsheet' => $spreadsheet
             ];
         }
         return $files;
