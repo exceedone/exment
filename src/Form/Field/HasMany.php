@@ -36,7 +36,7 @@ class HasMany extends AdminHasMany
             'template'     => $template,
             'relationName' => $this->relationName,
             'options'      => $this->options,
-            'header'       => $this->header
+//            'header'       => $this->header
         ]);
     }
     public function setCountScript($targets)

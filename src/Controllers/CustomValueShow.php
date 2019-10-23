@@ -508,7 +508,7 @@ EOT;
 
         $form = new ModalForm;
 
-        $workflow = Workflow::getWorkflowByTable($custom_value->custom_table);
+        $workflow = $custom_value->workflow_value->workflow;
 
         $form->display('workflow_view_name', exmtrans('workflow.execute_workflow'))
             ->default($workflow->workflow_view_name ?? null);
