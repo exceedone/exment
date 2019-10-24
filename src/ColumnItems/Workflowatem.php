@@ -200,7 +200,7 @@ class WorkflowItem extends SystemItem
                     $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_id'))
                     ;
                 });
-            })
+            });
         })
         ->join(SystemTableName::WORKFLOW_AUTHORITY, function ($join) {
             $join->on(SystemTableName::WORKFLOW_AUTHORITY . '.workflow_action_id', SystemTableName::WORKFLOW_ACTION . ".id")
