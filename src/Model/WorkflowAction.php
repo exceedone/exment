@@ -397,7 +397,8 @@ class WorkflowAction extends ModelBase
             $orgs = getModelName(SystemTableName::ORGANIZATION)::find(array_unique($organizationIds));
 
             if ($orgAsUser) {
-                $result = $orgs->load('users')->users->merge($result);
+                $orgs_users = $orgs->load('users');
+                $result = $orgs_users->count() > 0? $orgs_users->users->merge($result): $result;
             } else {
                 $result = $orgs->merge($result);
             }
