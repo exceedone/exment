@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
@@ -474,7 +474,7 @@ class ApiTableController extends AdminControllerTableBase
 
         $tasks = [];
         foreach ($custom_view->custom_view_columns as $custom_view_column) {
-            if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
+            if ($custom_view_column->view_column_type == ConditionType::COLUMN) {
                 $target_start_column = $custom_view_column->custom_column->getIndexColumnName();
             } else {
                 $target_start_column = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'];
@@ -482,7 +482,7 @@ class ApiTableController extends AdminControllerTableBase
 
             if (isset($custom_view_column->view_column_end_date)) {
                 $end_date_target = $custom_view_column->getOption('end_date_target');
-                if ($custom_view_column->view_column_end_date_type == ViewColumnType::COLUMN) {
+                if ($custom_view_column->view_column_end_date_type == ConditionType::COLUMN) {
                     $target_end_custom_column = CustomColumn::getEloquent($end_date_target);
                     $target_end_column = $target_end_custom_column->getIndexColumnName();
                 } else {

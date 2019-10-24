@@ -17,7 +17,7 @@ use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
-use Exceedone\Exment\ColumnItems\Workflowitem;
+use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -886,7 +886,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // set query workflow
         if (!is_null(Workflow::getWorkflowByTable($this))) {
-            Workflowitem::getStatusSubquery($query, $this);
+            WorkflowItem::getStatusSubquery($query, $this);
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
 
@@ -910,7 +910,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
             })) {
             // add query
-            Workflowitem::getWorkUsersSubQuery($query, $this);
+            WorkflowItem::getWorkUsersSubQuery($query, $this);
         }
     }
 

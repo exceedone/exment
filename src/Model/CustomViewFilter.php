@@ -6,7 +6,7 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterSearchType;
-use Exceedone\Exment\ColumnItems\Workflowitem;
+use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Carbon\Carbon;
 
 class CustomViewFilter extends ModelBase

@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\Define;
 
-class Workflowitem extends SystemItem
+class WorkflowItem extends SystemItem
 {
     protected $table_name = 'workflow_values';
 
@@ -69,7 +69,7 @@ class Workflowitem extends SystemItem
         $field = new Select($this->name(), [$this->label()]);
 
         // get workflow statuses
-        $workflow =$this->custom_table->workflow;
+        $workflow = Workflow::getWorkflowByTable($this->custom_table);
         $options = $workflow->getStatusOptions() ?? [];
 
         $field->options($options);

@@ -15,7 +15,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
-use Exceedone\Exment\ColumnItems\Workflowitem;
+use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
@@ -109,7 +109,7 @@ trait CustomValueGrid
                 if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
                     $custom_table = $this->custom_table;
                     $filter->where(function ($query) use ($custom_table) {
-                        Workflowitem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
+                        WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
                     }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
 
                     $field = $filter->where(function ($query) use ($custom_table) {

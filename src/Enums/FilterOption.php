@@ -197,7 +197,6 @@ class FilterOption extends EnumBase
             ],
             FilterType::WORKFLOW_WORK_USER => [
                 ['id' => static::USER_EQ_USER, 'name' => 'eq-user'],
-                ['id' => static::USER_EQ, 'name' => 'eq'],
             ],
             FilterType::CONDITION => [
                 ['id' => static::EQ, 'name' => 'eq'],
