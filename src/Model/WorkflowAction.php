@@ -293,7 +293,7 @@ class WorkflowAction extends ModelBase
             $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
             foreach ($workflow_value_authorities as $workflow_value_authority) {
                 $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_value_authority);
-                if ($item->hasAuthority($workflow_value_authority, $custom_value, $targetUser)) {
+                if (isset($item) && $item->hasAuthority($workflow_value_authority, $custom_value, $targetUser)) {
                     return true;
                 }
             }
@@ -304,7 +304,7 @@ class WorkflowAction extends ModelBase
         $workflow_authorities = $this->workflow_authorities;
         foreach ($workflow_authorities as $workflow_authority) {
             $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_authority);
-            if ($item->hasAuthority($workflow_authority, $custom_value, $targetUser)) {
+            if (isset($item) && $item->hasAuthority($workflow_authority, $custom_value, $targetUser)) {
                 return true;
             }
         }

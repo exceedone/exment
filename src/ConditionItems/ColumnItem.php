@@ -60,9 +60,11 @@ class ColumnItem extends ConditionItemBase
             return true;
         });
 
+        $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
+
         foreach ($custom_columns as $custom_column) {
-            $query->orWhere(function ($query) use ($custom_column, $tableName) {
-                $indexName = $custom_column->getIndexName();
+            $query->orWhere(function ($query) use ($custom_column, $tableName, $ids) {
+                $indexName = $custom_column->getIndexColumnName();
                 
                 $query->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_id', $custom_column->id)
                     ->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_type', ConditionTypeDetail::COLUMN()->lowerkey());
