@@ -105,7 +105,8 @@ class WorkflowItem extends SystemItem
             })->select(["$tableName.id as morph_id", 'morph_type', 'workflow_status_id']);
             
         $query->joinSub($subquery, 'workflow_values', function ($join) use ($tableName) {
-            $join->on($tableName . '.id', 'workflow_values.morph_id');
+            $join->on($tableName . '.id', 'workflow_values.morph_id')
+                ->where('workflow_values.morph_type', $custom_table->table_name);
         });
     }
 
@@ -187,16 +188,19 @@ class WorkflowItem extends SystemItem
                 ;
         })
         ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
-            $join->where(function($query){
-                $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
-                    ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_id')
-                    ->where('options->ignore_work', '<>', 1)
-                ;
-            })->orWhere(function($query){
-                $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_id'))
-                    ->where('options->ignore_work', '<>', 1)
-                ;
-            });
+            $join
+            ->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
+            ->where('options->ignore_work', '<>', 1)
+            ->where(function($query){
+                $query->where(function($query){
+                    $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
+                        ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_id')
+                    ;
+                })->orWhere(function($query){
+                    $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_id'))
+                    ;
+                });
+            })
         })
         ->join(SystemTableName::WORKFLOW_AUTHORITY, function ($join) {
             $join->on(SystemTableName::WORKFLOW_AUTHORITY . '.workflow_action_id', SystemTableName::WORKFLOW_ACTION . ".id")
