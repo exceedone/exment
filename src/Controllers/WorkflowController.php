@@ -497,21 +497,22 @@ class WorkflowController extends AdminControllerBase
         $workflow_tables = $request->get('workflow_tables');
 
         //workflow validation
-        $vavidator = \Validator::make($request->all(), [
+        $validator = \Validator::make($request->all(), [
             'workflow_tables.*.workflows.*.active_start_date' => ['nullable', 'date', 'before_or_equal:workflow_tables.*.workflows.*.active_end_date'],
             'workflow_tables.*.workflows.*.active_end_date' => ['nullable', 'date']
         ]);
 
-        $errors = $vavidator->errors();
+        $errors = $validator->errors();
 
         foreach ($workflow_tables as $custom_table_id => $item) {
             // get active_flg's count
             $workflows = array_get($item, 'workflows', []);
-            if (collect($workflows)->filter(function ($workflow_item) {
+            $active_workflows = collect($workflows)->filter(function ($workflow_item) {
                 return boolval(array_get($workflow_item, 'active_flg'));
-            })->count() >= 2) {
+            });
+            if ($active_workflows->count() >= 2) {
                 // check date
-                $searchDates = collect($workflows)->map(function ($workflow_item) {
+                $searchDates = $active_workflows->map(function ($workflow_item) {
                     return [
                         'start' => Carbon::parse(array_get($workflow_item, 'active_start_date') ?? '1900-01-01'),
                         'end' => Carbon::parse(array_get($workflow_item, 'active_end_date') ?? '9999-12-31'),

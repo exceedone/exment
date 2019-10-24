@@ -1356,6 +1356,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_column' => true,
                 'include_system' => true,
                 'include_workflow' => false,
+                'include_workflow_work_users' => false,
                 'include_condition' => false,
                 'table_view_name' => null,
                 'view_pivot_column' => null,

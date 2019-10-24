@@ -17,12 +17,13 @@ class WorkflowTable extends ModelBase
     public function scopeActive($query)
     {
         $today = \Carbon\Carbon::today();
+        $tomorrow = \Carbon\Carbon::tomorrow();
         return $query->where('active_flg', true)
             ->where(function ($query) use ($today) {
-                $query->where('active_start_date', '>=', $today)
-                    ->orWhereNull('active_start_date');
-            })->where(function ($query) use ($today) {
-                $query->where('active_start_date', '<=', $today)
+                $query->where('active_end_date', '>=', $today)
+                    ->orWhereNull('active_end_date');
+            })->where(function ($query) use ($tomorrow) {
+                $query->where('active_start_date', '<', $tomorrow)
                     ->orWhereNull('active_start_date');
             });
     }
