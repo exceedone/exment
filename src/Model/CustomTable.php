@@ -886,7 +886,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // set query workflow
         if (!is_null(Workflow::getWorkflowByTable($this))) {
-            WorkflowItem::getStatusSubquery($query, $this);
+            //WorkflowItem::getStatusSubquery($query, $this);
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
 
@@ -903,6 +903,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query->with($relation_name);
         }
 
+        if (
+            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
+            $custom_view->load(['custom_view_filters'])->custom_view_filters->contains(function ($custom_view_filter) {
+                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
+            })) {
+            // add query
+            WorkflowItem::getStatusSubquery($query, $this);
+        }
         // if contains custom_view_filters workflow query
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||

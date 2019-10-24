@@ -108,10 +108,13 @@ trait CustomValueGrid
                 // filter workflow
                 if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
                     $custom_table = $this->custom_table;
-                    $filter->where(function ($query) use ($custom_table) {
+                    $field = $filter->where(function ($query) use ($custom_table) {
                         WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
                     }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
-
+                    if (boolval(request()->get($field->getFilter()->getId()))) {
+                        System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
+                    }
+                    
                     $field = $filter->where(function ($query) use ($custom_table) {
                     }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
 
