@@ -771,7 +771,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query = getModelName($this)::whereIn('id', $ids->toArray());
 
             // set with
-            $this->setQueryWith($query);
+            $this->setQueryWith($query, $target_view);
                 
             $paginates->setCollection($query->get());
             
@@ -789,7 +789,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $query = getModelName($this)::whereIn('id', $ids);
         
         // set with
-        $this->setQueryWith($query);
+        $this->setQueryWith($query, $target_view);
 
         return $query->take($maxCount)->get();
     }

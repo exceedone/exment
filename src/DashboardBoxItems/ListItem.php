@@ -194,6 +194,8 @@ class ListItem implements ItemInterface
             $pager_count = System::datalist_pager_count() ?? 5;
         }
 
+        $this->custom_table->setQueryWith($model, $this->custom_view);
+
         // get data
         $this->paginate = $model->paginate($pager_count);
     }
