@@ -23,7 +23,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\TemplateTrait;
     use Traits\DatabaseJsonTrait;
 
-    protected $appends = ['view_calendar_target', 'pager_count'];
+    //protected $appends = ['view_calendar_target', 'pager_count'];
+    protected $appends = ['pager_count'];
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json'];
     //protected $with = ['custom_table', 'custom_view_columns'];
