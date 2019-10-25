@@ -825,6 +825,7 @@ abstract class CustomValue extends ModelBase
 
         // crate union query
         $queries = [];
+        $searchColumns = collect($searchColumns);
         for ($i = 0; $i < count($searchColumns) - 1; $i++) {
             $searchColumn = collect($searchColumns)->values()->get($i);
             $query = static::query();
@@ -861,8 +862,9 @@ abstract class CustomValue extends ModelBase
         $query->where(function ($query) use ($options) {
             extract($options);
 
+            $searchColumns = collect($searchColumns);
             for ($i = 0; $i < count($searchColumns); $i++) {
-                $searchColumn = $searchColumns[$i];
+                $searchColumn = $searchColumns->values()->get($i);
                 $query->orWhere($searchColumn, $mark, $value);
             }
         });
