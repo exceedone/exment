@@ -320,8 +320,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // if target form doesn't have columns, add columns for has_index_columns columns.
         if (is_null($view->custom_view_columns) || count($view->custom_view_columns) == 0) {
+            // copy default view
+            $fromview = $tableObj->custom_views()
+                ->where('view_kind_type', ViewKindType::DEFAULT)
+                ->where('default_flg', true)
+                ->first();
+
             // get view id for after
-            $view->createDefaultViewColumns();
+            $view->copyFromDefaultViewColumns($fromview);
 
             // re-get view (reload view_columns)
             $view = static::find($view->id);
@@ -437,6 +443,34 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $view_column->order = array_get($view_column_system, 'order');
             array_push($view_columns, $view_column);
         }
+        $this->custom_view_columns()->saveMany($view_columns);
+        return $view_columns;
+    }
+
+    /**
+     * copy from default view columns
+     *
+     * @param [type] $fromView copied target view
+     * @return void
+     */
+    public function copyFromDefaultViewColumns($fromView)
+    {
+        $view_columns = [];
+
+        if(!isset($fromView)){
+            return [];
+        }
+
+        // set from view column
+        foreach($fromView->load(['custom_view_columns'])->custom_view_columns as $from_view_column){
+            $view_column = new CustomViewColumn;
+            $view_column->custom_view_id = $this->id;
+            $view_column->view_column_target = array_get($from_view_column, 'view_column_target');
+            $view_column->order = array_get($from_view_column, 'order');
+            $view_column->options = array_get($from_view_column, 'options');
+            array_push($view_columns, $view_column);
+        }
+
         $this->custom_view_columns()->saveMany($view_columns);
         return $view_columns;
     }
