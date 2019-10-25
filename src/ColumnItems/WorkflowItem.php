@@ -104,9 +104,8 @@ class WorkflowItem extends SystemItem
                     ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', true);
             })->select(["$tableName.id as morph_id", 'morph_type', 'workflow_status_id']);
             
-        $query->joinSub($subquery, 'workflow_values', function ($join) use ($tableName) {
-            $join->on($tableName . '.id', 'workflow_values.morph_id')
-                ->where('workflow_values.morph_type', $custom_table->table_name);
+        $query->joinSub($subquery, 'workflow_values', function ($join) use ($tableName, $custom_table) {
+            $join->on($tableName . '.id', 'workflow_values.morph_id');
         });
     }
 
