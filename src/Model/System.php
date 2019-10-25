@@ -111,13 +111,13 @@ class System extends ModelBase
             $val = $value();
 
             // set session
-            Cache::put($key, $val, 10);
+            Cache::put($key, $val, Define::CACHE_CLEAR_MINUTE);
             static::setRequestSession($key, $val);
             return $val;
         }
 
         static::setRequestSession($key, $value);
-        Cache::put($key, $value, 10);
+        Cache::put($key, $value, Define::CACHE_CLEAR_MINUTE);
     }
 
     /**

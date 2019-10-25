@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowCommentType;
+use Exceedone\Exment\Enums\WorkflowNextType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
@@ -397,8 +398,10 @@ class WorkflowAction extends ModelBase
             $orgs = getModelName(SystemTableName::ORGANIZATION)::find(array_unique($organizationIds));
 
             if ($orgAsUser) {
-                $orgs_users = $orgs->load('users');
-                $result = $orgs_users->count() > 0? $orgs_users->users->merge($result): $result;
+                $result = $orgs->load('users')->map(function($org){
+                    return $org->users;
+                })->flatten()->merge($result);
+                //$result = $orgs_users->count() > 0 ? $orgs_users->users->merge($result): $result;
             } else {
                 $result = $orgs->merge($result);
             }
@@ -410,7 +413,7 @@ class WorkflowAction extends ModelBase
             })->merge(collect($labels));
         }
         
-        return $result;
+        return $result->unique();
     }
 
     /**
@@ -477,7 +480,9 @@ class WorkflowAction extends ModelBase
      */
     public function isActionNext($custom_value)
     {
-        if (($flow_next_count = $this->getOption("flow_next_count", 1)) == 1) {
+        list($isNext, $flow_next_count) = $this->getActionNextParams($custom_value);
+
+        if ($isNext) {
             return true;
         }
         
@@ -489,6 +494,23 @@ class WorkflowAction extends ModelBase
         ])->count();
 
         return ($flow_next_count - 1 <= $action_executed_count);
+    }
+
+    /**
+     * Get action next params.
+     *
+     * @return array ["is action next", "next minimum count"]
+     */
+    public function getActionNextParams($custom_value){
+        if (($flow_next_count = $this->getOption("flow_next_count", 1)) == 1 && $this->flow_next_type == WorkflowNextType::SOME) {
+            return [true, null];
+        }
+        
+        if($this->flow_next_type == WorkflowNextType::SOME){
+            return [false, $flow_next_count];
+        }
+
+        return [false, $this->getAuthorityTargets($custom_value, true)->count()];
     }
 
     /**
