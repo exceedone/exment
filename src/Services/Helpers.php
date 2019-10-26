@@ -857,7 +857,7 @@ if (!function_exists('canConnection')) {
         return System::cache(Define::SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE, function () {
             // get all table names
             return DB::canConnection();
-        });
+        }, true);
     }
 }
 
@@ -873,7 +873,7 @@ if (!function_exists('hasTable')) {
         $tables = System::cache(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function () {
             // get all table names
             return DB::connection()->getDoctrineSchemaManager()->listTableNames();
-        });
+        }, true);
 
         return in_array($table_name, $tables);
     }
@@ -892,7 +892,7 @@ if (!function_exists('hasColumn')) {
         $columns = System::cache($key, function () use ($table_name) {
             // get all table names
             return DB::connection()->getSchemaBuilder()->getColumnListing($table_name);
-        });
+        }, true);
 
         return in_array($column_name, $columns);
     }

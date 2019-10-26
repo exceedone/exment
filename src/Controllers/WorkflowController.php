@@ -188,6 +188,7 @@ class WorkflowController extends AdminControllerBase
         
         $form->text('start_status_name', exmtrans("workflow.start_status_name"))
             ->required()
+            ->help(exmtrans("workflow.help.start_status_name"))
             ->rules("max:30");
 
         $field = $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) {

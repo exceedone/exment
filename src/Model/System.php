@@ -79,9 +79,10 @@ class System extends ModelBase
      *
      * @param string $key key name.
      * @param mixed $value setting value.
+     * @param bool $onlySetTrue if this arg is true, set cache if val is true.
      * @return void
      */
-    protected static function cache($key, $value = null)
+    protected static function cache($key, $value = null, $onlySetTrue = false)
     {
         if (is_null($value)) {
             // first, check request session
@@ -110,9 +111,15 @@ class System extends ModelBase
             // get value
             $val = $value();
 
+            static::setRequestSession($key, $val);
+
+            // if arg $onlySetTrue is true and $val is not true, not set cache
+            if($onlySetTrue && $val !== true){
+                return $val;
+            }
+
             // set session
             Cache::put($key, $val, Define::CACHE_CLEAR_MINUTE);
-            static::setRequestSession($key, $val);
             return $val;
         }
 
