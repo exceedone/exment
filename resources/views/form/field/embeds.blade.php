@@ -15,7 +15,7 @@
         <div class="embed-{{$column}}-form fields-group">
             @if(isset($is_grid))
                 @if(isset($gridHeaders))
-                    <div class="">
+                    <div class="row">
                     @foreach($gridHeaders as $field)
                         {!! $field->render() !!}
                     @endforeach
@@ -23,7 +23,7 @@
                     <hr />
                 @endif
                 @if(isset($gridFieldsL) && isset($gridFieldsR))
-                    <div class="">
+                    <div class="row">
                         <div class="col-xs-12 col-md-6">
                         @foreach($gridFieldsL as $field)
                             {!! $field->render() !!}
@@ -36,13 +36,13 @@
                         </div>
                     </div>
                 @elseif (isset($gridFieldsL))
-                    <div class="">
+                    <div class="row">
                     @foreach($gridFieldsL as $field)
                         {!! $field->render() !!}
                     @endforeach
                     </div>
                 @elseif (isset($gridFieldsR))
-                    <div class="">
+                    <div class="row">
                     @foreach($gridFieldsR as $field)
                         {!! $field->render() !!}
                     @endforeach
@@ -53,7 +53,7 @@
                     @if(isset($gridFieldsL) || isset($gridFieldsR))
                     <hr />
                     @endif
-                    <div class="">
+                    <div class="row">
                     @foreach($gridFooters as $field)
                         {!! $field->render() !!}
                     @endforeach

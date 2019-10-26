@@ -38,4 +38,17 @@ class WorkflowValue extends ModelBase
     {
         return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
     }
+
+    /**
+     * Whether already executed workflow
+     *
+     * @return void
+     */
+    public static function isAlreadyExecuted($custom_value, $targetUser){
+        return static::where('morph_type', $custom_value->custom_table->table_name)
+            ->where('morph_id', $custom_value->id)
+            ->where('action_executed_flg', true)
+            ->where('created_user_id', $targetUser->id)
+            ->count() > 0;
+    }
 }

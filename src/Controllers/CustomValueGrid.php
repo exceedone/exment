@@ -68,7 +68,7 @@ trait CustomValueGrid
         $grid->filter(function ($filter) use ($search_enabled_columns) {
             $filter->disableIdFilter();
 
-            $filter->column(1/2, function ($filter) {
+            $filter->column(count($search_enabled_columns) == 0 ? 1 : 1/2, function ($filter) {
                 $filter->equal('id', exmtrans('common.id'));
                 $filter->betweendatetime('created_at', exmtrans('common.created_at'))->date();
                 $filter->betweendatetime('updated_at', exmtrans('common.updated_at'))->date();

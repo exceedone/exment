@@ -224,10 +224,11 @@ class WorkflowAction extends ModelBase
     public function executeAction($custom_value, $data = [])
     {
         $workflow = Workflow::getEloquentDefault(array_get($this, 'workflow_id'));
+        $next = $this->isActionNext($custom_value);
 
         $workflow_value = null;
         $status_to = null;
-        \DB::transaction(function () use ($custom_value, $data, &$workflow_value, &$status_to) {
+        \DB::transaction(function () use ($custom_value, $data, &$workflow_value, &$status_to, $next) {
             $morph_type = $custom_value->custom_table->table_name;
             $morph_id = $custom_value->id;
 
@@ -237,6 +238,15 @@ class WorkflowAction extends ModelBase
                 'morph_id' => $morph_id,
                 'latest_flg' => true
             ])->update(['latest_flg' => false]);
+
+            // if next, update action_executed_flg to false 
+            if($next === true){
+                WorkflowValue::where([
+                    'morph_type' => $morph_type,
+                    'morph_id' => $morph_id,
+                    'action_executed_flg' => true
+                ])->update(['action_executed_flg' => false]);
+            }
 
             $status_to = $this->getStatusToId($custom_value);
             $createData = [
@@ -248,6 +258,11 @@ class WorkflowAction extends ModelBase
                 'latest_flg' => 1
             ];
             $createData['comment'] = array_get($data, 'comment');
+
+            // if not next, update action_executed_flg to true 
+            if ($next !== true) {
+                $createData['action_executed_flg'] = true;
+            }
     
             $workflow_value = WorkflowValue::create($createData);
 
@@ -268,8 +283,7 @@ class WorkflowAction extends ModelBase
         });
 
         // notify workflow
-        $next = $this->isActionNext($custom_value);
-        if ($next && isset($workflow_value)) {
+        if ($next === true && isset($workflow_value)) {
             foreach ($workflow->notifies as $notify) {
                 $notify->notifyWorkflow($custom_value, $this, $workflow_value, $status_to);
             }
@@ -329,19 +343,21 @@ class WorkflowAction extends ModelBase
         $labels = [];
 
         // add as workflow_value_authorities
-        if (isset($custom_value) && isset($custom_value->workflow_value)) {
+        if (isset($custom_value)) {
             $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-            $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
-            foreach ($workflow_value_authorities as $workflow_value_authority) {
-                $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
-                switch ($type) {
-                    case ConditionTypeDetail::USER:
-                        $userIds[] = $workflow_value_authority->related_id;
-                        break;
-                    case ConditionTypeDetail::ORGANIZATION:
-                        $organizationIds[] = $workflow_value_authority->related_id;
-                        break;
-                }
+            if(isset($custom_value->workflow_value)){
+                $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
+                foreach ($workflow_value_authorities as $workflow_value_authority) {
+                    $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
+                    switch ($type) {
+                        case ConditionTypeDetail::USER:
+                            $userIds[] = $workflow_value_authority->related_id;
+                            break;
+                        case ConditionTypeDetail::ORGANIZATION:
+                            $organizationIds[] = $workflow_value_authority->related_id;
+                            break;
+                    }
+                }    
             }
         }
 
@@ -425,7 +441,7 @@ class WorkflowAction extends ModelBase
     {
         $next = $this->isActionNext($custom_value);
         
-        if ($next) {
+        if ($next === true) {
             // get matched condition
             $condition = $this->getMatchedCondtionHeader($custom_value);
             if (is_null($condition)) {
@@ -475,8 +491,8 @@ class WorkflowAction extends ModelBase
     /**
      * Whether this action is next.
      *
-     * @param [type] $custom_value
-     * @return boolean
+     * @param CustomValue $custom_value
+     * @return boolean|array If next, return true. else, [$flow_next_count, $action_executed_count]
      */
     public function isActionNext($custom_value)
     {
@@ -493,7 +509,10 @@ class WorkflowAction extends ModelBase
             'action_executed_flg' => true,
         ])->count();
 
-        return ($flow_next_count - 1 <= $action_executed_count);
+        if($flow_next_count - 1 <= $action_executed_count){
+            return true;
+        }
+        return [$flow_next_count, $action_executed_count];
     }
 
     /**
@@ -533,20 +552,29 @@ class WorkflowAction extends ModelBase
         $statusTo = $this->getStatusToId($custom_value);
         $statusToName = esc_html(WorkflowStatus::getWorkflowStatusName($statusTo, $this->workflow));
 
-        $form->description(exmtrans('workflow.message.action_execute'));
+        // showing status
+        if($statusFromName != $statusToName){
+            $showStatus = "$statusFromName → <span class='red bold'>$statusToName</span>";
+        }else{
+            $showStatus = $statusFromName;
+        }
+
+        // check already executed user
+        $showSubmit = !WorkflowValue::isAlreadyExecuted($custom_value, \Exment::user()->base_user);
+
+        if($showSubmit){
+            $form->description(exmtrans('workflow.message.action_execute'));
+        }
         
         $form->display('action_name', exmtrans('workflow.action_name'))
             ->default($this->action_name);
         
-        $form->display('status_from', exmtrans('common.workflow_status'))
-            ->displayText($statusFromName);
-    
-        $form->display('status_to', exmtrans('workflow.status_to'))
-            ->displayText(($statusFromName != $statusToName) ? "<span class='red bold'>$statusToName</span>" : $statusToName);
-        
+        $form->display('status', exmtrans('workflow.status'))
+            ->displayText($showStatus);
+
         $next = $this->isActionNext($custom_value);
         $completed = WorkflowStatus::getWorkflowStatusCompleted($statusTo);
-        if ($next && !$completed) {
+        if ($next === true && !$completed) {
             // get next actions
             $toActionAuthorities = collect();
 
@@ -578,23 +606,36 @@ class WorkflowAction extends ModelBase
                     })->implode(exmtrans('common.separate_word')));
             }
         }
+        
+        // not next, showing message
+        else{
+            list($flow_next_count, $action_executed_count) = $next;
 
-        if ($this->comment_type != WorkflowCommentType::NOTUSE) {
-            $field = $form->textarea('comment', exmtrans('common.comment'));
-            // check required
-            if ($this->comment_type == WorkflowCommentType::REQUIRED) {
-                $field->required();
-            }
+            $form->display('flow_executed_user_count', exmtrans('workflow.flow_executed_user_count'))
+            ->help(exmtrans('workflow.help.flow_executed_user_count'))
+            ->default(exmtrans('workflow.flow_executed_user_count_format', $action_executed_count, $flow_next_count));
+        }
+        
+        // check already executed user
+        if($showSubmit){
+            if ($this->comment_type != WorkflowCommentType::NOTUSE) {
+                $field = $form->textarea('comment', exmtrans('common.comment'));
+                // check required
+                if ($this->comment_type == WorkflowCommentType::REQUIRED) {
+                    $field->required();
+                }
+            }    
         }
 
         $form->hidden('action_id')->default($this->id);
        
-        $form->setWidth(10, 2);
+        $form->setWidth(9, 3);
 
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
-            'title' => $this->action_name
+            'title' => $this->action_name,
+            'showSubmit' => $showSubmit,
         ]);
     }
     

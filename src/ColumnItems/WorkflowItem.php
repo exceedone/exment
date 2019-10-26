@@ -173,8 +173,7 @@ class WorkflowItem extends SystemItem
         ->join(SystemTableName::WORKFLOW_VALUE, function ($join) use ($tableName, $custom_table) {
             $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', $tableName .'.id')
                 ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
-                ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1)
-                ;
+                ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1);
         })
         ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($tableName, $custom_table) {
             $join->where(SystemTableName::WORKFLOW_TABLE . '.custom_table_id', $custom_table->id)
@@ -218,6 +217,7 @@ class WorkflowItem extends SystemItem
                 $class::setConditionQuery($query, $tableName, $custom_table);
             }
         })
+
         ->union($subquery)
         ->distinct()
         ->select([$tableName .'.id as morph_id']);
