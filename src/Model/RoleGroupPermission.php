@@ -78,4 +78,24 @@ class RoleGroupPermission extends ModelBase
         array_set($json, 'role_group_target_id', $role_group_target_id);
         array_forget($json, 'role_group_target_name');
     }
+    
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::saved(function ($model) {
+            $model->clearCache();
+        });
+    }
+    
+    /**
+     * Clear cache
+     *
+     * @return void
+     */
+    public function clearCache()
+    {
+        RoleGroup::resetAllRecordsCache();
+    }
+    
 }

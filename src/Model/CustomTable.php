@@ -906,7 +906,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
             (isset($custom_view) && 
-            $custom_view->load(['custom_view_filters'])->custom_view_filters->contains(function ($custom_view_filter) {
+            $custom_view->custom_view_filters->contains(function ($custom_view_filter) {
                 return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
             }))) {
             // add query
@@ -916,7 +916,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
             ($custom_view && 
-            $custom_view->load(['custom_view_filters'])->custom_view_filters->contains(function ($custom_view_filter) {
+            $custom_view->custom_view_filters->contains(function ($custom_view_filter) {
                 return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
             }))) {
             // add query

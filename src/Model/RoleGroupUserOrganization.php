@@ -26,4 +26,24 @@ class RoleGroupUserOrganization extends ModelBase
         ->where('role_group_target_id', $custom_value->id)
         ->delete();
     }
+    
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::saved(function ($model) {
+            $model->clearCache();
+        });
+    }
+    
+    /**
+     * Clear cache
+     *
+     * @return void
+     */
+    public function clearCache()
+    {
+        RoleGroup::resetAllRecordsCache();
+    }
+    
 }

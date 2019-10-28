@@ -11,17 +11,17 @@ trait UseRequestSessionTrait
     /**
      * get all records. use system session
      */
-    public static function allRecords(Closure $filter = null, $isGetAll = true)
+    public static function allRecords(Closure $filter = null, $isGetAll = true, $with = [])
     {
-        return static::_allRecords('requestSession', $filter, $isGetAll);
+        return static::_allRecords('requestSession', $filter, $isGetAll, $with);
     }
     
     /**
      * get all records. use cache
      */
-    public static function allRecordsCache(Closure $filter = null, $isGetAll = true)
+    public static function allRecordsCache(Closure $filter = null, $isGetAll = true, $with = [])
     {
-        return static::_allRecords('cache', $filter, $isGetAll);
+        return static::_allRecords('cache', $filter, $isGetAll, $with);
     }
     
     /**
@@ -36,12 +36,12 @@ trait UseRequestSessionTrait
     /**
      * get all records.
      */
-    protected static function _allRecords($func, Closure $filter = null, $isGetAll = true)
+    protected static function _allRecords($func, Closure $filter = null, $isGetAll = true, $with = [])
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
         // get from request session
-        $records = System::{$func}($key, function () {
-            return self::all();
+        $records = System::{$func}($key, function () use($with) {
+            return self::with($with)->get();
         });
 
         // execute filter
@@ -61,7 +61,7 @@ trait UseRequestSessionTrait
         }
 
         // else, get all again
-        $records = self::all();
+        $records = self::with($with)->get();
         System::{$func}($key, $records);
 
         if (!isset($records)) {

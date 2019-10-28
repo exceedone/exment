@@ -79,7 +79,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         $parent_table = CustomTable::getEloquent($parent_table);
 
-        return static::allRecords(function ($record) use ($parent_table, $relation_type) {
+        return static::allRecordsCache(function ($record) use ($parent_table, $relation_type) {
             if ($record->parent_custom_table_id != array_get($parent_table, 'id')) {
                 return false;
             }
@@ -109,7 +109,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         $child_table = CustomTable::getEloquent($child_table);
 
-        return static::allRecords(function ($record) use ($child_table, $relation_type) {
+        return static::allRecordsCache(function ($record) use ($child_table, $relation_type) {
             if ($record->child_custom_table_id != array_get($child_table, 'id')) {
                 return false;
             }
@@ -192,4 +192,24 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         static::importReplaceJsonCustomColumn($json, 'options.parent_import_column_id', 'options.parent_import_column_name', 'options.parent_import_table_name', $options);
     }
+    
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::saved(function ($model) {
+            $model->clearCache();
+        });
+    }
+
+    /**
+     * Clear cache
+     *
+     * @return void
+     */
+    public function clearCache()
+    {
+        static::resetAllRecordsCache();
+    }
+    
 }

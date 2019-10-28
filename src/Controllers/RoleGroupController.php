@@ -450,6 +450,8 @@ class RoleGroupController extends AdminControllerBase
 
             \DB::commit();
 
+            RoleGroup::resetAllRecordsCache();
+            
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url('role_group'));

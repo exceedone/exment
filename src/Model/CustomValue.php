@@ -101,6 +101,10 @@ abstract class CustomValue extends ModelBase
 
     public function getWorkflowStatusAttribute()
     {
+        if(is_null(Workflow::getWorkflowByTable($this->custom_table))){
+            return null;
+        }
+        
         return isset($this->workflow_value) ? $this->workflow_value->workflow_status : null;
     }
 
