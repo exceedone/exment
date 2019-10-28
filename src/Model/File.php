@@ -196,6 +196,12 @@ class File extends ModelBase
         if (!$data) {
             abort(404);
         }
+
+        // if not has delete setting, abort 403
+        if(boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->base_user_id){
+            abort(403);
+        }
+
         $path = $data->path;
         $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
         

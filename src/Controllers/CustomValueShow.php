@@ -60,10 +60,16 @@ trait CustomValueShow
                 if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
                     $hasMultiColumn = false;
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
+                        // if hidden field, continue
+                        if(boolval(config('exment.hide_hiddenfield', false)) && boolval(array_get($form_column, 'options.hidden', false))){
+                            continue;
+                        }
+
                         $item = $form_column->column_item;
                         if (!isset($item)) {
                             continue;
                         }
+                        
                         $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
                             ->as(function ($v) use ($form_column, $item) {
                                 if (is_null($this)) {
