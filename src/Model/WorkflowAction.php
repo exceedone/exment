@@ -227,7 +227,7 @@ class WorkflowAction extends ModelBase
         $next = $this->isActionNext($custom_value);
 
         $workflow_value = null;
-        $status_to = null;
+        $status_to = $this->getStatusToId($custom_value);
         \DB::transaction(function () use ($custom_value, $data, &$workflow_value, &$status_to, $next) {
             $morph_type = $custom_value->custom_table->table_name;
             $morph_id = $custom_value->id;
@@ -248,7 +248,6 @@ class WorkflowAction extends ModelBase
                 ])->update(['action_executed_flg' => false]);
             }
 
-            $status_to = $this->getStatusToId($custom_value);
             $createData = [
                 'workflow_id' => array_get($this, 'workflow_id'),
                 'morph_type' => $morph_type,
