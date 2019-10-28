@@ -229,6 +229,7 @@ class WorkflowAction extends ModelBase
         $workflow_value = null;
         $status_to = $this->getStatusToId($custom_value);
         \DB::transaction(function () use ($custom_value, $data, &$workflow_value, &$status_to, $next) {
+            $status_from = $custom_value->workflow_value->workflow_status_to_id ?? null;
             $morph_type = $custom_value->custom_table->table_name;
             $morph_id = $custom_value->id;
 
@@ -253,7 +254,8 @@ class WorkflowAction extends ModelBase
                 'morph_type' => $morph_type,
                 'morph_id' => $morph_id,
                 'workflow_action_id' => $this->id,
-                'workflow_status_id' => $status_to == Define::WORKFLOW_START_KEYNAME ? null : $status_to,
+                'workflow_status_from_id' => $status_from == Define::WORKFLOW_START_KEYNAME ? null : $status_from,
+                'workflow_status_to_id' => $status_to == Define::WORKFLOW_START_KEYNAME ? null : $status_to,
                 'latest_flg' => 1
             ];
             $createData['comment'] = array_get($data, 'comment');
@@ -501,10 +503,13 @@ class WorkflowAction extends ModelBase
             return true;
         }
         
+        $workflow_action_id = $custom_value->workflow_value->workflow_action_id ?? null;
+
         // get already execution action user's count
         $action_executed_count = WorkflowValue::where([
             'morph_type' => $custom_value->custom_table->table_name,
             'morph_id' => $custom_value->id,
+            'workflow_action_id' => $workflow_action_id,
             'action_executed_flg' => true,
         ])->count();
 

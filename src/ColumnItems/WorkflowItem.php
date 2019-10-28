@@ -102,7 +102,7 @@ class WorkflowItem extends SystemItem
                 $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', "$tableName.id")
                     ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
                     ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', true);
-            })->select(["$tableName.id as morph_id", 'morph_type', 'workflow_status_id']);
+            })->select(["$tableName.id as morph_id", 'morph_type', 'workflow_status_from_id', 'workflow_status_to_id']);
             
         $query->joinSub($subquery, 'workflow_values', function ($join) use ($tableName, $custom_table) {
             $join->on($tableName . '.id', 'workflow_values.morph_id');
@@ -192,10 +192,10 @@ class WorkflowItem extends SystemItem
             ->where(function($query){
                 $query->where(function($query){
                     $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
-                        ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_id')
+                        ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
                     ;
                 })->orWhere(function($query){
-                    $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_id'))
+                    $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id'))
                     ;
                 });
             });
@@ -254,10 +254,10 @@ class WorkflowItem extends SystemItem
         // if $status is start
         if ($status == Define::WORKFLOW_START_KEYNAME) {
             $func = ($condition == FilterOption::NE) ? 'whereNotNull' : 'whereNull';
-            $query->{$func}('workflow_status_id');
+            $query->{$func}('workflow_status_to_id');
         } else {
             $mark = ($condition == FilterOption::NE) ? '<>' : '=';
-            $query->where('workflow_status_id', $mark, $status);
+            $query->where('workflow_status_to_id', $mark, $status);
         }
 
         return $query;
@@ -268,15 +268,6 @@ class WorkflowItem extends SystemItem
      */
     protected static function scopeWorkflowWorkUsers($query, $custom_table, $condition, $value)
     {
-        // if $status is start
-        // if($value == Define::WORKFLOW_START_KEYNAME){
-        //     $func = ($condition == FilterOption::NE) ? 'whereNotNull' : 'whereNull';
-        //     $query->{$func}('workflow_status_id');
-        // }else{
-        //     $mark = ($condition == FilterOption::NE) ? '<>' : '=';
-        //     $query->where('workflow_status_id', $mark, $status);
-        // }
-
         return $query;
     }
 }

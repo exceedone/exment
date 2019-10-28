@@ -135,7 +135,8 @@ class SupportForV220 extends Migration
             $table->string('morph_type', 255);
             $table->bigInteger('morph_id')->unsigned();
             $table->integer('workflow_action_id')->unsigned()->nullable()->index();
-            $table->integer('workflow_status_id')->unsigned()->nullable()->index();
+            $table->integer('workflow_status_from_id')->unsigned()->nullable()->index();
+            $table->integer('workflow_status_to_id')->unsigned()->nullable()->index();
             $table->string('comment', 1000)->nullable();
             $table->boolean('action_executed_flg')->default(false)->index();
             $table->boolean('latest_flg')->default(false)->index();
@@ -145,7 +146,8 @@ class SupportForV220 extends Migration
 
             $table->index(['morph_type', 'morph_id']);
             $table->foreign('workflow_id')->references('id')->on('workflows');
-            $table->foreign('workflow_status_id')->references('id')->on('workflow_statuses');
+            $table->foreign('workflow_status_from_id')->references('id')->on('workflow_statuses');
+            $table->foreign('workflow_status_to_id')->references('id')->on('workflow_statuses');
         });
 
         $schema->create('workflow_value_authorities', function (ExtendedBlueprint $table) {
