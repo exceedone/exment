@@ -393,15 +393,24 @@ class DataImportExportService extends AbstractExporter
      */
     protected static function getImportColumnValue(&$data, $key, &$value, $column_item, $column_view_name, $setting, $target_table, $options = [])
     {
+        $setting = $setting ?? [];
         $options = array_merge(
             [
                 'errorCallback' => null,
+                'datalist' => null,
             ],
             $options
         );
 
+        if(method_exists($column_item, 'getKeyAndIdList')){
+            $datalist = $column_item->getKeyAndIdList($options['datalist'], array_get($setting, 'target_column_name'));
+            if(!is_nullorempty($datalist)){
+                $setting['datalist'] = $datalist;
+            }
+        }
+
         $base_value = $value;
-        $importValue = $column_item->getImportValue($value, $setting ?? null);
+        $importValue = $column_item->getImportValue($value, $setting);
 
         if (!isset($importValue)) {
             return;
