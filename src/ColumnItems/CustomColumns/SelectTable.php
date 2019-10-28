@@ -297,7 +297,7 @@ class SelectTable extends CustomItem
     }
 
     public function getKeyAndIdList($datalist, $key){
-        if(is_nullorempty($datalist)){
+        if(is_nullorempty($datalist) || is_nullorempty($key)){
             return [];
         }
 
@@ -307,7 +307,7 @@ class SelectTable extends CustomItem
             // get key and value list
             $keyValueList = collect($datalist)->map(function($d){
                 return array_get($d, 'value.' . $this->custom_column->column_name);
-            })->flatten()->toArray();
+            })->flatten()->filter()->toArray();
 
             $indexName = $this->custom_column->index_enabled ? $this->custom_column->getIndexColumnName() : "value->$key";
             $values = $this->target_table->getValueModel()->whereIn($indexName, $keyValueList)->select(['value', 'id'])
