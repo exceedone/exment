@@ -70,6 +70,7 @@ class DefaultTableProvider extends ProviderBase
 
         $results = [];
         foreach ($value_customs as $line_no => $value_custom) {
+            $options['datalist'] = $value_customs;
             ///// convert data first.
             $value_custom = $this->dataProcessingFirst($value_custom, $line_no, $options);
 
