@@ -1414,6 +1414,8 @@ return [
         'notify_action_target' => '通知対象',
         'mail_template_id' => 'テンプレート',
         'notify_button_name' => 'ボタン表示名',
+        'notify_select' => '送信先選択',
+        'message_input' => 'メッセージ入力',
         'webhook_url' => 'Webhook URL',
 
         'help' => [

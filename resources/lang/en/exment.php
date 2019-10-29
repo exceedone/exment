@@ -1414,6 +1414,8 @@ return [
         'notify_action_target' => 'Notify Target',
         'mail_template_id' => 'Notify Mail Template',
         'notify_button_name' => 'Button display name',
+        'notify_select' => 'Select Notify Target',
+        'message_input' => 'Input Message',
         'webhook_url' => 'Webhook URL',
 
         'help' => [

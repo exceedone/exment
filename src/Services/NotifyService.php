@@ -364,13 +364,13 @@ class NotifyService
             'active' => $isSelectTarget,
             'complete' => false,
             'url' => null,
-            'description' => '送信先選択'
+            'description' => exmtrans('notify.notify_select')
         ];
         $steps[] = [
             'active' => !$isSelectTarget,
             'complete' => false,
             'url' => null,
-            'description' => 'メッセージ入力'
+            'description' => exmtrans('notify.message_input')
         ];
         return $steps;
     }
