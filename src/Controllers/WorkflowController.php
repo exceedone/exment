@@ -471,7 +471,7 @@ class WorkflowController extends AdminControllerBase
         }
 
         // add form
-        $form->description(exmtrans('workflow.help.beginning') . '<br />' . exmtrans('workflow.help.workflow_help'));
+        $form->description(exmtrans('workflow.help.beginning') . '<br />' . exmtrans('common.help.more_help'));
 
         $form->html(view('exment::workflow.beginning', [
             'items' => $results

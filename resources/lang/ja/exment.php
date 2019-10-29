@@ -32,7 +32,6 @@ return [
         'published_at' => '公開日時', 
         'published_date' => '公開日', 
         'all_user' => '全ユーザー',
-        'boss_user' => '上司',
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
@@ -87,6 +86,7 @@ return [
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
             'init_flg' => '保存後、変更はできません。',
+            'more_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
         ],
 
         'weekday' => [
@@ -614,9 +614,7 @@ return [
             'work_conditions_common' => 'このアクションの実行後のステータスを設定します。',
             'work_conditions_table' => 'このアクションを実行するための条件と、実行後のステータスを設定します。条件は3つまで設定できます。<br />※常に固定のアクションを実行する場合、「条件1」の「実行後ステータス」の設定のみ行ってください。',
             'flow_next_type' => 'このアクションを実行したときに、次のステータスへ進行するための人数を設定します。',
-            'workflow_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
             'beginning' => '各テーブルごとに、使用するワークフローを1件まで選択します。<br />※使用するワークフローを変更した場合でも、現在進行中のワークフローは、変更前のワークフローで実行されます。',
-            'status_from' => 'そのアクションを実行するための、ステータス状態を設定します。',
             'status_from' => 'そのアクションを実行するための、ステータス状態を設定します。',
             'setting_complete' => 'このワークフローの設定を完了します。設定完了すると、以下の内容が実施できなくなります。<br />・ワークフローの削除<br />・ステータスの追加、削除、順番変更<br />よろしければ、「yes」と入力してください。',
             'ignore_work' => 'チェックすることで、このアクションに設定されている「実行可能ユーザー」は、作業ユーザーに含めません。<br />「却下」「差し戻し」など、前のステータスに戻るアクションや、管理者が特例で承認を行う場合などに、チェックを行ってください。',
@@ -658,7 +656,6 @@ return [
         'table_name' => 'テーブル名(英数字)',
         'table_view_name' => 'テーブル表示名',
         'order' => '表示順',
-        'workflow_id' => 'ワークフロー設定',
         'field_description' => '説明',
         'color' => '色',
         'icon' => 'アイコン',
@@ -772,7 +769,7 @@ return [
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
-            'select_target_view' => '対象ビュー',	
+            'select_target_view' => '対象ビュー',
             'select_import_column_id' => 'インポート時のキー列',
             'select_load_ajax' => '選択肢を絞り込む',
             'true_value' => '選択肢1のときの値',
@@ -860,11 +857,11 @@ return [
         ],
         
         'calc_formula' => [
-             'calc_formula' => '計算式',
-             'dynamic' => '列',
-             'fixed' => '固定値',
-             'symbol' => '記号',
-             'input_number' => '数値を入力',
+            'calc_formula' => '計算式',
+            'dynamic' => '列',
+            'fixed' => '固定値',
+            'symbol' => '記号',
+            'input_number' => '数値を入力',
         ],
     ],
 
@@ -1170,7 +1167,7 @@ return [
         'parent_custom_table' => '親テーブル',
         'child_custom_table' => '子テーブル',
         'parent_import_column_id' => 'インポート時のキー列',
-            
+
         'help' => [
             'relation_caution' => '<span class="red bold"><i class="fa fa-exclamation-circle"></i> Exmentのテーブル間の関連付け設定方法は、この画面の他に、もう1種類あります。</span><br />登録前に、必ず<a href="%s" target="_blank">マニュアル</a>をご確認いただき、適切な選択を行うようにしてください。',
             'parent_import_column_id' => 'データのインポート時、親テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
@@ -1474,7 +1471,7 @@ return [
             'pie' => '円グラフ',
         ]
     ],
-    
+
     'calendar' => [
         'calendar_type_options' => [
             'month' => '月別',
@@ -1514,7 +1511,6 @@ return [
         'help' =>[
             'redirect' => '認証後にリダイレクトするURLを入力してください。',
             'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',
-            'description' => '<span class="red">API設定の詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
         ],
 
         'client_type_options' => [
@@ -1542,5 +1538,5 @@ return [
             'system' => 'システム',
             'column' => '列の値',
         ],
-    ]
+    ],
 ];

@@ -13,6 +13,7 @@ return [
         'reqired' => 'Required',
         'default' => 'Default',
         'detail_setting' => 'Detail Setting',
+        'no_setting' => 'No Setting',
         'input' => 'Input',
         'available_true' => 'Available',
         'available_false' => 'Not Available',
@@ -30,12 +31,16 @@ return [
         'deleted_at' => 'Deleted At',      
         'published_at' => 'Published At', 
         'published_date' => 'Published Date', 
+        'all_user' => 'All User',
         'created_user' => 'Created User',
         'updated_user' => 'Updated User', 
         'deleted_user' => 'Deleted User',   
+        'workflow_status' => 'Current Status', 
+        'workflow_work_users' => 'Current Work Users', 
+        'workflow_history' => 'Work History',
         'trashed_user' => '(Already Trashed User)', 
         'attachment' => 'Attachment File',
-        'max_file_size' => 'Max Upload File Size',     
+        'max_file_size' => 'Max Upload File Size',
         'comment' => 'Comment',   
         'separate_word' => ',',
         'yes' => 'Yes',
@@ -45,9 +50,16 @@ return [
         'row_up' => 'Row Up',
         'row_down' => 'Row Down',
         'pager_count' => 'Pager Count',
+        'system' => 'System',
         'custom_table' => 'Custom Table',
         'custom_column' => 'Custom Column',
         'copy_item' => "This %s's Copy",
+        'keyword' => 'Keyword',
+        'header' => 'Header',
+        'footer' => 'Footer',
+        'available' => 'Available',
+        'history' => 'History',
+
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
             'success_execute' => 'Execute Success!',
@@ -60,6 +72,7 @@ return [
             'wrongconfig' => 'Wrong config.json.',
             'exists_row' => 'Be sure to enter at least one line of %s.',
             'sendmail_succeeded' => 'E-mail transmission succeeded.',
+            'input_keyword' => 'Please input "%s".',
         ],
 
         'help' =>[
@@ -71,7 +84,9 @@ return [
             'task_schedule' => '<br /><b>*You have to do scheduling setting.</b> Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'order' => 'This is the display order when %s is listed.',
             'max_file_size_link' => 'File upload upper limit size change.',
-            'max_file_size' => 'This is the size limit when uploading files from the page.Please execute<a href="%s" target="_blank">this<i class="fa fa-external-link"></i></a>to change.'
+            'max_file_size' => 'This is the size limit when uploading files from the page.Please execute<a href="%s" target="_blank">this<i class="fa fa-external-link"></i></a>to change.',
+            'init_flg' => 'Cannot edit after save.',
+            'more_help' => '<span class="red">For a detailed explanation, click the "?" Icon at the top right of the page and check the manual.</span>',
         ],
 
         'weekday' => [
@@ -96,13 +111,16 @@ return [
         'description' => 'An error has occurred. Please check the content of the error.',
         'error_message' => 'Error Message',
         'error_trace' => 'Error Trace',
+        'failure_import_file' => 'The format of the uploaded file is incorrect. Please check the file.',
         'not_install' => 'Exment is not installed. Please install Exment according to the following URL. <br /> https://exment.net/docs/#/quickstart',
         'disabled_outside_api' => 'External connection is not permitted.',
         'login_failed' => 'ID or password is wrong.',
+        'mistake_keyword' => 'Please enter the keyword correctly.',
         'mailsend_failed' => 'E-mail transmission failed. Please check your email settings.',
         'size_too_large' => 'File:{name} (<b>{size} KB</b>) exceeds uploadable size <b>{maxSize} KB</b>.',
         'disable_delete_row' => 'Contains lines that can not be deleted.',
         'no_mail_template' => 'There is no mail template. Please check your email template settings.',
+        'memory_leak' => 'There was not enough memory to perform your operation. To increase the amount of memory, open the following URL and increase the amount of memory. :url',
     ],
 
     'install' => [
@@ -123,7 +141,6 @@ return [
             'installing' => 'Execute Install',
         ],
 
-
         'help' => [
             'installing' => 'Install initial data. This process takes time.',
             'install_success' => 'Installation completed!',
@@ -134,6 +151,14 @@ return [
             'not_require_database_version' => '%s requires at least version %s. The version used is %s.',
             'mistake_mysql_mariadb' => 'The database you are using is %s, but you have selected %s. Please check the settings.',
         ],
+    ],
+
+    'validation' => [
+        'current_password' => 'The current password is incorrect.',
+        'password_history' => 'The password is the same as the password registered in the past. Please enter another password.',
+        'complex_password' => 'The password must be at least 12 characters long and must contain three types of characters (uppercase letters, lowercase letters, numbers, symbols).',
+        'not_has_custom_value' => 'Input value :value in column :attribute does not exist in table ":table_view_name". Please check the data.',
+        'empty' => 'Only a blank value can be specified for the value of :attribute.',
     ],
 
     'system' => [
@@ -150,6 +175,9 @@ return [
         'site_favicon' => 'Site Favicon(ico)',
         'site_skin' => 'Site Skin',
         'site_layout' => 'Site Menu Layout',
+        'default_date_format' => 'Date and time display format',
+        'filter_search_type' => 'Data search method',
+        'api_available' => 'API Available',
         'outside_api' => 'Perform server external communication',
         'permission_available' => 'Use Role Management',
         'organization_available' => 'Use Organization Management',
@@ -172,6 +200,10 @@ return [
         'version_error' => 'Checking system version is failed.',
         'update_guide' => 'Check how to update from here !!',
         'current_version' => 'Current version : ',
+        'password_policy' => 'Password Policy',
+        'complex_password' => 'Complex Password',
+        'password_expiration_days' => 'Password Expiration Days',
+        'password_history_cnt' => 'Number of Password History',
         
         'site_skin_options' => [
             "skin-blue" => "Header:Blue&nbsp;&nbsp;&nbsp;&nbsp;SideBar:Black",
@@ -193,6 +225,23 @@ return [
             "layout_mini" => "Small Icon",
         ],
         
+        'date_format_options' => [
+            'format_default' => 'Default（Y-m-d H:i:s）',
+            'format_slash' => 'Custom（Y/m/d H:i:s）',
+            'format_local' => 'Local（Y年m月d日 H時i分s秒）',
+        ],
+        
+        'filter_search_type_options' => [
+            'forward' => 'Forward',
+            'all' => 'All',
+        ],
+        
+        'date_format_list' => [
+            'format_default' => ['Y-m-d', 'Y-m-d H:i:s', 'H:i:s'],
+            'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
+            'format_local' => ['d/m/Y', 'd/m/Y H:i:s', 'H:i:s'],
+        ],
+        
         'help' =>[
             'site_name' => 'The site name displayed in the upper left of the page.',
             'site_name_short' => 'An abbreviation for the site name to be displayed when the menu is collapsed.',
@@ -201,6 +250,8 @@ return [
             'site_favicon' => 'Site Favicon(.ico). It is used for bookmarks on the homepage. Recommended size:16px * 16px',
             'site_skin' => 'Select the site theme color. *After saving, it will be reflected in reloading.',
             'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
+            'filter_search_type' => 'Set the search method for registered data. *In the case of partial match, performance may be affected depending on the number of data.',
+            'api_available' => 'If set to YES, you can use the API.',
             'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
             'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',
             'datalist_pager_count' => 'It is the default number of display of data that is displayed in keyword search and data list of dashboard. It is reflected in the whole system.',
@@ -212,6 +263,11 @@ return [
             'system_mail_encryption' => 'Enter the mail encryption protocol format in lower case. (ssl, tls etc)',
             'template' => 'If select these templates, install tables, columns and forms.',
             'role_one_user_organization' => 'Please register one or more users or organizations for permission.',
+            'default_date_format' => 'Sets the display format for the date and time.',
+            'password_policy' => 'Set the login password policy.',
+            'complex_password' => 'If set to YES, the password must be at least 12 characters long and must include three types of characters (uppercase letters, lowercase letters, numbers, and symbols).',
+            'password_expiration_days' => 'Set the password validity period. If set to 0, it will be indefinite.',
+            'password_history_cnt' => 'If you enter 1 or more, old passwords that have been used in the past cannot be registered again for the number of entered passwords. <br />*Even if set to 0, the password being set cannot be registered.',
         ]
     ],
 
@@ -242,11 +298,13 @@ return [
             'system' => 'System',
             'chart' => 'Chart',
             'calendar' => 'Calendar',
+            'plugin' => 'Plugin',
         ],
         
         'dashboard_box_options' => [
             'target_table_id' => 'Target Table',
             'target_view_id' => 'Target View',
+            'target_plugin_id' => 'Target Plugin',
             'target_system_id' => 'Target Item',
             'chart_axisx' => 'Axis X',
             'chart_axisy' => 'Axis Y',
@@ -337,6 +395,8 @@ return [
             'import' => 'Import Template',
             'script' => 'Script',
             'style' => 'Style',
+            'dashboard' => 'Dashboard',
+            'validator' => 'Validation',
         ],
     ],
 
@@ -407,6 +467,7 @@ return [
         'avatar' => 'Avatar',
         'default_table_name' => 'User',
         'belong_organizations' => 'Affiliation settings',
+        'password_change' => 'Change Password',
         'help' =>[
             'user_name' => 'The name is displayed on the window.',
             'email' => 'Please enter an email address that can receive system notifications.',
@@ -417,9 +478,11 @@ return [
             'reset_password' => 'By checking, the password will be reset.',
             'create_password_auto' => 'By checking, the password is automatically generated. (An email will be sent to the relevant user.)',
             'send_password' => 'By checking, we will e-mail user information to the relevant user.',
+            'password_change' => 'The password has expired.',
         ],
         'message' => [
             'required_password' => 'Enter a password or select Auto-Create.',
+            'change_succeeded' => 'Password changed.',
         ]
     ],
 
@@ -498,6 +561,94 @@ return [
         'error_select' => 'Please select only one record.',
     ],
 
+    'workflow' => [
+        'header' => 'Workflow Setting',
+        'description' => 'Set the workflow. Specific users can execute the flow, such as request, approval, and rejection.',
+        'workflow_view_name' => 'Workflow View Name',
+        'workflow_type' => 'Workflow Type',
+        'workflow_statuses' => 'Status Setting',
+        'workflow_actions' => 'Action Setting',
+        'description_workflow_statuses' => 'Define the status to be used in the workflow. Example: Awaiting approval, completed<br />*The status in the last row of the table should indicate the flow completion.',
+        'description_workflow_actions' => 'Define actions that change state. Example: Application, approval, approval',
+        'execute_workflow' => 'Execute Workflow',
+        'action' => 'Action',
+        'status' => 'Status',
+        'status_name' => 'Status Name',
+        'current_status_name' => 'Current Status',
+        'start_status_name' => 'Start Status Name',
+        'status_from' => 'Before Status',
+        'status_from_to_format' => '%s → %s',
+        'status_to' => 'After Status',
+        'action_name' => 'Action Name',
+        'datalock_flg' => 'Cannot Edit Data',
+        'setting_complete' => 'Setting Complete',
+        'setting_completed_flg' => 'Setting Complete',
+        'option' => 'Option Setting',
+        'work_targets' => 'Work User',
+        'work_targets_select' => 'Select Work User',
+        'work_conditions' => 'Action Setting',
+        'condition' => 'Condition',
+        'flow_next_type' => 'Condition to advance to next status',
+        'upper_user' => 'more than people',
+        'all_user' => 'All user execute',
+        'executed_user' => 'Executed User', 
+        'executed_at' => 'Executed Datetime', 
+        'next_work_users' => 'Next Work User', 
+        'login_work_user' => 'You Work User', 
+        'ignore_work' => 'Ignore as Work User',
+        'beginning' => 'Usage settings',
+        'active_start_date' => 'Use Start Date',
+        'active_end_date' => 'Use End Date',
+        'flow_executed_user_count' => 'Current Action Executed User',
+        'flow_executed_user_count_format' => '%s / %s User',
+
+        'help' => [
+            'saved_redirect_column' => 'Saved! Next, set the action.',
+            'status_name' => 'Set the name to be displayed on the screen.',
+            'start_status_name' => 'Set the status name at the start of the workflow.',
+            'datalock_flg' => 'Sets whether the target data is not editable when the workflow is in this status. Set to YES if you do not want to edit.',
+            'workflow_type' => 'Select the workflow type.<br />"Generic" can be used in multiple tables, but custom columns cannot be used for action conditions or work user selection.<br />"Table Only" requires you to select one table first, but you can use custom columns to make action conditions and work user selections.',
+            'work_conditions' => 'Set the status after executing the action. Click the “Change” button to change the settings. The settings vary depending on the workflow type.',
+            'work_targets' => 'Select the users and organizations that can perform this action. Click the “Change” button to change the settings.',
+            'work_targets2' => 'Select the types of users who can perform this action.<br />Select user to perform previous action selects the user who performed this action from the user who performed the previous action. “Pre-configuration” can only be performed by specific users or organizations.',
+            'work_conditions_common' => 'Sets the status after this action is executed.',
+            'work_conditions_table' => 'Set the conditions for executing this action and the status after execution. Up to three conditions can be set.<br />*When executing a fixed action at all times, only set [Condition 1] [Post-execution status].',
+            'flow_next_type' => 'Sets the number of people to progress to the next status when this action is executed.',
+            'beginning' => 'Select up to one workflow to use for each table. <br /> * Even if the workflow to be used is changed, the workflow currently in progress is executed in the workflow before the change.',
+            'status_from' => 'Set the status state to perform that action.',
+            'setting_complete' => 'Complete the setup for this workflow. When the setting is completed, the following contents cannot be implemented.<br />Delete workflow<br />Add, delete, order status<br />If you are sure, enter "yes".',
+            'ignore_work' => 'By checking, "executable user" set in this action is not included in the work user. <br /> Please check this when you want to return to the previous status, such as "Reject" or "Return", or when the administrator approves with a special exception.',
+            'flow_executed_user_count' => 'The status will not change until the required number of people perform the action.',
+        ],
+
+        'message' => [
+            'status_nochange' => 'Choose different states for start and end.',
+            'exists_authority' => 'Be sure to set the action permissions.',
+            'reference_error' => 'You cannot delete a workflow that is in use.',
+            'locked' => 'This data is locked by workflow settings.',
+            'same_custom_table' => 'Duplicate workflow.',
+            'same_action' => 'Set the pre-execution status and post-execution status to different statuses.',
+            'fix_and_action_select' => 'In the same pre-execution status, "Set in advance" and "Select the user who executed the previous action" cannot be set at the same time.',
+            'action_execute' => 'Perform the following actions:',
+        ],
+        
+        'comment_options' => [
+            'required' => 'Required',
+            'nullable' => 'Nullable',
+            'not_use' => 'Not Yse',
+        ],
+
+        'workflow_type_options' => [
+            'common' => 'Generic',
+            'table' => 'Table Only',
+        ],
+        'work_target_type_options' => [
+            'all' => 'Executable by all users',
+            'action_select' => 'Selected by the user who executed the previous action',
+            'fix' => 'Set in advance',
+        ],
+    ],
+
     'custom_table' => [
         'header' => 'Custom Table Setting',
         'description' => 'Define custom table settings that can be changed independently.',
@@ -546,6 +697,7 @@ return [
             'delete_confirm_message' => 'Please enter "%s" to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
         ],
+
         'custom_column_multi' => [
             'uniques' => 'Compound unique key setting',
             'unique1' => 'Column 1',
@@ -554,13 +706,21 @@ return [
             'table_labels' => 'Headline display column setting',
             'column_target' => 'Target column',
             'priority' => 'Priority',
+            'options_label' => 'Option Setting',
             'table_label_format' => 'Headline format setting',
             'table_label_format_string' => 'Headline format string',
+            'form_action_disable_flg' => 'Cannot changed from display',
 
             'help' => [
                 'table_labels' => 'When selecting data, set the wording column to be displayed on the screen. Display as heading items in order from the top.<br/>Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
                 'uniques' => 'Set a composite unique key. If all the values ​​in these columns match the registered values, an error will occur when saving the data.',
                 'table_label_format' => '(For advanced users) You can flexibly set the format to be displayed in the heading. Please refer to&nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp;for the parameter to display the value.* If you set a value to this item, "header display column setting" above will be disabled.',
+                'form_action_disable_flg' => 'The checked operation cannot be executed from the screen. Check this if you want to manage data only from the API or dashboard.',
+            ],
+            'form_action_options' => [
+                'create' => 'Create',
+                'edit' => 'Edit',
+                'delete' => 'Delete',
             ],
         ],
     ],
@@ -575,6 +735,14 @@ return [
         'add_custom_form_flg' => 'Add to the Default Form',
         'add_custom_view_flg' => 'Add to the Default View',
         'auto_number_format_rule' => 'Auto Number format of the role',
+        'child_count_text' => '%s:Count',
+        'child_sum_text' => '%s:%s(Sum)',
+        'symbols' => [
+            'plus' => '+',
+            'minus' => '-',
+            'times' => '*',
+            'div' => '/',
+        ],
         'options' => [
             'header' => 'Detail Option',
             'index_enabled' => 'Index Enabled',
@@ -616,6 +784,7 @@ return [
             'auto_number_type_random25' => 'Random(25-Length)',
             'auto_number_type_random32' => 'Random(UUID)',
             'auto_number_format' => 'Auto Number Format',
+            'auto_number_other' => 'Other',
             'multiple_enabled' => 'Approval Multiple Select',
             'calc_formula' => 'Calc Formula',
             'currency_symbol' => 'Currency Format',
@@ -669,7 +838,7 @@ return [
             'true_label' => 'Enter the character string to be displayed when the first choice is saved.',
             'false_value' => 'Enter the value to be registered when saving the second choice.',
             'false_label' => 'Enter the character string to be displayed when saving the second choice.',
-			'available_characters' => 'Please select an inputable character. If you clear all checks, you can enter all the characters.',
+            'available_characters' => 'Please select an inputable character. If you clear all checks, you can enter all the characters.',
             'suggest_input' => 'If set to YES, you can display a list of input candidates from already registered data. <br/> * If you want to use, please set "Search index" to YES.',
             'regex_validate' => '(For advanced users) Set the contents that can be input as a regular expression. If you set a value to this item, the setting of "Available Characters" above will be disabled. Please refer to &nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp; for details.',
             'auto_number_format' => 'Set the numbering rule to be registered. For details of rules, please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
@@ -709,6 +878,7 @@ return [
         'form_block_name' => 'Form Block Name',
         'view_only' => 'View Only',
         'hidden' => 'Hidden Field',
+        'required' => 'Required',
         'text' => 'Text',
         'html' => 'HTML',
         'available' => 'Available',
@@ -723,11 +893,20 @@ return [
         'changedata_target_column_when' => 'When select this column,',
         'changedata_column' => 'Select Link Column',
         'changedata_column_then' => 'Copy this column',
+        'default_flg' => 'Default Form',
+
+        'priority' => [
+            'title' => 'Form Display Condition Setting',
+            'form_view_name' => 'Display Form',
+            'form_priority_text' => 'Condition',
+            'order' => 'Order',
+        ],
 
         'form_column_type_other_options' => [
             'header' => 'Label',
             'html' => 'HTML',
             'explain' => 'Explain',
+            'exhtml' => 'Expand HTML',
         ],
 
         'help'=> [
@@ -741,8 +920,20 @@ return [
         ],
     ],
 
+    'custom_form_priority' => [
+        'header' => 'Custom Form Priority Setting',
+        'description' => 'Set the conditions and priority to display the form screen. The form screen switches according to the contents set on this page.',
+        'custom_form_id' => 'Target Form',
+        'order' => 'Priority',
+        'custom_form_priority_conditions' => 'Conditions',
+        'help'=> [
+            'order' => 'Set the display priority of the form.',
+            'custom_form_priority_conditions' => 'Set the conditions for displaying the custom form. You can select user, organization, role, and select type custom columns.<br>If multiple conditions are set, all of them must be satisfied.',
+        ],
+    ],
+
     'custom_operation_columns' => [
-        'update_value' => 'Uodate Value',
+        'update_value' => 'Update Value',
     ],
 
     'custom_operation' => [
@@ -885,6 +1076,7 @@ return [
         'description' => 'Define Setting role.',
         'role_group_name' => 'Role Group Name',
         'role_group_view_name' => 'Role Group View Name',
+        'description_system_admin' => '<span class="red">*To add system administrator privileges, go to "System Settings / System Administrator" from the menu.</span>',
         'permissions' => 'Role Detail',
         'permission_setting' => 'Permission Setting',
         'user_organization_setting' => 'User/organization setting',
@@ -904,7 +1096,7 @@ return [
             'manual_link' => '<br />Please read <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> about roles and permissions.'
         ],
 
-        'role_type_options' =>[
+        'role_type_options' => [
             'system' => 'System',
             'table' => 'Table',
             'value' => 'Value',
@@ -920,6 +1112,7 @@ return [
         'role_type_option_system' => [
             'system' => ['label' => 'System Setting', 'help' => 'Users can edit system setting.'],
             'login_user' => ['label' => 'Manage login user', 'help' => 'You can manage the users who log in to Exment.'],
+            'workflow' => ['label' => 'Workflow Settings', 'help' => 'You can change the workflow settings.'],
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can add, edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
             'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
@@ -936,6 +1129,8 @@ return [
             'custom_view' => ['label' => 'View', 'help' => 'You can add, change and delete system views.'],
             'custom_value_edit_all' => ['label' => 'Edit data', 'help' => 'You can add, edit and delete master data.'],
             'custom_value_view_all' => ['label' => 'View data', 'help' => 'You can view the master data.'],
+            'custom_value_import' => ['label' => 'Import', 'help' => 'You can import data.<br />*In addition to this authority, editing authority is required.'],
+            'custom_value_export' => ['label' => 'Export', 'help' => 'You can export the data.<br />*Output data is limited to data that can be viewed by the user.'],
         ], 
         'role_type_option_table' => [
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can edit, delete custom tables.'],
@@ -948,6 +1143,8 @@ return [
             'custom_value_view' => ['label' => 'View Personnel Data', 'help' => 'Users can view personnel data in custom tables.'],
             'custom_value_access' => ['label' => 'Access All Data', 'help' => 'Users can see personnel data in custom tables.<br />*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.'],
             'custom_value_share' => ['label' => 'Data sharing', 'help' => 'Data can be shared with other users.<br />* You need edit permission for the data.'],
+            'custom_value_import' => ['label' => 'Import', 'help' => 'You can import data.<br />*In addition to this authority, editing authority is required.'],
+            'custom_value_export' => ['label' => 'Export', 'help' => 'You can export the data.<br />*Output data is limited to data that can be viewed by the user.'],
         ], 
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => 'Editor', 'help' => 'Users can edit personnel data in custom tables.'],
@@ -1022,6 +1219,7 @@ return [
         'menu_type' => 'Menu Type',
         'description' => 'Define about left menu. You can update definition if you reload browser.',
         'menu_target' => 'Target',
+        'menu_target_view' => 'Target View',
         'menu_name' => 'Menu Name',
         'title' => 'Menu View Name',
         'menu_type_options' => [
@@ -1045,10 +1243,13 @@ return [
             'notify' => 'Notify',
             'master' => 'Manage Master',
             'admin' => 'Admin Setting',
+            'workflow' => 'Workflow',
             'user' => 'User',
             'organization' => 'Organization',
             'mail_template' => 'Mail template',
             'mail' => 'Email transmission history',
+            'operation_log' => 'Operation log',
+            'api_setting' => 'API Settings',
         ],
     ],
 
@@ -1150,8 +1351,9 @@ return [
             'init_flg' => 'Cannot edit after save.',
         ],
         'message' => [
-            'operation_notfound' => '更新対象のデータが見つかりませんでした。',
-            'operation_succeeded' => '一括更新を実行しました。',
+            'operation_notfound' => 'The data to be updated was not found.',
+            'operation_succeeded' => 'Batch update was performed.',
+            'action_disabled' => 'Operations from the screen are restricted.',
         ],
     ],
 
@@ -1197,8 +1399,10 @@ return [
         'header_action' => 'Notify Action Setting',
         'description' => 'Perform settings for notifying under specific conditions.',
         'notify_view_name' => 'Notify Display Name',
+        'notify_target' => 'Notify Target Name',
         'custom_table_id' => 'Notify Target Name',
         'custom_view_id' => 'Target view',
+        'workflow_id' => 'Target Workflow',
         'notify_trigger' => 'Notify Trigger',
         'trigger_settings' => 'Notify Trigger Setting',
         'notify_target_column' => 'Notify Target Date Column',
@@ -1216,6 +1420,7 @@ return [
             'notify_day' => 'Please enter the date of the notification. By inputting "0", will notify you on the day.',
             'custom_table_id' => 'Select the table to use as the condition to notify.',
             'custom_view_id' => 'Specify the condition view when you want to narrow the data of the target table. Please create the condition view on the custom table setting screen first.',
+            'workflow_id' => 'Select the workflow for notification.',
             'notify_trigger' => 'Please select the content to be notified trigger.',
             'trigger_settings' => 'Select the datetime or date field for judging whether to notify.',
             'notify_beforeafter' => 'Choose whether to notify you that you are "before" or "after" of the date you are registering.<br />Ex: If "Notification date" is 7, "before and after notification" is "before", notification is executed 7 days before the date of the specified field.',
@@ -1230,6 +1435,7 @@ return [
             'time' => 'The Passage of Time',
             'create_update_data' => 'Data Create/Update',
             'button' => 'Button',
+            'workflow' => 'Workflow',
         ],
         'notify_beforeafter_options' => [
             'before' => 'Before', 
@@ -1245,7 +1451,17 @@ return [
         'notify_action_target_options' => [
             'has_roles' => 'Have the Role User',
             'created_user' => 'Create User',
+            'work_user' => 'Next Work User',
         ],
+    ],
+    
+    'operation_log' => [
+        'description' => 'View operation log list.',
+        'user_name' => 'User name',
+        'method' => 'Method',
+        'path' => 'Path',
+        'ip' => 'IP Address',
+        'input' => 'Input/Query',
     ],
     
     'chart' => [
@@ -1284,8 +1500,43 @@ return [
         ],
 
         'errors' => [
+            'invalid_params' => 'The parameter is incorrect.',
+            'over_maxcount' => 'A number between 1 and 100 can be specified for "count".',
+            'over_createlength' => 'The number of data that can be newly created at the same time is %s.',
             'access_denied' => 'Could not authenticate. The access token is incorrect or has expired.',
             'wrong_scope' => 'There is an error in the scope for executing the API. Please contact the developer.',
-        ]
+            'not_index_enabled' => ':attribute does not have a search index.',
+        ],
+
+        'help' =>[
+            'redirect' => 'Enter the URL to redirect after authentication.',
+            'client_secret' => 'Click the icon on the left if you want to display the key.',
+        ],
+
+        'client_type_options' => [
+            'client_credentials' => 'Client Login on Display',
+            'password_grant' => 'Password Grant',
+        ],
+
+        'header' => 'API Setting',
+        'description' => 'Register the application settings for executing the API.',
+        'app_name' => 'Application Name',
+        'client_type_text' => 'Authentication Type',
+        'client_id' => 'Client ID',
+        'client_secret' => 'Client Secret',
+        'redirect' => 'Redirect URL',
+    ],
+
+    'condition' => [
+        'condition_target' => 'Condition Item',
+        'condition_key' => 'Search Condition',
+        'condition_value' => 'Condtion Value',
+        'condition_type_options' => [
+            'user' => 'User',
+            'organization' => 'Organization',
+            'role' => 'Role',
+            'system' => 'System',
+            'column' => 'Custom Column',
+        ],
     ],
 ];
