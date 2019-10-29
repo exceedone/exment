@@ -652,10 +652,11 @@ class WorkflowController extends AdminControllerBase
         $errors = $validator->errors();
 
         // especially validation
-        foreach (array_get($data, 'workflow_actions', []) as $key => $workflow_action) {
+        $workflow_actions = array_get($data, 'workflow_actions', []);
+        foreach ($workflow_actions as $key => $workflow_action) {
             $errorKey = "workflow_actions.$key";
 
-            // get action conditions
+            // validate action conditions
             $workflow_conditions = Condition::getWorkConditions(array_get($workflow_action, 'work_conditions'));
             
             foreach ($workflow_conditions as $workflow_condition) {
@@ -664,6 +665,45 @@ class WorkflowController extends AdminControllerBase
                     break;
                 }
             }
+
+
+            // validate workflow targets
+            $work_targets = jsonToArray(array_get($workflow_action, 'work_targets'));
+            if(is_nullorempty($work_targets)){
+                $errors->add("$errorKey.work_targets", trans("valation.required"));
+            }
+
+            elseif(array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::FIX){
+                array_forget($work_targets, 'work_target_type');
+                if(is_nullorempty($work_targets) || !collect($work_targets)->contains(function($work_target){
+                    return !is_nullorempty($work_target);
+                })){
+                    $errors->add("$errorKey.work_targets", trans("validation.required"));
+                }
+            }
+
+            elseif(array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::ACTION_SELECT){
+                // if contains other FIX action in same acthion
+                foreach($workflow_actions as $validateIndex => $workflow_action_validate){
+                    if($key == $validateIndex){
+                        continue;
+                    }
+
+                    if(array_get($workflow_action, 'status_from') != array_get($workflow_action_validate, 'status_from')){
+                        continue;
+                    }
+
+                    $work_targets_validate = jsonToArray(array_get($workflow_action_validate, 'work_targets'));
+            
+                    if(array_get($work_targets_validate, 'work_target_type') == array_get($work_targets, 'work_target_type')){
+                        continue;
+                    }
+        
+                    $errors->add("$errorKey.work_targets", exmtrans("workflow.message.fix_and_action_select"));
+                    break;
+                }
+            }
+
         }
 
         if (count($errors->getMessages()) > 0) {
@@ -738,11 +778,11 @@ class WorkflowController extends AdminControllerBase
                         WorkflowWorkTargetType::FIX => WorkflowWorkTargetType::FIX()->transKey('workflow.work_target_type_options')
                     ];
                     $help = exmtrans('workflow.help.work_targets2');
-                    $default = WorkflowWorkTargetType::ACTION_SELECT;
+                    $default = WorkflowWorkTargetType::FIX;
                     $form->radio('work_target_type', exmtrans('workflow.work_targets'))
                         ->help($help)
                         ->attribute(['data-filtertrigger' =>true])
-                        ->default(array_get($value, 'work_target_type', $default))
+                        ->default(array_get($value, 'work_target_type') ?? $default)
                         ->options($options);
                 } else {
                     $form->hidden('work_target_type')->default(WorkflowWorkTargetType::FIX);

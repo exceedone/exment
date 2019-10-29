@@ -12,7 +12,7 @@ class WorkflowWorkTargetType extends EnumBase
     public static function getTargetTypeDefault($index)
     {
         $result = [
-            'work_target_type' => ($index === 0 ? static::FIX : static::ACTION_SELECT)
+            'work_target_type' => static::FIX // ($index === 0 ? static::FIX : static::ACTION_SELECT)
         ];
 
         if ($index === 0) {
