@@ -1848,7 +1848,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($checkFormAction && $this->formActionDisable(FormActionType::CREATE)) {
             return ErrorCode::FORM_ACTION_DISABLED();
         }
-        
+
         return true;
     }
 

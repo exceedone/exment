@@ -251,10 +251,6 @@ abstract class CustomValue extends ModelBase
         return collect($results);
     }
 
-    public function parent_custom_value()
-    {
-        return $this->morphTo();
-    }
     /**
      * get or set remove_file_columns
      */
@@ -939,7 +935,11 @@ abstract class CustomValue extends ModelBase
      */
     public function getParentValue($isonly_label = false)
     {
-        $model = getModelName($this->parent_type)::find($this->parent_id);
+        if(is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)){
+            return null;
+        }
+        
+        $model = CustomTable::getEloquent($this->parent_type)->getValueModel($this->parent_id);
         if (!$isonly_label) {
             return $model ?? null;
         }
