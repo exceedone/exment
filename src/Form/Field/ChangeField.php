@@ -33,6 +33,22 @@ class ChangeField extends Field
     protected $eventTargetSelector;
 
     /**
+     * @var string
+     */
+    protected $replaceSearch = 'condition_key';
+
+    /**
+     * @var string
+     */
+    protected $replaceWord = 'condition_value';
+
+    /**
+     *
+     * @var bool
+     */
+    protected $showConditionKey = true;
+
+    /**
      * decide admin field element Closure fucntioon
      *
      * @var Closure
@@ -84,14 +100,48 @@ class ChangeField extends Field
         return $this;
     }
 
+    /**
+     * Show Condition Key
+     *
+     * @param [type] $ajax
+     * @return void
+     */
+    public function showConditionKey($showConditionKey)
+    {
+        $this->showConditionKey = $showConditionKey;
+
+        return $this;
+    }
+
+    /**
+     */
+    public function replaceSearch($replaceSearch)
+    {
+        $this->replaceSearch = $replaceSearch;
+
+        return $this;
+    }
+
+    /**
+     */
+    public function replaceWord($replaceWord)
+    {
+        $this->replaceWord = $replaceWord;
+
+        return $this;
+    }
+
     protected function script()
     {
         $ajax = $this->ajax;
         $eventTriggerSelector = $this->eventTriggerSelector;
         $eventTargetSelector = $this->eventTargetSelector;
+        $showConditionKey = $this->showConditionKey;
+        $replaceSearch = $this->replaceSearch;
+        $replaceWord = $this->replaceWord;
 
         $script = <<<EOT
-            Exment.ChangeFieldEvent.ChangeFieldEvent('$ajax', '$eventTriggerSelector', '$eventTargetSelector');
+            Exment.ChangeFieldEvent.ChangeFieldEvent('$ajax', '$eventTriggerSelector', '$eventTargetSelector', '$replaceSearch', '$replaceWord', '$showConditionKey');
 EOT;
 
         static::$scripts[] = $script;

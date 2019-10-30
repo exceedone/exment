@@ -624,7 +624,7 @@ class ApiTableController extends AdminControllerTableBase
         if (!isset($item)) {
             return [];
         }
-        return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
+        return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
     }
 
     protected function getConditionItem(Request $request, $target)
@@ -634,7 +634,7 @@ class ApiTableController extends AdminControllerTableBase
             return null;
         }
 
-        $elementName = str_replace('condition_key', 'condition_value', $request->get('cond_name'));
+        $elementName = str_replace($request->get('replace_search', 'condition_key'), $request->get('replace_word', 'condition_value'), $request->get('cond_name'));
         $label = exmtrans('condition.condition_value');
         $item->setElement($elementName, 'condition_value', $label);
 

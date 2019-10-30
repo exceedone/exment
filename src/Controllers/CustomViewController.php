@@ -615,6 +615,8 @@ class CustomViewController extends AdminControllerTableBase
         $label = exmtrans('condition.condition_value');
         $item->setElement($elementName, 'view_filter_condition_value', $label);
 
+        $item->viewFilter(true);
+
         return $item;
     }
 }

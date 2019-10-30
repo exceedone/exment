@@ -26,11 +26,10 @@ trait ColumnSystemItemTrait
     /**
      * Get change field
      *
-     * @param [type] $target_val
      * @param [type] $key
      * @return void
      */
-    public function getChangeField($key)
+    public function getChangeField($key, $show_condition_key = true)
     {
         if (!isset($this->target)) {
             return null;
@@ -38,7 +37,7 @@ trait ColumnSystemItemTrait
 
         $value_type = null;
 
-        if (isset($key)) {
+        if (isset($key) && boolval($show_condition_key)) {
             $value_type = FilterOption::VALUE_TYPE($key);
 
             if ($value_type == 'none') {

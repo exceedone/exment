@@ -150,54 +150,38 @@ class CustomOperationController extends AdminControllerTableBase
         $form->text('operation_name', exmtrans("custom_operation.operation_name"))->required()->rules("max:40");
         
         $custom_table = $this->custom_table;
-        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
-
+        
         // filter setting
-        $form->hasManyTable('custom_operation_columns', exmtrans("custom_operation.custom_operation_columns"), function ($form) use ($custom_table) {
-            $form->select('view_column_target', exmtrans("custom_operation.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions([
-                    'append_table' => true,
-                    'index_enabled_only' => false,
-                    'include_parent' => false,
-                    'include_child' => false,
-                    'include_system' => false,
-                ]));
+        $hasManyTable = new Tools\ConditionHasManyTable($form, [
+            'name' => 'custom_operation_columns',
+            'showConditionKey' => false,
+            'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
+            //'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
+            'targetOptions' => $this->custom_table->getColumnsSelectOptions([
+                'append_table' => true,
+                'index_enabled_only' => false,
+                'include_parent' => false,
+                'include_child' => false,
+                'include_system' => false,
+            ]),
+            'condition_target_name' => 'view_column_target',
+            'condition_key_name' => 'view_column_target',
+            'condition_value_name' => 'update_value',
+        ]);
 
-            $label = exmtrans("custom_operation.update_value_text");
-            $form->changeField('update_value', $label)
-                ->required()
-                ->rules("changeFieldValue:$label");
-        })->setTableColumnWidth(4, 4, 3, 1)
-        ->description(sprintf(exmtrans("custom_operation.description_custom_operation_columns"), $manualUrl));
+        $hasManyTable->callbackField(function ($field) {
+            $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+            $field->description(sprintf(exmtrans("custom_operation.description_custom_operation_columns"), $manualUrl));
+        });
 
+        $hasManyTable->render();
+        
         $custom_table = $this->custom_table;
 
         $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table) {
             $tools->add((new Tools\GridChangePageMenu('operation', $custom_table, false))->render());
         });
         
-        $table_name = $this->custom_table->table_name;
-        $script = <<<EOT
-            $('#has-many-table-custom_operation_columns').off('change').on('change', '.view_column_target', function (ev) {
-                $.ajax({
-                    url: admin_url("operation/$table_name/filter-value"),
-                    type: "GET",
-                    data: {
-                        'target_name': $(this).attr('name'),
-                        'target_val': $(this).val(),
-                    },
-                    context: this,
-                    success: function (data) {
-                        var json = JSON.parse(data);
-                        $(this).closest('tr.has-many-table-custom_operation_columns-row').find('td:nth-child(2)>div>div').html(json.html);
-                        if (json.script) {
-                            eval(json.script);
-                        }
-                    },
-                });
-            });
-EOT;
-        Admin::script($script);
         return $form;
     }
 
