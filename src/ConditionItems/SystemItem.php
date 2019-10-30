@@ -29,7 +29,7 @@ class SystemItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function getConditionText(Condition $condition, CustomValue $custom_value)
+    public function getConditionText(Condition $condition)
     {
         return null;
     }

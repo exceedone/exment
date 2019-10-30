@@ -58,14 +58,16 @@ class Condition extends ModelBase
      */
     public function getConditionTextAttribute()
     {
-        if ($this->condition_type == ConditionTypeDetail::COLUMN) {
-            $condition_type = $this->custom_column->column_view_name;
-        } else {
-            //TODO:workflow
+        $condition_type = ConditionTypeDetail::getEnum($this->target_column_id);
+        if(!isset($condition_type)){
             return null;
-            //$condition_type = ConditionTypeDetail::getEnum($this->condition_type)->transKey('condition.condition_type_options');
         }
-        return $condition_type . ' : ' . $this->getConditionText();
+
+        $item = $condition_type->getConditionItem(null, $this->condition_target);
+
+        $condition_type_label = $condition_type->transKey('condition.condition_type_options');
+        
+        return $condition_type_label . ' : ' . $item->getConditionText($this);
     }
 
     /**
@@ -113,16 +115,6 @@ class Condition extends ModelBase
         $item = ConditionItemBase::getItem($custom_value->custom_table, $this->condition_target);
         return $item->isMatchCondition($this, $custom_value);
     }
-
-    /**
-     * get condition value text.
-     */
-    public function getConditionText()
-    {
-        $item = ConditionItemBase::getItem($custom_value->custom_table, $this->condition_target);
-        return $item->getConditionText($this, $custom_value);
-    }
-    
     
     /**
      * get work conditions.

@@ -34,9 +34,9 @@ class RoleGroupItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function getConditionText(Condition $condition, CustomValue $custom_value)
+    public function getConditionText(Condition $condition)
     {
-        $model = RoleGroup::find($this->condition_value);
+        $model = RoleGroup::find($condition->condition_value);
         if ($model instanceof Collection) {
             return $model->map(function ($row) {
                 return $row->role_group_view_name;

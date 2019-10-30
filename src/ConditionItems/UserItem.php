@@ -50,10 +50,10 @@ class UserItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function getConditionText(Condition $condition, CustomValue $custom_value)
+    public function getConditionText(Condition $condition)
     {
-        $model = getModelName(SystemTableName::USER)::find($this->condition_value);
-        if ($model instanceof Collection) {
+        $model = getModelName(SystemTableName::USER)::find($condition->condition_value);
+        if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
             return $model->map(function ($row) {
                 return $row->getValue('user_name');
             })->implode(',');

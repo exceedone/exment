@@ -33,7 +33,7 @@ class ColumnItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function getConditionText(Condition $condition, CustomValue $custom_value)
+    public function getConditionText(Condition $condition)
     {
         $custom_column = CustomColumn::getEloquent($condition->target_column_id);
         
