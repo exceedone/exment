@@ -1882,10 +1882,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if (!$this->hasPermission(Permission::CUSTOM_VALUE_EXPORT)) {
-            return ErrorCode::PERMISSION_DENY();
-        }
-
         return true;
     }
 
@@ -1900,10 +1896,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if (!$this->hasPermission(Permission::CUSTOM_VALUE_IMPORT)) {
-            return ErrorCode::PERMISSION_DENY();
-        }
-        
         return true;
     }
 
