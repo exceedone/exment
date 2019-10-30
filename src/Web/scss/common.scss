@@ -375,9 +375,13 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
         color: red;
         border-color: red;
     }
-    .control-label{
-        text-align: left !important;
-    }
+    // .control-label{
+    //     text-align: left !important;
+    // }
+}
+
+.column-__actions__{
+    min-width: 50px;
 }
 
 .bootstrap-duallistbox-container > div:last-child select{
