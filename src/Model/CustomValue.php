@@ -234,16 +234,21 @@ abstract class CustomValue extends ModelBase
             ->with(['workflow', 'workflow_action'])
             ->get();
 
-        if ($appendsStatus) {
-            foreach ($values as $v) {
-                $v->append('created_user');
-                $v->workflow_action->append('status_from_name');
-                $v->workflow_action->status_to_name = $v->workflow_action->getStatusToName($this);
-                $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', $v->workflow_action->status_from_name, $v->workflow_action->status_to_name);
-            }
+    
+        if (!$appendsStatus) {
+            return $values;
         }
 
-        return $values;
+        $results = [];
+        foreach ($values as $v) {
+            $v->append('created_user');
+            $v->workflow_action->append('status_from_name');
+            $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', $v->workflow_action->status_from_name, $v->workflow_status_name);
+
+            $results[] = $v->toArray();
+        }
+
+        return collect($results);
     }
 
     public function parent_custom_value()
