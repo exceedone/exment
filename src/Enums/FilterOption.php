@@ -208,21 +208,14 @@ class FilterOption extends EnumBase
     public static function getCompareOptions($enum)
     {
         switch ($enum) {
-            case static::NUMBER_GT:
-                return static::NUMBER_GT;
-            case static::NUMBER_LT:
-                return static::NUMBER_LT;
-            case static::NUMBER_GTE:
-            case static::DAY_ON_OR_AFTER:
-                return static::NUMBER_GTE;
-            case static::NUMBER_LTE:
-            case static::DAY_ON_OR_BEFORE:
-                return static::NUMBER_LTE;
-            case static::NE:
+            case static::USER_EQ:
+            case static::SELECT_EXISTS:
+                return static::EQ;
             case static::SELECT_NOT_EXISTS:
+            case static::USER_NE:
                 return static::NE;
         }
 
-        return static::EQ;
+        return $enum;
     }
 }
