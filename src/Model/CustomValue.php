@@ -1182,6 +1182,10 @@ abstract class CustomValue extends ModelBase
         if ($this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
         }
+        
+        if(!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableEdit($checkFormAction)) !== true){
+            return $code;
+        }
 
         return true;
     }
@@ -1202,13 +1206,14 @@ abstract class CustomValue extends ModelBase
         if ($this->custom_table->isOneRecord()) {
             return ErrorCode::PERMISSION_DENY();
         }
-        // if (boolval($this->disabled_delete)) {
-        //     return ErrorCode::DELETE_DISABLED();
-        // }
 
         // check workflow
         if ($this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
+        }
+        
+        if(!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true){
+            return $code;
         }
 
         return true;

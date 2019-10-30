@@ -21,6 +21,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
@@ -241,7 +242,7 @@ trait CustomValueShow
      */
     public function compare(Request $request, Content $content, $tableKey, $id)
     {
-        $this->firstFlow($request, $id);
+        $this->firstFlow($request,  CustomValuePageType::SHOW, $id);
         $this->AdminContent($content);
         $content->body($this->getRevisionCompare($id, $request->get('revision')));
         return $content;
@@ -252,7 +253,7 @@ trait CustomValueShow
      */
     public function compareitem(Request $request, Content $content, $tableKey, $id)
     {
-        $this->firstFlow($request, $id);
+        $this->firstFlow($request, CustomValuePageType::SHOW, $id);
         return $this->getRevisionCompare($id, $request->get('revision'), true);
     }
    
@@ -261,7 +262,7 @@ trait CustomValueShow
      */
     public function restoreRevision(Request $request, $tableKey, $id)
     {
-        $this->firstFlow($request, $id);
+        $this->firstFlow($request, CustomValuePageType::EDIT, $id);
         
         $revision_suuid = $request->get('revision');
         $custom_value = $this->getModelNameDV()::find($id);
