@@ -15,7 +15,7 @@ class Browser
         $browser = strtolower($request->server('HTTP_USER_AGENT'));
 
         if (mb_strstr($browser, 'trident') || mb_strstr($browser, 'msie')) {
-            return response('IEは使用できません。');
+            return response(view('exment::exception.browser'));
         }
 
         return $next($request);

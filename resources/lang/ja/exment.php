@@ -111,6 +111,8 @@ return [
         'disable_delete_row' => '削除できない行が含まれています。',
         'no_mail_template' => 'メールテンプレートがありません。メールテンプレート設定を確認してください。',
         'memory_leak' => 'ご利用の操作を行うためのメモリ量が足りませんでした。メモリ量を引き上げる場合、以下のURLを開き、メモリ量を増やしてください。:url',
+        'ie_not_supported' => 'Internet ExplorerではExmentを使用できません。',
+        'support_browser' => '対応ブラウザ',
     ],
 
     'install' => [
