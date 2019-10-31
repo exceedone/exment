@@ -79,6 +79,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
+        'admin.browser'  => \Exceedone\Exment\Middleware\Browser::class,
 
         'admin.pjax'       => AdminMiddleware\Pjax::class,
         'admin.permission' => AdminMiddleware\Permission::class,
@@ -100,6 +101,7 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $middlewareGroups = [
         'admin' => [
+            'admin.browser',
             'admin.initialize',
             'admin.auth',
             'admin.auth-2factor',
@@ -116,6 +118,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.session',
         ],
         'admin_anonymous' => [
+            'admin.browser',
             'admin.initialize',
             'admin.morph',
             'admin.bootstrap2',
@@ -126,6 +129,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.session',
         ],
         'admin_install' => [
+            'admin.browser',
             'admin.initialize',
             'admin.session',
         ],
