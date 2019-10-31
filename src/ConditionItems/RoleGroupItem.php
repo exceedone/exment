@@ -2,8 +2,10 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
+use Encore\Admin\Form\Field;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\RoleGroup;
 
 class RoleGroupItem extends ConditionItemBase
 {
@@ -20,10 +22,9 @@ class RoleGroupItem extends ConditionItemBase
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
-        $role_groups = \Exment::user()->base_user->belong_role_groups
-        ->map(function ($role_group) {
+        $role_groups = \Exment::user()->base_user->belong_role_groups()->map(function ($role_group) {
             return $role_group->id;
-        });
+        })->toArray();
 
         return $this->compareValue($condition, $role_groups);
     }
@@ -44,5 +45,19 @@ class RoleGroupItem extends ConditionItemBase
         } else {
             return $model->role_group_view_name;
         }
+    }
+
+    /**
+     * Get change field
+     *
+     * @param [type] $target_val
+     * @param [type] $key
+     * @return void
+     */
+    public function getChangeField($key)
+    {
+        $options = RoleGroup::all()->pluck('role_group_view_name', 'id');
+        $field = new Field\MultipleSelect($this->elementName, [$this->label]);
+        return $field->options($options);
     }
 }

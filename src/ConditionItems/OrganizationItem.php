@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
+use Encore\Admin\Form\Field;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
@@ -67,5 +69,21 @@ class OrganizationItem extends ConditionItemBase
             $query->whereIn(SystemTableName::WORKFLOW_AUTHORITY . '.related_id', $ids)
                 ->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_type', ConditionTypeDetail::ORGANIZATION()->lowerkey());
         });
+    }
+
+    /**
+     * Get change field
+     *
+     * @param [type] $target_val
+     * @param [type] $key
+     * @return void
+     */
+    public function getChangeField($key)
+    {
+        $options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions([
+            'display_table' => $this->custom_table
+        ]);
+        $field = new Field\MultipleSelect($this->elementName, [$this->label]);
+        return $field->options($options);
     }
 }

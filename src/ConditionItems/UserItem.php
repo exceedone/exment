@@ -41,7 +41,7 @@ class UserItem extends ConditionItemBase
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
         $user = \Exment::user();
-        return collect($this->condition_value)->contains($user->id);
+        return collect($condition->condition_value)->contains($user->id);
     }
     
     /**
