@@ -595,7 +595,7 @@ return [
         'executed_at' => '実行日時', 
         'next_work_users' => '次の作業ユーザー', 
         'login_work_user' => '自分が作業ユーザー', 
-        'ignore_work' => '次の作業ユーザーに含めない',
+        'ignore_work' => '通知対象外にする',
         'beginning' => '利用設定',
         'active_start_date' => '使用開始日',
         'active_end_date' => '使用終了日',
