@@ -8,7 +8,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 
-class SystemItem extends ConditionItemBase
+class SystemItem extends ConditionItemBase implements ConditionItemInterface
 {
     use ColumnSystemItemTrait;
     

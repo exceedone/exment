@@ -9,7 +9,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\SystemTableName;
 
-class ColumnItem extends ConditionItemBase
+class ColumnItem extends ConditionItemBase implements ConditionItemInterface
 {
     use ColumnSystemItemTrait;
     

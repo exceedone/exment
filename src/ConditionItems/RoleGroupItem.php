@@ -7,7 +7,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\RoleGroup;
 
-class RoleGroupItem extends ConditionItemBase
+class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
 {
     public function getFilterOption()
     {
@@ -54,7 +54,7 @@ class RoleGroupItem extends ConditionItemBase
      * @param [type] $key
      * @return void
      */
-    public function getChangeField($key)
+    public function getChangeField($key, $show_condition_key = true)
     {
         $options = RoleGroup::all()->pluck('role_group_view_name', 'id');
         $field = new Field\MultipleSelect($this->elementName, [$this->label]);

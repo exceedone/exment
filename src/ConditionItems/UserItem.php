@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 
-class UserItem extends ConditionItemBase
+class UserItem extends ConditionItemBase implements ConditionItemInterface
 {
     public function getFilterOption()
     {
@@ -23,7 +23,7 @@ class UserItem extends ConditionItemBase
      * @param [type] $key
      * @return void
      */
-    public function getChangeField($key)
+    public function getChangeField($key, $show_condition_key = true)
     {
         $options = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
             'display_table' => $this->custom_table
