@@ -162,6 +162,8 @@ class SupportForV220 extends Migration
         {
             $table->integer('workflow_id')->unsigned()->nullable()->after('custom_table_id');
         });
+
+        \Artisan::call('exment:patchdata', ['action' => 'workflow_mail_template']);
     }
 
     /**
