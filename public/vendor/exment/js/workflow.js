@@ -41,9 +41,6 @@ var Exment;
                         texts.push(escHtml(value.text));
                     });
                 }
-                else if (target.prop('type') == 'radio') {
-                    texts.push(escHtml(target.closest('.radio-inline').text().trim()));
-                }
             });
             return { value: JSON.stringify(values), text: texts.join('<br />') };
         }

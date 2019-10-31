@@ -335,25 +335,14 @@ class WorkflowController extends AdminControllerBase
                         return WorkflowWorkTargetType::getTargetTypeDefault($field->getIndex());
                     }
 
-                    $value = jsonToArray($value);
-
-                    // if is not vector array(as callback error response)
-                    if (!is_vector($value)) {
-                        $result = $value;
-                    } else {
-                        $result = [];
-                        collect($value)->each(function ($v) use (&$result) {
-                            $result[array_get($v, 'related_type')][] = array_get($v, 'related_id');
-                        });
-                    }
-
-                    $result['work_target_type'] = array_get($field->data(), 'options.work_target_type');
-
-                    return collect($result)->toJson();
+                    return collect($value)->toJson();
                 })
                 ->text(function ($value, $field) {
                     if (is_nullorempty($value)) {
                         return WorkflowWorkTargetType::getTargetTypeNameDefault($field->getIndex());
+                    }
+                    if (array_get($value, 'work_target_type') == WorkflowWorkTargetType::ACTION_SELECT) {
+                        return WorkflowWorkTargetType::ACTION_SELECT()->transKey('workflow.work_target_type_options');
                     }
 
                     $action = WorkflowAction::getEloquentDefault($field->data()['id']);
