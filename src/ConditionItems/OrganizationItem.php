@@ -86,4 +86,20 @@ class OrganizationItem extends ConditionItemBase
                 ->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_type', ConditionTypeDetail::ORGANIZATION()->lowerkey());
         });
     }
+
+    /**
+     * Get change field
+     *
+     * @param [type] $target_val
+     * @param [type] $key
+     * @return void
+     */
+    public function getChangeField($key)
+    {
+        $options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions([
+            'display_table' => $this->custom_table
+        ]);
+        $field = new Field\MultipleSelect($this->elementName, [$this->label]);
+        return $field->options($options);
+    }
 }

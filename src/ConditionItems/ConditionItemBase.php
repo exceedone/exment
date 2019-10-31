@@ -11,6 +11,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Validator\ChangeFieldRule;
+use Carbon\Carbon;
 
 abstract class ConditionItemBase
 {
@@ -182,6 +183,15 @@ abstract class ConditionItemBase
                         return $v < $condition_value;
                     case FilterOption::NUMBER_LTE:
                         return $v <= $condition_value;
+                    case FilterOption::DAY_ON:
+                        $condition_dt = Carbon::parse($condition_value);
+                        return Carbon::parse($v)->isSameDay($condition_dt);
+                    case FilterOption::DAY_ON_OR_AFTER:
+                        $condition_dt = Carbon::parse($condition_value);
+                        return Carbon::parse($v)->gte($condition_dt);
+                    case FilterOption::DAY_ON_OR_BEFORE:
+                        $condition_dt = Carbon::parse($condition_value)->addDays(1);
+                        return Carbon::parse($v)->lt($condition_dt);
                 }
                 return false;
             });
