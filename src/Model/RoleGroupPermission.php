@@ -97,5 +97,4 @@ class RoleGroupPermission extends ModelBase
     {
         RoleGroup::resetAllRecordsCache();
     }
-    
 }

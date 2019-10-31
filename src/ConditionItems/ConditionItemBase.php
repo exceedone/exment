@@ -124,7 +124,7 @@ abstract class ConditionItemBase
     /**
      * get filter value
      */
-    public function getFilterValue($target_key, $target_name)
+    public function getFilterValue($target_key, $target_name, $show_condition_key = true)
     {
         if (is_nullorempty($this->target) || is_nullorempty($target_key) || is_nullorempty($target_name)) {
             return [];
@@ -132,8 +132,8 @@ abstract class ConditionItemBase
 
         $field = new ChangeField($this->className, $this->label);
         $field->rules([new ChangeFieldRule($this->custom_table, $this->label, $this->target)]);
-        $field->adminField(function () use ($target_key) {
-            return $this->getChangeField($target_key);
+        $field->adminField(function () use ($target_key, $show_condition_key) {
+            return $this->getChangeField($target_key, $show_condition_key);
         });
         $field->setElementName($this->elementName);
 

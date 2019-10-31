@@ -17,6 +17,9 @@ class ErrorCode extends EnumBase
         if ($this == static::PERMISSION_DENY) {
             return trans('admin.deny');
         }
+        if ($this == static::WORKFLOW_LOCK) {
+            return exmtrans('workflow.message.locked');
+        }
 
         $key = $this->lowerKey();
         return exmtrans('api.errors.' . $key);

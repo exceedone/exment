@@ -8,7 +8,7 @@ class WorkflowValue extends ModelBase
 
     public function workflow_status()
     {
-        return $this->belongsTo(WorkflowStatus::class, 'workflow_status_id');
+        return $this->belongsTo(WorkflowStatus::class, 'workflow_status_to_id');
     }
 
     public function workflow_value_authorities()
@@ -18,8 +18,7 @@ class WorkflowValue extends ModelBase
 
     public function getWorkflowStatusNameAttribute()
     {
-        return WorkflowStatus::getWorkflowStatusName($this->workflow_status_id, $this->workflow_id);
-        //return $this->belongsTo(WorkflowStatus::class, 'workflow_status_id');
+        return WorkflowStatus::getWorkflowStatusName($this->workflow_status_to_id, $this->workflow_id);
     }
 
     public function getWorkflowEditableAttribute()
@@ -44,7 +43,8 @@ class WorkflowValue extends ModelBase
      *
      * @return void
      */
-    public static function isAlreadyExecuted($custom_value, $targetUser){
+    public static function isAlreadyExecuted($custom_value, $targetUser)
+    {
         return static::where('morph_type', $custom_value->custom_table->table_name)
             ->where('morph_id', $custom_value->id)
             ->where('action_executed_flg', true)

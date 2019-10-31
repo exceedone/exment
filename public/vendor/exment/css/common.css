@@ -3653,8 +3653,8 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   border-color: red;
 }
 
-.has-error .control-label {
-  text-align: left !important;
+.column-__actions__ {
+  min-width: 50px;
 }
 
 .bootstrap-duallistbox-container > div:last-child select {

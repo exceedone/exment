@@ -65,5 +65,4 @@ class RoleGroup extends ModelBase
     {
         static::resetAllRecordsCache();
     }
-    
 }

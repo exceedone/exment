@@ -45,5 +45,4 @@ class RoleGroupUserOrganization extends ModelBase
     {
         RoleGroup::resetAllRecordsCache();
     }
-    
 }

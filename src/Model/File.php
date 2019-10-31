@@ -214,7 +214,7 @@ class File extends ModelBase
         }
 
         // if not has delete setting, abort 403
-        if(boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->base_user_id){
+        if (boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->base_user_id) {
             abort(403);
         }
 

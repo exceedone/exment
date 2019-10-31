@@ -140,7 +140,7 @@ class WorkflowItem extends SystemItem
         ->join(SystemTableName::WORKFLOW_AUTHORITY, function ($join) {
             $join->on(SystemTableName::WORKFLOW_AUTHORITY . '.workflow_action_id', SystemTableName::WORKFLOW_ACTION . ".id")
                 ;
-        })->whereNotExists(function($query) use($tableName, $custom_table){
+        })->whereNotExists(function ($query) use ($tableName, $custom_table) {
             $escapeTableName = \esc_sqlTable($tableName);
             $query->select(\DB::raw(1))
                     ->from(SystemTableName::WORKFLOW_VALUE)
@@ -189,12 +189,12 @@ class WorkflowItem extends SystemItem
             $join
             ->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
             ->where('options->ignore_work', '<>', 1)
-            ->where(function($query){
-                $query->where(function($query){
+            ->where(function ($query) {
+                $query->where(function ($query) {
                     $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
                         ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
                     ;
-                })->orWhere(function($query){
+                })->orWhere(function ($query) {
                     $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', \DB::raw(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id'))
                     ;
                 });

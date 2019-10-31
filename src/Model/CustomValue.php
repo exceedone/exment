@@ -92,7 +92,7 @@ abstract class CustomValue extends ModelBase
      */
     public function getDisabledDeleteAttribute()
     {
-        if(method_exists($this, 'disabled_delete_trait') && $this->disabled_delete_trait()){
+        if (method_exists($this, 'disabled_delete_trait') && $this->disabled_delete_trait()) {
             return true;
         }
         
@@ -101,7 +101,7 @@ abstract class CustomValue extends ModelBase
 
     public function getWorkflowStatusAttribute()
     {
-        if(is_null(Workflow::getWorkflowByTable($this->custom_table))){
+        if (is_null(Workflow::getWorkflowByTable($this->custom_table))) {
             return null;
         }
         
@@ -234,22 +234,23 @@ abstract class CustomValue extends ModelBase
             ->with(['workflow', 'workflow_action'])
             ->get();
 
-        if ($appendsStatus) {
-            foreach ($values as $v) {
-                $v->append('created_user');
-                $v->workflow_action->append('status_from_name');
-                $v->workflow_action->status_to_name = $v->workflow_action->getStatusToName($this);
-                $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', $v->workflow_action->status_from_name, $v->workflow_action->status_to_name);
-            }
+    
+        if (!$appendsStatus) {
+            return $values;
         }
 
-        return $values;
+        $results = [];
+        foreach ($values as $v) {
+            $v->append('created_user');
+            $v->workflow_action->append('status_from_name');
+            $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', $v->workflow_action->status_from_name, $v->workflow_status_name);
+
+            $results[] = $v->toArray();
+        }
+
+        return collect($results);
     }
 
-    public function parent_custom_value()
-    {
-        return $this->morphTo();
-    }
     /**
      * get or set remove_file_columns
      */
@@ -934,7 +935,11 @@ abstract class CustomValue extends ModelBase
      */
     public function getParentValue($isonly_label = false)
     {
-        $model = getModelName($this->parent_type)::find($this->parent_id);
+        if(is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)){
+            return null;
+        }
+        
+        $model = CustomTable::getEloquent($this->parent_type)->getValueModel($this->parent_id);
         if (!$isonly_label) {
             return $model ?? null;
         }
@@ -1177,6 +1182,10 @@ abstract class CustomValue extends ModelBase
         if ($this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
         }
+        
+        if(!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableEdit($checkFormAction)) !== true){
+            return $code;
+        }
 
         return true;
     }
@@ -1197,13 +1206,14 @@ abstract class CustomValue extends ModelBase
         if ($this->custom_table->isOneRecord()) {
             return ErrorCode::PERMISSION_DENY();
         }
-        // if (boolval($this->disabled_delete)) {
-        //     return ErrorCode::DELETE_DISABLED();
-        // }
 
         // check workflow
         if ($this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
+        }
+        
+        if(!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true){
+            return $code;
         }
 
         return true;

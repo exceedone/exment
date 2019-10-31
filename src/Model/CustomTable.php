@@ -905,7 +905,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
-            (isset($custom_view) && 
+            (isset($custom_view) &&
             $custom_view->custom_view_filters->contains(function ($custom_view_filter) {
                 return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
             }))) {
@@ -915,7 +915,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // if contains custom_view_filters workflow query
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
-            ($custom_view && 
+            ($custom_view &&
             $custom_view->custom_view_filters->contains(function ($custom_view_filter) {
                 return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
             }))) {
@@ -1848,7 +1848,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($checkFormAction && $this->formActionDisable(FormActionType::CREATE)) {
             return ErrorCode::FORM_ACTION_DISABLED();
         }
-        
+
         return true;
     }
 
@@ -1882,10 +1882,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if (!$this->hasPermission(Permission::CUSTOM_VALUE_EXPORT)) {
-            return ErrorCode::PERMISSION_DENY();
-        }
-
         return true;
     }
 
@@ -1900,10 +1896,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if (!$this->hasPermission(Permission::CUSTOM_VALUE_IMPORT)) {
-            return ErrorCode::PERMISSION_DENY();
-        }
-        
         return true;
     }
 

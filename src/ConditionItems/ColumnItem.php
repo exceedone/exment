@@ -9,7 +9,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\SystemTableName;
 
-class ColumnItem extends ConditionItemBase
+class ColumnItem extends ConditionItemBase implements ConditionItemInterface
 {
     use ColumnSystemItemTrait;
     
@@ -33,7 +33,7 @@ class ColumnItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function getConditionText(Condition $condition, CustomValue $custom_value)
+    public function getConditionText(Condition $condition)
     {
         $custom_column = CustomColumn::getEloquent($condition->target_column_id);
         
@@ -68,7 +68,7 @@ class ColumnItem extends ConditionItemBase
                 return in_array($targetUser->id, $auth_values);
             case ColumnType::ORGANIZATION:
                 $ids = $targetUser->belong_organizations->pluck('id')->toArray();
-                return collect($auth_values)->contains(function($auth_value) use($ids) {
+                return collect($auth_values)->contains(function ($auth_value) use ($ids) {
                     return collect($ids)->contains($auth_value);
                 });
         }

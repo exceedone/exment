@@ -40,7 +40,7 @@ trait UseRequestSessionTrait
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
         // get from request session
-        $records = System::{$func}($key, function () use($with) {
+        $records = System::{$func}($key, function () use ($with) {
             return self::with($with)->get();
         });
 
