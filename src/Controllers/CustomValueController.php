@@ -23,6 +23,7 @@ use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifySavedType;
@@ -68,7 +69,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function index(Request $request, Content $content)
     {
-        if (($response = $this->firstFlow($request, null, true)) instanceof Response) {
+        if (($response = $this->firstFlow($request, CustomValuePageType::GRID, null)) instanceof Response) {
             return $response;
         }
         $this->AdminContent($content);
@@ -150,13 +151,8 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function create(Request $request, Content $content)
     {
-        if (($response = $this->firstFlow($request)) instanceof Response) {
+        if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
             return $response;
-        }
-        // check if form create action disabled
-        if ($this->custom_table->formActionDisable(FormActionType::CREATE)) {
-            admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
-            return redirect(admin_urls('data', $this->custom_table->table_name));
         }
 
         $this->AdminContent($content);
@@ -179,7 +175,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
-        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
+        if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
             return $response;
         }
 
@@ -187,12 +183,6 @@ class CustomValueController extends AdminControllerTableBase
         $redirect = $this->redirectShow($id);
         if (isset($redirect)) {
             return $redirect;
-        }
-
-        // check if form edit action disabled
-        if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
-            admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
-            return redirect(admin_urls('data', $this->custom_table->table_name));
         }
 
         $this->AdminContent($content);
@@ -216,7 +206,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         $modal = boolval($request->get('modal'));
 
-        if (($response = $this->firstFlow($request, $id, true)) instanceof Response) {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
             return $response;
         }
 
@@ -238,7 +228,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function filedelete(Request $request, $tableKey, $id)
     {
-        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
+        if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
             return $response;
         }
 
@@ -280,7 +270,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function addComment(Request $request, $tableKey, $id)
     {
-        if (($response = $this->firstFlow($request, $id, true)) instanceof Response) {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
             return $response;
         }
         $comment = $request->get('comment');
@@ -314,7 +304,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function importModal(Request $request, $tableKey)
     {
-        if (($response = $this->firstFlow($request)) instanceof Response) {
+        if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
             return $response;
         }
 
@@ -636,10 +626,10 @@ class CustomValueController extends AdminControllerTableBase
      * First flow. check role and set form and view id etc.
      * different logic for new, update or show
      */
-    protected function firstFlow(Request $request, $id = null, $show = false)
+    protected function firstFlow(Request $request, $formActionType, $id = null)
     {
         // if this custom_table doesn't have custom_columns, redirect custom_column's page(admin) or back
-        if (!isset($this->custom_table->custom_columns) || count($this->custom_table->custom_columns) == 0) {
+        if (count($this->custom_table->custom_columns) == 0) {
             if ($this->custom_table->hasPermission(Permission::CUSTOM_TABLE)) {
                 admin_toastr(exmtrans('custom_value.help.no_columns_admin'), 'error');
                 return redirect(admin_urls('column', $this->custom_table->table_name));
@@ -653,27 +643,30 @@ class CustomValueController extends AdminControllerTableBase
  
         // id set, checking as update.
         // check for update
-        if (isset($id) && !$show) {
-            // if user doesn't have role for target id data, show deny error.
-            if (!$this->custom_table->hasPermissionEditData($id)) {
-                Checker::error();
-                return false;
-            }
-        } elseif (isset($id) && $show) {
-            // if user doesn't have role for target id data, show deny error.
-            if (!$this->custom_table->hasPermissionData($id)) {
-                Checker::error();
-                return false;
-            }
-        } else {
-            //Validation table value
-            $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
-            if (!$this->validateTable($this->custom_table, $roleValue)) {
-                Checker::error();
-                return false;
-            }
+        if($formActionType == CustomValuePageType::CREATE){
+            $code = $this->custom_table->enableCreate(true);
         }
-
+        elseif($formActionType == CustomValuePageType::EDIT){
+            $custom_value = $this->custom_table->getValueModel($id);
+            $code = $custom_value->enableEdit(true);
+        }
+        elseif($formActionType == CustomValuePageType::SHOW){
+            $custom_value = $this->custom_table->getValueModel($id);
+            $code = $custom_value->enableAccess(true);
+        }
+        elseif($formActionType == CustomValuePageType::GRID){
+            $code = $this->custom_table->enableView();
+        }
+        elseif($formActionType == CustomValuePageType::DELETE){
+            $custom_value = $this->custom_table->getValueModel($id);
+            $code = $custom_value->enableDelete(true);
+        }
+        
+        if ($code !== true) {
+            Checker::error($code->getMessage());
+            return false;
+        }
+        
         return true;
     }
 

@@ -8,7 +8,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 
-class SystemItem extends ConditionItemBase
+class SystemItem extends ConditionItemBase implements ConditionItemInterface
 {
     use ColumnSystemItemTrait;
     
@@ -29,7 +29,7 @@ class SystemItem extends ConditionItemBase
      * @param CustomValue $custom_value
      * @return boolean
      */
-    public function getConditionText(Condition $condition, CustomValue $custom_value)
+    public function getConditionText(Condition $condition)
     {
         return null;
     }

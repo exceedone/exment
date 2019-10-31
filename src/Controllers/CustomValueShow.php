@@ -21,6 +21,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
@@ -109,20 +110,19 @@ trait CustomValueShow
                     }
                     list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                     $target_table = $custom_form_block->target_table;
-                    $show->{$relation_name}($block_label, function ($grid) use ($custom_form_block, $target_table, $id) {
+                    $show->{$relation_name}($block_label, function ($grid) use ($custom_value, $custom_form_block, $target_table, $id) {
                         $custom_view = CustomView::getDefault($target_table);
                         $custom_view->setGrid($grid);
-                        $table_name = $target_table->table_name;
                         
                         $grid->disableFilter();
                         $grid->disableCreateButton();
                         $grid->disableExport();
-                        $grid->tools(function ($tools) use ($table_name, $id, $custom_form_block) {
+                        $grid->tools(function ($tools) use ($custom_value, $target_table, $id, $custom_form_block) {
                             // Add new button if one_to_many
-                            if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
+                            if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY && $custom_value->enableEdit(true) === true && $target_table->enableCreate(true) === true) {
                                 $tools->append(view(
                                     'exment::custom-value.new-button',
-                                    ['table_name' => $table_name, 'params' => ['select_parent' => $id]]
+                                    ['table_name' => $target_table->table_name, 'params' => ['select_parent' => $id]]
                                 ));
                             }
 
@@ -148,19 +148,21 @@ trait CustomValueShow
                     });
                 }
             }
-
-            // if user only view permission or one record table, disable delete and view
-            $show->panel()->tools(function ($tools) use ($custom_value) {
+            
+            // if modal, disable list and delete
+            $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
                 if ($custom_value->enableEdit(true) !== true) {
                     $tools->disableEdit();
                 }
                 if ($custom_value->enableDelete(true) !== true) {
                     $tools->disableDelete();
                 }
-            });
 
-            // if modal, disable list and delete
-            $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
+                if(!is_null($parent_value = $custom_value->getParentValue()) && $parent_value->enableEdit(true) !== true){
+                    $tools->disableEdit();
+                    $tools->disableDelete();
+                }
+
                 if ($modal) {
                     $tools->disableList();
                     $tools->disableDelete();
@@ -240,7 +242,7 @@ trait CustomValueShow
      */
     public function compare(Request $request, Content $content, $tableKey, $id)
     {
-        $this->firstFlow($request, $id);
+        $this->firstFlow($request,  CustomValuePageType::SHOW, $id);
         $this->AdminContent($content);
         $content->body($this->getRevisionCompare($id, $request->get('revision')));
         return $content;
@@ -251,7 +253,7 @@ trait CustomValueShow
      */
     public function compareitem(Request $request, Content $content, $tableKey, $id)
     {
-        $this->firstFlow($request, $id);
+        $this->firstFlow($request, CustomValuePageType::SHOW, $id);
         return $this->getRevisionCompare($id, $request->get('revision'), true);
     }
    
@@ -260,7 +262,7 @@ trait CustomValueShow
      */
     public function restoreRevision(Request $request, $tableKey, $id)
     {
-        $this->firstFlow($request, $id);
+        $this->firstFlow($request, CustomValuePageType::EDIT, $id);
         
         $revision_suuid = $request->get('revision');
         $custom_value = $this->getModelNameDV()::find($id);
@@ -531,17 +533,6 @@ EOT;
         ->disableHeader()
         ->setRelatedValue($workflows)
         ->setTableColumnWidth(2, 2, 2, 2, 4, 0);
-
-        // $html = [];
-        // foreach ($workflows as $index => $workflow) {
-        //     $form->html(
-        //         view('exment::form.field.workflowline', [
-        //             'workflow' => $workflow,
-        //             'index' => $index,
-        //         ])->render(),
-        //         'No.'. ($index + 1)
-        //     )->setWidth(10, 2);
-        // }
         
         return $form;
     }
