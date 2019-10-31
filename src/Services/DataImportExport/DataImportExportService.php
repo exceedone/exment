@@ -402,9 +402,9 @@ class DataImportExportService extends AbstractExporter
             $options
         );
 
-        if(method_exists($column_item, 'getKeyAndIdList')){
+        if (method_exists($column_item, 'getKeyAndIdList')) {
             $datalist = $column_item->getKeyAndIdList($options['datalist'], array_get($setting, 'target_column_name'));
-            if(!is_nullorempty($datalist)){
+            if (!is_nullorempty($datalist)) {
                 $setting['datalist'] = $datalist;
             }
         }

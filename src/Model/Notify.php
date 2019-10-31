@@ -238,8 +238,8 @@ class Notify extends ModelBase
             WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow, true)
                 ->each(function ($workflow_action) use (&$users, $custom_value) {
                     $users = $users->merge(
-                    $workflow_action->getAuthorityTargets($custom_value, true),
-                    $users
+                        $workflow_action->getAuthorityTargets($custom_value, true),
+                        $users
                 );
                 });
         }

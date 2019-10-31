@@ -114,7 +114,7 @@ class System extends ModelBase
             static::setRequestSession($key, $val);
 
             // if arg $onlySetTrue is true and $val is not true, not set cache
-            if($onlySetTrue && $val !== true){
+            if ($onlySetTrue && $val !== true) {
                 return $val;
             }
 

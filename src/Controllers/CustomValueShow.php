@@ -80,7 +80,7 @@ trait CustomValueShow
                         }
                         
                         // if hidden field, continue
-                        if(boolval(config('exment.hide_hiddenfield', false)) && boolval(array_get($form_column, 'options.hidden', false))){
+                        if (boolval(config('exment.hide_hiddenfield', false)) && boolval(array_get($form_column, 'options.hidden', false))) {
                             continue;
                         }
 

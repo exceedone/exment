@@ -669,33 +669,29 @@ class WorkflowController extends AdminControllerBase
 
             // validate workflow targets
             $work_targets = jsonToArray(array_get($workflow_action, 'work_targets'));
-            if(is_nullorempty($work_targets)){
+            if (is_nullorempty($work_targets)) {
                 $errors->add("$errorKey.work_targets", trans("valation.required"));
-            }
-
-            elseif(array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::FIX){
+            } elseif (array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::FIX) {
                 array_forget($work_targets, 'work_target_type');
-                if(is_nullorempty($work_targets) || !collect($work_targets)->contains(function($work_target){
+                if (is_nullorempty($work_targets) || !collect($work_targets)->contains(function ($work_target) {
                     return !is_nullorempty($work_target);
-                })){
+                })) {
                     $errors->add("$errorKey.work_targets", trans("validation.required"));
                 }
-            }
-
-            elseif(array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::ACTION_SELECT){
+            } elseif (array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::ACTION_SELECT) {
                 // if contains other FIX action in same acthion
-                foreach($workflow_actions as $validateIndex => $workflow_action_validate){
-                    if($key == $validateIndex){
+                foreach ($workflow_actions as $validateIndex => $workflow_action_validate) {
+                    if ($key == $validateIndex) {
                         continue;
                     }
 
-                    if(array_get($workflow_action, 'status_from') != array_get($workflow_action_validate, 'status_from')){
+                    if (array_get($workflow_action, 'status_from') != array_get($workflow_action_validate, 'status_from')) {
                         continue;
                     }
 
                     $work_targets_validate = jsonToArray(array_get($workflow_action_validate, 'work_targets'));
             
-                    if(array_get($work_targets_validate, 'work_target_type') == array_get($work_targets, 'work_target_type')){
+                    if (array_get($work_targets_validate, 'work_target_type') == array_get($work_targets, 'work_target_type')) {
                         continue;
                     }
         
@@ -703,7 +699,6 @@ class WorkflowController extends AdminControllerBase
                     break;
                 }
             }
-
         }
 
         if (count($errors->getMessages()) > 0) {

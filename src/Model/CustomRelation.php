@@ -211,5 +211,4 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         static::resetAllRecordsCache();
     }
-    
 }

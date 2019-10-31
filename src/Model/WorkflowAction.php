@@ -240,8 +240,8 @@ class WorkflowAction extends ModelBase
                 'latest_flg' => true
             ])->update(['latest_flg' => false]);
 
-            // if next, update action_executed_flg to false 
-            if($next === true){
+            // if next, update action_executed_flg to false
+            if ($next === true) {
                 WorkflowValue::where([
                     'morph_type' => $morph_type,
                     'morph_id' => $morph_id,
@@ -260,7 +260,7 @@ class WorkflowAction extends ModelBase
             ];
             $createData['comment'] = array_get($data, 'comment');
 
-            // if not next, update action_executed_flg to true 
+            // if not next, update action_executed_flg to true
             if ($next !== true) {
                 $createData['action_executed_flg'] = true;
             }
@@ -346,7 +346,7 @@ class WorkflowAction extends ModelBase
         // add as workflow_value_authorities
         if (isset($custom_value)) {
             $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-            if(isset($custom_value->workflow_value)){
+            if (isset($custom_value->workflow_value)) {
                 $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
                 foreach ($workflow_value_authorities as $workflow_value_authority) {
                     $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
@@ -358,7 +358,7 @@ class WorkflowAction extends ModelBase
                             $organizationIds[] = $workflow_value_authority->related_id;
                             break;
                     }
-                }    
+                }
             }
         }
 
@@ -415,10 +415,10 @@ class WorkflowAction extends ModelBase
             $orgs = getModelName(SystemTableName::ORGANIZATION)::find(array_unique($organizationIds));
 
             if ($orgAsUser) {
-                $result = $orgs->load('users')->map(function($org){
+                $result = $orgs->load('users')->map(function ($org) {
                     return $org->users;
                 })->flatten()->merge($result);
-                //$result = $orgs_users->count() > 0 ? $orgs_users->users->merge($result): $result;
+            //$result = $orgs_users->count() > 0 ? $orgs_users->users->merge($result): $result;
             } else {
                 $result = $orgs->merge($result);
             }
@@ -513,7 +513,7 @@ class WorkflowAction extends ModelBase
             'action_executed_flg' => true,
         ])->count();
 
-        if($flow_next_count - 1 <= $action_executed_count){
+        if ($flow_next_count - 1 <= $action_executed_count) {
             return true;
         }
         return [$flow_next_count, $action_executed_count];
@@ -524,12 +524,13 @@ class WorkflowAction extends ModelBase
      *
      * @return array ["is action next", "next minimum count"]
      */
-    public function getActionNextParams($custom_value){
+    public function getActionNextParams($custom_value)
+    {
         if (($flow_next_count = $this->getOption("flow_next_count", 1)) == 1 && $this->flow_next_type == WorkflowNextType::SOME) {
             return [true, null];
         }
         
-        if($this->flow_next_type == WorkflowNextType::SOME){
+        if ($this->flow_next_type == WorkflowNextType::SOME) {
             return [false, $flow_next_count];
         }
 
@@ -557,16 +558,16 @@ class WorkflowAction extends ModelBase
         $statusToName = esc_html(WorkflowStatus::getWorkflowStatusName($statusTo, $this->workflow));
 
         // showing status
-        if($statusFromName != $statusToName){
+        if ($statusFromName != $statusToName) {
             $showStatus = "$statusFromName → <span class='red bold'>$statusToName</span>";
-        }else{
+        } else {
             $showStatus = $statusFromName;
         }
 
         // check already executed user
         $showSubmit = !WorkflowValue::isAlreadyExecuted($custom_value, \Exment::user()->base_user);
 
-        if($showSubmit){
+        if ($showSubmit) {
             $form->description(exmtrans('workflow.message.action_execute'));
         }
         
@@ -612,7 +613,7 @@ class WorkflowAction extends ModelBase
         }
         
         // not next, showing message
-        else{
+        else {
             list($flow_next_count, $action_executed_count) = $next;
 
             $form->display('flow_executed_user_count', exmtrans('workflow.flow_executed_user_count'))
@@ -621,14 +622,14 @@ class WorkflowAction extends ModelBase
         }
         
         // check already executed user
-        if($showSubmit){
+        if ($showSubmit) {
             if ($this->comment_type != WorkflowCommentType::NOTUSE) {
                 $field = $form->textarea('comment', exmtrans('common.comment'));
                 // check required
                 if ($this->comment_type == WorkflowCommentType::REQUIRED) {
                     $field->required();
                 }
-            }    
+            }
         }
 
         $form->hidden('action_id')->default($this->id);

@@ -92,7 +92,7 @@ abstract class CustomValue extends ModelBase
      */
     public function getDisabledDeleteAttribute()
     {
-        if(method_exists($this, 'disabled_delete_trait') && $this->disabled_delete_trait()){
+        if (method_exists($this, 'disabled_delete_trait') && $this->disabled_delete_trait()) {
             return true;
         }
         
@@ -101,7 +101,7 @@ abstract class CustomValue extends ModelBase
 
     public function getWorkflowStatusAttribute()
     {
-        if(is_null(Workflow::getWorkflowByTable($this->custom_table))){
+        if (is_null(Workflow::getWorkflowByTable($this->custom_table))) {
             return null;
         }
         

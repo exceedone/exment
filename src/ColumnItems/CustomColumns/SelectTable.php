@@ -264,7 +264,7 @@ class SelectTable extends CustomItem
 
         foreach ($value as &$v) {
             // get id from datalist
-            if(array_has($setting, 'datalist') && !is_null($target_column_name = array_get($setting, 'target_column_name'))){
+            if (array_has($setting, 'datalist') && !is_null($target_column_name = array_get($setting, 'target_column_name'))) {
                 $target_value = array_get($setting['datalist'], $v);
 
                 if (!isset($target_value)) {
@@ -272,9 +272,7 @@ class SelectTable extends CustomItem
                 } else {
                     $v = $target_value;
                 }
-            }
-
-            elseif (!isset($this->target_table)) {
+            } elseif (!isset($this->target_table)) {
                 $result = false;
             } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
                 // if get as id and not numeric, set error
@@ -306,22 +304,23 @@ class SelectTable extends CustomItem
         ];
     }
 
-    public function getKeyAndIdList($datalist, $key){
-        if(is_nullorempty($datalist) || is_nullorempty($key)){
+    public function getKeyAndIdList($datalist, $key)
+    {
+        if (is_nullorempty($datalist) || is_nullorempty($key)) {
             return [];
         }
 
         // if has request session
         $sessionkey = sprintf(Define::SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE, $this->custom_table, $this->custom_column->column_name, $key);
-        return System::requestSession($sessionkey, function() use($datalist, $key){
+        return System::requestSession($sessionkey, function () use ($datalist, $key) {
             // get key and value list
-            $keyValueList = collect($datalist)->map(function($d){
+            $keyValueList = collect($datalist)->map(function ($d) {
                 return array_get($d, 'value.' . $this->custom_column->column_name);
             })->flatten()->filter()->toArray();
 
             $indexName = $this->custom_column->index_enabled ? $this->custom_column->getIndexColumnName() : "value->$key";
             $values = $this->target_table->getValueModel()->whereIn($indexName, $keyValueList)->select(['value', 'id'])
-                ->get()->mapWithKeys(function($v) use($key){
+                ->get()->mapWithKeys(function ($v) use ($key) {
                     return [array_get($v, "value.$key") => $v->id];
                 });
 

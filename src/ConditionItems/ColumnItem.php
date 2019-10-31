@@ -68,7 +68,7 @@ class ColumnItem extends ConditionItemBase
                 return in_array($targetUser->id, $auth_values);
             case ColumnType::ORGANIZATION:
                 $ids = $targetUser->belong_organizations->pluck('id')->toArray();
-                return collect($auth_values)->contains(function($auth_value) use($ids) {
+                return collect($auth_values)->contains(function ($auth_value) use ($ids) {
                     return collect($ids)->contains($auth_value);
                 });
         }

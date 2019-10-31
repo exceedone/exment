@@ -457,12 +457,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $view_columns = [];
 
-        if(!isset($fromView)){
+        if (!isset($fromView)) {
             return [];
         }
 
         // set from view column
-        foreach($fromView->load(['custom_view_columns'])->custom_view_columns as $from_view_column){
+        foreach ($fromView->load(['custom_view_columns'])->custom_view_columns as $from_view_column) {
             $view_column = new CustomViewColumn;
             $view_column->custom_view_id = $this->id;
             $view_column->view_column_target = array_get($from_view_column, 'view_column_target');
