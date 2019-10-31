@@ -519,7 +519,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $view = $custom_view->suuid;
 
-        $inputs = Arr::except(Input::all(), ['view', '_pjax', '_token', '_method', '_previous_', 'group_key']);
+        $inputs = Arr::except(Input::all(), ['view', '_pjax', '_token', '_method', '_previous_', '_export_', 'format', 'group_key']);
 
         $parameters = \Exment::user()->getSettingValue($path)?? '[]';
         $parameters = json_decode($parameters, true);
