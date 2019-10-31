@@ -6,7 +6,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\SystemColumn;
 
-class WorkflowItem extends SystemItem
+class WorkflowItem extends SystemItem implements ConditionItemInterface
 {
     public function getFilterOption()
     {

@@ -831,7 +831,7 @@ class WorkflowController extends AdminControllerBase
      */
     public function conditionModal(Request $request, $id)
     {
-        $workflow = Workflow::find($id);
+        $workflow = Workflow::getEloquentDefault($id);
         $custom_table = $workflow->getDesignatedTable();
         $statusOptions = $workflow->getStatusOptions();
         $workflow_type = WorkflowType::getEnum($workflow->workflow_type);

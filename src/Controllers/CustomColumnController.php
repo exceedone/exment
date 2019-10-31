@@ -527,7 +527,7 @@ class CustomColumnController extends AdminControllerTableBase
         return $form;
     }
     
-    public function calcModal(Request $request, $tableKey, $id)
+    public function calcModal(Request $request, $tableKey, $id = null)
     {
         // get other columns
         // return $id is null(calling create fuction) or not match $id and row id.
@@ -553,9 +553,9 @@ class CustomColumnController extends AdminControllerTableBase
         ]);
         return getAjaxResponse([
             'body'  => $render->render(),
+            'showReset' => true,
             'title' => exmtrans("custom_column.options.calc_formula"),
             'contentname' => 'options_calc_formula',
-            'closelabel' => trans('admin.reset'),
             'submitlabel' => trans('admin.setting'),
         ]);
     }
