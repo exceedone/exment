@@ -150,6 +150,9 @@ class WorkflowController extends AdminControllerBase
 
         $form = new Form(new Workflow);
         $form->progressTracker()->options($this->getProgressInfo($workflow, 1));
+
+        $form->description(exmtrans('common.help.more_help'));
+
         $form->text('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->required()
             ->rules("max:40");
@@ -267,6 +270,9 @@ class WorkflowController extends AdminControllerBase
 
         $form = new Form(new Workflow);
         $form->progressTracker()->options($this->getProgressInfo($workflow, 2));
+
+        $form->description(exmtrans('common.help.more_help'));
+
         $form->hidden('action')->default(2);
         $form->display('workflow_view_name', exmtrans("workflow.workflow_view_name"));
         $form->display('workflow_status', exmtrans("workflow.status_name"))

@@ -304,6 +304,7 @@ class Define
         ['uri'=> 'dashboard', 'help_uri'=> 'dashboard'],
         ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
         ['uri'=> 'system', 'help_uri'=> 'system_setting'],
+        ['uri'=> 'workflow', 'help_uri'=> 'workflow_setting'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
 
