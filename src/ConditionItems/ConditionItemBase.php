@@ -147,6 +147,17 @@ abstract class ConditionItemBase
     }
 
     /**
+     * Get Filter Condition Label
+     *
+     * @return void
+     */
+    public function getConditionLabel($condition)
+    {
+        $enum = ConditionTypeDetail::getEnum($condition->target_column_id);
+        return $enum->transKey('condition.condition_type_options') ?: null;
+    }
+
+    /**
      * compare condition value and saved value
      *
      * @param [type] $condition

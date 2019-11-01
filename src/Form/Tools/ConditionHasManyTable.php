@@ -85,7 +85,7 @@ class ConditionHasManyTable
                 ->ajax($this->ajax)
                 ->setEventTrigger("select.$condition_key_name")
                 ->setEventTarget("select.$condition_target_name")
-                ->replaceSearch($condition_target_name)
+                ->replaceSearch($condition_key_name)
                 ->replaceWord($condition_value_name)
                 ->showConditionKey($this->showConditionKey)
                 ->adminField(function ($data, $field) use ($condition_target_name, $condition_key_name, $condition_value_name) {

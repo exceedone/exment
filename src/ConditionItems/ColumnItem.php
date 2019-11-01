@@ -44,6 +44,17 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     }
 
     /**
+     * Get Filter Condition Label
+     *
+     * @return void
+     */
+    public function getConditionLabel($condition)
+    {
+        $custom_column = CustomColumn::getEloquent($condition->target_column_id);
+        return $custom_column->column_view_name ?? null;
+    }
+
+    /**
      * Check has workflow authority
      *
      * @param CustomValue $custom_value

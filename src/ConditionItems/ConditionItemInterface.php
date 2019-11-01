@@ -22,9 +22,17 @@ interface ConditionItemInterface
     public function isMatchCondition(Condition $condition, CustomValue $custom_value);
     
     /**
-     * get condition value text.
+     * get condition value label.
      *
      * @param CustomValue $custom_value
+     * @return boolean
+     */
+    public function getConditionLabel(Condition $condition);
+
+    /**
+     * get condition value text.
+     *
+     * @param Condition $condition
      * @return boolean
      */
     public function getConditionText(Condition $condition);
