@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -296,6 +297,13 @@ class SelectTable extends CustomItem
         ];
     }
 
+    /**
+     * Get Key and Id List
+     *
+     * @param [type] $datalist
+     * @param [type] $key
+     * @return void
+     */
     public function getKeyAndIdList($datalist, $key){
         if(is_nullorempty($datalist) || is_nullorempty($key)){
             return [];
@@ -309,7 +317,8 @@ class SelectTable extends CustomItem
                 return array_get($d, 'value.' . $this->custom_column->column_name);
             })->flatten()->filter()->toArray();
 
-            $indexName = $this->custom_column->index_enabled ? $this->custom_column->getIndexColumnName() : "value->$key";
+            $target_custom_column = CustomColumn::getEloquent($key, $this->target_table);
+            $indexName = $target_custom_column ?? $target_custom_column->index_enabled ? $target_custom_column->getIndexColumnName() : "value->$key";
             $values = $this->target_table->getValueModel()->whereIn($indexName, $keyValueList)->select(['value', 'id'])
                 ->get()->mapWithKeys(function($v) use($key){
                     return [array_get($v, "value.$key") => $v->id];
