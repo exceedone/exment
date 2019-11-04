@@ -557,8 +557,7 @@ class Plugin extends ModelBase
         });
 
         static::saved(function ($model) {
-            System::resetCache(Define::SYSTEM_KEY_SESSION_PLUGINS);
-            static::resetAllRecordsCache();
+            System::resetCache();
         });
     }
 }

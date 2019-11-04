@@ -43,6 +43,6 @@ class RoleGroupUserOrganization extends ModelBase
      */
     public function clearCache()
     {
-        RoleGroup::resetAllRecordsCache();
+        System::resetCache();
     }
 }

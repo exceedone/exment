@@ -63,6 +63,6 @@ class RoleGroup extends ModelBase
      */
     public function clearCache()
     {
-        static::resetAllRecordsCache();
+        System::resetCache();
     }
 }

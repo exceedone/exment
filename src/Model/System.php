@@ -317,10 +317,7 @@ class System extends ModelBase
         parent::boot();
         
         static::saved(function ($model) {
-            static::resetAllRecordsCache();
-
-            $key = static::getConfigKey($model->system_name);
-            static::resetCache($key);
+            System::resetCache();
         });
     }
 }

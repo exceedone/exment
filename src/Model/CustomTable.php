@@ -381,8 +381,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function clearCache()
     {
-        System::resetCache(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES);
-        static::resetAllRecordsCache();
+        System::resetCache();
     }
     
     /**

@@ -25,15 +25,6 @@ trait UseRequestSessionTrait
     }
     
     /**
-     * reset all records. use cache
-     */
-    public static function resetAllRecordsCache()
-    {
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
-        System::resetCache($key);
-    }
-    
-    /**
      * get all records.
      */
     protected static function _allRecords($func, Closure $filter = null, $isGetAll = true, $with = [])

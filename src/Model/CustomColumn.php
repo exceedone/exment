@@ -216,9 +216,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      */
     public function clearCache()
     {
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE, getDBTableName($this->custom_table));
-        System::resetCache($key);
-        static::resetAllRecordsCache();
+        System::resetCache();
     }
     
     /**
