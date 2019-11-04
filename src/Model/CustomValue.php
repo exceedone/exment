@@ -69,7 +69,6 @@ abstract class CustomValue extends ModelBase
         return $this->hasOne(WorkflowValue::class, 'morph_id')
             ->where('morph_type', $this->custom_table->table_name)
             ->where('latest_flg', true)
-            //->with(['workflow_status'])
             ->orderBy('updated_at', 'desc')
             ;
     }
@@ -105,17 +104,17 @@ abstract class CustomValue extends ModelBase
             return null;
         }
         
-        return isset($this->workflow_value) ? $this->workflow_value->workflow_status : null;
+        return isset($this->workflow_value) ? $this->workflow_value->workflow_status_cache : null;
     }
 
     public function getWorkflowStatusNameAttribute()
     {
-        if (isset($this->workflow_status)) {
-            return $this->workflow_status->status_name;
+        if (isset($this->workflow_status_cache)) {
+            return $this->workflow_status_cache->status_name;
         }
 
         // get workflow
-        $workflow = isset($this->workflow_value) ? $this->workflow_value->workflow : null;
+        $workflow = isset($this->workflow_value) ? $this->workflow_value->workflow_cache : null;
         if (!isset($workflow)) {
             $workflow = Workflow::getWorkflowByTable($this->custom_table);
         }
@@ -182,7 +181,7 @@ abstract class CustomValue extends ModelBase
         $workflow_value = $this->workflow_value;
 
         // get workflow.
-        $workflow = isset($workflow_value) ? $workflow_value->workflow : null;
+        $workflow = isset($workflow_value) ? $workflow_value->workflow_cache : null;
         if (!isset($workflow)) {
             $workflow = Workflow::getWorkflowByTable($this->custom_table);
         }
@@ -192,11 +191,11 @@ abstract class CustomValue extends ModelBase
         }
 
         // get current status etc
-        $workflow_status = isset($workflow_value) ? $workflow_value->workflow_status : null;
+        $workflow_status = isset($workflow_value) ? $workflow_value->workflow_status_cache : null;
 
         // get matched actions
         $workflow_actions = $workflow
-            ->workflow_actions
+            ->workflow_actions_cache
             ->filter(function ($workflow_action) use ($workflow_status) {
                 if (!isset($workflow_status)) {
                     return $workflow_action->status_from == Define::WORKFLOW_START_KEYNAME;
@@ -228,22 +227,21 @@ abstract class CustomValue extends ModelBase
      */
     public function getWorkflowHistories($appendsStatus = false)
     {
-        $values = WorkflowValue::where('morph_type', $this->custom_table->table_name)
+        $workflow_values = WorkflowValue::where('morph_type', $this->custom_table->table_name)
             ->where('morph_id', $this->id)
             ->orderby('workflow_values.created_at', 'desc')
-            ->with(['workflow', 'workflow_action'])
             ->get();
 
     
         if (!$appendsStatus) {
-            return $values;
+            return $workflow_values;
         }
 
         $results = [];
-        foreach ($values as $v) {
+        foreach ($workflow_values as $v) {
             $v->append('created_user');
-            $v->workflow_action->append('status_from_name');
-            $v->workflow_action->status_from_to_name = exmtrans('workflow.status_from_to_format', $v->workflow_action->status_from_name, $v->workflow_status_name);
+            $v->workflow_action_cache->append('status_from_name');
+            $v->workflow_action_cache->status_from_to_name = exmtrans('workflow.status_from_to_format', $v->workflow_action_cache->status_from_name, $v->workflow_status_name);
 
             $results[] = $v->toArray();
         }
@@ -1134,11 +1132,11 @@ abstract class CustomValue extends ModelBase
     public function lockedWorkflow()
     {
         // check workflow
-        if (!isset($this->workflow_status)) {
+        if (is_null($workflow_status = $this->workflow_status_cache)) {
             return false;
         }
 
-        return boolval($this->workflow_status->datalock_flg);
+        return boolval($workflow_status->datalock_flg);
     }
 
     /**

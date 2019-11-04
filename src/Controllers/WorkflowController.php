@@ -146,7 +146,7 @@ class WorkflowController extends AdminControllerBase
      */
     protected function statusForm($id = null)
     {
-        $workflow = Workflow::getEloquentDefault($id);
+        $workflow = Workflow::getEloquent($id);
 
         $form = new Form(new Workflow);
         $form->progressTracker()->options($this->getProgressInfo($workflow, 1));
@@ -266,7 +266,7 @@ class WorkflowController extends AdminControllerBase
      */
     protected function actionForm($id)
     {
-        $workflow = Workflow::getEloquentDefault($id);
+        $workflow = Workflow::getEloquent($id);
 
         $form = new Form(new Workflow);
         $form->progressTracker()->options($this->getProgressInfo($workflow, 2));
@@ -600,7 +600,7 @@ class WorkflowController extends AdminControllerBase
      */
     public function activate(Request $request, $id)
     {
-        $workflow = Workflow::getEloquentDefault($id);
+        $workflow = Workflow::getEloquent($id);
         if (!$workflow->canActivate()) {
             // TODO:workflow already activate
             return back();
@@ -751,7 +751,7 @@ class WorkflowController extends AdminControllerBase
      */
     public function targetModal(Request $request, $id)
     {
-        $workflow = Workflow::getEloquentDefault($id);
+        $workflow = Workflow::getEloquent($id);
         $custom_table = $workflow->getDesignatedTable();
 
         // get selected value
@@ -826,7 +826,7 @@ class WorkflowController extends AdminControllerBase
      */
     public function conditionModal(Request $request, $id)
     {
-        $workflow = Workflow::getEloquentDefault($id);
+        $workflow = Workflow::getEloquent($id);
         $custom_table = $workflow->getDesignatedTable();
         $statusOptions = $workflow->getStatusOptions();
         $workflow_type = WorkflowType::getEnum($workflow->workflow_type);

@@ -127,6 +127,24 @@ class ModelBase extends Model
      */
     public static function getEloquentDefault($obj, $withs = [], $query_key = 'id')
     {
+        return static::_getEloquent($obj, $withs, $query_key, 'firstRecord');
+    }
+
+    /**
+     * get eloquent using request settion.
+     * now only support only id.
+     */
+    public static function getEloquentCache($obj, $withs = [], $query_key = 'id')
+    {
+        return static::_getEloquent($obj, $withs, $query_key, 'firstRecordCache');
+    }
+
+    /**
+     * get eloquent using request settion.
+     * now only support only id.
+     */
+    protected static function _getEloquent($obj, $withs = [], $query_key = 'id', $fucnName = 'allRecords')
+    {
         if (!isset($obj)) {
             return null;
         }
@@ -137,7 +155,7 @@ class ModelBase extends Model
         }
         
         // get table
-        $obj = static::allRecords(function ($table) use ($query_key, $obj) {
+        $obj = static::{$fucnName}(function ($table) use ($query_key, $obj) {
             return array_get($table, $query_key) == $obj;
         })->first();
 

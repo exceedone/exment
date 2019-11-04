@@ -44,6 +44,9 @@ class Workflow extends ModelBase
             // Delete items
             $model->deletingChildren();
         });
+        static::saved(function ($model) {
+            System::resetCache();
+        });
     }
     
     /**
@@ -72,6 +75,31 @@ class Workflow extends ModelBase
     }
 
     /**
+     * get workflow statuses using cache
+     */
+    public function getWorkflowStatusesCacheAttribute()
+    {
+        return $this->hasManyCache(WorkflowStatus::class, 'workflow_id');
+    }
+
+    /**
+     * get workflow actions
+     */
+    public function getWorkflowActionsCacheAttribute()
+    {
+        return $this->hasManyCache(WorkflowAction::class, 'workflow_id');
+    }
+
+    /**
+     * get eloquent using Cache.
+     * now only support only id.
+     */
+    public static function getEloquent($id, $withs = [])
+    {
+        return static::getEloquentCache($id, $withs);
+    }
+    
+    /**
      * Get status string
      *
      * @return Collection
@@ -91,7 +119,7 @@ class Workflow extends ModelBase
         //TODO:workflow performance
         $statuses = collect();
         if (!$onlyStart) {
-            $statuses = $this->workflow_statuses->pluck('status_name', 'id');
+            $statuses = $this->workflow_statuses_cache->pluck('status_name', 'id');
         }
 
         $statuses->prepend($this->start_status_name, Define::WORKFLOW_START_KEYNAME);
@@ -108,19 +136,33 @@ class Workflow extends ModelBase
     public static function getWorkflowByTable($custom_table)
     {
         $custom_table = CustomTable::getEloquent($custom_table);
+        $today = \Carbon\Carbon::today();
 
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE, $custom_table->id);
-        return System::requestSession($key, function () use ($custom_table) {
-            $workflowTable = WorkflowTable::where('custom_table_id', $custom_table->id)
-                ->active()
-                ->first();
-
-            if (!isset($workflowTable)) {
-                return null;
+        $workflowTable = WorkflowTable::allRecordsCache(function($record) use($custom_table, $today){
+            if($custom_table->id != $record->custom_table_id){
+                return false;
             }
 
-            return $workflowTable->workflow->load(['workflow_statuses', 'workflow_actions', 'workflow_actions.workflow_authorities']);
-        });
+            if(!boolval($record->active_flg)){
+                return false;
+            }
+
+            if(isset($record->active_start_date) && $today->lt($record->active_start_date)){
+                return false;
+            }
+
+            if(isset($record->active_end_date) && $today->gt($record->active_end_date)){
+                return false;
+            }
+            
+            return true;
+        })->first();
+
+        if(!isset($workflowTable)){
+            return null;
+        }
+
+        return Workflow::getEloquent($workflowTable->workflow_id);
     }
 
     /**

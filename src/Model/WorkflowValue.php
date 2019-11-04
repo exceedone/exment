@@ -16,6 +16,11 @@ class WorkflowValue extends ModelBase
         return $this->hasMany(WorkflowValueAuthority::class, 'workflow_value_id');
     }
 
+    public function getWorkflowStatusCacheAttribute()
+    {
+        return WorkflowStatus::getEloquent($this->workflow_status_to_id);
+    }
+
     public function getWorkflowStatusNameAttribute()
     {
         return WorkflowStatus::getWorkflowStatusName($this->workflow_status_to_id, $this->workflow_id);

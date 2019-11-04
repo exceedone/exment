@@ -93,6 +93,38 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
     }
 
+    /**
+     * get Custom columns using cache
+     */
+    public function getCustomViewColumnsCacheAttribute()
+    {
+        return $this->hasManyCache(CustomViewColumn::class, 'custom_view_id');
+    }
+
+    /**
+     * get Custom filters using cache
+     */
+    public function getCustomViewFiltersCacheAttribute()
+    {
+        return $this->hasManyCache(CustomViewFilter::class, 'custom_view_id');
+    }
+
+    /**
+     * get Custom Sorts using cache
+     */
+    public function getCustomViewSortsCacheAttribute()
+    {
+        return $this->hasManyCache(CustomViewSort::class, 'custom_view_id');
+    }
+
+    /**
+     * get Custom summaries using cache
+     */
+    public function getCustomViewSummariesCacheAttribute()
+    {
+        return $this->hasManyCache(CustomViewSummary::class, 'custom_view_id');
+    }
+
     public function getTableNameAttribute()
     {
         return $this->custom_table->table_name;
@@ -177,7 +209,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $custom_table = $this->custom_table;
         // get view columns
-        $custom_view_columns = $this->load('custom_view_columns')->custom_view_columns;
+        $custom_view_columns = $this->custom_view_columns_cache;
         foreach ($custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item
                 ->label(array_get($custom_view_column, 'view_column_name'))
@@ -319,7 +351,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         // if target form doesn't have columns, add columns for has_index_columns columns.
-        if (is_null($view->custom_view_columns) || count($view->custom_view_columns) == 0) {
+        if (is_null($view->custom_view_columns_cache) || count($view->custom_view_columns_cache) == 0) {
             // copy default view
             $fromview = $tableObj->custom_views()
                 ->where('view_kind_type', ViewKindType::DEFAULT)
@@ -371,7 +403,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         // if url doesn't contain view query, get custom view. first
         if (!isset($view)) {
-            $view = static::allRecords(function ($record) use ($tableObj) {
+            $view = static::allRecordsCache(function ($record) use ($tableObj) {
                 return array_get($record, 'custom_table_id') == $tableObj->id
                     && array_get($record, 'default_flg') == true
                     && array_get($record, 'view_kind_type') != ViewKindType::FILTER;
@@ -381,7 +413,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // if default view is not setting, show all data view
         if (!isset($view)) {
             // get all data view
-            $alldata = static::allRecords(function ($record) use ($tableObj) {
+            $alldata = static::allRecordsCache(function ($record) use ($tableObj) {
                 return array_get($record, 'custom_table_id') == $tableObj->id
                     && array_get($record, 'view_kind_type') == ViewKindType::ALLDATA;
             })->first();
@@ -394,8 +426,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         // if target form doesn't have columns, add columns for has_index_columns columns.
-        $view->load('custom_view_columns');
-        if (is_null($view->custom_view_columns) || count($view->custom_view_columns) == 0) {
+        if (is_null($view->custom_view_columns_cache) || count($view->custom_view_columns_cache) == 0) {
             // get view id for after
             $view->createDefaultViewColumns();
 
@@ -462,7 +493,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         // set from view column
-        foreach ($fromView->load(['custom_view_columns'])->custom_view_columns as $from_view_column) {
+        foreach ($fromView->custom_view_columns_cache as $from_view_column) {
             $view_column = new CustomViewColumn;
             $view_column->custom_view_id = $this->id;
             $view_column->view_column_target = array_get($from_view_column, 'view_column_target');
@@ -480,7 +511,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function setValueFilters($model, $db_table_name = null)
     {
-        foreach ($this->custom_view_filters as $filter) {
+        foreach ($this->custom_view_filters_cache as $filter) {
             $filter->setValueFilter($model, $db_table_name);
         }
         return $model;
@@ -495,7 +526,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (request()->has('_sort')) {
             return $model;
         }
-        foreach ($this->custom_view_sorts as $custom_view_sort) {
+        foreach ($this->custom_view_sorts_cache as $custom_view_sort) {
             switch ($custom_view_sort->view_column_type) {
             case ConditionType::COLUMN:
                 $view_column_target = $custom_view_sort->custom_column->column_item->getSortColumn();
@@ -596,7 +627,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         // set filter columns
-        foreach ($this->custom_view_filters as $custom_view_filter) {
+        foreach ($this->custom_view_filters_cache as $custom_view_filter) {
             $target_table_id = array_get($custom_view_filter, 'view_column_table_id');
 
             if (array_key_exists($target_table_id, $custom_tables)) {
@@ -782,14 +813,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $results = [];
         // set grouping columns
-        foreach ($this->load('custom_view_columns')->custom_view_columns as $custom_view_column) {
+        foreach ($this->custom_view_columns_cache as $custom_view_column) {
             $results[] = [
                 'index' => ViewKindType::DEFAULT . '_' . $custom_view_column->id,
                 'item' => $custom_view_column,
             ];
         }
         // set summary columns
-        foreach ($this->custom_view_summaries as $custom_view_summary) {
+        foreach ($this->custom_view_summaries_cache as $custom_view_summary) {
             $results[] = [
                 'index' => ViewKindType::AGGREGATE . '_' . $custom_view_summary->id,
                 'item' => $custom_view_summary,
@@ -808,14 +839,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $options = [];
         
-        foreach ($this->load('custom_view_columns')->custom_view_columns as $custom_view_column) {
+        foreach ($this->custom_view_columns_cache as $custom_view_column) {
             $option = $this->getSelectColumn(ViewKindType::DEFAULT, $custom_view_column);
             if (is_null($is_number) || array_get($option, 'is_number') == $is_number) {
                 $options[] = $option;
             }
         }
 
-        foreach ($this->custom_view_summaries as $custom_view_summary) {
+        foreach ($this->custom_view_summaries_cache as $custom_view_summary) {
             $option = $this->getSelectColumn(ViewKindType::AGGREGATE, $custom_view_summary);
             if (is_null($is_number) || array_get($option, 'is_number') == $is_number) {
                 $options[] = $option;
@@ -871,7 +902,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     
     public function getViewCalendarTargetAttribute()
     {
-        $custom_view_columns = $this->custom_view_columns;
+        $custom_view_columns = $this->custom_view_columns_cache;
         if (count($custom_view_columns) > 0) {
             return $custom_view_columns[0]->view_column_target;
         }
@@ -880,7 +911,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     public function setViewCalendarTargetAttribute($view_calendar_target)
     {
-        $custom_view_columns = $this->custom_view_columns;
+        $custom_view_columns = $this->custom_view_columns_cache;
         if (count($custom_view_columns) == 0) {
             $this->custom_view_columns[] = new CustomViewColumn();
         }

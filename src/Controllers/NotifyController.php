@@ -69,7 +69,7 @@ class NotifyController extends AdminControllerBase
                 return esc_html($custom_table->table_view_name ?? null);
             }
             if (isset($this->workflow_id)) {
-                return Workflow::getEloquentDefault($this->workflow_id)->workflow_view_name;
+                return Workflow::getEloquent($this->workflow_id)->workflow_view_name;
             }
 
             return null;

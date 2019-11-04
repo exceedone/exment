@@ -163,7 +163,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
      */
     public static function getEloquent($id, $withs = [])
     {
-        return static::getEloquentDefault($id, $withs);
+        return static::getEloquentCache($id, $withs);
     }
     
     public function getOption($key, $default = null)

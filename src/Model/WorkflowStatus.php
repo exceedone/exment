@@ -16,8 +16,21 @@ class WorkflowStatus extends ModelBase
         
         // add default order
         static::addGlobalScope(new OrderScope('order'));
+        
+        static::saved(function ($model) {
+            System::resetCache();
+        });
     }
 
+    /**
+     * get eloquent using Cache.
+     * now only support only id.
+     */
+    public static function getEloquent($id, $withs = [])
+    {
+        return static::getEloquentCache($id, $withs);
+    }
+    
     /**
      * Get workflow status name
      *
@@ -28,7 +41,7 @@ class WorkflowStatus extends ModelBase
     public static function getWorkflowStatusName($workflow_status = null, $workflow = null)
     {
         if (!is_nullorempty($workflow_status) && $workflow_status != Define::WORKFLOW_START_KEYNAME) {
-            return WorkflowStatus::getEloquentDefault($workflow_status)->status_name;
+            return WorkflowStatus::getEloquent($workflow_status)->status_name;
         }
 
         // get workflow

@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Model;
 
 class WorkflowConditionHeader extends ModelBase
 {
+    use Traits\UseRequestSessionTrait;
+
     public function workflow_action()
     {
         return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
@@ -33,6 +35,9 @@ class WorkflowConditionHeader extends ModelBase
 
         static::deleting(function ($model) {
             $model->deletingChildren();
+        });
+        static::saved(function ($model) {
+            System::resetCache();
         });
     }
     

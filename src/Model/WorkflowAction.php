@@ -39,6 +39,21 @@ class WorkflowAction extends ModelBase
         return $this->hasMany(WorkflowConditionHeader::class, 'workflow_action_id');
     }
 
+    public function getWorkflowCacheAttribute()
+    {
+        return Workflow::getEloquent($this->workflow_id);
+    }
+
+    public function getWorkflowAuthoritiesCacheAttribute()
+    {
+        return $this->hasManyCache(WorkflowAuthority::class, 'workflow_action_id');
+    }
+
+    public function getWorkflowConditionHeadersCacheAttribute()
+    {
+        return $this->hasManyCache(WorkflowConditionHeader::class, 'workflow_action_id');
+    }
+
     public function getWorkTargetsAttribute()
     {
         $result = [];
@@ -107,9 +122,9 @@ class WorkflowAction extends ModelBase
     public function getStatusFromNameAttribute()
     {
         if (is_numeric($this->status_from)) {
-            return WorkflowStatus::getEloquentDefault($this->status_from)->status_name;
+            return WorkflowStatus::getEloquent($this->status_from)->status_name;
         } elseif ($this->status_from == Define::WORKFLOW_START_KEYNAME) {
-            return Workflow::getEloquentDefault($this->workflow_id)->start_status_name;
+            return Workflow::getEloquent($this->workflow_id)->start_status_name;
         }
 
         return null;
@@ -236,7 +251,7 @@ class WorkflowAction extends ModelBase
      */
     public function executeAction($custom_value, $data = [])
     {
-        $workflow = Workflow::getEloquentDefault(array_get($this, 'workflow_id'));
+        $workflow = Workflow::getEloquent(array_get($this, 'workflow_id'));
         $next = $this->isActionNext($custom_value);
 
         $workflow_value = null;
@@ -329,8 +344,7 @@ class WorkflowAction extends ModelBase
         }
 
         // check as workflow_authorities
-        $this->load(['workflow_authorities']);
-        $workflow_authorities = $this->workflow_authorities;
+        $workflow_authorities = $this->workflow_authorities_cache;
         foreach ($workflow_authorities as $workflow_authority) {
             $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_authority);
             if (isset($item) && $item->hasAuthority($workflow_authority, $custom_value, $targetUser)) {
@@ -358,7 +372,7 @@ class WorkflowAction extends ModelBase
 
         // add as workflow_value_authorities
         if (isset($custom_value)) {
-            $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
+            //$custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
             if (isset($custom_value->workflow_value)) {
                 $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
                 foreach ($workflow_value_authorities as $workflow_value_authority) {
@@ -376,8 +390,7 @@ class WorkflowAction extends ModelBase
         }
 
         // add as workflow_authorities
-        $this->load(['workflow_authorities']);
-        $workflow_authorities = $this->workflow_authorities;
+        $workflow_authorities = $this->workflow_authorities_cache;
 
         foreach ($workflow_authorities as $workflow_authority) {
             $type = ConditionTypeDetail::getEnum($workflow_authority->related_type);
@@ -489,11 +502,11 @@ class WorkflowAction extends ModelBase
      */
     public function getMatchedCondtionHeader($custom_value)
     {
-        if (count($this->workflow_condition_headers) == 0) {
+        if (count($this->workflow_condition_headers_cache) == 0) {
             return null;
         }
 
-        foreach ($this->workflow_condition_headers as $workflow_condition_header) {
+        foreach ($this->workflow_condition_headers_cache as $workflow_condition_header) {
             if ($workflow_condition_header->isMatchCondition($custom_value)) {
                 return $workflow_condition_header;
             }
@@ -662,6 +675,7 @@ class WorkflowAction extends ModelBase
         parent::boot();
 
         static::saved(function ($model) {
+            System::resetCache();
             $model->setActionAuthority();
             $model->setActionCondition();
         });

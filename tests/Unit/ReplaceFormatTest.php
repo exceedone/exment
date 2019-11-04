@@ -121,7 +121,7 @@ class ReplaceFormatTest extends TestCase
         }
 
         $workflow_action = $workflow_value->workflow_action;
-        $workflow = Workflow::getEloquentDefault($workflow_value->workflow_id);
+        $workflow = Workflow::getEloquent($workflow_value->workflow_id);
         
         $custom_value = CustomTable::getEloquent($workflow_value->morph_type)->getValueModel($workflow_value->morph_id);
         $statusTo = $workflow_action->getStatusToId($custom_value);
