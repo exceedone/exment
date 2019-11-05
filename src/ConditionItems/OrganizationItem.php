@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class OrganizationItem extends ConditionItemBase implements ConditionItemInterface
@@ -43,7 +44,7 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
         $organizations = \Exment::user()->base_user->belong_organizations
             ->map(function ($organization) {
                 return $organization->id;
-            });
+            })->toArray();
 
         return $this->compareValue($condition, $organizations);
     }
@@ -58,12 +59,13 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
     {
         $model = getModelName(SystemTableName::ORGANIZATION)::find($condition->condition_value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
-            return $model->map(function ($row) {
+            $result = $model->map(function ($row) {
                 return $row->getValue('organization_name');
             })->implode(',');
         } else {
-            return $model->getValue('organization_name');
+            $result = $model->getValue('organization_name');
         }
+        return $result . FilterOption::getConditionKeyText($condition->condition_key);
     }
 
     /**

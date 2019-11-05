@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterOption;
 
 trait ColumnSystemItemTrait
@@ -20,7 +21,7 @@ trait ColumnSystemItemTrait
             return [];
         }
 
-        return array_get($this->viewFilter ? FilterOption::FILTER_OPTIONS() : FilterOption::FILTER_CONDITION_OPTIONS(), $column_type);
+        return array_get($this->filterKind == FilterKind::VIEW ? FilterOption::FILTER_OPTIONS() : FilterOption::FILTER_CONDITION_OPTIONS(), $column_type);
     }
 
     /**
@@ -58,6 +59,7 @@ trait ColumnSystemItemTrait
     {
         return CustomViewFilter::getColumnItem($this->target)
         ->options([
+            'filterKind' => $this->filterKind,
         ]);
     }
 }

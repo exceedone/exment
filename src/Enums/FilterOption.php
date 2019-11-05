@@ -218,4 +218,27 @@ class FilterOption extends EnumBase
 
         return $enum;
     }
+    
+    /**
+     * get condition key text (for form condition only)
+     */
+    public static function getConditionKeyText($condition_key)
+    {
+        $enum = $condition_key;
+
+        switch ($condition_key) {
+            case static::EQ:
+            case static::USER_EQ:
+            case static::SELECT_EXISTS:
+            case static::DAY_ON:
+            case static::USER_EQ_USER:
+                return '';
+            case static::NE:
+            case static::SELECT_NOT_EXISTS:
+            case static::USER_NE:
+                $enum = static::NE;
+                break;
+        }
+        return static::getEnum($enum)->transKey('condition.condition_key_options');
+    }
 }

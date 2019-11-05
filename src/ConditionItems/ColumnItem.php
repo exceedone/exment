@@ -7,6 +7,8 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Enums\FilterKind;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class ColumnItem extends ConditionItemBase implements ConditionItemInterface
@@ -40,7 +42,11 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         $column_name = $custom_column->column_name;
         $column_item = $custom_column->column_item;
 
-        return $column_item->setCustomValue(["value.$column_name" => $condition->condition_value])->text();
+        $result = $column_item->options([
+            'filterKind' => FilterKind::FORM,
+        ])->setCustomValue(["value.$column_name" => $condition->condition_value])->text();
+
+        return $result . FilterOption::getConditionKeyText($condition->condition_key);
     }
 
     /**

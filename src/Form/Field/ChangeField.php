@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Form\Field;
 
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Enums\FilterKind;
 
 /**
  * change field. If user select other input select, change input field
@@ -55,6 +56,13 @@ class ChangeField extends Field
      */
     protected $adminField;
 
+    /**
+     * filter kind (view, workflow, form)
+     *
+     * @var bool
+     */
+    protected $filterKind = null;
+
     protected static $scripts = [];
 
     protected function getElementClass()
@@ -65,6 +73,15 @@ class ChangeField extends Field
             return $array_result;
         }
         return [];
+    }
+    
+    public function filterKind($filterKind = null)
+    {
+        if (isset($filterKind)) {
+            $this->filterKind = $filterKind;
+        }
+
+        return $this;
     }
 
     public function ajax($ajax)
@@ -134,6 +151,7 @@ class ChangeField extends Field
     protected function script()
     {
         $ajax = $this->ajax;
+        $filterKind = $this->filterKind?? FilterKind::VIEW;
         $eventTriggerSelector = $this->eventTriggerSelector;
         $eventTargetSelector = $this->eventTargetSelector;
         $showConditionKey = $this->showConditionKey;
@@ -141,7 +159,7 @@ class ChangeField extends Field
         $replaceWord = $this->replaceWord;
 
         $script = <<<EOT
-            Exment.ChangeFieldEvent.ChangeFieldEvent('$ajax', '$eventTriggerSelector', '$eventTargetSelector', '$replaceSearch', '$replaceWord', '$showConditionKey');
+            Exment.ChangeFieldEvent.ChangeFieldEvent('$ajax', '$eventTriggerSelector', '$eventTargetSelector', '$replaceSearch', '$replaceWord', '$showConditionKey', '$filterKind');
 EOT;
 
         static::$scripts[] = $script;

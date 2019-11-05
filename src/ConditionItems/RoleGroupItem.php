@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\ConditionItems;
 
 use Encore\Admin\Form\Field;
+use Illuminate\Database\Eloquent\Collection;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\RoleGroup;
@@ -39,12 +41,13 @@ class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
     {
         $model = RoleGroup::find($condition->condition_value);
         if ($model instanceof Collection) {
-            return $model->map(function ($row) {
+            $result = $model->map(function ($row) {
                 return $row->role_group_view_name;
             })->implode(',');
         } else {
-            return $model->role_group_view_name;
+            $result = $model->role_group_view_name;
         }
+        return $result . FilterOption::getConditionKeyText($condition->condition_key);
     }
 
     /**
@@ -59,5 +62,17 @@ class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
         $options = RoleGroup::all()->pluck('role_group_view_name', 'id');
         $field = new Field\MultipleSelect($this->elementName, [$this->label]);
         return $field->options($options);
+    }
+
+    /**
+     * Check has workflow authority
+     *
+     * @param CustomValue $custom_value
+     * @return boolean
+     */
+    public function hasAuthority($workflow_authority, $custom_value, $targetUser)
+    {
+        $ids = $targetUser->belong_role_groups->pluck('id')->toArray();
+        return in_array($workflow_authority->related_id, $ids);
     }
 }

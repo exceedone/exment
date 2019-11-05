@@ -470,10 +470,11 @@ class CustomViewController extends AdminControllerTableBase
                     'include_child' => $is_aggregate,
                     'include_workflow' => true,
                     'include_workflow_work_users' => true,
+                    'ignore_attachment' => true,
                 ]
             ),
             'custom_table' => $custom_table,
-            'viewFilter' => true,
+            'filterKind' => Enums\FilterKind::VIEW,
             'condition_target_name' => 'view_column_target',
             'condition_key_name' => 'view_filter_condition',
             'condition_value_name' => 'view_filter_condition_value',
@@ -615,7 +616,7 @@ class CustomViewController extends AdminControllerTableBase
         $label = exmtrans('condition.condition_value');
         $item->setElement($elementName, 'view_filter_condition_value', $label);
 
-        $item->viewFilter(true);
+        $item->filterKind(Enums\FilterKind::VIEW);
 
         return $item;
     }

@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Form\Field\ChangeField;
@@ -33,11 +34,11 @@ abstract class ConditionItemBase
     protected $className;
 
     /**
-     * filter option is view filter
+     * filter kind (view, workflow, form)
      *
      * @var bool
      */
-    protected $viewFilter;
+    protected $filterKind;
 
     /**
      * Dynamic field label
@@ -61,9 +62,11 @@ abstract class ConditionItemBase
         return $this;
     }
     
-    public function viewFilter($viewFilter = true)
+    public function filterKind($filterKind = null)
     {
-        $this->viewFilter = $viewFilter;
+        if (isset($filterKind)) {
+            $this->filterKind = $filterKind;
+        }
 
         return $this;
     }
@@ -143,7 +146,7 @@ abstract class ConditionItemBase
 
     protected function getFilterOptionConditon()
     {
-        return array_get($this->viewFilter ? FilterOption::FILTER_OPTIONS() : FilterOption::FILTER_CONDITION_OPTIONS(), FilterType::CONDITION);
+        return array_get($this->filterKind == FilterKind::VIEW ? FilterOption::FILTER_OPTIONS() : FilterOption::FILTER_CONDITION_OPTIONS(), FilterType::CONDITION);
     }
 
     /**
@@ -179,7 +182,9 @@ abstract class ConditionItemBase
         }
 
         $compareOption = FilterOption::getCompareOptions($condition->condition_key);
-        return collect($value)->filter()->contains(function ($v) use ($condition_value, $compareOption) {
+        return collect($value)->filter(function ($v) {
+            return isset($v);
+        })->contains(function ($v) use ($condition_value, $compareOption) {
             return collect($condition_value)->contains(function ($condition_value) use ($v, $compareOption) {
                 switch ($compareOption) {
                     case FilterOption::EQ:

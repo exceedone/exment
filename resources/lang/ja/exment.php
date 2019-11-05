@@ -1540,5 +1540,15 @@ return [
             'system' => 'システム',
             'column' => '列の値',
         ],
+        'condition_key_options' => [
+            'eq' => '',
+            'ne' => '以外',
+            'number_gt' => 'より大きい',
+            'number_lt' => '未満',
+            'number_gte' => '以上',
+            'number_lte' => '以下',
+            'day_on_or_after' => '以降',
+            'day_on_or_before' => '以前',
+        ],
     ],
 ];
