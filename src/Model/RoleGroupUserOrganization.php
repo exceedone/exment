@@ -6,6 +6,8 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class RoleGroupUserOrganization extends ModelBase
 {
+    use Traits\ClearCacheTrait;
+
     /**
      * Delete Custom Value Authoritable after custom value save
      *
@@ -25,24 +27,5 @@ class RoleGroupUserOrganization extends ModelBase
         ->where('role_group_user_org_type', $table_name)
         ->where('role_group_target_id', $custom_value->id)
         ->delete();
-    }
-    
-    protected static function boot()
-    {
-        parent::boot();
-        
-        static::saved(function ($model) {
-            $model->clearCache();
-        });
-    }
-    
-    /**
-     * Clear cache
-     *
-     * @return void
-     */
-    public function clearCache()
-    {
-        System::resetCache();
     }
 }

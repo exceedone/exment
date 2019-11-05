@@ -885,7 +885,7 @@ abstract class CustomValue extends ModelBase
 
         if (!is_nullorempty($label) && (boolval($options['add_avatar']) || boolval($options['only_avatar'])) && method_exists($this, 'getDisplayAvatarAttribute')) {
             $img = "<img src='{$this->display_avatar}' class='user-avatar' />";
-            $label = '<span class="d-inline-block">' . $img . $label . '</span>';
+            $label = '<span class="d-inline-block user-avatar-block">' . $img . $label . '</span>';
 
             if (boolval($options['only_avatar'])) {
                 return $label;

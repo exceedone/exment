@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Dashboard;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\DataImportExport;
@@ -609,6 +610,8 @@ class TemplateImporter
 
         // patch use_label_flg
         \Artisan::call('exment:patchdata', ['action' => 'use_label_flg']);
+
+        System::resetCache();
     }
 
     protected static function getTemplateBasePaths()

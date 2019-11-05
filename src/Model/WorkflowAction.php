@@ -13,9 +13,10 @@ use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 class WorkflowAction extends ModelBase
 {
-    use Traits\DatabaseJsonTrait,
-    Traits\UseRequestSessionTrait,
-    \Illuminate\Database\Eloquent\SoftDeletes;
+    use Traits\DatabaseJsonTrait;
+    use Traits\UseRequestSessionTrait;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
+    use Traits\ClearCacheTrait;
 
     protected $appends = ['work_targets', 'work_conditions', 'comment_type', 'flow_next_type', 'flow_next_count', 'ignore_work'];
     protected $casts = ['options' => 'json'];
@@ -675,7 +676,6 @@ class WorkflowAction extends ModelBase
         parent::boot();
 
         static::saved(function ($model) {
-            System::resetCache();
             $model->setActionAuthority();
             $model->setActionCondition();
         });

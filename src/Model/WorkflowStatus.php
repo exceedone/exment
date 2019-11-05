@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 class WorkflowStatus extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
 
     public function deletingChildren()
     {
@@ -16,10 +17,6 @@ class WorkflowStatus extends ModelBase
         
         // add default order
         static::addGlobalScope(new OrderScope('order'));
-        
-        static::saved(function ($model) {
-            System::resetCache();
-        });
     }
 
     /**

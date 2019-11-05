@@ -9,6 +9,7 @@ use Carbon\Carbon;
 class Plugin extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
     use Traits\DatabaseJsonTrait;
 
     protected $casts = ['options' => 'json', 'custom_options' => 'json'];
@@ -554,10 +555,6 @@ class Plugin extends ModelBase
         static::saving(function ($model) {
             $model->prepareJson('options');
             $model->prepareJson('custom_options');
-        });
-
-        static::saved(function ($model) {
-            System::resetCache();
         });
     }
 }

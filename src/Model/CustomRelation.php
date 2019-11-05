@@ -8,6 +8,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
 {
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\UniqueKeyCustomColumnTrait;
 
@@ -191,24 +192,5 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     public static function importReplaceJson(&$json, $options = [])
     {
         static::importReplaceJsonCustomColumn($json, 'options.parent_import_column_id', 'options.parent_import_column_name', 'options.parent_import_table_name', $options);
-    }
-    
-    protected static function boot()
-    {
-        parent::boot();
-        
-        static::saved(function ($model) {
-            $model->clearCache();
-        });
-    }
-
-    /**
-     * Clear cache
-     *
-     * @return void
-     */
-    public function clearCache()
-    {
-        System::resetCache();
     }
 }
