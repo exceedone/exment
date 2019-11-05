@@ -813,6 +813,13 @@ if (!function_exists('getModelName')) {
                 }
                 return array_get($table, 'table_name') == $obj;
             })->first();
+
+            // $table = collect($tables)->first(function ($table) use ($obj) {
+            //     if (is_numeric($obj)) {
+            //         return array_get($table, 'id') == $obj;
+            //     }
+            //     return array_get($table, 'table_name') == $obj;
+            // });
             $suuid = array_get($table, 'suuid');
         }
 
@@ -833,7 +840,7 @@ if (!function_exists('getModelName')) {
             $table = CustomTable::findBySuuid($suuid);
             if (!is_null($table)) {
                 $table->createTable();
-                //ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table);
+                ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
             }
         }
 

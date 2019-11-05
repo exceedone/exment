@@ -15,7 +15,6 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\PartialCrudService;
-use Exceedone\Exment\Services\ClassBuilder;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
@@ -51,8 +50,6 @@ class Initialize
     
             static::initializeConfig();
         }
-
-        static::initializeCustomValueClass();
         
         static::requireBootstrap();
 
@@ -395,19 +392,6 @@ class Initialize
         Filter::extend('betweendatetime', \Exceedone\Exment\Grid\Filter\BetweenDatetime::class);
     }
 
-    /**
-     * Initialize_custom_value_class
-     *
-     * @return void
-     */
-    public static function initializeCustomValueClass(){
-        $classnames = System::cache(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_MODELNAME, function(){
-            return ClassBuilder::createCustomValues(); 
-        });
-
-        eval($classnames);
-    }
-
     public static function logDatabase()
     {
         \DB::listen(function ($query) {
@@ -453,5 +437,4 @@ class Initialize
         }
         return implode(" < ", $functions);
     }
-
 }
