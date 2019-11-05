@@ -143,7 +143,7 @@ class ModelBase extends Model
      * get eloquent using request settion.
      * now only support only id.
      */
-    protected static function _getEloquent($obj, $withs = [], $query_key = 'id', $fucnName = 'allRecords')
+    protected static function _getEloquent($obj, $withs = [], $query_key = 'id', $fucnName = 'firstRecord')
     {
         if (!isset($obj)) {
             return null;
@@ -157,7 +157,7 @@ class ModelBase extends Model
         // get table
         $obj = static::{$fucnName}(function ($table) use ($query_key, $obj) {
             return array_get($table, $query_key) == $obj;
-        })->first();
+        });
 
         if (!isset($obj)) {
             return null;
