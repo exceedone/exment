@@ -278,12 +278,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         // if column exists and (index_enabled = false or forceDropIndex)
         if ($exists && ($forceDropIndex || (!boolval($index_enabled)))) {
             \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
-            static::clearCache();
+            System::clearCache();
         }
         // if index_enabled = true, not exists, then create index
         elseif ($index_enabled && !$exists) {
             \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
-            static::clearCache();
+            System::clearCache();
         }
     }
     

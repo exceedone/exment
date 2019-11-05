@@ -982,7 +982,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         \Schema::createValueTable($table_name);
 
-        static::clearCache();
+        System::clearCache();
     }
 
     public function dropTable()
@@ -993,7 +993,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         \Schema::dropIfExists($table_name);
 
-        static::clearCache();
+        System::clearCache();
     }
     
     /**
