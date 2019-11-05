@@ -176,9 +176,12 @@ class ClassBuilder
     /**
      * Create Custom Value Class Definition
      */
-    public static function createCustomValue($namespace, $className, $fillpath, $table, $obj)
+    public static function createCustomValue($table, $build = true)
     {
         $table = CustomTable::getEloquent($table);
+        $namespace = namespace_join("Exceedone", "Exment", "Model");
+        $className = "Class_{$table->suuid}";
+        $fillpath = namespace_join($namespace, $className);
 
         $builder = static::startBuild($className)
                 ->addNamespace($namespace)
@@ -251,6 +254,28 @@ class ClassBuilder
             $builder->addInUse(Define::CUSTOM_VALUE_TRAITS[$table->table_name]);
         }
         
-        $builder->build();
+        if($build){
+            $builder->build();
+        }
+
+        return $builder;
+    }
+    
+    /**
+     * Create All Custom Value Class Definition
+     */
+    public static function createCustomValues()
+    {
+        $custom_tables = CustomTable::allRecordsCache();
+
+        $results = [];
+        foreach($custom_tables as $custom_table){
+   
+            $builder = static::createCustomValue($custom_table, false);
+
+            $results[] = $builder->toString();
+        }
+        
+        return implode("\n", $results);
     }
 }
