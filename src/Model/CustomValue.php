@@ -109,8 +109,8 @@ abstract class CustomValue extends ModelBase
 
     public function getWorkflowStatusNameAttribute()
     {
-        if (isset($this->workflow_status_cache)) {
-            return $this->workflow_status_cache->status_name;
+        if (isset($this->workflow_status)) {
+            return $this->workflow_status->status_name;
         }
 
         // get workflow
@@ -1132,11 +1132,11 @@ abstract class CustomValue extends ModelBase
     public function lockedWorkflow()
     {
         // check workflow
-        if (is_null($workflow_status = $this->workflow_status_cache)) {
+        if (is_null($this->workflow_status)) {
             return false;
         }
 
-        return boolval($workflow_status->datalock_flg);
+        return boolval($this->workflow_status->datalock_flg);
     }
 
     /**
