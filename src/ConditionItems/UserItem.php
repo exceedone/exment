@@ -6,6 +6,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 
@@ -40,8 +41,8 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
-        $user = \Exment::user();
-        return collect($condition->condition_value)->contains($user->id);
+        $user = \Exment::user()->base_user_id;
+        return $this->compareValue($condition, $user);
     }
     
     /**
@@ -54,12 +55,13 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
     {
         $model = getModelName(SystemTableName::USER)::find($condition->condition_value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
-            return $model->map(function ($row) {
+            $result = $model->map(function ($row) {
                 return $row->getValue('user_name');
             })->implode(',');
         } else {
-            return $model->getValue('user_name');
+            $result = $model->getValue('user_name');
         }
+        return $result . FilterOption::getConditionKeyText($condition->condition_key);
     }
     
     /**

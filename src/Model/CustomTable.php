@@ -1231,6 +1231,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_workflow' => false,
                 'include_workflow_work_users' => false,
                 'include_condition' => false,
+                'ignore_attachment' => false,
             ],
             $selectOptions
         );
@@ -1264,6 +1265,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'include_system' => $include_system,
                     'include_workflow' => $include_workflow,
                     'include_workflow_work_users' => $include_workflow_work_users,
+                    'ignore_attachment' => $ignore_attachment,
                 ]
             );
         }
@@ -1287,6 +1289,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'table_view_name' => $tablename,
                         'view_pivot_column' => SystemColumn::PARENT_ID,
                         'view_pivot_table' => $this,
+                        'ignore_attachment' => $ignore_attachment,
                     ]
                 );
             }
@@ -1307,6 +1310,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'table_view_name' => $tablename,
                         'view_pivot_column' => $select_table_column,
                         'view_pivot_table' => $this,
+                        'ignore_attachment' => $ignore_attachment,
                     ]
                 );
             }
@@ -1329,6 +1333,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_parent' => false,
                         'include_system' => true,
                         'table_view_name' => $tablename,
+                        'ignore_attachment' => $ignore_attachment,
                     ]
                 );
             }
@@ -1347,6 +1352,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_parent' => true,
                         'include_system' => true,
                         'table_view_name' => $tablename,
+                        'ignore_attachment' => $ignore_attachment,
                     ]
                 );
             }
@@ -1370,6 +1376,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'table_view_name' => null,
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
+                'ignore_attachment' => false,
             ],
             $selectOptions
         );
@@ -1418,6 +1425,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             foreach ($custom_columns as $custom_column) {
                 // if $index_enabled_only = true and options.index_enabled_only is false, continue
                 if ($index_enabled_only && !$custom_column->index_enabled) {
+                    continue;
+                }
+                if ($ignore_attachment && ColumnType::isAttachment($custom_column->column_type)) {
                     continue;
                 }
                 $key = static::getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id, $optionKeyParams);

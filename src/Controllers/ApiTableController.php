@@ -620,14 +620,14 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function getFilterValue(Request $request)
     {
-        $item = $this->getConditionItem($request, $request->get('target'));
+        $item = $this->getConditionItem($request, $request->get('target'), $request->get('filter_kind'));
         if (!isset($item)) {
             return [];
         }
         return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
     }
 
-    protected function getConditionItem(Request $request, $target)
+    protected function getConditionItem(Request $request, $target, $filterKind = null)
     {
         $item = ConditionItemBase::getItem($this->custom_table, $target);
         if (!isset($item)) {
@@ -637,6 +637,9 @@ class ApiTableController extends AdminControllerTableBase
         $elementName = str_replace($request->get('replace_search', 'condition_key'), $request->get('replace_word', 'condition_value'), $request->get('cond_name'));
         $label = exmtrans('condition.condition_value');
         $item->setElement($elementName, 'condition_value', $label);
+        if (isset($filterKind)) {
+            $item->filterKind($filterKind);
+        }
 
         return $item;
     }

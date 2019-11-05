@@ -4,7 +4,7 @@ var Exment;
         /**
          * toggle right-top help link and color
          */
-        static ChangeFieldEvent(ajax, eventTriggerSelector, eventTargetSelector, replaceSearch, replaceWord, viewFilter, showConditionKey) {
+        static ChangeFieldEvent(ajax, eventTriggerSelector, eventTargetSelector, replaceSearch, replaceWord, showConditionKey, filterKind) {
             if (!hasValue(ajax)) {
                 return;
             }
@@ -23,7 +23,7 @@ var Exment;
                         'cond_key': $(this).val(),
                         'replace_search': replaceSearch,
                         'replace_word': replaceWord,
-                        'view_filter': viewFilter,
+                        'filter_kind': filterKind,
                         'show_condition_key': showConditionKey,
                     },
                     context: this,

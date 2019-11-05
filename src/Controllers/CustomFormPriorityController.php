@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
+use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
@@ -47,7 +48,9 @@ class CustomFormPriorityController extends AdminControllerTableBase
             'targetOptions' => $custom_table->getColumnsSelectOptions([
                 'include_condition' => true,
                 'include_system' => false,
+                'ignore_attachment' => true,
             ]),
+            'filterKind' => FilterKind::FORM,
         ]);
 
         $hasManyTable->callbackField(function ($field) {

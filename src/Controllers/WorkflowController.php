@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\WorkflowTable;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -882,8 +883,10 @@ class WorkflowController extends AdminControllerBase
                     'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
                     'targetOptions' => $custom_table->getColumnsSelectOptions([
                         'include_system' => false,
+                        'ignore_attachment' => true,
                     ]),
                     'custom_table' => $custom_table,
+                    'filterKind' => FilterKind::WORKFLOW,
                 ]);
 
                 $hasManyTable->callbackField(function ($field) use ($default, $index) {

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Field\ChangeField;
 
@@ -163,7 +164,9 @@ class CustomOperationController extends AdminControllerTableBase
                 'include_parent' => false,
                 'include_child' => false,
                 'include_system' => false,
+                'ignore_attachment' => true,
             ]),
+            'filterKind' => FilterKind::OPERATION,
             'condition_target_name' => 'view_column_target',
             'condition_key_name' => 'view_column_target',
             'condition_value_name' => 'update_value',
