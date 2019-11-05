@@ -616,7 +616,7 @@ return [
             'flow_next_type' => 'Sets the number of people to progress to the next status when this action is executed.',
             'beginning' => 'Select up to one workflow to use for each table. <br /> * Even if the workflow to be used is changed, the workflow currently in progress is executed in the workflow before the change.',
             'status_from' => 'Set the status state to perform that action.',
-            'setting_complete' => 'Complete the setup for this workflow. When the setting is completed, the following contents cannot be implemented.<br />Delete workflow<br />Add, delete, order status<br />If you are sure, enter "yes".',
+            'setting_complete' => 'Complete the setup for this workflow. When the setting is completed, the following contents cannot be implemented.<br />Delete workflow<br />Add, delete, order status',
             'ignore_work' => 'By checking, "executable user" set in this action is not included in the work user. <br /> Please check this when you want to return to the previous status, such as "Reject" or "Return", or when the administrator approves with a special exception.',
             'flow_executed_user_count' => 'The status will not change until the required number of people perform the action.',
         ],

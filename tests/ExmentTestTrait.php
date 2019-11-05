@@ -47,7 +47,7 @@ trait ExmentTestTrait
             $this->dropAllTables();
             \Artisan::call('migrate');
             
-            System::resetRequestSession();
+            System::clearRequestSession();
             Morph::defineMorphMap();
 
             \Artisan::call('exment:install');

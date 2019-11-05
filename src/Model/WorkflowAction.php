@@ -181,6 +181,15 @@ class WorkflowAction extends ModelBase
     }
 
     /**
+     * get eloquent using Cache.
+     * now only support only id.
+     */
+    public static function getEloquent($id, $withs = [])
+    {
+        return static::getEloquentCache($id, $withs);
+    }
+    
+    /**
      * set action authority
      */
     protected function setActionAuthority()

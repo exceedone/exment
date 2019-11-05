@@ -162,7 +162,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         $usersetting->saveOrFail();
 
         // set settings from settion
-        System::resetRequestSession("user_setting");
+        System::clearRequestSession("user_setting");
     }
 
     protected function setBcryptPassword()

@@ -28,6 +28,7 @@ class Define
     
     public const DELETE_CONFIRM_KEYWORD = 'delete me';
     public const RESTORE_CONFIRM_KEYWORD = 'restore me';
+    public const YES_KEYWORD = 'yes';
 
     public const MAX_SIZE_NUMBER = 1000000000000;
 

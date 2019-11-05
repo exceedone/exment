@@ -198,7 +198,14 @@ trait CustomValueShow
                         $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
                     }
                     foreach ($custom_value->getWorkflowActions(true)->reverse() as $action) {
-                        $tools->append(new Tools\WorkflowMenuButton($action, $this->custom_table, $id));
+                        $tools->append(new Tools\ModalMenuButton(
+                            admin_urls("data", $this->custom_table->table_name, $id, "actionModal"),
+                            [
+                                'label' => array_get($action, 'action_name'),
+                                'expand' => ['action_id' => array_get($action, 'id')],
+                                'button_class' => 'btn-success',
+                                'icon' => 'fa-check-square',
+                            ]));
                     }
                     foreach ($copyButtons as $copyButton) {
                         $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $id);

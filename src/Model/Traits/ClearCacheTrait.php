@@ -11,8 +11,8 @@ trait ClearCacheTrait
      *
      * @return void
      */
-    public function clearCache()
+    public static function clearCacheTrait()
     {
-        System::resetCache();
+        System::clearCache();
     }
 }

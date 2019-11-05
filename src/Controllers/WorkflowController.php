@@ -9,13 +9,20 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Layout\Content;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\WorkflowTable;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -24,7 +31,7 @@ use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
-use Exceedone\Exment\Form\Tools\SwalInputButton;
+use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Symfony\Component\HttpFoundation\Response;
 use \Carbon\Carbon;
@@ -557,16 +564,13 @@ class WorkflowController extends AdminControllerBase
     public function appendActivateButton($workflow, $tools)
     {
         if (isset($workflow) && $workflow->canActivate()) {
-            $tools->append(new SwalInputButton(
+            $tools->append(new Tools\ModalMenuButton(
+                admin_urls('workflow', $workflow->id, 'activateModal'),
                 [
-                    'title' => exmtrans('workflow.setting_complete'),
                     'label' => exmtrans('workflow.setting_complete'),
-                    'confirmKeyword' => 'yes',
-                    'icon' => 'fa-check-circle-o',
-                    'html' => exmtrans('workflow.help.setting_complete'),
-                    'url' => admin_urls('workflow', $workflow->id, 'activate'),
-                ]
-            ));
+                    'button_class' => 'btn-success',
+                    'icon' => 'fa-check-square',
+                ]));
         }
     }
 
@@ -606,14 +610,54 @@ class WorkflowController extends AdminControllerBase
             return back();
         }
 
+        $validator = \Validator::make($request->all(), [
+            'activate_keyword' => Rule::in([Define::YES_KEYWORD]),
+        ]);
+
+        if (!$validator->passes()) {
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => exmtrans('error.mistake_keyword'),
+                'errors' => [],
+            ]);
+        }
+
         $workflow->setting_completed_flg = true;
         $workflow->save();
 
+        // Add Notify
+        if(boolval($request->get('add_notify_flg', false))){
+            $this->appendWorkflowNotify($workflow);
+        }
+        
         return response()->json([
             'result'  => true,
             'toastr' => trans('admin.save_succeeded'),
             'redirect' => admin_url('workflow/beginning'),
         ]);
+    }
+
+    protected function appendWorkflowNotify($workflow){
+        // get mail template
+        $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)
+            ::where('value->mail_key_name', MailKeyName::WORKFLOW_NOTIFY)
+            ->first();
+
+        if(!isset($mail_template)){
+            return;
+        }
+
+        // insert
+        $notify = new Notify;
+        $notify->notify_view_name = exmtrans('notify.notify_trigger_options.workflow');
+        $notify->notify_trigger = NotifyTrigger::WORKFLOW;
+        $notify->workflow_id = $workflow->id;
+        $notify->notify_actions = NotifyAction::SHOW_PAGE;
+        $notify->action_settings = [
+            'mail_template_id' => $mail_template->id,
+            'notify_action_target' =>  [NotifyActionTarget::WORK_USER]
+        ];
+        $notify->save();
     }
 
     /**
@@ -909,4 +953,35 @@ class WorkflowController extends AdminControllerBase
             'contentname' => 'workflow_actions_work_conditions',
         ]);
     }
+    
+    /**
+     * Render Setting modal form.
+     *
+     * @return Content
+     */
+    public function activateModal(Request $request, $id)
+    {
+        $workflow = Workflow::getEloquent($id);
+        $activatePath = admin_urls('workflow', $id, 'activate');
+        // create form fields
+        $form = new ModalForm();
+        $form->action($activatePath);
+
+        $form->description(exmtrans('workflow.help.setting_complete'));
+
+            $form->text('activate_keyword', exmtrans('common.keyword'))
+            ->required()
+            ->help(exmtrans('common.message.input_keyword', Define::YES_KEYWORD));
+
+        $form->switchbool('add_notify_flg', exmtrans("workflow.add_notify_flg"))->help(exmtrans('workflow.help.add_notify_flg'));
+
+        $form->setWidth(9, 2);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('workflow.setting_complete')
+        ]);
+    }
+
 }

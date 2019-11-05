@@ -64,9 +64,9 @@ class System extends ModelBase
     }
 
     /**
-     * reset all request settion
+     * clear all request settion
      */
-    public static function resetRequestSession($key = null)
+    public static function clearRequestSession($key = null)
     {
         if (!isset($key)) {
             static::$requestSession = [];
@@ -83,7 +83,7 @@ class System extends ModelBase
      * @param bool $onlySetTrue if this arg is true, set cache if val is true.
      * @return void
      */
-    protected static function cache($key, $value = null, $onlySetTrue = false)
+    public static function cache($key, $value = null, $onlySetTrue = false)
     {
         if (is_null($value)) {
             // first, check request session
@@ -131,9 +131,9 @@ class System extends ModelBase
     /**
      * reset Cache
      */
-    protected static function resetCache($key = null)
+    public static function clearCache($key = null)
     {
-        static::resetRequestSession($key);
+        static::clearRequestSession($key);
         if (!isset($key)) {
             Cache::flush();
         } else {

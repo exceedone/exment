@@ -6,6 +6,16 @@ class WorkflowValue extends ModelBase
 {
     use Traits\AutoSUuidTrait;
 
+    public function workflow()
+    {
+        return $this->belongsTo(Workflow::class, 'workflow_id');
+    }
+
+    public function workflow_action()
+    {
+        return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
+    }
+
     public function workflow_status()
     {
         return $this->belongsTo(WorkflowStatus::class, 'workflow_status_to_id');
@@ -16,9 +26,19 @@ class WorkflowValue extends ModelBase
         return $this->hasMany(WorkflowValueAuthority::class, 'workflow_value_id');
     }
 
+    public function getWorkflowCacheAttribute()
+    {
+        return Workflow::getEloquent($this->workflow_id);
+    }
+
     public function getWorkflowStatusCacheAttribute()
     {
         return WorkflowStatus::getEloquent($this->workflow_status_to_id);
+    }
+
+    public function getWorkflowActionCacheAttribute()
+    {
+        return WorkflowAction::getEloquent($this->workflow_action_id);
     }
 
     public function getWorkflowStatusNameAttribute()
@@ -33,16 +53,6 @@ class WorkflowValue extends ModelBase
         return isset($status)? ($status->editable_flg == 1): true;
     }
     
-    public function workflow()
-    {
-        return $this->belongsTo(Workflow::class, 'workflow_id');
-    }
-
-    public function workflow_action()
-    {
-        return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
-    }
-
     /**
      * Whether already executed workflow
      *

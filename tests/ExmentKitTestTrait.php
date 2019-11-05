@@ -23,7 +23,7 @@ trait ExmentKitTestTrait
         if (!static::$databaseSetup) {
             \Artisan::call('migrate:fresh');
             
-            System::resetRequestSession();
+            System::clearRequestSession();
             Morph::defineMorphMap();
 
             \Artisan::call('exment:install');
