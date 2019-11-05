@@ -6,6 +6,7 @@ class RoleGroup extends ModelBase
 {
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
 
     public static $templateItems = [
         'excepts' => [],
@@ -50,19 +51,5 @@ class RoleGroup extends ModelBase
             $model->role_group_permissions()->delete();
             $model->role_group_user_organizations()->delete();
         });
-        
-        static::saved(function ($model) {
-            $model->clearCache();
-        });
-    }
-    
-    /**
-     * Clear cache
-     *
-     * @return void
-     */
-    public function clearCache()
-    {
-        System::resetCache();
     }
 }

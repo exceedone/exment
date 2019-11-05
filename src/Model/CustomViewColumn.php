@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\SystemColumn;
 class CustomViewColumn extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
     use Traits\CustomViewColumnTrait;
     use Traits\CustomViewColumnOptionTrait;
     use Traits\TemplateTrait;
@@ -74,6 +75,7 @@ class CustomViewColumn extends ModelBase
         // add default order
         static::addGlobalScope(new OrderScope('order'));
     }
+
     public function getViewColumnColorAttribute()
     {
         return $this->getOption('color');

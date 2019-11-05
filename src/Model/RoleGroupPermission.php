@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\RoleType;
 class RoleGroupPermission extends ModelBase
 {
     use Traits\TemplateTrait;
+    use Traits\ClearCacheTrait;
 
     protected $casts = ['permissions' => 'json'];
     
@@ -77,24 +78,5 @@ class RoleGroupPermission extends ModelBase
         }
         array_set($json, 'role_group_target_id', $role_group_target_id);
         array_forget($json, 'role_group_target_name');
-    }
-    
-    protected static function boot()
-    {
-        parent::boot();
-        
-        static::saved(function ($model) {
-            $model->clearCache();
-        });
-    }
-    
-    /**
-     * Clear cache
-     *
-     * @return void
-     */
-    public function clearCache()
-    {
-        System::resetCache();
     }
 }

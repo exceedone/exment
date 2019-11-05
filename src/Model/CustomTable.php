@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Input;
 class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
@@ -349,10 +350,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->prepareJson('options');
         });
 
-        static::saved(function ($model) {
-            $model->clearCache();
-        });
-
         // delete event
         static::deleting(function ($model) {
             // delete custom values table
@@ -374,16 +371,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
-    /**
-     * Clear cache
-     *
-     * @return void
-     */
-    public function clearCache()
-    {
-        System::resetCache();
-    }
-    
     /**
      * validation custom_value using each column setting.
      *

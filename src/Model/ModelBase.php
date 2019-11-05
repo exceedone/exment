@@ -97,6 +97,12 @@ class ModelBase extends Model
         static::updating(function ($model) {
             static::setUser($model, ['updated_user_id']);
         });
+        
+        static::saved(function ($model) {
+            if(\method_exists($model, 'clearCache')){
+                $model->clearCache();
+            }
+        });
     }
 
     /**

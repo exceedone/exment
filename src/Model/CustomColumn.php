@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
@@ -195,10 +196,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             $model->prepareJson('options');
         });
 
-        static::saved(function ($model) {
-            $model->clearCache();
-        });
-
         // delete event
         static::deleting(function ($model) {
             // Delete items
@@ -209,16 +206,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         });
     }
 
-    /**
-     * Clear cache
-     *
-     * @return void
-     */
-    public function clearCache()
-    {
-        System::resetCache();
-    }
-    
     /**
      * get custom column eloquent. (use table)
      */

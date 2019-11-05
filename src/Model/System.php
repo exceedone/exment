@@ -11,6 +11,7 @@ use Cache;
 class System extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
 
     protected $casts = ['role' => 'json'];
     protected $primaryKey = 'system_name';
@@ -310,14 +311,5 @@ class System extends ModelBase
     protected static function getConfigKey($name)
     {
         return sprintf(Define::SYSTEM_KEY_SESSION_SYSTEM_CONFIG, $name);
-    }
-    
-    protected static function boot()
-    {
-        parent::boot();
-        
-        static::saved(function ($model) {
-            System::resetCache();
-        });
     }
 }

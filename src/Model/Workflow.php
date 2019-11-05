@@ -8,6 +8,7 @@ class Workflow extends ModelBase
 {
     use Traits\AutoSUuidTrait;
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
 
     public function workflow_tables()
     {
@@ -43,9 +44,6 @@ class Workflow extends ModelBase
         static::deleting(function ($model) {
             // Delete items
             $model->deletingChildren();
-        });
-        static::saved(function ($model) {
-            System::resetCache();
         });
     }
     
