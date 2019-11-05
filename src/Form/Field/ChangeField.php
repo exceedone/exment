@@ -175,7 +175,8 @@ EOT;
             $field->value($this->value());
             $field->setElementName($this->elementName)
                 ->setErrorKey($this->getErrorKey())
-                ->setElementClass($this->getElementClass());
+                ->setElementClass($this->getElementClass())
+                ->setFieldClass('changefield-div');
             $field->forgetHelp();
             $view = $field->render();
             static::$scripts[] = $field->getScript();
