@@ -70,13 +70,16 @@ trait CustomValueSummary
         
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
             // have edit flg
-            $edit_flg = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+            $edit_flg = $this->custom_table->enableEdit(true) === true;
             // if user have edit permission, add button
             if ($edit_flg) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true));
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
             }
-
+            
+            if ($edit_flg && $this->custom_table->enableExport() === true) {
+                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true, false));
+            }
+            
             $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
         });

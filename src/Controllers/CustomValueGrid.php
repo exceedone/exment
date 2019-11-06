@@ -150,8 +150,11 @@ trait CustomValueGrid
         $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
             $listButtons = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
             
-            if (($import = $this->custom_table->enableImport()) === true || $this->custom_table->enableExport() === true) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $import !== true));
+            // validate export and import
+            $import = $this->custom_table->enableImport();
+            $export = $this->custom_table->enableExport();
+            if ($import === true || $export === true) {
+                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $import === true));
             }
             
             if ($this->custom_table->enableCreate(true) === true) {

@@ -10,12 +10,14 @@ use Encore\Admin\Grid;
 class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
 {
     protected $endpoint;
-    protected $export_only;
+    protected $export_flg;
+    protected $import_flg;
 
-    public function __construct($endpoint, Grid $grid, $export_only = false)
+    public function __construct($endpoint, Grid $grid, $export_flg = true, $import_flg = true)
     {
         $this->endpoint = $endpoint;
-        $this->export_only = $export_only;
+        $this->export_flg = $export_flg;
+        $this->import_flg = $import_flg;
         parent::__construct($grid);
     }
 
@@ -42,7 +44,14 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         $import_template = $this->endpoint.'?_export_=all&temp=1'; // laravel-admin 1.6.1
         $import_template_trans = exmtrans('custom_value.template');
 
-        $import_export = $this->export_only ? exmtrans('custom_value.export'): exmtrans('custom_value.import_export');
+        // switch label
+        if($this->export_flg && $this->import_flg){
+            $label = exmtrans('custom_value.import_export');
+        }elseif($this->export_flg){
+            $label = exmtrans('custom_value.export');
+        }elseif($this->import_flg){
+            $label = exmtrans('custom_value.import_label');
+        }
 
         $page = request('page', 1);
 
@@ -62,15 +71,18 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
             if (!$this->grid->disableRowSelector()) {
                 $items[] = ['href' => $this->grid->getExportUrl('selected', '__rows__'), 'text' => $selectedRows, 'class' => $this->grid->getExportSelectedName(), 'target' => '_blank'];
             }
-            $menulist = [
+
+            $menulist = [];
+            if ($this->export_flg) {
                 ///// export
-                [
+                $menulist[] = [
                     'action' => 'export',
                     'label' => trans('admin.export'),
                     'items' => $items
-                ]
-            ];
-            if (!$this->export_only) {
+                ];
+            }
+
+            if ($this->import_flg) {
                 ///// import
                 $menulist[] = [
                     'action' => 'import',
@@ -81,6 +93,7 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
                     ]
                 ];
             }
+
             $buttons[$format] = [
                 'format_text' => $format_text,
                 'menulist' => $menulist
@@ -89,7 +102,7 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
 
         return view('exment::tools.exportimport-button', [
             'buttons' => $buttons,
-            'button_caption' => $import_export,
+            'button_caption' => $label,
         ]);
     }
 }
