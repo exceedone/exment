@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Model\WorkflowTable;
 use Exceedone\Exment\Model\Condition;
@@ -286,6 +287,12 @@ class WorkflowController extends AdminControllerBase
         $form->display('workflow_status', exmtrans("workflow.status_name"))
             ->default($workflow->getStatusesString());
 
+        if ($workflow->workflow_type == WorkflowType::TABLE) {
+            $custom_table = $workflow->getDesignatedTable();
+            $form->display('custom_table_id', exmtrans('custom_table.table'))
+                ->default($custom_table->table_view_name ?? null);
+        }
+        
         $field = $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function ($form) use ($id, $workflow) {
             $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
                 ->config('allowClear', false)
@@ -323,7 +330,13 @@ class WorkflowController extends AdminControllerBase
                         if (!boolval(array_get($work_condition, 'enabled_flg'))) {
                             continue;
                         }
-                        $texts[] = WorkflowStatus::getWorkflowStatusName(array_get($work_condition, "status_to"), $workflow);
+                        $text = WorkflowStatus::getWorkflowStatusName(array_get($work_condition, "status_to"), $workflow);
+
+                        if(!is_nullorempty(array_get($work_condition, 'workflow_conditions'))){
+                            $text .= exmtrans('workflow.has_condition');
+                        }
+
+                        $texts[] = $text;
                     }
                     return $texts;
                 })
@@ -343,24 +356,34 @@ class WorkflowController extends AdminControllerBase
                         return WorkflowWorkTargetType::getTargetTypeDefault($field->getIndex());
                     }
 
-                    return collect($value)->toJson();
+                    return collect(jsonToArray($value))->toJson();
                 })
                 ->text(function ($value, $field) {
                     if (is_nullorempty($value)) {
                         return WorkflowWorkTargetType::getTargetTypeNameDefault($field->getIndex());
                     }
+
+                    $value = jsonToArray($value);
+
                     if (array_get($value, 'work_target_type') == WorkflowWorkTargetType::ACTION_SELECT) {
                         return WorkflowWorkTargetType::ACTION_SELECT()->transKey('workflow.work_target_type_options');
                     }
 
-                    $action = WorkflowAction::getEloquentDefault($field->data()['id']);
-                    if (!isset($action)) {
-                        return WorkflowWorkTargetType::getTargetTypeNameDefault($field->getIndex());
-                    }
+                    $texts = collect(WorkflowAuthority::getAuhoritiesFromValue($value))
+                        ->filter()->map(function($authority){
+                            return $authority->authority_text;
+                        });
+
+                    return $texts;
+
+                    // $action = WorkflowAction::getEloquentDefault($field->data()['id']);
+                    // if (!isset($action)) {
+                    //     return WorkflowWorkTargetType::getTargetTypeNameDefault($field->getIndex());
+                    // }
                     
-                    return $action->getAuthorityTargets(null, false, true);
+                    // return $action->getAuthorityTargets(null, false, true);
                 })
-                ->nullText(exmtrans("common.created_user"))
+                ->nullText(exmtrans("common.no_setting"))
                 ->nullValue(function ($value, $field) {
                     return WorkflowWorkTargetType::getTargetTypeDefault($field->getIndex());
                 })
@@ -710,13 +733,13 @@ class WorkflowController extends AdminControllerBase
             // validate workflow targets
             $work_targets = jsonToArray(array_get($workflow_action, 'work_targets'));
             if (is_nullorempty($work_targets)) {
-                $errors->add("$errorKey.work_targets", trans("valation.required"));
+                $errors->add("$errorKey.work_targets", trans("validation.required", ['attribute' => exmtrans('workflow.work_targets')]));
             } elseif (array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::FIX) {
                 array_forget($work_targets, 'work_target_type');
                 if (is_nullorempty($work_targets) || !collect($work_targets)->contains(function ($work_target) {
                     return !is_nullorempty($work_target);
                 })) {
-                    $errors->add("$errorKey.work_targets", trans("validation.required"));
+                    $errors->add("$errorKey.work_targets", trans("validation.required", ['attribute' => exmtrans('workflow.work_targets')]));
                 }
             } elseif (array_get($work_targets, 'work_target_type') == WorkflowWorkTargetType::ACTION_SELECT) {
                 // if contains other FIX action in same acthion
@@ -944,7 +967,8 @@ class WorkflowController extends AdminControllerBase
             }
         }
 
-        $form->hidden('valueModalUuid')->default($request->get('widgetmodal_uuid'));
+        $form->hidden('valueModalUuid')->default($request->get('widgetmodal_uuid'));            // add message
+        $form->hidden('has_condition')->default(exmtrans('workflow.has_condition'));
 
         return getAjaxResponse([
             'body'  => $form->render(),

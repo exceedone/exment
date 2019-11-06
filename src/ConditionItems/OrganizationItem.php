@@ -50,14 +50,16 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
     }
     
     /**
-     * get condition value text.
+     * get text.
      *
-     * @param CustomValue $custom_value
-     * @return boolean
+     * @param string $key
+     * @param string $value
+     * @param bool $showFilter
+     * @return string
      */
-    public function getConditionText(Condition $condition)
+    public function getText($key, $value, $showFilter = true)
     {
-        $model = getModelName(SystemTableName::ORGANIZATION)::find($condition->condition_value);
+        $model = getModelName(SystemTableName::ORGANIZATION)::find($value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
             $result = $model->map(function ($row) {
                 return $row->getValue('organization_name');
@@ -65,9 +67,10 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
         } else {
             $result = $model->getValue('organization_name');
         }
-        return $result . FilterOption::getConditionKeyText($condition->condition_key);
-    }
 
+        return $result . ($showFilter ? FilterOption::getConditionKeyText($key) : '');
+    }
+    
     /**
      * Check has workflow authority
      *

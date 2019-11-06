@@ -12,6 +12,10 @@ trait SystemValuesTrait
         if (!isset($custom_value) || !isset($custom_value->id)) {
             return null;
         }
+
+        if ($custom_value->custom_table->isOneRecord()) {
+            return null;
+        }
         
         // get label and value
         $keys = [

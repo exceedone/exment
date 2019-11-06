@@ -96,7 +96,7 @@ var Exment;
             if (hasValue(res.modalSize)) {
                 modalSize = res.modalSize;
             }
-            $('.exment-modal-dialog').removeClass().addClass('exment-modal-dialog modal-dialog ' + modalSize);
+            $('.exment-modal-dialog').removeClass().addClass('exment-modal-dialog modal-dialog modal-dialog-scrollable ' + modalSize);
             Exment.ModalEvent.enableSubmit(button);
         }
         static enableSubmit(button) {

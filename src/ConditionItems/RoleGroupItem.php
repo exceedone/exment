@@ -32,14 +32,16 @@ class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
     }
     
     /**
-     * get condition value text.
+     * get text.
      *
-     * @param CustomValue $custom_value
-     * @return boolean
+     * @param string $key
+     * @param string $value
+     * @param bool $showFilter
+     * @return string
      */
-    public function getConditionText(Condition $condition)
+    public function getText($key, $value, $showFilter = true)
     {
-        $model = RoleGroup::find($condition->condition_value);
+        $model = RoleGroup::find($value);
         if ($model instanceof Collection) {
             $result = $model->map(function ($row) {
                 return $row->role_group_view_name;
@@ -47,9 +49,9 @@ class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
         } else {
             $result = $model->role_group_view_name;
         }
-        return $result . FilterOption::getConditionKeyText($condition->condition_key);
+        return $result . ($showFilter ? FilterOption::getConditionKeyText($key) : '');
     }
-
+    
     /**
      * Get change field
      *

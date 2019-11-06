@@ -20,6 +20,7 @@ class WorkflowWorkTargetType extends EnumBase
 
         return json_encode($result);
     }
+
     public static function getTargetTypeNameDefault($index)
     {
         $targetTypeDefault = jsonToArray(static::getTargetTypeDefault($index));
@@ -29,7 +30,8 @@ class WorkflowWorkTargetType extends EnumBase
             return exmtrans('common.' . $enum->lowerkey());
         }
 
-        $enum = static::getEnum(array_get($targetTypeDefault, 'work_target_type'));
-        return $enum->transKey('workflow.work_target_type_options');
+        // $enum = static::getEnum(array_get($targetTypeDefault, 'work_target_type'));
+        // return $enum->transKey('workflow.work_target_type_options');
+        return exmtrans("common.no_setting");
     }
 }

@@ -41,6 +41,9 @@ var Exment;
                         texts.push(escHtml(value.text));
                     });
                 }
+                // else if(target.prop('type') == 'radio'){
+                //     texts.push(escHtml(target.closest('.radio-inline').text().trim()));
+                // }
             });
             return { value: JSON.stringify(values), text: texts.join('<br />') };
         }
@@ -74,11 +77,17 @@ var Exment;
                 if (target.is(':hidden')) {
                     return;
                 }
+                let text = '';
                 $.each(target.select2('data'), function (index, value) {
-                    texts.push(escHtml(value.text));
+                    text = escHtml(value.text);
                 });
+                // if has condition table tr, set condition label
+                if ($(element).closest('.form-group').next('.form-group.has-many-table-div').find('table tbody tr').length > 0) {
+                    text += target.closest('.modal').find('.has_condition').val();
+                }
+                texts.push(text);
             });
-            return { value: JSON.stringify(values), text: texts.join(',') };
+            return { value: JSON.stringify(values), text: texts.join('<br />') };
         }
     }
     Exment.WorkflowEvent = WorkflowEvent;

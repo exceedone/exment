@@ -24,14 +24,17 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
     }
 
     /**
-     * get condition value text.
+     * get text.
      *
-     * @param CustomValue $custom_value
-     * @return boolean
+     * @param string $key
+     * @param string $value
+     * @param bool $showFilter
+     * @return string
      */
-    public function getConditionText(Condition $condition)
+    public function getText($key, $value, $showFilter = true)
     {
-        return null;
+        $enum = WorkflowTargetSystem::getEnum($value);
+        return isset($enum) ? exmtrans('common.' . $enum->lowerkey()) : null;
     }
     
     /**

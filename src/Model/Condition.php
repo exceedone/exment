@@ -68,8 +68,6 @@ class Condition extends ModelBase
             return null;
         }
 
-        $condition_type_label = $condition_type->transKey('condition.condition_type_options');
-        
         return $item->getConditionLabel($this) . ' : ' . $item->getConditionText($this);
     }
 
