@@ -246,7 +246,7 @@ EOT;
     {
         $closures = [];
         if (is_string($custom_value)) {
-            $custom_value = $this->custom_table->getValueModel($id);
+            $custom_value = $this->custom_table->getValueModel($custom_value);
         }
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
