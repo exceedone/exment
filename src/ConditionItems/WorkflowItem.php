@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\SystemColumn;
 

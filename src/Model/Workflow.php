@@ -145,11 +145,11 @@ class Workflow extends ModelBase
                 return false;
             }
 
-            if(isset($record->active_start_date) && $today->lt($record->active_start_date)){
+            if(isset($record->active_start_date) && $today->lt(new \Carbon\Carbon($record->active_start_date))){
                 return false;
             }
 
-            if(isset($record->active_end_date) && $today->gt($record->active_end_date)){
+            if(isset($record->active_end_date) && $today->gt(new \Carbon\Carbon($record->active_end_date))){
                 return false;
             }
             
