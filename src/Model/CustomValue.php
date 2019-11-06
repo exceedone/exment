@@ -95,7 +95,7 @@ abstract class CustomValue extends ModelBase
             return true;
         }
         
-        return $this->enableDelete() !== true;
+        return $this->enableDelete(true, false) !== true;
     }
 
     public function getWorkflowStatusAttribute()
@@ -1191,16 +1191,23 @@ abstract class CustomValue extends ModelBase
     /**
      * User can delete this custom value
      *
-     * @return void
+     * @param $checkFormAction if true, check as display
+     * @param $checkDisabledDelete if true, call from parameter "disabled_delete"
      */
-    public function enableDelete($checkFormAction = false)
+    public function enableDelete($checkFormAction = false, $checkDisabledDelete = true)
     {
         if (!$this->custom_table->hasPermissionEditData($this)) {
             return ErrorCode::PERMISSION_DENY();
         }
-        if ($checkFormAction && $this->custom_table->formActionDisable(FormActionType::DELETE)) {
-            return false;
+
+        if ($checkDisabledDelete && $this->disabled_delete) {
+            return ErrorCode::DELETE_DISABLED();
         }
+
+        if ($checkFormAction && $this->custom_table->formActionDisable(FormActionType::DELETE)) {
+            return ErrorCode::FORM_ACTION_DISABLED();
+        }
+
         if ($this->custom_table->isOneRecord()) {
             return ErrorCode::PERMISSION_DENY();
         }
