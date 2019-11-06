@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 class CustomOperationColumn extends ModelBase
 {
     use Traits\CustomViewColumnTrait;
+    use Traits\ClearCacheTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
 

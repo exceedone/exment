@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 class CustomOperation extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     

@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\FormBlockType;
 class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
     

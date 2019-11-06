@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Model;
 
 class CustomFormPriority extends ModelBase
 {
+    use Traits\ClearCacheTrait;
+
     protected $guarded = ['id'];
     protected $appends = ['form_priority_text'];
 

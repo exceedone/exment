@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\FormColumnType;
 class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
