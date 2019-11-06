@@ -91,7 +91,7 @@ class System extends ModelBase
                 return $val;
             }
 
-            if (Cache::has($key)) {
+            if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
                 $val = Cache::get($key);
                 static::setRequestSession($key, $val);
                 return $val;
@@ -103,7 +103,7 @@ class System extends ModelBase
                 return $val;
             }
             
-            if (Cache::has($key)) {
+            if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
                 $val = Cache::get($key);
                 static::setRequestSession($key, $val);
                 return $val;
@@ -119,8 +119,10 @@ class System extends ModelBase
                 return $val;
             }
 
-            // set session
-            Cache::put($key, $val, Define::CACHE_CLEAR_MINUTE);
+            // set cache
+            if(boolval(config('exment.use_cache', false))){
+                Cache::put($key, $val, Define::CACHE_CLEAR_MINUTE);
+            }
             return $val;
         }
 
@@ -134,6 +136,11 @@ class System extends ModelBase
     public static function clearCache($key = null)
     {
         static::clearRequestSession($key);
+
+        if(!boolval(config('exment.use_cache', false))){
+            return;
+        }
+
         if (!isset($key)) {
             Cache::flush();
         } else {
