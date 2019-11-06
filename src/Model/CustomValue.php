@@ -91,11 +91,7 @@ abstract class CustomValue extends ModelBase
      */
     public function getDisabledDeleteAttribute()
     {
-        if (method_exists($this, 'disabled_delete_trait') && $this->disabled_delete_trait()) {
-            return true;
-        }
-        
-        return $this->enableDelete(true, false) !== true;
+        return $this->enableDelete(true) !== true;
     }
 
     public function getWorkflowStatusAttribute()
@@ -1191,16 +1187,11 @@ abstract class CustomValue extends ModelBase
      * User can delete this custom value
      *
      * @param $checkFormAction if true, check as display
-     * @param $checkDisabledDelete if true, call from parameter "disabled_delete"
      */
-    public function enableDelete($checkFormAction = false, $checkDisabledDelete = true)
+    public function enableDelete($checkFormAction = false)
     {
         if (!$this->custom_table->hasPermissionEditData($this)) {
             return ErrorCode::PERMISSION_DENY();
-        }
-
-        if ($checkDisabledDelete && $this->disabled_delete) {
-            return ErrorCode::DELETE_DISABLED();
         }
 
         if ($checkFormAction && $this->custom_table->formActionDisable(FormActionType::DELETE)) {
@@ -1214,6 +1205,10 @@ abstract class CustomValue extends ModelBase
         // check workflow
         if ($this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
+        }
+        
+        if (method_exists($this, 'disabled_delete_trait') && $this->disabled_delete_trait()) {
+            return ErrorCode::DELETE_DISABLED;
         }
         
         if(!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true){
