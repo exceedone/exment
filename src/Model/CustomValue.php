@@ -1026,7 +1026,6 @@ abstract class CustomValue extends ModelBase
             $query->take($takeCount);
 
             $queries[] = $query;
-            $index++;
         }
 
         $searchColumn = $searchColumns->last();
