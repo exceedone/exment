@@ -6,7 +6,7 @@
         <div id="{{$id}}" style="width: 100%; height: 100%;">
             @if(isset($value))
             <p>
-                <a href="{!! old($column, $value) !!}" class="{{ isset($button) ? 'btn '.$button : '' }}" target="{{ isset($target) ? $target : '_self' }}">
+                <a href="{!! $old !!}" class="{{ isset($button) ? 'btn '.$button : '' }}" target="{{ isset($target) ? $target : '_self' }}">
                     @if(isset($icon))
                     <i class="fa {{ $icon }}">{{ $text }}</i>
                     @endif

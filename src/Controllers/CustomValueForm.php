@@ -245,7 +245,7 @@ EOT;
     protected function getCustomFormColumns($form, $custom_form_block, $custom_value = null)
     {
         $closures = [];
-        if (is_string($custom_value)) {
+        if (is_numeric($custom_value)) {
             $custom_value = $this->custom_table->getValueModel($custom_value);
         }
         // setting fields.
