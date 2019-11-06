@@ -8,6 +8,11 @@ namespace Exment {
             $(document).off('click', '[data-widgetmodal_url]').on('click', '[data-widgetmodal_url]', {}, Exment.ModalEvent.setModalEvent);
             $(document).off('click', '#modal-showmodal .modal-body a').on('click', '#modal-showmodal .modal-body a', {}, Exment.ModalEvent.setLinkClickEvent);
             $(document).off('click', '#modal-showmodal .modal-submit').on('click', '#modal-showmodal .modal-submit', {}, Exment.ModalEvent.setSubmitEvent);
+
+            $('#modal-showmodal').on('hidden.bs.modal', function (e) {
+                $('#modal-showmodal .modal-body').html('');
+                $('#modal-showmodal').modal('dispose');
+            });
         }
 
         public static AddEvent() {

@@ -605,20 +605,28 @@ class CustomColumnController extends AdminControllerTableBase
             $form = CustomForm::getDefault($this->custom_table);
             $form_block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
             
-            // get order
-            $order = $form_block->custom_form_columns()
-                ->where('column_no', 1)
+            // whether saved check (as index)
+            $exists = $form_block->custom_form_columns()
+                ->where('form_column_target_id', $model->id)
                 ->where('form_column_type', FormColumnType::COLUMN)
-                ->max('order') ?? 0;
-            $order++;
+                ->count() > 0;
+                
+            if(!$exists){
+                // get order
+                $order = $form_block->custom_form_columns()
+                    ->where('column_no', 1)
+                    ->where('form_column_type', FormColumnType::COLUMN)
+                    ->max('order') ?? 0;
+                $order++;
 
-            $custom_form_column = new CustomFormColumn;
-            $custom_form_column->custom_form_block_id = $form_block->id;
-            $custom_form_column->form_column_type = FormColumnType::COLUMN;
-            $custom_form_column->form_column_target_id = $model->id;
-            $custom_form_column->column_no = 1;
-            $custom_form_column->order = $order;
-            $custom_form_column->save();
+                $custom_form_column = new CustomFormColumn;
+                $custom_form_column->custom_form_block_id = $form_block->id;
+                $custom_form_column->form_column_type = FormColumnType::COLUMN;
+                $custom_form_column->form_column_target_id = $model->id;
+                $custom_form_column->column_no = 1;
+                $custom_form_column->order = $order;
+                $custom_form_column->save();
+            }
         }
 
         // set custom form columns --------------------------------------------------

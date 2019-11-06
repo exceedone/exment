@@ -100,7 +100,7 @@ namespace Exment {
                 }); 
 
                 // if has condition table tr, set condition label
-                if($(element).closest('.form-group').next('.form-group.has-many-table-div').find('table tbody tr').length > 0){
+                if($(element).closest('.form-group').next('.form-group.has-many-table-div').find('table tbody tr:visible').length > 0){
                     text += target.closest('.modal').find('.has_condition').val();
                 }
 

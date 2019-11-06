@@ -8,6 +8,10 @@ var Exment;
             $(document).off('click', '[data-widgetmodal_url]').on('click', '[data-widgetmodal_url]', {}, Exment.ModalEvent.setModalEvent);
             $(document).off('click', '#modal-showmodal .modal-body a').on('click', '#modal-showmodal .modal-body a', {}, Exment.ModalEvent.setLinkClickEvent);
             $(document).off('click', '#modal-showmodal .modal-submit').on('click', '#modal-showmodal .modal-submit', {}, Exment.ModalEvent.setSubmitEvent);
+            $('#modal-showmodal').on('hidden.bs.modal', function (e) {
+                $('#modal-showmodal .modal-body').html('');
+                $('#modal-showmodal').modal('dispose');
+            });
         }
         static AddEvent() {
         }
@@ -96,7 +100,7 @@ var Exment;
             if (hasValue(res.modalSize)) {
                 modalSize = res.modalSize;
             }
-            $('.exment-modal-dialog').removeClass().addClass('exment-modal-dialog modal-dialog modal-dialog-scrollable ' + modalSize);
+            $('.exment-modal-dialog').removeClass().addClass('exment-modal-dialog modal-dialog ' + modalSize);
             Exment.ModalEvent.enableSubmit(button);
         }
         static enableSubmit(button) {
