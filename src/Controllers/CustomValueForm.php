@@ -35,7 +35,7 @@ trait CustomValueForm
             $this->custom_form =$custom_form;
         }
 
-        $classname = $this->getModelNameDV();
+        $classname = getModelName($this->custom_table);
         $form = new Form(new $classname);
 
         if (isset($id)) {
@@ -244,7 +244,7 @@ EOT;
     protected function getCustomFormColumns($form, $custom_form_block, $id = null)
     {
         $closures = [];
-        $custom_value = $this->getModelNameDV()::find($id);
+        $custom_value = $this->custom_table->getValueModel($id);
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {

@@ -17,7 +17,7 @@ trait CustomValueSummary
 {
     protected function gridSummary()
     {
-        $classname = $this->getModelNameDV();
+        $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
         Plugin::pluginPreparing($this->plugins, 'loading');
 
