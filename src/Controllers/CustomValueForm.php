@@ -10,6 +10,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\System;
@@ -129,8 +130,8 @@ trait CustomValueForm
                         $hasmany = $form->hasMany(
                             $relation_name,
                             $block_label,
-                            function ($form) use ($custom_form_block, $id) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $id))
+                            function ($form, $model = null) use ($custom_form_block, $id) {
+                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model))
                                 ->disableHeader();
                             }
                         );
@@ -241,13 +242,15 @@ EOT;
     /**
      * set custom form columns
      */
-    protected function getCustomFormColumns($form, $custom_form_block, $id = null)
+    protected function getCustomFormColumns($form, $custom_form_block, $custom_value = null)
     {
         $closures = [];
-        $custom_value = $this->getModelNameDV()::find($id);
+        if (is_string($custom_value)) {
+            $custom_value = $this->getModelNameDV()::find($custom_value);
+        }
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {
+            if (!isset($custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                 continue;
             }
 
