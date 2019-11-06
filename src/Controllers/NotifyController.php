@@ -172,14 +172,6 @@ class NotifyController extends AdminControllerBase
                     })->pluck('view_view_name', 'id');
             })->attribute([
                 'data-filter' => json_encode(['key' => 'notify_trigger', 'notValue' => NotifyTrigger::WORKFLOW]),
-                'data-linkage' => json_encode([
-                    'trigger_settings_notify_target_column' =>  admin_url('notify/targetcolumn'),
-                    'action_settings_notify_action_target' => admin_url('notify/notify_action_target'),
-                    'custom_view_id' => [
-                      'url' => admin_url('webapi/table/filterviews'),
-                      'text' => 'view_view_name',
-                    ]
-                ])
             ]);
 
         $form->select('workflow_id', exmtrans("notify.workflow_id"))
@@ -326,6 +318,10 @@ class NotifyController extends AdminControllerBase
     protected function getTargetColumnOptions($custom_table, $isApi)
     {
         $custom_table = CustomTable::getEloquent($custom_table);
+
+        if(!isset($custom_table)){
+            return [];
+        }
 
         $options = CustomColumn
             ::where('custom_table_id', $custom_table->id)

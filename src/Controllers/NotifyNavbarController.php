@@ -104,7 +104,7 @@ class NotifyNavbarController extends AdminControllerBase
             $show->field('notify_subject', exmtrans('notify_navbar.notify_subject'));
             $show->field('notify_body', exmtrans('notify_navbar.notify_body'))
                 ->as(function ($v) {
-                    return  replaceBreak($v);
+                    return  replaceBreak($v, false);
                 })->setEscape(false);
 
             $show->panel()->tools(function ($tools) use ($id, $custom_value) {

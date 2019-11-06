@@ -36,7 +36,7 @@ trait CustomValueForm
             $this->custom_form =$custom_form;
         }
 
-        $classname = $this->getModelNameDV();
+        $classname = getModelName($this->custom_table);
         $form = new Form(new $classname);
 
         if (isset($id)) {
@@ -246,7 +246,7 @@ EOT;
     {
         $closures = [];
         if (is_string($custom_value)) {
-            $custom_value = $this->getModelNameDV()::find($custom_value);
+            $custom_value = $this->custom_table->getValueModel($id);
         }
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {

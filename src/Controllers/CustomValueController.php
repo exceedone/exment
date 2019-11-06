@@ -77,7 +77,7 @@ class CustomValueController extends AdminControllerTableBase
         // if table setting is "one_record_flg" (can save only one record)
         if ($this->custom_table->isOneRecord()) {
             // get record list
-            $record = $this->getModelNameDV()::first();
+            $record = $this->custom_table->getValueModel()->first();
             $id = isset($record)? $record->id: null;
 
             // if no edit permission show readonly form
@@ -581,15 +581,6 @@ class CustomValueController extends AdminControllerTableBase
 
         $service = new NotifyService($notify, $targetid, $tableKey, $id);
         return $service;
-    }
-
-    
-    /**
-     * @return string
-     */
-    protected function getModelNameDV()
-    {
-        return getModelName($this->custom_table->table_name);
     }
 
     /**

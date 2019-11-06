@@ -32,7 +32,7 @@ trait CustomValueGrid
      */
     protected function grid($filter_func = null)
     {
-        $classname = $this->getModelNameDV();
+        $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
         Plugin::pluginPreparing($this->plugins, 'loading');
         
@@ -277,7 +277,7 @@ trait CustomValueGrid
 
         $operation = CustomOperation::with(['custom_operation_columns'])->find($id);
 
-        $models = $this->getModelNameDV()::whereIn('id', explode(',', $rowid));
+        $models = $this->custom_table->getValueModel()->query()->whereIn('id', explode(',', $rowid));
 
         if (!isset($models) || $models->count() == 0) {
             return getAjaxResponse([

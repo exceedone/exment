@@ -37,7 +37,7 @@ trait CustomValueShow
      */
     protected function createShowForm($id = null, $modal = false)
     {
-        return new Show($this->getModelNameDV()::firstOrNew(['id' => $id]), function (Show $show) use ($id, $modal) {
+        return new Show($this->custom_table->getValueModel($id), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
 
             if (isset($id) && !$modal) {
@@ -272,7 +272,7 @@ trait CustomValueShow
         $this->firstFlow($request, CustomValuePageType::EDIT, $id);
         
         $revision_suuid = $request->get('revision');
-        $custom_value = $this->getModelNameDV()::find($id);
+        $custom_value = $this->custom_table->getValueModel($id);
         $custom_value->setRevision($revision_suuid)->save();
         return redirect($custom_value->getUrl());
     }
@@ -293,8 +293,8 @@ trait CustomValueShow
 
         // create revision value
         $old_revision = Revision::findBySuuid($revision_suuid);
-        $revision_value = $this->getModelNameDV()::find($id)->setRevision($revision_suuid);
-        $custom_value = $this->getModelNameDV()::find($id);
+        $revision_value = $this->custom_table->getValueModel($id)->setRevision($revision_suuid);
+        $custom_value = $this->custom_table->getValueModel($id);
 
         // set table columns
         $table_columns = [];
@@ -562,7 +562,7 @@ EOT;
             return [];
         }
         
-        $query = $this->getModelNameDV()::find($id)
+        $query = $this->custom_table->getValueModel($id)
             ->revisionHistory()
             ->orderby('id', 'desc');
         
