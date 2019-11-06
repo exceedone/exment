@@ -36,7 +36,9 @@ namespace Exment {
             CommonEvent.addSelect2();
             CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
-            CommonEvent.tableHoverLink();
+            if (!$('#gridrow_select_disabled').val()) {
+                CommonEvent.tableHoverLink();
+            }
 
             $.numberformat('[number_format]');
         }
@@ -246,13 +248,25 @@ namespace Exment {
                     return;
                 }
                 
-                var linkElem = $(ev.target).closest('tr').find('.rowclick');
-                if (!hasValue(linkElem)) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                let editFlg = $('#gridrow_select_edit').val();
+                let linkElem = $(ev.target).closest('tr').find('.rowclick');
+                
+                if (editFlg) {
+                    if (!hasValue(linkElem)) {
+                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                    }
+                    if (!hasValue(linkElem)) {
+                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                    }
+                } else {
+                    if (!hasValue(linkElem)) {
+                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                    }
+                    if (!hasValue(linkElem)) {
+                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                    }
                 }
-                if (!hasValue(linkElem)) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-edit');
-                }
+
                 if (!hasValue(linkElem)) {
                     linkElem = $(ev.target).closest('tr').find('.fa-external-link');
                 }
