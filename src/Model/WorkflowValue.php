@@ -43,7 +43,7 @@ class WorkflowValue extends ModelBase
 
     public function getWorkflowStatusNameAttribute()
     {
-        return WorkflowStatus::getWorkflowStatusName($this->workflow_status_to_id, $this->workflow_id);
+        return WorkflowStatus::getWorkflowStatusName($this->workflow_status_to_id, $this->workflow);
     }
 
     public function getWorkflowEditableAttribute()
