@@ -50,6 +50,21 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     }
 
     /**
+     * get text.
+     *
+     * @param string $key
+     * @param string $value
+     * @param bool $showFilter
+     * @return string
+     */
+    public function getText($key, $value, $showFilter = true)
+    {
+        $custom_column = CustomColumn::getEloquent($value);
+
+        return ($custom_column->column_view_name ?? null) . ($showFilter ? FilterOption::getConditionKeyText($key) : '');
+    }
+    
+    /**
      * Get Filter Condition Label
      *
      * @return void

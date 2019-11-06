@@ -266,14 +266,20 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
 }
 
 // has-many-table
-.has-many-table .input-group{
-    margin-left:auto;
-    margin-right: auto;
-}
+.has-many-table{
+    .input-group{
+        margin-left:auto;
+        margin-right: auto;
+    }
+    .bootstrap-switch{
+        display:block;
+        margin:0 auto;
+    }
 
-.has-many-table .bootstrap-switch{
-    display:block;
-    margin:0 auto;
+    .has-error .control-label{
+        text-align:left;
+    }
+    
 }
 
 .dropdown-menu .dropdown-header{
@@ -368,20 +374,22 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     }
 }
 
+.modal-dialog{
+    overflow-y: initial !important;
+}
 .modal-body{
-    max-height: calc(100vh - 200px);
+    max-height: calc(100vmin - 200px);
     overflow-y: auto;
     overflow-x: hidden;
 }
 
 .has-error {
-    .btn-valuemodal, .text-valuemodal{
-        color: red;
-        border-color: red;
+    .btn-valuemodal, .text-valuemodal, .checkbox, .checkbox-inline, .control-label, .help-block, .radio, .radio-inline{
+        color:#dd4b39 !important;
     }
-    // .control-label{
-    //     text-align: left !important;
-    // }
+    .select2-container--default .select2-selection--single, .select2-selection .select2-selection--single{
+        border-color:#dd4b39;
+    }
 }
 
 .column-__actions__{

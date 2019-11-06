@@ -213,4 +213,16 @@ abstract class ConditionItemBase
             });
         });
     }
+    
+    /**
+     * get condition value text.
+     *
+     * @param CustomValue $custom_value
+     * @return boolean
+     */
+    public function getConditionText(Condition $condition)
+    {
+        return $this->getText($condition->condition_key, $condition->condition_value);
+    }
+    
 }

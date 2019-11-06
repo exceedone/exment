@@ -46,14 +46,16 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
     }
     
     /**
-     * get condition value text.
+     * get text.
      *
-     * @param CustomValue $custom_value
-     * @return boolean
+     * @param string $key
+     * @param string $value
+     * @param bool $showFilter
+     * @return string
      */
-    public function getConditionText(Condition $condition)
+    public function getText($key, $value, $showFilter = true)
     {
-        $model = getModelName(SystemTableName::USER)::find($condition->condition_value);
+        $model = getModelName(SystemTableName::USER)::find($value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
             $result = $model->map(function ($row) {
                 return $row->getValue('user_name');
@@ -61,7 +63,7 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
         } else {
             $result = $model->getValue('user_name');
         }
-        return $result . FilterOption::getConditionKeyText($condition->condition_key);
+        return $result . ($showFilter ? FilterOption::getConditionKeyText($key) : '');
     }
     
     /**

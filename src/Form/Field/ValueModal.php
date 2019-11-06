@@ -164,6 +164,8 @@ class ValueModal extends Field
         {
             let keyname = '[data-contentname="$modalContentname"] .modal-submit';
             $(document).off('click', keyname).on('click', keyname, {}, function(ev){
+                ev.preventDefault();
+
                 let valText = {$valueTextScript};
                 
                 // set value and text
@@ -171,6 +173,11 @@ class ValueModal extends Field
                 target.find('.value-valuemodal').val(valText.value);
                 target.find('.text-valuemodal').html(valText.text);
                 
+                if(!hasValue(valText.text)){
+                    let nullText = target.find('.nulltext-valuemodal').val();
+                    target.find('.text-valuemodal').text(nullText);
+                }
+
                 let forms = $('.modal form').get();
 
                 if(forms.length > 0 &&!forms[0].reportValidity()){
@@ -183,6 +190,8 @@ class ValueModal extends Field
             // Set to reset event
             keyname = '[data-contentname="$modalContentname"] .modal-reset';
             $(document).off('click', keyname).on('click', keyname, {}, function(ev){
+                ev.preventDefault();
+
                 let target = getValueModalTarget();
                 let nullValue = target.find('.nullvalue-valuemodal').val();
                 target.find('.value-valuemodal').val(nullValue);

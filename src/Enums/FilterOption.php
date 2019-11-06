@@ -239,6 +239,12 @@ class FilterOption extends EnumBase
                 $enum = static::NE;
                 break;
         }
-        return static::getEnum($enum)->transKey('condition.condition_key_options');
+
+        $enum = static::getEnum($enum);
+        if(!isset($enum)){
+            return null;
+        }
+
+        return $enum->transKey('condition.condition_key_options');
     }
 }

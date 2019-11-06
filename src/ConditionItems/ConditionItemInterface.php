@@ -37,6 +37,8 @@ interface ConditionItemInterface
      */
     public function getConditionText(Condition $condition);
 
+    public function getText($key, $value, $showFilter = true);
+
     /**
      * Get change field
      *

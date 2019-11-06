@@ -604,6 +604,7 @@ return [
         'active_end_date' => '使用終了日',
         'flow_executed_user_count' => '現在のアクション実行者数',
         'flow_executed_user_count_format' => '%s / %s 人',
+        'has_condition' => '(条件あり)',
 
         'help' => [
             'saved_redirect_column' => '保存しました！次はアクションを設定してください。',

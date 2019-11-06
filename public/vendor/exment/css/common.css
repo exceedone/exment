@@ -3555,6 +3555,10 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   margin: 0 auto;
 }
 
+.has-many-table .has-error .control-label {
+  text-align: left;
+}
+
 .dropdown-menu .dropdown-header {
   font-size: 10px;
   padding-left: 10px;
@@ -3646,15 +3650,22 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   margin-bottom: 0;
 }
 
+.modal-dialog {
+  overflow-y: initial !important;
+}
+
 .modal-body {
-  max-height: calc(100vh - 200px);
+  max-height: calc(100vmin - 200px);
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-.has-error .btn-valuemodal, .has-error .text-valuemodal {
-  color: red;
-  border-color: red;
+.has-error .btn-valuemodal, .has-error .text-valuemodal, .has-error .checkbox, .has-error .checkbox-inline, .has-error .control-label, .has-error .help-block, .has-error .radio, .has-error .radio-inline {
+  color: #dd4b39 !important;
+}
+
+.has-error .select2-container--default .select2-selection--single, .has-error .select2-selection .select2-selection--single {
+  border-color: #dd4b39;
 }
 
 .column-__actions__ {
