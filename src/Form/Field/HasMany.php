@@ -82,7 +82,7 @@ EOT;
     {
         $removeClass = NestedForm::REMOVE_FLAG_CLASS;
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
-        $count = !isset($this->value) ? 0 : count($this->value);
+        $count = $this->getHasManyCount();
         $indexName = "index_{$this->column}";
 
         /**
@@ -254,5 +254,26 @@ EOT;
         }
 
         return \validator($newInput, $newRules, $this->getValidationMessages(), $attributes);
+    }
+
+    /**
+     * Get hasmany Count
+     *
+     * @return void
+     */
+    protected function getHasManyCount(){
+        if(isset($this->count)){
+            return $this->count;
+        }
+
+        if(!empty($v = $this->getOld())){
+            return count($v);
+        }
+
+        if(!empty($v = $this->value)){
+            return count($v);
+        }
+
+        return 0;
     }
 }

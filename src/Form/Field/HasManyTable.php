@@ -186,7 +186,7 @@ class HasManyTable extends HasMany
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
         $title = exmtrans("common.error");
         $message = sprintf(exmtrans("common.message.exists_row"), $this->label);
-        $count = $this->count?? (!isset($this->value) ? 0 : count($this->value));
+        $count = $this->getHasManyCount();
         $indexName = "index_{$this->column}";
 
         $rowUpDownClassName = $this->rowUpDown;

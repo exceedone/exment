@@ -22,8 +22,8 @@ class NestedEmbeddedForm extends EmbeddedForm
         $jsonKey = $field->column();
 
         $elementName = $errorKey = [];
-        $errPrefix = rtrim(str_replace(['][', '].', '.[', '[', ']'], '.', $this->column), '.');
-
+        $errPrefix = Field::getDotName($this->column);
+        
         if (is_array($jsonKey)) {
             foreach ($jsonKey as $index => $name) {
                 $elementName[$index] = "{$this->column}[$name]";
