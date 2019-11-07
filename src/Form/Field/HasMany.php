@@ -266,11 +266,7 @@ EOT;
             return $this->count;
         }
 
-        if(!empty($v = $this->getOld())){
-            return count($v);
-        }
-
-        if(!empty($v = $this->value)){
+        if(!empty($v = $this->value())){
             return count($v);
         }
 
