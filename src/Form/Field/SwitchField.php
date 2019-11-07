@@ -15,7 +15,7 @@ class SwitchField extends AdminSwitchField
 
     public function render()
     {
-        if (is_null($this->value())) {
+        if (is_null($this->value()) && is_null($this->getOld())) {
             $this->value = $this->states['off']['value'];
         }
         

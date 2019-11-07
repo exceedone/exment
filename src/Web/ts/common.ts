@@ -40,7 +40,7 @@ namespace Exment {
                 CommonEvent.tableHoverLink();
             }
 
-            $.numberformat('[number_format]');
+            $.numberformat('[number_format]:not(".disableNumberFormat")');
         }
 
         /**

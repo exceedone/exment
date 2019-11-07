@@ -37,7 +37,7 @@ var Exment;
             if (!$('#gridrow_select_disabled').val()) {
                 CommonEvent.tableHoverLink();
             }
-            $.numberformat('[number_format]');
+            $.numberformat('[number_format]:not(".disableNumberFormat")');
         }
         /**
          * toggle right-top help link and color
