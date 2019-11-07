@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Form\Field;
 use Encore\Admin\Admin;
 use Encore\Admin\Form\NestedForm;
 use Encore\Admin\Form\Field\HasMany as AdminHasMany;
+use Illuminate\Support\Arr;
 
 /**
  * Class HasMany.
@@ -170,5 +171,88 @@ $('#has-many-{$this->column}').on('click', '.remove', function () {
 EOT;
 
         Admin::script($script);
+    }
+
+    /**
+     * Get validator for this field.
+     *
+     * @param array $input
+     *
+     * @return bool|\Illuminate\Contracts\Validation\Validator
+     */
+    public function getValidator(array $input)
+    {
+        if (!array_key_exists($this->column, $input)) {
+            return false;
+        }
+
+        $input = Arr::only($input, $this->column);
+
+        $form = $this->buildNestedForm($this->column, $this->builder);
+
+        $rules = $attributes = [];
+
+        /* @var Field $field */
+        foreach ($form->fields() as $field) {
+            if (!$fieldRules = $field->getRules()) {
+                continue;
+            }
+
+            $column = $field->column();
+
+            if (is_array($column)) {
+                foreach ($column as $key => $name) {
+                    $rules[$name.$key] = $fieldRules;
+                }
+
+                $this->resetInputKey($input, $column);
+
+            } else if ($field instanceof NestedEmbeds) {
+                foreach ($fieldRules as $key => $fieldRule) {
+                    $rules["$column.$key"] = $fieldRule;
+                }
+                $attributes = array_merge(
+                    $attributes,
+                    $field->getAttributes()
+                );
+            } else {
+                $rules[$column] = $fieldRules;
+            }
+
+            $attributes = array_merge(
+                $attributes,
+                $this->formatValidationAttribute($input, $field->label(), $column)
+            );
+        }
+
+        Arr::forget($rules, NestedForm::REMOVE_FLAG_NAME);
+
+        if (empty($rules)) {
+            return false;
+        }
+
+        $newRules = [];
+        $newInput = [];
+
+        foreach ($rules as $column => $rule) {
+            foreach (array_keys($input[$this->column]) as $key) {
+                $newRules["{$this->column}.$key.$column"] = $rule;
+                if (isset($attributes[$column])) {
+                    $attributes["{$this->column}.$key.$column"] = $attributes[$column];
+                }
+                if (isset($input[$this->column][$key][$column]) &&
+                    is_array($input[$this->column][$key][$column])) {
+                    foreach ($input[$this->column][$key][$column] as $vkey => $value) {
+                        $newInput["{$this->column}.$key.{$column}$vkey"] = $value;
+                    }
+                }
+            }
+        }
+
+        if (empty($newInput)) {
+            $newInput = $input;
+        }
+
+        return \validator($newInput, $newRules, $this->getValidationMessages(), $attributes);
     }
 }

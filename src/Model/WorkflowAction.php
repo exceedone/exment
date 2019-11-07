@@ -538,14 +538,12 @@ class WorkflowAction extends ModelBase
         if ($isNext) {
             return true;
         }
-        
-        $workflow_action_id = $custom_value->workflow_value->workflow_action_id ?? null;
 
         // get already execution action user's count
         $action_executed_count = WorkflowValue::where([
             'morph_type' => $custom_value->custom_table->table_name,
             'morph_id' => $custom_value->id,
-            'workflow_action_id' => $workflow_action_id,
+            'workflow_action_id' => $this->id,
             'action_executed_flg' => true,
         ])->count();
 
@@ -601,7 +599,7 @@ class WorkflowAction extends ModelBase
         }
 
         // check already executed user
-        $showSubmit = !WorkflowValue::isAlreadyExecuted($custom_value, \Exment::user()->base_user);
+        $showSubmit = !WorkflowValue::isAlreadyExecuted($this->id, $custom_value, \Exment::user()->base_user);
 
         if ($showSubmit) {
             $form->description(exmtrans('workflow.message.action_execute'));
