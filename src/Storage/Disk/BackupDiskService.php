@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Storage;
 class BackupDiskService
 {
     public function __construct(...$args){
-        $this->fileName = isset($args[0]) > 0 ? $args[0] : date('YmdHis');
+        $now = date('YmdHis');
+        $this->fileName = isset($args[0]) > 0 ? $args[0] : $now;
+        $this->tmpFileName = $now;
         
         if (!$this->tmpDisk()->exists($this->tmpDirName())) {
             $this->tmpDisk()->makeDirectory($this->tmpDirName(), 0755, true);
@@ -29,6 +31,13 @@ class BackupDiskService
      * @var string file name
      */
     protected $fileName;
+
+    /**
+     * tmp file name. not extension
+     *
+     * @var string file name
+     */
+    protected $tmpFileName;
 
     /**
      * return this disk
@@ -56,6 +65,16 @@ class BackupDiskService
     public function fileNameExtension()
     {
         return $this->fileName . '.zip';
+    }
+
+    /**
+     * tmp file name with extension
+     *
+     * @return string
+     */
+    public function tmpFileNameExtension()
+    {
+        return $this->tmpFileName . '.zip';
     }
 
     /**
@@ -125,7 +144,7 @@ class BackupDiskService
      */
     public function tmpFilePath()
     {
-        return path_join($this->tmpDirName(), $this->fileNameExtension());
+        return path_join($this->tmpDirName(), $this->tmpFileNameExtension());
     }
 
     /**
@@ -202,6 +221,28 @@ class BackupDiskService
         $disk = $this->disk();
         $tmpDisk = $this->tmpDisk();
 
+        // download zip
+        // TODO:for backup. 
+        if (!$tmpDisk->exists($this->tmpDirName())) {
+            $tmpDisk->makeDirectory($this->tmpDirName(), 0755, true);
+        }
+        
+        $stream = $disk->readStream($this->filePath());
+        $tmpDisk->writeStream($this->tmpFilePath(), $stream);
+
+        // open new zip file
+        $zip = new \ZipArchive();
+        if ($zip->open($this->tmpFileFullPath()) === true) {
+            $zip->extractTo($this->tmpDirFullPath());
+            $zip->close();
+        }
+
+        $this->tmpDisk()->delete($this->tmpFilePath());
+        
+        return true;
+
+
+
         /// get directory
         $dirFullPath = $this->dirFullPath();
         $tmpDirFullPath = $this->tmpDirFullPath();
@@ -214,11 +255,12 @@ class BackupDiskService
 
         // get file list
         $files = $disk->allFiles($dirFullPath);
-        foreach ($files as $file) {
-            // copy from crowd to local
-            $stream = $disk->readStream($file);
-            $tmpDisk->writeStream($file, $stream);
-        }
+        // TODO:for plugin. 
+        // foreach ($files as $file) {
+        //     // copy from crowd to local
+        //     $stream = $disk->readStream($file);
+        //     $tmpDisk->writeStream($file, $stream);
+        // }
         
         // create updated_at file
         if($this->isSetUpdatedAt()){
