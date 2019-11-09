@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Adapter;
+namespace Exceedone\Exment\Storage\Adapter;
 
 use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
@@ -8,7 +8,7 @@ use Exceedone\Exment\Model\File;
 
 class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapterInterface
 {
-    use PluginCloudTrait;
+    use CloudTrait;
 
     /**
      * Get URL using File class
@@ -21,7 +21,7 @@ class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapte
     /**
      * get adapter class
      */
-    public static function getAdapter($app, $config)
+    public static function getAdapter($app, $config, $driver)
     {
         $key = "DefaultEndpointsProtocol=https;AccountName=" . config('filesystems.disks.azure.account') . ";AccountKey=" . config('filesystems.disks.azure.key') . ";";
         $client = BlobRestProxy::createBlobService($key);

@@ -1,12 +1,16 @@
 <?php
 
-namespace Exceedone\Exment\Adapter;
+namespace Exceedone\Exment\Storage\Adapter;
 
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Define;
+use League\Flysystem\Adapter\Local;
+use League\Flysystem\Filesystem;
 
-trait PluginCloudTrait
+trait CloudTrait
 {
+    protected $tmpDisk;
+    
     protected function adminDisk()
     {
         return \Storage::disk(Define::DISKNAME_PLUGIN);
@@ -14,7 +18,20 @@ trait PluginCloudTrait
     
     protected function tmpDisk()
     {
-        return \Storage::disk(Define::DISKNAME_PLUGIN_LOCAL);
+        return $this->tmpDisk;
+    }
+    
+    /**
+     * Set tmp disk. tmp disk is only local
+     *
+     * @param array $config
+     * @return void
+     */
+    public function setTmpDisk($config)
+    {
+        $this->tmpDisk = new Filesystem(new Local(array_get($config, 'root')));
+        
+        return $this;
     }
     
     public function getPluginFullPath($plugin, ...$pass_array)

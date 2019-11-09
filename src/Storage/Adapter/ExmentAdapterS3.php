@@ -1,15 +1,15 @@
 <?php
 
-namespace Exceedone\Exment\Adapter;
+namespace Exceedone\Exment\Storage\Adapter;
 
 use Aws\S3\S3Client;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
-
 use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Enums\Driver;
 
 class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
 {
-    use PluginCloudTrait;
+    use CloudTrait;
 
     /**
      * Get URL using File class
@@ -24,14 +24,16 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
      */
     public static function getAdapter($app, $config)
     {
+        $config = Driver::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$driverKey", $mergeFrom);
+
         $client = new S3Client([
             'credentials' => [
-                'key'    => config('filesystems.disks.s3.key'),
-                'secret' => config('filesystems.disks.s3.secret')
+                'key'    => array_get($config, 'key'),
+                'secret' => array_get($config, 'secret'),
             ],
-            'region' => config('filesystems.disks.s3.region'),
+            'region' => array_get($config, 'region'),
             'version' => 'latest',
         ]);
-        return new self($client, config('filesystems.disks.s3.bucket'));
+        return new self($client, array_get($config, 'bucket'));
     }
 }

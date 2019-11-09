@@ -32,6 +32,7 @@ class BackupController extends AdminControllerBase
     public function index(Request $request, Content $content)
     {
         $this->AdminContent($content);
+        $disk = static::disk();
         // get all archive files
         $files = array_filter(static::disk()->files('list'), function ($file) {
             return preg_match('/list\/\d+\.zip$/i', $file);

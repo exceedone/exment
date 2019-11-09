@@ -319,7 +319,7 @@ class Define
 
     public const DISKNAME_ADMIN = 'admin';
     public const DISKNAME_ADMIN_TMP = 'admin_tmp';
-    public const DISKNAME_BACKUP = 'backup';
+    public const DISKNAME_BACKUP = 'backup_tmp';
     public const DISKNAME_PLUGIN = 'plugin';
     public const DISKNAME_PLUGIN_LOCAL = 'plugin_local';
     public const DISKNAME_TEMPLATE_LOCAL = 'template_local';

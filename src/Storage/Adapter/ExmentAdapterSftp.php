@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Adapter;
+namespace Exceedone\Exment\Storage\Adapter;
 
 use League\Flysystem\Sftp\SftpAdapter;
 
@@ -8,7 +8,7 @@ use Exceedone\Exment\Model\File;
 
 class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
 {
-    use PluginCloudTrait;
+    use CloudTrait;
 
     /**
      * Get URL using File class
@@ -21,7 +21,7 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
     /**
      * get adapter class
      */
-    public static function getAdapter($app, $config)
+    public static function getAdapter($app, $config, $driverKey)
     {
         return new self(config('filesystems.disks.sftp'));
     }

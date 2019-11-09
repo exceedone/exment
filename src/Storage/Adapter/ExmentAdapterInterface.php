@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Adapter;
+namespace Exceedone\Exment\Storage\Adapter;
 
 interface ExmentAdapterInterface
 {
@@ -16,5 +16,5 @@ interface ExmentAdapterInterface
     /**
      * get adapter class
      */
-    public static function getAdapter($app, $config);
+    public static function getAdapter($app, $config, $driverKey);
 }
