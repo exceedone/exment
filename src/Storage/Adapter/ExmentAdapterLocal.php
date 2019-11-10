@@ -19,22 +19,6 @@ class ExmentAdapterLocal extends Local implements ExmentAdapterInterface
     }
     
     /**
-     * get plugin full path
-     *
-     * @return void
-     */
-    public function getPluginFullPath($plugin, ...$pass_array)
-    {
-        $pluginDir = \Storage::disk(Define::DISKNAME_PLUGIN_LOCAL)->getAdapter()->applyPathPrefix($plugin->getPath());
-        if (!\File::exists($pluginDir)) {
-            \File::makeDirectory($pluginDir, 0775, true);
-        }
-        $plugin ->requirePlugin($pluginDir);
-
-        return path_join($pluginDir, ...$pass_array);
-    }
-
-    /**
      * get adapter class
      */
     public static function getAdapter($app, $config, $driverKey)

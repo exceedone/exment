@@ -155,7 +155,7 @@ class BackupCommand extends Command
         }
 
         // upload file
-        $this->diskService->upload();
+        $this->diskService->upload($this->diskService->tmpFilePath());
     }
     
     /**

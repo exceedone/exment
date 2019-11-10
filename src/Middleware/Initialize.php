@@ -147,21 +147,29 @@ class Initialize
             'mergeFrom' => 'exment',
         ]);
         
-        Config::set('filesystems.disks.plugin_local', [
+        Config::set('filesystems.disks.plugin_sync', [
             'driver' => 'exment-driver-plugin',
             'mergeFrom' => 'plugin',
+            'root' => storage_path('app/plugins'),
         ]);
 
-        Config::set('filesystems.disks.backup_tmp', [
+        Config::set('filesystems.disks.backup_sync', [
             'driver' => 'exment-driver-backup',
             'mergeFrom' => 'backup',
             'root' => storage_path('app/backup'),
         ]);
         
-        Config::set('filesystems.disks.template_local', [
+        Config::set('filesystems.disks.template_sync', [
             'driver' => 'exment-driver-template',
             'mergeFrom' => 'template',
+            'root' => storage_path('app/templates'),
         ]);
+        Config::set('filesystems.disks.plugin_local', [
+            'driver' => 'local',
+            'root' => storage_path('app/plugins'),
+        ]);
+
+
 
         // mysql setting
         Config::set('database.connections.mysql.strict', false);
