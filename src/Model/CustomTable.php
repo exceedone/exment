@@ -1878,10 +1878,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if(!boolval($this->getOption('data_export_flg', true))){
+        if ($this->formActionDisable(FormActionType::EXPORT)) {
             return ErrorCode::FORM_ACTION_DISABLED();
         }
-
+        
         return true;
     }
 
@@ -1896,7 +1896,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
-        if(!boolval($this->getOption('data_import_flg', true))){
+        if ($this->formActionDisable(FormActionType::IMPORT)) {
             return ErrorCode::FORM_ACTION_DISABLED();
         }
 

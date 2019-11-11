@@ -721,6 +721,8 @@ return [
                 'create' => 'Create',
                 'edit' => 'Edit',
                 'delete' => 'Delete',
+                'import' => 'Import',
+                'export' => 'Export',
             ],
         ],
     ],

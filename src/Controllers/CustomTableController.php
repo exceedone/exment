@@ -154,14 +154,6 @@ class CustomTableController extends AdminControllerBase
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
                 ;
             
-            $form->switchbool('data_export_flg', exmtrans("custom_table.data_export_flg"))->help(exmtrans("custom_table.help.data_export_flg"))
-            ->default("1")
-            ;
-            
-            $form->switchbool('data_import_flg', exmtrans("custom_table.data_import_flg"))->help(exmtrans("custom_table.help.data_import_flg"))
-            ->default("1")
-            ;
-
             $form->switchbool('all_user_editable_flg', exmtrans("custom_table.all_user_editable_flg"))->help(exmtrans("custom_table.help.all_user_editable_flg"))
                 ->default("0")
             ;
