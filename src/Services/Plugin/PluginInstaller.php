@@ -19,7 +19,7 @@ use Validator;
 class PluginInstaller
 {
     /**
-     * Upload plugin (from display)
+     * Upload plugin (call from display)
      */
     public static function uploadPlugin($uploadFile)
     {
@@ -151,7 +151,12 @@ class PluginInstaller
         }
     }
     
-    //Function validate config.json file with field required
+    /**
+     * Function validate config.json file with field required
+     *
+     * @param [type] $json
+     * @return void
+     */
     protected static function checkRuleConfigFile($json)
     {
         $rules = [
@@ -175,7 +180,12 @@ class PluginInstaller
         }
     }
 
-    //Function prepare data to do continue
+    /**
+     * Function prepare data to do continue
+     *
+     * @param [type] $json
+     * @return void
+     */
     protected static function prepareData($json)
     {
         // find or new $plugin
@@ -217,7 +227,15 @@ class PluginInstaller
         return $plugin;
     }
 
-    //Copy tmp folder to app folder
+    /**
+     * Copy tmp folder to app folder
+     *
+     * @param [type] $plugin
+     * @param [type] $json
+     * @param [type] $pluginFolderPath
+     * @param [type] $pluginFileBasepath
+     * @return void
+     */
     protected static function copyPluginNameFolder($plugin, $json, $pluginFolderPath, $pluginFileBasepath)
     {
         $diskService = new PluginDiskService($plugin);

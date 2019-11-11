@@ -44,15 +44,15 @@ abstract class DiskServiceBase
      * @return void
      */
     protected function initializeDirectory(){
-        if (!$this->tmpDisk()->exists($this->tmpDirName())) {
+        if (!is_null($this->tmpDirName()) && !$this->tmpDisk()->exists($this->tmpDirName())) {
             $this->tmpDisk()->makeDirectory($this->tmpDirName(), 0755, true);
         }
 
-        if (!$this->localSyncDisk()->exists($this->localSyncDirName())) {
+        if (!is_null($this->localSyncDirName()) && !$this->localSyncDisk()->exists($this->localSyncDirName())) {
             $this->localSyncDisk()->makeDirectory($this->localSyncDirName(), 0755, true);
         }
 
-        if (!$this->disk()->exists($this->dirName())) {
+        if (!is_null($this->dirName()) && !$this->disk()->exists($this->dirName())) {
             $this->disk()->makeDirectory($this->dirName(), 0755, true);
         }
     }
@@ -229,4 +229,5 @@ abstract class DiskServiceBase
 
         return $this->sync();
     }
+
 }

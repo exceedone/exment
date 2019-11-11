@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Storage\Disk\TemplateDiskService;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
 
@@ -30,9 +31,71 @@ class TemplateImporter
      */
     public static function getTemplates()
     {
+        return array_merge(static::getUserTemplates(), static::getLocalTemplates());
+    }
+
+    
+    /**
+     * get user uploaded template list (get from storage folder)
+     */
+    protected static function getUserTemplates()
+    {
         $templates = [];
 
-        foreach (static::getTemplateBasePaths() as $templates_path) {
+        $diskService = new TemplateDiskService(short_uuid());
+        $disk = $diskService->disk();
+
+        $directories = $disk->directories();
+        foreach ($directories as $templates_path) {
+            $path = path_join($templates_path, "config.json");
+            if(!$disk->exists($path)){
+                continue;
+            }
+
+            $locale = \App::getLocale();
+            try {
+                $dirname = pathinfo($path)['dirname'];
+                $json = json_decode($disk->get($path), true);
+                // merge language file
+                $langpath = "$dirname/lang/$locale/lang.json";
+                if ($disk->exists($langpath)) {
+                    $lang = json_decode($disk->get($langpath), true);
+                    $json = static::mergeTemplate($json, $lang);
+                }
+                // add thumbnail
+                if (isset($json['thumbnail'])) {
+                    $thumbnail_path = path_join($dirname, $json['thumbnail']);
+                    if ($disk->exists($thumbnail_path)) {
+                        // if local, get path
+                        if($diskService->isDriverLocal()){
+                            $json['thumbnail_file'] = base64_encode(file_get_contents(path_join($diskService->dirFullPath(), $thumbnail_path)));
+                        }
+                        // if crowd, get url
+                        else{
+                            $json['thumbnail_file'] = base64_encode($disk->get($thumbnail_path));
+                        }
+                    }
+                }
+
+                $json['import_key'] = make_uuid();
+                $json['template_type'] = 'user';
+                $templates[] = $json;
+            } catch (Exception $exception) {
+                //TODO:error handling
+            }
+        }
+
+        return $templates;
+    }
+
+    /**
+     * get local template list (get from storage folder)
+     */
+    protected static function getLocalTemplates()
+    {
+        $templates = [];
+
+        foreach (static::getTemplatePaths() as $templates_path) {
             $paths = File::glob("$templates_path/*/config.json");
             $locale = \App::getLocale();
             foreach ($paths as $path) {
@@ -49,10 +112,13 @@ class TemplateImporter
                     if (isset($json['thumbnail'])) {
                         $thumbnail_fullpath = path_join($dirname, $json['thumbnail']);
                         if (File::exists($thumbnail_fullpath)) {
-                            $json['thumbnail_fullpath'] = $thumbnail_fullpath;
+                            $json['thumbnail_file'] = base64_encode(file_get_contents($thumbnail_fullpath));
                         }
                     }
-                    array_push($templates, $json);
+                    
+                    $json['import_key'] = make_uuid();
+                    $json['template_type'] = 'local';
+                    $templates[] = $json;
                 } catch (Exception $exception) {
                     //TODO:error handling
                 }
@@ -61,6 +127,7 @@ class TemplateImporter
 
         return $templates;
     }
+
 
     /**
      * Import template (from display. select item)
@@ -104,70 +171,94 @@ class TemplateImporter
      */
     public static function uploadTemplate($uploadFile)
     {
-        // store uploaded file
-        $tmpdir = getTmpFolderPath('template', false);
-        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), Define::DISKNAME_ADMIN_TMP, true);
+        try{
+            $diskService = new TemplateDiskService(short_uuid());
 
-        $filename = $uploadFile->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
-        $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
+            // store uploaded file
+            //$tmpdir = getTmpFolderPath('template', false);
+            $tmpfolderpath = $diskService->tmpDirFullPath();
 
-        // zip
-        $zip = new ZipArchive;
-        $res = $zip->open($fullpath);
-        if ($res !== true) {
-            //TODO:error
-        }
+            $filename = $uploadFile->store($diskService->tmpDirName(), Define::DISKNAME_ADMIN_TMP);
+            $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
 
-        //Check existed file config (config.json)
-        $config_path = null;
-        $thumbnail_path = null;
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $stat = $zip->statIndex($i);
-            $fileInfo = $zip->getNameIndex($i);
-            if ($fileInfo === 'config.json') {
-                $zip->extractTo($tmpfolderpath);
-                $config_path = path_join($tmpfolderpath, array_get($stat, 'name'));
-            } elseif (pathinfo($fileInfo)['filename'] === 'thumbnail') {
-                $thumbnail_path = path_join($tmpfolderpath, array_get($stat, 'name'));
-            }
-        }
-        $zip->close();
-        
-        //
-        if (isset($config_path)) {
-            // get config.json
-            $json = json_decode(File::get($config_path), true);
-            if (!isset($json)) {
-                // TODO:Error
-                return;
+            // zip
+            $zip = new ZipArchive;
+            $res = $zip->open($fullpath);
+            if ($res !== true) {
+                //TODO:error
             }
 
-            // get template name
-            $template_name = array_get($json, 'template_name');
-            if (!isset($template_name)) {
-                // TODO:Error
-                return;
+            //Check existed file config (config.json)
+            $config_path = null;
+            $thumbnail_path = null;
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                $fileInfo = $zip->getNameIndex($i);
+                if ($fileInfo === 'config.json') {
+                    $zip->extractTo($tmpfolderpath);
+                    $config_path = array_get($stat, 'name');
+                } elseif (pathinfo($fileInfo)['filename'] === 'thumbnail') {
+                    $thumbnail_path = array_get($stat, 'name');
+                }
             }
-
-            // copy to app/templates path
-            $app_template_path = path_join(static::getTemplatePath(), $template_name);
+            $zip->close();
             
-            if (!File::exists($app_template_path)) {
-                File::makeDirectory($app_template_path);
-            }
-            // copy config
-            File::copy($config_path, path_join($app_template_path, 'config.json'));
             //
-            if (isset($thumbnail_path)) {
-                File::copy($thumbnail_path, path_join($app_template_path, pathinfo($thumbnail_path)['basename']));
+            if (isset($config_path)) {
+                // get config.json
+                $json = json_decode(File::get(path_join($tmpfolderpath, $config_path)), true);
+                if (!isset($json)) {
+                    // TODO:Error
+                    return;
+                }
+
+                // get template name
+                $template_name = array_get($json, 'template_name');
+                if (!isset($template_name)) {
+                    // TODO:Error
+                    return;
+                }
+
+                // copy to app/templates path
+                $files = [
+                    path_join($diskService->tmpDirName(), $config_path) => path_join($template_name, 'config.json')
+                ];
+                if (isset($thumbnail_path)) {
+                    $files[path_join($diskService->tmpDirName(), $thumbnail_path)] = path_join($template_name, pathinfo(path_join($tmpfolderpath, $thumbnail_path))['basename']);
+    //                File::copy($thumbnail_path, path_join($app_template_path, pathinfo($thumbnail_path)['basename']));
+                }
+                $diskService->upload($files);
+
+                // $app_template_path = path_join(static::getTemplatePath(), $template_name);
+                
+                // if (!File::exists($app_template_path)) {
+                //     File::makeDirectory($app_template_path);
+                // }
+                // // copy config
+                // File::copy($config_path, path_join($app_template_path, 'config.json'));
+                // //
+                // if (isset($thumbnail_path)) {
+                //     File::copy($thumbnail_path, path_join($app_template_path, pathinfo($thumbnail_path)['basename']));
+                // }
+            }
+
+            return $template_name ?? null;
+        }
+        catch(\Exception $ex){
+            throw $ex;
+        }
+        finally{
+            // delete zip
+            if (isset($tmpfolderpath)) {
+                File::deleteDirectory($tmpfolderpath);
+            }
+
+            if (isset($fullpath)) {
+                File::delete($fullpath);
+                //unlink($fullpath);
             }
         }
-
-        // delete zip
-        File::deleteDirectory($tmpfolderpath);
-        unlink($fullpath);
         
-        return $template_name ?? null;
     }
 
     /**
@@ -616,18 +707,9 @@ class TemplateImporter
         System::clearCache();
     }
 
-    protected static function getTemplateBasePaths()
+    protected static function getTemplatePaths()
     {
-        return [static::getTemplatePath(), exment_package_path('templates')];
-    }
-
-    protected static function getTemplatePath()
-    {
-        $path = getFullpath('', Define::DISKNAME_TEMPLATE_LOCAL);
-        if (!File::exists($path)) {
-            File::makeDirectory($path, 0775, true);
-        }
-        return $path;
+        return [exment_package_path('templates')];
     }
 
     /**

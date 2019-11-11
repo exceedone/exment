@@ -324,5 +324,5 @@ class Define
     public const DISKNAME_PLUGIN = 'plugin';
     public const DISKNAME_PLUGIN_SYNC = 'plugin_sync';
     public const DISKNAME_PLUGIN_LOCAL = 'plugin_local';
-    public const DISKNAME_TEMPLATE_LOCAL = 'template_local';
+    public const DISKNAME_TEMPLATE_SYNC = 'template_sync';
 }

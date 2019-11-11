@@ -89,21 +89,27 @@ class TemplateController extends AdminControllerBase
             if (is_null($array)) {
                 $array = [];
             }
+            $no_thumbnail_file = base64_encode(file_get_contents(exment_package_path('templates/noimage.png')));
+        
+            // create session for import
+            session(['TemplateAAA' => $array]);
+
             $datalist = [];
             foreach ($array as $a) {
                 // get thumbnail_path
-                if (isset($a['thumbnail_fullpath'])) {
-                    $thumbnail_path = $a['thumbnail_fullpath'];
+                if (isset($a['thumbnail_file'])) {
+                    $thumbnail_file = $a['thumbnail_file'];
                 } else {
-                    $thumbnail_path = exment_package_path('templates/noimage.png');
+                    $thumbnail_file = $no_thumbnail_file;
                 }
-                array_push($datalist, [
+                $datalist[] = [
                     'id' => array_get($a, 'template_name'),
                     'title' => array_get($a, 'template_view_name'),
                     'description' => array_get($a, 'description'),
                     'author' => array_get($a, 'author'),
-                    'thumbnail' => 'data:image/png;base64,'.base64_encode(file_get_contents($thumbnail_path))
-                ]);
+                    'thumbnail' => 'data:image/png;base64,'.$thumbnail_file,
+                    'import_key' => array_get($a, 'import_key'),
+                ];
             }
 
             $paginator = new LengthAwarePaginator(
@@ -128,7 +134,7 @@ class TemplateController extends AdminControllerBase
             ])->render();
         } catch (\Throwable $th) {
             // return body and footer
-            return view('exment::form.field.tile-items', [
+                return view('exment::form.field.tile-items', [
                 'paginator' => null,
                 'options' => [],
                 'name' => $name,

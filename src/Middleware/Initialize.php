@@ -164,12 +164,12 @@ class Initialize
             'mergeFrom' => 'template',
             'root' => storage_path('app/templates'),
         ]);
+
+
         Config::set('filesystems.disks.plugin_local', [
             'driver' => 'local',
             'root' => storage_path('app/plugins'),
         ]);
-
-
 
         // mysql setting
         Config::set('database.connections.mysql.strict', false);

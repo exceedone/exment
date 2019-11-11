@@ -24,6 +24,7 @@
             @endif
         </div>
         <input type="hidden" class="tile-value" name="{{$name}}[]" />
+        <input type="hidden" class="import_key" name="{{array_get($option, 'import_key')}}" />
     </div>
 </div>
 @endforeach

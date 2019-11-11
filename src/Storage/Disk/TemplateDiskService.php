@@ -8,19 +8,21 @@ use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Define;
 use Illuminate\Support\Facades\Storage;
 
-class PluginDiskService extends DiskServiceBase
+class TemplateDiskService extends DiskServiceBase
 {
-    protected $plugin;
-
     public function __construct(...$args){
         if(!isset($args[0])){
             return;
         }
 
-        $this->plugin = $args[0];
-        $this->tmpFileName = $this->plugin->getPath();
-        $this->localSyncFileName = $this->tmpFileName;
-        
+        if(is_array($args[0])){
+            $this->fileName = array_get($args[0], 'template_name');
+        }
+
+        $now = date('YmdHis');
+        $this->tmpFileName = $now;
+        $this->localSyncFileName = $now;
+
         $this->initializeDirectory();
     }
 
@@ -30,11 +32,11 @@ class PluginDiskService extends DiskServiceBase
      * @return void
      */
     public function disk(){
-        return Storage::disk(Define::DISKNAME_PLUGIN_SYNC);
+        return Storage::disk(Define::DISKNAME_TEMPLATE_SYNC);
     }
 
     /**
-     * return Tmp(local) Disk
+     * return Tmp(for upload and remove) Disk
      *
      * @return void
      */
@@ -48,7 +50,7 @@ class PluginDiskService extends DiskServiceBase
      * @return void
      */
     public function localSyncDisk(){
-        return Storage::disk(Define::DISKNAME_PLUGIN_LOCAL);
+        return $this->tmpDisk();
     }
 
     /**
@@ -78,7 +80,7 @@ class PluginDiskService extends DiskServiceBase
      */
     public function dirName()
     {
-        return $this->tmpFileName;
+        return $this->fileName;
     }
     
     /**
@@ -87,37 +89,7 @@ class PluginDiskService extends DiskServiceBase
      * @return boolean
      */
     protected function isNeedDownload(){
-        if($this->isDriverLocal()){
-            return false;
-        }
-
-        /// get plugin directory
-        $pathDir = $this->plugin->getPath();
-
-        // if not has local sync disk
-        $localSyncDisk = $this->localSyncDisk();
-        if (!$localSyncDisk->exists($pathDir)) {
-            return true;
-        }
-
-        // get "updated_at.txt" from tmp disk
-        $updated_at_path = path_join($pathDir, 'updated_at.txt');
-        if (!$localSyncDisk->exists($updated_at_path)) {
-            return true;
-        }
-
-        // read text
-        $updated_at = $localSyncDisk->get($updated_at_path);
-
-        if ($updated_at != $this->plugin->updated_at->format('YmdHis')) {
-            return true;
-        }
-
-        return false;
-    }
-
-    protected function isSetUpdatedAt(){
-        return false;
+        return true;
     }
 
     /**
@@ -128,10 +100,9 @@ class PluginDiskService extends DiskServiceBase
     protected function isDeleteTmpAfterExecute(){
         return true;
     }
-
     
     /**
-     * copy file from disk to tmp disk
+     * copy file from disk to localSyncDisk disk
      *
      * @return void
      */
@@ -159,10 +130,6 @@ class PluginDiskService extends DiskServiceBase
             $localSyncDisk->writeStream($file, $stream);
         }
         
-        // create updated_at file
-        $localSyncDisk->put(path_join($localSyncDirName, 'updated_at.txt'), $this->plugin->updated_at->format('YmdHis'));
-
         return true;
     }
-
 }
