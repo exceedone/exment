@@ -1518,6 +1518,13 @@ return [
             'password_grant' => 'Password Grant',
         ],
 
+        'oauth' => [
+            'authorization_request' => 'Authorization Request',
+            'introduction' => 'is requesting permission to access your account.',
+            'scopes' => 'This application will be able to:',
+            'authorize' => 'Authorize',
+        ],
+
         'header' => 'API Setting',
         'description' => 'Register the application settings for executing the API.',
         'app_name' => 'Application Name',
