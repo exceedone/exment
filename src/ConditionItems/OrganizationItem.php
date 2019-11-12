@@ -83,12 +83,12 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
         return in_array($workflow_authority->related_id, $ids);
     }
     
-    public static function setConditionQuery($query, $tableName)
+    public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
     {
         $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
-        $query->orWhere(function ($query) use ($tableName, $ids) {
-            $query->whereIn(SystemTableName::WORKFLOW_AUTHORITY . '.related_id', $ids)
-                ->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_type', ConditionTypeDetail::ORGANIZATION()->lowerkey());
+        $query->orWhere(function ($query) use ($tableName, $ids, $authorityTableName) {
+            $query->whereIn($authorityTableName . '.related_id', $ids)
+                ->where($authorityTableName . '.related_type', ConditionTypeDetail::ORGANIZATION()->lowerkey());
         });
     }
 }
