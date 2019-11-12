@@ -209,7 +209,7 @@ abstract class CustomValue extends ModelBase
 
         if ($ignoreNextWork) {
             $workflow_actions = $workflow_actions->filter(function ($workflow_action) {
-                return !boolval($workflow_action->getOption('ignore_work', false));
+                return !boolval($workflow_action->ignore_work);
             });
         }
 

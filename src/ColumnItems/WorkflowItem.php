@@ -188,7 +188,7 @@ class WorkflowItem extends SystemItem
         ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
             $join
             ->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-            ->where('options->ignore_work', '<>', 1)
+            ->where('ignore_work', false)
             ->where(function ($query) {
                 $query->where(function ($query) {
                     $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
@@ -240,7 +240,7 @@ class WorkflowItem extends SystemItem
         ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
             $join
             ->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-            ->where('options->ignore_work', '<>', 1)
+            ->where('ignore_work', false)
             ->where(function ($query) {
                 $query->where(function ($query) {
                     $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)

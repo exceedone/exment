@@ -717,6 +717,10 @@ class WorkflowController extends AdminControllerBase
         // especially validation
         $workflow_actions = array_get($data, 'workflow_actions', []);
         foreach ($workflow_actions as $key => $workflow_action) {
+            if(boolval(array_get($workflow_action, Form::REMOVE_FLAG_NAME))){
+                continue;
+            }
+            
             $errorKey = "workflow_actions.$key";
 
             // validate action conditions
