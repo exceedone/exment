@@ -9,8 +9,6 @@ use Exceedone\Exment\Enums\Driver;
 
 class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
 {
-    use CloudTrait;
-
     /**
      * Get URL using File class
      */
@@ -24,7 +22,8 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
      */
     public static function getAdapter($app, $config)
     {
-        $config = Driver::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$driverKey", $mergeFrom);
+        $mergeFrom = array_get($config, 'mergeFrom');
+        $mergeConfig = Driver::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);
 
         $client = new S3Client([
             'credentials' => [

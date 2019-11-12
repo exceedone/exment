@@ -28,9 +28,6 @@ class TemplateImporter
 {
     protected $diskService;
 
-    public function __construct(){
-    }
-
     /**
      * get template list (get from app folder and vendor/exceedone/exment/templates)
      */
@@ -237,12 +234,12 @@ class TemplateImporter
     public function uploadTemplate($uploadFile)
     {
         try{
-            $diskService = $this->diskService;
+            $this->diskService = new TemplateDiskService();
 
             // store uploaded file
-            $tmpfolderpath = $diskService->tmpDirFullPath();
+            $tmpfolderpath = $this->diskService->tmpDirFullPath();
 
-            $filename = $uploadFile->store($diskService->tmpDirName(), Define::DISKNAME_ADMIN_TMP);
+            $filename = $uploadFile->store($this->diskService->tmpDirName(), Define::DISKNAME_ADMIN_TMP);
             $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
 
             // zip
@@ -285,15 +282,17 @@ class TemplateImporter
 
                 // copy to app/templates path
                 $files = [
-                    path_join($diskService->tmpDirName(), $config_path) => path_join($template_name, 'config.json')
+                    path_join($this->diskService->tmpDirName(), $config_path) => path_join($template_name, 'config.json')
                 ];
                 if (isset($thumbnail_path)) {
-                    $files[path_join($diskService->tmpDirName(), $thumbnail_path)] = path_join($template_name, pathinfo(path_join($tmpfolderpath, $thumbnail_path))['basename']);
+                    $files[path_join($this->diskService->tmpDirName(), $thumbnail_path)] = path_join($template_name, pathinfo(path_join($tmpfolderpath, $thumbnail_path))['basename']);
                 }
-                $diskService->upload($files);
-            }
+                $this->diskService->upload($files);
 
-            return $template_name ?? null;
+                $this->importFromFile(File::get(path_join($tmpfolderpath, $config_path)), [
+                    'basePath' => $tmpfolderpath,
+                ]);
+            }
         }
         catch(\Exception $ex){
             throw $ex;
@@ -308,6 +307,8 @@ class TemplateImporter
                 File::delete($fullpath);
                 //unlink($fullpath);
             }
+            
+            $this->diskService->deleteTmpDirectory();
         }
         
     }
@@ -769,7 +770,7 @@ class TemplateImporter
     /**
      * create model path from table name.
      */
-    public function getModelPath($tablename)
+    protected function getModelPath($tablename)
     {
         if (is_string($tablename)) {
             $classname = Str::studly(Str::singular($tablename));
@@ -783,7 +784,7 @@ class TemplateImporter
     /**
      * update template json by language json.
      */
-    public function mergeTemplate($json, $langJson, $fillpath = null)
+    protected function mergeTemplate($json, $langJson, $fillpath = null)
     {
         $result = [];
 

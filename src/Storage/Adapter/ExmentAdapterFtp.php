@@ -9,8 +9,6 @@ use Exceedone\Exment\Enums\Driver;
 
 class ExmentAdapterFtp extends Ftp implements ExmentAdapterInterface
 {
-    use CloudTrait;
-
     /**
      * Get URL using File class
      */
@@ -26,10 +24,9 @@ class ExmentAdapterFtp extends Ftp implements ExmentAdapterInterface
     {
         $mergeFrom = array_get($config, 'mergeFrom');
         $mergeConfig = Driver::mergeFileConfig('filesystems.disks.ftp', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig['driver'] = 'ftp';
         
         $driver = new self($mergeConfig);
-        $driver->setTmpDisk($config);
-
         return $driver;
     }
 }

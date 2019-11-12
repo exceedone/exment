@@ -143,7 +143,7 @@ class Initialize
         ]);
 
         Config::set('filesystems.disks.admin', [
-            'driver' => 'exment-driver-default',
+            'driver' => 'exment-driver-exment',
             'mergeFrom' => 'exment',
         ]);
         

@@ -220,28 +220,9 @@ trait InitializeFormTrait
         // import template
         if ($request->has('template')) {
             $importer = new TemplateImportExport\TemplateImporter;
-            $importer->importTemplate($request->input('import_key'));
+            $importer->importTemplate($request->input('template'));
         }
         return true;
-    }
-    
-    /**
-     * get system template list
-     */
-    protected function getTemplates()
-    {
-        $templates_path = app_path("Templates");
-        $paths = File::glob("$templates_path/*/config.json");
-        $templates = [];
-        foreach ($paths as $path) {
-            try {
-                $json = json_decode(File::get($path));
-                array_push($templates, $json);
-            } catch (Exception $exception) {
-                //TODO:error handling
-            }
-        }
-        return collect($templates);
     }
     
     protected function addTemplateTile($form)

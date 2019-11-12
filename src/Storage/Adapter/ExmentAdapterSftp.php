@@ -5,11 +5,10 @@ namespace Exceedone\Exment\Storage\Adapter;
 use League\Flysystem\Sftp\SftpAdapter;
 
 use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Enums\Driver;
 
 class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
 {
-    use CloudTrait;
-
     /**
      * Get URL using File class
      */
@@ -23,6 +22,11 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
      */
     public static function getAdapter($app, $config, $driverKey)
     {
-        return new self(config('filesystems.disks.sftp'));
+        $mergeFrom = array_get($config, 'mergeFrom');
+        $mergeConfig = Driver::mergeFileConfig('filesystems.disks.sftp', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig['driver'] = 'sftp';
+
+        $driver = new self($mergeConfig);
+        return $driver;
     }
 }

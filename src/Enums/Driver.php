@@ -53,8 +53,8 @@ class Driver extends EnumBase
      */
     public static function mergeFileConfig($baseConfigKey, $mergeConfigKey, $mergeFrom)
     {
-        $baseConfig = config($baseConfigKey);
-        $mergeConfig = config($mergeConfigKey);
+        $baseConfig = config($baseConfigKey, []);
+        $mergeConfig = config($mergeConfigKey, []);
 
         $driver = array_get($baseConfig, 'driver');
 
