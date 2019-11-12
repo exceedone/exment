@@ -114,7 +114,6 @@ class Workflow extends ModelBase
      */
     public function getStatusOptions($onlyStart = false)
     {
-        //TODO:workflow performance
         $statuses = collect();
         if (!$onlyStart) {
             $statuses = $this->workflow_statuses_cache->pluck('status_name', 'id');

@@ -631,7 +631,6 @@ class WorkflowController extends AdminControllerBase
     {
         $workflow = Workflow::getEloquent($id);
         if (!$workflow->canActivate()) {
-            // TODO:workflow already activate
             return back();
         }
 
