@@ -142,9 +142,10 @@ class DefaultTableProvider extends ProviderBase
 
         $errors = [];
 
-        // check create or update check
         $validateRow = true;
-        if(isset($model)){
+        // check create or update check
+        // *Only check user object for batch
+        if(isset($model) && !is_nullorempty(\Exment::user())){
             if(!$model->exists && ($code = $this->custom_table->enableCreate()) !== true){
                 $validateRow = false;
             }
