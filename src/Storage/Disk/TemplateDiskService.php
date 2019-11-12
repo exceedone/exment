@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\Storage;
 class TemplateDiskService extends DiskServiceBase
 {
     public function __construct(...$args){
-        if(!isset($args[0])){
-            return;
-        }
-
-        if(is_array($args[0])){
+        if(isset($args[0]) && is_array($args[0])){
             $this->fileName = array_get($args[0], 'template_name');
         }
 
@@ -24,6 +20,12 @@ class TemplateDiskService extends DiskServiceBase
         $this->localSyncFileName = $now;
 
         $this->initializeDirectory();
+    }
+
+    public function fileName($fileName){
+        $this->fileName = $fileName;
+
+        return $this;
     }
 
     /**
@@ -127,7 +129,7 @@ class TemplateDiskService extends DiskServiceBase
         foreach ($files as $file) {
             // copy from crowd to local
             $stream = $disk->readStream($file);
-            $localSyncDisk->writeStream($file, $stream);
+            $localSyncDisk->writeStream(path_join($localSyncDirName, $file), $stream);
         }
         
         return true;

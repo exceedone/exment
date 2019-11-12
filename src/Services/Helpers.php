@@ -457,6 +457,27 @@ if (!function_exists('isApiEndpoint')) {
     }
 }
 
+
+if (!function_exists('deleteDirectory')) {
+    /**
+     * delete target directory
+     */
+    function deleteDirectory($disk, $path)
+    {
+        if(is_nullorempty($path)){
+            return;
+        }
+        
+        $directories = $disk->directories($path);
+        foreach($directories as $directory){
+            deleteDirectory($disk, $directory);
+        }
+
+        $disk->delete($disk->files($path));
+        $disk->deleteDirectory($path);
+    }
+}
+
 // date --------------------------------------------------
 if (!function_exists('hasDuplicateDate')) {
     /**

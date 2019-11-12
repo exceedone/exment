@@ -219,7 +219,8 @@ trait InitializeFormTrait
         $this->uploadTemplate($request);
         // import template
         if ($request->has('template')) {
-            TemplateImportExport\TemplateImporter::importTemplate($request->input('template'));
+            $importer = new TemplateImportExport\TemplateImporter;
+            $importer->importTemplate($request->input('import_key'));
         }
         return true;
     }
@@ -300,19 +301,20 @@ EOT;
     {
         // upload zip file
         $upload_template = null;
+        $importer = new TemplateImportExport\TemplateImporter;
         if ($request->has('upload_template')) {
             // get upload file
             $file = $request->file('upload_template');
-            $upload_template = TemplateImportExport\TemplateImporter::uploadTemplate($file);
-            TemplateImportExport\TemplateImporter::importTemplate($upload_template);
+            $upload_template = $importer->uploadTemplate($file);
+            $importer->importTemplate($upload_template);
         }
         
         // upload excel file
         if ($request->has('upload_template_excel')) {
             // get upload file
             $file = $request->file('upload_template_excel');
-            $json = TemplateImportExport\TemplateImporter::uploadTemplateExcel($file);
-            TemplateImportExport\TemplateImporter::import($json);
+            $json = $importer->uploadTemplateExcel($file);
+            $importer->import($json);
         }
     }
     

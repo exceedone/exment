@@ -212,7 +212,7 @@ abstract class DiskServiceBase
             return;
         }
         
-        $success = $this->tmpDisk()->deleteDirectory($this->tmpDirName());
+        deleteDirectory($this->tmpDisk(), $this->tmpDirName());
         $this->tmpDisk()->delete($this->tmpFilePath());
     }
 

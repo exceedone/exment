@@ -110,7 +110,7 @@ class Tile extends Field
 
         if(!hasActive){
             tile.addClass('active');
-            tile.find('.tile-value').val(tile.data('id'));
+            tile.find('.tile-value').val(tile.attr('data-id'));
         }else{
             tile.removeClass('active');
             tile.find('.tile-value').val('');

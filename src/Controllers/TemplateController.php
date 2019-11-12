@@ -85,15 +85,13 @@ class TemplateController extends AdminControllerBase
             //     ];
             // }
     
-            $array = TemplateImportExport\TemplateImporter::getTemplates();
+            $importer = new TemplateImportExport\TemplateImporter;
+            $array = $importer->getTemplates();
             if (is_null($array)) {
                 $array = [];
             }
             $no_thumbnail_file = base64_encode(file_get_contents(exment_package_path('templates/noimage.png')));
         
-            // create session for import
-            session(['TemplateAAA' => $array]);
-
             $datalist = [];
             foreach ($array as $a) {
                 // get thumbnail_path
@@ -103,12 +101,11 @@ class TemplateController extends AdminControllerBase
                     $thumbnail_file = $no_thumbnail_file;
                 }
                 $datalist[] = [
-                    'id' => array_get($a, 'template_name'),
+                    'id' => json_encode(['template_type' => array_get($a, 'template_type'), 'template_name' => array_get($a, 'template_name')]),
                     'title' => array_get($a, 'template_view_name'),
                     'description' => array_get($a, 'description'),
                     'author' => array_get($a, 'author'),
                     'thumbnail' => 'data:image/png;base64,'.$thumbnail_file,
-                    'import_key' => array_get($a, 'import_key'),
                 ];
             }
 
@@ -134,7 +131,7 @@ class TemplateController extends AdminControllerBase
             ])->render();
         } catch (\Throwable $th) {
             // return body and footer
-                return view('exment::form.field.tile-items', [
+            return view('exment::form.field.tile-items', [
                 'paginator' => null,
                 'options' => [],
                 'name' => $name,
@@ -239,7 +236,8 @@ class TemplateController extends AdminControllerBase
 
         // install templates selected tiles.
         if ($request->has('template')) {
-            TemplateImportExport\TemplateImporter::importTemplate($request->input('template'));
+            $importer = new TemplateImportExport\TemplateImporter;
+            $importer->importTemplate($request->input('template'));
         }
 
         admin_toastr(trans('admin.save_succeeded'));

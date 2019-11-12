@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Formats;
 
+use Symfony\Component\Finder\SplFileInfo;
+use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Xlsx extends FormatBase
@@ -40,11 +42,13 @@ class Xlsx extends FormatBase
     public function getDataTable($request)
     {
         // get file
-        if (is_string($request)) {
-            $path = $request;
-        } else {
+        if ($request instanceof Request) {
             $file = $request->file('custom_table_file');
             $path = $file->getRealPath();
+        }elseif($request instanceof SplFileInfo) {
+            $path = $request->getPathName();
+        }else {
+            $path = $request;
         }
         
         $reader = $this->createReader();
