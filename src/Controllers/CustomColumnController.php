@@ -611,7 +611,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->where('form_column_type', FormColumnType::COLUMN)
                 ->count() > 0;
                 
-            if(!$exists){
+            if (!$exists) {
                 // get order
                 $order = $form_block->custom_form_columns()
                     ->where('column_no', 1)

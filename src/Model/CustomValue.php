@@ -929,7 +929,7 @@ abstract class CustomValue extends ModelBase
      */
     public function getParentValue($isonly_label = false)
     {
-        if(is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)){
+        if (is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)) {
             return null;
         }
         
@@ -1176,7 +1176,7 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::WORKFLOW_LOCK();
         }
         
-        if(!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableEdit($checkFormAction)) !== true){
+        if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableEdit($checkFormAction)) !== true) {
             return $code;
         }
 
@@ -1211,7 +1211,7 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::DELETE_DISABLED;
         }
         
-        if(!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true){
+        if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true) {
             return $code;
         }
 

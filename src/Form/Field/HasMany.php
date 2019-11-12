@@ -206,8 +206,7 @@ EOT;
                 }
 
                 $this->resetInputKey($input, $column);
-
-            } else if ($field instanceof NestedEmbeds) {
+            } elseif ($field instanceof NestedEmbeds) {
                 foreach ($fieldRules as $key => $fieldRule) {
                     $rules["$column.$key"] = $fieldRule;
                 }
@@ -261,12 +260,13 @@ EOT;
      *
      * @return void
      */
-    protected function getHasManyCount(){
-        if(isset($this->count)){
+    protected function getHasManyCount()
+    {
+        if (isset($this->count)) {
             return $this->count;
         }
 
-        if(!empty($v = $this->value())){
+        if (!empty($v = $this->value())) {
             return count($v);
         }
 

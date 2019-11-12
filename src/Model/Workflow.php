@@ -136,27 +136,27 @@ class Workflow extends ModelBase
         $custom_table = CustomTable::getEloquent($custom_table);
         $today = \Carbon\Carbon::today();
 
-        $workflowTable = WorkflowTable::allRecordsCache(function($record) use($custom_table, $today){
-            if($custom_table->id != $record->custom_table_id){
+        $workflowTable = WorkflowTable::allRecordsCache(function ($record) use ($custom_table, $today) {
+            if ($custom_table->id != $record->custom_table_id) {
                 return false;
             }
 
-            if(!boolval($record->active_flg)){
+            if (!boolval($record->active_flg)) {
                 return false;
             }
 
-            if(isset($record->active_start_date) && $today->lt(new \Carbon\Carbon($record->active_start_date))){
+            if (isset($record->active_start_date) && $today->lt(new \Carbon\Carbon($record->active_start_date))) {
                 return false;
             }
 
-            if(isset($record->active_end_date) && $today->gt(new \Carbon\Carbon($record->active_end_date))){
+            if (isset($record->active_end_date) && $today->gt(new \Carbon\Carbon($record->active_end_date))) {
                 return false;
             }
             
             return true;
         })->first();
 
-        if(!isset($workflowTable)){
+        if (!isset($workflowTable)) {
             return null;
         }
 

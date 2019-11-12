@@ -45,11 +45,11 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         $import_template_trans = exmtrans('custom_value.template');
 
         // switch label
-        if($this->export_flg && $this->import_flg){
+        if ($this->export_flg && $this->import_flg) {
             $label = exmtrans('custom_value.import_export');
-        }elseif($this->export_flg){
+        } elseif ($this->export_flg) {
             $label = exmtrans('custom_value.export');
-        }elseif($this->import_flg){
+        } elseif ($this->import_flg) {
             $label = exmtrans('custom_value.import_label');
         }
 

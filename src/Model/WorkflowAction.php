@@ -635,7 +635,7 @@ class WorkflowAction extends ModelBase
         }
         
         // not next, showing message
-        elseif($showSubmit && $next !== true){
+        elseif ($showSubmit && $next !== true) {
             list($flow_next_count, $action_executed_count) = $next;
 
             $form->display('flow_executed_user_count', exmtrans('workflow.flow_executed_user_count'))

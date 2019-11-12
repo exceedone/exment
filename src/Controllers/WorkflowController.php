@@ -332,7 +332,7 @@ class WorkflowController extends AdminControllerBase
                         }
                         $text = WorkflowStatus::getWorkflowStatusName(array_get($work_condition, "status_to"), $workflow);
 
-                        if(!is_nullorempty(array_get($work_condition, 'workflow_conditions'))){
+                        if (!is_nullorempty(array_get($work_condition, 'workflow_conditions'))) {
                             $text .= exmtrans('workflow.has_condition');
                         }
 
@@ -370,7 +370,7 @@ class WorkflowController extends AdminControllerBase
                     }
 
                     $texts = collect(WorkflowAuthority::getAuhoritiesFromValue($value))
-                        ->filter()->map(function($authority){
+                        ->filter()->map(function ($authority) {
                             return $authority->authority_text;
                         });
 
@@ -594,7 +594,8 @@ class WorkflowController extends AdminControllerBase
                     'label' => exmtrans('workflow.setting_complete'),
                     'button_class' => 'btn-success',
                     'icon' => 'fa-check-square',
-                ]));
+                ]
+            ));
         }
     }
 
@@ -650,7 +651,7 @@ class WorkflowController extends AdminControllerBase
         $workflow->save();
 
         // Add Notify
-        if(boolval($request->get('add_notify_flg', false))){
+        if (boolval($request->get('add_notify_flg', false))) {
             $this->appendWorkflowNotify($workflow);
         }
         
@@ -661,13 +662,14 @@ class WorkflowController extends AdminControllerBase
         ]);
     }
 
-    protected function appendWorkflowNotify($workflow){
+    protected function appendWorkflowNotify($workflow)
+    {
         // get mail template
         $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)
             ::where('value->mail_key_name', MailKeyName::WORKFLOW_NOTIFY)
             ->first();
 
-        if(!isset($mail_template)){
+        if (!isset($mail_template)) {
             return;
         }
 
@@ -717,7 +719,7 @@ class WorkflowController extends AdminControllerBase
         // especially validation
         $workflow_actions = array_get($data, 'workflow_actions', []);
         foreach ($workflow_actions as $key => $workflow_action) {
-            if(boolval(array_get($workflow_action, Form::REMOVE_FLAG_NAME))){
+            if (boolval(array_get($workflow_action, Form::REMOVE_FLAG_NAME))) {
                 continue;
             }
             
@@ -1000,7 +1002,7 @@ class WorkflowController extends AdminControllerBase
 
         $form->description(exmtrans('workflow.help.setting_complete'));
 
-            $form->text('activate_keyword', exmtrans('common.keyword'))
+        $form->text('activate_keyword', exmtrans('common.keyword'))
             ->required()
             ->help(exmtrans('common.message.input_keyword', Define::YES_KEYWORD));
 
@@ -1014,5 +1016,4 @@ class WorkflowController extends AdminControllerBase
             'title' => exmtrans('workflow.setting_complete')
         ]);
     }
-
 }

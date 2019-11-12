@@ -634,21 +634,17 @@ class CustomValueController extends AdminControllerTableBase
  
         // id set, checking as update.
         // check for update
-        if($formActionType == CustomValuePageType::CREATE){
+        if ($formActionType == CustomValuePageType::CREATE) {
             $code = $this->custom_table->enableCreate(true);
-        }
-        elseif($formActionType == CustomValuePageType::EDIT){
+        } elseif ($formActionType == CustomValuePageType::EDIT) {
             $custom_value = $this->custom_table->getValueModel($id);
             $code = $custom_value->enableEdit(true);
-        }
-        elseif($formActionType == CustomValuePageType::SHOW){
+        } elseif ($formActionType == CustomValuePageType::SHOW) {
             $custom_value = $this->custom_table->getValueModel($id);
             $code = $custom_value->enableAccess(true);
-        }
-        elseif($formActionType == CustomValuePageType::GRID){
+        } elseif ($formActionType == CustomValuePageType::GRID) {
             $code = $this->custom_table->enableView();
-        }
-        elseif($formActionType == CustomValuePageType::DELETE){
+        } elseif ($formActionType == CustomValuePageType::DELETE) {
             $custom_value = $this->custom_table->getValueModel($id);
             $code = $custom_value->enableDelete(true);
         }
