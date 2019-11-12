@@ -123,6 +123,7 @@ return [
         'memory_leak' => 'ご利用の操作を行うためのメモリ量が足りませんでした。メモリ量を引き上げる場合、以下のURLを開き、メモリ量を増やしてください。:url',
         'ie_not_supported' => 'Internet ExplorerではExmentを使用できません。',
         'support_browser' => '対応ブラウザ',
+        'ip_address_filtered' => '許可されていないIPアドレスです。',
     ],
 
     'install' => [
@@ -206,6 +207,9 @@ return [
         'complex_password' => '複雑なパスワード',
         'password_expiration_days' => '有効日数',
         'password_history_cnt' => 'パスワードの履歴件数',
+        'ip_filter' => 'IPフィルタ設定',
+        'web_ip_filters' => 'ウェブ',
+        'api_ip_filters' => 'API',
         
         'site_skin_options' => [
             "skin-blue" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
@@ -270,6 +274,7 @@ return [
             'complex_password' => 'YESにした場合、パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
             'password_expiration_days' => 'パスワードの有効日数を設定します。0にした場合は無期限になります。',
             'password_history_cnt' => '1以上を入力することで、過去に使用したことのある古いパスワードは、入力した件数分、再度登録できなくなります。<br />※0にした場合でも、設定中のパスワードは登録できません。',
+            'ip_filter' => '通信を許可するIPアドレスを設定します。固定IP（例：12.3.5.6） および範囲指定形式（例：123.4.5.0/24）が使用できます。未設定の場合はすべてのIPアドレスを許可します。<br />複数設定する場合は改行で区切ってください。',
         ]
     ],
 
@@ -1513,6 +1518,7 @@ return [
             'wrong_scope' => 'APIを実行するためのスコープに誤りがあります。開発者にお問い合わせください。',
             'delete_disabled' => 'このデータは削除できません。',
             'not_index_enabled' => ':attributeは検索インデックスが設定されていません。',
+            'api_ip_filtered' => '許可されていないIPアドレスです。',
         ],
 
         'help' =>[

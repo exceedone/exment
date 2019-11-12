@@ -159,7 +159,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
         return [
             'prefix' => url_join(config('admin.route.prefix'), 'oauth'),
             'namespace' => '\Laravel\Passport\Http\Controllers',
-            'middleware' => ['web', 'admin'],
+            'middleware' => ['web', 'admin_api_oauth'],
         ];
     }
 }

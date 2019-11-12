@@ -449,6 +449,16 @@ return [
     |
     */
     'gridrow_select_disabled' => env('EXMENT_GRIDROW_SELECT_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled ip filter
+    |--------------------------------------------------------------------------
+    |
+    | Disabled ip address filter
+    |
+    */
+    'ip_filter_disabled' => env('EXMENT_DISABLE_IP_FILTER', false),
     
     /*
     |--------------------------------------------------------------------------

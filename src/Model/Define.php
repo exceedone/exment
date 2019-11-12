@@ -61,6 +61,8 @@ class Define
         'complex_password' => ['type' => 'boolean', 'group' => 'system', 'default' => false],
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
         'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
+        'web_ip_filters' => ['default' => '', 'group' => 'system'] ,
+        'api_ip_filters' => ['default' => '', 'group' => 'system'] ,
         // cannot call getValue function
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
         'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],

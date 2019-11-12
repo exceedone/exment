@@ -175,6 +175,12 @@ trait InitializeFormTrait
                 ->min(0)
                 ->max(20)
                 ->help(exmtrans("system.help.password_history_cnt"));
+
+            $form->exmheader(exmtrans('system.ip_filter'))->hr();
+            $form->description(exmtrans("system.help.ip_filter"));
+
+            $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
+            $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
         }
 
         // template list

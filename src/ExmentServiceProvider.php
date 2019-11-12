@@ -80,6 +80,8 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
         'admin.browser'  => \Exceedone\Exment\Middleware\Browser::class,
+        'admin.web-ipfilter'  => \Exceedone\Exment\Middleware\WebIPFilter::class,
+        'admin.api-ipfilter'  => \Exceedone\Exment\Middleware\ApiIPFilter::class,
 
         'admin.pjax'       => AdminMiddleware\Pjax::class,
         'admin.permission' => AdminMiddleware\Permission::class,
@@ -102,6 +104,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected $middlewareGroups = [
         'admin' => [
             'admin.browser',
+            'admin.web-ipfilter',
             'admin.initialize',
             'admin.auth',
             'admin.auth-2factor',
@@ -119,6 +122,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         'admin_anonymous' => [
             'admin.browser',
+            'admin.web-ipfilter',
             'admin.initialize',
             'admin.morph',
             'admin.bootstrap2',
@@ -130,6 +134,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         'admin_install' => [
             'admin.browser',
+            'admin.web-ipfilter',
             'admin.initialize',
             'admin.session',
         ],
@@ -139,11 +144,13 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap2',
         ],
         'adminapi' => [
+            'admin.api-ipfilter',
             'adminapi.auth',
             'throttle:60,1',
             'bindings',
         ],
         'adminapi_anonymous' => [
+            'admin.api-ipfilter',
             'throttle:60,1',
             'bindings',
         ],
@@ -196,7 +203,15 @@ class ExmentServiceProvider extends ServiceProvider
             app('router')->aliasMiddleware($key, $middleware);
         }
 
-        // register middleware group.
+        ////// register middleware group.
+        // append oauth login
+        $middleware_admin_webapi = $this->middlewareGroups['admin'];
+        $middleware_admin_webapi = array_filter($middleware_admin_webapi, function($item){
+            return $item != 'admin.web-ipfilter';
+        });
+        $middleware_admin_webapi[] = 'admin.api-ipfilter';
+        $this->middlewareGroups['admin_api_oauth'] = $middleware_admin_webapi;
+
         foreach ($this->middlewareGroups as $key => $middleware) {
             app('router')->middlewareGroup($key, $middleware);
         }
