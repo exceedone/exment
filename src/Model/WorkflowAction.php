@@ -318,6 +318,7 @@ class WorkflowAction extends ModelBase
                 });
 
                 WorkflowValueAuthority::insert($user_organizations->toArray());
+                $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
             }
         });
 
@@ -381,20 +382,17 @@ class WorkflowAction extends ModelBase
         $labels = [];
 
         // add as workflow_value_authorities
-        if (isset($custom_value)) {
-            //$custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-            if (isset($custom_value->workflow_value)) {
-                $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
-                foreach ($workflow_value_authorities as $workflow_value_authority) {
-                    $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
-                    switch ($type) {
-                        case ConditionTypeDetail::USER:
-                            $userIds[] = $workflow_value_authority->related_id;
-                            break;
-                        case ConditionTypeDetail::ORGANIZATION:
-                            $organizationIds[] = $workflow_value_authority->related_id;
-                            break;
-                    }
+        if (isset($custom_value) && isset($custom_value->workflow_value)) {
+            $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
+            foreach ($workflow_value_authorities as $workflow_value_authority) {
+                $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
+                switch ($type) {
+                    case ConditionTypeDetail::USER:
+                        $userIds[] = $workflow_value_authority->related_id;
+                        break;
+                    case ConditionTypeDetail::ORGANIZATION:
+                        $organizationIds[] = $workflow_value_authority->related_id;
+                        break;
                 }
             }
         }
