@@ -185,7 +185,7 @@ class ListItem implements ItemInterface
             $model = $this->custom_view->getValueSummary($model, $this->custom_table->table_name);
         } else {
             // filter model
-            $model = \Exment::user()->filterModel($model, $this->custom_view);
+            \Exment::user()->filterModel($model, $this->custom_view);
         }
         
         // pager count
@@ -193,6 +193,8 @@ class ListItem implements ItemInterface
         if (!isset($pager_count) || $pager_count == 0) {
             $pager_count = System::datalist_pager_count() ?? 5;
         }
+
+        $this->custom_table->setQueryWith($model, $this->custom_view);
 
         // get data
         $this->paginate = $model->paginate($pager_count);

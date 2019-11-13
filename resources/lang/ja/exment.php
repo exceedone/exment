@@ -13,6 +13,7 @@ return [
         'reqired' => '必須',
         'default' => '既定',
         'detail_setting' => '詳細設定',
+        'no_setting' => '未設定',
         'input' => '入力',
         'available_true' => '有効',
         'available_false' => '無効',
@@ -30,9 +31,13 @@ return [
         'deleted_at' => '削除日時', 
         'published_at' => '公開日時', 
         'published_date' => '公開日', 
+        'all_user' => '全ユーザー',
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
+        'workflow_status' => '現在のステータス', 
+        'workflow_work_users' => '現在の作業ユーザー', 
+        'workflow_history' => 'ワークフロー履歴',
         'trashed_user' => '(削除済ユーザー)', 
         'attachment' => '添付ファイル',   
         'max_file_size' => 'アップロード上限サイズ',
@@ -45,12 +50,16 @@ return [
         'row_up' => '1行上へ',
         'row_down' => '1行下へ',
         'pager_count' => '表示件数',
+        'system' => 'システム',
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
         'copy_item' => 'この%sの複製',
         'keyword' => 'キーワード',
         'header' => 'ヘッダー',
         'footer' => 'フッター',
+        'available' => '使用する',
+        'history' => '履歴',
+
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'success_execute' => '実行完了しました！',
@@ -77,6 +86,7 @@ return [
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
             'init_flg' => '保存後、変更はできません。',
+            'more_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
         ],
 
         'weekday' => [
@@ -388,6 +398,7 @@ return [
             'script' => 'スクリプト',
             'style' => 'スタイル',
             'dashboard' => 'ダッシュボード',
+            'validator' => 'バリデーション',
         ],
     ],
 
@@ -552,6 +563,97 @@ return [
         'error_select' => '行を1行のみ選択してください',
     ],
 
+    'workflow' => [
+        'header' => 'ワークフロー設定',
+        'description' => 'ワークフローを設定します。申請、承認、却下など、特定のユーザーがフローを実行することができます。',
+        'workflow_view_name' => 'ワークフロー表示名',
+        'workflow_type' => 'ワークフロー種類',
+        'workflow_statuses' => 'ステータス設定',
+        'workflow_actions' => 'アクション設定',
+        'description_workflow_statuses' => 'ワークフローで使用するステータスを定義します。例：承認待ち、完了<br />※表の最終行のステータスは、フロー完了を表すものとしてください。',
+        'description_workflow_actions' => '状態を変化させるアクションを定義します。 例：申請、承認、決裁',
+        'execute_workflow' => '実行ワークフロー',
+        'action' => 'アクション',
+        'status' => 'ステータス',
+        'status_name' => 'ステータス名',
+        'current_status_name' => '現在のステータス',
+        'start_status_name' => '開始ステータス名',
+        'status_from' => '実行前ステータス',
+        'status_from_to_format' => '%s → %s',
+        'status_to' => '実行後ステータス',
+        'action_name' => 'アクション名',
+        'datalock_flg' => 'データの編集不可',
+        'setting_complete' => '設定完了する',
+        'setting_completed_flg' => '設定完了',
+        'add_notify_flg' => '通知に追加する',
+        'option' => 'オプション設定',
+        'work_targets' => '実行可能ユーザー',
+        'work_targets_select' => '実行可能ユーザー選択',
+        'work_conditions' => 'アクション設定',
+        'condition' => '条件',
+        'flow_next_type' => '次のステータスへ進む条件',
+        'upper_user' => '人以上実行',
+        'all_user' => '全員実行',
+        'executed_user' => '実行ユーザー', 
+        'executed_at' => '実行日時', 
+        'next_work_users' => '次の作業ユーザー', 
+        'login_work_user' => '自分が作業ユーザー', 
+        'ignore_work' => '特殊なアクション',
+        'beginning' => '利用設定',
+        'active_start_date' => '使用開始日',
+        'active_end_date' => '使用終了日',
+        'flow_executed_user_count' => '現在のアクション実行者数',
+        'flow_executed_user_count_format' => '%s / %s 人',
+        'has_condition' => '(条件あり)',
+
+        'help' => [
+            'saved_redirect_column' => '保存しました！次はアクションを設定してください。',
+            'status_name' => '画面に表示するときの名称を設定します。',
+            'start_status_name' => 'ワークフローの開始時のステータス名を設定してください。',
+            'datalock_flg' => 'ワークフローがこのステータスのときに、対象のデータを編集不可にするかどうかを設定します。編集させたくない場合は、YESに設定してください。',
+            'workflow_type' => 'ワークフローの種類を選択します。<br />「汎用」は、複数のテーブルで使用できますが、カスタム列を使用して、アクションの条件や作業ユーザー選択を行うことはできません。<br />「テーブル専用」は、はじめにテーブルを1つ選択する必要がありますが、カスタム列を使用して、アクションの条件や作業ユーザー選択を行うことができます。',
+            'work_conditions' => 'アクション実行後のステータスを設定します。「変更」ボタンをクリックすることで、設定変更を行います。ワークフロー種類によって、設定内容が異なります。',
+            'work_targets' => 'このアクションを実行できるユーザー・組織などを選択します。「変更」ボタンをクリックすることで、設定変更を行います。',
+            'work_targets2' => 'このアクションを実行できるユーザーの種類を選択します。<br />「前アクションの実行ユーザーが選択」は、前のアクションを実行したユーザーが、このアクションを実行するユーザーを選択します。「事前に設定」は、特定のユーザーや組織のみ実行できます。',
+            'work_conditions_common' => 'このアクションの実行後のステータスを設定します。',
+            'work_conditions_table' => 'このアクションを実行するための条件と、実行後のステータスを設定します。条件は3つまで設定できます。<br />※常に固定のアクションを実行する場合、「条件1」の「実行後ステータス」の設定のみ行ってください。',
+            'flow_next_type' => 'このアクションを実行したときに、次のステータスへ進行するための人数を設定します。',
+            'beginning' => '各テーブルごとに、使用するワークフローを1件まで選択します。<br />※使用するワークフローを変更した場合でも、現在進行中のワークフローは、変更前のワークフローで実行されます。',
+            'status_from' => 'そのアクションを実行するための、ステータス状態を設定します。',
+            'setting_complete' => 'このワークフローの設定を完了します。設定完了すると、以下の内容が実施できなくなります。<br />・ワークフローの削除<br />・ステータスの追加、削除、順番変更',
+            'ignore_work' => 'チェックすることで、このアクションに設定されている「実行可能ユーザー」は、作業ユーザーに含めません。<br />「却下」「差し戻し」など、前のステータスに戻るアクションや、管理者が特例で承認を行う場合などに、チェックを行ってください。',
+            'flow_executed_user_count' => '必要人数がアクションを実行するまで、ステータスは変更されません。',
+            'add_notify_flg' => 'ワークフロー実行時に、「次の作業ユーザー」を対象に、システム内通知を行う設定を追加します。追加する場合はYESにしてください。<br/>※ワークフローの設定完了時のみ、この画面で設定できます。更新時は「通知」画面より設定してください。',
+        ],
+
+        'message' => [
+            'status_nochange' => '開始と終了には異なる状態を選択してください。',
+            'exists_authority' => 'アクションの権限は必ず設定してください。',
+            'reference_error' => '使用中のワークフローは削除できません。',
+            'locked' => 'このデータは、ワークフロー設定によりロックされています。',
+            'same_custom_table' => 'ワークフローが重複しています。',
+            'same_action' => '実行前ステータスと実行後ステータスは、異なるステータスに設定してください。',
+            'fix_and_action_select' => '同じ実行前ステータスで、「事前に設定」と「前アクションの実行ユーザーが選択」を同時に設定できません。',
+            'action_execute' => '以下のアクションを実行します。',
+        ],
+        
+        'comment_options' => [
+            'required' => '必須',
+            'nullable' => '任意',
+            'not_use' => '使用しない',
+        ],
+
+        'workflow_type_options' => [
+            'common' => '汎用',
+            'table' => 'テーブル専用',
+        ],
+        'work_target_type_options' => [
+            'all' => '全ユーザー実行可能',
+            'action_select' => '前アクションの実行ユーザーが選択',
+            'fix' => '事前に設定',
+        ],
+    ],
+
     'custom_table' => [
         'header' => 'カスタムテーブル設定',
         'description' => '独自に変更できるカスタムテーブルの設定を行います。',
@@ -609,13 +711,23 @@ return [
             'table_labels' => '見出し表示列設定',
             'column_target' => '対象列',
             'priority' => '優先順位',
-            'table_label_format' => '見出しフォーマット設定',
+            'options_label' => 'オプション設定',
+            'table_label_format' => '見出しフォーマット文字列',
             'table_label_format_string' => 'フォーマット文字列',
+            'form_action_disable_flg' => '画面からの変更不可',
 
             'help' => [
                 'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。上から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'uniques' => '複合ユニークキーを設定します。これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
                 'table_label_format' => '（上級者向け）見出しに表示するフォーマットを柔軟に設定できます。値を表示するためのパラメータは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。※この項目に値を設定した場合、上記の「見出し表示列設定」は無効になります。',
+                'form_action_disable_flg' => 'チェックした操作は、画面から実行することができなくなります。APIやダッシュボードからのみ、データの管理を行いたい場合はチェックしてください。',
+            ],
+            'form_action_options' => [
+                'create' => '新規作成',
+                'edit' => '編集',
+                'delete' => '削除',
+                'import' => 'インポート',
+                'export' => 'エクスポート',
             ],
         ],
     ],
@@ -664,7 +776,7 @@ return [
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
-            'select_target_view' => '対象ビュー',	
+            'select_target_view' => '対象ビュー',
             'select_import_column_id' => 'インポート時のキー列',
             'select_load_ajax' => '選択肢を絞り込む',
             'true_value' => '選択肢1のときの値',
@@ -752,11 +864,11 @@ return [
         ],
         
         'calc_formula' => [
-             'calc_formula' => '計算式',
-             'dynamic' => '列',
-             'fixed' => '固定値',
-             'symbol' => '記号',
-             'input_number' => '数値を入力',
+            'calc_formula' => '計算式',
+            'dynamic' => '列',
+            'fixed' => '固定値',
+            'symbol' => '記号',
+            'input_number' => '数値を入力',
         ],
     ],
 
@@ -773,6 +885,7 @@ return [
         'form_block_name' => 'フォームブロック名',
         'view_only' => '表示専用',
         'hidden' => '隠しフィールド',
+        'required' => '必須項目',
         'text' => 'テキスト',
         'html' => 'HTML',
         'available' => '使用する',
@@ -787,11 +900,20 @@ return [
         'changedata_target_column_when' => 'の項目を選択したとき',
         'changedata_column' => 'リンク列を選択',
         'changedata_column_then' => 'の値をコピーする',
+        'default_flg' => '既定のフォーム',
+
+        'priority' => [
+            'title' => 'フォーム表示条件設定',
+            'form_view_name' => '表示フォーム',
+            'form_priority_text' => '条件',
+            'order' => '優先順',
+        ],
 
         'form_column_type_other_options' => [
             'header' => '見出し',
             'html' => 'HTML',
             'explain' => '説明文',
+            'exhtml' => '拡張HTML',
         ],
 
         'help'=> [
@@ -802,6 +924,18 @@ return [
 
         'message' => [
             'no_exists_column' => '必須項目が設定されていません。',
+        ],
+    ],
+
+    'custom_form_priority' => [
+        'header' => 'カスタムフォーム優先度設定',
+        'description' => 'フォーム画面を表示する条件と優先度を設定します。このページで設定した内容に応じて、フォーム画面が切り替わります。',
+        'custom_form_id' => '対象フォーム',
+        'order' => '優先順',
+        'custom_form_priority_conditions' => '表示条件',
+        'help'=> [
+            'order' => 'フォームの表示優先順位を設定します。',
+            'custom_form_priority_conditions' => 'カスタムフォームを表示する条件を設定します。ユーザー、組織、役割、選択型のカスタム列を選択できます。<br>複数条件を設定した場合はそのすべてを満たす必要があります。',
         ],
     ],
 
@@ -984,10 +1118,11 @@ return [
 
         'role_type_option_system' => [
             'system' => ['label' => 'システム管理', 'help' => 'Exmentのすべての機能を使用・設定・変更できます。'],
-            'login_user' => ['label' => 'ユーザーのログイン設定', 'help' => 'ユーザーに、ログインするためのパスワード付与や、パスワードリセットなど行うことができます。<br/>※ユーザーアカウントの追加・変更は、下記の「マスター権限設定」の「ユーザー」の、「データ編集」にチェックを行ってください。'],
+            'login_user' => ['label' => 'ユーザーログイン設定', 'help' => 'ユーザーに、ログインするためのパスワード付与や、パスワードリセットなど行うことができます。<br/>※ユーザーアカウントの追加・変更は、下記の「マスター権限設定」の「ユーザー」の、「データ編集」にチェックを行ってください。'],
+            'workflow' => ['label' => 'ワークフロー設定', 'help' => 'ワークフローの設定を変更できます。'],
             'custom_table' => ['label' => 'すべてのテーブル管理', 'help' => 'カスタムテーブルの追加や、すべてのカスタムテーブルの変更・削除を行えます。また、カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
-            'custom_view' => ['label' => 'ビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
+            'custom_view' => ['label' => 'システムビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータ編集', 'help' => 'カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
         ],
         'role_type_option_role_group' => [
@@ -998,14 +1133,14 @@ return [
         'role_type_option_master' => [
             'custom_table' => ['label' => 'マスター管理', 'help' => 'マスターの定義を変更できます。また、マスターデータを追加・編集・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
-            'custom_view' => ['label' => 'ビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
+            'custom_view' => ['label' => 'システムビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'データの編集', 'help' => 'マスターデータを追加・編集・削除できます。'],
             'custom_value_view_all' => ['label' => 'データの閲覧', 'help' => 'マスターデータを閲覧できます。'],
         ], 
         'role_type_option_table' => [
             'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
-            'custom_view' => ['label' => 'ビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
+            'custom_view' => ['label' => 'システムビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => '全データの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
             'custom_value_view_all' => ['label' => '全データの閲覧', 'help' => 'すべてのデータを閲覧できます。'],
             'custom_value_access_all' => ['label' => '全データの参照', 'help' => 'すべてのデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
@@ -1035,7 +1170,7 @@ return [
         'parent_custom_table' => '親テーブル',
         'child_custom_table' => '子テーブル',
         'parent_import_column_id' => 'インポート時のキー列',
-            
+
         'help' => [
             'relation_caution' => '<span class="red bold"><i class="fa fa-exclamation-circle"></i> Exmentのテーブル間の関連付け設定方法は、この画面の他に、もう1種類あります。</span><br />登録前に、必ず<a href="%s" target="_blank">マニュアル</a>をご確認いただき、適切な選択を行うようにしてください。',
             'parent_import_column_id' => 'データのインポート時、親テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
@@ -1087,6 +1222,7 @@ return [
         'menu_type' => 'メニュー種類',
         'description' => '左メニューの項目を定義します。ブラウザの更新後、変更内容が反映されます。',
         'menu_target' => '対象',
+        'menu_target_view' => '表示ビュー',
         'menu_name' => 'メニュー名(英数字)',
         'title' => 'メニュー表示名',
         'menu_type_options' => [
@@ -1110,6 +1246,7 @@ return [
             'notify' => '通知',
             'master' => 'マスター管理',
             'admin' => '管理者設定',
+            'workflow' => 'ワークフロー',
             'user' => 'ユーザー',
             'organization' => '組織',
             'mail_template' => 'メールテンプレート',
@@ -1159,6 +1296,7 @@ return [
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
         'export' => 'エクスポート',
+        'import_label' => 'インポート',
         'view_summary_detail' => '集計データの明細を表示する',
         'import' => [
             'manual_id' => 'データインポート',
@@ -1219,6 +1357,7 @@ return [
         'message' => [
             'operation_notfound' => '更新対象のデータが見つかりませんでした。',
             'operation_succeeded' => '一括更新を実行しました。',
+            'action_disabled' => '画面からの操作が制限されています。',
         ],
     ],
 
@@ -1264,8 +1403,10 @@ return [
         'header_action' => '通知アクション設定',
         'description' => '特定の条件で、通知を行うための設定を行います。',
         'notify_view_name' => '通知表示名',
+        'notify_target' => '対象',
         'custom_table_id' => '対象テーブル',
         'custom_view_id' => '対象ビュー',
+        'workflow_id' => '対象ワークフロー',
         'notify_trigger' => '実施トリガー',
         'trigger_settings' => '通知実施設定',
         'notify_target_column' => '日付対象列',
@@ -1277,18 +1418,21 @@ return [
         'notify_action_target' => '通知対象',
         'mail_template_id' => 'テンプレート',
         'notify_button_name' => 'ボタン表示名',
+        'notify_select' => '送信先選択',
+        'message_input' => 'メッセージ入力',
         'webhook_url' => 'Webhook URL',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
             'custom_table_id' => '通知を行う条件として使用する、テーブルを選択します。',
             'custom_view_id' => '対象テーブルのデータを絞り込む場合に、条件ビューを指定します。条件ビューは、先にカスタムテーブルの設定画面で作成してください。',
+            'workflow_id' => '通知を行うワークフローを選択します。',
             'notify_trigger' => '通知を行う条件となる内容を選択してください。',
             'trigger_settings' => '通知を行うかどうかの判定を行う、日付・日時のフィールドを選択します。',
             'notify_beforeafter' => '通知を行うのが、登録している日付の「前」か「後」かを選択します。<br/>例：「通知日」が7、「通知前後」が「前」の場合、指定したフィールドの日付の7日前に通知実行',
             'notify_hour' => '通知を実行する時間です。0～23で入力します。 例：「6」と入力した場合、6:00に通知実行',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
-            'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」「作成者」と、カスタム列の「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
+            'notify_action_target' => '通知先の対象を選択します。',
             'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
             'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 <br/>SlackとTeamsの両立はできません。',
         ],
@@ -1297,6 +1441,7 @@ return [
             'time' => '時間の経過',
             'create_update_data' => 'データ新規作成・更新・共有・コメント',
             'button' => 'ボタン',
+            'workflow' => 'ワークフロー実行',
         ],
         'notify_beforeafter_options' => [
             'before' => '前', 
@@ -1312,6 +1457,7 @@ return [
         'notify_action_target_options' => [
             'has_roles' => '権限のあるユーザー',
             'created_user' => '作成者',
+            'work_user' => '次の作業ユーザー',
         ],
     ],
     
@@ -1331,7 +1477,7 @@ return [
             'pie' => '円グラフ',
         ]
     ],
-    
+
     'calendar' => [
         'calendar_type_options' => [
             'month' => '月別',
@@ -1365,18 +1511,25 @@ return [
             'over_createlength' => '同時に新規作成できる件数は%s件までです。',
             'access_denied' => '認証できませんでした。アクセストークンが誤っているか、期限が切れています。',
             'wrong_scope' => 'APIを実行するためのスコープに誤りがあります。開発者にお問い合わせください。',
+            'delete_disabled' => 'このデータは削除できません。',
             'not_index_enabled' => ':attributeは検索インデックスが設定されていません。',
         ],
 
         'help' =>[
             'redirect' => '認証後にリダイレクトするURLを入力してください。',
             'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',
-            'description' => '<span class="red">API設定の詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
         ],
 
         'client_type_options' => [
             'client_credentials' => '画面ログイン形式',
             'password_grant' => 'パスワード形式',
+        ],
+
+        'oauth' => [
+            'authorization_request' => '認証リクエスト',
+            'introduction' => 'は、あなたのアカウントのアクセス権限を求めています',
+            'scopes' => 'アクセス情報一覧',
+            'authorize' => '認証',
         ],
 
         'header' => 'APIアプリ設定',
@@ -1386,5 +1539,28 @@ return [
         'client_id' => 'Client ID',
         'client_secret' => 'Client Secret',
         'redirect' => 'リダイレクトURL',
+    ],
+
+    'condition' => [
+        'condition_target' => '条件項目',
+        'condition_key' => '検索条件',
+        'condition_value' => '条件値',
+        'condition_type_options' => [
+            'user' => 'ユーザー',
+            'organization' => '組織',
+            'role' => '役割グループ',
+            'system' => 'システム',
+            'column' => '列の値',
+        ],
+        'condition_key_options' => [
+            'eq' => '',
+            'ne' => '以外',
+            'number_gt' => 'より大きい',
+            'number_lt' => '未満',
+            'number_gte' => '以上',
+            'number_lte' => '以下',
+            'day_on_or_after' => '以降',
+            'day_on_or_before' => '以前',
+        ],
     ],
 ];

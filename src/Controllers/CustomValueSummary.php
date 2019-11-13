@@ -10,14 +10,14 @@ use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ViewKindType;
 
 trait CustomValueSummary
 {
     protected function gridSummary()
     {
-        $classname = $this->getModelNameDV();
+        $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
         Plugin::pluginPreparing($this->plugins, 'loading');
 
@@ -70,13 +70,16 @@ trait CustomValueSummary
         
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
             // have edit flg
-            $edit_flg = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+            $edit_flg = $this->custom_table->enableEdit(true) === true;
             // if user have edit permission, add button
             if ($edit_flg) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true));
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
             }
-
+            
+            if ($edit_flg && $this->custom_table->enableExport() === true) {
+                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true, false));
+            }
+            
             $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
         });
@@ -97,7 +100,7 @@ trait CustomValueSummary
             $custom_view_filter->view_column_type = $custom_view_column->view_column_type;
             $custom_view_filter->view_column_target = $custom_view_column->view_column_target;
             $custom_view_filter->view_group_condition = $custom_view_column->view_group_condition;
-            $custom_view_filter->view_filter_condition = ViewColumnFilterOption::EQ;
+            $custom_view_filter->view_filter_condition = FilterOption::EQ;
             $custom_view_filter->view_filter_condition_value_text = $value;
             $filters[] = $custom_view_filter;
         }

@@ -8,10 +8,15 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Grid\Tools\BatchUpdate;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\ColumnItems\WorkflowItem;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\PartialCrudService;
@@ -27,22 +32,22 @@ trait CustomValueGrid
      */
     protected function grid($filter_func = null)
     {
-        $classname = $this->getModelNameDV();
+        $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
         Plugin::pluginPreparing($this->plugins, 'loading');
         
         // get search_enabled_columns and loop
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
+
+        // filter
+        Admin::user()->filterModel($grid->model(), $this->custom_view, $filter_func);
+        $this->setCustomGridFilters($grid, $search_enabled_columns);
     
         // create grid
         $this->custom_view->setGrid($grid);
 
         // manage row action
         $this->manageRowAction($grid);
-
-        // filter
-        Admin::user()->filterModel($grid->model(), $this->custom_view, $filter_func);
-        $this->setCustomGridFilters($grid, $search_enabled_columns);
 
         // manage tool button
         $this->manageMenuToolButton($grid);
@@ -63,7 +68,7 @@ trait CustomValueGrid
         $grid->filter(function ($filter) use ($search_enabled_columns) {
             $filter->disableIdFilter();
 
-            $filter->column(1/2, function ($filter) {
+            $filter->column(count($search_enabled_columns) == 0 ? 1 : 1/2, function ($filter) {
                 $filter->equal('id', exmtrans('common.id'));
                 $filter->betweendatetime('created_at', exmtrans('common.created_at'))->date();
                 $filter->betweendatetime('updated_at', exmtrans('common.updated_at'))->date();
@@ -99,6 +104,24 @@ trait CustomValueGrid
                         }
                     }
                 }
+
+                // filter workflow
+                if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
+                    $custom_table = $this->custom_table;
+                    $field = $filter->where(function ($query) use ($custom_table) {
+                        WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
+                    }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
+                    if (boolval(request()->get($field->getFilter()->getId()))) {
+                        System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
+                    }
+                    
+                    $field = $filter->where(function ($query) use ($custom_table) {
+                    }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
+
+                    if (boolval(request()->get($field->getFilter()->getId()))) {
+                        System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
+                    }
+                }
             });
 
             // loop custom column
@@ -126,17 +149,18 @@ trait CustomValueGrid
         
         $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
             $listButtons = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
-            $importlist = Plugin::pluginPreparingImport($this->plugins);
             
-            // have edit flg
-            $edit_flg = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
-            // if user have edit permission, add button
-            if ($edit_flg) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid));
-                $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
-                $tools->append($service->getImportModal($importlist));
+            // validate export and import
+            $import = $this->custom_table->enableImport();
+            $export = $this->custom_table->enableExport();
+            if ($import === true || $export === true) {
+                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $import === true));
             }
             
+            if ($this->custom_table->enableCreate(true) === true) {
+                $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
+            }
+
             // add page change button(contains view seting)
             $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
@@ -149,9 +173,9 @@ trait CustomValueGrid
             }
             
             // manage batch --------------------------------------------------
-            $tools->batch(function ($batch) use ($edit_flg) {
+            $tools->batch(function ($batch) {
                 // if cannot edit, disable delete and update operations
-                if ($edit_flg) {
+                if ($this->custom_table->enableEdit()) {
                     foreach ($this->custom_table->custom_operations as $custom_operation) {
                         $batch->add($custom_operation->operation_name, new BatchUpdate($custom_operation));
                     }
@@ -194,12 +218,16 @@ trait CustomValueGrid
                 }
                 
                 // if user does't edit permission disable edit row.
-                if (!$custom_table->hasPermissionEditData($actions->row)) {
+                if ($actions->row->enableEdit(true) !== true) {
                     $actions->disableEdit();
+                }
+                
+                if ($actions->row->enableDelete(true) !== true) {
                     $actions->disableDelete();
                 }
-
-                if (boolval(array_get($actions->row, 'disabled_delete'))) {
+                
+                if (!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true) {
+                    $actions->disableEdit();
                     $actions->disableDelete();
                 }
 
@@ -252,7 +280,7 @@ trait CustomValueGrid
 
         $operation = CustomOperation::with(['custom_operation_columns'])->find($id);
 
-        $models = $this->getModelNameDV()::whereIn('id', explode(',', $rowid));
+        $models = $this->custom_table->getValueModel()->query()->whereIn('id', explode(',', $rowid));
 
         if (!isset($models) || $models->count() == 0) {
             return getAjaxResponse([

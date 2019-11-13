@@ -52,7 +52,7 @@ trait MailTemplateTrait
      *
      * @return boolean
      */
-    public function getDisabledDeleteAttribute()
+    public function disabled_delete_trait()
     {
         return in_array($this->getValue('mail_key_name'), MailKeyName::arrays());
     }

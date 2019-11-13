@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
+use Exceedone\Exment\Model\Define;
 use Encore\Admin\Traits\ModelTree;
 use Encore\Admin\Traits\AdminBuilder;
 
@@ -52,6 +53,17 @@ trait OrganizationTrait
     public static function getParentOrgIndexName()
     {
         return CustomColumn::getEloquent('parent_organization', new static)->getIndexColumnName();
+    }
+
+    /**
+     * Get avatar
+     *
+     * @return void
+     */
+    public function getDisplayAvatarAttribute()
+    {
+        // get default avatar
+        return asset(Define::ORGANIZATION_IMAGE_LINK);
     }
 
     /**

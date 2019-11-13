@@ -69,7 +69,7 @@ abstract class FormatBase
                             $cell->setDataType(Cell\DataType::TYPE_STRING);
                         }
                     }
-                }    
+                }
                 $counts = count($outputs[0]);
                 for ($i = 0; $i < $counts; $i++) {
                     $sheet->getColumnDimension(getCellAlphabet($i + 1))->setAutoSize(true);
@@ -81,7 +81,7 @@ abstract class FormatBase
                 $spreadsheet->removeSheetByIndex(0);
                 $files[] = [
                     'name' => $sheet_name,
-                    'writer' => $this->createWriter($spreadsheet)
+                    'spreadsheet' => $spreadsheet
                 ];
                 $spreadsheet = new Spreadsheet();
             } else {
@@ -93,7 +93,7 @@ abstract class FormatBase
             $spreadsheet->removeSheetByIndex(0);
             $files[] = [
                 'name' => $sheet_name,
-                'writer' => $this->createWriter($spreadsheet)
+                'spreadsheet' => $spreadsheet
             ];
         }
         return $files;

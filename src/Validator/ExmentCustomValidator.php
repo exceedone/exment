@@ -234,37 +234,6 @@ class ExmentCustomValidator extends AdminValidator
         return true;
     }
 
-    /**
-    * Validation in table
-    *
-    * @param $attribute
-    * @param $value
-    * @param $parameters
-    * @return bool
-    */
-    public function validateChangeFieldValue($attribute, $value, &$parameters)
-    {
-        $field_label = null;
-
-        if (isset($parameters) && count($parameters) > 0) {
-            $field_label = $parameters[0];
-        }
-
-        $prefix = substr($attribute, 0, strrpos($attribute, '.'));
-
-        $field = getCustomField(array_get($this->data, $prefix), $field_label);
-
-        if (!$validator = $field->getValidator([$field->column() => $value])) {
-            return true;
-        }
-
-        if (($validator instanceof AdminValidator) && !$validator->passes()) {
-            $parameters[] = $validator->messages->first();
-            return false;
-        }
-
-        return true;
-    }
     protected function replaceChangeFieldValue($message, $attribute, $rule, $parameters)
     {
         if (count($parameters) > 0) {

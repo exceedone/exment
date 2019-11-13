@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\CopyColumnType;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 
 class CustomCopyController extends AdminControllerTableBase
 {
@@ -92,8 +93,10 @@ class CustomCopyController extends AdminControllerTableBase
         
         $grid->disableCreateButton();
         $grid->tools(function (Grid\Tools $tools) {
-            $tools->append(view('exment::custom-value.new-button-copy'));
-            $tools->append($this->createNewModal());
+            $tools->append(view('exment::custom-value.new-button-copy', [
+                'url' => admin_urls('copy', $this->custom_table->table_name, 'newModal')
+            ]));
+            //$tools->append($this->createNewModal());
             $tools->append(new Tools\GridChangePageMenu('copy', $this->custom_table, false));
         });
         
@@ -245,12 +248,12 @@ class CustomCopyController extends AdminControllerTableBase
     /**
      * Create new button for modal.
      */
-    protected function createNewModal()
+    protected function newModal()
     {
         $table_name = $this->custom_table->table_name;
         $path = admin_urls('copy', $table_name, 'create');
         // create form fields
-        $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
+        $form = new ModalForm;
         $form->action($path);
         $form->method('GET');
         $form->modalHeader(trans('admin.setting'));
@@ -260,7 +263,15 @@ class CustomCopyController extends AdminControllerTableBase
                 return CustomTable::where('showlist_flg', true)->pluck('table_view_name', 'suuid');
             })
             ->setWidth(8, 3)
+            ->required()
             ->help(exmtrans('custom_copy.help.to_custom_table_view_name'));
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => trans('admin.setting')
+        ]);
+
         // add button
         return $form->render()->render();
     }

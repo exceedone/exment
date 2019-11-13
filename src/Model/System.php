@@ -6,10 +6,12 @@ use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Carbon\Carbon;
 use Storage;
+use Cache;
 
 class System extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
 
     protected $casts = ['role' => 'json'];
     protected $primaryKey = 'system_name';
@@ -27,36 +29,122 @@ class System extends ModelBase
         return parent::__callStatic($name, $argments);
     }
 
+    /**
+     * Get request session. This value avaibables only one request.
+     *
+     * @param string $key key name.
+     * @param mixed $value setting value.
+     * @return void
+     */
     public static function requestSession($key, $value = null)
     {
-        $config_key = "exment_global.$key";
         if (is_null($value)) {
-            return static::$requestSession[$config_key] ?? null;
+            // check array_has
+            if (array_has(static::$requestSession, $key)) {
+                return static::$requestSession[$key];
+            }
+
+            return null;
         } elseif ($value instanceof \Closure) {
             // check array_has
-            if (array_has(static::$requestSession, $config_key)) {
-                return static::$requestSession[$config_key];
+            if (array_has(static::$requestSession, $key)) {
+                return static::$requestSession[$key];
             }
+
             $val = $value();
-            static::setRequestSession($config_key, $val);
+            static::setRequestSession($key, $val);
             return $val;
         }
-        static::setRequestSession($config_key, $value);
+        static::setRequestSession($key, $value);
     }
 
-    public static function setRequestSession($key, $value){
+    protected static function setRequestSession($key, $value)
+    {
         static::$requestSession[$key] = $value;
     }
 
     /**
-     * reset all request settion
+     * clear all request settion
      */
-    public static function resetRequestSession($key = null)
+    public static function clearRequestSession($key = null)
     {
-        if(!isset($key)){
+        if (!isset($key)) {
             static::$requestSession = [];
-        }else{
-            array_forget(static::$requestSession, "exment_global.$key");
+        } else {
+            array_forget(static::$requestSession, $key);
+        }
+    }
+
+    /**
+     * Get and set from cache.
+     *
+     * @param string $key key name.
+     * @param mixed $value setting value.
+     * @param bool $onlySetTrue if this arg is true, set cache if val is true.
+     * @return void
+     */
+    public static function cache($key, $value = null, $onlySetTrue = false)
+    {
+        if (is_null($value)) {
+            // first, check request session
+            if (!is_null($val = static::requestSession($key))) {
+                return $val;
+            }
+
+            if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
+                $val = Cache::get($key);
+                static::setRequestSession($key, $val);
+                return $val;
+            }
+
+            return null;
+        } elseif ($value instanceof \Closure) {
+            if (!is_null($val = static::requestSession($key))) {
+                return $val;
+            }
+            
+            if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
+                $val = Cache::get($key);
+                static::setRequestSession($key, $val);
+                return $val;
+            }
+
+            // get value
+            $val = $value();
+
+            static::setRequestSession($key, $val);
+
+            // if arg $onlySetTrue is true and $val is not true, not set cache
+            if ($onlySetTrue && $val !== true) {
+                return $val;
+            }
+
+            // set cache
+            if (boolval(config('exment.use_cache', false))) {
+                Cache::put($key, $val, Define::CACHE_CLEAR_MINUTE);
+            }
+            return $val;
+        }
+
+        static::setRequestSession($key, $value);
+        Cache::put($key, $value, Define::CACHE_CLEAR_MINUTE);
+    }
+
+    /**
+     * reset Cache
+     */
+    public static function clearCache($key = null)
+    {
+        static::clearRequestSession($key);
+
+        if (!boolval(config('exment.use_cache', false))) {
+            return;
+        }
+
+        if (!isset($key)) {
+            Cache::flush();
+        } else {
+            Cache::forget($key);
         }
     }
 
@@ -111,9 +199,9 @@ class System extends ModelBase
 
     protected static function get_system_value($name, $setting)
     {
-        $config_key = static::getConfigKey($name);
-        return static::requestSession($config_key, function () use ($name, $setting) {
-            $system = static::allRecords(function ($record) use ($name) {
+        $key = static::getConfigKey($name);
+        return static::cache($key, function () use ($name, $setting) {
+            $system = static::allRecordsCache(function ($record) use ($name) {
                 return $record->system_name == $name;
             }, false)->first();
 
@@ -147,7 +235,7 @@ class System extends ModelBase
             } elseif ($type == 'json') {
                 $value = is_null($value) ? [] : json_decode($value);
             } elseif ($type == 'array') {
-                $value = is_null($value) ? [] : explode(',', $value);
+                $value = is_null($value) ? [] : array_filter(explode(',', $value));
             } elseif ($type == 'file') {
                 $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
             } elseif ($type == 'password') {
@@ -162,14 +250,7 @@ class System extends ModelBase
 
     protected static function set_system_value($name, $setting, $value)
     {
-        $system = static::allRecords(function ($record) use ($name) {
-            return $record->system_name == $name;
-        }, false)->first();
-
-        if (!isset($system)) {
-            $system = new System;
-            $system->system_name = $name;
-        }
+        $system = System::firstOrNew(['system_name' => $name]);
 
         // change set value by type
         $type = array_get($setting, 'type');
@@ -184,7 +265,7 @@ class System extends ModelBase
         } elseif ($type == 'json') {
             $system->system_value = is_null($value) ? null : json_encode($value);
         } elseif ($type == 'array') {
-            $system->system_value = is_null($value) ? null : implode(',', $value);
+            $system->system_value = is_null($value) ? null : implode(',', array_filter($value));
         } elseif ($type == 'file') {
             $old_value = $system->system_value;
             if (!is_null($value)) {
@@ -204,10 +285,6 @@ class System extends ModelBase
         }
         $system->saveOrFail();
         
-        // update config
-        $config_key = static::getConfigKey($name);
-        static::requestSession($config_key, $system->system_value);
-
         return $system;
     }
 

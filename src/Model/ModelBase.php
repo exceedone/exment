@@ -4,11 +4,17 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Database\Eloquent\Model;
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class ModelBase extends Model
 {
     protected $guarded = ['id'];
     
+    /**
+     * Get CreatedUser. Only name.
+     *
+     * @return void
+     */
     public function getCreatedUserAttribute()
     {
         return $this->getUser('created_user_id');
@@ -17,7 +23,26 @@ class ModelBase extends Model
     {
         return $this->getUser('updated_user_id');
     }
-
+    
+    /**
+     * Get CreatedUser. As custom value object
+     *
+     * @return void
+     */
+    public function getCreatedUserValueAttribute()
+    {
+        return $this->getUserValue('created_user_id');
+    }
+    public function getUpdatedUserValueAttribute()
+    {
+        return $this->getUserValue('updated_user_id');
+    }
+    
+    /**
+     * Get CreatedUser. As HTML
+     *
+     * @return void
+     */
     public function getCreatedUserTagAttribute()
     {
         return $this->getUser('created_user_id', true);
@@ -25,6 +50,21 @@ class ModelBase extends Model
     public function getUpdatedUserTagAttribute()
     {
         return $this->getUser('updated_user_id', true);
+    }
+
+    
+    /**
+     * Get CreatedUser. Append avatar
+     *
+     * @return void
+     */
+    public function getCreatedUserAvatarAttribute()
+    {
+        return $this->getUser('created_user_id', true, true);
+    }
+    public function getUpdatedUserAvatarAttribute()
+    {
+        return $this->getUser('updated_user_id', true, true);
     }
 
     /**
@@ -57,6 +97,13 @@ class ModelBase extends Model
         static::updating(function ($model) {
             static::setUser($model, ['updated_user_id']);
         });
+        
+        static::saved(function ($model) {
+            $classname = get_called_class();
+            if (\method_exists($classname, 'clearCacheTrait')) {
+                $classname::clearCacheTrait();
+            }
+        });
     }
 
     /**
@@ -87,14 +134,37 @@ class ModelBase extends Model
      */
     public static function getEloquentDefault($obj, $withs = [], $query_key = 'id')
     {
+        return static::_getEloquent($obj, $withs, $query_key, 'firstRecord');
+    }
+
+    /**
+     * get eloquent using request settion.
+     * now only support only id.
+     */
+    public static function getEloquentCache($obj, $withs = [], $query_key = 'id')
+    {
+        return static::_getEloquent($obj, $withs, $query_key, 'firstRecordCache');
+    }
+
+    /**
+     * get eloquent using request settion.
+     * now only support only id.
+     */
+    protected static function _getEloquent($obj, $withs = [], $query_key = 'id', $fucnName = 'firstRecord')
+    {
         if (!isset($obj)) {
             return null;
         }
+
+        
+        if (is_object($obj) && get_class($obj) == get_called_class()) {
+            return $obj;
+        }
         
         // get table
-        $obj = static::allRecords(function ($table) use ($query_key, $obj) {
+        $obj = static::{$fucnName}(function ($table) use ($query_key, $obj) {
             return array_get($table, $query_key) == $obj;
-        })->first();
+        });
 
         if (!isset($obj)) {
             return null;
@@ -110,8 +180,16 @@ class ModelBase extends Model
     /**
      * get user from id
      */
-    protected function getUser($column, $link = false)
+    protected function getUser($column, $link = false, $addAvatar = false)
     {
-        return getUserName($this->{$column}, $link);
+        return getUserName($this->{$column}, $link, $addAvatar);
+    }
+
+    /**
+     * get user from id
+     */
+    protected function getUserValue($column)
+    {
+        return CustomTable::getEloquent(SystemTableName::USER)->getValueModel($this->{$column}, true);
     }
 }

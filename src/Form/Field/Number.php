@@ -52,6 +52,7 @@ $('{$this->getElementClassSelector()}:not(.initialized)')
     });
 
 EOT;
+            $this->setElementClass('disableNumberFormat');
             $this->prepend('')->defaultAttribute('style', 'width: '.$this->fieldWidth.'px');
         } else {
             $this->defaultAttribute('style', 'max-width: 200px;');

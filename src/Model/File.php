@@ -28,6 +28,15 @@ class File extends ModelBase
         return path_join($this->local_dirname, $this->local_filename);
     }
 
+    public function getExtensionAttribute()
+    {
+        if (!isset($this->local_filename)) {
+            return null;
+        }
+
+        return pathinfo($this->local_filename)['extension'];
+    }
+
     /**
      * save document model
      */
@@ -74,7 +83,13 @@ class File extends ModelBase
         if (is_null($file)) {
             return null;
         }
-        return admin_url("files/".$file->uuid);
+
+        if (isset($file->extension)) {
+            $name = "files/".$file->uuid . '.' . $file->extension;
+        } else {
+            $name = "files/".$file->uuid;
+        }
+        return admin_url($name);
     }
 
     /**
@@ -135,6 +150,7 @@ class File extends ModelBase
      */
     public static function downloadFile($uuid)
     {
+        $uuid = pathinfo($uuid, PATHINFO_FILENAME);
         $data = static::getData($uuid);
         if (!$data) {
             abort(404);
@@ -198,7 +214,7 @@ class File extends ModelBase
         }
 
         // if not has delete setting, abort 403
-        if(boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->base_user_id){
+        if (boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->base_user_id) {
             abort(403);
         }
 
@@ -323,11 +339,13 @@ class File extends ModelBase
      */
     protected static function getData($pathOrUuid)
     {
-        if(is_nullorempty($pathOrUuid)){
+        if (is_nullorempty($pathOrUuid)) {
             return null;
         }
+
         // get by uuid
         $file = static::where('uuid', $pathOrUuid)->first();
+
         if (is_null($file)) {
             // get by $dirname, $filename
             list($dirname, $filename) = static::getDirAndFileName($pathOrUuid);

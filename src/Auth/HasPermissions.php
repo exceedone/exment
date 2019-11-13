@@ -229,15 +229,20 @@ trait HasPermissions
      */
     public function filterModel($model, $custom_view = null, $callback = null)
     {
+        // if simple eloquent, throw
+        if ($model instanceof \Illuminate\Database\Eloquent\Model) {
+            throw new \Exception;
+        }
+
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
         if (isset($custom_view)) {
             if ($callback instanceof \Closure) {
-                $model = call_user_func($callback, $model);
+                call_user_func($callback, $model);
             } else {
-                $model = $custom_view->setValueFilters($model);
+                $custom_view->setValueFilters($model);
             }
-            $model = $custom_view->setValueSort($model);
+            $custom_view->setValueSort($model);
         }
 
         ///// We don't need filter using role here because filter auto using global scope.
@@ -372,15 +377,27 @@ trait HasPermissions
         $organization_ids = $this->getOrganizationIds();
 
         // get all permissons for system. --------------------------------------------------
-        return RoleGroup::whereHas(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, function ($query) use ($organization_ids) {
-            $query->where(function ($query) {
-                $query->where('role_group_user_org_type', SystemTableName::USER)
-                ->where('role_group_target_id', $this->base_user_id);
-            });
-            $query->orWhere(function ($query) use ($organization_ids) {
-                $query->where('role_group_user_org_type', SystemTableName::ORGANIZATION)
-                ->whereIn('role_group_target_id', $organization_ids);
-            });
-        })->with(['role_group_permissions'])->get();
+        return RoleGroup::allRecordsCache(function ($role_group) use ($organization_ids) {
+            $user_orgs = array_get($role_group, SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
+            if (is_nullorempty($user_orgs)) {
+                return false;
+            }
+
+            if ($user_orgs->contains(function ($user_org) use ($organization_ids) {
+                if ($user_org->role_group_user_org_type == SystemTableName::USER && $user_org->role_group_target_id == $this->base_user_id) {
+                    return true;
+                }
+
+                if ($user_org->role_group_user_org_type == SystemTableName::ORGANIZATION && in_array($user_org->role_group_target_id, $organization_ids)) {
+                    return true;
+                }
+
+                return false;
+            })) {
+                return true;
+            }
+
+            return false;
+        }, false, [SystemTableName::ROLE_GROUP_PERMISSION, SystemTableName::ROLE_GROUP_USER_ORGANIZATION]);
     }
 }

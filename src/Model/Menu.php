@@ -20,11 +20,15 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 {
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+    use Traits\DatabaseJsonTrait;
     
     /**
      * @var string
      */
     protected $titleColumn = 'title';
+
+    protected $appends = ['menu_target_view'];
+    protected $casts = ['options' => 'json'];
 
     public static $templateItems = [
         'excepts' => [
@@ -61,6 +65,25 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
+    }
+
+    public function getMenuTargetViewAttribute()
+    {
+        return $this->getOption('menu_target_view', false);
+    }
+
+    public function setMenuTargetViewAttribute($value)
+    {
+        return $this->setOption('menu_target_view', $value);
+    }
+
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
+    }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
     }
 
     /**
@@ -115,6 +138,9 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         $results = [];
         foreach ($rows as &$row) {
             $result = true;
+            if (isset($row['options'])) {
+                $row['options'] = json_decode($row['options'], true);
+            }
             switch ($row['menu_type']) {
                 case MenuType::PLUGIN:
                     $plugin = Plugin::getEloquent($row['menu_target']);
@@ -130,6 +156,11 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                         $row['icon'] = array_get($table_options, 'icon');
                     }
                     $row['uri'] = 'data/'.$row['table_name'];
+
+                    if (!is_null($view_id = array_get($row, 'options.menu_target_view'))) {
+                        $view_suuid = CustomView::getEloquent($view_id)->suuid;
+                        $row['uri'] .= '?view=' . $view_suuid;
+                    }
                     break;
                 case MenuType::SYSTEM:
                     $defines = array_get(Define::MENU_SYSTEM_DEFINITION, $row['menu_name']);

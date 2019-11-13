@@ -80,6 +80,9 @@ class PatchDataCommand extends Command
             case 'zip_password':
                 $this->importZipPasswordTemplate();
                 return;
+            case 'workflow_mail_template':
+                $this->importWorkflowTemplate();
+                return;
             case 'system_flg_column':
                 $this->patchSystemFlgColumn();
                 return;
@@ -172,15 +175,15 @@ class PatchDataCommand extends Command
         }
 
         // remove use_label_flg property
-        $columns = CustomColumn::all();
-        foreach ($columns as $column) {
-            if (!array_has($column, 'options.use_label_flg')) {
-                continue;
-            }
-            $column->setOption('use_label_flg', null);
+        // $columns = CustomColumn::all();
+        // foreach ($columns as $column) {
+        //     if (!array_has($column, 'options.use_label_flg')) {
+        //         continue;
+        //     }
+        //     $column->setOption('use_label_flg', null);
 
-            $column->save();
-        }
+        //     $column->save();
+        // }
     }
     
     /**
@@ -228,6 +231,18 @@ class PatchDataCommand extends Command
         return $this->patchMailTemplate([
             'password_notify',
             'password_notify_header',
+        ]);
+    }
+    
+    /**
+     * import mail template for workflow
+     *
+     * @return void
+     */
+    protected function importWorkflowTemplate()
+    {
+        return $this->patchMailTemplate([
+            'workflow_notify',
         ]);
     }
     

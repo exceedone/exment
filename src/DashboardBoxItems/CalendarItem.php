@@ -74,9 +74,9 @@ class CalendarItem implements ItemInterface
         }
 
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueModel();
+        $model = $this->custom_table->getValueModel()->query();
         // filter model
-        $model = \Exment::user()->filterModel($model, $this->custom_view);
+        \Exment::user()->filterModel($model, $this->custom_view);
 
         $options = $this->dashboard_box->options;
 

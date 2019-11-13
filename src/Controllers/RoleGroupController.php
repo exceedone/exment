@@ -159,72 +159,109 @@ class RoleGroupController extends AdminControllerBase
 
         $form->description(exmtrans('role_group.description_system_admin'));
 
-        $form->checkboxTableHeader(RoleGroupType::SYSTEM()->getRoleGroupOptions())
-            ->help(RoleGroupType::SYSTEM()->getRoleGroupHelps())
-            ->setWidth(10, 2);
-        $form->checkboxTable('system_permission[system][permissions]', exmtrans('role_group.role_group_system.system'))
+
+        // System --------------------------------------------------------
+        $values = $model->role_group_permissions->first(function ($role_group_permission) {
+            return $role_group_permission->role_group_permission_type == RoleType::SYSTEM && $role_group_permission->role_group_target_id == SystemRoleType::SYSTEM;
+        })->permissions ?? [];
+
+        $items = [[
+            'label' => exmtrans('role_group.role_group_system.system'),
+            'values' => $values,
+            'name' => "system_permission[system][permissions]",
+        ]];
+        
+        $form->checkboxTable("system_permission_permissions", "")
             ->options(RoleGroupType::SYSTEM()->getRoleGroupOptions())
             ->disable(!$enable)
-            ->default($model->role_group_permissions->first(function ($role_group_permission) {
-                return $role_group_permission->role_group_permission_type == RoleType::SYSTEM && $role_group_permission->role_group_target_id == SystemRoleType::SYSTEM;
-            })->permissions ?? null)
-            ->setWidth(10, 2);
+            ->checkWidth(120)
+            ->headerHelp(RoleGroupType::SYSTEM()->getRoleGroupHelps())
+            ->items($items);
+
         $form->hidden("system_permission[system][id]")
             ->default(SystemRoleType::SYSTEM);
-    
-        $form->checkboxTableHeader(RoleGroupType::ROLE_GROUP()->getRoleGroupOptions())
-            ->help(RoleGroupType::ROLE_GROUP()->getRoleGroupHelps())
-            ->setWidth(10, 2);
-        $form->checkboxTable('system_permission[role_groups][permissions]', exmtrans('role_group.role_group_system.role_group'))
+
+
+        
+        // Role --------------------------------------------------------
+        $values = $model->role_group_permissions->first(function ($role_group_permission) {
+            return $role_group_permission->role_group_permission_type == RoleType::SYSTEM && $role_group_permission->role_group_target_id == SystemRoleType::ROLE_GROUP;
+        })->permissions ?? [];
+
+        $items = [[
+            'label' => exmtrans('role_group.role_group_system.role_group'),
+            'values' => $values,
+            'name' => "system_permission[role_groups][permissions]",
+        ]];
+        
+        $form->checkboxTable("role_permission_permissions", "")
             ->options(RoleGroupType::ROLE_GROUP()->getRoleGroupOptions())
             ->disable(!$enable)
-            ->default($model->role_group_permissions->first(function ($role_group_permission) {
-                return $role_group_permission->role_group_permission_type == RoleType::SYSTEM && $role_group_permission->role_group_target_id == SystemRoleType::ROLE_GROUP;
-            })->permissions ?? null)
-            ->setWidth(10, 2);
+            ->checkWidth(120)
+            ->headerHelp(RoleGroupType::ROLE_GROUP()->getRoleGroupHelps())
+            ->items($items);
+
         $form->hidden("system_permission[role_groups][id]")
             ->default(SystemRoleType::ROLE_GROUP);
 
-        $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::MASTER()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
-        $form->checkboxTableHeader(RoleGroupType::MASTER()->getRoleGroupOptions())
-            ->help(RoleGroupType::TABLE()->getRoleGroupHelps())
-            ->setWidth(10, 2);
 
+        // Master --------------------------------------------------------
+        $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::MASTER()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
+
+        $items = [];
         foreach (CustomTable::filterList(null, ['checkPermission' => false, 'filter' => function ($model) {
             $model->whereIn('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER());
             return $model;
         }]) as $table) {
+            $values = $model->role_group_permissions->first(function ($role_group_permission) use ($table) {
+                return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
+            })->permissions ?? [];
+
+            $items[] = [
+                'label' => $table->table_view_name,
+                'values' => $values,
+                'name' => "master_permission[$table->table_name][permissions]",
+            ];
+
             $form->hidden("master_permission[$table->table_name][id]")
                 ->default($table->id);
-            $form->checkboxTable("master_permission[$table->table_name][permissions]", $table->table_view_name)
-                ->options(RoleGroupType::MASTER()->getRoleGroupOptions())
-                ->disable(!$enable)
-                ->setWidth(10, 2)
-                ->default($model->role_group_permissions->first(function ($role_group_permission) use ($table) {
-                    return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
-                })->permissions ?? null);
         }
+        
+        $form->checkboxTable("master_permission_permissions", "")
+            ->options(RoleGroupType::MASTER()->getRoleGroupOptions())
+            ->disable(!$enable)
+            ->checkWidth(100)
+            ->headerHelp(RoleGroupType::MASTER()->getRoleGroupHelps())
+            ->items($items);
 
+
+        // Table --------------------------------------------------------
         $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::TABLE()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
 
-        $form->checkboxTableHeader(RoleGroupType::TABLE()->getRoleGroupOptions())
-            ->help(RoleGroupType::TABLE()->getRoleGroupHelps())
-            ->setWidth(10, 2);
-
+        $items = [];
         foreach (CustomTable::filterList(null, ['checkPermission' => false, 'filter' => function ($model) {
             $model->whereNotIn('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER());
             return $model;
         }]) as $table) {
+            $values = $model->role_group_permissions->first(function ($role_group_permission) use ($table) {
+                return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
+            })->permissions ?? [];
+
+            $items[] = [
+                'label' => $table->table_view_name,
+                'values' => $values,
+                'name' => "table_permission[$table->table_name][permissions]",
+            ];
+
             $form->hidden("table_permission[$table->table_name][id]")
                 ->default($table->id);
-            $form->checkboxTable("table_permission[$table->table_name][permissions]", $table->table_view_name)
-                ->options(RoleGroupType::TABLE()->getRoleGroupOptions())
-                ->disable(!$enable)
-                ->setWidth(10, 2)
-                ->default($model->role_group_permissions->first(function ($role_group_permission) use ($table) {
-                    return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
-                })->permissions ?? null);
         }
+        $form->checkboxTable("table_permission_permissions", "")
+            ->options(RoleGroupType::TABLE()->getRoleGroupOptions())
+            ->disable(!$enable)
+            ->checkWidth(100)
+            ->headerHelp(RoleGroupType::TABLE()->getRoleGroupHelps())
+            ->items($items);
 
         if (!$enable) {
             $form->disableSubmit();
@@ -257,12 +294,16 @@ class RoleGroupController extends AdminControllerBase
         $form->display('role_group_view_name', exmtrans('role_group.role_group_view_name'));
 
         // get options
-        $options = CustomValueAuthoritable::getUserOrgSelectOptions(null);
+        $default = $model->role_group_user_organizations->map(function ($item) {
+            return array_get($item, 'role_group_user_org_type') . '_' . array_get($item, 'role_group_target_id');
+        })->toArray();
+
+        list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions(null, null, false, $default);
+        
         $form->listbox('role_group_item', exmtrans('role_group.user_organization_setting'))
             ->options($options)
-            ->default($model->role_group_user_organizations->map(function ($item) {
-                return array_get($item, 'role_group_user_org_type') . '_' . array_get($item, 'role_group_target_id');
-            })->toArray())
+            ->ajax($ajax)
+            ->default($default)
             ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
             ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
         ;
@@ -409,6 +450,8 @@ class RoleGroupController extends AdminControllerBase
 
             \DB::commit();
 
+            System::clearCache();
+            
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url('role_group'));

@@ -6,6 +6,8 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class RoleGroupUserOrganization extends ModelBase
 {
+    use Traits\ClearCacheTrait;
+
     /**
      * Delete Custom Value Authoritable after custom value save
      *

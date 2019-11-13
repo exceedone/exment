@@ -4,7 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Select;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Enums\ViewColumnFilterType;
+use Exceedone\Exment\Enums\FilterType;
 
 class ParentItem implements ItemInterface
 {
@@ -194,7 +194,7 @@ class ParentItem implements ItemInterface
      */
     public function getViewFilterType()
     {
-        return ViewColumnFilterType::DEFAULT;
+        return FilterType::DEFAULT;
     }
 
     public static function getItem(...$args)

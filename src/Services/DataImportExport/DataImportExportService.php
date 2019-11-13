@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\ColumnItems\ParentItem;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Validator;
@@ -251,10 +252,7 @@ class DataImportExportService extends AbstractExporter
     public function getImportModal($pluginlist = null)
     {
         // create form fields
-        $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
-        $form->disableReset();
-        $form->modalAttribute('id', 'data_import_modal');
-        $form->modalHeader(exmtrans('common.import') . ' - ' . $this->importAction->getImportHeaderViewName());
+        $form = new ModalForm();
 
         $fileOption = Define::FILE_OPTION();
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'import'))
@@ -298,8 +296,12 @@ class DataImportExportService extends AbstractExporter
             ->help(exmtrans('custom_value.import.help.import_error_message'));
 
         $this->importAction->setImportModalItems($form);
-            
-        return $form->render()->render();
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.import') . ' - ' . $this->importAction->getImportHeaderViewName()
+        ]);
     }
     
     /**
@@ -400,9 +402,9 @@ class DataImportExportService extends AbstractExporter
             $options
         );
 
-        if(method_exists($column_item, 'getKeyAndIdList')){
+        if (method_exists($column_item, 'getKeyAndIdList')) {
             $datalist = $column_item->getKeyAndIdList($options['datalist'], array_get($setting, 'target_column_name'));
-            if(!is_nullorempty($datalist)){
+            if (!is_nullorempty($datalist)) {
                 $setting['datalist'] = $datalist;
             }
         }

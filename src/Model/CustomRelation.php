@@ -8,10 +8,11 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
 {
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\UniqueKeyCustomColumnTrait;
 
-    protected $with = ['parent_custom_table', 'child_custom_table'];
+    //protected $with = ['parent_custom_table', 'child_custom_table'];
     protected $casts = ['options' => 'json'];
 
     public static $templateItems = [
@@ -79,7 +80,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         $parent_table = CustomTable::getEloquent($parent_table);
 
-        return static::allRecords(function ($record) use ($parent_table, $relation_type) {
+        return static::allRecordsCache(function ($record) use ($parent_table, $relation_type) {
             if ($record->parent_custom_table_id != array_get($parent_table, 'id')) {
                 return false;
             }
@@ -109,7 +110,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         $child_table = CustomTable::getEloquent($child_table);
 
-        return static::allRecords(function ($record) use ($child_table, $relation_type) {
+        return static::allRecordsCache(function ($record) use ($child_table, $relation_type) {
             if ($record->child_custom_table_id != array_get($child_table, 'id')) {
                 return false;
             }
@@ -127,7 +128,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
      */
     public function getRelationName()
     {
-        return static::getRelationNameByTables($this->parent_custom_table, $this->child_custom_table);
+        return static::getRelationNameByTables($this->parent_custom_table_id, $this->child_custom_table_id);
     }
 
     /**
@@ -163,7 +164,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
      */
     public static function getEloquent($id, $withs = [])
     {
-        return static::getEloquentDefault($id, $withs);
+        return static::getEloquentCache($id, $withs);
     }
     
     public function getOption($key, $default = null)

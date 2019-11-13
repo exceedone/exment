@@ -34,13 +34,15 @@
                 info.el.setAttribute('data-toggle', 'tooltip');
                 info.el.setAttribute('data-original-title', info.event.title);
             },
-            eventDataTransform: function(event) { // call when reading event data
+            // call when reading event data
+            eventDataTransform: function(event) { 
                 if(event.allDayBetween) {
                     event.end = moment(event.end).add(1, 'days').format('YYYY-MM-DD');
                 }
                 return event;
             },
-            eventTimeFormat: { // like '14:30:00'
+            // like '14:30:00'
+            eventTimeFormat: { 
                 hour: '2-digit',
                 minute: '2-digit'
             },

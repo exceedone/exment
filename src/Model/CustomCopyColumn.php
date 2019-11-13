@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 
 class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -142,18 +142,19 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
         // }
 
         switch ($this->{$column_type_key}) {
-            case ViewColumnType::COLUMN:
+            case ConditionType::COLUMN:
                 return [
                     'table_name' => $table_name,
                     'column_name' => $this->{$column_column_key}->column_name ?? null,
                 ];
-            case ViewColumnType::SYSTEM:
+            case ConditionType::SYSTEM:
+            case ConditionType::WORKFLOW:
                 return [
                     'table_name' => $table_name,
                     'column_name' => SystemColumn::getOption(['id' => $this->{$column_target_id_key}])['name'],
                 ];
             
-            case ViewColumnType::PARENT_ID:
+            case ConditionType::PARENT_ID:
                 return [
                     'table_name' => $table_name,
                     'column_name' => Define::CUSTOM_COLUMN_TYPE_PARENT_ID,

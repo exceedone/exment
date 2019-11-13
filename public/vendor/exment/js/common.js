@@ -24,6 +24,7 @@ var Exment;
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
+            $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
@@ -31,9 +32,12 @@ var Exment;
         static AddEvent() {
             CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
+            CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
-            CommonEvent.tableHoverLink();
-            $.numberformat('[number_format]');
+            if (!$('#gridrow_select_disabled').val()) {
+                CommonEvent.tableHoverLink();
+            }
+            $.numberformat('[number_format]:not(".disableNumberFormat")');
         }
         /**
          * toggle right-top help link and color
@@ -73,6 +77,13 @@ var Exment;
             // if not exists, default help
             $manual.prop('href', manual_base_uri);
             $manual.children('i').removeClass('help_personal');
+        }
+        /**
+         * Add Help modal event
+         */
+        static showHelpModalEvent(ev) {
+            let elem = $(ev.target).closest('[data-help-text]');
+            swal(elem.data('help-title'), elem.data('help-text'), 'info');
         }
         /**
          *
@@ -123,6 +134,7 @@ var Exment;
             options = $.extend({
                 title: 'Swal',
                 text: null,
+                html: null,
                 type: "warning",
                 input: null,
                 confirm: 'OK',
@@ -132,15 +144,15 @@ var Exment;
                 redirect: null,
                 preConfirmValidate: null
             }, options);
-            var data = $.extend({
+            let data = $.extend({
                 _pjax: true,
                 _token: LA.token,
             }, options.data);
-            if (options.method.toLowerCase == 'delete') {
+            if (options.method.toLowerCase() == 'delete') {
                 data._method = 'delete';
                 options.method = 'POST';
             }
-            var swalOptions = {
+            let swalOptions = {
                 title: options.title,
                 type: options.type,
                 showCancelButton: true,
@@ -183,6 +195,9 @@ var Exment;
             if (hasValue(options.text)) {
                 swalOptions.text = options.text;
             }
+            if (hasValue(options.html)) {
+                swalOptions.html = options.html;
+            }
             swal(swalOptions)
                 .then(function (result) {
                 var data = result.value;
@@ -211,8 +226,8 @@ var Exment;
                 if ($(ev.target).closest('.popover').length > 0) {
                     return;
                 }
-                var editFlg = $('#gridrow_select_edit').val();
-                var linkElem = $(ev.target).closest('tr').find('.rowclick');
+                let editFlg = $('#gridrow_select_edit').val();
+                let linkElem = $(ev.target).closest('tr').find('.rowclick');
                 if (editFlg) {
                     if (!hasValue(linkElem)) {
                         linkElem = $(ev.target).closest('tr').find('.fa-edit');
@@ -220,7 +235,8 @@ var Exment;
                     if (!hasValue(linkElem)) {
                         linkElem = $(ev.target).closest('tr').find('.fa-eye');
                     }
-                } else {
+                }
+                else {
                     if (!hasValue(linkElem)) {
                         linkElem = $(ev.target).closest('tr').find('.fa-eye');
                     }
@@ -733,6 +749,17 @@ var Exment;
                 $(elem).select2(options);
             }).addClass('added-select2');
         }
+        /**
+         * add field event (datepicker, icheck)
+         */
+        static addFieldEvent() {
+            $('[data-add-date]').not('.added-datepicker').each(function (index, elem) {
+                $(elem).datetimepicker({ "useCurrent": false, "format": "YYYY-MM-DD", "locale": "ja", "allowInputToggle": true });
+            }).addClass('added-datepicker');
+            $('[data-add-icheck]').not('.added-icheck').each(function (index, elem) {
+                $(elem).iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
+            }).addClass('added-icheck');
+        }
         static getFilterVal($parent, a) {
             // get filter object
             let $filterObj = $parent.find(CommonEvent.getClassKey(a.key));
@@ -762,11 +789,17 @@ var Exment;
         static getClassKey(key, prefix = '') {
             return '.' + prefix + key + ',.' + prefix + 'value_' + key;
         }
-        static findValue(key, values) {
+        static findValue(values, keys) {
+            if (!hasValue(values)) {
+                return false;
+            }
+            keys = !Array.isArray(keys) ? keys.split(',') : keys;
             values = !Array.isArray(values) ? values.split(',') : values;
-            for (var i = 0; i < values.length; i++) {
-                if (values[i] == key) {
-                    return true;
+            for (let i = 0; i < keys.length; i++) {
+                for (let j = 0; j < values.length; j++) {
+                    if (keys[i] == values[j]) {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -827,18 +860,36 @@ var Exment;
      * call select2 items using linkage
      */
     CommonEvent.setLinkageEvent = (ev) => {
-        var $base = $(ev.target).closest('[data-linkage]');
+        let $base = $(ev.target).closest('[data-linkage]');
         if (!hasValue($base)) {
             return;
         }
-        var $parent = CommonEvent.getParentRow($base);
-        var linkages = $base.data('linkage');
+        let $parent = CommonEvent.getParentRow($base);
+        let linkages = $base.data('linkage');
         if (!hasValue(linkages)) {
             return;
         }
         // get expand data
-        var expand = $base.data('linkage-expand');
-        var linkage_text = $base.data('linkage-text');
+        let expand = $base.data('linkage-expand');
+        if (!hasValue(expand)) {
+            expand = {};
+        }
+        // get input data
+        let getdata = $base.data('linkage-getdata');
+        if (hasValue(getdata)) {
+            // execute linkage event
+            for (let i = 0; i < getdata.length; i++) {
+                let g = getdata[i];
+                let $getdata = $parent;
+                if (hasValue(g.parent)) {
+                    $getdata = CommonEvent.getParentRow($parent);
+                }
+                let key = g.key;
+                let $target = $parent.find(CommonEvent.getClassKey(key));
+                expand[key] = $target.val();
+            }
+        }
+        let linkage_text = $base.data('linkage-text');
         // execute linkage event
         for (var key in linkages) {
             var link = linkages[key];
@@ -902,14 +953,13 @@ var Exment;
                         else if (filterVal != null && a.nullValue) {
                             isShow = false;
                         }
-                        // その値が、a.valueに含まれているか
                         if (a.value) {
                             if (!CommonEvent.findValue(filterVal, a.value)) {
                                 isShow = false;
                             }
                         }
                         if (a.notValue) {
-                            if (!CommonEvent.findValue(filterVal, a.notValue)) {
+                            if (!hasValue(filterVal) || CommonEvent.findValue(filterVal, a.notValue)) {
                                 isShow = false;
                             }
                         }
@@ -1023,6 +1073,24 @@ const trimAny = function (str, any) {
     }
     return str.replace(new RegExp("^" + any + "+|" + any + "+$", "g"), '');
 };
+const entityMap = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+    '/': '&#x2F;',
+    '`': '&#x60;',
+    '=': '&#x3D;'
+};
+function escHtml(string) {
+    if (!string) {
+        return string;
+    }
+    return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+        return entityMap[s];
+    });
+}
 const selectedRow = function () {
     var id = $('.grid-row-checkbox:checked').eq(0).data('id');
     return id;
@@ -1056,6 +1124,26 @@ const getParamFromArray = function (array) {
         return (x.value !== (undefined || null || ''));
     });
     return $.param(array);
+};
+const serializeFromArray = function (form) {
+    let param = {};
+    $(form.serializeArray()).each(function (i, v) {
+        // if name is array
+        if (v.name.slice(-2) == '[]') {
+            if (!hasValue(v.value)) {
+                return;
+            }
+            let name = v.name.slice(0, -2);
+            if (!hasValue(param[name])) {
+                param[name] = [];
+            }
+            param[name].push(v.value);
+        }
+        else {
+            param[v.name] = v.value;
+        }
+    });
+    return param;
 };
 const getUuid = function () {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {

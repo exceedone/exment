@@ -162,7 +162,7 @@ class PluginController extends AdminControllerBase
         $form->display('version', exmtrans("plugin.version"));
         $form->switch('active_flg', exmtrans("plugin.active_flg"));
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin) {
-            if ($plugin->matchPluginType([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])) {
+            if ($plugin->matchPluginType([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT, PluginType::VALIDATOR])) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
                     $options = CustomTable::filterList()->pluck('table_view_name', 'table_name')->toArray();
                     return $options;

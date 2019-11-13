@@ -125,15 +125,16 @@ trait InitializeFormTrait
             ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
             ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));
             
+            $admin_users = System::system_admin_users();
             $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
                 ->help(exmtrans('system.help.system_admin_users'))
                 ->required()
-                ->options(function ($option) {
+                ->ajax(CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl())
+                ->options(function ($option) use ($admin_users) {
                     return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
-                        'selected_value' => $option,
-                        'notAjax' => true,
+                        'selected_value' => $admin_users,
                     ]);
-                })->default(System::system_admin_users());
+                })->default($admin_users);
 
             // use mail setting
             if (!boolval(config('exment.mail_setting_env_force', false))) {

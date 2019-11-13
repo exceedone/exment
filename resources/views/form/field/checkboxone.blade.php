@@ -7,8 +7,8 @@
         @include('admin::form.error')
 
             <div class="checkbox">
-            <label>
-                <input type="checkbox" name="{{$name}}" value="{{$check_value}}" class="{{$class}}" {{ $check_value == old($column, $value) ?'checked':'' }} {!! $attributes !!} />&nbsp;{{$check_label}}&nbsp;&nbsp;
+            <label class="checkboxone-label">
+                <input type="checkbox" name="{{$name}}" value="{{$check_value}}" class="{{$class}}" {{ $check_value == $old ?'checked':'' }} {!! $attributes !!} />&nbsp;{{$check_label}}&nbsp;&nbsp;
             </label>
             </div>
 

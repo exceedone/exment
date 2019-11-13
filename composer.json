@@ -27,7 +27,8 @@
         "webpatser/laravel-uuid": "^3.0",
         "phpoffice/phpspreadsheet": "^1.5.0",
         "myclabs/php-enum": "^1.6.0",
-        "laravel/passport": "^7.0"
+        "laravel/passport": "^7.0",
+        "renatomarinho/laravel-page-speed": "^1.8.11"
     },
     "require-dev": {
         "laravel/dusk": "~4.0.0"

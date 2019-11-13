@@ -21,6 +21,7 @@ abstract class FormOtherItem implements ItemInterface
     public function __construct($form_column)
     {
         $this->form_column = $form_column;
+        $this->label = ' ';
     }
 
     /**
@@ -146,6 +147,10 @@ abstract class FormOtherItem implements ItemInterface
      */
     public static function findItemClass($column_type)
     {
+        if (!$column_type) {
+            return false;
+        }
+        
         $class = array_get(static::$availableFields, $column_type);
 
         if (class_exists($class)) {
@@ -160,6 +165,6 @@ abstract class FormOtherItem implements ItemInterface
      */
     public function getViewFilterType()
     {
-        return ViewColumnFilterType::DEFAULT;
+        return FilterType::DEFAULT;
     }
 }

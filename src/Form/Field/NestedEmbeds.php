@@ -9,6 +9,8 @@ class NestedEmbeds extends Embeds
 {
     protected $view = 'exment::form.field.embeds';
 
+    protected $nestedForm;
+
     /**
      * Create a new HasMany field instance.
      *
@@ -19,11 +21,35 @@ class NestedEmbeds extends Embeds
     {
         parent::__construct($column, $arguments);
     }
-
     protected function buildEmbeddedForm()
     {
-        $form = new NestedEmbeddedForm($this->elementName);
-        return $this->setFormField($form);
+        if (!isset($this->nestedForm)) {
+            $form = new NestedEmbeddedForm($this->elementName);
+            $this->nestedForm = $this->setFormField($form);
+        }
+        return $this->nestedForm;
+    }
+
+    protected function getRules()
+    {
+        $rules = [];
+        foreach ($this->buildEmbeddedForm()->fields() as $field) {
+            if (!$fieldRules = $field->getRules()) {
+                continue;
+            }
+            $column = $field->column();
+            $rules[$column] = $fieldRules;
+        }
+        return $rules;
+    }
+
+    public function getAttributes()
+    {
+        $attributes = [];
+        foreach ($this->buildEmbeddedForm()->fields() as $field) {
+            $attributes[$this->column . '.'. $field->column] = $field->label();
+        }
+        return $attributes;
     }
 
     /**

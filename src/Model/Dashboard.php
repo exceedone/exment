@@ -200,17 +200,22 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         });
     }
 
-    public static function hasDashboardEditAuth($id)
+    /**
+     * Check this login user has edit permission this dashboard
+     *
+     * @param [type] $id
+     * @return boolean
+     */
+    public function hasEditPermission()
     {
-        $dashboard = static::find($id);
         // check has system permission
         if (!static::hasSystemPermission()) {
-            if ($dashboard->dashboard_type == DashboardType::SYSTEM) {
+            if ($this->dashboard_type == DashboardType::SYSTEM) {
                 return false;
-            } elseif ($dashboard->created_user_id != \Exment::user()->base_user_id) {
+            } elseif ($this->created_user_id != \Exment::user()->base_user_id) {
                 return false;
             }
-        } elseif ($dashboard->dashboard_type == DashboardType::USER && $dashboard->created_user_id != \Exment::user()->base_user_id) {
+        } elseif ($this->dashboard_type == DashboardType::USER && $this->created_user_id != \Exment::user()->base_user_id) {
             return false;
         }
 

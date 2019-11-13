@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Model;
 class RoleGroup extends ModelBase
 {
     use Traits\TemplateTrait;
+    use Traits\UseRequestSessionTrait;
+    use Traits\ClearCacheTrait;
 
     public static $templateItems = [
         'excepts' => [],

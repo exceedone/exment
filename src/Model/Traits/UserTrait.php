@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
 
 trait UserTrait
@@ -53,7 +54,7 @@ trait UserTrait
      *
      * @return boolean
      */
-    public function getDisabledDeleteAttribute()
+    public function disabled_delete_trait()
     {
         // only administrator can delete and edit administrator record
         if (!\Exment::user()->isAdministrator() && isset($this->login_user) && $this->login_user->isAdministrator()) {
@@ -63,5 +64,25 @@ trait UserTrait
         if (\Exment::user()->base_user_id == $this->id) {
             return true;
         }
+    }
+
+    /**
+     * Get avatar
+     *
+     * @return void
+     */
+    public function getDisplayAvatarAttribute()
+    {
+        // get login user
+        $login_user = $this->login_users->first(function ($login_user) {
+            return isset($login_user->avatar);
+        });
+
+        if (isset($login_user)) {
+            return $login_user->display_avatar;
+        }
+
+        // get default avatar
+        return asset(Define::USER_IMAGE_LINK);
     }
 }

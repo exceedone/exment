@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\RoleType;
 class RoleGroupPermission extends ModelBase
 {
     use Traits\TemplateTrait;
+    use Traits\ClearCacheTrait;
 
     protected $casts = ['permissions' => 'json'];
     

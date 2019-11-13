@@ -60,10 +60,35 @@ class LoginUserController extends AdminControllerBase
             $actions->disableDelete();
             $actions->disableView();
         });
-
         
         // create exporter
-        $service = (new DataImportExport\DataImportExportService())
+        $service = $this->getImportExportService($grid);
+        $grid->exporter($service);
+        
+        $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
+            $tools->append(new Tools\ExportImportButton(admin_url('loginuser'), $grid));
+            $tools->batch(function (Grid\Tools\BatchActions $actions) {
+                $actions->disableDelete();
+            });
+        });
+        
+        
+        return $grid;
+    }
+
+    /**
+     * get import modal
+     */
+    public function importModal(Request $request)
+    {
+        $service = $this->getImportExportService();
+        return $service->getImportModal();
+    }
+    
+    protected function getImportExportService($grid = null)
+    {
+        // create exporter
+        return (new DataImportExport\DataImportExportService())
             ->exportAction(new DataImportExport\Actions\Export\LoginUserAction(
                 [
                     'grid' => $grid,
@@ -73,19 +98,6 @@ class LoginUserController extends AdminControllerBase
                     'primary_key' => app('request')->input('select_primary_key') ?? null,
                 ]
             ));
-        $grid->exporter($service);
-        
-        $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
-            $tools->append(new Tools\ExportImportButton(admin_url('loginuser'), $grid));
-            $tools->append($service->getImportModal());
-
-            $tools->batch(function (Grid\Tools\BatchActions $actions) {
-                $actions->disableDelete();
-            });
-        });
-        
-        
-        return $grid;
     }
 
     /**

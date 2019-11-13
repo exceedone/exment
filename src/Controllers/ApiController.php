@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
@@ -11,12 +13,15 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\ErrorCode;
 
 /**
  * Api about target table
  */
 class ApiController extends AdminControllerBase
 {
+    use ApiTrait;
+    
     /**
      * get Exment version
      */
@@ -223,5 +228,69 @@ class ApiController extends AdminControllerBase
             }),
             'noItemMessage' => exmtrans('notify_navbar.message.no_newitem')
         ];
+    }
+
+    /**
+     * Get user or organization for select
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function userOrganizationSelect(Request $request)
+    {
+        $keys = [SystemTableName::USER];
+        if (System::organization_available()) {
+            $keys[] = SystemTableName::ORGANIZATION;
+        }
+
+        $results = collect();
+        foreach ($keys as $key) {
+            $custom_table = CustomTable::getEloquent($key);
+
+            if (($code = $custom_table->enableAccess()) !== true) {
+                return abortJson(403, $code);
+            }
+
+            // get model filtered using role
+            $model = getModelName($custom_table)::query();
+            \Exment::user()->filterModel($model);
+
+            $validator = \Validator::make($request->all(), [
+                'q' => 'required',
+            ]);
+            if ($validator->fails()) {
+                return abortJson(400, [
+                    'errors' => $this->getErrorMessages($validator)
+                ], ErrorCode::VALIDATION_ERROR());
+            }
+
+            // filtered query
+            $q = $request->get('q');
+            
+            if (($count = $this->getCount($request)) instanceof Response) {
+                return $count;
+            }
+
+            $result = $custom_table->searchValue($q, [
+                'makeHidden' => true,
+                'maxCount' => $count,
+            ]);
+
+            // if call as select ajax, return id and text array
+            $results = $results->merge(
+                $result->map(function ($value) use ($key) {
+                    return [
+                        'id' => $key . '_' . $value->id,
+                        'text' => $value->label,
+                    ];
+                }),
+                $results
+            );
+        }
+
+        // get as paginator
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, count($results), count($results), 1);
+
+        return $paginator;
     }
 }

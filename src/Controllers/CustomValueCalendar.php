@@ -9,7 +9,7 @@ trait CustomValueCalendar
     protected function gridCalendar()
     {
         $table_name = $this->custom_table->table_name;
-        $model = $this->getModelNameDV()::query();
+        $model = $this->custom_table->getValueModel()->query();
         \Exment::user()->filterModel($model, $this->custom_view);
 
         $tools = [];

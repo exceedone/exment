@@ -134,15 +134,15 @@ class ChartItem implements ItemInterface
         $item_y = $view_column_y->column_item;
 
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueModel();
+        $model = $this->custom_table->getValueModel()->query();
 
         // get data
-        $datalist = \Exment::user()->filterModel($model, $this->custom_view)->get();
-        $chart_label = $datalist->map(function ($val) use ($item_x) {
+        \Exment::user()->filterModel($model, $this->custom_view)->get();
+        $chart_label = $model->map(function ($val) use ($item_x) {
             return esc_html($item_x->setCustomValue($val)->text());
         });
         $axis_y_name = $view_column_y->custom_column->column_name;
-        $chart_data = $datalist->pluck('value.'.$axis_y_name);
+        $chart_data = $model->pluck('value.'.$axis_y_name);
 
         return [
             'chart_data'    => $chart_data,

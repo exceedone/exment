@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Enums;
 
-class ViewColumnFilterType extends EnumBase
+class FilterType extends EnumBase
 {
     const DEFAULT = 'default';
     const DAY = 'day';
@@ -10,4 +10,7 @@ class ViewColumnFilterType extends EnumBase
     const FILE = 'file';
     const NUMBER = 'number';
     const SELECT = 'select';
+    const WORKFLOW = 'workflow';
+    const WORKFLOW_WORK_USER = 'workflow_work_user';
+    const CONDITION = 'condition';
 }

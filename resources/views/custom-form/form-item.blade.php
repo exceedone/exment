@@ -6,7 +6,7 @@
     id="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}" data-header_column_name="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}">
         <span class="item-label {{array_get($custom_form_column, 'required') ? 'asterisk' : ''}}">{{ $custom_form_column['column_view_name'] }}</span>
 
-        <a href="javascript:void(0);" class="delete" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};">
+        <a href="javascript:void(0);" class="delete" style="position: absolute; margin-left: 10px; display:{{!boolval($suggest) ? 'inline-block' : 'none'}};">
             <i class="fa fa-trash"></i>
         </a>
         
@@ -38,6 +38,13 @@
                     </div>
                     
                     <div class="form-group">
+                        <span class="small control-label col-sm-5">{{exmtrans('custom_form.required')}}</span>
+                        <div class="col-sm-7" style="padding-top:4px;">
+                                {{ Form::checkbox("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][required]", 1, array_get($custom_form_column, 'options.required'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__required_{$loop->index}", 'class' => 'icheck']) }}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
                         <span class="small control-label col-sm-5">{{exmtrans('custom_form.changedata')}}</span>
                         <div class="col-sm-7" style="padding-top:4px;">
                                 <a class="btn btn-sm btn-default changedata-modal" href="javascript:void(0);">@lang('admin.setting')</a> 
@@ -62,7 +69,7 @@
                     </div>
                     @endif
 
-                    @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[3]))
+                    @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[3,4]))
                     <div class="form-group">
                             <span class="control-label col-sm-3">{{exmtrans('custom_form.html')}}</span>
                             <div class="col-sm-9">

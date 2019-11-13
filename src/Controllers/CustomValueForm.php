@@ -29,9 +29,18 @@ trait CustomValueForm
     {
         $request = request();
         $this->setFormViewInfo($request);
+        
+        $custom_form = $this->custom_table->getPriorityForm($id);
+        if (isset($custom_form)) {
+            $this->custom_form =$custom_form;
+        }
 
-        $classname = $this->getModelNameDV();
+        $classname = getModelName($this->custom_table);
         $form = new Form(new $classname);
+
+        if (isset($id)) {
+            $form->systemValues()->setWidth(12, 0);
+        }
 
         // get select_parent
         $select_parent = null;
@@ -120,8 +129,8 @@ trait CustomValueForm
                         $hasmany = $form->hasMany(
                             $relation_name,
                             $block_label,
-                            function ($form) use ($custom_form_block, $id) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $id))
+                            function ($form, $model = null) use ($custom_form_block, $id) {
+                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model))
                                 ->disableHeader();
                             }
                         );
@@ -216,9 +225,6 @@ EOT;
     {
         $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {
-                continue;
-            }
             // exclusion header and html
             if ($form_column->form_column_type == FormColumnType::OTHER) {
                 continue;
@@ -235,14 +241,22 @@ EOT;
     /**
      * set custom form columns
      */
-    protected function getCustomFormColumns($form, $custom_form_block, $id = null)
+    protected function getCustomFormColumns($form, $custom_form_block, $custom_value = null)
     {
         $closures = [];
-        $custom_value = $this->getModelNameDV()::find($id);
+        if (is_numeric($custom_value)) {
+            $custom_value = $this->custom_table->getValueModel($custom_value);
+        }
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {
+            if (!isset($custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                 continue;
+            }
+
+            if ($form_column->form_column_type == FormColumnType::OTHER) {
+                if (FormColumnType::getOption(['id' => $form_column->form_column_target_id])['view_only'] ?? false) {
+                    continue;
+                }
             }
             
             if (is_null($form_column->column_item)) {

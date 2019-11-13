@@ -30,6 +30,13 @@ class NotifyTarget
     protected $userName;
 
     /**
+     * User code
+     *
+     * @var string
+     */
+    protected $userCode;
+
+    /**
      * notify key
      *
      * @var string
@@ -68,6 +75,15 @@ class NotifyTarget
     public function getLabel()
     {
         return $this->joinUserName ? "{$this->userName} <{$this->email}>" : $this->email;
+    }
+    
+    public function toArray()
+    {
+        return [
+            'email' => $this->email,
+            'user_code' => $this->userCode,
+            'user_name' => $this->userName,
+        ];
     }
     
     /**
@@ -150,6 +166,7 @@ class NotifyTarget
         $notifyTarget = new self;
 
         $notifyTarget->email = $email;
+        $notifyTarget->userCode = $email;
         $notifyTarget->userName = $email;
         $notifyTarget->notifyKey = $email;
         $notifyTarget->joinUserName = false;
@@ -189,6 +206,7 @@ class NotifyTarget
         $notifyTarget = new self;
         $notifyTarget->email = $email;
         $notifyTarget->id = $target_value->id;
+        $notifyTarget->userCode = $target_value->getValue('user_code'); // get user code if exists
         $notifyTarget->userName = $label;
         $notifyTarget->notifyKey = $target_value->custom_table->id . '_' . $target_value->id;
         $notifyTarget->joinUserName = true;

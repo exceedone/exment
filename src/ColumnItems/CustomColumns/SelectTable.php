@@ -63,41 +63,51 @@ class SelectTable extends CustomItem
         $value = $isArray ? $this->value : [$this->value];
         $result = [];
 
-        foreach ($value as $v) {
-            if (!isset($v)) {
-                continue;
-            }
-            
-            $model = $this->target_table->getValueModel($v);
-            if (is_null($model)) {
-                continue;
-            }
-            
-            // if $model is array multiple, set as array
-            if (!($model instanceof Collection)) {
-                $model = [$model];
-            }
-    
-            foreach ($model as $m) {
-                if (is_null($m)) {
+        // if can select table relation, set value
+        if (!is_null($select_table_value = array_get($this->custom_value, $this->custom_column->getSelectTableRelationName()))) {
+            $result[] = $this->getResult($select_table_value, $text, $html);
+        } else {
+            foreach ($value as $v) {
+                if (!isset($v)) {
                     continue;
                 }
                 
-                if ($text === false) {
-                    $result[] = $m;
-                // get text column
-                } elseif ($html) {
-                    $result[] = $m->getUrl(true);
-                } else {
-                    $result[] = $m->getLabel();
+                $model = $this->target_table->getValueModel($v);
+                if (is_null($model)) {
+                    continue;
+                }
+                
+                // if $model is array multiple, set as array
+                if (!($model instanceof Collection)) {
+                    $model = [$model];
+                }
+        
+                foreach ($model as $m) {
+                    if (is_null($m)) {
+                        continue;
+                    }
+                    
+                    $result[] = $this->getResult($m, $text, $html);
                 }
             }
         }
-        
+
         if ($text === false) {
             return count($result) > 0 && !$isArray ? $result[0] : $result;
         } else {
             return implode(exmtrans('common.separate_word'), $result);
+        }
+    }
+
+    protected function getResult($model, $text, $html)
+    {
+        if ($text === false) {
+            return $model;
+        // get text column
+        } elseif ($html) {
+            return $model->getUrl(true);
+        } else {
+            return $model->getLabel();
         }
     }
     
@@ -255,7 +265,7 @@ class SelectTable extends CustomItem
 
         foreach ($value as &$v) {
             // get id from datalist
-            if(array_has($setting, 'datalist') && !is_null($target_column_name = array_get($setting, 'target_column_name'))){
+            if (array_has($setting, 'datalist') && !is_null($target_column_name = array_get($setting, 'target_column_name'))) {
                 $target_value = array_get($setting['datalist'], $v);
 
                 if (!isset($target_value)) {
@@ -263,9 +273,7 @@ class SelectTable extends CustomItem
                 } else {
                     $v = $target_value;
                 }
-            }
-
-            elseif (!isset($this->target_table)) {
+            } elseif (!isset($this->target_table)) {
                 $result = false;
             } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
                 // if get as id and not numeric, set error
@@ -304,23 +312,24 @@ class SelectTable extends CustomItem
      * @param [type] $key
      * @return void
      */
-    public function getKeyAndIdList($datalist, $key){
-        if(is_nullorempty($datalist) || is_nullorempty($key)){
+    public function getKeyAndIdList($datalist, $key)
+    {
+        if (is_nullorempty($datalist) || is_nullorempty($key)) {
             return [];
         }
 
         // if has request session
         $sessionkey = sprintf(Define::SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE, $this->custom_table, $this->custom_column->column_name, $key);
-        return System::requestSession($sessionkey, function() use($datalist, $key){
+        return System::requestSession($sessionkey, function () use ($datalist, $key) {
             // get key and value list
-            $keyValueList = collect($datalist)->map(function($d){
+            $keyValueList = collect($datalist)->map(function ($d) {
                 return array_get($d, 'value.' . $this->custom_column->column_name);
             })->flatten()->filter()->toArray();
 
             $target_custom_column = CustomColumn::getEloquent($key, $this->target_table);
             $indexName = $target_custom_column ?? $target_custom_column->index_enabled ? $target_custom_column->getIndexColumnName() : "value->$key";
             $values = $this->target_table->getValueModel()->whereIn($indexName, $keyValueList)->select(['value', 'id'])
-                ->get()->mapWithKeys(function($v) use($key){
+                ->get()->mapWithKeys(function ($v) use ($key) {
                     return [array_get($v, "value.$key") => $v->id];
                 });
 

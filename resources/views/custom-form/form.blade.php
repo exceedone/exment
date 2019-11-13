@@ -23,6 +23,13 @@
                         {{ Form::text('form_view_name', $form_view_name, ['class' => 'form-control', 'required' => 'required']) }}
                     </div>
                 </div>
+                <div class="form-group">
+                    {{ Form::label("", exmtrans('custom_form.default_flg'), ['class' => 'control-label col-sm-2'])}}
+                    <div class="col-sm-8">
+                        {{ Form::checkbox('default_flg', $default_flg, $default_flg=='1', ['class' => 'default_flg la_checkbox', 'data-onvalue' => '1', 'data-offvalue' => '0']) }}
+                        {{ Form::hidden('default_flg', $default_flg, ['class' => 'default_flg']) }}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -41,13 +48,17 @@
         <!-- /.box-header -->
 
         <div class="box-body">
-            {{-- Use checkbox only relation block --}} @if($custom_form_block['form_block_type'] != '0')
+            {{-- Use checkbox only relation block --}} 
+            @if($custom_form_block['form_block_type'] != '0')
             <div class="custom_form_block_available">
                 {{ Form::checkbox("{$custom_form_block['header_name']}[available]", 1, $custom_form_block['available'], ['id' => "custom_form_block_{$custom_form_block['id']}__available_",
                 'class' => 'icheck icheck_toggleblock']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__available_",
-                exmtrans('custom_form.available')) }}
+                exmtrans('common.available')) }}
             </div>
-            @else {{ Form::hidden("{$custom_form_block['header_name']}[available]", $custom_form_block['available']) }} @endif
+            @else 
+            {{ Form::hidden("{$custom_form_block['header_name']}[available]", $custom_form_block['available']) }} 
+            @endif
+
             <div class="custom_form_block" style="display:{{ boolval($custom_form_block['available']) ? 'block' : 'none' }}">
                 {{-- Form Block Label --}}
                 <div class="col-sm-12">
@@ -68,6 +79,7 @@
                     </div>
                 </div>
 
+                @if($custom_form_block['form_block_type'] != '2')
                 <div class="col-xs-12 col-md-12" style="margin-top:2em;">
                     <h4>{{ exmtrans('custom_form.items') }}</h4>
                     <span class="help-block">
@@ -134,6 +146,9 @@
                     @endforeach
                     </div>
                 </div>
+
+                @endif {{-- / custom_form_block_form_block_type != '2' --}}
+
             </div>
         </div>
         <!-- /.box-body -->

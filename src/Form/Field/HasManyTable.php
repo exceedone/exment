@@ -15,6 +15,7 @@ class HasManyTable extends HasMany
 {
     protected $tablecolumnwidths = [];
     protected $count = null;
+    protected $header = true;
 
     /**
      * Show row up down button
@@ -22,6 +23,25 @@ class HasManyTable extends HasMany
      * @var stringcolumn name
      */
     protected $rowUpDown = null;
+
+    /**
+     * hide delete row no.
+     * if set int, hide the line's button.
+     *
+     * @var integer
+     */
+    protected $hideDeleteButtonRow = null;
+
+    /**
+     * Options for template.
+     *
+     * @var array
+     */
+    protected $options = [
+        'allowCreate' => true,
+        'allowDelete' => true,
+        'allowOptions' => true,
+    ];
 
     /**
      * Width for table and set offset.
@@ -69,9 +89,26 @@ class HasManyTable extends HasMany
         $this->rowUpDown = $rowUpDown;
         return $this;
     }
+    
+    public function disableHeader()
+    {
+        $this->header = false;
 
+        return $this;
+    }
     
-    
+    /**
+     * Disable Options.
+     *
+     * @return $this
+     */
+    public function disableOptions()
+    {
+        $this->options['allowOptions'] = false;
+
+        return $this;
+    }
+
     /**
      * Available views for HasMany field.
      *
@@ -149,7 +186,7 @@ class HasManyTable extends HasMany
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
         $title = exmtrans("common.error");
         $message = sprintf(exmtrans("common.message.exists_row"), $this->label);
-        $count = $this->count?? (!isset($this->value) ? 0 : count($this->value));
+        $count = $this->getHasManyCount();
         $indexName = "index_{$this->column}";
 
         $rowUpDownClassName = $this->rowUpDown;
@@ -187,6 +224,21 @@ $('#has-many-table-{$this->column}').off('click', '.row-move').on('click', '.row
     var row = $(ev.target).closest('tr');
     var isup = $(ev.target).closest('.row-move').hasClass('row-move-up');
     
+    let getPrevNextRow = function(row, isup){
+        while(true){
+            var targetRow = isup ? row.prev() : row.next();
+            if(!hasValue(targetRow)){
+                return;
+            }
+            if(targetRow.is(':visible')){
+                return targetRow;
+            }
+            row = targetRow;
+        }
+    
+        return null;
+    };
+    
     var targetRow = getPrevNextRow(row, isup);
     if(!hasValue(targetRow)){
         return;
@@ -208,83 +260,27 @@ $("button[type='submit']").click(function(){
         };
     }
     return true;
-})
+});
 
-function getPrevNextRow(row, isup){
-    while(true){
-        var targetRow = isup ? row.prev() : row.next();
-        if(!hasValue(targetRow)){
-            return;
-        }
-        if(targetRow.is(':visible')){
-            return targetRow;
-        }
-        row = targetRow;
-    }
-
-    return null;
-}
 
 EOT;
 
         Admin::script($script);
+
+        return $templateScript . $script;
     }
 
     /**
-     * Setup tab template script.
+     * Hide delete button's row no.
      *
-     * @param string $templateScript
-     *
+     * @param int $rowNo
      * @return void
      */
-    protected function setupScriptForTabView($templateScript)
+    public function hideDeleteButtonRow($rowNo)
     {
-        $removeClass = NestedForm::REMOVE_FLAG_CLASS;
-        $defaultKey = NestedForm::DEFAULT_KEY_NAME;
-        $count = !isset($this->value) ? 0 : count($this->value);
-        $indexName = "index_{$this->column}";
+        $this->hideDeleteButtonRow = $rowNo;
 
-        $script = <<<EOT
-
-$('#has-many-{$this->column} > .nav').off('click', 'i.close-tab').on('click', 'i.close-tab', function(){
-    var \$navTab = $(this).siblings('a');
-    var \$pane = $(\$navTab.attr('href'));
-    if( \$pane.hasClass('new') ){
-        \$pane.remove();
-    }else{
-        \$pane.removeClass('active').find('.$removeClass').val(1);
-    }
-    if(\$navTab.closest('li').hasClass('active')){
-        \$navTab.closest('li').remove();
-        $('#has-many-{$this->column} > .nav > li:nth-child(1) > a').tab('show');
-    }else{
-        \$navTab.closest('li').remove();
-    }
-});
-
-var $indexName = {$count};
-$('#has-many-{$this->column} > .header').off('click', '.add').on('click', '.add', function(){
-    $indexName++;
-    var navTabHtml = $('#has-many-{$this->column} > template.nav-tab-tpl').html().replace(/{$defaultKey}/g, index);
-    var paneHtml = $('#has-many-{$this->column} > template.pane-tpl').html().replace(/{$defaultKey}/g, $indexName);
-    $('#has-many-{$this->column} > .nav').append(navTabHtml);
-    $('#has-many-{$this->column} > .tab-content').append(paneHtml);
-    $('#has-many-{$this->column} > .nav > li:last-child a').tab('show');
-    {$templateScript}
-});
-
-if ($('.has-error').length) {
-    $('.has-error').parent('.tab-pane').each(function () {
-        var tabId = '#'+$(this).attr('id');
-        $('li a[href="'+tabId+'"] i').removeClass('hide');
-    });
-    
-    var first = $('.has-error:first').parent().attr('id');
-    $('li a[href="#'+first+'"]').tab('show');
-}
-EOT;
-
-        Admin::script($script);
+        return $this;
     }
 
     /**
@@ -360,6 +356,8 @@ EOT;
             'tablecolumnwidths' => $this->tablecolumnwidths,
             'description' => $this->description,
             'options'      => $this->options,
+            'header' => $this->header,
+            'hideDeleteButtonRow' => $this->hideDeleteButtonRow,
         ]);
     }
 }

@@ -2,6 +2,7 @@
 namespace Exment {
     export class NotifyNavbarEvent {
         private static timeout_id;
+        private static reget_flg;
 
         /**
          * Call only once. It's $(document).on event.
@@ -13,8 +14,15 @@ namespace Exment {
             
             NotifyNavbarEvent.notifyNavbar();
             
+            // click item after notify list
+            $(document).on('click', '.notifications-menu-dropdown li', {}, function (event) {
+                NotifyNavbarEvent.reget_flg = true;
+            });
             $(document).on('pjax:complete', function (event) {
-                NotifyNavbarEvent.notifyNavbar();
+                if(NotifyNavbarEvent.reget_flg){
+                    NotifyNavbarEvent.notifyNavbar();
+                    NotifyNavbarEvent.reget_flg = false;
+                }
             });
         }
 

@@ -20,7 +20,7 @@ class NotifyNav implements Renderable
       <i class="fa fa-bell"></i>
     </a>
 
-    <ul class="dropdown-menu">
+    <ul class="dropdown-menu notifications-menu-dropdown">
         <li>
         <!-- inner menu: contains the actual data -->
         <ul class="menu">
