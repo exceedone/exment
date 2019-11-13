@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
+use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Model\System;
 use Symfony\Component\HttpFoundation\IpUtils;
 
@@ -23,7 +24,8 @@ class ApiIPFilter
         if (!empty($api_ip_filters)) {
             $api_ip_filters = explode("\r\n", $api_ip_filters);
             if (!IpUtils::checkIp($request->ip(), $api_ip_filters)) {
-	            return abortJson(400, exmtrans('api.errors.api_ip_filtered'));
+                return abortJson(400, exmtrans('api.errors.api_ip_filtered'), 
+                    ErrorCode::DISAPPROVAL_IP());
             }
         }
 
