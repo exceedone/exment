@@ -399,16 +399,5 @@ trait HasPermissions
 
             return false;
         }, false, [SystemTableName::ROLE_GROUP_PERMISSION, SystemTableName::ROLE_GROUP_USER_ORGANIZATION]);
-        
-        // whereHas(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, function ($query) use ($organization_ids) {
-        //     $query->where(function ($query) {
-        //         $query->where('role_group_user_org_type', SystemTableName::USER)
-        //         ->where('role_group_target_id', $this->base_user_id);
-        //     });
-        //     $query->orWhere(function ($query) use ($organization_ids) {
-        //         $query->where('role_group_user_org_type', SystemTableName::ORGANIZATION)
-        //         ->whereIn('role_group_target_id', $organization_ids);
-        //     });
-        // })->with(['role_group_permissions'])->get();
     }
 }
