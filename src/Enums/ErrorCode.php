@@ -11,6 +11,7 @@ class ErrorCode extends EnumBase
     const FORM_ACTION_DISABLED = '104';
     const DELETE_DISABLED = '105';
     const WORKFLOW_LOCK = '201';
+    const DISAPPROVAL_IP = '301';
 
     public function getMessage()
     {
