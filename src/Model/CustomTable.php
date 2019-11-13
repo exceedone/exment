@@ -988,7 +988,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // if ajax, return []. (set callQuery is false)
         if (!$this->isGetOptions(array_merge(['callQuery' => false], $options))) {
-            return [];
+            return $this->getSelectedOptionDefault($selected_value);
         }
 
         // get query
@@ -996,24 +996,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // when count > 100, create option only value.
         if (!$this->isGetOptions($options)) {
-            if (!isset($selected_value)) {
-                return [];
-            }
-            $item = getModelName($this)::find($selected_value);
-
-            if ($item) {
-                // check whether $item is multiple value.
-                if ($item instanceof Collection) {
-                    $ret = [];
-                    foreach ($item as $i) {
-                        $ret[$i->id] = $i->label;
-                    }
-                    return $ret;
-                }
-                return [$item->id => $item->label];
-            } else {
-                return [];
-            }
+            return $this->getSelectedOptionDefault($selected_value);
         }
         return $query->get()->pluck("label", "id");
     }
@@ -1086,6 +1069,31 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return $query;
+    }
+
+    /**
+     * Get selected option default.
+     * If ajax etc, and not set default list, call this function.
+     */
+    protected function getSelectedOptionDefault($selected_value){
+        if (!isset($selected_value)) {
+            return [];
+        }
+        $item = getModelName($this)::find($selected_value);
+
+        if ($item) {
+            // check whether $item is multiple value.
+            if ($item instanceof Collection) {
+                $ret = [];
+                foreach ($item as $i) {
+                    $ret[$i->id] = $i->label;
+                }
+                return $ret;
+            }
+            return [$item->id => $item->label];
+        } else {
+            return [];
+        }
     }
 
     /**
