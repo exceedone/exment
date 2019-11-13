@@ -224,6 +224,36 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * for file upload function.
+     */
+    public function fileupload(Request $request, $tableKey, $id)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+        $httpfile = $request->file('file_data');
+        // file put(store)
+        $filename = $httpfile->getClientOriginalName();
+        // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
+        // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
+        $custom_value = getModelName($this->custom_table)::find($id);
+        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
+            ->saveCustomValue($custom_value->id, null, $this->custom_table);
+        // save document model
+        $document_model = $file->saveDocumentModel($custom_value, $filename);
+        
+        // loop for $notifies
+        foreach ($custom_value->custom_table->notifies as $notify) {
+            $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::ATTACHMENT, ['attachment' => $filename]);
+        }
+        
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+
+    /**
      * file delete custom column.
      */
     public function filedelete(Request $request, $tableKey, $id)
