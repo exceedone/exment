@@ -7,7 +7,7 @@ use Exceedone\Exment\Database\ExtendedBlueprint;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\WorkflowType;
 
-class SupportForV220 extends Migration
+class SupportForV300 extends Migration
 {
     /**
      * Run the migrations.
