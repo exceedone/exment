@@ -10,6 +10,7 @@ use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Plugin\PluginPublicBase;
+use Exceedone\Exment\Services\Plugin\PluginApiBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -210,6 +211,9 @@ class ExmentServiceProvider extends ServiceProvider
 
         // bind plugin for page
         $this->app->bind(PluginPublicBase::class, function ($app) {
+            return Plugin::getPluginPageModel();
+        });
+        $this->app->bind(PluginApiBase::class, function ($app) {
             return Plugin::getPluginPageModel();
         });
         $this->app->bind(CustomTable::class, function ($app) {
