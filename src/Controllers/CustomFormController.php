@@ -576,6 +576,9 @@ class CustomFormController extends AdminControllerTableBase
             if (!boolval(array_get($value, 'available'))) {
                 continue;
             }
+            if (array_get($value, 'form_block_type') == FormBlockType::MANY_TO_MANY) {
+                continue;
+            }
             // get column id for registration
             if (is_array(array_get($value, 'custom_form_columns'))) {
                 foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {

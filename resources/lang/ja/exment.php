@@ -1526,6 +1526,13 @@ return [
             'password_grant' => 'パスワード形式',
         ],
 
+        'oauth' => [
+            'authorization_request' => '認証リクエスト',
+            'introduction' => 'は、あなたのアカウントのアクセス権限を求めています',
+            'scopes' => 'アクセス情報一覧',
+            'authorize' => '認証',
+        ],
+
         'header' => 'APIアプリ設定',
         'description' => 'APIを実行するためのアプリケーション設定を登録します。',
         'app_name' => 'アプリ名',
