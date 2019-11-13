@@ -34,8 +34,10 @@ class RelationPivotTableProvider extends ProviderBase
 
             // combine value
             $value_custom = array_combine($headers, $value);
-            $delete = boolval(array_get($value_custom, 'delete'));
-            array_forget($value_custom, 'delete');
+            $delete = boolval(array_get($value_custom, 'delete')) || boolval(array_get($value_custom, 'delete_flg'));
+            
+            $value_custom = array_only($value_custom, ['parent_id', 'child_id']);
+
             $results[] = ['data' => $value_custom, 'delete' => $delete];
         }
 

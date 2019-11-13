@@ -107,7 +107,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         return false;
     }
     
-    public static function setConditionQuery($query, $tableName, $custom_table)
+    public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
     {
         /// get user or organization list
         $custom_columns = CustomColumn::allRecordsCache(function ($custom_column) use ($custom_table) {
@@ -126,11 +126,11 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
 
         foreach ($custom_columns as $custom_column) {
-            $query->orWhere(function ($query) use ($custom_column, $tableName, $ids) {
+            $query->orWhere(function ($query) use ($custom_column, $tableName, $ids, $authorityTableName) {
                 $indexName = $custom_column->getIndexColumnName();
                 
-                $query->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_id', $custom_column->id)
-                    ->where(SystemTableName::WORKFLOW_AUTHORITY . '.related_type', ConditionTypeDetail::COLUMN()->lowerkey());
+                $query->where($authorityTableName . '.related_id', $custom_column->id)
+                    ->where($authorityTableName . '.related_type', ConditionTypeDetail::COLUMN()->lowerkey());
                     
                 if ($custom_column->column_type == ColumnType::USER) {
                     $query->where($tableName . '.' . $indexName, \Exment::user()->id);

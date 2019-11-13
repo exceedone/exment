@@ -209,7 +209,7 @@ abstract class CustomValue extends ModelBase
 
         if ($ignoreNextWork) {
             $workflow_actions = $workflow_actions->filter(function ($workflow_action) {
-                return !boolval($workflow_action->getOption('ignore_work', false));
+                return !boolval($workflow_action->ignore_work);
             });
         }
 
@@ -929,7 +929,7 @@ abstract class CustomValue extends ModelBase
      */
     public function getParentValue($isonly_label = false)
     {
-        if(is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)){
+        if (is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)) {
             return null;
         }
         
@@ -1176,7 +1176,7 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::WORKFLOW_LOCK();
         }
         
-        if(!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableEdit($checkFormAction)) !== true){
+        if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableEdit($checkFormAction)) !== true) {
             return $code;
         }
 
@@ -1211,7 +1211,7 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::DELETE_DISABLED;
         }
         
-        if(!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true){
+        if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true) {
             return $code;
         }
 

@@ -45,7 +45,7 @@ trait UseRequestSessionTrait
      */
     public function hasManyCache($className, $keyName, $idName = 'id')
     {
-        return $className::allRecordsCache(function($record) use($keyName, $idName) {
+        return $className::allRecordsCache(function ($record) use ($keyName, $idName) {
             return $record->{$keyName} == $this->{$idName};
         }, false);
     }
@@ -70,12 +70,11 @@ trait UseRequestSessionTrait
             });
         }
 
-        if($first){
-            if(isset($records)){
+        if ($first) {
+            if (isset($records)) {
                 return $records;
             }
-        }
-        else{
+        } else {
             // if exists, return
             if (count($records) > 0) {
                 return $records;

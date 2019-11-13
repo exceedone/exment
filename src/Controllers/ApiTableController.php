@@ -230,7 +230,7 @@ class ApiTableController extends AdminControllerTableBase
             abort(400);
         }
 
-        if (($code = $model->enableEdit()) !== true) {
+        if (($code = $custom_value->enableEdit()) !== true) {
             return abortJson(403, $code);
         }
 
@@ -252,7 +252,7 @@ class ApiTableController extends AdminControllerTableBase
             abort(400);
         }
 
-        if (($code = $model->enableDelete()) !== true) {
+        if (($code = $custom_value->enableDelete()) !== true) {
             return abortJson(403, $code());
         }
 

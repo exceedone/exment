@@ -8,14 +8,15 @@ class WorkflowAuthority extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
 
-    public function getAuthorityTextAttribute(){
+    public function getAuthorityTextAttribute()
+    {
         $condition_type = ConditionTypeDetail::getEnum($this->related_type);
-        if(!isset($condition_type)){
+        if (!isset($condition_type)) {
             return null;
         }
 
         $item = $condition_type->getConditionItem(null, null);
-        if(!isset($item)){
+        if (!isset($item)) {
             return null;
         }
 
@@ -30,14 +31,15 @@ class WorkflowAuthority extends ModelBase
      * @param [type] $value
      * @return void
      */
-    public static function getAuhoritiesFromValue($values, $action = null){
+    public static function getAuhoritiesFromValue($values, $action = null)
+    {
         $values = jsonToArray($values);
 
         $items = [];
-        foreach($values as $key => $value){
-            foreach((array)$value as $v){
+        foreach ($values as $key => $value) {
+            foreach ((array)$value as $v) {
                 $condition_type = ConditionTypeDetail::getEnum($key);
-                if(!isset($condition_type)){
+                if (!isset($condition_type)) {
                     continue;
                 }
         
@@ -46,7 +48,7 @@ class WorkflowAuthority extends ModelBase
                 $authority->related_type = $key;
                 $authority->workflow_action_id = isset($action) ? $action->id : null;
     
-                $items[] = $authority;    
+                $items[] = $authority;
             }
         }
 

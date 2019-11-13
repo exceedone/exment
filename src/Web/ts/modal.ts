@@ -11,7 +11,6 @@ namespace Exment {
 
             $('#modal-showmodal').on('hidden.bs.modal', function (e) {
                 $('#modal-showmodal .modal-body').html('');
-                $('#modal-showmodal').modal('dispose');
             });
         }
 

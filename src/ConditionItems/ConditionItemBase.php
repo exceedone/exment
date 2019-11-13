@@ -224,5 +224,4 @@ abstract class ConditionItemBase
     {
         return $this->getText($condition->condition_key, $condition->condition_value);
     }
-    
 }

@@ -142,21 +142,20 @@ class DefaultTableProvider extends ProviderBase
 
         $errors = [];
 
-        // check create or update check
         $validateRow = true;
-        if(isset($model)){
-            if(!$model->exists && ($code = $this->custom_table->enableCreate()) !== true){
+        // check create or update check
+        // *Only check user object for batch
+        if (isset($model) && !is_nullorempty(\Exment::user())) {
+            if (!$model->exists && ($code = $this->custom_table->enableCreate()) !== true) {
                 $validateRow = false;
-            }
-            elseif(array_key_value_exists('deleted_at', $data) && ($code = $model->enableDelete()) !== true){
+            } elseif (array_key_value_exists('deleted_at', $data) && ($code = $model->enableDelete()) !== true) {
                 $validateRow = false;
-            }
-            elseif($model->exists && ($code = $model->enableEdit()) !== true){
+            } elseif ($model->exists && ($code = $model->enableEdit()) !== true) {
                 $validateRow = false;
             }
         }
 
-        if(!$validateRow && isset($code) && $code !== true){
+        if (!$validateRow && isset($code) && $code !== true) {
             $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), $code->getMessage());
         }
 
@@ -170,7 +169,7 @@ class DefaultTableProvider extends ProviderBase
             // return $errors;
         }
 
-        if(!is_nullorempty($errors)){
+        if (!is_nullorempty($errors)) {
             return $errors;
         }
         return true;
