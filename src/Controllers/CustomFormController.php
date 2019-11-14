@@ -413,10 +413,6 @@ class CustomFormController extends AdminControllerTableBase
                     continue;
                 }
 
-                $custom_column_eloquent->select_target_table;
-                if(!isset($target_table)){
-                    continue;
-                }
                 $target_table = $custom_column_eloquent->select_target_table;
                 if(!isset($target_table)){
                     continue;
