@@ -18,7 +18,7 @@ class WorkflowAction extends ModelBase
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\ClearCacheTrait;
 
-    protected $appends = ['work_targets', 'work_conditions', 'comment_type', 'flow_next_type', 'flow_next_count', 'ignore_work'];
+    protected $appends = ['work_targets', 'work_conditions', 'comment_type', 'flow_next_type', 'flow_next_count'];
     protected $casts = ['options' => 'json'];
 
     protected $work_targets;
@@ -158,16 +158,6 @@ class WorkflowAction extends ModelBase
     public function setFlowNextCountAttribute($flow_next_count)
     {
         $this->setOption('flow_next_count', $flow_next_count);
-        return $this;
-    }
-
-    public function getIgnoreWorkAttribute()
-    {
-        return $this->getOption('ignore_work');
-    }
-    public function setIgnoreWorkAttribute($ignore_work)
-    {
-        $this->setOption('ignore_work', $ignore_work);
         return $this;
     }
 
@@ -645,7 +635,7 @@ class WorkflowAction extends ModelBase
         }
         
         // not next, showing message
-        elseif($showSubmit && $next !== true){
+        elseif ($showSubmit && $next !== true) {
             list($flow_next_count, $action_executed_count) = $next;
 
             $form->display('flow_executed_user_count', exmtrans('workflow.flow_executed_user_count'))

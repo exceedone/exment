@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Enums\FilterKind;
-use Exceedone\Exment\Validator\ChangeFieldRule;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 /**
@@ -36,7 +35,7 @@ class ConditionHasManyTable
             }
         }
 
-        if(!array_has($options, 'label')){
+        if (!array_has($options, 'label')) {
             $this->label = exmtrans("custom_view.custom_view_filters");
         }
     }
@@ -52,14 +51,14 @@ class ConditionHasManyTable
         $field = $this->form->hasManyTable($this->name, $this->label, function ($form) use ($condition_target_name, $condition_key_name, $condition_value_name, $filterKind) {
             $field = $form->select($condition_target_name, exmtrans("condition.condition_target"))->required()
                 ->options($this->targetOptions);
-            if(isset($this->linkage)){
+            if (isset($this->linkage)) {
                 $field->attribute([
                     'data-linkage' => $this->linkage,
                     'data-change_field_target' => $condition_target_name,
                 ]);
             }
 
-            if($this->showConditionKey){
+            if ($this->showConditionKey) {
                 $form->select($condition_key_name, exmtrans("condition.condition_key"))->required()
                 ->options(function ($val, $select) use ($condition_target_name, $condition_key_name, $condition_value_name, $filterKind) {
                     if (!isset($val)) {
@@ -95,7 +94,7 @@ class ConditionHasManyTable
                         return null;
                     }
                     $item = ConditionItemBase::getItem($this->custom_table, array_get($data, $condition_target_name));
-                    $item->filterKind($this->filterKind);             
+                    $item->filterKind($this->filterKind);
 
                     $label = exmtrans('condition.condition_value');
                     $item->setElement($field->getElementName(), $condition_value_name, $label);
@@ -105,9 +104,9 @@ class ConditionHasManyTable
             ;
         })->setTableWidth(10, 1);
 
-        if($this->showConditionKey){
+        if ($this->showConditionKey) {
             $field->setTableColumnWidth(4, 4, 3, 1);
-        }else{
+        } else {
             $field->setTableColumnWidth(6, 5, 1);
         }
 

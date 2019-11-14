@@ -7,7 +7,7 @@ use Exceedone\Exment\Database\ExtendedBlueprint;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\WorkflowType;
 
-class SupportForV220 extends Migration
+class SupportForV300 extends Migration
 {
     /**
      * Run the migrations.
@@ -99,6 +99,7 @@ class SupportForV220 extends Migration
             $table->integer('workflow_id')->unsigned()->index();
             $table->string('status_from');
             $table->string('action_name', 30);
+            $table->boolean('ignore_work')->default(false)->index();
             $table->json('options')->nullable();
 
             $table->timestamps();

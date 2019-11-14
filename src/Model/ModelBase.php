@@ -100,7 +100,7 @@ class ModelBase extends Model
         
         static::saved(function ($model) {
             $classname = get_called_class();
-            if(\method_exists($classname, 'clearCacheTrait')){
+            if (\method_exists($classname, 'clearCacheTrait')) {
                 $classname::clearCacheTrait();
             }
         });

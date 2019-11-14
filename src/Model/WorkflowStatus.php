@@ -87,7 +87,7 @@ class WorkflowStatus extends ModelBase
                     return true;
                 }
 
-                return !boolval($action->getOption('ignore_work'));
+                return !boolval($action->ignore_work);
             });
     }
 }

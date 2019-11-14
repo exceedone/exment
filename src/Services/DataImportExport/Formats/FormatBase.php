@@ -69,7 +69,7 @@ abstract class FormatBase
                             $cell->setDataType(Cell\DataType::TYPE_STRING);
                         }
                     }
-                }    
+                }
                 $counts = count($outputs[0]);
                 for ($i = 0; $i < $counts; $i++) {
                     $sheet->getColumnDimension(getCellAlphabet($i + 1))->setAutoSize(true);

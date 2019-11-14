@@ -175,15 +175,15 @@ class PatchDataCommand extends Command
         }
 
         // remove use_label_flg property
-        $columns = CustomColumn::all();
-        foreach ($columns as $column) {
-            if (!array_has($column, 'options.use_label_flg')) {
-                continue;
-            }
-            $column->setOption('use_label_flg', null);
+        // $columns = CustomColumn::all();
+        // foreach ($columns as $column) {
+        //     if (!array_has($column, 'options.use_label_flg')) {
+        //         continue;
+        //     }
+        //     $column->setOption('use_label_flg', null);
 
-            $column->save();
-        }
+        //     $column->save();
+        // }
     }
     
     /**

@@ -15,7 +15,6 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
@@ -158,7 +157,7 @@ trait CustomValueShow
                     $tools->disableDelete();
                 }
 
-                if(!is_null($parent_value = $custom_value->getParentValue()) && $parent_value->enableEdit(true) !== true){
+                if (!is_null($parent_value = $custom_value->getParentValue()) && $parent_value->enableEdit(true) !== true) {
                     $tools->disableEdit();
                     $tools->disableDelete();
                 }
@@ -205,7 +204,8 @@ trait CustomValueShow
                                 'expand' => ['action_id' => array_get($action, 'id')],
                                 'button_class' => 'btn-success',
                                 'icon' => 'fa-check-square',
-                            ]));
+                            ]
+                        ));
                     }
                     foreach ($copyButtons as $copyButton) {
                         $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $id);
@@ -249,7 +249,7 @@ trait CustomValueShow
      */
     public function compare(Request $request, Content $content, $tableKey, $id)
     {
-        $this->firstFlow($request,  CustomValuePageType::SHOW, $id);
+        $this->firstFlow($request, CustomValuePageType::SHOW, $id);
         $this->AdminContent($content);
         $content->body($this->getRevisionCompare($id, $request->get('revision')));
         return $content;
@@ -293,8 +293,8 @@ trait CustomValueShow
 
         // create revision value
         $old_revision = Revision::findBySuuid($revision_suuid);
-        $revision_value = $this->custom_table->getValueModel($id)->setRevision($revision_suuid);
-        $custom_value = $this->custom_table->getValueModel($id);
+        $revision_value = getModelName($this->custom_table)::find($id)->setRevision($revision_suuid);
+        $custom_value = getModelName($this->custom_table)::find($id);
 
         // set table columns
         $table_columns = [];

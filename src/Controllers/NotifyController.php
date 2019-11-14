@@ -319,7 +319,7 @@ class NotifyController extends AdminControllerBase
     {
         $custom_table = CustomTable::getEloquent($custom_table);
 
-        if(!isset($custom_table)){
+        if (!isset($custom_table)) {
             return [];
         }
 

@@ -10,7 +10,6 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\System;

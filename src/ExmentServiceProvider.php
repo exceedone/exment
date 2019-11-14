@@ -146,12 +146,12 @@ class ExmentServiceProvider extends ServiceProvider
         'adminapi' => [
             'admin.api-ipfilter',
             'adminapi.auth',
-            'throttle:60,1',
+            // 'throttle:60,1',
             'bindings',
         ],
         'adminapi_anonymous' => [
             'admin.api-ipfilter',
-            'throttle:60,1',
+            // 'throttle:60,1',
             'bindings',
         ],
         'exment_web' => [

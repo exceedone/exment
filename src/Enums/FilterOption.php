@@ -241,7 +241,7 @@ class FilterOption extends EnumBase
         }
 
         $enum = static::getEnum($enum);
-        if(!isset($enum)){
+        if (!isset($enum)) {
             return null;
         }
 

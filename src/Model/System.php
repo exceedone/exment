@@ -120,7 +120,7 @@ class System extends ModelBase
             }
 
             // set cache
-            if(boolval(config('exment.use_cache', false))){
+            if (boolval(config('exment.use_cache', false))) {
                 Cache::put($key, $val, Define::CACHE_CLEAR_MINUTE);
             }
             return $val;
@@ -137,7 +137,7 @@ class System extends ModelBase
     {
         static::clearRequestSession($key);
 
-        if(!boolval(config('exment.use_cache', false))){
+        if (!boolval(config('exment.use_cache', false))) {
             return;
         }
 

@@ -312,8 +312,9 @@ class SelectTable extends CustomItem
      * @param [type] $key
      * @return void
      */
-    public function getKeyAndIdList($datalist, $key){
-        if(is_nullorempty($datalist) || is_nullorempty($key)){
+    public function getKeyAndIdList($datalist, $key)
+    {
+        if (is_nullorempty($datalist) || is_nullorempty($key)) {
             return [];
         }
 

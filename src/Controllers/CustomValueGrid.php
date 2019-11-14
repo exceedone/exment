@@ -226,7 +226,7 @@ trait CustomValueGrid
                     $actions->disableDelete();
                 }
                 
-                if(!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true){
+                if (!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true) {
                     $actions->disableEdit();
                     $actions->disableDelete();
                 }

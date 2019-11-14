@@ -59,12 +59,12 @@ class Condition extends ModelBase
     public function getConditionTextAttribute()
     {
         $condition_type = ConditionType::getEnum($this->condition_type);
-        if(!isset($condition_type)){
+        if (!isset($condition_type)) {
             return null;
         }
 
         $item = $condition_type->getConditionItem(null, $this->condition_target, $this->target_column_id);
-        if(!isset($item)){
+        if (!isset($item)) {
             return null;
         }
 

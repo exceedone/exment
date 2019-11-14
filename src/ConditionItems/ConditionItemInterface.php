@@ -3,11 +3,8 @@
 namespace Exceedone\Exment\ConditionItems;
 
 use Encore\Admin\Form\Field;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
-use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Exceedone\Exment\Enums\SystemTableName;
 
 interface ConditionItemInterface
 {
