@@ -1178,7 +1178,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * Get selected option default.
      * If ajax etc, and not set default list, call this function.
      */
-    protected function getSelectedOptionDefault($selected_value){
+    protected function getSelectedOptionDefault($selected_value)
+    {
         if (!isset($selected_value)) {
             return [];
         }
