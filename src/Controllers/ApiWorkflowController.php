@@ -112,22 +112,21 @@ class ApiWorkflowController extends AdminControllerBase
      */
     public function getList(Request $request)
     {
-        if ($request->has('all') && boolval($request->get('all'))) {
-            $workflow = Workflow::whereRaw('1 = 1');
-        } else {
-            $workflow = Workflow::where('setting_completed_flg', 1);
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
         }
 
+        $query = Workflow::query();
+        if(!boolval($request->get('all', false))){
+            $query->where('setting_completed_flg', 1);
+        }
+        
         if ($request->has('expands')){
             $expands = explode(',', $request->get('expands'));
-            $this->setExpandTables($expands, $workflow);
+            $this->setExpandTables($expands, $query);
         }
 
-        $workflow = $workflow->get();
-        if (!isset($workflow)) {
-            return abort(400);
-        }
-        return $workflow;
+        return $query->paginate($count ?? config('exment.api_default_data_count'));
     }
     
     /**
@@ -135,17 +134,17 @@ class ApiWorkflowController extends AdminControllerBase
      * @param array $expands
      * @param Builder $workflow
      */
-    protected function setExpandTables($expands, &$workflow) {
+    protected function setExpandTables($expands, &$query) {
         foreach($expands as $expand) {
             switch (trim($expand)) {
                 case 'tables':
-                    $workflow = $workflow->with('workflow_tables');
+                    $query->with('workflow_tables');
                     break;
                 case 'statuses':
-                    $workflow = $workflow->with('workflow_statuses');
+                    $query->with('workflow_statuses');
                     break;
                 case 'actions':
-                    $workflow = $workflow->with('workflow_actions');
+                    $query->with('workflow_actions');
                     break;
             }
         }
