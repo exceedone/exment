@@ -190,9 +190,6 @@ class ApiController extends AdminControllerBase
             return [];
         }
 
-        if (!in_array(array_get($custom_column, 'column_type'), [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION])) {
-            return [];
-        }
         // get select_target_table
         $select_target_table = $custom_column->select_target_table;
         if (!isset($select_target_table)) {
