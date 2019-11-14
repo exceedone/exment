@@ -65,9 +65,11 @@ class ApiController extends AdminControllerBase
             return $count;
         }
 
+        $options = ['getModel' => false, 'with' => $this->getJoinTables($request, 'custom')];
+
         // filter table
         $query = CustomTable::query();
-        CustomTable::filterList($query, ['getModel' => false]);
+        CustomTable::filterList($query, $options);
         return $query->paginate($count ?? config('exment.api_default_data_count'));
     }
 
@@ -137,7 +139,9 @@ class ApiController extends AdminControllerBase
      */
     public function table($tableKey, Request $request)
     {
-        $table = CustomTable::getEloquent($tableKey);
+        $withs = $this->getJoinTables($request, 'custom');
+        $table = CustomTable::getEloquent($tableKey, $withs);
+
         if (!isset($table)) {
             return abort(400);
         }

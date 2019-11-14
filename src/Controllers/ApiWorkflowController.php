@@ -23,14 +23,9 @@ class ApiWorkflowController extends AdminControllerBase
      */
     public function get($id, Request $request)
     {
-        $workflow = Workflow::where('id', $id);
+        $join_tables = $this->getJoinTables($request, 'workflow');
 
-        if ($request->has('expands')){
-            $expands = explode(',', $request->get('expands'));
-            $this->setExpandTables($expands, $workflow);
-        }
-
-        $workflow = $workflow->first();
+        $workflow = Workflow::getEloquent($id, $join_tables);
 
         //TODO:api no data
         if (!isset($workflow)) {
@@ -121,32 +116,12 @@ class ApiWorkflowController extends AdminControllerBase
             $query->where('setting_completed_flg', 1);
         }
         
-        if ($request->has('expands')){
-            $expands = explode(',', $request->get('expands'));
-            $this->setExpandTables($expands, $query);
+        $join_tables = $this->getJoinTables($request, 'workflow');
+
+        foreach ($join_tables as $join_table) {
+            $query->with($join_table);
         }
 
         return $query->paginate($count ?? config('exment.api_default_data_count'));
-    }
-    
-    /**
-     * set expand tables to query builder
-     * @param array $expands
-     * @param Builder $workflow
-     */
-    protected function setExpandTables($expands, &$query) {
-        foreach($expands as $expand) {
-            switch (trim($expand)) {
-                case 'tables':
-                    $query->with('workflow_tables');
-                    break;
-                case 'statuses':
-                    $query->with('workflow_statuses');
-                    break;
-                case 'actions':
-                    $query->with('workflow_actions');
-                    break;
-            }
-        }
     }
 }

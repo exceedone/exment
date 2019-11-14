@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Middleware;
 
+use Exceedone\Exment\Enums\ErrorCode;
+
 class CheckForAnyScope
 {
     /**
@@ -17,7 +19,7 @@ class CheckForAnyScope
     {
         $user = \Exment::user();
         if (is_null($user) || is_null($user->base_user)) {
-            return abortJson(401, exmtrans('api.errors.access_denied'));
+            return abortJson(401, exmtrans('api.errors.access_denied'), ErrorCode::PERMISSION_DENY());
         }
 
         foreach ($scopes as $scope) {
@@ -26,6 +28,6 @@ class CheckForAnyScope
             }
         }
 
-        return abortJson(403, exmtrans('api.errors.wrong_scope'));
+        return abortJson(403, exmtrans('api.errors.wrong_scope'), ErrorCode::WRONG_SCOPE());
     }
 }
