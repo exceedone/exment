@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ErrorCode;
+use Validator;
 
 /**
  * Api about target table
@@ -195,6 +196,67 @@ class ApiController extends AdminControllerBase
             return [];
         }
         return CustomTable::getEloquent($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
+    }
+
+    /**
+     * create notify
+     */
+    public function notifyCreate(Request $request)
+    {
+        $is_single = false;
+
+        $validator = Validator::make($request->all(), [
+            'target_users' => 'required',
+            'subject' => 'required',
+            'body' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        $target_users = $request->get('target_users');
+
+        if (!is_array($target_users)) {
+            $target_users = [$target_users];
+            $is_single = true;
+        }
+
+        $error_users = collect($target_users)->filter(function($target_user) {
+            return is_null(getModelName(SystemTableName::USER)::find($target_user));
+        });
+
+        if ($error_users->count() > 0) {
+            return abortJson(400, [
+                'errors' => ['target_users' => exmtrans('api.errors.user_notfound', $error_users->implode(','))]
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        $response = [];
+
+        foreach ($target_users as $target_user) {
+
+            $notify = new NotifyNavbar();
+    
+            $notify->fill([
+                'notify_id' => 0,
+                'target_user_id' => $target_user,
+                'notify_subject' => $request->get('subject'),
+                'notify_body' => $request->get('body'),
+                'trigger_user_id' => \Exment::user()->base_user_id
+            ]);
+    
+            $notify->saveOrFail();
+
+            $response[] = $notify;
+        }
+
+        if ($is_single && count($response) > 0) {
+            return $response[0];
+        } else {
+            return $response;
+        }
     }
     
     public function notifyPage(Request $request)

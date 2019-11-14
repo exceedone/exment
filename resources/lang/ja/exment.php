@@ -1513,6 +1513,7 @@ return [
             'wrong_scope' => 'APIを実行するためのスコープに誤りがあります。開発者にお問い合わせください。',
             'delete_disabled' => 'このデータは削除できません。',
             'not_index_enabled' => ':attributeは検索インデックスが設定されていません。',
+            'user_notfound' => 'ID:%sは未登録のユーザーです。',
         ],
 
         'help' =>[
