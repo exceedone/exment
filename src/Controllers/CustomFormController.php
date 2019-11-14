@@ -403,11 +403,22 @@ class CustomFormController extends AdminControllerTableBase
             
             foreach ($custom_columns as $custom_column) {
                 // if column_type is not select_table, return []
-                if (!in_array(array_get($custom_column, 'column_type'), [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION])) {
+                if (!ColumnType::isSelectTable(array_get($custom_column, 'column_type'))) {
                     continue;
                 }
+
                 // if not have array_get($custom_column, 'options.select_target_table'), conitnue
-                if (is_null(array_get($custom_column, 'options.select_target_table'))) {
+                $custom_column_eloquent = CustomColumn::getEloquent(array_get($custom_column, 'id'));
+                if(!isset($custom_column_eloquent)){
+                    continue;
+                }
+
+                $custom_column_eloquent->select_target_table;
+                if(!isset($target_table)){
+                    continue;
+                }
+                $target_table = $custom_column_eloquent->select_target_table;
+                if(!isset($target_table)){
                     continue;
                 }
                 // get select_table, user, organization columns
