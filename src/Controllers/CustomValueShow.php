@@ -293,8 +293,8 @@ trait CustomValueShow
 
         // create revision value
         $old_revision = Revision::findBySuuid($revision_suuid);
-        $revision_value = $this->custom_table->getValueModel($id)->setRevision($revision_suuid);
-        $custom_value = $this->custom_table->getValueModel($id);
+        $revision_value = getModelName($this->custom_table)::find($id)->setRevision($revision_suuid);
+        $custom_value = getModelName($this->custom_table)::find($id);
 
         // set table columns
         $table_columns = [];

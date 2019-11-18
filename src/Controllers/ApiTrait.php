@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
+use Exceedone\Exment\Enums\ErrorCode;
 
 /**
  * Api about target table
@@ -44,7 +45,7 @@ trait ApiTrait
 
         $count = $request->get('count');
         if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
-            return abortJson(400, exmtrans('api.errors.over_maxcount'));
+            return abortJson(400, exmtrans('api.errors.over_maxcount'), ErrorCode::INVALID_PARAMS());
         }
 
         return $count;
