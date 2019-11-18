@@ -207,8 +207,8 @@ class ApiController extends AdminControllerBase
 
         $validator = Validator::make($request->all(), [
             'target_users' => 'required',
-            'subject' => 'required',
-            'body' => 'required',
+            'notify_subject' => 'required',
+            'notify_body' => 'required',
         ]);
         if ($validator->fails()) {
             return abortJson(400, [
@@ -242,8 +242,8 @@ class ApiController extends AdminControllerBase
             $notify->fill([
                 'notify_id' => 0,
                 'target_user_id' => $target_user,
-                'notify_subject' => $request->get('subject'),
-                'notify_body' => $request->get('body'),
+                'notify_subject' => $request->get('notify_subject'),
+                'notify_body' => $request->get('notify_body'),
                 'trigger_user_id' => \Exment::user()->base_user_id
             ]);
     
@@ -259,6 +259,48 @@ class ApiController extends AdminControllerBase
         }
     }
     
+    /**
+     * Get notify List
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function notifyList(Request $request)
+    {
+        if (($reqCount = $this->getCount($request)) instanceof Response) {
+            return $reqCount;
+        }
+
+        // get notify NotifyNavbar list
+        $query = NotifyNavbar::where('target_user_id', \Exment::user()->base_user_id)
+            ->orderBy('created_at', 'desc');
+                
+        if(!boolval($request->get('all', false))){
+            $query->where('read_flg', false);
+        }
+
+        $count = $query->count();
+        $paginator = $query->paginate($reqCount);
+
+        // set appends
+        $paginator->appends([
+            'count' => $count,
+        ]);
+        if($request->has('all')){
+            $paginator->appends([
+                'all' => $request->get('all'),
+            ]); 
+        }
+
+        return $paginator;
+    }
+
+    /**
+     * Get notify for page
+     *
+     * @param Request $request
+     * @return void
+     */
     public function notifyPage(Request $request)
     {
         // get notify NotifyNavbar list
