@@ -1515,6 +1515,7 @@ return [
             'not_index_enabled' => ':attributeは検索インデックスが設定されていません。',
             'data_not_found' => '対象データが見つかりません。',
             'workflow_nostart' => 'ワークフローが開始されていない、または対象外のデータです。',
+            'workflow_end' => 'ワークフローが完了済、または対象外のデータです。',
         ],
 
         'help' =>[

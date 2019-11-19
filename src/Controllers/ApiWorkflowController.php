@@ -161,4 +161,56 @@ class ApiWorkflowController extends AdminControllerBase
 
         return $workflow_value;
     }
+ 
+    /**
+     * get workflow users by custom_value
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function getWorkUsers($tableKey, $id, Request $request)
+    {
+        $custom_value = getModelName($tableKey)::find($id);
+        // no custom data
+        if (!isset($custom_value)) {
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
+        }
+
+        $workflow_actions = $custom_value->getWorkflowActions(false, true);
+
+        // no workflow users data
+        if (!isset($workflow_actions) || count($workflow_actions) == 0) {
+            return abortJson(400, ErrorCode::WORKFLOW_END());
+        }
+
+        $orgAsUser = boolval($request->get('as_user', false));
+
+        $result = collect();
+        foreach ($workflow_actions as $workflow_action) {
+            $result = $workflow_action->getAuthorityTargets($this, $orgAsUser)->merge($result);
+        }
+
+        return $result->unique();
+    }
+ 
+    /**
+     * get workflow actions by custom_value
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function getActions($tableKey, $id, Request $request)
+    {
+        $custom_value = getModelName($tableKey)::find($id);
+        // no custom data
+        if (!isset($custom_value)) {
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
+        }
+
+        $is_all = boolval($request->get('all', false));
+
+        $workflow_actions = $custom_value->getWorkflowActions(!$is_all, true);
+
+        return $workflow_actions;
+    }
 }

@@ -14,6 +14,7 @@ class ErrorCode extends EnumBase
     const DATA_NOT_FOUND = '107';
     const WORKFLOW_LOCK = '201';
     const WORKFLOW_NOSTART = '202';
+    const WORKFLOW_END = '203';
 
     public function getMessage()
     {
