@@ -67,6 +67,15 @@ class ApiController extends AdminControllerBase
 
         $options = ['getModel' => false, 'with' => $this->getJoinTables($request, 'custom')];
 
+        // filterd by id
+        if ($request->has('id')) {
+            $ids = explode(',', $request->get('id'));
+            $options['filter'] = function ($model) use ($ids) {
+                $model->whereIn('id', $ids);
+                return $model;
+            };
+        }
+
         // filter table
         $query = CustomTable::query();
         CustomTable::filterList($query, $options);

@@ -27,9 +27,8 @@ class ApiWorkflowController extends AdminControllerBase
 
         $workflow = Workflow::getEloquent($id, $join_tables);
 
-        //TODO:api no data
         if (!isset($workflow)) {
-            return abort(400);
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
         return $workflow;
     }
@@ -43,9 +42,8 @@ class ApiWorkflowController extends AdminControllerBase
     {
         $workflow = WorkflowStatus::getEloquent($id);
 
-        //TODO:api no data
         if (!isset($workflow)) {
-            return abort(400);
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         return $workflow;
@@ -60,9 +58,8 @@ class ApiWorkflowController extends AdminControllerBase
     {
         $workflow = WorkflowAction::getEloquent($id);
 
-        //TODO:api no data
         if (!isset($workflow)) {
-            return abort(400);
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         return $workflow;
@@ -78,7 +75,7 @@ class ApiWorkflowController extends AdminControllerBase
         $workflow = WorkflowStatus::where('workflow_id', $id)->get();
 
         if (!isset($workflow)) {
-            return abort(400);
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         return $workflow;
@@ -94,7 +91,7 @@ class ApiWorkflowController extends AdminControllerBase
         $workflow = WorkflowAction::where('workflow_id', $id)->get();
 
         if (!isset($workflow)) {
-            return abort(400);
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         return $workflow;
@@ -123,5 +120,45 @@ class ApiWorkflowController extends AdminControllerBase
         }
 
         return $query->paginate($count ?? config('exment.api_default_data_count'));
+    }
+ 
+    /**
+     * get workflow value by custom_value
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function getValue($tableKey, $id, Request $request)
+    {
+        $custom_value = getModelName($tableKey)::find($id);
+        // no custom data
+        if (!isset($custom_value)) {
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
+        }
+
+        $workflow_value = $custom_value->workflow_value;
+
+        // no workflow data
+        if (!isset($workflow_value)) {
+            return abortJson(400, ErrorCode::WORKFLOW_NOSTART());
+        }
+
+        if ($request->has('expands')){
+            $join_tables = collect(explode(',', $request->get('expands')))
+                ->map(function($expand) {
+                    $expand = trim($expand);
+                    switch ($expand) {
+                        case 'actions':
+                            return 'workflow_action';
+                        case 'status_from':
+                            return 'workflow_status_from';
+                        case 'status_to':
+                            return 'workflow_status';
+                    }
+                })->filter()->toArray();
+            $workflow_value->load($join_tables);
+        }
+
+        return $workflow_value;
     }
 }
