@@ -318,6 +318,8 @@ class WorkflowAction extends ModelBase
                 $notify->notifyWorkflow($custom_value, $this, $workflow_value, $status_to);
             }
         }
+
+        return $workflow_value;
     }
 
     /**

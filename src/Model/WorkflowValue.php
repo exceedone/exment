@@ -21,6 +21,11 @@ class WorkflowValue extends ModelBase
         return $this->belongsTo(WorkflowStatus::class, 'workflow_status_to_id');
     }
 
+    public function workflow_status_from()
+    {
+        return $this->belongsTo(WorkflowStatus::class, 'workflow_status_from_id');
+    }
+
     public function workflow_value_authorities()
     {
         return $this->hasMany(WorkflowValueAuthority::class, 'workflow_value_id');
