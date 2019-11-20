@@ -585,7 +585,7 @@ class TemplateImporter
             // get lang datafile
             $dataPath = path_join($basePath, 'data', $locale);
 
-            if (File::exists($langpath)) {
+            if (File::exists($dataPath)) {
                 $this->importData($dataPath);
             }
             else{
