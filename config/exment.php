@@ -86,7 +86,7 @@ return [
     |
     */
     'driver' => [
-        'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
+        'exment' => env('EXMENT_DRIVER_EXMENT', 'local'),
         'backup' => env('EXMENT_DRIVER_BACKUP', 'local'),
         'plugin' => env('EXMENT_DRIVER_PLUGIN', 'local'),
         'template' => env('EXMENT_DRIVER_TEMPLATE', 'local'),

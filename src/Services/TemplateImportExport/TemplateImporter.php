@@ -85,14 +85,14 @@ class TemplateImporter
                 // if crowd
                 if(array_get($item, 'template_type') == 'user'){
                     $this->diskService->syncFromDisk();
-                    $path = path_join($this->diskService->localSyncItem->dirFullPath(), $templateName, 'config.json');
+                    $path = path_join($this->diskService->localSyncDiskItem()->dirFullPath(), $templateName, 'config.json');
     
                     if (!File::exists($path)) {
                         continue;
                     }
                             
                     $this->importFromFile(File::get($path), [
-                        'basePath' => path_join($this->diskService->localSyncItem->dirFullPath(), $templateName),
+                        'basePath' => path_join($this->diskService->localSyncDiskItem()->dirFullPath(), $templateName),
                     ]);
                 }
             }

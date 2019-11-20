@@ -77,7 +77,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('template/export', function () {
                 return redirect(admin_url('template'));
             });
-            $router->delete('template/delete', 'TemplateController@delete');
             
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
@@ -301,6 +300,7 @@ class RouteServiceProvider extends ServiceProvider
                 'middleware'    => array_get($route, 'middleware'),
             ], function (Router $router) use ($route) {
                 $router->post('template/search', 'TemplateController@searchTemplate');
+                $router->delete('template/delete', 'TemplateController@delete');
             });
         }
     }
