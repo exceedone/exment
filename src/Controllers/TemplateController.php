@@ -100,12 +100,21 @@ class TemplateController extends AdminControllerBase
                 } else {
                     $thumbnail_file = $no_thumbnail_file;
                 }
+
+                // get delete url
+                if(array_get($a, 'template_type') == 'user'){
+                    $delete_url = admin_urls('template', 'delete?template=' . array_get($a, 'template_name'));
+                }else{
+                    $delete_url = null;
+                }
+
                 $datalist[] = [
                     'id' => json_encode(['template_type' => array_get($a, 'template_type'), 'template_name' => array_get($a, 'template_name')]),
                     'title' => array_get($a, 'template_view_name'),
                     'description' => array_get($a, 'description'),
                     'author' => array_get($a, 'author'),
                     'thumbnail' => 'data:image/png;base64,'.$thumbnail_file,
+                    'delete_url' => $delete_url,
                 ];
             }
 
@@ -242,5 +251,22 @@ class TemplateController extends AdminControllerBase
 
         admin_toastr(trans('admin.save_succeeded'));
         return back();
+    }
+
+    /**
+     * delete template
+     */
+    public function delete(Request $request)
+    {
+        // install templates selected tiles.
+        if ($request->has('template')) {
+            $importer = new TemplateImportExport\TemplateImporter;
+            $importer->deleteTemplate($request->input('template'));
+        }
+
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
     }
 }

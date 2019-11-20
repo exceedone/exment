@@ -127,8 +127,10 @@ class Bootstrap
         $script = <<<EOT
     ///// delete click event
     $(document).off('click', '[data-exment-delete]').on('click', '[data-exment-delete]', {}, function(ev){
+        ev.preventDefault();
+
         // get url
-        var url = $(ev.target).closest('[data-exment-delete]').data('exment-delete');
+        let url = $(ev.target).closest('[data-exment-delete]').data('exment-delete');
         
         Exment.CommonEvent.ShowSwal(url, {
             title: "$delete_confirm",

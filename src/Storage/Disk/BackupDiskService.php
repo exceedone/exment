@@ -25,6 +25,10 @@ class BackupDiskService extends DiskServiceBase
      * @return boolean
      */
     protected function isNeedDownload(){
+        if($this->diskItem()->isDriverLocal()){
+            return false;
+        }
+
         return true;
     }
 

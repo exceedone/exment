@@ -15,10 +15,10 @@ class PluginDiskService extends DiskServiceBase
 
     public function __construct(...$args){
         $this->now = date('YmdHis');
-        $this->initPluginDiskService(isset($args[0]) ? $args[0] : null);
+        $this->initDiskService(isset($args[0]) ? $args[0] : null);
     }
 
-    public function initPluginDiskService($plugin){
+    public function initDiskService($plugin){
         $this->plugin = $plugin;
         $path = isset($plugin) ? $plugin->getPath() : null;
         

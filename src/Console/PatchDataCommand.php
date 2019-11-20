@@ -102,7 +102,7 @@ class PatchDataCommand extends Command
                 $this->movePluginFolder();
                 return;
             case 'move_template':
-                $this->moveTemplateFolder();
+                //$this->moveTemplateFolder();
                 return;
             case 'remove_deleted_table_notify':
                 $this->removeDeletedTableNotify();
@@ -555,15 +555,15 @@ class PatchDataCommand extends Command
         return $this->moveAppToStorageFolder('Plugins', Define::DISKNAME_PLUGIN_LOCAL);
     }
     
-    /**
-     * move template folder
-     *
-     * @return void
-     */
-    protected function moveTemplateFolder()
-    {
-        return $this->moveAppToStorageFolder('Templates', Define::DISKNAME_TEMPLATE_LOCAL);
-    }
+    // /**
+    //  * move template folder
+    //  *
+    //  * @return void
+    //  */
+    // protected function moveTemplateFolder()
+    // {
+    //     return $this->moveAppToStorageFolder('Templates', Define::DISKNAME_TEMPLATE_SYNC);
+    // }
     
     /**
      * move folder

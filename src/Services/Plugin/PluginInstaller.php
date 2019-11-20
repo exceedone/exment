@@ -103,7 +103,7 @@ class PluginInstaller
                         $plugin = static::prepareData($json);
                         //Make path of folder where contain plugin with name is plugin's name
                         $pluginFolder = $plugin->getPath();
-                        $diskService->initPluginDiskService($plugin);
+                        $diskService->initDiskService($plugin);
 
                         //If both name and uuid existed, update data for this plugin
                         if (!is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {

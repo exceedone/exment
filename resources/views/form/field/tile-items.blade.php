@@ -7,7 +7,14 @@
         </div>
         @endif
         <div class="tile-titledescription {{ !is_null(array_get($option, 'thumbnail')) ? 'hasThumbnail' : '' }}">
-            <p class="tile-title">{{ array_get($option, 'title') }}</p>
+            <div class="clearfix">
+                <p class="pull-left tile-title">{{ array_get($option, 'title') }}</p>
+                @if(!is_null(array_get($option, 'delete_url')))
+                <p class="pull-right" style="margin:0;">
+                    <button class="btn btn-box-tool" data-exment-delete="{{array_get($option, 'delete_url')}}" style="color:#333;"><i class="fa fa-trash"></i></button>
+                </p>
+                @endif
+            </div>
             @if(!is_null(array_get($option, 'description')))
             <p class="tile-description">{{ array_get($option, 'description') }}</p>
             @endif

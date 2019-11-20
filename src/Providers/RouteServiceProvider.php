@@ -77,6 +77,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('template/export', function () {
                 return redirect(admin_url('template'));
             });
+            $router->delete('template/delete', 'TemplateController@delete');
             
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');

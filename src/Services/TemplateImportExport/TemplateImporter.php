@@ -28,20 +28,16 @@ class TemplateImporter
 {
     protected $diskService;
 
+    public function __construct(){
+        $this->diskService = new TemplateDiskService();
+    }
+
     /**
      * get template list (get from app folder and vendor/exceedone/exment/templates)
      */
-    public function getTemplates($deleteTmpDirectory = true)
+    public function getTemplates()
     {
-        try{
-            $this->diskService = new TemplateDiskService();
-            return array_merge($this->getUserTemplates(), $this->getLocalTemplates());                
-        }
-        finally{
-            if($deleteTmpDirectory && isset($this->diskService)){
-                $this->diskService->deleteTmpDirectory();
-            }
-        }
+        return array_merge($this->getUserTemplates(), $this->getLocalTemplates());                
     }
     
     /**
@@ -54,7 +50,7 @@ class TemplateImporter
                 $importKeys = [$importKeys];
             }
             
-            $items = $this->getTemplates(false);
+            $items = $this->getTemplates();
             foreach(array_filter($importKeys) as $importKey){
                 $item = collect($items)->first(function($item) use($importKey){
                     $importItem = json_decode($importKey, true);
@@ -65,7 +61,8 @@ class TemplateImporter
                     continue;
                 }
                 $templateName = array_get($item, 'template_name');
-                $diskService = $this->diskService->fileName($templateName);
+
+                $this->diskService->initDiskService($templateName);
 
                 // if local item
                 if(array_get($item, 'template_type') == 'local'){
@@ -87,26 +84,16 @@ class TemplateImporter
 
                 // if crowd
                 if(array_get($item, 'template_type') == 'user'){
-                    try{
-                        $diskService->syncFromDisk();
-                        $path = path_join($diskService->localSyncDirFullPath(), $templateName, 'config.json');
-        
-                        if (!File::exists($path)) {
-                            continue;
-                        }
-                                
-                        $this->importFromFile(File::get($path), [
-                            'basePath' => path_join($diskService->localSyncDirFullPath(), $templateName),
-                        ]);
+                    $this->diskService->syncFromDisk();
+                    $path = path_join($this->diskService->localSyncItem->dirFullPath(), $templateName, 'config.json');
+    
+                    if (!File::exists($path)) {
+                        continue;
                     }
-                    catch(\Exceeption $e){
-                        throw $e;
-                    }finally{
-                        if(isset($diskService)){
-                            $diskService->deleteTmpDirectory();
-                        }
-                    }
-
+                            
+                    $this->importFromFile(File::get($path), [
+                        'basePath' => path_join($this->diskService->localSyncItem->dirFullPath(), $templateName),
+                    ]);
                 }
             }
         }finally{
@@ -114,6 +101,21 @@ class TemplateImporter
                 $this->diskService->deleteTmpDirectory();
             }
         }
+    }
+ 
+    /**
+     * Delete template (from display. select item)
+     */
+    public function deleteTemplate($teplate_name)
+    {
+        $diskItem = $this->diskService->diskItem();
+        $disk = $diskItem->disk();
+
+        if(!$disk->exists($teplate_name)){
+            return;
+        }
+
+        $disk->deleteDirectory($teplate_name);
     }
 
     
@@ -124,7 +126,8 @@ class TemplateImporter
     {
         $templates = [];
 
-        $disk = $this->diskService->disk();
+        $diskItem = $this->diskService->diskItem();
+        $disk = $diskItem->disk();
 
         $directories = $disk->directories();
         foreach ($directories as $templates_path) {
@@ -148,8 +151,8 @@ class TemplateImporter
                     $thumbnail_path = path_join($dirname, $json['thumbnail']);
                     if ($disk->exists($thumbnail_path)) {
                         // if local, get path
-                        if($this->diskService->isDriverLocal()){
-                            $json['thumbnail_file'] = base64_encode(file_get_contents(path_join($diskService->dirFullPath(), $thumbnail_path)));
+                        if($diskItem->isDriverLocal()){
+                            $json['thumbnail_file'] = base64_encode(file_get_contents(path_join($diskItem->dirFullPath(), $thumbnail_path)));
                         }
                         // if crowd, get url
                         else{
@@ -234,13 +237,13 @@ class TemplateImporter
     public function uploadTemplate($uploadFile)
     {
         try{
-            $this->diskService = new TemplateDiskService();
+            $tmpDiskItem = $this->diskService->tmpDiskItem();
+            $tmpDisk = $tmpDiskItem->disk();
 
             // store uploaded file
-            $tmpfolderpath = $this->diskService->tmpDirFullPath();
-
-            $filename = $uploadFile->store($this->diskService->tmpDirName(), Define::DISKNAME_ADMIN_TMP);
-            $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
+            $tmpfolderpath = $tmpDiskItem->dirFullPath();
+            $filename = $tmpDisk->put($tmpDiskItem->dirName(), $uploadFile);
+            $fullpath = $tmpDisk->path($filename);
 
             // zip
             $zip = new ZipArchive;
@@ -282,10 +285,10 @@ class TemplateImporter
 
                 // copy to app/templates path
                 $files = [
-                    path_join($this->diskService->tmpDirName(), $config_path) => path_join($template_name, 'config.json')
+                    path_join($tmpDiskItem->dirName(), $config_path) => path_join($template_name, 'config.json')
                 ];
                 if (isset($thumbnail_path)) {
-                    $files[path_join($this->diskService->tmpDirName(), $thumbnail_path)] = path_join($template_name, pathinfo(path_join($tmpfolderpath, $thumbnail_path))['basename']);
+                    $files[path_join($tmpDiskItem->dirName(), $thumbnail_path)] = path_join($template_name, pathinfo(path_join($tmpfolderpath, $thumbnail_path))['basename']);
                 }
                 $this->diskService->upload($files);
 

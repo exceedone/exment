@@ -10,79 +10,17 @@ use Illuminate\Support\Facades\Storage;
 
 class TemplateDiskService extends DiskServiceBase
 {
+    protected $now;
+
     public function __construct(...$args){
-        if(isset($args[0]) && is_array($args[0])){
-            $this->fileName = array_get($args[0], 'template_name');
-        }
-
-        $now = date('YmdHis');
-        $this->tmpFileName = $now;
-        $this->localSyncFileName = $now;
-
-        $this->initializeDirectory();
+        $this->now = date('YmdHis');
+        $this->initDiskService(isset($args[0]) ? $args[0] : null);
     }
 
-    public function fileName($fileName){
-        $this->fileName = $fileName;
-
-        return $this;
-    }
-
-    /**
-     * return this disk
-     *
-     * @return void
-     */
-    public function disk(){
-        return Storage::disk(Define::DISKNAME_TEMPLATE_SYNC);
-    }
-
-    /**
-     * return Tmp(for upload and remove) Disk
-     *
-     * @return void
-     */
-    public function tmpDisk(){
-        return Storage::disk(Define::DISKNAME_ADMIN_TMP);
-    }
-
-    /**
-     * return local for sync Disk
-     *
-     * @return void
-     */
-    public function localSyncDisk(){
-        return $this->tmpDisk();
-    }
-
-    /**
-     * file name with extension
-     *
-     * @return string
-     */
-    public function fileNameExtension()
-    {
-        return null;
-    }
-
-    /**
-     * tmp file name with extension
-     *
-     * @return string
-     */
-    public function tmpFileNameExtension()
-    {
-        return null;
-    }
-
-    /**
-     * list(Stored Backup file) dir name
-     *
-     * @return string
-     */
-    public function dirName()
-    {
-        return $this->fileName;
+    public function initDiskService($template_name){
+        $this->diskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_TEMPLATE_SYNC), $template_name, $template_name);
+        $this->tmpDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_ADMIN_TMP), $template_name, $this->now);
+        $this->localSyncDiskItem = $this->tmpDiskItem;
     }
     
     /**
@@ -91,6 +29,10 @@ class TemplateDiskService extends DiskServiceBase
      * @return boolean
      */
     protected function isNeedDownload(){
+        if($this->diskItem()->isDriverLocal()){
+            return false;
+        }
+
         return true;
     }
 
@@ -111,25 +53,22 @@ class TemplateDiskService extends DiskServiceBase
     protected function sync()
     {
         ///// copy to sync disk
-        $disk = $this->disk();
-        $localSyncDisk = $this->localSyncDisk();
+        $diskItem = $this->diskItem();
+        $localSyncDiskItem = $this->localSyncDiskItem();
+        
+        $disk = $diskItem->disk();
+        $localSyncDisk = $localSyncDiskItem->Disk();
 
-        /// get directory
-        $dirFullPath = $this->dirFullPath();
-        $localSyncDirName = $this->localSyncDirName();
-
-        // // remove in tmp disk
-        $files = $localSyncDisk->allFiles($localSyncDirName);
-        foreach ($files as $file) {
-            $localSyncDisk->delete($file);
+        // download zip
+        if (!$localSyncDisk->exists($localSyncDiskItem->dirName())) {
+            $localSyncDisk->makeDirectory($localSyncDiskItem->dirName(), 0755, true);
         }
-
         // get file list
-        $files = $disk->allFiles($dirFullPath);
+        $files = $disk->allFiles($diskItem->dirFullPath());
         foreach ($files as $file) {
             // copy from crowd to local
             $stream = $disk->readStream($file);
-            $localSyncDisk->writeStream(path_join($localSyncDirName, $file), $stream);
+            $localSyncDisk->writeStream($file, $stream);
         }
         
         return true;
