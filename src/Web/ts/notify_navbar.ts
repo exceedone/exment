@@ -81,7 +81,7 @@ namespace Exment {
                     }
                     else{
                         let li = $('<li/>', {
-                            text: data.noItemMessage,
+                            text: $('#notify_navbar_noitem').val(),
                             'class': 'text-center',
                             style: 'padding:7px;'
                         });

@@ -271,7 +271,9 @@ class RouteServiceProvider extends ServiceProvider
                 // System --------------------------------------------------
                 $router->get("version", 'ApiController@version');
 
-                $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ));
+                $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
+                $router->get("notify", 'ApiController@notifyList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ, ApiScope::NOTIFY_WRITE));
+                $router->post("notify", 'ApiController@notifyCreate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_WRITE));
 
                 // User, LoginUser --------------------------------------------------
                 $router->get("me", 'ApiController@me')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ME));

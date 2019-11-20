@@ -12,9 +12,12 @@ class NotifyNav implements Renderable
             return;
         }
         
+        $no_newitem = exmtrans('notify_navbar.message.no_newitem');
         $list = trans('admin.list');
         $list_url = admin_url('notify_navbar');
+
         return <<<EOT
+        <input id="notify_navbar_noitem" type="hidden" value="$no_newitem" />
 <li class="navbar-notify dropdown notifications-menu">
     <a href="javascript:void(0);" class="container-notify hidden-xs dropdown-toggle" data-toggle="dropdown">
       <i class="fa fa-bell"></i>

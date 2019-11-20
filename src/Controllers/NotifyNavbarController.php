@@ -32,6 +32,9 @@ class NotifyNavbarController extends AdminControllerBase
             return exmtrans("notify_navbar.read_flg_options.$read_flg");
         });
         $grid->column('parent_type', exmtrans('notify_navbar.parent_type'))->sortable()->display(function ($parent_type) {
+            if (is_null($parent_type)) {
+                return null;
+            }
             return CustomTable::getEloquent($parent_type)->table_view_name;
         });
         $grid->column('notify_subject', exmtrans('notify_navbar.notify_subject'))->sortable();
@@ -49,12 +52,14 @@ class NotifyNavbarController extends AdminControllerBase
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableEdit();
             
-            // reference target data
-            $linker = (new Linker)
-                ->url(admin_url("notify_navbar/rowdetail/{$actions->row->id}"))
-                ->icon('fa-list')
-                ->tooltip(exmtrans('notify_navbar.data_refer'));
-            $actions->prepend($linker);
+            if (isset($actions->row->parent_id)) {
+                // reference target data
+                $linker = (new Linker)
+                    ->url(admin_url("notify_navbar/rowdetail/{$actions->row->id}"))
+                    ->icon('fa-list')
+                    ->tooltip(exmtrans('notify_navbar.data_refer'));
+                $actions->prepend($linker);
+            }
         });
         return $grid;
     }
@@ -88,11 +93,17 @@ class NotifyNavbarController extends AdminControllerBase
             $model->update(['read_flg' => true]);
         }
 
-        $custom_value = CustomTable::getEloquent(array_get($model, 'parent_type'))
-            ->getValueModel(array_get($model, 'parent_id'));
+        $custom_value = null;
+        if (!is_null($parent_type = array_get($model, 'parent_type'))) {
+            $custom_value = CustomTable::getEloquent($parent_type)
+                ->getValueModel(array_get($model, 'parent_id'));
+        }
 
         return new Show($model, function (Show $show) use ($id, $model, $custom_value) {
             $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) {
+                if (is_null($parent_type)) {
+                    return null;
+                }
                 return CustomTable::getEloquent($parent_type)->table_view_name;
             });
 
