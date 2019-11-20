@@ -341,7 +341,7 @@ abstract class CustomValue extends ModelBase
     public function validatorSaving($input)
     {
         // validate multiple column set is unique
-        $errors = $this->validatorMultiUniques();
+        $errors = $this->validatorMultiUniques($input);
 
         // call plugin validator
         $errors = array_merge_recursive($errors, Plugin::pluginValidator(Plugin::getPluginsByTable($this->custom_table), [
@@ -353,7 +353,7 @@ abstract class CustomValue extends ModelBase
         return count($errors) > 0 ? $errors : true;
     }
 
-    protected function validatorMultiUniques()
+    protected function validatorMultiUniques($input)
     {
         $errors = [];
 
