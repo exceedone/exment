@@ -15,6 +15,7 @@ class ErrorCode extends EnumBase
     const WORKFLOW_LOCK = '201';
     const WORKFLOW_NOSTART = '202';
     const WORKFLOW_END = '203';
+    const WORKFLOW_ACTION_DISABLED = '204';
 
     public function getMessage()
     {

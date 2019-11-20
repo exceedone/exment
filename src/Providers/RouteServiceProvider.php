@@ -290,6 +290,8 @@ class RouteServiceProvider extends ServiceProvider
                 $router->get("wf/data/{tableKey}/{id}/value", 'ApiWorkflowController@getValue')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
                 $router->get("wf/data/{tableKey}/{id}/work_users", 'ApiWorkflowController@getWorkUsers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
                 $router->get("wf/data/{tableKey}/{id}/actions", 'ApiWorkflowController@getActions')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
+                $router->get("wf/data/{tableKey}/{id}/histories", 'ApiWorkflowController@getHistories')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
+                $router->post("wf/data/{tableKey}/{id}/value", 'ApiWorkflowController@execute')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_EXECUTE));
             });
         }
     }

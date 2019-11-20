@@ -1516,6 +1516,9 @@ return [
             'data_not_found' => '対象データが見つかりません。',
             'workflow_nostart' => 'ワークフローが開始されていない、または対象外のデータです。',
             'workflow_end' => 'ワークフローが完了済、または対象外のデータです。',
+            'workflow_action_disabled' => '無効なアクション、または権限がありません。',
+            'invalid_user' => 'id：%sのユーザーは存在しません。',
+            'invalid_organization' => 'id：%sの組織は存在しません。',
         ],
 
         'help' =>[
