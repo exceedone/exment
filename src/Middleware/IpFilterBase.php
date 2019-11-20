@@ -12,13 +12,13 @@ use Symfony\Component\HttpFoundation\IpUtils;
  */
 abstract class IpFilterBase
 {
-    public function handleBase(Request $request, \Closure $next, $fulterFuncName)
+    public function handleBase(Request $request, \Closure $next, $filterFuncName)
     {
         if (config('exment.ip_filter_disabled', false)) {
             return $next($request);
         }
 
-        $filters = System::{$fulterFuncName}();
+        $filters = System::{$filterFuncName}();
         if(is_nullorempty($filters)){
             return $next($request);
         }

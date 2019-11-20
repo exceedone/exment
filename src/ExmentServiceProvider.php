@@ -204,15 +204,7 @@ class ExmentServiceProvider extends ServiceProvider
         }
 
         ////// register middleware group.
-        // append oauth login
-        $middleware_admin_webapi = $this->middlewareGroups['admin'];
-        $middleware_admin_webapi = array_filter($middleware_admin_webapi, function($item){
-            return $item != 'admin.web-ipfilter';
-        });
-        $middleware_admin_webapi[] = 'admin.api-ipfilter';
-        $this->middlewareGroups['admin_api_oauth'] = $middleware_admin_webapi;
-
-        foreach ($this->middlewareGroups as $key => $middleware) {
+        foreach ($this->getMiddlewareGroups() as $key => $middleware) {
             app('router')->middlewareGroup($key, $middleware);
         }
 
@@ -392,5 +384,35 @@ class ExmentServiceProvider extends ServiceProvider
     public function policies()
     {
         return $this->policies;
+    }
+
+    /**
+     * Get Middleware Groups
+     * *Merge adminapioauth, adminwebapi
+     *
+     * @return void
+     */
+    public function getMiddlewareGroups(){
+        ////// register middleware group.
+        $middlewareGroups = $this->middlewareGroups;
+        // append oauth login
+        $middleware = $middlewareGroups['admin'];
+        foreach($middleware as &$m){
+            if($m == 'admin.web-ipfilter'){
+                $m = 'admin.api-ipfilter';
+            }
+        }
+        $middlewareGroups['adminapioauth'] = $middleware;
+
+        // append adminwebapi
+        $middleware = $middlewareGroups['adminapi'];
+        foreach($middleware as &$m){
+            if($m == 'admin.api-ipfilter'){
+                $m = 'admin.web-ipfilter';
+            }
+        }
+        $middlewareGroups['adminwebapi'] = $middleware;
+
+        return $middlewareGroups;
     }
 }
