@@ -82,7 +82,7 @@ class RestoreCommand extends Command
     protected function importTsv()
     {
         // get tsv files in target folder
-        $files = array_filter(\File::files($this->diskService->tmpDirFullPath()), function ($file) {
+        $files = array_filter(\File::files($this->diskService->tmpDiskItem()->dirFullPath()), function ($file) {
             return preg_match('/.+\.tsv$/i', $file);
         });
 
@@ -120,7 +120,7 @@ __EOT__;
     {
         $result = true;
 
-        $directories = \File::directories($this->diskService->tmpDirFullPath());
+        $directories = \File::directories($this->diskService->tmpDiskItem()->dirFullPath());
 
         foreach ($directories as $directory) {
             $topath = base_path(mb_basename($directory));
@@ -140,7 +140,7 @@ __EOT__;
     protected function updateEnv()
     {
         // get env file
-        $file = path_join($this->diskService->tmpDirFullPath(), '.env');
+        $file = path_join($this->diskService->tmpDiskItem()->dirFullPath(), '.env');
         if (!\File::exists($file)) {
             return;
         }
@@ -219,7 +219,7 @@ __EOT__;
         );
 
         // restore table definition
-        $def = path_join($this->diskService->tmpDirFullPath(), config('exment.backup_info.def_file'));
+        $def = path_join($this->diskService->tmpDiskItem()->dirFullPath(), config('exment.backup_info.def_file'));
         if (\File::exists($def)) {
             $command = sprintf('%s < %s', $mysqlcmd, $def);
             exec($command);
@@ -227,7 +227,7 @@ __EOT__;
         }
 
         // get insert sql file for each tables
-        $files = array_filter(\File::files($this->diskService->tmpDirFullPath()), function ($file) {
+        $files = array_filter(\File::files($this->diskService->tmpDiskItem()->dirFullPath()), function ($file) {
             return preg_match('/.+\.sql$/i', $file);
         });
 

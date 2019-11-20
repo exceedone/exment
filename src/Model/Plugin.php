@@ -209,7 +209,7 @@ class Plugin extends ModelBase
         // sync from crowd.
         $diskService->syncFromDisk();
 
-        $plugin_fullpath = $diskService->localSyncDirFullPath();
+        $plugin_fullpath = $diskService->localSyncDiskItem()->dirFullPath();
         $this->requirePlugin($plugin_fullpath);
 
         return path_join($plugin_fullpath, ...$pass_array);

@@ -24,16 +24,18 @@ class PluginInstaller
     public static function uploadPlugin($uploadFile)
     {
         try{
+            $diskService = new PluginDiskService();
+            $tmpDiskItem = $diskService->tmpDiskItem();
+
             // store uploaded file and get tmp path
-            $tmpdir = getTmpFolderPath('plugin', false);
-            $tmpfolderpath = path_join($tmpdir, short_uuid());
-            $tmpfolderfullpath = getFullPath($tmpfolderpath, Define::DISKNAME_ADMIN_TMP, true);
+            $tmpdir = $tmpDiskItem->dirName();
+            // $tmpfolderpath = path_join($tmpdir, short_uuid());
+            $tmpfolderfullpath = $tmpDiskItem->dirFullPath();
             $pluginFileBasePath = null;
 
-            $filename = $uploadFile->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
-            $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
-            // // tmpfolderpath is the folder path uploaded.
-            // $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
+            // store file
+            $filename = $tmpDiskItem->disk()->put($tmpdir, $uploadFile);
+            $fullpath = $tmpDiskItem->disk()->path($filename);
             
             // open zip file
             $zip = new ZipArchive;
@@ -49,27 +51,36 @@ class PluginInstaller
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $stat = $zip->statIndex($i);
                 $fileInfo = $zip->getNameIndex($i);
-                if (basename($zip->statIndex($i)['name']) === 'config.json') {
-                    $zip->extractTo($tmpfolderfullpath);
-
-                    // get confign statname
-                    $statname = array_get($stat, 'name');
-                    $config_path = path_join($tmpfolderfullpath, $statname);
-
-                    // get dirname
-                    $dirname = pathinfo($statname)['dirname'];
-
-                    // if dirname is '.', $pluginFileBasePath is $tmpfolderpath
-                    if ($dirname == '.') {
-                        $pluginFileBasePath = $tmpfolderpath;
-                    }
-                    // else, $pluginFileBasePath is join $dirname
-                    else {
-                        $pluginFileBasePath = path_join($tmpfolderpath, $dirname);
-                    }
-                    break;
+                if (basename($zip->statIndex($i)['name']) !== 'config.json') {
+                    continue;
                 }
+
+                $zip->extractTo($tmpfolderfullpath);
+
+                // get confign statname
+                $statname = array_get($stat, 'name');
+                $config_path = path_join($tmpfolderfullpath, $statname);
+
+                // get dirname
+                $dirname = pathinfo($statname)['dirname'];
+
+                // if dirname is '.', $pluginFileBasePath is $tmpfolderpath
+                if ($dirname == '.') {
+                    $pluginFileBasePath = $tmpdir;
+                }
+                // else, $pluginFileBasePath is join $dirname
+                else {
+                    $pluginFileBasePath = path_join($tmpdir, $dirname);
+                }
+                break;
             }
+
+            // remove zip
+            if(isset($zip)){
+                $zip->close();
+            }
+            // delete zip
+            $tmpDiskItem->disk()->delete($filename);
 
             //Extract file if $checkExistedConfig = true
             if (isset($config_path)) {
@@ -92,19 +103,20 @@ class PluginInstaller
                         $plugin = static::prepareData($json);
                         //Make path of folder where contain plugin with name is plugin's name
                         $pluginFolder = $plugin->getPath();
+                        $diskService->initPluginDiskService($plugin);
 
                         //If both name and uuid existed, update data for this plugin
                         if (!is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
                             $pluginUpdated = $plugin->saveOrFail();
                             //Rename folder with plugin name
-                            static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath);
+                            static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
                             admin_toastr(exmtrans('common.message.success_execute'));
                             $response = back();
                         }
                         //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
                         elseif (is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
                             $plugin->save();
-                            static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath);
+                            static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
                             admin_toastr(exmtrans('common.message.success_execute'));
                             $response = back();
                         }
@@ -135,18 +147,10 @@ class PluginInstaller
             throw $ex;
         }
         finally{
-            // delete tmp folder
-            if(isset($zip)){
-                $zip->close();
-            }
 
             // delete zip
-            if (isset($tmpfolderfullpath)) {
-                File::deleteDirectory($tmpfolderfullpath);
-            }
-
-            if (isset($fullpath)) {
-                unlink($fullpath);
+            if (isset($diskService)) {
+                $diskService->deleteTmpDirectory();
             }
         }
     }
@@ -236,12 +240,10 @@ class PluginInstaller
      * @param [type] $pluginFileBasepath
      * @return void
      */
-    protected static function copyPluginNameFolder($plugin, $json, $pluginFolderPath, $pluginFileBasepath)
+    protected static function copyPluginNameFolder($plugin, $json, $pluginFolderPath, $pluginFileBasepath, $diskService)
     {
-        $diskService = new PluginDiskService($plugin);
-
         // get all files
-        $files = $diskService->tmpDisk()->allFiles($pluginFileBasepath);
+        $files = $diskService->tmpDiskItem()->disk()->allFiles($pluginFileBasepath);
 
         $filelist = collect($files)->mapWithKeys(function($file) use ($pluginFolderPath, $pluginFileBasepath){
             // get moved file name

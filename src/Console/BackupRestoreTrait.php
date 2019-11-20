@@ -11,12 +11,12 @@ trait BackupRestoreTrait
 
     protected function disk()
     {
-        return $this->diskService->disk();
+        return $this->diskService->diskItem()->disk();
     }
 
     protected function tmpDisk()
     {
-        return $this->diskService->tmpDisk();
+        return $this->diskService->tmpDiskItem()->disk();
     }
 
     protected function initBackupRestore($basename = null)

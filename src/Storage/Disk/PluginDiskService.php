@@ -11,83 +11,29 @@ use Illuminate\Support\Facades\Storage;
 class PluginDiskService extends DiskServiceBase
 {
     protected $plugin;
+    protected $now;
 
     public function __construct(...$args){
-        if(!isset($args[0])){
-            return;
-        }
+        $this->now = date('YmdHis');
+        $this->initPluginDiskService(isset($args[0]) ? $args[0] : null);
+    }
 
-        $this->plugin = $args[0];
-        $this->tmpFileName = $this->plugin->getPath();
-        $this->localSyncFileName = $this->tmpFileName;
+    public function initPluginDiskService($plugin){
+        $this->plugin = $plugin;
+        $path = isset($plugin) ? $plugin->getPath() : null;
         
-        $this->initializeDirectory();
+        $this->diskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_SYNC), $path, $path);
+        $this->tmpDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_ADMIN_TMP), $path, $this->now);
+        $this->localSyncDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_LOCAL), $path, $path);
     }
 
-    /**
-     * return this disk
-     *
-     * @return void
-     */
-    public function disk(){
-        return Storage::disk(Define::DISKNAME_PLUGIN_SYNC);
-    }
-
-    /**
-     * return Tmp(local) Disk
-     *
-     * @return void
-     */
-    public function tmpDisk(){
-        return Storage::disk(Define::DISKNAME_ADMIN_TMP);
-    }
-
-    /**
-     * return local for sync Disk
-     *
-     * @return void
-     */
-    public function localSyncDisk(){
-        return Storage::disk(Define::DISKNAME_PLUGIN_LOCAL);
-    }
-
-    /**
-     * file name with extension
-     *
-     * @return string
-     */
-    public function fileNameExtension()
-    {
-        return null;
-    }
-
-    /**
-     * tmp file name with extension
-     *
-     * @return string
-     */
-    public function tmpFileNameExtension()
-    {
-        return null;
-    }
-
-    /**
-     * list(Stored Backup file) dir name
-     *
-     * @return string
-     */
-    public function dirName()
-    {
-        return $this->tmpFileName;
-    }
-    
     /**
      * Whether needs download from clowd
      *
      * @return boolean
      */
     protected function isNeedDownload(){
-        if($this->isDriverLocal()){
+        if($this->diskItem()->isDriverLocal()){
             return false;
         }
 
@@ -95,7 +41,7 @@ class PluginDiskService extends DiskServiceBase
         $pathDir = $this->plugin->getPath();
 
         // if not has local sync disk
-        $localSyncDisk = $this->localSyncDisk();
+        $localSyncDisk = $this->localSyncDiskItem()->disk();
         if (!$localSyncDisk->exists($pathDir)) {
             return true;
         }
@@ -138,12 +84,14 @@ class PluginDiskService extends DiskServiceBase
     protected function sync()
     {
         ///// copy to sync disk
-        $disk = $this->disk();
-        $localSyncDisk = $this->localSyncDisk();
+        $diskItem = $this->diskItem();
+        $disk = $diskItem->disk();
+        $localSyncDiskItem = $this->localSyncDiskItem();
+        $localSyncDisk = $localSyncDiskItem->disk();
 
         /// get directory
-        $dirFullPath = $this->dirFullPath();
-        $localSyncDirName = $this->localSyncDirName();
+        $dirFullPath = $diskItem->dirFullPath();
+        $localSyncDirName = $localSyncDiskItem->dirName();
 
         // // remove in tmp disk
         $files = $localSyncDisk->allFiles($localSyncDirName);
