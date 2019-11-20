@@ -171,11 +171,6 @@ class Initialize
             'root' => storage_path('app/plugins'),
         ]);
 
-        Config::set('filesystems.disks.template_local', [
-            'driver' => 'local',
-            'root' => storage_path('app/templates'),
-        ]);
-
         // mysql setting
         Config::set('database.connections.mysql.strict', false);
         Config::set('database.connections.mysql.options', [
