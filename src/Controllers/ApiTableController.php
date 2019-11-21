@@ -74,10 +74,19 @@ class ApiTableController extends AdminControllerTableBase
 
         // set order by
         if (isset($orderby_list)) {
+            $hasId = false;
             foreach ($orderby_list as $item) {
+                if($item[0] == 'id'){
+                    $hasId = true;
+                }
                 $model->orderBy($item[0], $item[1]);
             }
+
+            if(!$hasId){
+                $model->orderBy('id');
+            }
         }
+
         $paginator = $model->paginate($count);
 
         // execute makehidden
@@ -87,7 +96,7 @@ class ApiTableController extends AdminControllerTableBase
         // set appends
         $paginator->appends([
             'count' => $count,
-            'orderBy' => $orderby,
+            'orderby' => $orderby,
         ]);
 
         return $paginator;
