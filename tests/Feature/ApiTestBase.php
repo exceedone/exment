@@ -54,4 +54,26 @@ abstract class ApiTestBase extends TestCase
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
     }
+    
+    /**
+     * Get user1 access token for all-edit user
+     *
+     * @return void
+     */
+    protected function getUser1AccessToken($scope = []){
+        $response = $this->getPasswordToken('user1', 'user1user1', $scope);
+
+        return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
+    }
+    
+    /**
+     * Get user2 access token for general user
+     *
+     * @return void
+     */
+    protected function getUser2AccessToken($scope = []){
+        $response = $this->getPasswordToken('user2', 'user2user2', $scope);
+
+        return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
+    }
 }

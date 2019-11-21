@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Enums\BackupTarget;
 use Laravel\Passport\ClientRepository;
 
@@ -101,7 +102,13 @@ class InitTestCommand extends Command
             ],
         ];
 
-        foreach($users as $user){
+        // set rolegroups
+        $rolegroups = [
+            'user1' => [1],
+            'user2' => [4],
+        ];
+
+        foreach($users as $user_key => $user){
             $model = CustomTable::getEloquent('user')->getValueModel();
             foreach($user['value'] as $key => $value){
                 $model->setValue($key, $value);
@@ -113,6 +120,16 @@ class InitTestCommand extends Command
             $loginUser->base_user_id = $model->id;
             $loginUser->password = $user['password'];
             $loginUser->save();
+
+            if (isset($rolegroups[$user_key]) && is_array($rolegroups[$user_key])) {
+                foreach ($rolegroups[$user_key] as $rolegroup) {
+                    $roleGroupUserOrg = new RoleGroupUserOrganization;
+                    $roleGroupUserOrg->role_group_id = $rolegroup;
+                    $roleGroupUserOrg->role_group_user_org_type = 'user';
+                    $roleGroupUserOrg->role_group_target_id = $model->id;
+                    $roleGroupUserOrg->save();
+                }
+            }
         }
         
 
