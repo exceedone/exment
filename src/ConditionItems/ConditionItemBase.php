@@ -150,11 +150,11 @@ abstract class ConditionItemBase
     }
 
     /**
-     * Get Filter Condition Label
+     * Get Condition Label
      *
      * @return void
      */
-    public function getConditionLabel($condition)
+    public function getConditionLabel(Condition $condition)
     {
         $enum = ConditionTypeDetail::getEnum($condition->target_column_id);
         return $enum->transKey('condition.condition_type_options') ?: null;
