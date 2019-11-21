@@ -155,9 +155,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
 
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
-                        
-            $router->get('api/table/{id}', 'ApiController@table');
-            $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');
         
             $router->get('files/{uuid}', function ($uuid) {
                 return File::downloadFile($uuid);
@@ -264,8 +261,8 @@ class RouteServiceProvider extends ServiceProvider
                 $router->get("table", 'ApiController@tablelist')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("table/indexcolumns", 'ApiController@indexcolumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("table/filterviews", 'ApiController@filterviews')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
-                $router->get("table/{tableKey}", 'ApiController@table')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("table/{tableKey}/columns", 'ApiTableController@tableColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                $router->get("table/{tableKey}", 'ApiController@table')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("column/{id}", 'ApiController@column')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("target_table/columns/{id}", 'ApiController@targetBelongsColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 
