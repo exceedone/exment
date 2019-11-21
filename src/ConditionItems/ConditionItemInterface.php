@@ -19,9 +19,9 @@ interface ConditionItemInterface
     public function isMatchCondition(Condition $condition, CustomValue $custom_value);
     
     /**
-     * get condition value label.
+     * Get condition label.
      *
-     * @param CustomValue $custom_value
+     * @param Condition $condition
      * @return boolean
      */
     public function getConditionLabel(Condition $condition);

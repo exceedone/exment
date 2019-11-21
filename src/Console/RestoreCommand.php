@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\Installer\EnvTrait;
+use Exceedone\Exment\Model\System;
 use \File;
 
 class RestoreCommand extends Command
@@ -66,6 +67,8 @@ class RestoreCommand extends Command
             // copy env
             $this->updateEnv();
 
+            System::clearCache();
+            
             return $result;
         }
         catch(\Exception $e){

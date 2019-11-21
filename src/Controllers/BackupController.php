@@ -181,7 +181,7 @@ class BackupController extends AdminControllerBase
      */
     public function save(Request $request)
     {
-        set_time_limit(240);
+        setTimeLimitLong();
         $data = $request->all();
 
         $target = System::backup_target();
@@ -266,7 +266,7 @@ class BackupController extends AdminControllerBase
      */
     protected function import(Request $request)
     {
-        set_time_limit(240);
+        setTimeLimitLong();
 
         // validation
         $validator = Validator::make($request->all(), [

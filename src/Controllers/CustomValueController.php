@@ -359,7 +359,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
         
-        set_time_limit(240);
+        setTimeLimitLong();
 
         $class = $plugin->getClass($request->input('plugin_type'), [
             'custom_table' => $this->custom_table,
