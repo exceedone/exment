@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
+use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use \File;
 
@@ -119,14 +120,48 @@ __EOT__;
     protected function copyFiles()
     {
         $result = true;
+        $tmpDisk = $this->diskService->tmpDiskItem()->disk();
 
-        $directories = \File::directories($this->diskService->tmpDiskItem()->dirFullPath());
-
+        $directories = $tmpDisk->allDirectories($this->diskService->tmpDiskItem()->dirName());
+        
         foreach ($directories as $directory) {
-            $topath = base_path(mb_basename($directory));
-            $success = \File::copyDirectory($directory, $topath);
-            if (!$success) {
-                $result = false;
+            // check target key name
+            $splits = explode("/", $directory);
+            if(count($splits) != 2){
+                continue;
+            }
+            $keyname = $splits[1];
+
+            $setting = BackupTarget::dirOrDisk($keyname);
+            if(is_null($setting)){
+                continue;
+            }
+            
+            $fromDirectory = $tmpDisk->path(path_join($this->diskService->tmpDiskItem()->dirName(), $keyname));
+            // is local file
+            if(is_string($setting)){
+                $topath = base_path($setting);
+                $success = \File::copyDirectory($fromDirectory, $topath);
+                if (!$success) {
+                    $result = false;
+                }
+            }
+            // is croud file
+            else{
+                $disk = $setting[0];
+                
+                $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
+                
+                if (!$this->tmpDisk()->exists($to)) {
+                    $this->tmpDisk()->makeDirectory($to, 0755, true);
+                }
+
+                $files = \File::allFiles($directory);
+                foreach ($files as $file) {
+                    // copy from crowd to local
+                    $stream = \File::readStream($file);
+                    $disk->writeStream(path_join($to, $file), $stream);
+                }
             }
         }
 

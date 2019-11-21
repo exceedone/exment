@@ -5,10 +5,11 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\BackupTarget;
+use Exceedone\Exment\Services\Installer\EnvTrait;
 
 class BackupCommand extends Command
 {
-    use CommandTrait, BackupRestoreTrait;
+    use CommandTrait, BackupRestoreTrait, EnvTrait;
 
     /**
      * The name and signature of the console command.
@@ -88,43 +89,52 @@ class BackupCommand extends Command
     {
         // get directory paths
         $settings = collect($target)->map(function ($val) {
-            return BackupTarget::dir($val);
+            return BackupTarget::dirOrDisk($val);
         })->filter(function ($val) {
             return isset($val);
         })->toArray();
-        $settings = array_merge(
-            config('exment.backup_info.copy_dir', []),
-            $settings
-        );
         
-        if (is_array($settings)) {
-            foreach ($settings as $setting) {
-                $from = base_path($setting);
+        foreach ($settings as $setting) {
+            // is local file
+            if(is_string($setting)){
+                $from = $setting;
                 if (!\File::exists($from)) {
                     continue;
                 }
 
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting);
-
+                
                 if (!$this->tmpDisk()->exists($to)) {
                     $this->tmpDisk()->makeDirectory($to, 0755, true);
                 }
 
-                $success = \File::copyDirectory($from, $this->tmpDisk()->path($to));
-                if (!$success) {
-                    return false;
-                }
+                \File::copyDirectory($from, $this->tmpDisk()->path($to));
             }
+            // is croud file
+            else{
+                $disk = $setting[0];
                 
-            // if contains 'config' in $settings, copy env file
-            if (in_array('config', $settings)) {
-                $from_env = path_join(base_path(), '.env');
-                $to_env = $this->tmpDisk()->path(path_join($this->diskService->tmpDiskItem()->dirName(), '.env'));
+                $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
+                
+                if (!$this->tmpDisk()->exists($to)) {
+                    $this->tmpDisk()->makeDirectory($to, 0755, true);
+                }
 
-                if (\File::exists($from_env)) {
-                    \File::copy($from_env, $to_env);
+                $files = $disk->allFiles('');
+                foreach ($files as $file) {
+                    // copy from crowd to local
+                    $stream = $disk->readStream($file);
+                    $this->tmpDisk()->writeStream(path_join($to, $file), $stream);
                 }
             }
+        }
+            
+        // if contains 'config' in $settings, copy env file
+        if (in_array('config', $settings)) {
+            $envLines = $this->getMatchedEnv();
+            $to_env = $this->tmpDisk()->path(path_join($this->diskService->tmpDiskItem()->dirName(), '.env'));
+
+            \File::put($to_env, $envLines);
         }
 
         return true;
@@ -204,4 +214,44 @@ class BackupCommand extends Command
             $disk->delete(array_get($file, 'name'));
         }
     }
+    
+    /**
+     * get matched env data
+     *
+     */
+    protected function getMatchedEnv()
+    {
+        // get env file
+        $file = path_join(base_path(), '.env');
+        if (!\File::exists($file)) {
+            return null;
+        }
+
+        $matchKeys = [
+            [
+                'keys' => ['EXMENT_'],
+                'prefix' => true,
+            ],
+            [
+                'keys' => ['APP_KEY', 'APP_LOCALE', 'APP_TIMEZONE'],
+                'prefix' => false,
+            ],
+        ];
+
+        $results = [];
+        foreach ($matchKeys as $item) {
+            foreach ($item['keys'] as $key) {
+                if (is_null($lines = $this->getEnv($key, $file, $item['prefix']))) {
+                    continue;
+                }
+
+                $results = array_merge(collect($lines)->map(function($line){
+                    return "{$line[0]}={$line[1]}";
+                })->toArray(), $results);
+            }
+        }
+
+        return implode("\n", $results);
+    }
+
 }

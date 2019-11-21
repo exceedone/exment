@@ -55,7 +55,11 @@ class Driver extends EnumBase
     {
         $baseConfig = config($baseConfigKey, []);
         $mergeConfig = config($mergeConfigKey, []);
-        array_forget($mergeConfig, ['root', 'driver']);
+
+        if(array_get($mergeConfig, 'driver') != 'local'){
+            array_forget($mergeConfig, ['root']);
+        }
+        array_forget($mergeConfig, ['driver']);
 
         $driver = array_get($baseConfig, 'driver');
 

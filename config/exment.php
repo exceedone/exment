@@ -219,8 +219,6 @@ return [
     'backup_info' => [
         'mysql_dir' => env('EXMENT_MYSQL_BIN_DIR'),
         'def_file' => 'table_definition.sql',
-        'copy_dir' => [
-        ],
     ],
 
     /*
