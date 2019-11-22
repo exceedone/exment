@@ -308,7 +308,15 @@ class WorkflowAction extends ModelBase
                 });
 
                 WorkflowValueAuthority::insert($user_organizations->toArray());
+
+                // set Custom Value Authoritable
+                CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations);
+
                 $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
+            }else{
+                // get this getAuthorityTargets
+                $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $status_to);
+                CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities);
             }
         });
 
@@ -603,13 +611,8 @@ class WorkflowAction extends ModelBase
         $completed = WorkflowStatus::getWorkflowStatusCompleted($statusTo);
         if ($next === true && !$completed) {
             // get next actions
-            $toActionAuthorities = collect();
-
             $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow, true);
-            $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
-                $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value)
-                        ->merge($toActionAuthorities);
-            });
+            $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $statusTo, $nextActions);
 
             // show target users text
             $select = $nextActions->contains(function ($nextAction) {
@@ -664,6 +667,26 @@ class WorkflowAction extends ModelBase
             'title' => $this->action_name,
             'showSubmit' => $showSubmit,
         ]);
+    }
+
+    /**
+     * get next action Authorities
+     *
+     * @return void
+     */
+    protected function getNextActionAuthorities($custom_value, $statusTo, $nextActions = null){
+        // get next actions
+        $toActionAuthorities = collect();
+
+        if(is_null($nextActions)){
+            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow, true);
+        }
+        $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
+            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value)
+                    ->merge($toActionAuthorities);
+        });
+        
+        return $toActionAuthorities;
     }
     
     protected static function boot()
