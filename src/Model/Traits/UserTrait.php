@@ -31,6 +31,12 @@ trait UserTrait
         return $this->hasOne(Model\UserSetting::class, "user_id");
     }
     
+    /**
+     * Get organizations user joined.
+     * * ONLY JOIN. not contains upper and downer.
+     *
+     * @return void
+     */
     public function belong_organizations()
     {
         $db_table_name_pivot = Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);

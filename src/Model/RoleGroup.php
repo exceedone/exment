@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\SystemTableName;
+
 class RoleGroup extends ModelBase
 {
     use Traits\TemplateTrait;
@@ -40,6 +42,42 @@ class RoleGroup extends ModelBase
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id')
             ->where('role_group_user_org_type', 'organization');
+    }
+
+    /**
+     * Get HasPermissionRoleGroup.
+     * Check as user, and organization.
+     *
+     * @return \Collection
+     */
+    public static function getHasPermissionRoleGroup($user_id, $organization_ids){
+        // get all permissons for system. --------------------------------------------------
+        return static::allRecordsCache(function ($role_group) use ($user_id, $organization_ids) {
+            $user_orgs = array_get($role_group, SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
+            if (is_nullorempty($user_orgs)) {
+                return false;
+            }
+
+            if ($user_orgs->contains(function ($user_org) use ($user_id, $organization_ids) {
+                if(!is_nullorempty($user_id)){
+                    if ($user_org->role_group_user_org_type == SystemTableName::USER && in_array($user_org->role_group_target_id, (array)$user_id)) {
+                        return true;
+                    }    
+                }
+
+                if (!is_nullorempty($organization_ids)) {
+                    if ($user_org->role_group_user_org_type == SystemTableName::ORGANIZATION && in_array($user_org->role_group_target_id, (array)$organization_ids)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            })) {
+                return true;
+            }
+
+            return false;
+        }, false, [SystemTableName::ROLE_GROUP_PERMISSION, SystemTableName::ROLE_GROUP_USER_ORGANIZATION]);
     }
 
     protected static function boot()
