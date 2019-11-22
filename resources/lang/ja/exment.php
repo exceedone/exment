@@ -210,9 +210,11 @@ return [
         'password_history_cnt' => 'パスワードの履歴件数',
         'organization_header' => '組織設定',
         'org_joined_type_role_group' => '組織階層設定(役割グループ)',
+        'org_joined_type_workflow' => '組織階層設定(ワークフロー)',
+        'org_joined_type_custom_form' => '組織階層設定(フォーム条件)',
         'org_joined_type_custom_value' => '組織階層設定(データ)',
         'custom_value_save_autoshare' => 'カスタムデータ共有設定',
-          
+        
         'site_skin_options' => [
             "skin-blue" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
             "skin-blue-light" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：白",
@@ -289,7 +291,9 @@ return [
             'password_expiration_days' => 'パスワードの有効日数を設定します。0にした場合は無期限になります。',
             'password_history_cnt' => '1以上を入力することで、過去に使用したことのある古いパスワードは、入力した件数分、再度登録できなくなります。<br />※0にした場合でも、設定中のパスワードは登録できません。',
             
-            'org_joined_type_role_group' => '役割グループ設定に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
+            'org_joined_type_role_group' => '役割グループの「ユーザー・組織設定」に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
+            'org_joined_type_workflow' => 'ワークフローの「アクション設定」に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
+            'org_joined_type_custom_form' => 'カスタムフォームの「フォーム表示条件」に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
             'org_joined_type_custom_value' => '各カスタムデータの共有設定に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
             'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により、所属組織にも共有することができます。',
         ],
