@@ -44,8 +44,9 @@ trait ApiTrait
         }
 
         $count = $request->get('count');
-        if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
-            return abortJson(400, exmtrans('api.errors.over_maxcount'), ErrorCode::INVALID_PARAMS());
+        $maxcount = config('exment.api_max_data_count', 100);
+        if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > $maxcount) {
+            return abortJson(400, exmtrans('api.errors.over_maxcount', $maxcount), ErrorCode::INVALID_PARAMS());
         }
 
         return $count;
