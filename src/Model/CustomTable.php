@@ -1807,7 +1807,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if($this->hasCustomValueInDB($custom_value_id)){
             return ErrorCode::PERMISSION_DENY();
         }else{
-            return ErrorCode::NO_DATA();
+            return ErrorCode::DATA_NOT_FOUND();
         }
     }
 

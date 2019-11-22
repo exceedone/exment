@@ -152,7 +152,7 @@ class ApiController extends AdminControllerBase
         $table = CustomTable::getEloquent($tableKey, $withs);
 
         if (!isset($table)) {
-            return abortJson(400, ErrorCode::NO_DATA());
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         if (!$table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
@@ -170,7 +170,7 @@ class ApiController extends AdminControllerBase
     {
         $column = CustomColumn::getEloquent($id);
         if (!isset($column)) {
-            return abortJson(400, ErrorCode::NO_DATA());
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         if (!$column->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {

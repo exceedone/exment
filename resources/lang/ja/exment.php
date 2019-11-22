@@ -1548,7 +1548,7 @@ return [
             'invalid_organization' => 'id：%sの組織は存在しません。',
             'no_data' => 'データがありません。',
         ],
-
+        
         'help' =>[
             'redirect' => '認証後にリダイレクトするURLを入力してください。',
             'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',
