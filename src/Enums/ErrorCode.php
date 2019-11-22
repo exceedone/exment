@@ -11,6 +11,8 @@ class ErrorCode extends EnumBase
     const FORM_ACTION_DISABLED = '104';
     const DELETE_DISABLED = '105';
     const NO_DATA = '106';
+    const ACCESS_DENYED = '107';
+    const WRONG_SCOPE = '108';
     const WORKFLOW_LOCK = '201';
 
     public function getMessage()

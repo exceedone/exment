@@ -332,8 +332,8 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function columnData(Request $request, $tableKey, $column_name)
     {
-        if (!$this->custom_table->enableAccess()) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, $code);
         }
 
         $query = $request->get('query');
