@@ -19,7 +19,7 @@ class CheckForAnyScope
     {
         $user = \Exment::user();
         if (is_null($user) || is_null($user->base_user)) {
-            return abortJson(401, exmtrans('api.errors.access_denied'), ErrorCode::PERMISSION_DENY());
+            return abortJson(401, ErrorCode::ACCESS_DENYED());
         }
 
         foreach ($scopes as $scope) {
@@ -28,6 +28,6 @@ class CheckForAnyScope
             }
         }
 
-        return abortJson(403, exmtrans('api.errors.wrong_scope'), ErrorCode::WRONG_SCOPE());
+        return abortJson(403, ErrorCode::WRONG_SCOPE());
     }
 }

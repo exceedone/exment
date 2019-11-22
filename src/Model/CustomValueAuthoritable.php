@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Model\CustomValue;
 use Carbon\Carbon;
 
 class CustomValueAuthoritable extends ModelBase
@@ -58,6 +59,42 @@ class CustomValueAuthoritable extends ModelBase
                 'authoritable_type' => Permission::CUSTOM_VALUE_EDIT,
                 'authoritable_user_org_type' => SystemTableName::ORGANIZATION,
                 'authoritable_target_id' => $belong_organization->id,
+            ]);
+        }
+    }
+
+    /**
+     * Set Authoritable By User and Org Array
+     *
+     * @return void
+     */
+    public static function setAuthoritableByUserOrgArray($custom_value, $arrays)
+    {
+        $custom_table = $custom_value->custom_table;
+        $table_name = $custom_table->table_name;
+        if (in_array($table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY())) {
+            return;
+        }
+
+        foreach($arrays as $array){
+            if($array instanceof CustomValue){
+                $related_id = array_get($array, 'id');
+                $related_type = $array->custom_table->table_name;
+            }else{
+                $related_id = array_get($array, 'related_id');
+                $related_type = array_get($array, 'related_type');    
+            }
+
+            if(\is_nullorempty($related_id) || \is_nullorempty($related_type)){
+                continue;
+            }
+
+            self::firstOrCreate([
+                'parent_id' => $custom_value->id,
+                'parent_type' => $table_name,
+                'authoritable_type' => Permission::CUSTOM_VALUE_VIEW,
+                'authoritable_user_org_type' => $related_type,
+                'authoritable_target_id' => $related_id,
             ]);
         }
     }

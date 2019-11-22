@@ -65,6 +65,8 @@ class Define
         'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
         // org_joined_type
         'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'system'],
+        'org_joined_type_workflow' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
+        'org_joined_type_custom_form' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
         'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
         'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
         

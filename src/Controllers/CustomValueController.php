@@ -669,15 +669,15 @@ class CustomValueController extends AdminControllerTableBase
             $code = $this->custom_table->enableCreate(true);
         } elseif ($formActionType == CustomValuePageType::EDIT) {
             $custom_value = $this->custom_table->getValueModel($id);
-            $code = $custom_value ? $custom_value->enableEdit(true) : ErrorCode::PERMISSION_DENY();
+            $code = $custom_value ? $custom_value->enableEdit(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::SHOW) {
             $custom_value = $this->custom_table->getValueModel($id);
-            $code = $custom_value ? $custom_value->enableAccess(true) : ErrorCode::PERMISSION_DENY();
+            $code = $custom_value ? $custom_value->enableAccess(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::GRID) {
             $code = $this->custom_table->enableView();
         } elseif ($formActionType == CustomValuePageType::DELETE) {
             $custom_value = $this->custom_table->getValueModel($id);
-            $code = $custom_value ? $custom_value->enableDelete(true) : ErrorCode::PERMISSION_DENY();
+            $code = $custom_value ? $custom_value->enableDelete(true) : $this->custom_table->getNoDataErrorCode($id);
         }
         
         if ($code !== true) {

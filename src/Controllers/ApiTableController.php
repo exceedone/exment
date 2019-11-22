@@ -328,7 +328,13 @@ class ApiTableController extends AdminControllerTableBase
 
         $custom_value = getModelName($this->custom_table)::find($id);
         if (!isset($custom_value)) {
-            abort(400);
+            $code = $this->custom_table->getNoDataErrorCode($id);
+            if($code == ErrorCode::PERMISSION_DENY){
+                return abortJson(403, $code);
+            }else{
+                // nodata
+                return abortJson(400, $code);
+            }
         }
 
         if (($code = $custom_value->enableEdit()) !== true) {
@@ -350,7 +356,13 @@ class ApiTableController extends AdminControllerTableBase
 
         $custom_value = getModelName($this->custom_table)::find($id);
         if (!isset($custom_value)) {
-            abort(400);
+            $code = $this->custom_table->getNoDataErrorCode($id);
+            if($code == ErrorCode::PERMISSION_DENY){
+                return abortJson(403, $code);
+            }else{
+                // nodata
+                return abortJson(400, $code);
+            }
         }
 
         if (($code = $custom_value->enableDelete()) !== true) {
@@ -412,8 +424,8 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function columnData(Request $request, $tableKey, $column_name)
     {
-        if (!$this->custom_table->enableAccess()) {
-            return abortJson(403, trans('admin.deny'));
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, $code);
         }
 
         $query = $request->get('query');
