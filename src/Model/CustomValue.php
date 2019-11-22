@@ -293,9 +293,11 @@ abstract class CustomValue extends ModelBase
             ]);
 
             $model->savedValue();
-            CustomValueAuthoritable::setValueAuthoritable($model);
         });
         static::created(function ($model) {
+            // save Authoritable
+            CustomValueAuthoritable::setValueAuthoritable($model);
+
             // send notify
             $model->notify(NotifySavedType::CREATE);
 

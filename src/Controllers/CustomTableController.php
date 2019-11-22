@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FormActionType;
 
 class CustomTableController extends AdminControllerBase
@@ -154,17 +155,22 @@ class CustomTableController extends AdminControllerBase
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
                 ;
             
+            $form->exmheader('権限設定')->hr();
+
             $form->switchbool('all_user_editable_flg', exmtrans("custom_table.all_user_editable_flg"))->help(exmtrans("custom_table.help.all_user_editable_flg"))
-                ->default("0")
-            ;
+                ->default("0");
             
             $form->switchbool('all_user_viewable_flg', exmtrans("custom_table.all_user_viewable_flg"))->help(exmtrans("custom_table.help.all_user_viewable_flg"))
-                ->default("0")
-            ;
+                ->default("0");
             
-            $form->switchbool('all_user_accessable_flg', exmtrans("custom_table.all_user_accessable_flg"))->help(exmtrans("custom_table.help.all_user_accessable_flg"))
-                ->default("0")
-            ;
+                $form->switchbool('all_user_accessable_flg', exmtrans("custom_table.all_user_accessable_flg"))->help(exmtrans("custom_table.help.all_user_accessable_flg"))
+                ->default("0");
+
+            $form->select('custom_value_save_autoshare', exmtrans("custom_table.custom_value_save_autoshare"))->help(exmtrans("custom_table.help.custom_value_save_autoshare"))
+                ->options(CustomValueAutoShare::transKeyArray('custom_table.custom_value_save_autoshare_options'))
+                ->config('allowClear', false)
+                ->default("0");
+            
         })->disableHeader();
 
         // if create table, show menulist

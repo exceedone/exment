@@ -676,6 +676,7 @@ return [
         'all_user_editable_flg' => '全ユーザーが編集可能',
         'all_user_viewable_flg' => '全ユーザーが閲覧可能',
         'all_user_accessable_flg' => '全ユーザーが参照可能',
+        'custom_value_save_autoshare' => 'カスタムデータ自動共有設定',
         'add_parent_menu_flg' => 'メニューに追加する',
         'add_notify_flg' => '通知に追加する',
         'add_parent_menu' => '追加先の親メニュー',
@@ -695,6 +696,7 @@ return [
             'all_user_editable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを編集可能になります。',
             'all_user_viewable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを閲覧可能になります。',
             'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
+            'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により所属組織にも共有することができます。',
             'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
             'add_parent_menu' => '親にするメニュー名を選択してください。',
             'add_notify_flg' => 'データの新規作成・更新・共有、コメント時に、権限のあるユーザーに、システム内通知を行う設定を、テーブルの新規作成後に追加することができます。追加する場合はYESにしてください。<br/>※テーブルの新規作成時のみ設定できます。更新時は「通知」画面より設定してください。',
@@ -730,6 +732,12 @@ return [
                 'export' => 'エクスポート',
             ],
         ],
+
+        'custom_value_save_autoshare_options' => [
+            'user_only' => 'ログインユーザーのみ',
+            'bottom_organization' => 'ログインユーザーと、所属する最下層の組織',
+            'all_organization' => 'ログインユーザーと、所属するすべての組織',
+        ]
     ],
     
     'custom_column' => [

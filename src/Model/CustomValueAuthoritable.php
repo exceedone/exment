@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
 
@@ -15,7 +16,7 @@ class CustomValueAuthoritable extends ModelBase
      *
      * @return void
      */
-    public static function setValueAuthoritable($custom_value)
+    public static function setValueAuthoritable($custom_value, $created=true)
     {
         $custom_table = $custom_value->custom_table;
         $table_name = $custom_table->table_name;
@@ -35,6 +36,28 @@ class CustomValueAuthoritable extends ModelBase
         $model->authoritable_user_org_type = SystemTableName::USER;
         $model->authoritable_target_id = $user->base_user_id;
         $model->save();
+
+        if($custom_table->getOption('custom_value_save_autoshare', "0") == CustomValueAutoShare::USER_ONLY){
+            return;
+        }
+        
+        // get organizations
+        $belong_organizations = $user->base_user->belong_organizations;
+
+        foreach($belong_organizations as $belong_organization){
+            // check permission as organization.
+            if(!static::hasPermissionAsOrganization($custom_table, $belong_organization)){
+                continue;
+            }
+
+            $model = new self;
+            $model->parent_id = $custom_value->id;
+            $model->parent_type = $table_name;
+            $model->authoritable_type = Permission::CUSTOM_VALUE_EDIT;
+            $model->authoritable_user_org_type = SystemTableName::ORGANIZATION;
+            $model->authoritable_target_id = $belong_organization->id;
+            $model->save();
+        }
     }
 
     /**
@@ -247,5 +270,30 @@ class CustomValueAuthoritable extends ModelBase
         })->toArray();
 
         return $defaults;
+    }
+
+    /**
+     * Whether target organization has edit permission
+     *
+     * @param CustomTable $custom_table
+     * @param CustomValue $organization
+     * @return boolean
+     */
+    protected static function hasPermissionAsOrganization($custom_table, $organization){
+        // check children orgs. if has and not contain setting, return false
+        if($organization->hasChildren()){
+            return false;
+        }
+
+        if (boolval($custom_table->getOption('all_user_editable_flg'))) {
+            return true;
+        }
+
+        // check role group as org. if not has, conitnue            
+        if(!\is_nullorempty(RoleGroup::getHasPermissionRoleGroup(null, $organization->id))){
+            return true;
+        }
+
+        return false;
     }
 }
