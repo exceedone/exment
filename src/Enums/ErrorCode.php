@@ -10,6 +10,7 @@ class ErrorCode extends EnumBase
     const VALIDATION_ERROR = '103';
     const FORM_ACTION_DISABLED = '104';
     const DELETE_DISABLED = '105';
+    const NO_DATA = '106';
     const WORKFLOW_LOCK = '201';
 
     public function getMessage()

@@ -1788,6 +1788,30 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * This custom value in DB.
+     * *Remove permission global scope. Only check has or not
+     *
+     * @return bool if true, has in database.
+     */
+    public function hasCustomValueInDB($custom_value_id){
+        return $this->getValueModel()->withoutGlobalScopes([CustomValueModelScope::class])->where('id', $custom_value_id)->count() > 0;
+    }
+
+    /**
+     * Get not data error code.
+     * If not database, return NO_DATA. If has database, return PERMISSION_DENY
+       *
+     * @return ErrorCode
+     */
+    public function getNoDataErrorCode($custom_value_id){
+        if($this->hasCustomValueInDB($custom_value_id)){
+            return ErrorCode::PERMISSION_DENY();
+        }else{
+            return ErrorCode::NO_DATA();
+        }
+    }
+
+    /**
      * check permission with pivot
      */
     protected function checkPermissionWithPivot($rows, $role_key)
