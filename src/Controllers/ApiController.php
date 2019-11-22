@@ -61,11 +61,8 @@ class ApiController extends AdminControllerBase
         }
 
         // get and check query parameter
-        if ($request->has('count')) {
-            $count = $request->get('count');
-            if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
-                return abortJson(400, exmtrans('api.errors.over_maxcount'));
-            }
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
         }
 
         // filter table
