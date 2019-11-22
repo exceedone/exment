@@ -283,32 +283,11 @@ abstract class CustomValue extends ModelBase
             // prepare revision
             $model->preSave();
         });
-        static::saved(function ($model) {
-            $model->setFileValue();
-
-            // call plugins
-            Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saved', [
-                'custom_table' => $model->custom_table,
-                'custom_value' => $model,
-            ]);
-
-            $model->savedValue();
-        });
         static::created(function ($model) {
-            // save Authoritable
-            CustomValueAuthoritable::setValueAuthoritable($model);
-
-            // send notify
-            $model->notify(NotifySavedType::CREATE);
-
-            $model->postCreate();
+            $model->savedEvent(true);
         });
         static::updated(function ($model) {
-            // send notify
-            $model->notify(NotifySavedType::UPDATE);
-
-            // set revision
-            $model->postSave();
+            $model->savedEvent(false);
         });
 
         static::deleting(function ($model) {
@@ -331,6 +310,43 @@ abstract class CustomValue extends ModelBase
         });
 
         static::addGlobalScope(new CustomValueModelScope);
+    }
+
+    /**
+     * Call saved event
+     *
+     * @param [type] $isCreate
+     * @return void
+     */
+    protected function savedEvent($isCreate){
+        // save file value 
+        $this->setFileValue();
+
+        // call plugins
+        Plugin::pluginPreparing(Plugin::getPluginsByTable($this), 'saved', [
+            'custom_table' => $this->custom_table,
+            'custom_value' => $this,
+        ]);
+
+        $this->savedValue();
+
+        if($isCreate){
+             // save Authoritable
+             CustomValueAuthoritable::setValueAuthoritable($this);
+
+             // send notify
+             $this->notify(NotifySavedType::CREATE);
+ 
+             // set revision
+             $this->postCreate();
+        }
+        else{
+            // send notify
+            $this->notify(NotifySavedType::UPDATE);
+
+            // set revision
+            $this->postSave();
+        }
     }
 
     /**

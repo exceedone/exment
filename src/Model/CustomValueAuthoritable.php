@@ -16,7 +16,7 @@ class CustomValueAuthoritable extends ModelBase
      *
      * @return void
      */
-    public static function setValueAuthoritable($custom_value, $created=true)
+    public static function setValueAuthoritable($custom_value)
     {
         $custom_table = $custom_value->custom_table;
         $table_name = $custom_table->table_name;
@@ -29,15 +29,17 @@ class CustomValueAuthoritable extends ModelBase
             return;
         }
 
-        $model = new self;
-        $model->parent_id = $custom_value->id;
-        $model->parent_type = $table_name;
-        $model->authoritable_type = Permission::CUSTOM_VALUE_EDIT;
-        $model->authoritable_user_org_type = SystemTableName::USER;
-        $model->authoritable_target_id = $user->base_user_id;
-        $model->save();
+        self::firstOrCreate([
+            'parent_id' => $custom_value->id,
+            'parent_type' => $table_name,
+            'authoritable_type' => Permission::CUSTOM_VALUE_EDIT,
+            'authoritable_user_org_type' => SystemTableName::USER,
+            'authoritable_target_id' => $user->base_user_id,
+        ]);
 
-        if($custom_table->getOption('custom_value_save_autoshare', "0") == CustomValueAutoShare::USER_ONLY){
+
+        /////// share organization
+        if($custom_table->getOption('custom_value_save_autoshare', config('exment.custom_value_save_autoshare_default', CustomValueAutoShare::USER_ONLY)) == CustomValueAutoShare::USER_ONLY){
             return;
         }
         
@@ -50,13 +52,13 @@ class CustomValueAuthoritable extends ModelBase
                 continue;
             }
 
-            $model = new self;
-            $model->parent_id = $custom_value->id;
-            $model->parent_type = $table_name;
-            $model->authoritable_type = Permission::CUSTOM_VALUE_EDIT;
-            $model->authoritable_user_org_type = SystemTableName::ORGANIZATION;
-            $model->authoritable_target_id = $belong_organization->id;
-            $model->save();
+            self::firstOrCreate([
+                'parent_id' => $custom_value->id,
+                'parent_type' => $table_name,
+                'authoritable_type' => Permission::CUSTOM_VALUE_EDIT,
+                'authoritable_user_org_type' => SystemTableName::ORGANIZATION,
+                'authoritable_target_id' => $belong_organization->id,
+            ]);
         }
     }
 
@@ -282,7 +284,9 @@ class CustomValueAuthoritable extends ModelBase
     protected static function hasPermissionAsOrganization($custom_table, $organization){
         // check children orgs. if has and not contain setting, return false
         if($organization->hasChildren()){
-            return false;
+            if($custom_table->getOption('custom_value_save_autoshare', config('exment.custom_value_save_autoshare_default', CustomValueAutoShare::USER_ONLY)) != CustomValueAutoShare::ALL_ORGANIZATION){
+                return false;
+            }
         }
 
         if (boolval($custom_table->getOption('all_user_editable_flg'))) {
