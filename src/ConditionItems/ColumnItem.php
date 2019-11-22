@@ -65,11 +65,11 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     }
     
     /**
-     * Get Filter Condition Label
+     * Get Condition Label
      *
      * @return void
      */
-    public function getConditionLabel($condition)
+    public function getConditionLabel(Condition $condition)
     {
         $custom_column = CustomColumn::getEloquent($condition->target_column_id);
         return $custom_column->column_view_name ?? null;

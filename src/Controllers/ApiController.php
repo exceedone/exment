@@ -67,7 +67,6 @@ class ApiController extends AdminControllerBase
         }
 
         $options = ['getModel' => false, 'with' => $this->getJoinTables($request, 'custom')];
-
         // filterd by id
         if ($request->has('id')) {
             $ids = explode(',', $request->get('id'));
