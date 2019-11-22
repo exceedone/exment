@@ -14,7 +14,6 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
-use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 trait HasPermissions
 {
@@ -256,15 +255,9 @@ trait HasPermissions
      */
     public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL)
     {
-        // if system doesn't use organization, return empty array.
-        if (!System::organization_available()) {
-            return [];
-        }
-        $ids = System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS . '_' . $filterType, function () use ($filterType) {
-            $ids = AuthUserOrgHelper::getOrganizationIds(true, $filterType);
-            return $ids;
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS . '_' . $filterType, function () use ($filterType) {
+            return $this->base_user->getOrganizationIds($filterType);
         });
-        return $ids;
     }
 
     /**

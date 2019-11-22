@@ -1087,7 +1087,27 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return $this->getSelectedOptionDefault($selected_value);
         }
         
-        return $query->get()->pluck("label", "id");
+        $items = $query->get()->pluck("label", "id");
+
+        // if not contains, check in $items. if not contains, add
+        if(is_nullorempty($selected_value)){
+            return $items;
+        }
+        if($items->contains(function ($value, $key) use($selected_value) {
+            return $key == $selected_value;
+        })){
+            return $items;
+        }
+
+        $selected_custom_values = $this->getValueModel()->find((array)$selected_value);
+        if(is_nullorempty($selected_custom_values)){
+            return $items;
+        }
+
+        $selected_custom_values->each(function($selected_custom_value) use(&$items){
+            $items->put($selected_custom_value->id, $selected_custom_value->label);
+        });
+        return $items->unique();
     }
 
     /**

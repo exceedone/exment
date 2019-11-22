@@ -3,12 +3,14 @@
 namespace Exceedone\Exment\ConditionItems;
 
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
 class OrganizationItem extends ConditionItemBase implements ConditionItemInterface
 {
@@ -79,7 +81,8 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
      */
     public function hasAuthority($workflow_authority, $custom_value, $targetUser)
     {
-        $ids = $targetUser->belong_organizations->pluck('id')->toArray();
+        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_workflow(), JoinedOrgFilterType::ONLY_JOIN);
+        $ids = $targetUser->getOrganizationIds($enum);
         return in_array($workflow_authority->related_id, $ids);
     }
     
