@@ -6,9 +6,13 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Enums\BackupTarget;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\Permission;
 use Laravel\Passport\ClientRepository;
 
 class InitTestCommand extends Command
@@ -60,7 +64,22 @@ class InitTestCommand extends Command
 
         System::clearCache();
         
-        
+        $this->createSystem();
+       
+        $custom_tables = $this->createTables();
+
+        $this->createUserOrg($custom_tables);
+
+        // init api
+        $clientRepository = new ClientRepository;
+        $client = $clientRepository->createPasswordGrantClient(
+            1,
+            Define::API_FEATURE_TEST,
+            'http://localhost'
+        );
+    }
+
+    protected function createSystem(){
         // create system data
         $systems = [
             'initialized' => true,
@@ -70,7 +89,9 @@ class InitTestCommand extends Command
         foreach($systems as $key => $value){
             System::{$key}($value);
         }
+    }
 
+    protected function createUserOrg($custom_tables){
         // set users
         $users = [
             'admin' => [
@@ -104,8 +125,8 @@ class InitTestCommand extends Command
 
         // set rolegroups
         $rolegroups = [
-            'user1' => [1],
-            'user2' => [4],
+            'user1' => [1], //data_admin_group
+            'user2' => [4], //user_group
         ];
 
         foreach($users as $user_key => $user){
@@ -131,17 +152,46 @@ class InitTestCommand extends Command
                 }
             }
         }
-        
 
-        // TODO:add role group
+        foreach($custom_tables as $permission => $custom_table){
+            $roleGroupPermission = new RoleGroupPermission;
+            $roleGroupPermission->role_group_id = 4;
+            $roleGroupPermission->role_group_permission_type = 1;
+            $roleGroupPermission->role_group_target_id = $custom_table->id;
+            $roleGroupPermission->permissions = [$permission];
+            $roleGroupPermission->save();
+        }
+    }
 
+    protected function createTables(){
+        // create test table
+        $permissions = [
+            Permission::CUSTOM_VALUE_EDIT_ALL,
+            Permission::CUSTOM_VALUE_VIEW_ALL,
+            Permission::CUSTOM_VALUE_ACCESS_ALL,
+            Permission::CUSTOM_VALUE_EDIT,
+            Permission::CUSTOM_VALUE_VIEW,
+        ];
 
-        // init api
-        $clientRepository = new ClientRepository;
-        $client = $clientRepository->createPasswordGrantClient(
-            1,
-            Define::API_FEATURE_TEST,
-            'http://localhost'
-        );
+        $tables = [];
+        foreach($permissions as $permission){
+            $custom_table = new CustomTable;
+            $custom_table->table_name = 'roletest_' . $permission;
+            $custom_table->table_view_name = 'roletest_' . $permission;
+    
+            $custom_table->save();
+    
+            $custom_column = new CustomColumn;
+            $custom_column->custom_table_id = $custom_table->id;
+            $custom_column->column_name = 'text';
+            $custom_column->column_view_name = 'text';
+            $custom_column->column_type = ColumnType::TEXT;
+    
+            $custom_column->save();
+            
+            $tables[$permission] = $custom_table;
+        }
+
+        return $tables;
     }
 }
