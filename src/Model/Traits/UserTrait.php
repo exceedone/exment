@@ -32,7 +32,8 @@ trait UserTrait
     }
     
     /**
-     * Get organizations user joined
+     * Get organizations user joined.
+     * * ONLY JOIN. not contains upper and downer.
      *
      * @return void
      */

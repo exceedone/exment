@@ -374,7 +374,8 @@ trait HasPermissions
 
     protected function getPermissionItems()
     {
-        $organization_ids = $this->getOrganizationIds();
+        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
+        $organization_ids = $this->getOrganizationIds($enum);
         
         // get all permissons for system. --------------------------------------------------
         return RoleGroup::getHasPermissionRoleGroup($this->base_user_id, $organization_ids);

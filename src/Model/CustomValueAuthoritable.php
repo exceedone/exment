@@ -39,7 +39,7 @@ class CustomValueAuthoritable extends ModelBase
 
 
         /////// share organization
-        if($custom_table->getOption('custom_value_save_autoshare', config('exment.custom_value_save_autoshare_default', CustomValueAutoShare::USER_ONLY)) == CustomValueAutoShare::USER_ONLY){
+        if(System::custom_value_save_autoshare() != CustomValueAutoShare::USER_ORGANIZATION){
             return;
         }
         
@@ -282,13 +282,6 @@ class CustomValueAuthoritable extends ModelBase
      * @return boolean
      */
     protected static function hasPermissionAsOrganization($custom_table, $organization){
-        // check children orgs. if has and not contain setting, return false
-        if($organization->hasChildren()){
-            if($custom_table->getOption('custom_value_save_autoshare', config('exment.custom_value_save_autoshare_default', CustomValueAutoShare::USER_ONLY)) != CustomValueAutoShare::ALL_ORGANIZATION){
-                return false;
-            }
-        }
-
         if (boolval($custom_table->getOption('all_user_editable_flg'))) {
             return true;
         }

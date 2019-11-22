@@ -23,7 +23,6 @@ use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FormActionType;
 
 class CustomTableController extends AdminControllerBase
@@ -165,13 +164,6 @@ class CustomTableController extends AdminControllerBase
             
                 $form->switchbool('all_user_accessable_flg', exmtrans("custom_table.all_user_accessable_flg"))->help(exmtrans("custom_table.help.all_user_accessable_flg"))
                 ->default("0");
-
-            $manualUrl = getManualUrl('organization?id='.exmtrans("custom_table.custom_value_save_autoshare"));
-            $form->select('custom_value_save_autoshare', exmtrans("custom_table.custom_value_save_autoshare"))
-                ->help(exmtrans("custom_table.help.custom_value_save_autoshare") . exmtrans("common.help.more_help_here", $manualUrl))
-                ->options(CustomValueAutoShare::transKeyArray('custom_table.custom_value_save_autoshare_options'))
-                ->config('allowClear', false)
-                ->default(config('exment.custom_value_save_autoshare_default', CustomValueAutoShare::USER_ONLY));
             
         })->disableHeader();
 

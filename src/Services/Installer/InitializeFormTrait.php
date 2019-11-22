@@ -7,6 +7,8 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -117,9 +119,10 @@ trait InitializeFormTrait
     
         $form->switchbool('permission_available', exmtrans("system.permission_available"))
             ->help(exmtrans("system.help.permission_available"));
+        
         $form->switchbool('organization_available', exmtrans("system.organization_available"))
             ->help(exmtrans("system.help.organization_available"));
-        
+         
         if ($system_page) {
             $form->display('max_file_size', exmtrans("common.max_file_size"))
             ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
@@ -135,6 +138,33 @@ trait InitializeFormTrait
                         'selected_value' => $admin_users,
                     ]);
                 })->default($admin_users);
+        }
+            
+        ///////// system setting        
+        if ($system_page && boolval(System::organization_available())) {
+            $form->exmheader(exmtrans('system.organization_header'))->hr();
+
+            $manualUrl = getManualUrl('organization');
+            $form->select('org_joined_type_role_group', exmtrans("system.org_joined_type_role_group"))
+                ->help(exmtrans("system.help.org_joined_type_role_group") . exmtrans("common.help.more_help_here", $manualUrl))
+                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
+                ->config('allowClear', false)
+                ->default(JoinedOrgFilterType::ALL)
+                ;
+
+            $form->select('org_joined_type_custom_value', exmtrans("system.org_joined_type_custom_value"))
+                ->help(exmtrans("system.help.org_joined_type_custom_value") . exmtrans("common.help.more_help_here", $manualUrl))
+                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
+                ->config('allowClear', false)
+                ->default(JoinedOrgFilterType::ONLY_JOIN)
+                ;
+            $form->select('custom_value_save_autoshare', exmtrans("system.custom_value_save_autoshare"))
+                ->help(exmtrans("system.help.custom_value_save_autoshare") . exmtrans("common.help.more_help_here", $manualUrl))
+                ->options(CustomValueAutoShare::transKeyArray('system.custom_value_save_autoshare_options'))
+                ->config('allowClear', false)
+                ->default(CustomValueAutoShare::USER_ONLY)
+                ;
+
 
             // use mail setting
             if (!boolval(config('exment.mail_setting_env_force', false))) {

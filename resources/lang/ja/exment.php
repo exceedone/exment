@@ -208,7 +208,11 @@ return [
         'complex_password' => '複雑なパスワード',
         'password_expiration_days' => '有効日数',
         'password_history_cnt' => 'パスワードの履歴件数',
-        
+        'organization_header' => '組織設定',
+        'org_joined_type_role_group' => '組織階層設定(役割グループ)',
+        'org_joined_type_custom_value' => '組織階層設定(データ)',
+        'custom_value_save_autoshare' => 'カスタムデータ共有設定',
+          
         'site_skin_options' => [
             "skin-blue" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
             "skin-blue-light" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：白",
@@ -245,7 +249,19 @@ return [
             'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
             'format_local' => ['Y年m月d日', 'Y年m月d日 H時i分s秒', 'H時i分s秒'],
         ],
-        
+
+        'joined_org_filter_options' => [
+            'all' => '所属組織の親子階層を含める',
+            'only_upper' => '所属組織の親階層を含める',
+            'only_downer' => '所属組織の子階層を含める',
+            'only_join' => '自分の所属組織のみ',
+        ],
+          
+        'custom_value_save_autoshare_options' => [
+            'user_only' => 'ログインユーザーのみ',
+            'user_organization' => 'ログインユーザーと、所属する組織',
+        ],
+
         'help' =>[
             'site_name' => 'ページの左上に表示するサイト名です。',
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
@@ -272,7 +288,11 @@ return [
             'complex_password' => 'YESにした場合、パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
             'password_expiration_days' => 'パスワードの有効日数を設定します。0にした場合は無期限になります。',
             'password_history_cnt' => '1以上を入力することで、過去に使用したことのある古いパスワードは、入力した件数分、再度登録できなくなります。<br />※0にした場合でも、設定中のパスワードは登録できません。',
-        ]
+            
+            'org_joined_type_role_group' => '役割グループ設定に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
+            'org_joined_type_custom_value' => '各カスタムデータの共有設定に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
+            'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により、所属組織にも共有することができます。',
+        ],
     ],
 
     'dashboard' => [
@@ -678,7 +698,6 @@ return [
         'all_user_editable_flg' => '全ユーザーが編集可能',
         'all_user_viewable_flg' => '全ユーザーが閲覧可能',
         'all_user_accessable_flg' => '全ユーザーが参照可能',
-        'custom_value_save_autoshare' => 'データ保存時自動共有',
         'add_parent_menu_flg' => 'メニューに追加する',
         'add_notify_flg' => '通知に追加する',
         'add_parent_menu' => '追加先の親メニュー',
@@ -698,7 +717,6 @@ return [
             'all_user_editable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを編集可能になります。',
             'all_user_viewable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを閲覧可能になります。',
             'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
-            'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により、所属組織にも共有することができます。',
             'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
             'add_parent_menu' => '親にするメニュー名を選択してください。',
             'add_notify_flg' => 'データの新規作成・更新・共有、コメント時に、権限のあるユーザーに、システム内通知を行う設定を、テーブルの新規作成後に追加することができます。追加する場合はYESにしてください。<br/>※テーブルの新規作成時のみ設定できます。更新時は「通知」画面より設定してください。',
@@ -734,12 +752,6 @@ return [
                 'export' => 'エクスポート',
             ],
         ],
-
-        'custom_value_save_autoshare_options' => [
-            'user_only' => 'ログインユーザーのみ',
-            'bottom_organization' => 'ログインユーザーと、所属する最下層の組織',
-            'all_organization' => 'ログインユーザーと、所属するすべての組織',
-        ]
     ],
     
     'custom_column' => [

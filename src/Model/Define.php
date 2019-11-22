@@ -61,6 +61,11 @@ class Define
         'complex_password' => ['type' => 'boolean', 'group' => 'system', 'default' => false],
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
         'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
+        // org_joined_type
+        'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'system'],
+        'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
+        'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
+        
         // cannot call getValue function
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
         'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],

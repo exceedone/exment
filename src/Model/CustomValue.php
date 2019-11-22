@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
 abstract class CustomValue extends ModelBase
 {
@@ -644,9 +645,10 @@ abstract class CustomValue extends ModelBase
             ->value_authoritable_users()
             ->where('authoritable_target_id', \Exment::user()->base_user_id);
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
+            $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
             $query = $this
-            ->value_authoritable_organizations()
-            ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds());
+                ->value_authoritable_organizations()
+                ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds($enum));
         }
 
         return $query->get();
