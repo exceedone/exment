@@ -88,36 +88,10 @@ class ApiTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'table'))
             ->assertStatus(200)
-            ->assertJsonCount(6, 'data')
             ->assertJsonFragment([
                 'table_name' => 'base_info',
-                'options' => [
-                    "search_enabled"=> "0",
-                    "icon"=> "fa-building",
-                    "attachment_flg"=> "0",
-                    "all_user_accessable_flg"=> "1",
-                    "comment_flg"=> "0",
-                    "one_record_flg"=> "1",
-                ]
             ])
-            ->assertJsonStructure([
-                'data' => [
-                    '*' => [
-                        'id',
-                        'suuid',
-                        'created_at',
-                        'updated_at',
-                        'created_user_id',
-                        'updated_user_id',
-                        'table_name',
-                        'table_view_name',
-                        'description',
-                        'system_flg',
-                        'showlist_flg',
-                        'order',
-                        'options'                            ],
-                        ],
-                    ]);
+            ;
     }
 
     public function testGetTablesWithCount(){
@@ -140,19 +114,6 @@ class ApiTest extends ApiTestBase
             ->assertJsonCount(1, 'data')
             ->assertJsonFragment([
                 'table_name' => 'mail_send_log',
-                'table_view_name' => 'メール送信履歴',
-                'description' => 'メール送信履歴を管理します。',
-                "system_flg"=> "1",
-                "order"=> "0",
-                'options' => [
-                    "search_enabled"=> "0",
-                    "icon"=> "fa-envelope-o",
-                    "color"=> "#ffbd3a",
-                    "attachment_flg"=> "0",
-                    "comment_flg"=> "0",
-                    "one_record_flg"=> "0",
-                    "revision_flg"=> "0",
-                ]
             ]);
     }
 
@@ -191,7 +152,6 @@ class ApiTest extends ApiTestBase
                         ],
                     ],
                 ]);
-
     }
 
     public function testGetTables(){
@@ -210,7 +170,7 @@ class ApiTest extends ApiTestBase
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'table').'?id=99')
+        ])->get(admin_urls('api', 'table').'?id=999999')
             ->assertStatus(200)
             ->assertJsonCount(0, 'data');
     }
@@ -293,7 +253,10 @@ class ApiTest extends ApiTestBase
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'column', 99))
-            ->assertStatus(400);
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+            ]);
     }
 
     public function testWrongScopeGetColumn(){
