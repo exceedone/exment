@@ -310,7 +310,7 @@ class AuthUserOrgHelper
         $join = true;
 
         // if user joins parent organization, set join is true
-        if ($parentJoin && JoinedOrgFilterType::isGetDowner($filterType)) {
+        if ($parentJoin && JoinedOrgFilterType::isGetUpper($filterType)) {
             $join = true;
         }
         ///// check user join org.
@@ -338,7 +338,7 @@ class AuthUserOrgHelper
                     $result = true;
 
                     // if not sets this org, set this org too.
-                    if (JoinedOrgFilterType::isGetUpper($filterType) && !static::isAlreadySetsOrg($org, $org_flattens)) {
+                    if (JoinedOrgFilterType::isGetDowner($filterType) && !static::isAlreadySetsOrg($org, $org_flattens)) {
                         $org_flattens[] = $org;
                     }
                 }
