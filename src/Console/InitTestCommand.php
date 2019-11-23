@@ -175,23 +175,38 @@ class InitTestCommand extends Command
 
         $tables = [];
         foreach($permissions as $permission){
-            $custom_table = new CustomTable;
-            $custom_table->table_name = 'roletest_' . $permission;
-            $custom_table->table_view_name = 'roletest_' . $permission;
-    
-            $custom_table->save();
-    
-            $custom_column = new CustomColumn;
-            $custom_column->custom_table_id = $custom_table->id;
-            $custom_column->column_name = 'text';
-            $custom_column->column_view_name = 'text';
-            $custom_column->column_type = ColumnType::TEXT;
-    
-            $custom_column->save();
-            
+            $custom_table = $this->createTable('roletest_' . $permission);
             $tables[$permission] = $custom_table;
         }
 
+        // NO permission
+        $this->createTable('no_permission');
+
         return $tables;
     }
+
+    protected function createTable($keyName){
+        $custom_table = new CustomTable;
+        $custom_table->table_name = $keyName;
+        $custom_table->table_view_name = $keyName;
+
+        $custom_table->save();
+
+        $custom_column = new CustomColumn;
+        $custom_column->custom_table_id = $custom_table->id;
+        $custom_column->column_name = 'text';
+        $custom_column->column_view_name = 'text';
+        $custom_column->column_type = ColumnType::TEXT;
+
+        $custom_column->save();
+
+        foreach(range(0, 10) as $index){
+            $custom_value = $custom_table->getValueModel();
+            $custom_value->setValue("test_$index");
+
+            $custom_value->save();
+        }
+
+        return $custom_table;
+    }   
 }

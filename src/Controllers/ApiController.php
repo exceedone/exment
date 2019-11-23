@@ -57,16 +57,20 @@ class ApiController extends AdminControllerBase
      */
     public function tablelist(Request $request)
     {
-        if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, ErrorCode::PERMISSION_DENY());
-        }
+        // if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        //     return abortJson(403, ErrorCode::PERMISSION_DENY());
+        // }
 
         // get and check query parameter
         if (($count = $this->getCount($request)) instanceof Response) {
             return $count;
         }
 
-        $options = ['getModel' => false, 'with' => $this->getJoinTables($request, 'custom')];
+        $options = [
+            'getModel' => false, 
+            'with' => $this->getJoinTables($request, 'custom'),
+            'permissions' => Permission::AVAILABLE_ACCESS_CUSTOM_VALUE
+        ];
         // filterd by id
         if ($request->has('id')) {
             $ids = explode(',', $request->get('id'));

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Feature;
 use Tests\TestCase;
 use Exceedone\Exment\Model\ApiClient;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\ApiScope;
 
 abstract class ApiTestBase extends TestCase
@@ -27,6 +28,7 @@ abstract class ApiTestBase extends TestCase
      * @return void
      */
     protected function getPasswordToken($user_code, $password, $scope = []){
+        System::clearCache();
         list($client_id, $client_secret) = $this->getClientIdAndSecret();
         
         if(\is_nullorempty($scope)){
