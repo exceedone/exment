@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -93,62 +94,221 @@ class InitTestCommand extends Command
 
     protected function createUserOrg($custom_tables){
         // set users
-        $users = [
-            'admin' => [
-                'value' => [
-                    'user_name' => 'admin',
-                    'user_code' => 'admin',
-                    'email' => 'admin@admin.foobar.test',
+        $values = [
+            'user' => [
+                'admin' => [
+                    'id' => 1,
+                    'value' => [
+                        'user_name' => 'admin',
+                        'user_code' => 'admin',
+                        'email' => 'admin@admin.foobar.test',
+                    ],
+                    'password' => 'adminadmin',
                 ],
-                'password' => 'adminadmin',
-                'role_groups' => [],
-            ],
-            'user1' => [
-                'value' => [
-                    'user_name' => 'user1',
-                    'user_code' => 'user1',
-                    'email' => 'user1@user.foobar.test',    
+                'user1' => [
+                    'id' => 2,
+                    'value' => [
+                        'user_name' => 'user1',
+                        'user_code' => 'user1',
+                        'email' => 'user1@user.foobar.test',    
+                    ],
+                    'password' => 'user1user1',
                 ],
-                'password' => 'user1user1',
-                'role_groups' => [],
-            ],
-            'user2' => [
-                'value' => [
-                    'user_name' => 'user2',
-                    'user_code' => 'user2',
-                    'email' => 'user2@user.foobar.test',
+                'user2' => [
+                    'id' => 3,
+                    'value' => [
+                        'user_name' => 'user2',
+                        'user_code' => 'user2',
+                        'email' => 'user2@user.foobar.test',
+                    ],
+                    'password' => 'user2user2',
                 ],
-                'password' => 'user2user2',
-                'role_groups' => [],
-            ],
+                'user3' => [
+                    'id' => 4,
+                    'value' => [
+                        'user_name' => 'user3',
+                        'user_code' => 'user3',
+                        'email' => 'user2@user.foobar.test',
+                    ],
+                    'password' => 'user3user3',
+                ],
+                'company1-userA' => [
+                    'id' => 5,
+                    'value' => [
+                        'user_name' => 'company1-userA',
+                        'user_code' => 'company1-userA',
+                        'email' => 'company1-userA@user.foobar.test',
+                    ],
+                    'password' => 'company1-userA',
+                ],
+                'dev-userB' => [
+                    'id' => 6,
+                    'value' => [
+                        'user_name' => 'dev-userB',
+                        'user_code' => 'dev-userB',
+                        'email' => 'dev-userB@user.foobar.test',
+                    ],
+                    'password' => 'dev-userB',
+                ],
+                'dev1-userC' => [
+                    'id' => 7,
+                    'value' => [
+                        'user_name' => 'dev1-userC',
+                        'user_code' => 'dev1-userC',
+                        'email' => 'dev1-userC@user.foobar.test',
+                    ],
+                    'password' => 'dev1-userC',
+                ],
+                'dev1-userD' => [
+                    'id' => 8,
+                    'value' => [
+                        'user_name' => 'dev1-userD',
+                        'user_code' => 'dev1-userD',
+                        'email' => 'dev1-userD@user.foobar.test',
+                    ],
+                    'password' => 'dev1-userD',
+                ],
+                'dev2-userE' => [
+                    'id' => 9,
+                    'value' => [
+                        'user_name' => 'dev2-userE',
+                        'user_code' => 'dev2-userE',
+                        'email' => 'dev2-userE@user.foobar.test',
+                    ],
+                    'password' => 'dev2-userE',
+                ],
+                'company2-userF' => [
+                    'id' => 10,
+                    'value' => [
+                        'user_name' => 'company2-userF',
+                        'user_code' => 'company2-userF',
+                        'email' => 'company2-userF@user.foobar.test',
+                    ],
+                    'password' => 'company2-userF',
+                ],
+            ], 
+
+            'organization' => [
+                'company1' => [
+                    'id' => 1,
+                    'value' => [
+                        'organization_name' => 'company1',
+                        'organization_code' => 'company1',
+                        'parent_organization' => null,
+                    ],
+                    'users' => [
+                        5
+                    ],
+                ],
+                'dev' => [
+                    'id' => 2,
+                    'value' => [
+                        'organization_name' => 'dev',
+                        'organization_code' => 'dev',
+                        'parent_organization' => 1,
+                    ],
+                    'users' => [
+                        6
+                    ],
+                ],
+                'manage' => [
+                    'id' => 3,
+                    'value' => [
+                        'organization_name' => 'manage',
+                        'organization_code' => 'manage',
+                        'parent_organization' => 1,
+                    ],
+                ],
+                'dev1' => [
+                    'id' => 4,
+                    'value' => [
+                        'organization_name' => 'dev1',
+                        'organization_code' => 'dev1',
+                        'parent_organization' => 2,
+                    ],
+                    'users' => [
+                        7, 8
+                    ],
+                ],
+                'dev2' => [
+                    'id' => 5,
+                    'value' => [
+                        'organization_name' => 'dev2',
+                        'organization_code' => 'dev2',
+                        'parent_organization' => 2,
+                    ],
+                    'users' => [
+                        9
+                    ],
+                ],
+                'company2' => [
+                    'id' => 6,
+                    'value' => [
+                        'organization_name' => 'company2',
+                        'organization_code' => 'company2',
+                        'parent_organization' => null,
+                    ],
+                    'users' => [
+                        10
+                    ],
+                ],
+                'company2-a' => [
+                    'id' => 7,
+                    'value' => [
+                        'organization_name' => 'company2-a',
+                        'organization_code' => 'company2-a',
+                        'parent_organization' => 6,
+                    ],
+                ],
+            ]
         ];
 
         // set rolegroups
         $rolegroups = [
-            'user1' => [1], //data_admin_group
-            'user2' => [4], //user_group
+            'user' => [
+                'user1' => [1], //data_admin_group
+                'user2' => [4], //user_group
+                'user3' => [4], //user_group    
+            ],
+            'organization' => [
+                'dev' => [4], //user_group
+            ],
         ];
 
-        foreach($users as $user_key => $user){
-            $model = CustomTable::getEloquent('user')->getValueModel();
-            foreach($user['value'] as $key => $value){
-                $model->setValue($key, $value);
-            }
+        $relationName = CustomRelation::getRelationNamebyTables('organization', 'user');
 
-            $model->save();
+        foreach($values as $type => $typevalue){
+            foreach($typevalue as $user_key => &$user){
+                $model = CustomTable::getEloquent($type)->getValueModel();
+                foreach($user['value'] as $key => $value){
+                    $model->setValue($key, $value);
+                }
 
-            $loginUser = new LoginUser;
-            $loginUser->base_user_id = $model->id;
-            $loginUser->password = $user['password'];
-            $loginUser->save();
+                $model->save();
 
-            if (isset($rolegroups[$user_key]) && is_array($rolegroups[$user_key])) {
-                foreach ($rolegroups[$user_key] as $rolegroup) {
-                    $roleGroupUserOrg = new RoleGroupUserOrganization;
-                    $roleGroupUserOrg->role_group_id = $rolegroup;
-                    $roleGroupUserOrg->role_group_user_org_type = 'user';
-                    $roleGroupUserOrg->role_group_target_id = $model->id;
-                    $roleGroupUserOrg->save();
+                if(array_has($user, 'password')){
+                    $loginUser = new LoginUser;
+                    $loginUser->base_user_id = $model->id;
+                    $loginUser->password = $user['password'];
+                    $loginUser->save();    
+                }
+
+                if(array_has($user, 'users')){
+                    $inserts = collect($user['users'])->map(function($item) use($model){
+                        return ['parent_id' => $model->id, 'child_id' => $item];
+                    })->toArray();
+
+                    \DB::table($relationName)->insert($inserts);
+                }
+
+                if (isset($rolegroups[$type][$user_key]) && is_array($rolegroups[$type][$user_key])) {
+                    foreach ($rolegroups[$type][$user_key] as $rolegroup) {
+                        $roleGroupUserOrg = new RoleGroupUserOrganization;
+                        $roleGroupUserOrg->role_group_id = $rolegroup;
+                        $roleGroupUserOrg->role_group_user_org_type = $type;
+                        $roleGroupUserOrg->role_group_target_id = $model->id;
+                        $roleGroupUserOrg->save();
+                    }
                 }
             }
         }
@@ -203,6 +363,8 @@ class InitTestCommand extends Command
         foreach(range(0, 10) as $index){
             $custom_value = $custom_table->getValueModel();
             $custom_value->setValue("test_$index");
+            $custom_value->created_user_id = 3; // user2
+            $custom_value->updated_user_id = 3; // user2
 
             $custom_value->save();
         }
