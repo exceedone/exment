@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
 class ColumnItem extends ConditionItemBase implements ConditionItemInterface
 {
@@ -99,7 +100,8 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             case ColumnType::USER:
                 return in_array($targetUser->id, $auth_values);
             case ColumnType::ORGANIZATION:
-                $ids = $targetUser->belong_organizations->pluck('id')->toArray();
+                $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_workflow(), JoinedOrgFilterType::ONLY_JOIN);
+                $ids = $targetUser->getOrganizationIds($enum);
                 return collect($auth_values)->contains(function ($auth_value) use ($ids) {
                     return collect($ids)->contains($auth_value);
                 });
@@ -107,6 +109,15 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         return false;
     }
     
+    /**
+     * Set condition query. For data list and use workflow status
+     *
+     * @param [type] $query
+     * @param [type] $tableName
+     * @param [type] $custom_table
+     * @param string $authorityTableName target table name. WORKFLOW_AUTHORITY or WORKFLOW_VALUE_AUTHORITY
+     * @return void
+     */
     public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
     {
         /// get user or organization list
@@ -123,7 +134,8 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             return true;
         });
 
-        $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
+        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_workflow(), JoinedOrgFilterType::ONLY_JOIN);
+        $ids = \Exment::user()->getOrganizationIds($enum);
 
         foreach ($custom_columns as $custom_column) {
             $query->orWhere(function ($query) use ($custom_column, $tableName, $ids, $authorityTableName) {

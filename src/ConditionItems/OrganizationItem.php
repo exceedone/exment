@@ -43,10 +43,8 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
-        $organizations = \Exment::user()->base_user->belong_organizations
-            ->map(function ($organization) {
-                return $organization->id;
-            })->toArray();
+        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_form(), JoinedOrgFilterType::ONLY_JOIN);
+        $organizations = \Exment::user()->getOrganizationIds($enum);
 
         return $this->compareValue($condition, $organizations);
     }
@@ -88,7 +86,9 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
     
     public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
     {
-        $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
+        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_workflow(), JoinedOrgFilterType::ONLY_JOIN);
+        $ids = \Exment::user()->getOrganizationIds($enum);
+
         $query->orWhere(function ($query) use ($tableName, $ids, $authorityTableName) {
             $query->whereIn($authorityTableName . '.related_id', $ids)
                 ->where($authorityTableName . '.related_type', ConditionTypeDetail::ORGANIZATION()->lowerkey());
