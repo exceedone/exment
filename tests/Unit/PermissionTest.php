@@ -11,6 +11,7 @@ class PermissionTest extends UnitTestBase
 {
     protected function init(){
         System::clearCache();
+        \Exceedone\Exment\Middleware\Morph::defineMorphMap();
     }
 
     // Organization -------------------------------------------
@@ -293,6 +294,7 @@ class PermissionTest extends UnitTestBase
     protected function executeTestCustomValue($loginId, $joinedOrgFilterType, bool $result){
         $this->init();
         $this->be(LoginUser::find($loginId));
+        System::org_joined_type_role_group($joinedOrgFilterType);
         System::org_joined_type_custom_value($joinedOrgFilterType);
         
         $func = $result ? 'assertTrue' : 'assertFalse';
