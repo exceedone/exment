@@ -6,11 +6,13 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
+use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
@@ -66,10 +68,12 @@ class InitTestCommand extends Command
         System::clearCache();
         
         $this->createSystem();
-       
-        $custom_tables = $this->createTables();
 
-        $this->createUserOrg($custom_tables);
+        $users = $this->createUserOrg();
+       
+        $custom_tables = $this->createTables($users);
+
+        $this->createPermission($custom_tables);
 
         // init api
         $clientRepository = new ClientRepository;
@@ -92,7 +96,7 @@ class InitTestCommand extends Command
         }
     }
 
-    protected function createUserOrg($custom_tables){
+    protected function createUserOrg(){
         // set users
         $values = [
             'user' => [
@@ -313,17 +317,10 @@ class InitTestCommand extends Command
             }
         }
 
-        foreach($custom_tables as $permission => $custom_table){
-            $roleGroupPermission = new RoleGroupPermission;
-            $roleGroupPermission->role_group_id = 4;
-            $roleGroupPermission->role_group_permission_type = 1;
-            $roleGroupPermission->role_group_target_id = $custom_table->id;
-            $roleGroupPermission->permissions = [$permission];
-            $roleGroupPermission->save();
-        }
+        return $values['user'];
     }
 
-    protected function createTables(){
+    protected function createTables($users){
         // create test table
         $permissions = [
             Permission::CUSTOM_VALUE_EDIT_ALL,
@@ -335,17 +332,17 @@ class InitTestCommand extends Command
 
         $tables = [];
         foreach($permissions as $permission){
-            $custom_table = $this->createTable('roletest_' . $permission);
+            $custom_table = $this->createTable('roletest_' . $permission, $users);
             $tables[$permission] = $custom_table;
         }
 
         // NO permission
-        $this->createTable('no_permission');
+        $this->createTable('no_permission', $users);
 
         return $tables;
     }
 
-    protected function createTable($keyName){
+    protected function createTable($keyName, $users){
         $custom_table = new CustomTable;
         $custom_table->table_name = $keyName;
         $custom_table->table_view_name = $keyName;
@@ -360,15 +357,37 @@ class InitTestCommand extends Command
 
         $custom_column->save();
 
-        foreach(range(0, 10) as $index){
+        System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
+        foreach($users as $key => $user){
+            \Auth::guard('admin')->attempt([
+                'username' => $key,
+                'password' => array_get($user, 'password')
+            ]);
+
+            $id = array_get($user, 'id');
             $custom_value = $custom_table->getValueModel();
-            $custom_value->setValue("test_$index");
-            $custom_value->created_user_id = 3; // user2
-            $custom_value->updated_user_id = 3; // user2
+            $custom_value->setValue("text", "test_$id");
+            $custom_value->created_user_id = $id;
+            $custom_value->updated_user_id = $id;
 
             $custom_value->save();
         }
 
         return $custom_table;
     }   
+
+    protected function createPermission($custom_tables){
+        foreach($custom_tables as $permission => $custom_table){
+            $roleGroupPermission = new RoleGroupPermission;
+            $roleGroupPermission->role_group_id = 4;
+            $roleGroupPermission->role_group_permission_type = 1;
+            $roleGroupPermission->role_group_target_id = $custom_table->id;
+            $roleGroupPermission->permissions = [$permission];
+            $roleGroupPermission->save();
+        }
+    }
+    
+    protected function createWorkflow(){
+
+    }
 }

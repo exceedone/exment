@@ -6,7 +6,7 @@ use Tests\TestCase;
 
 use Exceedone\Exment\Model\CustomTable;
 
-class CustomTableTest extends TestCase
+class CustomTableTest extends UnitTestBase
 {
     public function testFuncGetMatchedCustomValues1()
     {
