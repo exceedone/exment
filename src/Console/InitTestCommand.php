@@ -7,6 +7,12 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Model\WorkflowTable;
+use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Model\WorkflowAuthority;
+use Exceedone\Exment\Model\WorkflowValue;
+use Exceedone\Exment\Model\WorkflowConditionHeader;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\LoginUser;
@@ -16,6 +22,7 @@ use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Laravel\Passport\ClientRepository;
 
 class InitTestCommand extends Command
@@ -74,6 +81,8 @@ class InitTestCommand extends Command
         $custom_tables = $this->createTables($users);
 
         $this->createPermission($custom_tables);
+
+        $this->createWorkflow($users);
 
         // init api
         $clientRepository = new ClientRepository;
@@ -387,7 +396,243 @@ class InitTestCommand extends Command
         }
     }
     
-    protected function createWorkflow(){
+    /**
+     * Create Workflow
+     *
+     * @return void
+     */
+    protected function createWorkflow($users){
+        // create workflows
+        $statuses = [
+            [
+                'status_name' => 'middle',
+                'datalock_flg' => 1,
+            ],
+            [
+                'status_name' => 'end',
+                'datalock_flg' => 1,
+            ],
+        ];
 
+
+        $workflows = [
+            [
+                'items' => [
+                    'workflow_view_name' => 'workflow_common_company',
+                    'workflow_type' => 0,
+                    'setting_completed_flg' => 1,
+                ],
+    
+                'statuses' => [
+                    [
+                        'status_name' => 'middle',
+                        'datalock_flg' => 1,
+                    ],
+                    [
+                        'status_name' => 'end',
+                        'datalock_flg' => 1,
+                    ],
+                ],
+    
+                'actions' => [
+                    [
+                        'status_from' => 'start',
+                        'action_name' => 'middle_action',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::FIX,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 0,
+                                'enabled_flg' => true,    
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => 0,
+                                'related_type' => 'system',                                
+                            ]
+                        ],
+                    ],
+    
+                    [
+                        'status_from' => 0,
+                        'action_name' => 'end_action',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::FIX,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 1,
+                                'enabled_flg' => true,    
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => 6, // dev-userB
+                                'related_type' => 'user',    
+                            ]
+                        ],
+                    ],
+                ],
+    
+                'tables' => [
+                    [
+                        'custom_table' => 'roletest_custom_value_edit_all',
+                    ],
+                ],
+            ],
+        ];
+
+
+        foreach($workflows as $workflow){
+            $workflowObj = new Workflow;
+            foreach($workflow['items'] as $key => $item){
+                $workflowObj->{$key} = $item;
+            }
+            $workflowObj->start_status_name = 'start';
+            $workflowObj->save();
+
+            foreach($workflow['statuses'] as $index => &$status){
+                $workflowstatus = new WorkflowStatus;
+                $workflowstatus->workflow_id = $workflowObj->id;
+
+                foreach($status as $key => $item){
+                    $workflowstatus->{$key} = $item;
+                }
+                $workflowstatus->order = $index;
+
+                $workflowstatus->save();
+                $status['id'] = $workflowstatus->id;
+                $status['index'] = $index;
+            }
+            
+            $actionStatusFromTos = [];
+            foreach($workflow['actions'] as &$action){
+                $actionStatusFromTo = [];
+
+                $workflowaction = new WorkflowAction;
+                $workflowaction->workflow_id = $workflowObj->id;
+                $workflowaction->action_name = $action['action_name'];
+
+                if($action['status_from'] === 'start'){
+                    $workflowaction->status_from = $action['status_from'];
+                    $actionStatusFromTo['status_from'] = null;
+                }else{
+                    $workflowaction->status_from = $workflow['statuses'][$action['status_from']]['id'];
+                    $actionStatusFromTo['status_from'] = $workflowaction->status_from;
+                }
+
+                foreach($action['options'] as $key => $item){
+                    $workflowaction->setOption($key, $item);
+                }
+                $workflowaction->save();
+                $action['id'] = $workflowaction->id;
+
+                foreach($action['authorities'] as $key => $item){
+                    $item['workflow_action_id'] = $workflowaction->id;
+                    WorkflowAuthority::insert($item);
+                }
+                
+                foreach($action['condition_headers'] as $key => $item){
+                    $header = new WorkflowConditionHeader;
+                    $header->enabled_flg = $item['enabled_flg'];
+                    $header->workflow_action_id = $workflowaction->id;
+
+                    if ($item['status_to'] === 'start') {
+                        $header->status_to = $item['status_to'];
+                        $actionStatusFromTo['status_to'] = null;
+                    }else{
+                        $header->status_to = $workflow['statuses'][$item['status_to']]['id'];
+                        $actionStatusFromTo['status_to'] = $header->status_to;
+                    }
+
+                    $header->save();
+                }
+
+                $actionStatusFromTo['workflow_action_id'] = $workflowaction->id;
+                $actionStatusFromTos[] = $actionStatusFromTo;
+            }
+
+            foreach ($workflow['tables'] as &$table) {
+                $wfTable = new WorkflowTable;
+                $wfTable->workflow_id = $workflowObj->id;
+                $wfTable->custom_table_id = CustomTable::getEloquent($table['custom_table'])->id;
+                $wfTable->active_flg = true;
+                $wfTable->save();
+
+                // create workflow value 
+                $wfValueStatuses = array_merge(
+                    [['id' => null]],
+                    $workflow['statuses']
+                );
+
+                $userKeys = [
+                    'dev1-userD',
+                ];
+
+                $wfUserKeys = [
+                    'dev1-userD',
+                    'dev-userB',
+                ];
+
+                foreach($userKeys as $userKey){
+                    foreach($wfValueStatuses as $index => $wfValueStatus){
+                        $user = $users[$userKey];
+                        \Auth::guard('admin')->attempt([
+                            'username' => array_get($user, 'value.user_code'),
+                            'password' => array_get($user, 'password')
+                        ]);
+                
+                        $custom_value = CustomTable::getEloquent($table['custom_table'])->getValueModel();
+                        $custom_value->setValue("text", "test_$index");
+                        $custom_value->id = 100 + $index;
+                        $custom_value->save();
+    
+                        if(!isset($wfValueStatus['id']) || $index == 0){
+                            continue;
+                        }
+    
+                        // get target $actionStatusFromTo
+                        $actionStatusFromTo = collect($actionStatusFromTos)->first(function($actionStatusFromTo) use($wfValueStatuses, $index){
+                            return $wfValueStatuses[$index - 1]['id'] == $actionStatusFromTo['status_from'] && $wfValueStatuses[$index]['id'] == $actionStatusFromTo['status_to'];
+                        });
+                        if(!isset($actionStatusFromTo)){
+                            continue;
+                        }
+    
+                        $user = $users[$wfUserKeys[$index - 1]];
+                        \Auth::guard('admin')->attempt([
+                            'username' => array_get($user, 'value.user_code'),
+                            'password' => array_get($user, 'password')
+                        ]);
+            
+                        $wfValue = new WorkflowValue;
+                        $wfValue->workflow_id = $workflowObj->id;
+                        $wfValue->morph_type = $table['custom_table'];
+                        $wfValue->morph_id = $custom_value->id;
+                        $wfValue->workflow_action_id = $actionStatusFromTo['workflow_action_id'];
+                        $wfValue->workflow_status_from_id = $actionStatusFromTo['status_from'];
+                        $wfValue->workflow_status_to_id = $actionStatusFromTo['status_to'];
+                        $wfValue->action_executed_flg = 0;
+                        $wfValue->latest_flg = count($wfValueStatuses) - 1 === $index;
+
+                        $wfValue->save();
+                    }
+                }
+            }
+        }
     }
 }

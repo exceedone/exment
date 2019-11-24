@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class PermissionTest extends UnitTestBase
 {
@@ -253,6 +254,97 @@ class PermissionTest extends UnitTestBase
     }
 
 
+    // Workflow -------------------------------------------
+    public function testWorkflowAdmin()
+    {
+        $this->executeTestWorkflow(1, JoinedOrgFilterType::ONLY_JOIN, false, true);
+    }
+
+    public function testWorkflowDirect()
+    {
+        $this->executeTestWorkflow(6, JoinedOrgFilterType::ONLY_JOIN, true, true);
+    }
+
+    public function testWorkflowUpper()
+    {
+        $this->executeTestWorkflow(5, JoinedOrgFilterType::ONLY_JOIN, false, true);
+    }
+
+    public function testWorkflowDowner()
+    {
+        $this->executeTestWorkflow(7, JoinedOrgFilterType::ONLY_JOIN, false, true);
+    }
+
+    public function testWorkflowOtherOrg()
+    {
+        $this->executeTestWorkflow(10, JoinedOrgFilterType::ONLY_JOIN, false, false);
+    }
+    
+
+    public function testWorkflowDirectOnlyUpper()
+    {
+        $this->executeTestWorkflow(6, JoinedOrgFilterType::ONLY_UPPER, true, true);
+    }
+
+    public function testWorkflowUpperOnlyUpper()
+    {
+        $this->executeTestWorkflow(5, JoinedOrgFilterType::ONLY_UPPER, true, true);
+    }
+
+    public function testWorkflowDownerOnlyUpper()
+    {
+        $this->executeTestWorkflow(7, JoinedOrgFilterType::ONLY_UPPER, false, true);
+    }
+
+    public function testWorkflowOtherOrgOnlyUpper()
+    {
+        $this->executeTestWorkflow(10, JoinedOrgFilterType::ONLY_UPPER, false, false);
+    }
+
+    
+    public function testWorkflowDirectOnlyDowner()
+    {
+        $this->executeTestWorkflow(6, JoinedOrgFilterType::ONLY_DOWNER, true, true);
+    }
+
+    public function testWorkflowUpperOnlyDowner()
+    {
+        $this->executeTestWorkflow(5, JoinedOrgFilterType::ONLY_DOWNER, false, true);
+    }
+
+    public function testWorkflowDownerOnlyDowner()
+    {
+        $this->executeTestWorkflow(7, JoinedOrgFilterType::ONLY_DOWNER, true, true);
+    }
+
+    public function testWorkflowOtherOrgOnlyDowner()
+    {
+        $this->executeTestWorkflow(10, JoinedOrgFilterType::ONLY_DOWNER, false, false);
+    }
+    
+
+    public function testWorkflowDirectAll()
+    {
+        $this->executeTestWorkflow(6, JoinedOrgFilterType::ALL, true, true);
+    }
+
+    public function testWorkflowUpperAll()
+    {
+        $this->executeTestWorkflow(5, JoinedOrgFilterType::ALL, true, true);
+    }
+
+    public function testWorkflowDownerAll()
+    {
+        $this->executeTestWorkflow(7, JoinedOrgFilterType::ALL, true, true);
+    }
+
+    public function testWorkflowOtherOrgAll()
+    {
+        $this->executeTestWorkflow(10, JoinedOrgFilterType::ALL, false, false);
+    }
+
+    
+
     protected function executeTestOrganization($loginId, $joinedOrgFilterType, $antiOrganizations, bool $antiResult){
         $this->init();
 
@@ -300,5 +392,31 @@ class PermissionTest extends UnitTestBase
         $func = $result ? 'assertTrue' : 'assertFalse';
         $custom_value = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->find(6); // created by dev user
         $this->{$func}(isset($custom_value));
+    }
+    
+    protected function executeTestWorkflow($loginId, $joinedOrgFilterType, bool $result, bool $customValueResult){
+        $this->init();
+        $this->be(LoginUser::find($loginId));
+        // set as All
+        System::org_joined_type_role_group(JoinedOrgFilterType::ALL);
+        System::org_joined_type_custom_value(JoinedOrgFilterType::ALL);
+        
+        $custom_value = CustomTable::getEloquent('roletest_custom_value_edit_all')->getValueModel()->find(101); // created by dev user
+        $func = $customValueResult ? 'assertTrue' : 'assertFalse';
+        $this->{$func}(isset($custom_value));
+
+        if(!isset($custom_value)){
+            return;
+        }
+
+        // check work users
+        System::org_joined_type_workflow($joinedOrgFilterType);
+        $workflowWorkUsers = $custom_value->workflow_work_users;
+
+        $result = $workflowWorkUsers->contains(function($workflowWorkUser) use($loginId){
+            return $workflowWorkUser->custom_table->table_name == SystemTableName::USER && $workflowWorkUser->id == $loginId;
+        });
+        $func = $result ? 'assertTrue' : 'assertFalse';
+        $this->{$func}($result);
     }
 }

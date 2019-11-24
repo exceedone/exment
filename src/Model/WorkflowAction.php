@@ -233,6 +233,10 @@ class WorkflowAction extends ModelBase
     protected function setActionCondition()
     {
         $this->workflow_condition_headers()->delete();
+        if(!isset($this->work_condition_headers)){
+            return;
+        }
+        
         foreach ($this->work_condition_headers as $work_condition_header) {
             $work_condition_header['workflow_action_id'] = $this->id;
 
