@@ -590,6 +590,11 @@ EOT;
             return false;
         }
 
+        // if custom table has all_user_editable_flg, return false(not necessary use share)
+        if (boolval($this->custom_table->getOption('all_user_editable_flg'))) {
+            return false;
+        }
+
         // if not has edit data, return false
         if (!$this->custom_table->hasPermissionEditData($id)) {
             return false;

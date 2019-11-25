@@ -14,7 +14,6 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
-use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 trait HasPermissions
 {
@@ -256,15 +255,9 @@ trait HasPermissions
      */
     public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL)
     {
-        // if system doesn't use organization, return empty array.
-        if (!System::organization_available()) {
-            return [];
-        }
-        $ids = System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS . '_' . $filterType, function () use ($filterType) {
-            $ids = AuthUserOrgHelper::getOrganizationIds(true, $filterType);
-            return $ids;
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS . '_' . $filterType, function () use ($filterType) {
+            return $this->base_user->getOrganizationIds($filterType);
         });
-        return $ids;
     }
 
     /**
@@ -374,30 +367,10 @@ trait HasPermissions
 
     protected function getPermissionItems()
     {
-        $organization_ids = $this->getOrganizationIds();
-
+        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
+        $organization_ids = $this->getOrganizationIds($enum);
+        
         // get all permissons for system. --------------------------------------------------
-        return RoleGroup::allRecordsCache(function ($role_group) use ($organization_ids) {
-            $user_orgs = array_get($role_group, SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
-            if (is_nullorempty($user_orgs)) {
-                return false;
-            }
-
-            if ($user_orgs->contains(function ($user_org) use ($organization_ids) {
-                if ($user_org->role_group_user_org_type == SystemTableName::USER && $user_org->role_group_target_id == $this->base_user_id) {
-                    return true;
-                }
-
-                if ($user_org->role_group_user_org_type == SystemTableName::ORGANIZATION && in_array($user_org->role_group_target_id, $organization_ids)) {
-                    return true;
-                }
-
-                return false;
-            })) {
-                return true;
-            }
-
-            return false;
-        }, false, [SystemTableName::ROLE_GROUP_PERMISSION, SystemTableName::ROLE_GROUP_USER_ORGANIZATION]);
+        return RoleGroup::getHasPermissionRoleGroup($this->base_user_id, $organization_ids);
     }
 }

@@ -4,7 +4,10 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 trait UserTrait
 {
@@ -31,6 +34,25 @@ trait UserTrait
         return $this->hasOne(Model\UserSetting::class, "user_id");
     }
     
+    /**
+     * get organizations that this_user joins.
+     * @return mixed
+     */
+    public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL)
+    {
+        // if system doesn't use organization, return empty array.
+        if (!System::organization_available()) {
+            return [];
+        }
+        return AuthUserOrgHelper::getOrganizationIds(true, $filterType, $this->id);
+    }
+
+    /**
+     * Get organizations user joined.
+     * * ONLY JOIN. not contains upper and downer.
+     *
+     * @return void
+     */
     public function belong_organizations()
     {
         $db_table_name_pivot = Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);

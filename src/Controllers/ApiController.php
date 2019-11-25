@@ -57,7 +57,7 @@ class ApiController extends AdminControllerBase
     public function tablelist(Request $request)
     {
         if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         // get and check query parameter
@@ -78,7 +78,7 @@ class ApiController extends AdminControllerBase
     public function indexcolumns(Request $request)
     {
         if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         // if execute as selecting column_type
@@ -104,7 +104,7 @@ class ApiController extends AdminControllerBase
     public function filterviews(Request $request)
     {
         if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         $table = $request->get('q');
@@ -139,11 +139,11 @@ class ApiController extends AdminControllerBase
     {
         $table = CustomTable::getEloquent($tableKey);
         if (!isset($table)) {
-            return abort(400);
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         if (!$table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
         return $table;
     }
@@ -157,11 +157,11 @@ class ApiController extends AdminControllerBase
     {
         $column = CustomColumn::getEloquent($id);
         if (!isset($column)) {
-            return abort(400);
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         if (!$column->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         return $column;
@@ -246,7 +246,7 @@ class ApiController extends AdminControllerBase
             $custom_table = CustomTable::getEloquent($key);
 
             if (($code = $custom_table->enableAccess()) !== true) {
-                return abortJson(403, $code);
+                return abortJson(403, ErrorCode::PERMISSION_DENY());
             }
 
             // get model filtered using role

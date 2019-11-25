@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Middleware;
 
 use Closure;
+use Exceedone\Exment\Enums\ErrorCode;
 
 class AuthenticateApi extends \Encore\Admin\Middleware\Authenticate
 {
@@ -18,7 +19,7 @@ class AuthenticateApi extends \Encore\Admin\Middleware\Authenticate
     {
         $user = \Exment::user();
         if (is_null($user) || is_null($user->base_user)) {
-            return abortJson(401, exmtrans('api.errors.access_denied'));
+            return abortJson(401, ErrorCode::ACCESS_DENYED());
         }
 
         return $next($request);
