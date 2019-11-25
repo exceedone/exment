@@ -86,10 +86,12 @@ class AuthUserOrgHelper
                 if (System::organization_available()) {
                     // and get authoritiable organization
                     $organizations = static::getRoleOrganizationQuery($target_table)
-                    ->with('users')
-                    ->get() ?? [];
+                        ->get() ?? [];
                     foreach ($organizations as $organization) {
-                        foreach ($organization->all_related_organizations() as $related_organization) {
+                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                        $relatedOrgs = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel()->with('users')->find($organization->getOrganizationIds($enum));
+
+                        foreach ($relatedOrgs as $related_organization) {
                             foreach ($related_organization->users as $user) {
                                 $target_ids[] = $user->id;
                             }
@@ -103,6 +105,7 @@ class AuthUserOrgHelper
             }
         }
     
+        $target_ids = array_unique($target_ids);
         // return target values
         $builder = getModelName(SystemTableName::USER)::query();
         if (!$all) {
@@ -139,7 +142,10 @@ class AuthUserOrgHelper
                     ->get() ?? [];
                 $tablename = getDBTableName(SystemTableName::USER);
                 foreach ($organizations as $organization) {
-                    foreach ($organization->all_related_organizations() as $related_organization) {
+                    $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                    $relatedOrgs = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel()->with('users')->find($organization->getOrganizationIds($enum));
+
+                    foreach ($relatedOrgs as $related_organization) {
                         $target_ids = array_merge(
                             $related_organization->users()->pluck("$tablename.id")->toArray(),
                             $target_ids

@@ -106,27 +106,6 @@ trait OrganizationTrait
     }
 
     /**
-     * get all deeply parents and children organizations.
-     * (*) not contains this.
-     *
-     * @return array all_children_organizations (as array)
-     */
-    public function all_related_organizations()
-    {
-        $results = [];
-        $related_organizations = [$this->all_parent_organizations(), $this->all_children_organizations(), [$this]];
-        foreach ($related_organizations as $related_organization) {
-            if (!isset($related_organization)) {
-                continue;
-            }
-            foreach ($related_organization as $organization) {
-                $results[] = $organization;
-            }
-        }
-        return $results;
-    }
-
-    /**
      * Get Parent and Children Ids
      *
      * @param [type] $joinedOrgFilterType
