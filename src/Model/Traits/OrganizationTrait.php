@@ -3,10 +3,12 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Encore\Admin\Traits\ModelTree;
 use Encore\Admin\Traits\AdminBuilder;
 
@@ -122,6 +124,28 @@ trait OrganizationTrait
             }
         }
         return $results;
+    }
+
+    /**
+     * Get Parent and Children Ids
+     *
+     * @param [type] $joinedOrgFilterType
+     * @return void
+     */
+    public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL){
+        return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS_ORG, $this->id,  $filterType), function () use ($filterType) {
+            $orgs = collect();
+            if(JoinedOrgFilterType::isGetUpper($filterType)){
+                $orgs = $orgs->merge($this->all_children_organizations());
+            }
+            if(JoinedOrgFilterType::isGetDowner($filterType)){
+                $orgs = $orgs->merge($this->all_parent_organizations());
+            }
+
+            $orgs->push($this);
+
+            return $orgs->map(function($org){ return $org->id; })->sort()->unique()->toArray();
+        });
     }
 
     protected static function setChildrenOrganizations($deep, $target, &$organizations)

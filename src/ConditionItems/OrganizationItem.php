@@ -3,12 +3,14 @@
 namespace Exceedone\Exment\ConditionItems;
 
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
 class OrganizationItem extends ConditionItemBase implements ConditionItemInterface
 {
@@ -41,12 +43,8 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
-        $organizations = \Exment::user()->base_user->belong_organizations
-            ->map(function ($organization) {
-                return $organization->id;
-            })->toArray();
-
-        return $this->compareValue($condition, $organizations);
+        $ids = \Exment::user()->belong_organizations->pluck('id')->toArray();
+        return $this->compareValue($condition, $ids);
     }
     
     /**
