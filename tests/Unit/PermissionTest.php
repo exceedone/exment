@@ -344,6 +344,93 @@ class PermissionTest extends UnitTestBase
     }
 
     
+    // Form -------------------------------------------
+    public function testCustomFormDirect()
+    {
+        $this->executeTestCustomForm(6, JoinedOrgFilterType::ONLY_JOIN, true);
+    }
+
+    public function testCustomFormUpper()
+    {
+        $this->executeTestCustomForm(5, JoinedOrgFilterType::ONLY_JOIN, false);
+    }
+
+    public function testCustomFormDowner()
+    {
+        $this->executeTestCustomForm(7, JoinedOrgFilterType::ONLY_JOIN, false);
+    }
+
+    public function testCustomFormOtherOrg()
+    {
+        $this->executeTestCustomForm(10, JoinedOrgFilterType::ONLY_JOIN, false);
+    }
+
+
+    public function testCustomFormDirectOnlyUpper()
+    {
+        $this->executeTestCustomForm(6, JoinedOrgFilterType::ONLY_UPPER, true);
+    }
+
+    public function testCustomFormUpperOnlyUpper()
+    {
+        $this->executeTestCustomForm(5, JoinedOrgFilterType::ONLY_UPPER, true);
+    }
+
+    public function testCustomFormDownerOnlyUpper()
+    {
+        $this->executeTestCustomForm(7, JoinedOrgFilterType::ONLY_UPPER, false);
+    }
+
+    public function testCustomFormOtherOrgOnlyUpper()
+    {
+        $this->executeTestCustomForm(10, JoinedOrgFilterType::ONLY_UPPER, false);
+    }
+    
+    
+    public function testCustomFormDirectOnlyDowner()
+    {
+        $this->executeTestCustomForm(6, JoinedOrgFilterType::ONLY_DOWNER, true);
+    }
+
+    public function testCustomFormUpperOnlyDowner()
+    {
+        $this->executeTestCustomForm(5, JoinedOrgFilterType::ONLY_DOWNER, false);
+    }
+
+    public function testCustomFormDownerOnlyDowner()
+    {
+        $this->executeTestCustomForm(7, JoinedOrgFilterType::ONLY_DOWNER, true);
+    }
+
+    public function testCustomFormOtherOrgOnlyDowner()
+    {
+        $this->executeTestCustomForm(10, JoinedOrgFilterType::ONLY_DOWNER, false);
+    }
+    
+    
+    public function testCustomFormDirectAll()
+    {
+        $this->executeTestCustomForm(6, JoinedOrgFilterType::ALL, true);
+    }
+
+    public function testCustomFormUpperAll()
+    {
+        $this->executeTestCustomForm(5, JoinedOrgFilterType::ALL, true);
+    }
+
+    public function testCustomFormDownerAll()
+    {
+        $this->executeTestCustomForm(7, JoinedOrgFilterType::ALL, true);
+    }
+
+    public function testCustomFormOtherOrgAll()
+    {
+        $this->executeTestCustomForm(10, JoinedOrgFilterType::ALL, false);
+    }
+
+
+
+
 
     protected function executeTestOrganization($loginId, $joinedOrgFilterType, $antiOrganizations, bool $antiResult){
         $this->init();
@@ -418,5 +505,24 @@ class PermissionTest extends UnitTestBase
         });
         $func = $result ? 'assertTrue' : 'assertFalse';
         $this->{$func}($result);
+
+        
+        // get actions
+        $result = count($custom_value->getWorkflowActions(true)) > 0;
+        $this->{$func}($result);
+    }
+    
+    protected function executeTestCustomForm($loginId, $joinedOrgFilterType, bool $result){
+        $this->init();
+        $this->be(LoginUser::find($loginId));
+        // set as All
+        System::org_joined_type_role_group(JoinedOrgFilterType::ALL);
+        System::org_joined_type_custom_value(JoinedOrgFilterType::ALL);
+        System::org_joined_type_custom_form($joinedOrgFilterType);
+        
+        $custom_table = CustomTable::getEloquent('roletest_custom_value_edit');
+        $custom_form = $custom_table->getPriorityForm(6); // dev-userB
+        
+        $this->assertTrue($custom_form->form_view_name == ($result ? 'form' : 'form_default'));
     }
 }

@@ -15,6 +15,9 @@ use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\WorkflowConditionHeader;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\CustomFormPriority;
+use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
@@ -23,6 +26,8 @@ use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
+use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Laravel\Passport\ClientRepository;
 
 class InitTestCommand extends Command
@@ -352,6 +357,7 @@ class InitTestCommand extends Command
     }
 
     protected function createTable($keyName, $users){
+        // create table
         $custom_table = new CustomTable;
         $custom_table->table_name = $keyName;
         $custom_table->table_view_name = $keyName;
@@ -363,8 +369,43 @@ class InitTestCommand extends Command
         $custom_column->column_name = 'text';
         $custom_column->column_view_name = 'text';
         $custom_column->column_type = ColumnType::TEXT;
-
         $custom_column->save();
+
+        $custom_form_conditions = [
+            [
+                'condition_type' => ConditionType::CONDITION,
+                'condition_key' => 1,
+                'target_column_id' => ConditionTypeDetail::ORGANIZATION,
+                'condition_value' => ["2"], // dev
+            ], 
+            []
+        ];
+
+        foreach($custom_form_conditions as $index => $condition){
+            // create form
+            $custom_form = new CustomForm;
+            $custom_form->custom_table_id = $custom_table->id;
+            $custom_form->form_view_name = ($index === 1 ? 'form_default' : 'form');
+            $custom_form->default_flg = ($index === 1);
+            $custom_form->save();
+        
+            if(count($condition) == 0){
+                continue;
+            }
+            
+            $custom_form_priority = new CustomFormPriority;
+            $custom_form_priority->custom_form_id = $custom_form->id;
+            $custom_form_priority->order = $index + 1;
+            $custom_form_priority->save();
+
+            $custom_form_condition = new Condition;
+            $custom_form_condition->morph_type = 'custom_form_priority';
+            $custom_form_condition->morph_id = $custom_form_priority->id;
+            foreach($condition as $k => $c){
+                $custom_form_condition->{$k} = $c;
+            }
+            $custom_form_condition->save();
+        }
 
         System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
         foreach($users as $key => $user){
