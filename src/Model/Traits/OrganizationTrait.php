@@ -144,7 +144,7 @@ trait OrganizationTrait
 
             $orgs->push($this);
 
-            return $orgs->map(function($org){ return $org->id; })->sort()->unique();
+            return $orgs->map(function($org){ return $org->id; })->sort()->unique()->toArray();
         });
     }
 

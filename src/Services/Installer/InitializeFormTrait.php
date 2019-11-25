@@ -152,20 +152,6 @@ trait InitializeFormTrait
                 ->default(JoinedOrgFilterType::ALL)
                 ;
 
-            $form->select('org_joined_type_workflow', exmtrans("system.org_joined_type_workflow"))
-                ->help(exmtrans("system.help.org_joined_type_workflow") . exmtrans("common.help.more_help_here", $manualUrl))
-                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
-                ->config('allowClear', false)
-                ->default(JoinedOrgFilterType::ONLY_JOIN)
-                ;
-
-            $form->select('org_joined_type_custom_form', exmtrans("system.org_joined_type_custom_form"))
-                ->help(exmtrans("system.help.org_joined_type_custom_form") . exmtrans("common.help.more_help_here", $manualUrl))
-                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
-                ->config('allowClear', false)
-                ->default(JoinedOrgFilterType::ONLY_JOIN)
-                ;
-
             $form->select('org_joined_type_custom_value', exmtrans("system.org_joined_type_custom_value"))
                 ->help(exmtrans("system.help.org_joined_type_custom_value") . exmtrans("common.help.more_help_here", $manualUrl))
                 ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
