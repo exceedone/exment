@@ -324,7 +324,7 @@ class CustomValueAuthoritable extends ModelBase
         }
 
         // check role group as org. if not has, conitnue            
-        if(!\is_nullorempty(RoleGroup::getHasPermissionRoleGroup(null, $organization->id))){
+        if(!\is_nullorempty(RoleGroup::getHasPermissionRoleGroup(null, $organization->id, true))){
             return true;
         }
 

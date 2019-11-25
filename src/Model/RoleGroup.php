@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
 class RoleGroup extends ModelBase
 {
@@ -50,7 +51,7 @@ class RoleGroup extends ModelBase
      *
      * @return \Collection
      */
-    public static function getHasPermissionRoleGroup($user_id, $organization_ids){
+    public static function getHasPermissionRoleGroup($user_id, $organization_ids, $checkContainJointdOrgs = false){
         // get all permissons for system. --------------------------------------------------
         return static::allRecordsCache(function ($role_group) use ($user_id, $organization_ids) {
             $user_orgs = array_get($role_group, SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
@@ -65,9 +66,21 @@ class RoleGroup extends ModelBase
                     }    
                 }
 
-                if (!is_nullorempty($organization_ids)) {
-                    if ($user_org->role_group_user_org_type == SystemTableName::ORGANIZATION && in_array($user_org->role_group_target_id, (array)$organization_ids)) {
+                if (!is_nullorempty($organization_ids) && $user_org->role_group_user_org_type == SystemTableName::ORGANIZATION) {
+                    if (!$checkContainJointdOrgs && in_array($user_org->role_group_target_id, (array)$organization_ids)) {
                         return true;
+                    }
+                    elseif($checkContainJointdOrgs){
+                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
+                        foreach($organization_ids as $organization_id){
+                            // ge check contains parent and child organizaions.
+                            $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel($organization_id);
+                            
+                            $targetOrgIds = $org->getOrganizationIds($enum);
+                            if (!$checkContainJointdOrgs && in_array($organization_id, (array)$targetOrgIds)) {
+                                return true;
+                            }
+                        }
                     }
                 }
 
