@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Exceedone\Exment\Services\Installer\EnvTrait;
+use Exceedone\Exment\Model\System;
 use \File;
 
 class RestoreCommand extends Command
@@ -67,6 +68,8 @@ class RestoreCommand extends Command
         // delete temporary folder
         $success = \File::deleteDirectory($this->tmpDirFullPath());
 
+        System::clearCache();
+        
         return $result;
     }
     /**

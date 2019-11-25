@@ -9,7 +9,6 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
@@ -20,6 +19,8 @@ use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormActionType;
@@ -359,7 +360,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
         
-        set_time_limit(240);
+        setTimeLimitLong();
 
         $class = $plugin->getClass($request->input('plugin_type'), [
             'custom_table' => $this->custom_table,
@@ -668,15 +669,15 @@ class CustomValueController extends AdminControllerTableBase
             $code = $this->custom_table->enableCreate(true);
         } elseif ($formActionType == CustomValuePageType::EDIT) {
             $custom_value = $this->custom_table->getValueModel($id);
-            $code = $custom_value->enableEdit(true);
+            $code = $custom_value ? $custom_value->enableEdit(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::SHOW) {
             $custom_value = $this->custom_table->getValueModel($id);
-            $code = $custom_value->enableAccess(true);
+            $code = $custom_value ? $custom_value->enableAccess(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::GRID) {
             $code = $this->custom_table->enableView();
         } elseif ($formActionType == CustomValuePageType::DELETE) {
             $custom_value = $this->custom_table->getValueModel($id);
-            $code = $custom_value->enableDelete(true);
+            $code = $custom_value ? $custom_value->enableDelete(true) : $this->custom_table->getNoDataErrorCode($id);
         }
         
         if ($code !== true) {

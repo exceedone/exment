@@ -15,14 +15,14 @@
             <div class="fields-group">
                 @if($fields->count() > 1)
                     @if(isset($fields['8']))
-                    <div class="row">
+                    <div class="">
                     @foreach($fields['8'] as $field)
                         {!! $field->render() !!}
                     @endforeach
                     </div>
                     @endif
                     @if(isset($fields['1']) || isset($fields['2']))
-                    <div class="row">
+                    <div class="">
                         @if(isset($fields['1']) && isset($fields['2']))
                         <div class="col-xs-12 col-md-6">
                         @endif
@@ -46,7 +46,7 @@
                     </div>
                     @endif
                     @if(isset($fields['9']))
-                    <div class="row">
+                    <div class="">
                     @foreach($fields['9'] as $field)
                         {!! $field->render() !!}
                     @endforeach

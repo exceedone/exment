@@ -62,7 +62,7 @@ class DefaultTableProvider extends ProviderBase
         $lastColumns = ['created_at','updated_at','deleted_at'];
 
         // get custom columns
-        $custom_columns = $this->custom_table->custom_columns()->get(['column_name', 'column_view_name'])->toArray();
+        $custom_columns = $this->custom_table->custom_columns()->get(['column_name', 'column_view_name', 'column_type'])->toArray();
         return [$firstColumns, $custom_columns, $lastColumns];
     }
 
@@ -134,13 +134,11 @@ class DefaultTableProvider extends ProviderBase
         $bodies = [];
 
         list($firstColumns, $custom_columns, $lastColumns) = $columnDefines;
-        // convert $custom_columns to pluck column_name array
-        $custom_column_names = collect($custom_columns)->pluck('column_name')->toArray();
         foreach ($records as $record) {
             $body_items = [];
             // add items
             $body_items = array_merge($body_items, $this->getBodyItems($record, $firstColumns));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_column_names, "value.", ConditionType::COLUMN));
+            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_columns, "value.", ConditionType::COLUMN));
             $body_items = array_merge($body_items, $this->getBodyItems($record, $lastColumns));
 
             $bodies[] = $body_items;
@@ -157,7 +155,11 @@ class DefaultTableProvider extends ProviderBase
         $body_items = [];
         foreach ($columns as $column) {
             // get key.
-            $key = (isset($array_header_key) ? $array_header_key : "").$column;
+            if (is_array($column)) {
+                $key = (isset($array_header_key) ? $array_header_key : "").array_get($column, 'column_name');
+            } else {
+                $key = (isset($array_header_key) ? $array_header_key : "").$column;
+            }
             $value = array_get($record, $key);
             if (is_array($value)) {
                 $value = implode(",", $value);
@@ -165,13 +167,8 @@ class DefaultTableProvider extends ProviderBase
 
             // if $view_column_type is column, get customcolumn
             if ($view_column_type == ConditionType::COLUMN) {
-                $custom_column = CustomColumn::getEloquent($column, $this->custom_table);
-                if (!isset($custom_column)) {
-                    continue;
-                }
-
                 // if attachment, set url
-                if (ColumnType::isAttachment($custom_column->column_type)) {
+                if (ColumnType::isAttachment(array_get($column, 'column_type'))) {
                     $value = ExmentFile::getUrl($value);
                 }
             }

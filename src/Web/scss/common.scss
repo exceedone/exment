@@ -488,13 +488,60 @@ table img.image_html{
 
         .system-values-label{
             margin-right:0.5em;
+            display: inline-block;
+        }
+
+        .system-values-item{
+            display: inline-block;
         }
 
         .system-values-flow{
             margin-right: 2em;
+            display: inline-block;
         }
     }
 }
+
+@media (max-width: 1040px)
+{
+
+    .system-values{
+        width:auto;
+        
+        .system-values-label{
+            min-width: 100px;
+            margin-bottom: 0;
+        }
+    
+        p{
+            display: inline-block;
+        }
+    
+        .system-values-list{
+            display: block;
+        
+            li{
+                width:100%; 
+                border: none;
+                margin-bottom: 5px;
+            }
+        }
+            
+
+        .system-values-flows{
+            margin-bottom: 0;
+            font-size: 0.9em;
+
+            .system-values-flow{
+                display: block;
+                margin: 0.5em 2px;
+                padding: 0.4em 8px;
+            }
+        }
+    }
+    
+}
+
 
 // workflow
 .workflow_table_item{

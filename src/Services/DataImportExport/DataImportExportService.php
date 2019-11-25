@@ -120,7 +120,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function export()
     {
-        set_time_limit(240);
+        setTimeLimitLong();
         $datalist = $this->exportAction->datalist();
 
         $files = $this->format
@@ -141,7 +141,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function import($request)
     {
-        set_time_limit(240);
+        setTimeLimitLong();
         // validate request
         if (!($errors = $this->validateRequest($request))) {
             return [

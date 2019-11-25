@@ -15,7 +15,7 @@ A clear and concise description of what the bug is. / バグの内容のかん�
 Please describe the reproduction procedure in as much detail as possible. / 再現手順を、可能な限り詳細に記載してください。
 
 
-**Error log / エラーログ **
+**Error log / エラーログ**
 If possible, paste error log. Log's path is "storage/logs/laravel.log". / 可能であれば、ログを貼り付けてください。ログのパスは"storage/logs/laravel.log"です。
 
 

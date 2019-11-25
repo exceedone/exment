@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
 abstract class CustomValue extends ModelBase
 {
@@ -283,30 +284,11 @@ abstract class CustomValue extends ModelBase
             // prepare revision
             $model->preSave();
         });
-        static::saved(function ($model) {
-            $model->setFileValue();
-
-            // call plugins
-            Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saved', [
-                'custom_table' => $model->custom_table,
-                'custom_value' => $model,
-            ]);
-
-            $model->savedValue();
-            CustomValueAuthoritable::setValueAuthoritable($model);
-        });
         static::created(function ($model) {
-            // send notify
-            $model->notify(NotifySavedType::CREATE);
-
-            $model->postCreate();
+            $model->savedEvent(true);
         });
         static::updated(function ($model) {
-            // send notify
-            $model->notify(NotifySavedType::UPDATE);
-
-            // set revision
-            $model->postSave();
+            $model->savedEvent(false);
         });
 
         static::deleting(function ($model) {
@@ -332,6 +314,43 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
+     * Call saved event
+     *
+     * @param [type] $isCreate
+     * @return void
+     */
+    protected function savedEvent($isCreate){
+        // save file value 
+        $this->setFileValue();
+
+        // call plugins
+        Plugin::pluginPreparing(Plugin::getPluginsByTable($this), 'saved', [
+            'custom_table' => $this->custom_table,
+            'custom_value' => $this,
+        ]);
+
+        $this->savedValue();
+
+        if($isCreate){
+             // save Authoritable
+             CustomValueAuthoritable::setValueAuthoritable($this);
+
+             // send notify
+             $this->notify(NotifySavedType::CREATE);
+ 
+             // set revision
+             $this->postCreate();
+        }
+        else{
+            // send notify
+            $this->notify(NotifySavedType::UPDATE);
+
+            // set revision
+            $this->postSave();
+        }
+    }
+
+    /**
      * Validator before saving.
      * Almost multiple columns validation
      *
@@ -341,7 +360,7 @@ abstract class CustomValue extends ModelBase
     public function validatorSaving($input)
     {
         // validate multiple column set is unique
-        $errors = $this->validatorMultiUniques();
+        $errors = $this->validatorMultiUniques($input);
 
         // call plugin validator
         $errors = array_merge_recursive($errors, Plugin::pluginValidator(Plugin::getPluginsByTable($this->custom_table), [
@@ -353,7 +372,7 @@ abstract class CustomValue extends ModelBase
         return count($errors) > 0 ? $errors : true;
     }
 
-    protected function validatorMultiUniques()
+    protected function validatorMultiUniques($input)
     {
         $errors = [];
 
@@ -626,9 +645,10 @@ abstract class CustomValue extends ModelBase
             ->value_authoritable_users()
             ->where('authoritable_target_id', \Exment::user()->base_user_id);
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
+            $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
             $query = $this
-            ->value_authoritable_organizations()
-            ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds());
+                ->value_authoritable_organizations()
+                ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds($enum));
         }
 
         return $query->get();
