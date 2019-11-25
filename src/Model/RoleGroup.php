@@ -53,13 +53,13 @@ class RoleGroup extends ModelBase
      */
     public static function getHasPermissionRoleGroup($user_id, $organization_ids, $checkContainJointdOrgs = false){
         // get all permissons for system. --------------------------------------------------
-        return static::allRecordsCache(function ($role_group) use ($user_id, $organization_ids) {
+        return static::allRecordsCache(function ($role_group) use ($user_id, $organization_ids, $checkContainJointdOrgs) {
             $user_orgs = array_get($role_group, SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
             if (is_nullorempty($user_orgs)) {
                 return false;
             }
 
-            if ($user_orgs->contains(function ($user_org) use ($user_id, $organization_ids) {
+            if ($user_orgs->contains(function ($user_org) use ($user_id, $organization_ids, $checkContainJointdOrgs) {
                 if(!is_nullorempty($user_id)){
                     if ($user_org->role_group_user_org_type == SystemTableName::USER && in_array($user_org->role_group_target_id, (array)$user_id)) {
                         return true;
@@ -72,12 +72,12 @@ class RoleGroup extends ModelBase
                     }
                     elseif($checkContainJointdOrgs){
                         $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
-                        foreach($organization_ids as $organization_id){
+                        foreach((array)$organization_ids as $organization_id){
                             // ge check contains parent and child organizaions.
                             $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel($organization_id);
                             
                             $targetOrgIds = $org->getOrganizationIds($enum);
-                            if (!$checkContainJointdOrgs && in_array($organization_id, (array)$targetOrgIds)) {
+                            if (in_array($organization_id, $targetOrgIds)) {
                                 return true;
                             }
                         }
