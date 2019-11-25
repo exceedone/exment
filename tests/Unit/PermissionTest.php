@@ -15,65 +15,127 @@ class PermissionTest extends UnitTestBase
         \Exceedone\Exment\Middleware\Morph::defineMorphMap();
     }
 
-    // Organization -------------------------------------------
+    // User - Organization -------------------------------------------
     public function testOrganizationCompany()
     {
-        $this->executeTestOrganization(5, JoinedOrgFilterType::ONLY_JOIN, [1], true);
+        $this->executeTestOrganizationUser(5, JoinedOrgFilterType::ONLY_JOIN, [1], true);
     }
 
     public function testOrganizationDev()
     {
-        $this->executeTestOrganization(6, JoinedOrgFilterType::ONLY_JOIN, [2], true);
+        $this->executeTestOrganizationUser(6, JoinedOrgFilterType::ONLY_JOIN, [2], true);
     }
 
     public function testOrganizationDev1()
     {
-        $this->executeTestOrganization(7, JoinedOrgFilterType::ONLY_JOIN, [4], true);
+        $this->executeTestOrganizationUser(7, JoinedOrgFilterType::ONLY_JOIN, [4], true);
     }
 
     public function testOrganizationCompanyUpper()
     {
-        $this->executeTestOrganization(5, JoinedOrgFilterType::ONLY_UPPER, [1, 2, 3, 4, 5], true);
+        $this->executeTestOrganizationUser(5, JoinedOrgFilterType::ONLY_UPPER, [1, 2, 3, 4, 5], true);
     }
 
     public function testOrganizationDevUpper()
     {
-        $this->executeTestOrganization(6, JoinedOrgFilterType::ONLY_UPPER, [2, 4, 5], true);
+        $this->executeTestOrganizationUser(6, JoinedOrgFilterType::ONLY_UPPER, [2, 4, 5], true);
     }
 
     public function testOrganizationDev1Upper()
     {
-        $this->executeTestOrganization(7, JoinedOrgFilterType::ONLY_UPPER, [4], true);
+        $this->executeTestOrganizationUser(7, JoinedOrgFilterType::ONLY_UPPER, [4], true);
     }
 
     public function testOrganizationCompanyDowner()
     {
-        $this->executeTestOrganization(5, JoinedOrgFilterType::ONLY_DOWNER, [1], true);
+        $this->executeTestOrganizationUser(5, JoinedOrgFilterType::ONLY_DOWNER, [1], true);
     }
 
     public function testOrganizationDevDowner()
     {
-        $this->executeTestOrganization(6, JoinedOrgFilterType::ONLY_DOWNER, [1, 2], true);
+        $this->executeTestOrganizationUser(6, JoinedOrgFilterType::ONLY_DOWNER, [1, 2], true);
     }
 
     public function testOrganizationDev1Downer()
     {
-        $this->executeTestOrganization(7, JoinedOrgFilterType::ONLY_DOWNER, [1, 2, 4], true);
+        $this->executeTestOrganizationUser(7, JoinedOrgFilterType::ONLY_DOWNER, [1, 2, 4], true);
     }
 
     public function testOrganizationCompanyAll()
     {
-        $this->executeTestOrganization(5, JoinedOrgFilterType::ALL, [1, 2, 3, 4, 5], true);
+        $this->executeTestOrganizationUser(5, JoinedOrgFilterType::ALL, [1, 2, 3, 4, 5], true);
     }
 
     public function testOrganizationDevAll()
     {
-        $this->executeTestOrganization(6, JoinedOrgFilterType::ALL, [1, 2, 4, 5], true);
+        $this->executeTestOrganizationUser(6, JoinedOrgFilterType::ALL, [1, 2, 4, 5], true);
     }
 
     public function testOrganizationDev1All()
     {
-        $this->executeTestOrganization(7, JoinedOrgFilterType::ALL, [1, 2, 4], true);
+        $this->executeTestOrganizationUser(7, JoinedOrgFilterType::ALL, [1, 2, 4], true);
+    }
+
+    
+    // Organization - Organization -------------------------------------------
+    public function testOrganizationOrgCompany()
+    {
+        $this->executeTestOrganizationOrg(1, JoinedOrgFilterType::ONLY_JOIN, [1], true);
+    }
+
+    public function testOrganizationOrgDev()
+    {
+        $this->executeTestOrganizationOrg(2, JoinedOrgFilterType::ONLY_JOIN, [2], true);
+    }
+
+    public function testOrganizationOrgDev1()
+    {
+        $this->executeTestOrganizationOrg(3, JoinedOrgFilterType::ONLY_JOIN, [3], true);
+    }
+
+    public function testOrganizationOrgCompanyUpper()
+    {
+        $this->executeTestOrganizationOrg(1, JoinedOrgFilterType::ONLY_UPPER, [1, 2, 3, 4, 5], true);
+    }
+
+    public function testOrganizationOrgDevUpper()
+    {
+        $this->executeTestOrganizationOrg(2, JoinedOrgFilterType::ONLY_UPPER, [2, 4, 5], true);
+    }
+
+    public function testOrganizationOrgDev1Upper()
+    {
+        $this->executeTestOrganizationOrg(4, JoinedOrgFilterType::ONLY_UPPER, [4], true);
+    }
+
+    public function testOrganizationOrgCompanyDowner()
+    {
+        $this->executeTestOrganizationOrg(1, JoinedOrgFilterType::ONLY_DOWNER, [1], true);
+    }
+
+    public function testOrganizationOrgDevDowner()
+    {
+        $this->executeTestOrganizationOrg(2, JoinedOrgFilterType::ONLY_DOWNER, [1, 2], true);
+    }
+
+    public function testOrganizationOrgDev1Downer()
+    {
+        $this->executeTestOrganizationOrg(4, JoinedOrgFilterType::ONLY_DOWNER, [1, 2, 4], true);
+    }
+
+    public function testOrganizationOrgCompanyAll()
+    {
+        $this->executeTestOrganizationOrg(1, JoinedOrgFilterType::ALL, [1, 2, 3, 4, 5], true);
+    }
+
+    public function testOrganizationOrgDevAll()
+    {
+        $this->executeTestOrganizationOrg(2, JoinedOrgFilterType::ALL, [1, 2, 4, 5], true);
+    }
+
+    public function testOrganizationOrgDev1All()
+    {
+        $this->executeTestOrganizationOrg(4, JoinedOrgFilterType::ALL, [1, 2, 4], true);
     }
 
 
@@ -432,7 +494,7 @@ class PermissionTest extends UnitTestBase
 
 
 
-    protected function executeTestOrganization($loginId, $joinedOrgFilterType, $antiOrganizations, bool $antiResult){
+    protected function executeTestOrganizationUser($loginId, $joinedOrgFilterType, $antiOrganizations, bool $antiResult){
         $this->init();
 
         $user = CustomTable::getEloquent('user')->getValueModel($loginId);
@@ -447,6 +509,34 @@ class PermissionTest extends UnitTestBase
         }
         else{
 
+            for($i = 0; $i < count($organizations); $i++){
+                if($organizations[$i] != $antiOrganizations[$i]){
+                    $result = false;
+                    break;
+                }
+            }
+        }
+
+        $func = $antiResult ? 'assertTrue' : 'assertFalse';
+        $this->{$func}(
+            $result
+        );
+    }
+
+    protected function executeTestOrganizationOrg($id, $joinedOrgFilterType, $antiOrganizations, bool $antiResult){
+        $this->init();
+
+        $organization = CustomTable::getEloquent('organization')->getValueModel($id);
+        $organizations = $organization->getOrganizationIds($joinedOrgFilterType);
+        
+        sort($organizations);
+        sort($antiOrganizations);
+        
+        $result = true;
+        if(count($organizations) != count($antiOrganizations)){
+            $result = false;
+        }
+        else{
             for($i = 0; $i < count($organizations); $i++){
                 if($organizations[$i] != $antiOrganizations[$i]){
                     $result = false;
