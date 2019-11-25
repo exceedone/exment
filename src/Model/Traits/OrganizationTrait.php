@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Encore\Admin\Traits\ModelTree;
 use Encore\Admin\Traits\AdminBuilder;
 
@@ -133,18 +134,12 @@ trait OrganizationTrait
      */
     public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL){
         return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS_ORG, $this->id,  $filterType), function () use ($filterType) {
-            $orgs = colect();
+            $orgs = collect();
             if(JoinedOrgFilterType::isGetUpper($filterType)){
-                $orgs = array_merge(
-                    $this->all_children_organizations(),
-                    $orgs
-                );
+                $orgs = $orgs->merge($this->all_children_organizations());
             }
             if(JoinedOrgFilterType::isGetDowner($filterType)){
-                $orgs = array_merge(
-                    $this->all_parent_organizations(),
-                    $orgs
-                );
+                $orgs = $orgs->merge($this->all_parent_organizations());
             }
 
             $orgs->push($this);
