@@ -293,7 +293,7 @@ class Permission
     protected function validateCustomValuePermission($systemRole, $endpoint)
     {
         // if request has id, permission contains CUSTOM_VALUE_ACCESS
-        if (!is_null($id = request()->id)) {
+        if (!is_null($id = request()->id) && request()->is(trim(admin_base_path("data/$endpoint/*"), '/'))) {
             $permissions = PermissionEnum::AVAILABLE_ACCESS_CUSTOM_VALUE;
         } else {
             $permissions = PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE;
