@@ -339,8 +339,6 @@ EOT;
     {
         // after saving
         $form->savedInTransaction(function ($form) use ($id, $select_parent) {
-            CustomValueAuthoritable::setValueAuthoritable($form->model());
-            
             PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
         });
         

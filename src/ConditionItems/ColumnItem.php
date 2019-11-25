@@ -107,6 +107,15 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         return false;
     }
     
+    /**
+     * Set condition query. For data list and use workflow status
+     *
+     * @param [type] $query
+     * @param [type] $tableName
+     * @param [type] $custom_table
+     * @param string $authorityTableName target table name. WORKFLOW_AUTHORITY or WORKFLOW_VALUE_AUTHORITY
+     * @return void
+     */
     public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
     {
         /// get user or organization list
@@ -124,7 +133,6 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         });
 
         $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
-
         foreach ($custom_columns as $custom_column) {
             $query->orWhere(function ($query) use ($custom_column, $tableName, $ids, $authorityTableName) {
                 $indexName = $custom_column->getIndexColumnName();

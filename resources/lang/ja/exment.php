@@ -59,6 +59,7 @@ return [
         'footer' => 'フッター',
         'available' => '使用する',
         'history' => '履歴',
+        'create_only_setting' => '新規作成時設定',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -87,6 +88,7 @@ return [
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
             'init_flg' => '保存後、変更はできません。',
             'more_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
+            'more_help_here' => '詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
         ],
 
         'weekday' => [
@@ -206,6 +208,10 @@ return [
         'complex_password' => '複雑なパスワード',
         'password_expiration_days' => '有効日数',
         'password_history_cnt' => 'パスワードの履歴件数',
+        'organization_header' => '組織設定',
+        'org_joined_type_role_group' => '組織階層設定(役割グループ)',
+        'org_joined_type_custom_value' => '組織階層設定(データ)',
+        'custom_value_save_autoshare' => 'カスタムデータ共有設定',
         
         'site_skin_options' => [
             "skin-blue" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
@@ -243,7 +249,19 @@ return [
             'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
             'format_local' => ['Y年m月d日', 'Y年m月d日 H時i分s秒', 'H時i分s秒'],
         ],
-        
+
+        'joined_org_filter_options' => [
+            'all' => '所属組織の親子階層を含める',
+            'only_upper' => '所属組織の親階層を含める',
+            'only_downer' => '所属組織の子階層を含める',
+            'only_join' => '自分の所属組織のみ',
+        ],
+          
+        'custom_value_save_autoshare_options' => [
+            'user_only' => 'ログインユーザーのみ',
+            'user_organization' => 'ログインユーザーと、所属する組織',
+        ],
+
         'help' =>[
             'site_name' => 'ページの左上に表示するサイト名です。',
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
@@ -270,7 +288,11 @@ return [
             'complex_password' => 'YESにした場合、パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
             'password_expiration_days' => 'パスワードの有効日数を設定します。0にした場合は無期限になります。',
             'password_history_cnt' => '1以上を入力することで、過去に使用したことのある古いパスワードは、入力した件数分、再度登録できなくなります。<br />※0にした場合でも、設定中のパスワードは登録できません。',
-        ]
+            
+            'org_joined_type_role_group' => '役割グループの「ユーザー・組織設定」に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
+            'org_joined_type_custom_value' => '各カスタムデータの共有設定に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
+            'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により、所属組織にも共有することができます。',
+        ],
     ],
 
     'dashboard' => [
@@ -1513,8 +1535,16 @@ return [
             'wrong_scope' => 'APIを実行するためのスコープに誤りがあります。開発者にお問い合わせください。',
             'delete_disabled' => 'このデータは削除できません。',
             'not_index_enabled' => ':attributeは検索インデックスが設定されていません。',
+            'data_not_found' => '対象データが見つかりません。',
+            'workflow_nostart' => 'ワークフローが開始されていない、または対象外のデータです。',
+            'workflow_end' => 'ワークフローが完了済、または対象外のデータです。',
+            'workflow_action_disabled' => '無効なアクション、または権限がありません。',
+            'user_notfound' => 'ID:%sは未登録のユーザーです。',
+            'invalid_user' => 'id：%sのユーザーは存在しません。',
+            'invalid_organization' => 'id：%sの組織は存在しません。',
+            'no_data' => 'データがありません。',
         ],
-
+        
         'help' =>[
             'redirect' => '認証後にリダイレクトするURLを入力してください。',
             'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',
