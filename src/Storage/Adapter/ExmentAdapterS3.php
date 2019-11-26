@@ -32,6 +32,7 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
             ],
             'region' => array_get($mergeConfig, 'region'),
             'version' => 'latest',
+            'bucket' => array_get($mergeConfig, 'bucket'),
         ]);
         return new self($client, array_get($mergeConfig, 'bucket'));
     }
