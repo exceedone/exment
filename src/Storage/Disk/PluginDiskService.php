@@ -105,6 +105,8 @@ class PluginDiskService extends DiskServiceBase
             // copy from crowd to local
             $stream = $disk->readStream($file);
             $localSyncDisk->writeStream($file, $stream);
+
+            fclose($stream);
         }
         
         // create updated_at file

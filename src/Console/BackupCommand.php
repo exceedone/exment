@@ -125,6 +125,8 @@ class BackupCommand extends Command
                     // copy from crowd to local
                     $stream = $disk->readStream($file);
                     $this->tmpDisk()->writeStream(path_join($to, $file), $stream);
+
+                    fclose($stream);
                 }
             }
         }

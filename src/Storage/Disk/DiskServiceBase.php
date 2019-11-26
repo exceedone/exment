@@ -222,6 +222,8 @@ abstract class DiskServiceBase
             $this->diskItem()->disk()->delete($to);
 
             $this->diskItem()->disk()->writeStream($to, $stream);
+
+            fclose($stream);
         }
     }
 
