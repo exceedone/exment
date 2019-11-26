@@ -86,7 +86,10 @@ return [
     |
     */
     'driver' => [
-        'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
+        'exment' => env('EXMENT_DRIVER_EXMENT', 'local'),
+        'backup' => env('EXMENT_DRIVER_BACKUP', 'local'),
+        'plugin' => env('EXMENT_DRIVER_PLUGIN', 'local'),
+        'template' => env('EXMENT_DRIVER_TEMPLATE', 'local'),
     ],
 
     /*
@@ -216,8 +219,6 @@ return [
     'backup_info' => [
         'mysql_dir' => env('EXMENT_MYSQL_BIN_DIR'),
         'def_file' => 'table_definition.sql',
-        'copy_dir' => [
-        ],
     ],
 
     /*
@@ -470,6 +471,16 @@ return [
     |
     */
     'api_default_data_count' => env('EXMENT_API_DEFAULT_DATA_COUNT', env('API_DEFAULT_DATA_COUNT', 20)),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | API max get data count 
+    |--------------------------------------------------------------------------
+    |
+    | get data count (custom_table, custom_value, custom_column...)
+    |
+    */
+    'api_max_data_count' => env('EXMENT_API_MAX_DATA_COUNT', 100),
     
     /*
     |--------------------------------------------------------------------------

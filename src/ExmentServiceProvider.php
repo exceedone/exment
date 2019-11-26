@@ -315,9 +315,11 @@ class ExmentServiceProvider extends ServiceProvider
             return new ExmentCustomValidator($translator, $data, $rules, $messages, $customAttributes);
         });
 
-        Storage::extend('exment-driver', function ($app, $config) {
-            return Driver::getExmentDriver($app, $config);
-        });
+        foreach(['exment', 'backup', 'plugin', 'template'] as $driverKey){
+            Storage::extend("exment-driver-$driverKey", function ($app, $config) use($driverKey) {
+                return Driver::getExmentDriver($app, $config, $driverKey);
+            });    
+        }
 
         Initialize::initializeConfig(false);
         

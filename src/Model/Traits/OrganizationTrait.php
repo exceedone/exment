@@ -3,10 +3,12 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Encore\Admin\Traits\ModelTree;
 use Encore\Admin\Traits\AdminBuilder;
 
@@ -104,24 +106,25 @@ trait OrganizationTrait
     }
 
     /**
-     * get all deeply parents and children organizations.
-     * (*) not contains this.
+     * Get Parent and Children Ids
      *
-     * @return array all_children_organizations (as array)
+     * @param [type] $joinedOrgFilterType
+     * @return void
      */
-    public function all_related_organizations()
-    {
-        $results = [];
-        $related_organizations = [$this->all_parent_organizations(), $this->all_children_organizations(), [$this]];
-        foreach ($related_organizations as $related_organization) {
-            if (!isset($related_organization)) {
-                continue;
+    public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL){
+        return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS_ORG, $this->id,  $filterType), function () use ($filterType) {
+            $orgs = collect();
+            if(JoinedOrgFilterType::isGetUpper($filterType)){
+                $orgs = $orgs->merge($this->all_children_organizations());
             }
-            foreach ($related_organization as $organization) {
-                $results[] = $organization;
+            if(JoinedOrgFilterType::isGetDowner($filterType)){
+                $orgs = $orgs->merge($this->all_parent_organizations());
             }
-        }
-        return $results;
+
+            $orgs->push($this);
+
+            return $orgs->map(function($org){ return $org->id; })->sort()->unique()->toArray();
+        });
     }
 
     protected static function setChildrenOrganizations($deep, $target, &$organizations)

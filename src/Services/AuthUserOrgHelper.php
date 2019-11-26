@@ -86,10 +86,12 @@ class AuthUserOrgHelper
                 if (System::organization_available()) {
                     // and get authoritiable organization
                     $organizations = static::getRoleOrganizationQuery($target_table)
-                    ->with('users')
-                    ->get() ?? [];
+                        ->get() ?? [];
                     foreach ($organizations as $organization) {
-                        foreach ($organization->all_related_organizations() as $related_organization) {
+                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                        $relatedOrgs = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel()->with('users')->find($organization->getOrganizationIds($enum));
+
+                        foreach ($relatedOrgs as $related_organization) {
                             foreach ($related_organization->users as $user) {
                                 $target_ids[] = $user->id;
                             }
@@ -103,6 +105,7 @@ class AuthUserOrgHelper
             }
         }
     
+        $target_ids = array_unique($target_ids);
         // return target values
         $builder = getModelName(SystemTableName::USER)::query();
         if (!$all) {
@@ -139,7 +142,10 @@ class AuthUserOrgHelper
                     ->get() ?? [];
                 $tablename = getDBTableName(SystemTableName::USER);
                 foreach ($organizations as $organization) {
-                    foreach ($organization->all_related_organizations() as $related_organization) {
+                    $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                    $relatedOrgs = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel()->with('users')->find($organization->getOrganizationIds($enum));
+
+                    foreach ($relatedOrgs as $related_organization) {
                         $target_ids = array_merge(
                             $related_organization->users()->pluck("$tablename.id")->toArray(),
                             $target_ids
@@ -190,7 +196,7 @@ class AuthUserOrgHelper
      * get organization ids
      * @return mixed
      */
-    public static function getOrganizationIds($onlyUserJoined = false, $filterType = JoinedOrgFilterType::ALL)
+    public static function getOrganizationIds($onlyUserJoined = false, $filterType = JoinedOrgFilterType::ALL, $targetUserId = null)
     {
         // if system doesn't use organization, return empty array.
         if (!System::organization_available()) {
@@ -203,7 +209,7 @@ class AuthUserOrgHelper
         // if get only user joined organization, call function
         if ($onlyUserJoined) {
             foreach ($orgs as $org) {
-                static::setFlattenOrganizationsUserJoins($org, $org_flattens, $filterType);
+                static::setFlattenOrganizationsUserJoins($org, $org_flattens, $filterType, false, $targetUserId);
             }
         } else {
             static::setFlattenOrganizations($org, $org_flattens, $onlyUserJoined);
@@ -294,11 +300,15 @@ class AuthUserOrgHelper
     /**
      * filter organizaion only user joined.
      */
-    protected static function setFlattenOrganizationsUserJoins($org, &$org_flattens, $filterType = JoinedOrgFilterType::ONLY_JOIN, $parentJoin = false)
+    protected static function setFlattenOrganizationsUserJoins($org, &$org_flattens, $filterType = JoinedOrgFilterType::ONLY_JOIN, $parentJoin = false, $targetUserId = null)
     {
         // if exisis, return
         if (static::isAlreadySetsOrg($org, $org_flattens)) {
             return false;
+        }
+
+        if(!isset($targetUserId)){
+            $targetUserId = \Exment::user()->base_user_id;
         }
 
         // first, check this user joins this org
@@ -306,7 +316,7 @@ class AuthUserOrgHelper
         $join = true;
 
         // if user joins parent organization, set join is true
-        if ($parentJoin && JoinedOrgFilterType::isGetDowner($filterType)) {
+        if ($parentJoin && JoinedOrgFilterType::isGetUpper($filterType)) {
             $join = true;
         }
         ///// check user join org.
@@ -315,8 +325,8 @@ class AuthUserOrgHelper
             $join = false;
         }
         // not match id, set id is false
-        elseif ($org->users->filter(function ($user) {
-            return $user->id == \Exment::user()->base_user_id;
+        elseif ($org->users->filter(function ($user) use($targetUserId) {
+            return $user->id == $targetUserId;
         })->count() == 0) {
             $join = false;
         }
@@ -330,11 +340,11 @@ class AuthUserOrgHelper
         if ($org->hasChildren()) {
             foreach ($org->children_organizations as $children_organization) {
                 // if, user joins some children organizations, join is true.
-                if (static::setFlattenOrganizationsUserJoins($children_organization, $org_flattens, $filterType, $join)) {
+                if (static::setFlattenOrganizationsUserJoins($children_organization, $org_flattens, $filterType, $join, $targetUserId)) {
                     $result = true;
 
                     // if not sets this org, set this org too.
-                    if (JoinedOrgFilterType::isGetUpper($filterType) && !static::isAlreadySetsOrg($org, $org_flattens)) {
+                    if (JoinedOrgFilterType::isGetDowner($filterType) && !static::isAlreadySetsOrg($org, $org_flattens)) {
                         $org_flattens[] = $org;
                     }
                 }
@@ -419,6 +429,6 @@ class AuthUserOrgHelper
             $target_ids = $target_ids->merge(System::system_admin_users() ?? []);
         }
 
-        return $target_ids->filter()->toArray();
+        return $target_ids->filter()->unique()->toArray();
     }
 }

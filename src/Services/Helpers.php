@@ -426,6 +426,20 @@ if (!function_exists('bytesToHuman')) {
     }
 }
 
+if (!function_exists('setTimeLimitLong')) {
+    /**
+     * Set time limit long
+     */
+    function setTimeLimitLong($time = 600)
+    {
+        $max_execution_time = ini_get('max_execution_time');
+        if($max_execution_time == 0 || $max_execution_time > $time){
+            return;
+        }
+        set_time_limit($time);
+    }
+}
+
 if (!function_exists('getUploadMaxFileSize')) {
     /**
      * get Upload Max File Size. get php.ini config
@@ -453,6 +467,27 @@ if (!function_exists('isApiEndpoint')) {
     {
         $basePath = ltrim(admin_base_path(), '/');
         return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
+    }
+}
+
+
+if (!function_exists('deleteDirectory')) {
+    /**
+     * delete target directory
+     */
+    function deleteDirectory($disk, $path)
+    {
+        if(is_nullorempty($path)){
+            return;
+        }
+        
+        $directories = $disk->directories($path);
+        foreach($directories as $directory){
+            deleteDirectory($disk, $directory);
+        }
+
+        $disk->delete($disk->files($path));
+        $disk->deleteDirectory($path);
     }
 }
 

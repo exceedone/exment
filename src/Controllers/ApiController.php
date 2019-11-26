@@ -57,15 +57,12 @@ class ApiController extends AdminControllerBase
     public function tablelist(Request $request)
     {
         if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         // get and check query parameter
-        if ($request->has('count')) {
-            $count = $request->get('count');
-            if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
-                return abortJson(400, exmtrans('api.errors.over_maxcount'));
-            }
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
         }
 
         // filter table
@@ -81,7 +78,7 @@ class ApiController extends AdminControllerBase
     public function indexcolumns(Request $request)
     {
         if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         // if execute as selecting column_type
@@ -107,7 +104,7 @@ class ApiController extends AdminControllerBase
     public function filterviews(Request $request)
     {
         if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         $table = $request->get('q');
@@ -142,11 +139,11 @@ class ApiController extends AdminControllerBase
     {
         $table = CustomTable::getEloquent($tableKey);
         if (!isset($table)) {
-            return abort(400);
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         if (!$table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
         return $table;
     }
@@ -160,11 +157,11 @@ class ApiController extends AdminControllerBase
     {
         $column = CustomColumn::getEloquent($id);
         if (!isset($column)) {
-            return abort(400);
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
         if (!$column->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, trans('admin.deny'));
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
         return $column;
@@ -186,11 +183,12 @@ class ApiController extends AdminControllerBase
         $custom_column = CustomColumn::getEloquent($id);
 
         // if column_type is not select_table, return []
-        if (!in_array(array_get($custom_column, 'column_type'), [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION])) {
+        if (!ColumnType::isSelectTable(array_get($custom_column, 'column_type'))) {
             return [];
         }
+
         // get select_target_table
-        $select_target_table = array_get($custom_column, 'options.select_target_table');
+        $select_target_table = $custom_column->select_target_table;
         if (!isset($select_target_table)) {
             return [];
         }
@@ -248,7 +246,7 @@ class ApiController extends AdminControllerBase
             $custom_table = CustomTable::getEloquent($key);
 
             if (($code = $custom_table->enableAccess()) !== true) {
-                return abortJson(403, $code);
+                return abortJson(403, ErrorCode::PERMISSION_DENY());
             }
 
             // get model filtered using role

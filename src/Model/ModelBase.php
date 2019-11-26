@@ -111,20 +111,13 @@ class ModelBase extends Model
      */
     protected static function setUser($model, $columns = [])
     {
-        $user = Admin::user() ?? null;
+        $user = \Exment::user() ?? null;
         if (!isset($user)) {
             return;
         }
-        $base_user = $user->base_user;
-        if (!isset($base_user)) {
-            return;
-        }
-        $id = $base_user->id ?? null;
-        if (!isset($id)) {
-            return;
-        }
+        $base_user_id = $user->base_user_id;
         foreach ($columns as $column) {
-            $model->{$column} = $id;
+            $model->{$column} = $base_user_id;
         }
     }
 

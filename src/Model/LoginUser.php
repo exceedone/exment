@@ -74,6 +74,18 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         }
         return asset(Define::USER_IMAGE_LINK);
     }
+
+    /**
+     * Get organizations user joined.
+     * * ONLY JOIN. not contains upper and downer.
+     *
+     * @return void
+     */
+    public function belong_organizations()
+    {
+        return $this->base_user->belong_organizations();
+    }
+    
     
     public function isLoginProvider()
     {

@@ -300,6 +300,7 @@ class RouteServiceProvider extends ServiceProvider
                 'middleware'    => array_get($route, 'middleware'),
             ], function (Router $router) use ($route) {
                 $router->post('template/search', 'TemplateController@searchTemplate');
+                $router->delete('template/delete', 'TemplateController@delete');
             });
         }
     }

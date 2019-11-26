@@ -5,7 +5,9 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Model\CustomValue;
 use Carbon\Carbon;
 
 class CustomValueAuthoritable extends ModelBase
@@ -28,13 +30,73 @@ class CustomValueAuthoritable extends ModelBase
             return;
         }
 
-        $model = new self;
-        $model->parent_id = $custom_value->id;
-        $model->parent_type = $table_name;
-        $model->authoritable_type = Permission::CUSTOM_VALUE_EDIT;
-        $model->authoritable_user_org_type = SystemTableName::USER;
-        $model->authoritable_target_id = $user->base_user_id;
-        $model->save();
+        self::firstOrCreate([
+            'parent_id' => $custom_value->id,
+            'parent_type' => $table_name,
+            'authoritable_type' => Permission::CUSTOM_VALUE_EDIT,
+            'authoritable_user_org_type' => SystemTableName::USER,
+            'authoritable_target_id' => $user->base_user_id,
+        ]);
+
+
+        /////// share organization
+        if(System::custom_value_save_autoshare() != CustomValueAutoShare::USER_ORGANIZATION){
+            return;
+        }
+        
+        // get organizations. OK only_join users
+        $belong_organizations = $user->base_user->belong_organizations;
+
+        foreach($belong_organizations as $belong_organization){
+            // check permission as organization.
+            if(!static::hasPermissionAsOrganization($custom_table, $belong_organization)){
+                continue;
+            }
+
+            self::firstOrCreate([
+                'parent_id' => $custom_value->id,
+                'parent_type' => $table_name,
+                'authoritable_type' => Permission::CUSTOM_VALUE_EDIT,
+                'authoritable_user_org_type' => SystemTableName::ORGANIZATION,
+                'authoritable_target_id' => $belong_organization->id,
+            ]);
+        }
+    }
+
+    /**
+     * Set Authoritable By User and Org Array
+     *
+     * @return void
+     */
+    public static function setAuthoritableByUserOrgArray($custom_value, $arrays)
+    {
+        $custom_table = $custom_value->custom_table;
+        $table_name = $custom_table->table_name;
+        if (in_array($table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY())) {
+            return;
+        }
+
+        foreach($arrays as $array){
+            if($array instanceof CustomValue){
+                $related_id = array_get($array, 'id');
+                $related_type = $array->custom_table->table_name;
+            }else{
+                $related_id = array_get($array, 'related_id');
+                $related_type = array_get($array, 'related_type');    
+            }
+
+            if(\is_nullorempty($related_id) || \is_nullorempty($related_type)){
+                continue;
+            }
+
+            self::firstOrCreate([
+                'parent_id' => $custom_value->id,
+                'parent_type' => $table_name,
+                'authoritable_type' => Permission::CUSTOM_VALUE_VIEW,
+                'authoritable_user_org_type' => $related_type,
+                'authoritable_target_id' => $related_id,
+            ]);
+        }
     }
 
     /**
@@ -247,5 +309,25 @@ class CustomValueAuthoritable extends ModelBase
         })->toArray();
 
         return $defaults;
+    }
+
+    /**
+     * Whether target organization has edit permission
+     *
+     * @param CustomTable $custom_table
+     * @param CustomValue $organization
+     * @return boolean
+     */
+    protected static function hasPermissionAsOrganization($custom_table, $organization){
+        if (boolval($custom_table->getOption('all_user_editable_flg'))) {
+            return true;
+        }
+
+        // check role group as org. if not has, conitnue            
+        if(!\is_nullorempty(RoleGroup::getHasPermissionRoleGroup(null, $organization->id, true))){
+            return true;
+        }
+
+        return false;
     }
 }

@@ -154,21 +154,23 @@ class CustomTableController extends AdminControllerBase
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
                 ;
             
+            $form->exmheader(exmtrans('role_group.permission_setting'))->hr();
+
             $form->switchbool('all_user_editable_flg', exmtrans("custom_table.all_user_editable_flg"))->help(exmtrans("custom_table.help.all_user_editable_flg"))
-                ->default("0")
-            ;
+                ->default("0");
             
             $form->switchbool('all_user_viewable_flg', exmtrans("custom_table.all_user_viewable_flg"))->help(exmtrans("custom_table.help.all_user_viewable_flg"))
-                ->default("0")
-            ;
+                ->default("0");
             
-            $form->switchbool('all_user_accessable_flg', exmtrans("custom_table.all_user_accessable_flg"))->help(exmtrans("custom_table.help.all_user_accessable_flg"))
-                ->default("0")
-            ;
+                $form->switchbool('all_user_accessable_flg', exmtrans("custom_table.all_user_accessable_flg"))->help(exmtrans("custom_table.help.all_user_accessable_flg"))
+                ->default("0");
+            
         })->disableHeader();
 
         // if create table, show menulist
         if (!isset($id)) {
+            $form->exmheader(exmtrans('common.create_only_setting'))->hr();
+
             $form->switchbool('add_parent_menu_flg', exmtrans("custom_table.add_parent_menu_flg"))->help(exmtrans("custom_table.help.add_parent_menu_flg"))
                 ->default("0")
                 ->attribute(['data-filtertrigger' =>true])
