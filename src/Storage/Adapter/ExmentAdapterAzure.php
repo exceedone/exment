@@ -20,7 +20,7 @@ class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapte
     /**
      * get adapter class
      */
-    public static function getAdapter($app, $config, $driver)
+    public static function getAdapter($app, $config, $driverKey)
     {
         $mergeFrom = array_get($config, 'mergeFrom');
         $mergeConfig = Driver::mergeFileConfig('filesystems.disks.azure', "filesystems.disks.$mergeFrom", $mergeFrom);

@@ -20,7 +20,7 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
     /**
      * get adapter class
      */
-    public static function getAdapter($app, $config)
+    public static function getAdapter($app, $config, $driverKey)
     {
         $mergeFrom = array_get($config, 'mergeFrom');
         $mergeConfig = Driver::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);
