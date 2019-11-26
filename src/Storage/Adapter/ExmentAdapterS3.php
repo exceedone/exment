@@ -27,12 +27,12 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
 
         $client = new S3Client([
             'credentials' => [
-                'key'    => array_get($config, 'key'),
-                'secret' => array_get($config, 'secret'),
+                'key'    => array_get($mergeConfig, 'key'),
+                'secret' => array_get($mergeConfig, 'secret'),
             ],
-            'region' => array_get($config, 'region'),
+            'region' => array_get($mergeConfig, 'region'),
             'version' => 'latest',
         ]);
-        return new self($client, array_get($config, 'bucket'));
+        return new self($client, array_get($mergeConfig, 'bucket'));
     }
 }
