@@ -19,6 +19,8 @@ use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
@@ -369,7 +371,24 @@ class InitTestCommand extends Command
         $custom_column->column_name = 'text';
         $custom_column->column_view_name = 'text';
         $custom_column->column_type = ColumnType::TEXT;
+        $custom_column->options = ['required' => '1'];
         $custom_column->save();
+
+        $custom_column2 = new CustomColumn;
+        $custom_column2->custom_table_id = $custom_table->id;
+        $custom_column2->column_name = 'user';
+        $custom_column2->column_view_name = 'ユーザー';
+        $custom_column2->column_type = ColumnType::USER;
+        $custom_column2->options = ['index_enabled' => '1'];
+        $custom_column2->save();
+
+        $custom_column3 = new CustomColumn;
+        $custom_column3->custom_table_id = $custom_table->id;
+        $custom_column3->column_name = 'index_text';
+        $custom_column3->column_view_name = 'index_text';
+        $custom_column3->column_type = ColumnType::TEXT;
+        $custom_column3->options = ['index_enabled' => '1'];
+        $custom_column3->save();
 
         $custom_form_conditions = [
             [
@@ -407,6 +426,8 @@ class InitTestCommand extends Command
             $custom_form_condition->save();
         }
 
+        $notify_id = $this->createNotify($custom_table);
+
         System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
         foreach($users as $key => $user){
             \Auth::guard('admin')->attempt([
@@ -415,12 +436,19 @@ class InitTestCommand extends Command
             ]);
 
             $id = array_get($user, 'id');
-            $custom_value = $custom_table->getValueModel();
-            $custom_value->setValue("text", "test_$id");
-            $custom_value->created_user_id = $id;
-            $custom_value->updated_user_id = $id;
 
-            $custom_value->save();
+            for ($i = 1; $i <= 10; $i++) {
+                $custom_value = $custom_table->getValueModel();
+                $custom_value->setValue("text", 'test_'.$id);
+                $custom_value->setValue("user", $id);
+                $custom_value->setValue("index_text", 'index_'.$id.'_'.$i);
+                $custom_value->created_user_id = $id;
+                $custom_value->updated_user_id = $id;
+    
+                $custom_value->save();
+
+                $this->createNotifyNavbar($custom_table, $notify_id, $custom_value);
+            }
         }
 
         return $custom_table;
@@ -435,6 +463,41 @@ class InitTestCommand extends Command
             $roleGroupPermission->permissions = [$permission];
             $roleGroupPermission->save();
         }
+    }
+    
+    /**
+     * Create Notify
+     *
+     * @return void
+     */
+    protected function createNotify($custom_table){
+        $notify = new Notify;
+        $notify->notify_view_name = $custom_table->table_name . '_notify';
+        $notify->custom_table_id = $custom_table->id;
+        $notify->notify_trigger = 2;
+        $notify->action_settings = [
+            "notify_action_target" => ["created_user"],
+            "mail_template_id" => "6"];
+        $notify->save();
+        return $notify->id;
+    }
+    
+    /**
+     * Create Notify Navibar
+     *
+     * @return void
+     */
+    protected function createNotifyNavbar($custom_table, $notify_id, $custom_value){
+        $notify_navbar = new NotifyNavbar;
+        $notify_navbar->notify_id = $notify_id;
+        $notify_navbar->parent_type = $custom_table->table_name;
+        $notify_navbar->parent_id = $custom_value->id;
+        $notify_navbar->target_user_id = $custom_value->created_user_id;
+        $notify_navbar->trigger_user_id = 1;
+        $notify_navbar->read_flg = rand(0, 1);
+        $notify_navbar->notify_subject = 'notify subject test';
+        $notify_navbar->notify_body = 'notify body test';
+        $notify_navbar->save();
     }
     
     /**
@@ -639,7 +702,8 @@ class InitTestCommand extends Command
                 
                         $custom_value = CustomTable::getEloquent($table['custom_table'])->getValueModel();
                         $custom_value->setValue("text", "test_$index");
-                        $custom_value->id = 100 + $index;
+                        $custom_value->setValue("index_text", "index_$index");
+                        $custom_value->id = 1000 + $index;
                         $custom_value->save();
     
                         if(!isset($wfValueStatus['id']) || $index == 0){

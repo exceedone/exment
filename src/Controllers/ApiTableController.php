@@ -55,7 +55,7 @@ class ApiTableController extends AdminControllerTableBase
                 if (count($values) > 1 && !preg_match('/^asc|desc$/i', $values[1])) {
                     return abortJson(400, ErrorCode::INVALID_PARAMS());
                 }
-                if (SystemColumn::isValid($column_name)) {
+                if (SystemColumn::isSqlValid($column_name)) {
                 } else {
                     $column = CustomColumn::getEloquent($column_name, $this->custom_table);
                     if (!isset($column)) {
@@ -224,7 +224,7 @@ class ApiTableController extends AdminControllerTableBase
             if (count($values) < 3 || !preg_match('/^eq|ne|gt|gte|lt|lte$/i', $values[1])) {
                 return abortJson(400, ErrorCode::INVALID_PARAMS());
             }
-            if (SystemColumn::isValid($column_name)) {
+            if (SystemColumn::isSqlValid($column_name)) {
             } else {
                 $column = CustomColumn::getEloquent($column_name, $this->custom_table);
                 if (!isset($column)) {

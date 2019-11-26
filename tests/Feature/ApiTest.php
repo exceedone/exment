@@ -210,6 +210,15 @@ class ApiTest extends ApiTestBase
             ->assertStatus(200);
     }
 
+    public function testGetTableById(){
+        $token = $this->getAdminAccessToken([ApiScope::TABLE_WRITE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'table', '2'))
+            ->assertStatus(200);
+    }
+
     public function testGetTableUser(){
         $token = $this->getUser2AccessToken([ApiScope::TABLE_READ]);
 
@@ -287,6 +296,15 @@ class ApiTest extends ApiTestBase
             ->assertStatus(404);
     }
 
+    public function testDenyGetTableColumns(){
+        $token = $this->getUser2AccessToken([ApiScope::TABLE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'table', 'no_permission', 'columns'))
+            ->assertStatus(403);
+    }
+
     public function testGetColumn(){
         $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
 
@@ -330,19 +348,14 @@ class ApiTest extends ApiTestBase
             ]);
     }
 
-    // public function testGetColumnAuth(){
-    //     $token = $this->getUser2AccessToken([ApiScope::TABLE_READ]);
+    public function testDenyGetColumn(){
+        $token = $this->getUser2AccessToken([ApiScope::TABLE_READ]);
 
-    //     $this->withHeaders([
-    //         'Authorization' => "Bearer $token",
-    //     ])->get(admin_urls('api', 'column', 5))
-    //         ->assertStatus(403);
-    // }
-
-
-
-
-
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'column', 60))
+            ->assertStatus(403);
+    }
 
     public function testGetValues(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
@@ -351,6 +364,40 @@ class ApiTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit'))
             ->assertStatus(200);
+    }
+
+    public function testGetValuesWithPage(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all').'?page=3')
+            ->assertStatus(200)
+            ->assertJsonCount(20, 'data');
+    }
+
+    public function testGetValuesWithCount(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all').'?count=3')
+            ->assertStatus(200)
+            ->assertJsonCount(3, 'data');
+    }
+
+    public function testGetValuesWithOrder(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all').'?orderby=user%20desc,id%20asc')
+            ->assertStatus(200);
+
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $data = array_get($json, 'data');
+        $value = array_get($data[0], 'value');
+        $this->assertTrue(array_get($value, 'user') == '9');
     }
 
     public function testGetValuesByMultiId(){
@@ -372,6 +419,30 @@ class ApiTest extends ApiTestBase
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::WRONG_SCOPE
+            ]);
+    }
+
+    public function testInvalidOrderGetValues(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all').'?orderby=id%20besc')
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::INVALID_PARAMS
+            ]);
+    }
+
+    public function testNoIndexOrderGetValues(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all').'?orderby=text')
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::NOT_INDEX_ENABLED
             ]);
     }
 
@@ -436,8 +507,99 @@ class ApiTest extends ApiTestBase
     
     // post value -------------------------------------
 
-    public function testPostValue(){
+    public function testCreateValue(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+            'value' => [
+                'text' => $text,
+                'user' => 2
+            ]
+        ])
+        ->assertStatus(200)
+        ->assertJsonFragment([
+            'value' => [
+                'text' => $text,
+                'user' => 2
+            ],
+            'created_user_id' => "1" //ADMIN
+        ]);
+    }
+
+    public function testCreateMultipleValue(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+        $pre_count = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->count();
+        $values = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $values[] = ['text' => 'test' . date('YmdHis') . $i];
+        }
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), ['value' => $values])
+            ->assertStatus(200);
+        $count = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->count();
+        $this->assertTrue(($pre_count + 3) == $count);
+    }
+
+    public function testCreateValueWithFindkey(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+            'value' => [
+                'text' => $text,
+                'user' => 'user3'
+            ],
+            'findKeys' => [
+                'user' => 'user_name'
+            ]
+        ])
+        ->assertStatus(200)
+        ->assertJsonFragment([
+            'value' => [
+                'text' => $text,
+                'user' => 4
+            ],
+            'created_user_id' => "1" //ADMIN
+        ]);
+    }
+
+    public function testCreateNoValue(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+            'novalue' => [
+                'text' => $text
+            ]
+        ])
+        ->assertStatus(400)
+        ->assertJsonFragment([
+            'code' => ErrorCode::VALIDATION_ERROR
+        ]);
+    }
+
+    public function testOverCreateValue(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+        $values = [];
+        for ($i = 1; $i <= 101; $i++) {
+            $values[] = ['text' => 'test' . date('YmdHis') . $i];
+        }
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), ['value' => $values])
+            ->assertStatus(400);
+    }
+
+    public function testWrongScopeCreateValue(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
         $text = 'test' . date('YmdHis');
         $response = $this->withHeaders([
@@ -447,16 +609,137 @@ class ApiTest extends ApiTestBase
                 'text' => $text
             ]
         ])
-        ->assertStatus(200)
+        ->assertStatus(403)
         ->assertJsonFragment([
-            'value' => [
-                'text' => $text
-            ],
-            'created_user_id' => "1" //ADMIN
+            'code' => ErrorCode::WRONG_SCOPE
         ]);
     }
 
-    public function testPostValueNoPermissionData(){
+    public function testCreateValueInvalidFindkey(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+            'value' => [
+                'text' => $text,
+                'user' => 'user3'
+            ],
+            'findKeys' => [
+                'user' => 'user_column'
+            ]
+        ])
+        ->assertStatus(500);
+    }
+
+    public function testCreateValueFindkeyNotFound(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+            'value' => [
+                'text' => $text,
+                'user' => 'bjlfjadflvjlav'
+            ],
+            'findKeys' => [
+                'user' => 'user_name'
+            ]
+        ])
+        ->assertStatus(400);
+    }
+
+    public function testCreateValueRequiredError(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+            'value' => [
+                'user' => 3
+            ]
+        ])
+        ->assertStatus(400)
+        ->assertJsonFragment([
+            'code' => ErrorCode::VALIDATION_ERROR
+        ]);
+    }
+
+    public function testUpdateValue(){
+        $data = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()
+            ->where('updated_user_id', '<>', '1')->first();
+        $old_user = array_get($data->value, 'user');
+
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis') . '_update';
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', 'roletest_custom_value_edit', $data->id), [
+            'value' => [
+                'text' => $text,
+            ]
+        ])
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'value' => [
+                    'text' => $text,
+                    'user' => $old_user,
+                ],
+                'updated_user_id' => '1' //ADMIN
+            ]);
+    }
+
+    public function testUpdateValueWithFindKey(){
+        $data = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()
+            ->where('updated_user_id', '<>', '2')->first();
+        $old_text = array_get($data->value, 'text');
+
+        $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis') . '_update';
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', 'roletest_custom_value_edit', $data->id), [
+            'value' => [
+                'user' => 'dev1-userD',
+            ],
+            'findKeys' => [
+                'user' => 'user_code'
+            ]
+        ])
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'value' => [
+                    'text' => $old_text,
+                    'user' => 8,
+                ],
+                'updated_user_id' => '2' //ADMIN
+            ]);
+    }
+
+    public function testUpdateValueNoData(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis') . '_update';
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', 'roletest_custom_value_edit', '99999'), [
+            'value' => [
+                'text' => $text,
+            ]
+        ])
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+            ]);
+    }
+
+    public function testUpdateValueNoPermissionData(){
         $data = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->orderby('id', 'desc')->first();
 
         /// check not permission by user
@@ -465,6 +748,160 @@ class ApiTest extends ApiTestBase
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit', $data->id))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::PERMISSION_DENY
+            ]);
+    }
+
+    public function testDataQuery(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query').'?q=index_2')
+            ->assertStatus(200)
+            ->assertJsonCount(10, 'data');
+    }
+
+    public function testDataQueryWithPage(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query').'?q=index&page=3')
+            ->assertStatus(200)
+            ->assertJsonCount(20, 'data');
+    }
+
+    public function testDataQueryWithCount(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query').'?q=index_1&count=5')
+            ->assertStatus(200)
+            ->assertJsonCount(5, 'data');
+    }
+
+    public function testDataQueryNoParam(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::VALIDATION_ERROR
+            ]);
+    }
+
+    public function testDenyDataQuery(){
+        $token = $this->getUser2AccessToken([ApiScope::VALUE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'no_permission', 'query').'?q=index_3')
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::PERMISSION_DENY
+            ]);
+    }
+
+    public function testDataQueryColumn(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit_all', 'query-column').'?q=index_text%20ne%20index_2_1,id%20gt%201000')
+            ->assertStatus(200)
+            ->assertJsonCount(2, 'data');
+    }
+
+    public function testDataQueryColumnWithPage(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit_all', 'query-column').'?q=id%20lt%2050&page=2')
+            ->assertStatus(200)
+            ->assertJsonCount(20, 'data');
+    }
+
+    public function testDataQueryColumnWithCount(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit_all', 'query-column').'?q=created_user_id%20eq%202&count=4')
+            ->assertStatus(200)
+            ->assertJsonCount(4, 'data');
+    }
+
+    public function testDataQueryColumnNotFound(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query-column').'?q=index_text%20eq%20index_2_1,created_user_id%20ne%202')
+            ->assertStatus(200)
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function testDataQueryColumnNoParam(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query-column'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::VALIDATION_ERROR
+            ]);
+    }
+
+    public function testDataQueryColumnErrorColumn(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query-column').'?q=no_column%20eq%20123')
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::INVALID_PARAMS
+            ]);
+    }
+
+    public function testDataQueryColumnErrorOperand(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query-column').'?q=id%20in%20123')
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::INVALID_PARAMS
+            ]);
+    }
+
+    public function testDataQueryColumnNoIndex(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query-column').'?q=text%20eq%20123')
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::NOT_INDEX_ENABLED
+            ]);
+    }
+
+    public function testDenyDataQueryColumn(){
+        $token = $this->getUser2AccessToken([ApiScope::VALUE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'no_permission', 'query-column').'?q=index_text%20eq%20index_2_1')
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::PERMISSION_DENY

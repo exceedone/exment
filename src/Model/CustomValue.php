@@ -937,7 +937,7 @@ abstract class CustomValue extends ModelBase
             $column_name = $custom_column->column_name;
             // if not key in value, set default value
             if (!array_has($value, $column_name)) {
-                $value[$column_name] = $this->getValue($column_name);
+                $value[$column_name] = $this->getValue($column_name, ValueType::PURE_VALUE);
             }
         }
 
