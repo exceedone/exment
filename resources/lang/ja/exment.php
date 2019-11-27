@@ -1,3 +1,4 @@
+
 <?php
 
 return [
@@ -288,7 +289,6 @@ return [
             'complex_password' => 'YESにした場合、パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
             'password_expiration_days' => 'パスワードの有効日数を設定します。0にした場合は無期限になります。',
             'password_history_cnt' => '1以上を入力することで、過去に使用したことのある古いパスワードは、入力した件数分、再度登録できなくなります。<br />※0にした場合でも、設定中のパスワードは登録できません。',
-            
             'org_joined_type_role_group' => '役割グループの「ユーザー・組織設定」に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
             'org_joined_type_custom_value' => '各カスタムデータの共有設定に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
             'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により、所属組織にも共有することができます。',
@@ -1540,9 +1540,8 @@ return [
             'workflow_end' => 'ワークフローが完了済、または対象外のデータです。',
             'workflow_action_disabled' => '無効なアクション、または権限がありません。',
             'user_notfound' => 'ID:%sは未登録のユーザーです。',
-            'invalid_user' => 'id：%sのユーザーは存在しません。',
-            'invalid_organization' => 'id：%sの組織は存在しません。',
-            'no_data' => 'データがありません。',
+            'invalid_user' => 'ID:%sのユーザーは存在しません。',
+            'invalid_organization' => 'ID:%sの組織は存在しません。',
         ],
         
         'help' =>[
