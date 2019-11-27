@@ -145,7 +145,7 @@ class ModelBase extends Model
      */
     protected static function _getEloquent($obj, $withs = [], $query_key = 'id', $fucnName = 'firstRecord')
     {
-        if (!isset($obj)) {
+        if (is_nullorempty($obj)) {
             return null;
         }
 
@@ -159,7 +159,7 @@ class ModelBase extends Model
             return array_get($table, $query_key) == $obj;
         });
 
-        if (!isset($obj)) {
+        if (is_nullorempty($obj)) {
             return null;
         }
 
