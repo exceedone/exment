@@ -447,7 +447,13 @@ class InitTestCommand extends Command
     
                 $custom_value->save();
 
-                $this->createNotifyNavbar($custom_table, $notify_id, $custom_value);
+                if ($id == 3) {
+                    // no notify for User2
+                } else if ($i == 5) {
+                    $this->createNotifyNavbar($custom_table, $notify_id, $custom_value, 1);
+                } else if ($i == 10) {
+                    $this->createNotifyNavbar($custom_table, $notify_id, $custom_value, 0);
+                }
             }
         }
 
@@ -487,14 +493,14 @@ class InitTestCommand extends Command
      *
      * @return void
      */
-    protected function createNotifyNavbar($custom_table, $notify_id, $custom_value){
+    protected function createNotifyNavbar($custom_table, $notify_id, $custom_value, $read_flg){
         $notify_navbar = new NotifyNavbar;
         $notify_navbar->notify_id = $notify_id;
         $notify_navbar->parent_type = $custom_table->table_name;
         $notify_navbar->parent_id = $custom_value->id;
         $notify_navbar->target_user_id = $custom_value->created_user_id;
         $notify_navbar->trigger_user_id = 1;
-        $notify_navbar->read_flg = rand(0, 1);
+        $notify_navbar->read_flg = $read_flg;
         $notify_navbar->notify_subject = 'notify subject test';
         $notify_navbar->notify_body = 'notify body test';
         $notify_navbar->save();
@@ -596,6 +602,169 @@ class InitTestCommand extends Command
                     [
                         'custom_table' => 'roletest_custom_value_edit_all',
                     ],
+                    [
+                        'custom_table' => 'no_permission',
+                    ],
+                ],
+            ],
+            [
+                'items' => [
+                    'workflow_view_name' => 'workflow_common_no_complete',
+                    'workflow_type' => 0,
+                    'setting_completed_flg' => 0,
+                ],
+    
+                'statuses' => [
+                    [
+                        'status_name' => 'waiting',
+                        'datalock_flg' => 0,
+                    ],
+                    [
+                        'status_name' => 'completed',
+                        'datalock_flg' => 1,
+                    ],
+                ],
+    
+                'actions' => [
+                    [
+                        'status_from' => 'start',
+                        'action_name' => 'send',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::FIX,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 0,
+                                'enabled_flg' => true,    
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => 0,
+                                'related_type' => 'system',                                
+                            ]
+                        ],
+                    ],
+    
+                    [
+                        'status_from' => 0,
+                        'action_name' => 'complete',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::FIX,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 1,
+                                'enabled_flg' => true,    
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => 6, // dev-userB
+                                'related_type' => 'user',    
+                            ]
+                        ],
+                    ],
+                ],
+    
+                'tables' => [
+                    [
+                        'custom_table' => 'roletest_custom_value_access_all',
+                    ],
+                ],
+            ],
+            [
+                'items' => [
+                    'workflow_view_name' => 'workflow_for_Individual_table',
+                    'workflow_type' => 1,
+                    'setting_completed_flg' => 1,
+                ],
+    
+                'statuses' => [
+                    [
+                        'status_name' => 'status1',
+                        'datalock_flg' => 0,
+                    ],
+                    [
+                        'status_name' => 'status2',
+                        'datalock_flg' => 1,
+                    ],
+                ],
+    
+                'actions' => [
+                    [
+                        'status_from' => 'start',
+                        'action_name' => 'action1',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::FIX,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 0,
+                                'enabled_flg' => true,    
+                            ],
+                            [
+                                'status_to' => 1,
+                                'enabled_flg' => true,    
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => 0,
+                                'related_type' => 'system',                                
+                            ]
+                        ],
+                    ],
+    
+                    [
+                        'status_from' => 0,
+                        'action_name' => 'action2',
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::FIX,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 1,
+                                'enabled_flg' => true,    
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => 2, // dev
+                                'related_type' => 'organization',    
+                            ]
+                        ],
+                    ],
+                ],
+    
+                'tables' => [
+                    [
+                        'custom_table' => 'roletest_custom_value_edit',
+                    ],
                 ],
             ],
         ];
@@ -647,6 +816,10 @@ class InitTestCommand extends Command
 
                 foreach($action['authorities'] as $key => $item){
                     $item['workflow_action_id'] = $workflowaction->id;
+                    if ($item['related_type'] == 'column') {
+                        $custom_column = CustomColumn::getEloquent($item['related_id'], $workflow['tables'][0]['custom_table']);
+                        $item['related_id'] = $custom_column->id;
+                    }
                     WorkflowAuthority::insert($item);
                 }
                 
@@ -739,5 +912,17 @@ class InitTestCommand extends Command
                 }
             }
         }
+        
+        // add for organization work user
+        $wfValue = new WorkflowValue;
+        $wfValue->workflow_id = $workflowObj->id;
+        $wfValue->morph_type = 'roletest_custom_value_edit';
+        $wfValue->morph_id = 1;
+        $wfValue->workflow_action_id = 5;
+        $wfValue->workflow_status_to_id = 5;
+        $wfValue->action_executed_flg = 0;
+        $wfValue->latest_flg = 1;
+
+        $wfValue->save();
     }
 }

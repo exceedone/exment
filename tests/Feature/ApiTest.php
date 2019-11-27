@@ -179,7 +179,7 @@ class ApiTest extends ApiTestBase
         );
     }
 
-    public function testGetTablesNoData(){
+    public function testGetTablesNotFound(){
         $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
 
         $this->withHeaders([
@@ -721,7 +721,7 @@ class ApiTest extends ApiTestBase
             ]);
     }
 
-    public function testUpdateValueNoData(){
+    public function testUpdateValueNotFound(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
 
         $text = 'test' . date('YmdHis') . '_update';
@@ -761,7 +761,7 @@ class ApiTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'roletest_custom_value_access_all', 'query').'?q=index_2')
             ->assertStatus(200)
-            ->assertJsonCount(10, 'data');
+            ->assertJsonCount(11, 'data');
     }
 
     public function testDataQueryWithPage(){
@@ -902,6 +902,546 @@ class ApiTest extends ApiTestBase
         $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'no_permission', 'query-column').'?q=index_text%20eq%20index_2_1')
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::PERMISSION_DENY
+            ]);
+    }
+
+    public function testGetNotify(){
+        $token = $this->getAdminAccessToken([ApiScope::NOTIFY_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'notify'))
+            ->assertStatus(200)
+            ->assertJsonCount(6, 'data');
+    }
+
+    public function testGetNotifyAll(){
+        $token = $this->getAdminAccessToken([ApiScope::NOTIFY_WRITE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'notify').'?all=1')
+            ->assertStatus(200)
+            ->assertJsonCount(12, 'data');
+    }
+
+    public function testGetNotifyWithCount(){
+        $token = $this->getUser1AccessToken([ApiScope::NOTIFY_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'notify').'?count=4')
+            ->assertStatus(200)
+            ->assertJsonCount(4, 'data');
+    }
+
+    public function testGetNotifyNotFound(){
+        $token = $this->getUser2AccessToken([ApiScope::NOTIFY_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'notify'))
+            ->assertStatus(200)
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function testWrongScopeGetNotify(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'notify'))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::WRONG_SCOPE
+            ]);
+    }
+
+    // post notify -------------------------------------
+
+    public function testCreateNotify(){
+        $token = $this->getAdminAccessToken([ApiScope::NOTIFY_WRITE]);
+
+        $subject = 'subject_' . date('YmdHis');
+        $body = 'body_' . date('YmdHis');
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'notify'), [
+            'target_users' => 10,
+            'notify_subject' => $subject,
+            'notify_body' => $body
+        ])
+            ->assertStatus(201)
+            ->assertSeeText($subject)
+            ->assertSeeText($body);
+    }
+
+    public function testCreateNotifyMultiple(){
+        $token = $this->getUser1AccessToken([ApiScope::NOTIFY_WRITE]);
+
+        $subject = 'subject_' . date('YmdHis');
+        $body = 'body_' . date('YmdHis');
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'notify'), [
+            'target_users' => [4,6,8],
+            'notify_subject' => $subject,
+            'notify_body' => $body
+        ])
+            ->assertStatus(200)
+            ->assertJsonCount(3);
+    }
+
+    public function testCreateNotifyNoRequired(){
+        $token = $this->getAdminAccessToken([ApiScope::NOTIFY_WRITE]);
+
+        $subject = 'subject_' . date('YmdHis');
+        $body = 'body_' . date('YmdHis');
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'notify'), [
+            'target_users' => 1,
+            'notify_subject' => $subject
+        ])
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::VALIDATION_ERROR
+            ]);
+    }
+
+    public function testCreateNotifyNoUser(){
+        $token = $this->getAdminAccessToken([ApiScope::NOTIFY_WRITE]);
+
+        $subject = 'subject_' . date('YmdHis');
+        $body = 'body_' . date('YmdHis');
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'notify'), [
+            'target_users' => [4,6,999],
+            'notify_subject' => $subject,
+            'notify_body' => $body
+        ])
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::VALIDATION_ERROR
+            ]);
+    }
+
+    public function testWrongScopeCreateNotify(){
+        $token = $this->getAdminAccessToken([ApiScope::NOTIFY_READ]);
+
+        $subject = 'subject_' . date('YmdHis');
+        $body = 'body_' . date('YmdHis');
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'notify'), [
+            'target_users' => 3,
+            'notify_subject' => $subject,
+            'notify_body' => $body
+        ])
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::WRONG_SCOPE
+            ]);
+    }
+
+    public function testGetWorkflowList(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow'))
+            ->assertStatus(200)
+            ->assertDontSeeText('workflow_common_no_complete')
+            ->assertJsonCount(2, 'data');
+    }
+
+    public function testGetWorkflowListAll(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow') . '?all=1')
+            ->assertStatus(200)
+            ->assertSeeText('workflow_common_no_complete')
+            ->assertJsonCount(3, 'data');
+    }
+
+    public function testGetWorkflowListWithCount(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow') . '?all=1&count=2')
+            ->assertStatus(200)
+            ->assertJsonCount(2, 'data');
+    }
+
+    public function testGetWorkflowListById(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow') . '?id=2')
+            ->assertStatus(200)
+            ->assertSeeText('workflow_common_no_complete');
+    }
+
+    public function testGetWorkflowListByMultiId(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow') . '?id=1,3')
+            ->assertStatus(200)
+            ->assertJsonCount(2, 'data');
+    }
+
+    public function testGetWorkflowListExpand(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow') . '?expands=statuses,actions')
+            ->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'workflow_statuses',
+                        'workflow_actions',
+                        ],
+                    ],
+                ]);
+    }
+
+    public function testGetWorkflowListNotFound(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow') . '?id=9999')
+            ->assertStatus(200)
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function testWrongScopeGetWorkflowList(){
+        $token = $this->getAdminAccessToken([ApiScope::ME]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow'))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::WRONG_SCOPE
+            ]);
+    }
+
+    public function testGetWorkflow(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow', '2'))
+            ->assertStatus(200)
+            ->assertSeeText('workflow_common_no_complete');
+    }
+
+    public function testGetWorkflowExpand(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow', '2') . '?expands=statuses,actions')
+            ->assertStatus(200)
+            ->assertJsonStructure([
+                'workflow_statuses',
+                'workflow_actions'
+            ]);
+    }
+
+    public function testGetWorkflowNotFound(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow', '9999'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+            ]);
+    }
+
+    public function testGetWorkflowStatusList(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow', '3', 'statuses'))
+            ->assertStatus(200)
+            ->assertJsonCount(2);
+    }
+
+    public function testGetWorkflowStatusListNotFound(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow', '999', 'statuses'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+        ]);
+    }
+
+    public function testGetWorkflowActionList(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow', '3', 'actions'))
+            ->assertStatus(200)
+            ->assertJsonCount(2);
+    }
+
+    public function testGetWorkflowActionListNotFound(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'workflow', '999', 'actions'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+        ]);
+    }
+
+    public function testGetWorkflowStatus(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'status', '3'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'id' => 3,
+                'workflow_id' => '2',
+                'status_type'=> '0',
+                'order'=> '0',
+                'status_name' => 'waiting',
+                'datalock_flg'=> '0',
+                'completed_flg'=> '0',
+            ]);
+    }
+    
+    public function testGetWorkflowStatusNotFound(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'status', '999'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+        ]);
+    }
+    
+    public function testGetWorkflowAction(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_EXECUTE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'action', '3'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'id' => 3,
+                'workflow_id' => '2',
+                'status_from' => 'start',
+                'action_name' => 'send',
+                'ignore_work'=> '0',
+                'options'=> [
+                    'comment_type' => 'nullable',
+                    'flow_next_type' => 'some',
+                    'flow_next_count' => '1',
+                    'work_target_type' => 'fix'
+                ],
+            ]);
+    }
+
+    public function testGetWorkflowActionNotFound(){
+        $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'action', '999'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+            ]);
+    }
+    
+    public function testGetWorkflowData(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_access_all', '1002', 'value'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'workflow_id' => '2',
+                'morph_type' => 'roletest_custom_value_access_all',
+                'morph_id' => '1002',
+                'workflow_action_id'=> '4',
+                'workflow_status_from_id'=> '3',
+                'workflow_status_to_id'=> '4',
+                'action_executed_flg'=> '0',
+                'latest_flg'=> '1',
+            ]);
+    }
+    
+    public function testGetWorkflowDataExpand(){
+        $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1002', 'value') . '?expands=status_from,status_to,actions')
+            ->assertStatus(200);
+            $response->assertJsonStructure([
+                'workflow_status_from',
+                'workflow_status',
+                'workflow_action',
+            ]);
+    }
+
+    public function testGetWorkflowDataNotFound(){
+        $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_access_all', '9999', 'value'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+            ]);
+    }
+
+    public function testGetWorkflowDataNotStart(){
+        $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit_all', '1000', 'value'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::WORKFLOW_NOSTART
+            ]);
+    }
+
+    public function testDenyGetWorkflowDataTable(){
+        $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'no_permission', '1002', 'value'))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::PERMISSION_DENY
+            ]);
+    }
+
+    public function testDenyGetWorkflowData(){
+        $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1002', 'value'))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::PERMISSION_DENY
+            ]);
+    }
+    
+    public function testGetWorkflowUser(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit_all', '1001', 'work_users'))
+            ->assertStatus(200)
+            ->assertSeeText('dev1-userD');
+    }
+    
+    public function testGetWorkflowUserOrg(){
+        $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1', 'work_users'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'organization_name' => 'dev'
+            ]);
+    }
+    
+    public function testGetWorkflowUserAsUser(){
+        $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1', 'work_users') . '?as_user=1')
+            ->assertStatus(200)
+            ->assertSeeText('dev-userB');
+    }
+
+    public function testGetWorkflowUserNotFound(){
+        $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_access_all', '9999', 'work_users'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+            ]);
+    }
+
+    public function testGetWorkflowUserEnd(){
+        $token = $this->getUser1AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_access_all', '1002', 'work_users'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::WORKFLOW_END
+            ]);
+    }
+
+    public function testDenyGetWorkflowUserTable(){
+        $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'no_permission', '1002', 'work_users'))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::PERMISSION_DENY
+            ]);
+    }
+
+    public function testDenyGetWorkflowUser(){
+        $token = $this->getUser2AccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1002', 'work_users'))
             ->assertStatus(403)
             ->assertJsonFragment([
                 'code' => ErrorCode::PERMISSION_DENY
