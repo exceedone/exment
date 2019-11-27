@@ -168,13 +168,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $custom_value = $this->getValueModel($id);
 
-        if(isset($custom_value)){
+        if (isset($custom_value)) {
             $custom_form_priorities = $this->custom_form_priorities->sortBy('order');
             foreach ($custom_form_priorities as $custom_form_priority) {
                 if ($custom_form_priority->isMatchCondition($custom_value)) {
                     return $custom_form_priority->custom_form;
                 }
-            }    
+            }
         }
         return CustomForm::getDefault($this);
     }
@@ -1092,21 +1092,21 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $items = $query->get()->pluck("label", "id");
 
         // if not contains, check in $items. if not contains, add
-        if(is_nullorempty($selected_value)){
+        if (is_nullorempty($selected_value)) {
             return $items;
         }
-        if($items->contains(function ($value, $key) use($selected_value) {
+        if ($items->contains(function ($value, $key) use ($selected_value) {
             return $key == $selected_value;
-        })){
+        })) {
             return $items;
         }
 
         $selected_custom_values = $this->getValueModel()->find((array)$selected_value);
-        if(is_nullorempty($selected_custom_values)){
+        if (is_nullorempty($selected_custom_values)) {
             return $items;
         }
 
-        $selected_custom_values->each(function($selected_custom_value) use(&$items){
+        $selected_custom_values->each(function ($selected_custom_value) use (&$items) {
             $items->put($selected_custom_value->id, $selected_custom_value->label);
         });
         return $items->unique();
@@ -1795,7 +1795,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return bool if true, has in database.
      */
-    public function hasCustomValueInDB($custom_value_id){
+    public function hasCustomValueInDB($custom_value_id)
+    {
         return $this->getValueModel()->withoutGlobalScopes([CustomValueModelScope::class])->where('id', $custom_value_id)->count() > 0;
     }
 
@@ -1805,10 +1806,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
        *
      * @return ErrorCode
      */
-    public function getNoDataErrorCode($custom_value_id){
-        if($this->hasCustomValueInDB($custom_value_id)){
+    public function getNoDataErrorCode($custom_value_id)
+    {
+        if ($this->hasCustomValueInDB($custom_value_id)) {
             return ErrorCode::PERMISSION_DENY();
-        }else{
+        } else {
             return ErrorCode::DATA_NOT_FOUND();
         }
     }

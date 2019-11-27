@@ -51,7 +51,8 @@ class RoleGroup extends ModelBase
      *
      * @return \Collection
      */
-    public static function getHasPermissionRoleGroup($user_id, $organization_ids, $checkContainJointdOrgs = false){
+    public static function getHasPermissionRoleGroup($user_id, $organization_ids, $checkContainJointdOrgs = false)
+    {
         // get all permissons for system. --------------------------------------------------
         return static::allRecordsCache(function ($role_group) use ($user_id, $organization_ids, $checkContainJointdOrgs) {
             $user_orgs = array_get($role_group, SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
@@ -60,19 +61,18 @@ class RoleGroup extends ModelBase
             }
 
             if ($user_orgs->contains(function ($user_org) use ($user_id, $organization_ids, $checkContainJointdOrgs) {
-                if(!is_nullorempty($user_id)){
+                if (!is_nullorempty($user_id)) {
                     if ($user_org->role_group_user_org_type == SystemTableName::USER && in_array($user_org->role_group_target_id, (array)$user_id)) {
                         return true;
-                    }    
+                    }
                 }
 
                 if (!is_nullorempty($organization_ids) && $user_org->role_group_user_org_type == SystemTableName::ORGANIZATION) {
                     if (!$checkContainJointdOrgs && in_array($user_org->role_group_target_id, (array)$organization_ids)) {
                         return true;
-                    }
-                    elseif($checkContainJointdOrgs){
+                    } elseif ($checkContainJointdOrgs) {
                         $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
-                        foreach((array)$organization_ids as $organization_id){
+                        foreach ((array)$organization_ids as $organization_id) {
                             // ge check contains parent and child organizaions.
                             $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel($organization_id);
                             

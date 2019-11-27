@@ -313,7 +313,7 @@ class WorkflowAction extends ModelBase
                 CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations);
 
                 $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-            }else{
+            } else {
                 // get this getAuthorityTargets
                 $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $status_to);
                 CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities);
@@ -674,11 +674,12 @@ class WorkflowAction extends ModelBase
      *
      * @return void
      */
-    protected function getNextActionAuthorities($custom_value, $statusTo, $nextActions = null){
+    protected function getNextActionAuthorities($custom_value, $statusTo, $nextActions = null)
+    {
         // get next actions
         $toActionAuthorities = collect();
 
-        if(is_null($nextActions)){
+        if (is_null($nextActions)) {
             $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow, true);
         }
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {

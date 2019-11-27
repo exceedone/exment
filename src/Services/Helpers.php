@@ -433,7 +433,7 @@ if (!function_exists('setTimeLimitLong')) {
     function setTimeLimitLong($time = 600)
     {
         $max_execution_time = ini_get('max_execution_time');
-        if($max_execution_time == 0 || $max_execution_time > $time){
+        if ($max_execution_time == 0 || $max_execution_time > $time) {
             return;
         }
         set_time_limit($time);

@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Database\Eloquent\Model;
-use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class ModelBase extends Model

@@ -46,7 +46,7 @@ class CheckLangCommand extends Command
         $langs = SystemLocale::getLocaleOptions();
 
         foreach ($langs as $lang => $label) {
-            if($lang == 'ja'){
+            if ($lang == 'ja') {
                 continue;
             }
 
@@ -54,15 +54,16 @@ class CheckLangCommand extends Command
         }
     }
     
-    protected function checkTrans(array $keys, $jat, $lang){
-        foreach($jat as $key => $value){
-            $langKeys = $keys; 
+    protected function checkTrans(array $keys, $jat, $lang)
+    {
+        foreach ($jat as $key => $value) {
+            $langKeys = $keys;
             array_push($langKeys, $key);
 
-            if(is_array($value)){
+            if (is_array($value)) {
                 $this->checkTrans($langKeys, $value, $lang);
-            }else{
-                if(!\Lang::has(implode(".", $langKeys), $lang)){
+            } else {
+                if (!\Lang::has(implode(".", $langKeys), $lang)) {
                     $langKey = implode(".", $langKeys);
                     $this->info("{$lang} {$langKey}");
                 }

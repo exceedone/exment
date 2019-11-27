@@ -319,8 +319,9 @@ abstract class CustomValue extends ModelBase
      * @param [type] $isCreate
      * @return void
      */
-    protected function savedEvent($isCreate){
-        // save file value 
+    protected function savedEvent($isCreate)
+    {
+        // save file value
         $this->setFileValue();
 
         // call plugins
@@ -331,17 +332,16 @@ abstract class CustomValue extends ModelBase
 
         $this->savedValue();
 
-        if($isCreate){
-             // save Authoritable
-             CustomValueAuthoritable::setValueAuthoritable($this);
+        if ($isCreate) {
+            // save Authoritable
+            CustomValueAuthoritable::setValueAuthoritable($this);
 
-             // send notify
-             $this->notify(NotifySavedType::CREATE);
+            // send notify
+            $this->notify(NotifySavedType::CREATE);
  
-             // set revision
-             $this->postCreate();
-        }
-        else{
+            // set revision
+            $this->postCreate();
+        } else {
             // send notify
             $this->notify(NotifySavedType::UPDATE);
 

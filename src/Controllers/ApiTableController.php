@@ -76,13 +76,13 @@ class ApiTableController extends AdminControllerTableBase
         if (isset($orderby_list)) {
             $hasId = false;
             foreach ($orderby_list as $item) {
-                if($item[0] == 'id'){
+                if ($item[0] == 'id') {
                     $hasId = true;
                 }
                 $model->orderBy($item[0], $item[1]);
             }
 
-            if(!$hasId){
+            if (!$hasId) {
                 $model->orderBy('id');
             }
         }
@@ -237,9 +237,9 @@ class ApiTableController extends AdminControllerTableBase
         $custom_value = getModelName($this->custom_table)::find($id);
         if (!isset($custom_value)) {
             $code = $this->custom_table->getNoDataErrorCode($id);
-            if($code == ErrorCode::PERMISSION_DENY){
+            if ($code == ErrorCode::PERMISSION_DENY) {
                 return abortJson(403, $code);
-            }else{
+            } else {
                 // nodata
                 return abortJson(400, $code);
             }
@@ -265,9 +265,9 @@ class ApiTableController extends AdminControllerTableBase
         $custom_value = getModelName($this->custom_table)::find($id);
         if (!isset($custom_value)) {
             $code = $this->custom_table->getNoDataErrorCode($id);
-            if($code == ErrorCode::PERMISSION_DENY){
+            if ($code == ErrorCode::PERMISSION_DENY) {
                 return abortJson(403, $code);
-            }else{
+            } else {
                 // nodata
                 return abortJson(400, $code);
             }

@@ -159,9 +159,9 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
                     if (!is_null($view_id = array_get($row, 'options.menu_target_view'))) {
                         $view = CustomView::getEloquent($view_id);
-                        if(!is_nullorempty($view)){
+                        if (!is_nullorempty($view)) {
                             $view_suuid = $view->suuid;
-                            $row['uri'] .= '?view=' . $view_suuid;    
+                            $row['uri'] .= '?view=' . $view_suuid;
                         }
                     }
                     break;

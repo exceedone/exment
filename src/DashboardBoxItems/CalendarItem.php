@@ -115,12 +115,12 @@ class CalendarItem implements ItemInterface
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()
             ->options(function ($value, $data) use ($dashboard) {
-                if(is_nullorempty($data) || is_nullorempty($data->data())){
+                if (is_nullorempty($data) || is_nullorempty($data->data())) {
                     return [];
                 }
 
                 $custom_table = CustomTable::getEloquent(array_get($data->data(), 'target_table_id'));
-                if(is_nullorempty($custom_table)){
+                if (is_nullorempty($custom_table)) {
                     return [];
                 }
 
