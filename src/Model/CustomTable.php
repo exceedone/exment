@@ -1550,13 +1550,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
             $column_type = array_get($option, 'column_type');
             if (ColumnType::isDate($column_type)) {
-                $options[static::getOptionKey(array_get($option, 'id'))] = array_get($option, 'column_view_name');
+                $options[static::getOptionKey(array_get($option, 'id'), true, $this->id)] = array_get($option, 'column_view_name');
             }
         }
         
         /// get system date columns
         foreach (SystemColumn::getOptions(['type' => 'datetime']) as $option) {
-            $options[static::getOptionKey(array_get($option, 'name'))] = exmtrans('common.'.array_get($option, 'name'));
+            $options[static::getOptionKey(array_get($option, 'name'), true, $this->id)] = exmtrans('common.'.array_get($option, 'name'));
         }
 
         return $options;
