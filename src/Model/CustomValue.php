@@ -632,6 +632,9 @@ abstract class CustomValue extends ModelBase
         CustomValueAuthoritable::deleteValueAuthoritable($this);
         // delete role group
         RoleGroupUserOrganization::deleteRoleGroupUserOrganization($this);
+
+        // remove history
+        $this->revisionHistory()->delete();
     }
 
     /**
