@@ -367,6 +367,7 @@ return [
                 'loading' => 'Before Loading',
                 'loaded' => 'After Loading',
                 'grid_menubutton' => 'Menu button on List View',
+                'form_menubutton_show' => 'Menu button on Show Data',
                 'form_menubutton_create' => 'Menu button on Form Create View',
                 'form_menubutton_edit' => 'Menu button on Form Edit View',
             ]
