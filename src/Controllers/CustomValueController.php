@@ -366,10 +366,17 @@ class CustomValueController extends AdminControllerTableBase
             'id' => $id
         ]);
         $response = $class->execute();
-        if (isset($response)) {
-            return getAjaxResponse($response);
+        
+        if($response === false){
+            return getAjaxResponse(false);
         }
-        return getAjaxResponse(false);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        return getAjaxResponse([
+            'result' => true,
+            'toastr' => exmtrans('common.message.success_execute'),
+        ]);
     }
 
     //Function handle workflow history click event
