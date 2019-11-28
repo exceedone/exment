@@ -233,8 +233,8 @@ class ApiController extends AdminControllerBase
         $target_users = $request->get('target_users');
 
         if (!is_array($target_users)) {
-            $target_users = [$target_users];
-            $is_single = true;
+            $target_users = explode(',', $target_users);
+            $is_single = count($target_users) == 1;
         }
 
         $error_users = collect($target_users)->filter(function($target_user) {

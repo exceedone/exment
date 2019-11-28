@@ -57,6 +57,31 @@ class WorkflowValue extends ModelBase
 
         return isset($status)? ($status->editable_flg == 1): true;
     }
+
+    public function getWorkflowValueAutorities()
+    {
+        $authorities = $this->workflow_value_authorities;
+
+        if (!isset($authorities) || count($authorities) == 0) {
+            $workflow_values = WorkflowValue::where('morph_type', $this->morph_type)
+                ->where('morph_id', $this->morph_id)
+                ->where('workflow_id', $this->workflow_id)
+                ->where('id', '<>', $this->id)
+                ->orderBy('id', 'desc')
+                ->get();
+            
+            foreach ($workflow_values as $workflow_value) {
+                if ($workflow_value->workflow_status_to_id == $this->workflow_status_to_id) {
+                    $authorities = $workflow_value->workflow_value_authorities;
+                    if (!isset($authorities) || count($authorities) == 0) {
+                        continue;
+                    }
+                }
+                break;
+            }
+        }
+        return $authorities;
+    }
     
     /**
      * Whether already executed workflow

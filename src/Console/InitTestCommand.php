@@ -513,18 +513,6 @@ class InitTestCommand extends Command
      */
     protected function createWorkflow($users){
         // create workflows
-        $statuses = [
-            [
-                'status_name' => 'middle',
-                'datalock_flg' => 1,
-            ],
-            [
-                'status_name' => 'end',
-                'datalock_flg' => 1,
-            ],
-        ];
-
-
         $workflows = [
             [
                 'items' => [
@@ -536,11 +524,16 @@ class InitTestCommand extends Command
                 'statuses' => [
                     [
                         'status_name' => 'middle',
+                        'datalock_flg' => 0,
+                    ],
+                    [
+                        'status_name' => 'temp',
                         'datalock_flg' => 1,
                     ],
                     [
                         'status_name' => 'end',
                         'datalock_flg' => 1,
+                        'completed_flg' => 1,
                     ],
                 ],
     
@@ -573,7 +566,7 @@ class InitTestCommand extends Command
     
                     [
                         'status_from' => 0,
-                        'action_name' => 'end_action',
+                        'action_name' => 'temp_action',
     
                         'options' => [
                             'comment_type' => 'nullable',
@@ -594,6 +587,27 @@ class InitTestCommand extends Command
                                 'related_id' => 6, // dev-userB
                                 'related_type' => 'user',    
                             ]
+                        ],
+                    ],
+                    [
+                        'status_from' => 1,
+                        'action_name' => 'end_action',
+    
+                        'options' => [
+                            'comment_type' => 'required',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '2',
+                            'work_target_type' => WorkflowWorkTargetType::ACTION_SELECT,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 2,
+                                'enabled_flg' => true,    
+                            ],
+                        ],
+    
+                        'authorities' => [
                         ],
                     ],
                 ],
@@ -622,6 +636,7 @@ class InitTestCommand extends Command
                     [
                         'status_name' => 'completed',
                         'datalock_flg' => 1,
+                        'completed_flg' => 1,
                     ],
                 ],
     
@@ -687,7 +702,7 @@ class InitTestCommand extends Command
             ],
             [
                 'items' => [
-                    'workflow_view_name' => 'workflow_for_Individual_table',
+                    'workflow_view_name' => 'workflow_for_individual_table',
                     'workflow_type' => 1,
                     'setting_completed_flg' => 1,
                 ],
@@ -700,6 +715,7 @@ class InitTestCommand extends Command
                     [
                         'status_name' => 'status2',
                         'datalock_flg' => 1,
+                        'completed_flg' => 1,
                     ],
                 ],
     
@@ -759,6 +775,32 @@ class InitTestCommand extends Command
                             ]
                         ],
                     ],
+                    [
+                        'status_from' => 0,
+                        'action_name' => 'action3',
+                        'ignore_work' => 1,
+    
+                        'options' => [
+                            'comment_type' => 'nullable',
+                            'flow_next_type' => 'some',
+                            'flow_next_count' => '1',
+                            'work_target_type' => WorkflowWorkTargetType::FIX,
+                        ],
+    
+                        'condition_headers' => [
+                            [
+                                'status_to' => 'start',
+                                'enabled_flg' => true,    
+                            ],
+                        ],
+    
+                        'authorities' => [
+                            [
+                                'related_id' => 0,
+                                'related_type' => 'system',                                
+                            ]
+                        ],
+                    ],
                 ],
     
                 'tables' => [
@@ -799,6 +841,7 @@ class InitTestCommand extends Command
                 $workflowaction = new WorkflowAction;
                 $workflowaction->workflow_id = $workflowObj->id;
                 $workflowaction->action_name = $action['action_name'];
+                $workflowaction->ignore_work = $action['ignore_work']?? 0;
 
                 if($action['status_from'] === 'start'){
                     $workflowaction->status_from = $action['status_from'];
@@ -863,26 +906,38 @@ class InitTestCommand extends Command
                 $wfUserKeys = [
                     'dev1-userD',
                     'dev-userB',
+                    'dev1-userC',
                 ];
 
                 foreach($userKeys as $userKey){
+                    $user = $users[$userKey];
+                    \Auth::guard('admin')->attempt([
+                        'username' => array_get($user, 'value.user_code'),
+                        'password' => array_get($user, 'password')
+                    ]);
+            
+                    $custom_value = CustomTable::getEloquent($table['custom_table'])->getValueModel();
+                    $custom_value->setValue("text", "test_$userKey");
+                    $custom_value->setValue("index_text", "index_$userKey");
+                    $custom_value->id = 1000;
+                    $custom_value->save();
+
                     foreach($wfValueStatuses as $index => $wfValueStatus){
-                        $user = $users[$userKey];
-                        \Auth::guard('admin')->attempt([
-                            'username' => array_get($user, 'value.user_code'),
-                            'password' => array_get($user, 'password')
-                        ]);
-                
-                        $custom_value = CustomTable::getEloquent($table['custom_table'])->getValueModel();
-                        $custom_value->setValue("text", "test_$index");
-                        $custom_value->setValue("index_text", "index_$index");
-                        $custom_value->id = 1000 + $index;
-                        $custom_value->save();
     
                         if(!isset($wfValueStatus['id']) || $index == 0){
                             continue;
                         }
     
+                        $latest_flg = count($wfValueStatuses) - 1 === $index;
+
+                        if($table['custom_table'] == 'roletest_custom_value_edit_all'){
+                            if ($index === 1) {
+                                $latest_flg = true;
+                            } else {
+                                continue;
+                            }
+                        }
+
                         // get target $actionStatusFromTo
                         $actionStatusFromTo = collect($actionStatusFromTos)->first(function($actionStatusFromTo) use($wfValueStatuses, $index){
                             return $wfValueStatuses[$index - 1]['id'] == $actionStatusFromTo['status_from'] && $wfValueStatuses[$index]['id'] == $actionStatusFromTo['status_to'];
@@ -905,7 +960,7 @@ class InitTestCommand extends Command
                         $wfValue->workflow_status_from_id = $actionStatusFromTo['status_from'];
                         $wfValue->workflow_status_to_id = $actionStatusFromTo['status_to'];
                         $wfValue->action_executed_flg = 0;
-                        $wfValue->latest_flg = count($wfValueStatuses) - 1 === $index;
+                        $wfValue->latest_flg = $latest_flg;
 
                         $wfValue->save();
                     }
@@ -918,8 +973,8 @@ class InitTestCommand extends Command
         $wfValue->workflow_id = $workflowObj->id;
         $wfValue->morph_type = 'roletest_custom_value_edit';
         $wfValue->morph_id = 1;
-        $wfValue->workflow_action_id = 5;
-        $wfValue->workflow_status_to_id = 5;
+        $wfValue->workflow_action_id = 6;
+        $wfValue->workflow_status_to_id = 6;
         $wfValue->action_executed_flg = 0;
         $wfValue->latest_flg = 1;
 

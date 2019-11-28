@@ -138,7 +138,9 @@ class ApiWorkflowController extends AdminControllerBase
      */
     public function getValue($tableKey, $id, Request $request)
     {
-        $custom_table = CustomTable::getEloquent($tableKey);
+        if (is_null($custom_table = CustomTable::getEloquent($tableKey))) {
+            return abortJson(400, ErrorCode::INVALID_PARAMS());
+        }
         
         if (($code = $custom_table->enableAccess()) !== true) {
             return abortJson(403, trans('admin.deny'), $code);
@@ -190,7 +192,9 @@ class ApiWorkflowController extends AdminControllerBase
      */
     public function getWorkUsers($tableKey, $id, Request $request)
     {
-        $custom_table = CustomTable::getEloquent($tableKey);
+        if (is_null($custom_table = CustomTable::getEloquent($tableKey))) {
+            return abortJson(400, ErrorCode::INVALID_PARAMS());
+        }
         
         if (($code = $custom_table->enableAccess()) !== true) {
             return abortJson(403, trans('admin.deny'), $code);
@@ -208,14 +212,15 @@ class ApiWorkflowController extends AdminControllerBase
             }
         }
 
-        $workflow_actions = $custom_value->getWorkflowActions(false, true);
-
-        // no workflow users data
-        if (!isset($workflow_actions) || count($workflow_actions) == 0) {
+        // check if workflow is completed
+        if ($custom_value->isWorkflowCompleted()) {
             return abortJson(400, ErrorCode::WORKFLOW_END());
         }
 
         $orgAsUser = boolval($request->get('as_user', false));
+        $is_all = boolval($request->get('all', false));
+
+        $workflow_actions = $custom_value->getWorkflowActions(false, !$is_all);
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
@@ -233,15 +238,34 @@ class ApiWorkflowController extends AdminControllerBase
      */
     public function getActions($tableKey, $id, Request $request)
     {
-        $custom_value = getModelName($tableKey)::find($id);
-        // no custom data
+        if (is_null($custom_table = CustomTable::getEloquent($tableKey))) {
+            return abortJson(400, ErrorCode::INVALID_PARAMS());
+        }
+        
+        if (($code = $custom_table->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        $custom_value = getModelName($custom_table->table_name)::find($id);
+        // not contains data, return empty data.
         if (!isset($custom_value)) {
-            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
+            $code = $custom_table->getNoDataErrorCode($id);
+            if($code == ErrorCode::PERMISSION_DENY){
+                return abortJson(403, $code);
+            }else{
+                // nodata
+                return abortJson(400, $code);
+            }
+        }
+
+        // check if workflow is completed
+        if ($custom_value->isWorkflowCompleted()) {
+            return abortJson(400, ErrorCode::WORKFLOW_END());
         }
 
         $is_all = boolval($request->get('all', false));
 
-        $workflow_actions = $custom_value->getWorkflowActions(!$is_all, true);
+        $workflow_actions = $custom_value->getWorkflowActions(!$is_all);
 
         return $workflow_actions;
     }
@@ -254,10 +278,24 @@ class ApiWorkflowController extends AdminControllerBase
      */
     public function getHistories($tableKey, $id, Request $request)
     {
-        $custom_value = getModelName($tableKey)::find($id);
-        // no custom data
+        if (is_null($custom_table = CustomTable::getEloquent($tableKey))) {
+            return abortJson(400, ErrorCode::INVALID_PARAMS());
+        }
+        
+        if (($code = $custom_table->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        $custom_value = getModelName($custom_table->table_name)::find($id);
+        // not contains data, return empty data.
         if (!isset($custom_value)) {
-            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
+            $code = $custom_table->getNoDataErrorCode($id);
+            if($code == ErrorCode::PERMISSION_DENY){
+                return abortJson(403, $code);
+            }else{
+                // nodata
+                return abortJson(400, $code);
+            }
         }
 
         $workflow_histories = $custom_value->getWorkflowHistories(false);
@@ -283,11 +321,24 @@ class ApiWorkflowController extends AdminControllerBase
             ], ErrorCode::VALIDATION_ERROR());
         }
 
-        // get custom value
-        $custom_value = getModelName($tableKey)::find($id);
-        // no custom value data
+        if (is_null($custom_table = CustomTable::getEloquent($tableKey))) {
+            return abortJson(400, ErrorCode::INVALID_PARAMS());
+        }
+        
+        if (($code = $custom_table->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        $custom_value = getModelName($custom_table->table_name)::find($id);
+        // not contains data, return empty data.
         if (!isset($custom_value)) {
-            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
+            $code = $custom_table->getNoDataErrorCode($id);
+            if($code == ErrorCode::PERMISSION_DENY){
+                return abortJson(403, $code);
+            }else{
+                // nodata
+                return abortJson(400, $code);
+            }
         }
 
         // get and filter workflow action
@@ -307,13 +358,15 @@ class ApiWorkflowController extends AdminControllerBase
             $rules['comment'] = 'required';
         }
         $statusTo = $workflow_action->getStatusToId($custom_value);
-        $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow);
-        $need_next = $nextActions->contains(function ($workflow_action) {
-            return $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
-        });
-        if ($need_next) {
-            $rules['next_users'] = 'required_without:next_organizations';
-            $rules['next_organizations'] = 'required_without:next_users';
+        if ($custom_value->workflow_value->workflow_status_to_id != $statusTo) {
+            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow);
+            $need_next = $nextActions->contains(function ($workflow_action) {
+                return $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
+            });
+            if ($need_next) {
+                $rules['next_users'] = 'required_without:next_organizations';
+                $rules['next_organizations'] = 'required_without:next_users';
+            }
         }
         if (!empty($rules)) {
             $validator = Validator::make($request->all(), $rules);
