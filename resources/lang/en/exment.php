@@ -125,6 +125,7 @@ return [
         'memory_leak' => 'There was not enough memory to perform your operation. To increase the amount of memory, open the following URL and increase the amount of memory. :url',
         'ie_not_supported' => 'Exment cannot be used with Internet Explorer.',
         'support_browser' => 'Support Browser',
+        'ip_address_filtered' => 'Unauthorized IP address.',
     ],
 
     'install' => [
@@ -212,7 +213,10 @@ return [
         'org_joined_type_role_group' => 'Organization Tree Setting(Role Group)',
         'org_joined_type_custom_value' => 'Organization Tree Setting(Data)',
         'custom_value_save_autoshare' => 'Data Share Setting',
-        
+        'ip_filter' => 'IP Filter Setting',
+        'web_ip_filters' => 'Web Page',
+        'api_ip_filters' => 'API',
+
         'site_skin_options' => [
             "skin-blue" => "Header:Blue&nbsp;&nbsp;&nbsp;&nbsp;SideBar:Black",
             "skin-blue-light" => "Header:Blue&nbsp;&nbsp;&nbsp;&nbsp;SideBar:White",
@@ -291,6 +295,7 @@ return [
             'org_joined_type_role_group' => 'When an organization is set in "User / Organization Settings" of the role group, set the range to include the parent/child hierarchy organization.',
             'org_joined_type_custom_value' => 'When the organization is set in the sharing settings for each custom data, set the scope to include the organization of the parent-child hierarchy.',
             'custom_value_save_autoshare' => 'Set the automatic sharing method when users create new custom data. The default is only the logged-in user, and it can be shared with your organization depending on the setting.',
+            'ip_filter' => 'Set the IP address to allow communication. Fixed IP (example: 12.3.5.6) and range specification format (example: 123.4.5.0/24) can be used. If it is not set, all IP addresses are allowed. <br /> If you want to set more than one, please separate them with line breaks.',
         ],
     ],
 
@@ -1542,6 +1547,7 @@ return [
             'user_notfound' => 'ID:%s is an unregistered user.',
             'invalid_user' => 'User with ID:%s does not exist.',
             'invalid_organization' => 'Organization with ID:%s does not exist.',
+            'disapproval_ip' => 'Unauthorized IP address.',
         ],
 
         'help' =>[
