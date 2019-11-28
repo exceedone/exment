@@ -59,6 +59,7 @@ return [
         'footer' => 'Footer',
         'available' => 'Available',
         'history' => 'History',
+        'create_only_setting' => 'Setting when creating data',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -87,6 +88,7 @@ return [
             'max_file_size' => 'This is the size limit when uploading files from the page.Please execute<a href="%s" target="_blank">this<i class="fa fa-external-link"></i></a>to change.',
             'init_flg' => 'Cannot edit after save.',
             'more_help' => '<span class="red">For a detailed explanation, click the "?" Icon at the top right of the page and check the manual.</span>',
+            'more_help_here' => 'Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
         ],
 
         'weekday' => [
@@ -121,6 +123,8 @@ return [
         'disable_delete_row' => 'Contains lines that can not be deleted.',
         'no_mail_template' => 'There is no mail template. Please check your email template settings.',
         'memory_leak' => 'There was not enough memory to perform your operation. To increase the amount of memory, open the following URL and increase the amount of memory. :url',
+        'ie_not_supported' => 'Exment cannot be used with Internet Explorer.',
+        'support_browser' => 'Support Browser',
     ],
 
     'install' => [
@@ -204,6 +208,10 @@ return [
         'complex_password' => 'Complex Password',
         'password_expiration_days' => 'Password Expiration Days',
         'password_history_cnt' => 'Number of Password History',
+        'organization_header' => 'Organization Setting',
+        'org_joined_type_role_group' => 'Organization Tree Setting(Role Group)',
+        'org_joined_type_custom_value' => 'Organization Tree Setting(Data)',
+        'custom_value_save_autoshare' => 'Data Share Setting',
         
         'site_skin_options' => [
             "skin-blue" => "Header:Blue&nbsp;&nbsp;&nbsp;&nbsp;SideBar:Black",
@@ -242,6 +250,18 @@ return [
             'format_local' => ['d/m/Y', 'd/m/Y H:i:s', 'H:i:s'],
         ],
         
+        'joined_org_filter_options' => [
+            'all' => 'Include parent/child hierarchies of your organization',
+            'only_upper' => 'Include parent hierarchy of your organization ',
+            'only_downer' => 'Include child hierarchy of your organization',
+            'only_join' => 'Only your organization',
+        ],
+          
+        'custom_value_save_autoshare_options' => [
+            'user_only' => 'Only login user',
+            'user_organization' => 'Login user and your organization',
+        ],
+
         'help' =>[
             'site_name' => 'The site name displayed in the upper left of the page.',
             'site_name_short' => 'An abbreviation for the site name to be displayed when the menu is collapsed.',
@@ -268,7 +288,10 @@ return [
             'complex_password' => 'If set to YES, the password must be at least 12 characters long and must include three types of characters (uppercase letters, lowercase letters, numbers, and symbols).',
             'password_expiration_days' => 'Set the password validity period. If set to 0, it will be indefinite.',
             'password_history_cnt' => 'If you enter 1 or more, old passwords that have been used in the past cannot be registered again for the number of entered passwords. <br />*Even if set to 0, the password being set cannot be registered.',
-        ]
+            'org_joined_type_role_group' => 'When an organization is set in "User / Organization Settings" of the role group, set the range to include the parent/child hierarchy organization.',
+            'org_joined_type_custom_value' => 'When the organization is set in the sharing settings for each custom data, set the scope to include the organization of the parent-child hierarchy.',
+            'custom_value_save_autoshare' => 'Set the automatic sharing method when users create new custom data. The default is only the logged-in user, and it can be shared with your organization depending on the setting.',
+        ],
     ],
 
     'dashboard' => [
@@ -367,6 +390,7 @@ return [
                 'loading' => 'Before Loading',
                 'loaded' => 'After Loading',
                 'grid_menubutton' => 'Menu button on List View',
+                'form_menubutton_show' => 'Menu button on Show Data',
                 'form_menubutton_create' => 'Menu button on Form Create View',
                 'form_menubutton_edit' => 'Menu button on Form Edit View',
             ]
@@ -583,6 +607,7 @@ return [
         'datalock_flg' => 'Cannot Edit Data',
         'setting_complete' => 'Setting Complete',
         'setting_completed_flg' => 'Setting Complete',
+        'add_notify_flg' => 'Add Notify',
         'option' => 'Option Setting',
         'work_targets' => 'Work User',
         'work_targets_select' => 'Select Work User',
@@ -601,6 +626,7 @@ return [
         'active_end_date' => 'Use End Date',
         'flow_executed_user_count' => 'Current Action Executed User',
         'flow_executed_user_count_format' => '%s / %s User',
+        'has_condition' => '(Conditional)',
 
         'help' => [
             'saved_redirect_column' => 'Saved! Next, set the action.',
@@ -619,6 +645,7 @@ return [
             'setting_complete' => 'Complete the setup for this workflow. When the setting is completed, the following contents cannot be implemented.<br />Delete workflow<br />Add, delete, order status',
             'ignore_work' => 'By checking, "executable user" set in this action is not included in the work user. <br /> Please check this when you want to return to the previous status, such as "Reject" or "Return", or when the administrator approves with a special exception.',
             'flow_executed_user_count' => 'The status will not change until the required number of people perform the action.',
+            'add_notify_flg' => 'Add a setting to notify in the system for the "next work user" when the workflow is executed. Set to YES to add. <br/> * Can only be set when workflow settings are complete. Please set from the "Notification" screen when updating.',
         ],
 
         'message' => [
@@ -693,7 +720,7 @@ return [
             'add_parent_menu_flg' => 'After creating custom table, you can add it to the menu. To add it, please set it to YES. *It will be displayed after updating the browser. <br /> *It can be set only when new table is created. When updating please set it from "Menu" page.',
             'add_parent_menu' => 'Please select the menu name to be parent.',
             'add_notify_flg' => 'You can add settings for performing in-system notification to authorized users when creating/updating/sharing/commenting data, after creating a new table. Please add YES if you want to add.<br/>* It can be set only when creating a new table. Please set from the "notification" screen when updating.',
-            'saved_redirct_column' => 'Save succeeded ! Please set column column.',
+            'saved_redirect_column' => 'Save succeeded ! Please set column column.',
             'delete_confirm_message' => 'Please enter "%s" to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
         ],
@@ -1291,6 +1318,7 @@ return [
         'template' => 'Export Template',
         'import_export' => 'Import/Export',
         'export' => 'Export',
+        'import_label' => 'Import',
         'view_summary_detail' => 'Display the items of aggregated data',
         'import' => [
             'manual_id' => 'Data Import',
@@ -1505,7 +1533,15 @@ return [
             'over_createlength' => 'The number of data that can be newly created at the same time is %s.',
             'access_denied' => 'Could not authenticate. The access token is incorrect or has expired.',
             'wrong_scope' => 'There is an error in the scope for executing the API. Please contact the developer.',
+            'delete_disabled' => 'This data cannot be deleted.',
             'not_index_enabled' => ':attribute does not have a search index.',
+            'data_not_found' => 'The target data cannot be found.',
+            'workflow_nostart' => 'The workflow has not started or is out of scope.',
+            'workflow_end' => 'The workflow has been completed or excluded.',
+            'workflow_action_disabled' => 'Invalid action or no permission.',
+            'user_notfound' => 'ID:%s is an unregistered user.',
+            'invalid_user' => 'User with ID:%s does not exist.',
+            'invalid_organization' => 'Organization with ID:%s does not exist.',
         ],
 
         'help' =>[
@@ -1544,6 +1580,16 @@ return [
             'role' => 'Role',
             'system' => 'System',
             'column' => 'Custom Column',
+        ],
+        'condition_key_options' => [
+            'eq' => '',
+            'ne' => 'Not Equal',
+            'number_gt' => 'Greater Than',
+            'number_lt' => 'Less Than',
+            'number_gte' => 'Greater Than or Equal',
+            'number_lte' => 'Less Than or Equal',
+            'day_on_or_after' => 'After',
+            'day_on_or_before' => 'Before',
         ],
     ],
 ];

@@ -7,7 +7,6 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Form\Widgets\ModalForm;
-use Exceedone\Exment\Model\CustomValue;
 use Carbon\Carbon;
 
 class CustomValueAuthoritable extends ModelBase
@@ -40,16 +39,16 @@ class CustomValueAuthoritable extends ModelBase
 
 
         /////// share organization
-        if(System::custom_value_save_autoshare() != CustomValueAutoShare::USER_ORGANIZATION){
+        if (System::custom_value_save_autoshare() != CustomValueAutoShare::USER_ORGANIZATION) {
             return;
         }
         
         // get organizations. OK only_join users
         $belong_organizations = $user->base_user->belong_organizations;
 
-        foreach($belong_organizations as $belong_organization){
+        foreach ($belong_organizations as $belong_organization) {
             // check permission as organization.
-            if(!static::hasPermissionAsOrganization($custom_table, $belong_organization)){
+            if (!static::hasPermissionAsOrganization($custom_table, $belong_organization)) {
                 continue;
             }
 
@@ -76,16 +75,16 @@ class CustomValueAuthoritable extends ModelBase
             return;
         }
 
-        foreach($arrays as $array){
-            if($array instanceof CustomValue){
+        foreach ($arrays as $array) {
+            if ($array instanceof CustomValue) {
                 $related_id = array_get($array, 'id');
                 $related_type = $array->custom_table->table_name;
-            }else{
+            } else {
                 $related_id = array_get($array, 'related_id');
-                $related_type = array_get($array, 'related_type');    
+                $related_type = array_get($array, 'related_type');
             }
 
-            if(\is_nullorempty($related_id) || \is_nullorempty($related_type)){
+            if (\is_nullorempty($related_id) || \is_nullorempty($related_type)) {
                 continue;
             }
 
@@ -318,13 +317,14 @@ class CustomValueAuthoritable extends ModelBase
      * @param CustomValue $organization
      * @return boolean
      */
-    protected static function hasPermissionAsOrganization($custom_table, $organization){
+    protected static function hasPermissionAsOrganization($custom_table, $organization)
+    {
         if (boolval($custom_table->getOption('all_user_editable_flg'))) {
             return true;
         }
 
-        // check role group as org. if not has, conitnue            
-        if(!\is_nullorempty(RoleGroup::getHasPermissionRoleGroup(null, $organization->id, true))){
+        // check role group as org. if not has, conitnue
+        if (!\is_nullorempty(RoleGroup::getHasPermissionRoleGroup(null, $organization->id, true))) {
             return true;
         }
 
