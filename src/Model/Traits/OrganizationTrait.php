@@ -111,19 +111,22 @@ trait OrganizationTrait
      * @param [type] $joinedOrgFilterType
      * @return void
      */
-    public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL){
-        return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS_ORG, $this->id,  $filterType), function () use ($filterType) {
+    public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL)
+    {
+        return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS_ORG, $this->id, $filterType), function () use ($filterType) {
             $orgs = collect();
-            if(JoinedOrgFilterType::isGetUpper($filterType)){
+            if (JoinedOrgFilterType::isGetUpper($filterType)) {
                 $orgs = $orgs->merge($this->all_children_organizations());
             }
-            if(JoinedOrgFilterType::isGetDowner($filterType)){
+            if (JoinedOrgFilterType::isGetDowner($filterType)) {
                 $orgs = $orgs->merge($this->all_parent_organizations());
             }
 
             $orgs->push($this);
 
-            return $orgs->map(function($org){ return $org->id; })->sort()->unique()->toArray();
+            return $orgs->map(function ($org) {
+                return $org->id;
+            })->sort()->unique()->toArray();
         });
     }
 

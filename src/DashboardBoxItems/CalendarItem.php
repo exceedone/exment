@@ -114,20 +114,21 @@ class CalendarItem implements ItemInterface
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()
-            ->options(function ($value) use ($dashboard) {
-                if (!isset($value)) {
+            ->options(function ($value, $data) use ($dashboard) {
+                if (is_nullorempty($data) || is_nullorempty($data->data())) {
                     return [];
                 }
 
-                if (is_null($view = CustomView::getEloquent($value))) {
+                $custom_table = CustomTable::getEloquent(array_get($data->data(), 'target_table_id'));
+                if (is_nullorempty($custom_table)) {
                     return [];
                 }
 
-                return $view->custom_table->custom_views
+                return $custom_table->custom_views
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;
                     })
-                    ->filter(function ($value) use ($view, $dashboard) {
+                    ->filter(function ($value) use ($dashboard) {
                         if (array_get($dashboard, 'dashboard_type') != DashBoardType::SYSTEM) {
                             return true;
                         }

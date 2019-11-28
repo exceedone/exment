@@ -1024,7 +1024,12 @@ var Exment;
             }));
             // set event for plus minus button
             $('.box-body').on('click', '.btn-number-plus,.btn-number-minus', { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
-                yield CommonEvent.setCalc($(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key)), ev.data.data);
+                // call only has $target. $target is autocalc's key
+                let $target = $(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key));
+                if (!hasValue($target)) {
+                    return;
+                }
+                yield CommonEvent.setCalc($target, ev.data.data);
             }));
         }
     };

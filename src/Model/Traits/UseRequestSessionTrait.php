@@ -99,6 +99,11 @@ trait UseRequestSessionTrait
                 return $filter($record);
             });
         }
-        return $records;
+
+        if ($first) {
+            return $records->first();
+        } else {
+            return $records;
+        }
     }
 }

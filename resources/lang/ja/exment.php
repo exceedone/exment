@@ -1,3 +1,4 @@
+
 <?php
 
 return [
@@ -1545,9 +1546,8 @@ return [
             'workflow_end' => 'ワークフローが完了済、または対象外のデータです。',
             'workflow_action_disabled' => '無効なアクション、または権限がありません。',
             'user_notfound' => 'ID:%sは未登録のユーザーです。',
-            'invalid_user' => 'id：%sのユーザーは存在しません。',
-            'invalid_organization' => 'id：%sの組織は存在しません。',
-            'no_data' => 'データがありません。',
+            'invalid_user' => 'ID:%sのユーザーは存在しません。',
+            'invalid_organization' => 'ID:%sの組織は存在しません。',
             'disapproval_ip' => '許可されていないIPアドレスです。',
         ],
         

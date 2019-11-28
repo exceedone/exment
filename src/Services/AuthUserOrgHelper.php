@@ -307,7 +307,7 @@ class AuthUserOrgHelper
             return false;
         }
 
-        if(!isset($targetUserId)){
+        if (!isset($targetUserId)) {
             $targetUserId = \Exment::user()->base_user_id;
         }
 
@@ -325,7 +325,7 @@ class AuthUserOrgHelper
             $join = false;
         }
         // not match id, set id is false
-        elseif ($org->users->filter(function ($user) use($targetUserId) {
+        elseif ($org->users->filter(function ($user) use ($targetUserId) {
             return $user->id == $targetUserId;
         })->count() == 0) {
             $join = false;

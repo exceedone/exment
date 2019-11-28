@@ -780,7 +780,12 @@ namespace Exment {
                 });
                 // set event for plus minus button
                 $('.box-body').on('click', '.btn-number-plus,.btn-number-minus', { data: data, key: key }, async (ev) => {
-                    await CommonEvent.setCalc($(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key)), ev.data.data);
+                    // call only has $target. $target is autocalc's key
+                    let $target = $(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key));
+                    if(!hasValue($target)){
+                        return;
+                    }
+                    await CommonEvent.setCalc($target, ev.data.data);
                 });
             }
         }

@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Database\Eloquent\Model;
-use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class ModelBase extends Model
@@ -145,7 +144,7 @@ class ModelBase extends Model
      */
     protected static function _getEloquent($obj, $withs = [], $query_key = 'id', $fucnName = 'firstRecord')
     {
-        if (!isset($obj)) {
+        if (is_nullorempty($obj)) {
             return null;
         }
 
@@ -159,7 +158,7 @@ class ModelBase extends Model
             return array_get($table, $query_key) == $obj;
         });
 
-        if (!isset($obj)) {
+        if (is_nullorempty($obj)) {
             return null;
         }
 

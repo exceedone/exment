@@ -409,12 +409,12 @@ class CustomFormController extends AdminControllerTableBase
 
                 // if not have array_get($custom_column, 'options.select_target_table'), conitnue
                 $custom_column_eloquent = CustomColumn::getEloquent(array_get($custom_column, 'id'));
-                if(!isset($custom_column_eloquent)){
+                if (!isset($custom_column_eloquent)) {
                     continue;
                 }
 
                 $target_table = $custom_column_eloquent->select_target_table;
-                if(!isset($target_table)){
+                if (!isset($target_table)) {
                     continue;
                 }
                 // get select_table, user, organization columns

@@ -140,7 +140,7 @@ trait InitializeFormTrait
                 })->default($admin_users);
         }
             
-        ///////// system setting        
+        ///////// system setting
         if ($system_page && boolval(System::organization_available())) {
             $form->exmheader(exmtrans('system.organization_header'))->hr();
 

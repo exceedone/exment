@@ -283,7 +283,8 @@ class SelectTable extends CustomItem
                 }
             } else {
                 // get target value
-                $indexName = $this->custom_column->index_enabled ? $this->custom_column->getIndexColumnName() : "value->$target_column_name";
+                $target_custom_column = CustomColumn::getEloquent($target_column_name, $this->target_table);
+                $indexName = $target_custom_column ?? $target_custom_column->index_enabled ? $target_custom_column->getIndexColumnName() : "value->$target_column_name";
                 $target_value = $this->target_table->getValueModel()->where($indexName, $v)->select(['id'])->first();
 
                 if (!isset($target_value)) {
