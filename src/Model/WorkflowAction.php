@@ -233,6 +233,10 @@ class WorkflowAction extends ModelBase
     protected function setActionCondition()
     {
         $this->workflow_condition_headers()->delete();
+        if(!isset($this->work_condition_headers)){
+            return;
+        }
+        
         foreach ($this->work_condition_headers as $work_condition_header) {
             $work_condition_header['workflow_action_id'] = $this->id;
 
@@ -326,6 +330,8 @@ class WorkflowAction extends ModelBase
                 $notify->notifyWorkflow($custom_value, $this, $workflow_value, $status_to);
             }
         }
+
+        return $workflow_value;
     }
 
     /**
@@ -343,7 +349,7 @@ class WorkflowAction extends ModelBase
         // check as workflow_value_authorities
         if (isset($custom_value) && isset($custom_value->workflow_value)) {
             $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-            $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
+            $workflow_value_authorities = $custom_value->workflow_value->getWorkflowValueAutorities();
             foreach ($workflow_value_authorities as $workflow_value_authority) {
                 $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_value_authority);
                 if (isset($item) && $item->hasAuthority($workflow_value_authority, $custom_value, $targetUser)) {

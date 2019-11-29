@@ -21,7 +21,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected $appends = ['required', 'index_enabled', 'unique'];
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
-    protected $with = ['custom_table'];
+    // protected $with = ['custom_table'];
 
 
     public static $templateItems = [

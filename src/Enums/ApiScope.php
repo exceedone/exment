@@ -11,6 +11,10 @@ class ApiScope extends EnumBase
     public const TABLE_WRITE = 'table_write';
     public const VALUE_READ = 'value_read';
     public const VALUE_WRITE = 'value_write';
+    public const WORKFLOW_READ = 'workflow_read';
+    public const WORKFLOW_EXECUTE = 'workflow_execute';
+    public const NOTIFY_READ = 'notify_read';
+    public const NOTIFY_WRITE = 'notify_write';
 
     /**
      * get scope string for middleware

@@ -30,6 +30,8 @@ class Define
     public const RESTORE_CONFIRM_KEYWORD = 'restore me';
     public const YES_KEYWORD = 'yes';
 
+    public const API_FEATURE_TEST = 'API_FEATURE_TEST';
+
     public const MAX_SIZE_NUMBER = 1000000000000;
 
     public const SYSTEM_SETTING_NAME_VALUE = [

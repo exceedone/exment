@@ -11,7 +11,7 @@ use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Enums\SystemColumn;
 
-class ReplaceFormatTest extends TestCase
+class ReplaceFormatTest extends UnitTestBase
 {
     public function testReplaceDateString()
     {

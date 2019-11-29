@@ -55,10 +55,10 @@ class ApiTableController extends AdminControllerTableBase
                 if (count($values) > 1 && !preg_match('/^asc|desc$/i', $values[1])) {
                     return abortJson(400, ErrorCode::INVALID_PARAMS());
                 }
-                if (SystemColumn::isValid($column_name)) {
+                if (SystemColumn::isSqlValid($column_name)) {
                 } else {
                     $column = CustomColumn::getEloquent($column_name, $this->custom_table);
-                    if (!isset($column) && $column->index_enabled) {
+                    if (!isset($column)) {
                         return abortJson(400, ErrorCode::INVALID_PARAMS());
                     } elseif (!$column->index_enabled) {
                         return abortJson(400, ErrorCode::NOT_INDEX_ENABLED());
@@ -71,6 +71,12 @@ class ApiTableController extends AdminControllerTableBase
 
         // get paginate
         $model = $this->custom_table->getValueModel()->query();
+
+        // filterd by id
+        if ($request->has('id')) {
+            $ids = explode(',', $request->get('id'));
+            $model->whereIn('id', $ids);
+        }
 
         // set order by
         if (isset($orderby_list)) {
@@ -182,6 +188,92 @@ class ApiTableController extends AdminControllerTableBase
     }
     
     /**
+     * find match data by column query
+     * use form select ajax
+     * @param mixed $id
+     * @return mixed
+     */
+    public function dataQueryColumn(Request $request, $tableKey)
+    {
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, $code);
+        }
+
+        // get model filtered using role
+        $model = getModelName($this->custom_table)::query();
+        \Exment::user()->filterModel($model);
+
+        $validator = Validator::make($request->all(), [
+            'q' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        // get query
+        $model = $this->custom_table->getValueModel()->query();
+
+        // filtered query
+        $params = explode(',', $request->get('q'));
+        $orderby_list = [];
+        foreach ($params as $param) {
+            $values = preg_split("/\s+/", trim($param));
+            $column_name = $values[0];
+            if (count($values) < 3 || !preg_match('/^eq|ne|gt|gte|lt|lte$/i', $values[1])) {
+                return abortJson(400, ErrorCode::INVALID_PARAMS());
+            }
+            if (SystemColumn::isSqlValid($column_name)) {
+            } else {
+                $column = CustomColumn::getEloquent($column_name, $this->custom_table);
+                if (!isset($column)) {
+                    return abortJson(400, ErrorCode::INVALID_PARAMS());
+                } elseif (!$column->index_enabled) {
+                    return abortJson(400, ErrorCode::NOT_INDEX_ENABLED());
+                }
+                $column_name = $column->getIndexColumnName();
+            }
+            $operator = '=';
+            switch ($values[1]) {
+                case 'gt':
+                    $operator = '>';
+                    break;
+                case 'gte':
+                    $operator = '>=';
+                    break;
+                case 'lt':
+                    $operator = '<';
+                    break;
+                case 'lte':
+                    $operator = '<=';
+                    break;
+                case 'ne':
+                    $operator = '<>';
+                    break;
+            }
+            $model->where($column_name, $operator, $values[2]);
+        }
+    
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
+
+        $paginator = $model->paginate($count);
+
+        // execute makehidden
+        $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
+        $paginator->value = $value;
+
+        // set appends
+        $paginator->appends([
+            'count' => $count,
+        ]);
+
+        return $paginator;
+    }
+    
+    /**
      * find data by id
      * use select Changedata
      * @param mixed $id
@@ -196,7 +288,13 @@ class ApiTableController extends AdminControllerTableBase
         $model = getModelName($this->custom_table->table_name)::find($id);
         // not contains data, return empty data.
         if (!isset($model)) {
-            return [];
+            $code = $this->custom_table->getNoDataErrorCode($id);
+            if($code == ErrorCode::PERMISSION_DENY){
+                return abortJson(403, $code);
+            }else{
+                // nodata
+                return abortJson(400, $code);
+            }
         }
 
         if (($code = $model->enableAccess()) !== true) {

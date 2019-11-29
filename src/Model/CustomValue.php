@@ -172,6 +172,22 @@ abstract class CustomValue extends ModelBase
     }
 
 
+    // get whether workflow is completed
+    public function isWorkflowCompleted()
+    {
+        $workflow_value = $this->workflow_value;
+
+        // get current status etc
+        $workflow_status = isset($workflow_value) ? $workflow_value->workflow_status_cache : null;
+
+        if (isset($workflow_status)) {
+            return $workflow_status->completed_flg == 1;
+        }
+
+        return false;
+    }
+
+
     // get workflow actions which has authority
     public function getWorkflowActions($onlyHasAuthority = false, $ignoreNextWork = false)
     {
@@ -940,7 +956,7 @@ abstract class CustomValue extends ModelBase
             $column_name = $custom_column->column_name;
             // if not key in value, set default value
             if (!array_has($value, $column_name)) {
-                $value[$column_name] = $this->getValue($column_name);
+                $value[$column_name] = $this->getValue($column_name, ValueType::PURE_VALUE);
             }
         }
 

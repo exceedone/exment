@@ -51,4 +51,27 @@ trait ApiTrait
 
         return $count;
     }
+    
+    /**
+     * get join table name list from querystring
+     * @param Request $request
+     * @param string $prefix
+     */
+    protected function getJoinTables(Request $request, $prefix) {
+        $join_tables = [];
+        if ($request->has('expands')){
+            $join_tables = collect(explode(',', $request->get('expands')))
+                ->map(function($expand) use($prefix) {
+                    $expand = trim($expand);
+                    switch ($expand) {
+                        case 'tables':
+                        case 'statuses':
+                        case 'actions':
+                        case 'columns':
+                            return $prefix . '_' . $expand;
+                    }
+                })->filter()->toArray();
+        }
+        return $join_tables;
+    }
 }
