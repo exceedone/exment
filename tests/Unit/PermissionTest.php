@@ -388,7 +388,7 @@ class PermissionTest extends UnitTestBase
         System::org_joined_type_custom_value($joinedOrgFilterType);
         
         $func = $result ? 'assertTrue' : 'assertFalse';
-        $custom_value = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->find(6); // created by dev user
+        $custom_value = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->find(51); // 51 --- created by dev user
         $this->{$func}(isset($custom_value));
     }
 }
