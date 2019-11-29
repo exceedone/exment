@@ -387,7 +387,7 @@ class WorkflowAction extends ModelBase
 
         // add as workflow_value_authorities
         if (isset($custom_value) && isset($custom_value->workflow_value)) {
-            $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
+            $workflow_value_authorities = $custom_value->workflow_value->getWorkflowValueAutorities();
             foreach ($workflow_value_authorities as $workflow_value_authority) {
                 $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
                 switch ($type) {

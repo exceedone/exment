@@ -58,6 +58,12 @@ class WorkflowValue extends ModelBase
         return isset($status)? ($status->editable_flg == 1): true;
     }
 
+    /**
+     * Get Workflow Value Authorities.
+     * Check from worklfow value header, and check has workflow value authorities. If has, return
+     *
+     * @return void
+     */
     public function getWorkflowValueAutorities()
     {
         $authorities = $this->workflow_value_authorities;
