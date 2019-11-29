@@ -63,6 +63,8 @@ class Define
         'complex_password' => ['type' => 'boolean', 'group' => 'system', 'default' => false],
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
         'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
+        'web_ip_filters' => ['default' => '', 'group' => 'system'] ,
+        'api_ip_filters' => ['default' => '', 'group' => 'system'] ,
         // org_joined_type
         'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'system'],
         'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
@@ -144,6 +146,7 @@ class Define
         'loading',
         'loaded',
         'grid_menubutton',
+        'form_menubutton_show',
         'form_menubutton_create',
         'form_menubutton_edit',
     ];
@@ -328,7 +331,9 @@ class Define
     public const DISKNAME_ADMIN = 'admin';
     public const DISKNAME_ADMIN_TMP = 'admin_tmp';
     public const DISKNAME_BACKUP = 'backup';
+    public const DISKNAME_BACKUP_SYNC = 'backup_sync';
     public const DISKNAME_PLUGIN = 'plugin';
+    public const DISKNAME_PLUGIN_SYNC = 'plugin_sync';
     public const DISKNAME_PLUGIN_LOCAL = 'plugin_local';
-    public const DISKNAME_TEMPLATE_LOCAL = 'template_local';
+    public const DISKNAME_TEMPLATE_SYNC = 'template_sync';
 }

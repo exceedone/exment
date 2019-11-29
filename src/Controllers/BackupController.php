@@ -32,8 +32,12 @@ class BackupController extends AdminControllerBase
     public function index(Request $request, Content $content)
     {
         $this->AdminContent($content);
+        
+        $this->initBackupRestore();
+        $disk = $this->disk();
+
         // get all archive files
-        $files = array_filter(static::disk()->files('list'), function ($file) {
+        $files = array_filter($disk->files('list'), function ($file) {
             return preg_match('/list\/\d+\.zip$/i', $file);
         });
         // edit table row data
@@ -42,8 +46,8 @@ class BackupController extends AdminControllerBase
             $rows[] = [
                 'file_key' => pathinfo($file, PATHINFO_FILENAME),
                 'file_name' => mb_basename($file),
-                'file_size' => bytesToHuman(static::disk()->size($file)),
-                'created' => date("Y/m/d H:i:s", static::disk()->lastModified($file))
+                'file_size' => bytesToHuman($disk->size($file)),
+                'created' => date("Y/m/d H:i:s", $disk->lastModified($file))
             ];
         }
 
@@ -141,6 +145,9 @@ class BackupController extends AdminControllerBase
      */
     public function delete(Request $request)
     {
+        $this->initBackupRestore();
+        $disk = $this->disk();
+        
         $data = $request->all();
 
         $validator = Validator::make($data, [
@@ -151,8 +158,8 @@ class BackupController extends AdminControllerBase
             $files = explode(',', $data['files']);
             foreach ($files as $file) {
                 $path = path_join('list', $file . '.zip');
-                if (static::disk()->exists($path)) {
-                    static::disk()->delete($path);
+                if ($disk->exists($path)) {
+                    $disk->delete($path);
                 }
             }
             return response()->json([
@@ -210,13 +217,13 @@ class BackupController extends AdminControllerBase
 
         $this->initBackupRestore($ymdhms);
 
-        $path = $this->listZipName();
-        $exists = static::disk()->exists($path);
+        $path = $this->diskService->diskItem()->filePath();
+        $exists = $this->disk()->exists($path);
         if (!$exists) {
             abort(404);
         }
 
-        return downloadFile($path, static::disk());
+        return downloadFile($path, $this->disk());
     }
 
     /**

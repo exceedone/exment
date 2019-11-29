@@ -19,7 +19,6 @@ use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\WorkflowAction;
-use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
@@ -367,10 +366,17 @@ class CustomValueController extends AdminControllerTableBase
             'id' => $id
         ]);
         $response = $class->execute();
-        if (isset($response)) {
-            return getAjaxResponse($response);
+        
+        if($response === false){
+            return getAjaxResponse(false);
         }
-        return getAjaxResponse(false);
+        if ($response instanceof Response) {
+            return $response;
+        }
+        return getAjaxResponse([
+            'result' => true,
+            'toastr' => exmtrans('common.message.success_execute'),
+        ]);
     }
 
     //Function handle workflow history click event

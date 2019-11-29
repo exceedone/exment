@@ -151,10 +151,11 @@ class DataImportExportService extends AbstractExporter
             ];
         }
 
-        $import_plugin = is_string($request) ? null : $request->get('import_plugin');
-
-        if (isset($import_plugin)) {
-            return $this->customImport($import_plugin, $request->file('custom_table_file'));
+        if ($request instanceof Request) {
+            $import_plugin = $request->get('import_plugin');
+            if (isset($import_plugin)) {
+                return $this->customImport($import_plugin, $request->file('custom_table_file'));
+            }
         }
 
         $this->format->filebasename($this->filebasename);

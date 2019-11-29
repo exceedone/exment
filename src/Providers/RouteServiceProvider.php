@@ -230,7 +230,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         // define adminapi(for webapi), api(for web)
         $routes = [
-            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi'], 'addScope' => false],
+            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminwebapi'], 'addScope' => false],
         ];
         
         if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
@@ -313,6 +313,7 @@ class RouteServiceProvider extends ServiceProvider
                 'middleware'    => array_get($route, 'middleware'),
             ], function (Router $router) use ($route) {
                 $router->post('template/search', 'TemplateController@searchTemplate');
+                $router->delete('template/delete', 'TemplateController@delete');
             });
         }
     }

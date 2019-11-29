@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Storage\Disk\PluginDiskService;
 use Carbon\Carbon;
 
 class Plugin extends ModelBase
@@ -13,7 +14,7 @@ class Plugin extends ModelBase
     use Traits\DatabaseJsonTrait;
 
     protected $casts = ['options' => 'json', 'custom_options' => 'json'];
-    
+
     public function setPluginTypesAttribute($pluginTypes)
     {
         if (is_null($pluginTypes)) {
@@ -204,9 +205,14 @@ class Plugin extends ModelBase
      */
     public function getFullPath(...$pass_array)
     {
-        $disk = \Storage::disk(Define::DISKNAME_ADMIN);
-        $adapter = $disk->getDriver()->getAdapter();
-        return $adapter->getPluginFullPath($this, ...$pass_array);
+        $diskService = new PluginDiskService($this);
+        // sync from crowd.
+        $diskService->syncFromDisk();
+
+        $plugin_fullpath = $diskService->localSyncDiskItem()->dirFullPath();
+        $this->requirePlugin($plugin_fullpath);
+
+        return path_join($plugin_fullpath, ...$pass_array);
     }
 
     /**

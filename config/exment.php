@@ -86,7 +86,10 @@ return [
     |
     */
     'driver' => [
-        'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
+        'exment' => env('EXMENT_DRIVER_EXMENT', 'local'),
+        'backup' => env('EXMENT_DRIVER_BACKUP', 'local'),
+        'plugin' => env('EXMENT_DRIVER_PLUGIN', 'local'),
+        'template' => env('EXMENT_DRIVER_TEMPLATE', 'local'),
     ],
 
     /*
@@ -216,8 +219,6 @@ return [
     'backup_info' => [
         'mysql_dir' => env('EXMENT_MYSQL_BIN_DIR'),
         'def_file' => 'table_definition.sql',
-        'copy_dir' => [
-        ],
     ],
 
     /*
@@ -449,6 +450,16 @@ return [
     |
     */
     'gridrow_select_disabled' => env('EXMENT_GRIDROW_SELECT_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled ip filter
+    |--------------------------------------------------------------------------
+    |
+    | Disabled ip address filter
+    |
+    */
+    'ip_filter_disabled' => env('EXMENT_DISABLE_IP_FILTER', false),
     
     /*
     |--------------------------------------------------------------------------

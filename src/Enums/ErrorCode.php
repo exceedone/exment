@@ -17,6 +17,7 @@ class ErrorCode extends EnumBase
     const WORKFLOW_NOSTART = '202';
     const WORKFLOW_END = '203';
     const WORKFLOW_ACTION_DISABLED = '204';
+    const DISAPPROVAL_IP = '301';
 
     public function getMessage()
     {

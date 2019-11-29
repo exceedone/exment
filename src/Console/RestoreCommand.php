@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
+use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Model\System;
 use \File;
@@ -44,33 +45,38 @@ class RestoreCommand extends Command
      */
     public function handle()
     {
-        $file = $this->argument("file");
+        try{
+            $file = $this->argument("file");
 
-        // unzip backup file
-        $this->unzipFile($file);
+            // unzip backup file
+            $this->unzipFile($file);
 
-        $result = 0;
+            $result = 0;
 
-        // restore table definition
-        $this->restoreDatabase();
+            // restore table definition
+            $this->restoreDatabase();
 
-        // import tsv file to table
-        $this->importTsv();
+            // import tsv file to table
+            $this->importTsv();
 
-        // copy directory to temporary folder
-        if (!$this->copyFiles()) {
-            $result = -1;
+            // copy directory to temporary folder
+            if (!$this->copyFiles()) {
+                $result = -1;
+            }
+
+            // copy env
+            $this->updateEnv();
+
+            System::clearCache();
+            
+            return $result;
         }
-
-        // copy env
-        $this->updateEnv();
-
-        // delete temporary folder
-        $success = \File::deleteDirectory($this->tmpDirFullPath());
-
-        System::clearCache();
-        
-        return $result;
+        catch(\Exception $e){
+            throw $e;
+        }
+        finally{
+            $this->diskService->deleteTmpDirectory();
+        }
     }
     /**
      * insert table data from backup tsv files.
@@ -80,7 +86,7 @@ class RestoreCommand extends Command
     protected function importTsv()
     {
         // get tsv files in target folder
-        $files = array_filter(\File::files($this->tmpDirFullPath()), function ($file) {
+        $files = array_filter(\File::files($this->diskService->tmpDiskItem()->dirFullPath()), function ($file) {
             return preg_match('/.+\.tsv$/i', $file);
         });
 
@@ -117,14 +123,48 @@ __EOT__;
     protected function copyFiles()
     {
         $result = true;
+        $tmpDisk = $this->diskService->tmpDiskItem()->disk();
 
-        $directories = \File::directories($this->tmpDirFullPath());
-
+        $directories = $tmpDisk->allDirectories($this->diskService->tmpDiskItem()->dirName());
+        
         foreach ($directories as $directory) {
-            $topath = base_path(mb_basename($directory));
-            $success = \File::copyDirectory($directory, $topath);
-            if (!$success) {
-                $result = false;
+            // check target key name
+            $splits = explode("/", $directory);
+            if(count($splits) != 2){
+                continue;
+            }
+            $keyname = $splits[1];
+
+            $setting = BackupTarget::dirOrDisk($keyname);
+            if(is_null($setting)){
+                continue;
+            }
+            
+            $fromDirectory = $tmpDisk->path(path_join($this->diskService->tmpDiskItem()->dirName(), $keyname));
+            // is local file
+            if(is_string($setting)){
+                $topath = base_path($setting);
+                $success = \File::copyDirectory($fromDirectory, $topath);
+                if (!$success) {
+                    $result = false;
+                }
+            }
+            // is croud file
+            else{
+                $disk = $setting[0];
+                
+                $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
+                
+                if (!$this->tmpDisk()->exists($to)) {
+                    $this->tmpDisk()->makeDirectory($to, 0755, true);
+                }
+
+                $files = \File::allFiles($directory);
+                foreach ($files as $file) {
+                    // copy from crowd to local
+                    $stream = \File::readStream($file);
+                    $disk->writeStream(path_join($to, $file), $stream);
+                }
             }
         }
 
@@ -138,7 +178,7 @@ __EOT__;
     protected function updateEnv()
     {
         // get env file
-        $file = path_join($this->tmpDirFullPath(), '.env');
+        $file = path_join($this->diskService->tmpDiskItem()->dirFullPath(), '.env');
         if (!\File::exists($file)) {
             return;
         }
@@ -179,22 +219,8 @@ __EOT__;
 
         // set to tmp zip file
         if (!boolval($this->option("tmp"))) {
-            static::tmpDisk()->writeStream($this->zipName(), $this->getRestoreZip());
+            $this->diskService->syncFromDisk();
         }
-
-        // create temporary folder if not exists
-        if (!static::tmpDisk()->exists($this->tmpDirName())) {
-            static::tmpDisk()->makeDirectory($this->tmpDirName(), 0755, true);
-        }
-
-        // open new zip file
-        $zip = new \ZipArchive();
-        if ($zip->open($this->zipFullPath()) === true) {
-            $zip->extractTo($this->tmpDirFullPath());
-            $zip->close();
-        }
-
-        static::tmpDisk()->delete($this->zipName());
 
         return true;
     }
@@ -231,7 +257,7 @@ __EOT__;
         );
 
         // restore table definition
-        $def = path_join($this->tmpDirFullPath(), config('exment.backup_info.def_file'));
+        $def = path_join($this->diskService->tmpDiskItem()->dirFullPath(), config('exment.backup_info.def_file'));
         if (\File::exists($def)) {
             $command = sprintf('%s < %s', $mysqlcmd, $def);
             exec($command);
@@ -239,7 +265,7 @@ __EOT__;
         }
 
         // get insert sql file for each tables
-        $files = array_filter(\File::files($this->tmpDirFullPath()), function ($file) {
+        $files = array_filter(\File::files($this->diskService->tmpDiskItem()->dirFullPath()), function ($file) {
             return preg_match('/.+\.sql$/i', $file);
         });
 
@@ -247,21 +273,5 @@ __EOT__;
             $command = sprintf('%s < %s', $mysqlcmd, $file->getRealPath());
             exec($command);
         }
-    }
-
-    /**
-     * get restore zip info.
-     * Change whether upload or not.
-     *
-     * @return mixed
-     */
-    protected function getRestoreZip()
-    {
-        // if get from tmp(upload file),
-        // if (boolval($this->option("tmp"))) {
-        //     return static::tmpDisk()->readStream($this->zipName());
-        // }
-
-        return static::disk()->readStream($this->listZipName());
     }
 }

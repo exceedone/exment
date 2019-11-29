@@ -59,7 +59,7 @@
                     <td>
                         {{ $file['created'] }}
                     </td>
-                    <td>
+                    <td class="column-__actions__">
                         <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-toggle="tooltip" title="{{exmtrans('backup.restore')}}" class="grid-row-restore">
                             <i class="fa fa-undo"></i>
                         </a>

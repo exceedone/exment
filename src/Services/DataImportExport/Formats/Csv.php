@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Formats;
 
+use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Exceedone\Exment\Model\Define;
 use \File;
@@ -18,15 +19,19 @@ class Csv extends FormatBase
     public function getDataTable($request)
     {
         // get file
-        if (is_string($request)) {
-            $path = $request;
-            $extension = pathinfo($path)['extension'];
-            $originalName = pathinfo($path, PATHINFO_BASENAME);
-        } else {
+        if ($request instanceof Request) {
             $file = $request->file('custom_table_file');
             $path = $file->getRealPath();
             $extension = $file->extension();
             $originalName = $file->getClientOriginalName();
+        } elseif($request instanceof SplFileInfo) {
+            $path = $request->getPathName();
+            $extension = pathinfo($path)['extension'];
+            $originalName = pathinfo($path, PATHINFO_BASENAME);
+        } else {
+            $path = $request;
+            $extension = pathinfo($path)['extension'];
+            $originalName = pathinfo($path, PATHINFO_BASENAME);
         }
 
         // if zip, extract
