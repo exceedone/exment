@@ -72,7 +72,10 @@ class AuthUserOrgHelper
         }
         $target_table = CustomTable::getEloquent($target_table);
         
+        // get custom_value's users
+        $target_ids = [];
         $all = false;
+        
         if ($target_table->allUserAccessable()) {
             $all = true;
         } else {
