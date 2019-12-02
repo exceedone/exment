@@ -25,6 +25,7 @@ class PluginType extends EnumBase
             static::DASHBOARD,
             static::SCRIPT,
             static::STYLE,
+            static::API,
         ];
     }
 
@@ -33,6 +34,7 @@ class PluginType extends EnumBase
         return [
             static::PAGE,
             static::DASHBOARD,
+            static::API,
         ];
     }
 
@@ -76,6 +78,7 @@ class PluginType extends EnumBase
                     return new $classname($plugin, array_get($options, 'custom_table'), $custom_value);
                 case PluginType::BATCH:
                 case PluginType::PAGE:
+                case PluginType::API:
                     return new $classname($plugin);
                 case PluginType::DASHBOARD:
                     return new $classname($plugin, array_get($options, 'dashboard_box'));

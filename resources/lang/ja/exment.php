@@ -426,6 +426,7 @@ return [
             'style' => 'スタイル',
             'dashboard' => 'ダッシュボード',
             'validator' => 'バリデーション',
+            'api' => 'API',
         ],
     ],
 

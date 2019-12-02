@@ -74,6 +74,7 @@ class PluginServiceProvider extends ServiceProvider
 
         switch ($plugin_type) {
             case PluginType::PAGE:
+            case PluginType::API:
                 $prefix = $pluginPage->getRouteUri();
                 $defaultFunction = 'index';
                 break;
@@ -87,7 +88,7 @@ class PluginServiceProvider extends ServiceProvider
             'prefix'        => url_join(config('admin.route.prefix'), $prefix),
             'namespace'     => 'Exceedone\Exment\Services\Plugin',
             'middleware'    => config('admin.route.middleware'),
-        ], function (Router $router) use ($pluginPage, $defaultFunction, $json) {
+        ], function (Router $router) use ($plugin_type, $pluginPage, $defaultFunction, $json) {
             $routes = array_get($json, 'route', []);
             
             // if not has index endpoint, set.
@@ -102,6 +103,7 @@ class PluginServiceProvider extends ServiceProvider
             foreach ($routes as $route) {
                 $method = array_get($route, 'method');
                 $methods = is_string($method) ? [$method] : $method;
+                $plugin_name = $plugin_type == PluginType::API? 'PluginApiController': 'PluginPageController';
                 foreach ($methods as $method) {
                     if ($method === "") {
                         $method = 'get';
@@ -109,7 +111,7 @@ class PluginServiceProvider extends ServiceProvider
                     $method = strtolower($method);
                     // call method in these http method
                     if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
-                        Route::{$method}(array_get($route, 'uri'), 'PluginPageController@'. array_get($route, 'function'));
+                        Route::{$method}(array_get($route, 'uri'), $plugin_name . '@'. array_get($route, 'function'));
                     }
                 }
             }
