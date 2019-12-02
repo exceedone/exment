@@ -621,8 +621,11 @@ class WorkflowAction extends ModelBase
         $completed = WorkflowStatus::getWorkflowStatusCompleted($statusTo);
         if ($next === true && !$completed) {
             // get next actions
-            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow, true);
-            $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $statusTo, $nextActions);
+            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow);
+            $normalActions = $nextActions->filter(function ($action) {
+                return !boolval($action->ignore_work);
+            });
+            $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $statusTo, $normalActions);
 
             // show target users text
             $select = $nextActions->contains(function ($nextAction) {
