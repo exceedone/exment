@@ -54,7 +54,7 @@ class BackupDiskService extends DiskServiceBase
         $localSyncDiskItem = $this->localSyncDiskItem();
         
         $disk = $diskItem->disk();
-        $localSyncDisk = $localSyncDiskItem->Disk();
+        $localSyncDisk = $localSyncDiskItem->disk();
 
         // download zip
         if (!$localSyncDisk->exists($localSyncDiskItem->dirName())) {

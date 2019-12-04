@@ -92,6 +92,33 @@ return [
         'template' => env('EXMENT_DRIVER_TEMPLATE', 'local'),
     ],
 
+    'rootpath' => [
+        's3' => [
+            'exment' => env('AWS_BUCKET_EXMENT'),
+            'backup' => env('AWS_BUCKET_BACKUP'),
+            'plugin' => env('AWS_BUCKET_PLUGIN'),
+            'template' => env('AWS_BUCKET_TEMPLATE'),
+        ],
+        'azure' => [
+            'exment' => env('AZURE_STORAGE_CONTAINER_EXMENT'),
+            'backup' => env('AZURE_STORAGE_CONTAINER_BACKUP'),
+            'plugin' => env('AZURE_STORAGE_CONTAINER_PLUGIN'),
+            'template' => env('AZURE_STORAGE_CONTAINER_TEMPLATE'),
+        ],
+        'ftp' => [
+            'exment' => env('FTP_ROOT_EXMENT'),
+            'backup' => env('FTP_ROOT_BACKUP'),
+            'plugin' => env('FTP_ROOT_LUGIN'),
+            'template' => env('FTP_ROOT_TEMPLATE'),
+        ],
+        'sftp' => [
+            'exment' => env('SFTP_ROOT_EXMENT'),
+            'backup' => env('SFTP_ROOT_BACKUP'),
+            'plugin' => env('SFTP_ROOT_LUGIN'),
+            'template' => env('SFTP_ROOT_TEMPLATE'),
+        ],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | password rule

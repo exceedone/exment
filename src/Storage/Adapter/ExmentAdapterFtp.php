@@ -25,7 +25,7 @@ class ExmentAdapterFtp extends Ftp implements ExmentAdapterInterface
         $mergeFrom = array_get($config, 'mergeFrom');
         $mergeConfig = Driver::mergeFileConfig('filesystems.disks.ftp', "filesystems.disks.$mergeFrom", $mergeFrom);
         $mergeConfig['driver'] = 'ftp';
-        
+
         $driver = new self($mergeConfig);
         return $driver;
     }

@@ -24,6 +24,7 @@ class BackupTarget extends EnumBase
             case static::PLUGIN:
                 return [\Storage::disk(Define::DISKNAME_PLUGIN_SYNC), path_join("storage", "app", "plugins")];
             case static::ATTACHMENT:
+            case 'storage':
                 return [\Storage::disk(Define::DISKNAME_ADMIN), path_join("storage", "app", "admin")];
             case static::LOG:
                 return path_join("storage", "logs");

@@ -97,7 +97,7 @@ class BackupCommand extends Command
         foreach ($settings as $setting) {
             // is local file
             if(is_string($setting)){
-                $from = $setting;
+                $from = base_path($setting);
                 if (!\File::exists($from)) {
                     continue;
                 }

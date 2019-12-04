@@ -130,7 +130,7 @@ __EOT__;
         foreach ($directories as $directory) {
             // check target key name
             $splits = explode("/", $directory);
-            if(count($splits) != 2){
+            if(count($splits) < 2){
                 continue;
             }
             $keyname = $splits[1];
@@ -159,11 +159,14 @@ __EOT__;
                     $this->tmpDisk()->makeDirectory($to, 0755, true);
                 }
 
-                $files = \File::allFiles($directory);
+                $files = $tmpDisk->files($directory);
                 foreach ($files as $file) {
+                    $path = path_ltrim($file, $to);
                     // copy from crowd to local
-                    $stream = \File::readStream($file);
-                    $disk->writeStream(path_join($to, $file), $stream);
+                    $stream = $tmpDisk->readStream($file);
+                    $disk->delete($path);
+                    $disk->writeStream($path, $stream);
+                    fclose($stream);
                 }
             }
         }

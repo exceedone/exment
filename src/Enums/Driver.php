@@ -74,22 +74,22 @@ class Driver extends EnumBase
                 break;
             case self::S3:
                 $keys = [
-                    'bucket' => env('AWS_BUCKET_' . strtoupper($mergeFrom)),
+                    'bucket' => config('exment.rootpath.s3.' . $mergeFrom),
                 ];
                 break;
             case self::AZURE:
                 $keys = [
-                    'container' => env('AZURE_STORAGE_CONTAINER_' . strtoupper($mergeFrom)),
+                    'container' => config('exment.rootpath.azure.' . $mergeFrom),
                 ];
                 break;
             case self::FTP:
                 $keys = [
-                    'root' => env('FTP_ROOT_' . strtoupper($mergeFrom)),
+                    'root' => config('exment.rootpath.ftp.' . $mergeFrom),
                 ];
                 break;
             case self::SFTP:
                 $keys = [
-                    'root' => env('SFTP_ROOT_' . strtoupper($mergeFrom)),
+                    'root' => config('exment.rootpath.sftp.' . $mergeFrom),
                 ];
                 break;
             default:
