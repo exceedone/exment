@@ -1122,6 +1122,7 @@ if (!function_exists('getAjaxResponse')) {
         $results = array_merge([
             'result' => true,
             'toastr' => null,
+            'swal' => null,
             'errors' => [],
         ], $results);
 

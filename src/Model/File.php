@@ -330,7 +330,11 @@ class File extends ModelBase
     public static function storeAs($content, $dirname, $name, $override = false)
     {
         $file = static::saveFileInfo($dirname, $name, null, $override);
-        $content->storeAs($dirname, $file->local_filename, config('admin.upload.disk'));
+        if(is_string($content)){
+            \Storage::disk(config('admin.upload.disk'))->put(path_join($dirname, $file->local_filename), $content);
+        }else{
+            $content->storeAs($dirname, $file->local_filename, config('admin.upload.disk'));
+        }
         return $file;
     }
 
