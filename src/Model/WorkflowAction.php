@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
@@ -427,16 +428,25 @@ class WorkflowAction extends ModelBase
                     break;
                     
                 case ConditionTypeDetail::COLUMN:
+                    $column = CustomColumn::getEloquent($workflow_authority->related_id);
+
                     if ($getAsDefine) {
-                        $column = CustomColumn::getEloquent($workflow_authority->related_id);
                         $labels[] = $column->column_view_name ?? null;
                         break;
                     }
 
-                    if ($custom_value->custom_table_name == SYstemTableName::USER) {
-                        $userIds[] = $workflow_authority->related_id;
-                    } else {
-                        $organizationIds[] = $workflow_authority->related_id;
+                    $column_values = $custom_value->getValue($column->column_name);
+
+                    if ($column_values instanceof CustomValue) {
+                        $column_values = [$column_values];
+                    }
+
+                    foreach($column_values as $column_value) {
+                        if ($column->column_type == ColumnType::USER) {
+                            $userIds[] = $column_value->id;
+                        } else {
+                            $organizationIds[] = $column_value->id;
+                        }
                     }
                     break;
             }
@@ -617,8 +627,11 @@ class WorkflowAction extends ModelBase
         $completed = WorkflowStatus::getWorkflowStatusCompleted($statusTo);
         if ($next === true && !$completed) {
             // get next actions
-            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow, true);
-            $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $statusTo, $nextActions);
+            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow);
+            $normalActions = $nextActions->filter(function ($action) {
+                return !boolval($action->ignore_work);
+            });
+            $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $statusTo, $normalActions);
 
             // show target users text
             $select = $nextActions->contains(function ($nextAction) {
