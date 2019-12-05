@@ -29,6 +29,7 @@ abstract class ApiTestBase extends TestCase
      */
     protected function getPasswordToken($user_code, $password, $scope = []){
         System::clearCache();
+        \Exceedone\Exment\Middleware\Morph::defineMorphMap();
         list($client_id, $client_secret) = $this->getClientIdAndSecret();
         
         if(\is_nullorempty($scope)){

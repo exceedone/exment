@@ -358,7 +358,8 @@ class ApiWorkflowController extends AdminControllerBase
             $rules['comment'] = 'required';
         }
         $statusTo = $workflow_action->getStatusToId($custom_value);
-        if ($custom_value->workflow_value->workflow_status_to_id != $statusTo) {
+        $currentTo = isset($custom_value->workflow_value)? $custom_value->workflow_value->workflow_status_to_id: null;
+        if ($currentTo != $statusTo) {
             $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow);
             $need_next = $nextActions->contains(function ($workflow_action) {
                 return $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
