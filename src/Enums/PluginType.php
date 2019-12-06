@@ -73,7 +73,7 @@ class PluginType extends EnumBase
                 case PluginType::DOCUMENT:
                 case PluginType::TRIGGER:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
-                    return new $classname($plugin, array_get($options, 'custom_table'), $custom_value);
+                    return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, array_get($options, 'workflow_action'));
                 case PluginType::BATCH:
                 case PluginType::PAGE:
                     return new $classname($plugin);

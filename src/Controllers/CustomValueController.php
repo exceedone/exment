@@ -439,6 +439,7 @@ class CustomValueController extends AdminControllerTableBase
         Plugin::pluginPreparing($this->plugins, 'workflow_action_executing', [
             'custom_table' => $this->custom_table,
             'custom_value' => $custom_value,
+            'workflow_action' => $action,
         ]);
 
         $action->executeAction($custom_value, [
@@ -449,6 +450,7 @@ class CustomValueController extends AdminControllerTableBase
         Plugin::pluginPreparing($this->plugins, 'workflow_action_executed', [
             'custom_table' => $this->custom_table,
             'custom_value' => $custom_value,
+            'workflow_action' => $action,
         ]);
 
         return ([
