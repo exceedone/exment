@@ -393,6 +393,8 @@ return [
                 'form_menubutton_show' => 'Menu button on Show Data',
                 'form_menubutton_create' => 'Menu button on Form Create View',
                 'form_menubutton_edit' => 'Menu button on Form Edit View',
+                'workflow_action_executing' => 'Before Workflow Action',
+                'workflow_action_executed' => 'After Workflow Action',
             ]
         ],
 

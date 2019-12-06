@@ -436,9 +436,19 @@ class CustomValueController extends AdminControllerTableBase
 
         //TODO:validation
         
+        Plugin::pluginPreparing($this->plugins, 'workflow_action_executing', [
+            'custom_table' => $this->custom_table,
+            'custom_value' => $custom_value,
+        ]);
+
         $action->executeAction($custom_value, [
             'comment' => $request->get('comment'),
             'next_work_users' => $request->get('next_work_users'),
+        ]);
+
+        Plugin::pluginPreparing($this->plugins, 'workflow_action_executed', [
+            'custom_table' => $this->custom_table,
+            'custom_value' => $custom_value,
         ]);
 
         return ([
