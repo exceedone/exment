@@ -36,9 +36,12 @@ class SelectTableNumericRule implements Rule
             $value = explode(',', $value);
         }
 
-        $value = array_filter($value);
+        if ($value instanceof \Exceedone\Exment\Model\CustomValue) {
+            return true;
+        }
 
         if (is_array($value)) {
+            $value = array_filter($value);
             foreach ($value as $v) {
                 if (!is_numeric($v)) {
                     return false;

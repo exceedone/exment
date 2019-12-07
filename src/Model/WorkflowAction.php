@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
@@ -233,6 +234,10 @@ class WorkflowAction extends ModelBase
     protected function setActionCondition()
     {
         $this->workflow_condition_headers()->delete();
+        if (!isset($this->work_condition_headers)) {
+            return;
+        }
+        
         foreach ($this->work_condition_headers as $work_condition_header) {
             $work_condition_header['workflow_action_id'] = $this->id;
 
@@ -251,6 +256,16 @@ class WorkflowAction extends ModelBase
      */
     public function executeAction($custom_value, $data = [])
     {
+        $custom_table = $custom_value->custom_table;
+
+        //execute plugin
+        $plugins = Plugin::getPluginsByTable($custom_table->table_name);
+        Plugin::pluginPreparing($plugins, 'workflow_action_executing', [
+            'custom_table' => $custom_table,
+            'custom_value' => $custom_value,
+            'workflow_action' => $this,
+        ]);
+
         $workflow = Workflow::getEloquent(array_get($this, 'workflow_id'));
         $next = $this->isActionNext($custom_value);
 
@@ -326,6 +341,15 @@ class WorkflowAction extends ModelBase
                 $notify->notifyWorkflow($custom_value, $this, $workflow_value, $status_to);
             }
         }
+
+        // execute plugin
+        Plugin::pluginPreparing($plugins, 'workflow_action_executed', [
+            'custom_table' => $custom_table,
+            'custom_value' => $custom_value,
+            'workflow_action' => $this,
+        ]);
+
+        return $workflow_value;
     }
 
     /**
@@ -343,7 +367,7 @@ class WorkflowAction extends ModelBase
         // check as workflow_value_authorities
         if (isset($custom_value) && isset($custom_value->workflow_value)) {
             $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
-            $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
+            $workflow_value_authorities = $custom_value->workflow_value->getWorkflowValueAutorities();
             foreach ($workflow_value_authorities as $workflow_value_authority) {
                 $item = ConditionItemBase::getItemByAuthority($custom_value->custom_table, $workflow_value_authority);
                 if (isset($item) && $item->hasAuthority($workflow_value_authority, $custom_value, $targetUser)) {
@@ -381,7 +405,7 @@ class WorkflowAction extends ModelBase
 
         // add as workflow_value_authorities
         if (isset($custom_value) && isset($custom_value->workflow_value)) {
-            $workflow_value_authorities = $custom_value->workflow_value->workflow_value_authorities;
+            $workflow_value_authorities = $custom_value->workflow_value->getWorkflowValueAutorities();
             foreach ($workflow_value_authorities as $workflow_value_authority) {
                 $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
                 switch ($type) {
@@ -421,16 +445,25 @@ class WorkflowAction extends ModelBase
                     break;
                     
                 case ConditionTypeDetail::COLUMN:
+                    $column = CustomColumn::getEloquent($workflow_authority->related_id);
+
                     if ($getAsDefine) {
-                        $column = CustomColumn::getEloquent($workflow_authority->related_id);
                         $labels[] = $column->column_view_name ?? null;
                         break;
                     }
 
-                    if ($custom_value->custom_table_name == SYstemTableName::USER) {
-                        $userIds[] = $workflow_authority->related_id;
-                    } else {
-                        $organizationIds[] = $workflow_authority->related_id;
+                    $column_values = $custom_value->getValue($column->column_name);
+
+                    if ($column_values instanceof CustomValue) {
+                        $column_values = [$column_values];
+                    }
+
+                    foreach ($column_values as $column_value) {
+                        if ($column->column_type == ColumnType::USER) {
+                            $userIds[] = $column_value->id;
+                        } else {
+                            $organizationIds[] = $column_value->id;
+                        }
                     }
                     break;
             }
@@ -611,8 +644,11 @@ class WorkflowAction extends ModelBase
         $completed = WorkflowStatus::getWorkflowStatusCompleted($statusTo);
         if ($next === true && !$completed) {
             // get next actions
-            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow, true);
-            $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $statusTo, $nextActions);
+            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow);
+            $normalActions = $nextActions->filter(function ($action) {
+                return !boolval($action->ignore_work);
+            });
+            $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $statusTo, $normalActions);
 
             // show target users text
             $select = $nextActions->contains(function ($nextAction) {

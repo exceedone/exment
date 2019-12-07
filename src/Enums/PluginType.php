@@ -25,6 +25,7 @@ class PluginType extends EnumBase
             static::DASHBOARD,
             static::SCRIPT,
             static::STYLE,
+            static::API,
         ];
     }
 
@@ -33,6 +34,7 @@ class PluginType extends EnumBase
         return [
             static::PAGE,
             static::DASHBOARD,
+            static::API,
         ];
     }
 
@@ -73,9 +75,17 @@ class PluginType extends EnumBase
                 case PluginType::DOCUMENT:
                 case PluginType::TRIGGER:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
-                    return new $classname($plugin, array_get($options, 'custom_table'), $custom_value);
+                    return new $classname(
+                        $plugin,
+                        array_get($options, 'custom_table'),
+                        $custom_value,
+                        [
+                            'workflow_action' => array_get($options, 'workflow_action'),
+                        ]
+                    );
                 case PluginType::BATCH:
                 case PluginType::PAGE:
+                case PluginType::API:
                     return new $classname($plugin);
                 case PluginType::DASHBOARD:
                     return new $classname($plugin, array_get($options, 'dashboard_box'));

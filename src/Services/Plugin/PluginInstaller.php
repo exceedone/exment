@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Storage\Disk\PluginDiskService;
 use Exceedone\Exment\Validator\PluginTypeRule;
 use Symfony\Component\HttpFoundation\Response;
 use ZipArchive;
@@ -18,36 +19,42 @@ use Validator;
 class PluginInstaller
 {
     /**
-     * Upload plugin (from display)
+     * Upload plugin (call from display)
      */
     public static function uploadPlugin($uploadFile)
     {
-        // store uploaded file and get tmp path
-        $tmpdir = getTmpFolderPath('plugin', false);
-        $tmpfolderpath = path_join($tmpdir, short_uuid());
-        $tmpfolderfullpath = getFullPath($tmpfolderpath, Define::DISKNAME_ADMIN_TMP, true);
-        $pluginFileBasePath = null;
+        try {
+            $diskService = new PluginDiskService();
+            $tmpDiskItem = $diskService->tmpDiskItem();
 
-        $filename = $uploadFile->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
-        $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
-        // // tmpfolderpath is the folder path uploaded.
-        // $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
-        
-        // open zip file
-        $zip = new ZipArchive;
-        //Define variable like flag to check exitsed file config (config.json) before extract zip file
-        $res = $zip->open($fullpath);
-        if ($res !== true) {
-            //TODO:error
-        }
-                
-        //Get folder into zip file
-        //Check existed file config (config.json)
-        $config_path = null;
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $stat = $zip->statIndex($i);
-            $fileInfo = $zip->getNameIndex($i);
-            if (basename($zip->statIndex($i)['name']) === 'config.json') {
+            // store uploaded file and get tmp path
+            $tmpdir = $tmpDiskItem->dirName();
+            // $tmpfolderpath = path_join($tmpdir, short_uuid());
+            $tmpfolderfullpath = $tmpDiskItem->dirFullPath();
+            $pluginFileBasePath = null;
+
+            // store file
+            $filename = $tmpDiskItem->disk()->put($tmpdir, $uploadFile);
+            $fullpath = $tmpDiskItem->disk()->path($filename);
+            
+            // open zip file
+            $zip = new ZipArchive;
+            //Define variable like flag to check exitsed file config (config.json) before extract zip file
+            $res = $zip->open($fullpath);
+            if ($res !== true) {
+                //TODO:error
+            }
+                    
+            //Get folder into zip file
+            //Check existed file config (config.json)
+            $config_path = null;
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                $fileInfo = $zip->getNameIndex($i);
+                if (basename($zip->statIndex($i)['name']) !== 'config.json') {
+                    continue;
+                }
+
                 $zip->extractTo($tmpfolderfullpath);
 
                 // get confign statname
@@ -59,84 +66,99 @@ class PluginInstaller
 
                 // if dirname is '.', $pluginFileBasePath is $tmpfolderpath
                 if ($dirname == '.') {
-                    $pluginFileBasePath = $tmpfolderpath;
+                    $pluginFileBasePath = $tmpdir;
                 }
                 // else, $pluginFileBasePath is join $dirname
                 else {
-                    $pluginFileBasePath = path_join($tmpfolderpath, $dirname);
+                    $pluginFileBasePath = path_join($tmpdir, $dirname);
                 }
                 break;
             }
-        }
 
-        //Extract file if $checkExistedConfig = true
-        if (isset($config_path)) {
-            // get config.json
-            $json = json_decode(File::get($config_path), true);
+            // remove zip
+            if (isset($zip)) {
+                $zip->close();
+            }
+            // delete zip
+            $tmpDiskItem->disk()->delete($filename);
 
-            //If $json nothing, then delete folder extracted, return admin/plugin with error message 'config.json wrong'
-            if ($json == null) {
-                $response = back()->with('errorMess', exmtrans('common.message.wrongconfig'));
-            } else {
-                //Validate json file with fields require
-                $checkRuleConfig = static::checkRuleConfigFile($json);
-                if ($checkRuleConfig === true) {
-                    //Check if the name of the plugin has existed
-                    $plugineExistByName = Plugin::getPluginByName(array_get($json, 'plugin_name'));
-                    //Check if the uuid of the plugin has existed
-                    $plugineExistByUUID = Plugin::getPluginByUUID(array_get($json, 'uuid'));
-                    
-                    //If json pass validation, prepare data to do continue
-                    $plugin = static::prepareData($json);
-                    //Make path of folder where contain plugin with name is plugin's name
-                    $pluginFolder = $plugin->getPath();
+            //Extract file if $checkExistedConfig = true
+            if (isset($config_path)) {
+                // get config.json
+                $json = json_decode(File::get($config_path), true);
 
-                    //If both name and uuid existed, update data for this plugin
-                    if (!is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
-                        $pluginUpdated = $plugin->saveOrFail();
-                        //Rename folder with plugin name
-                        static::copyPluginNameFolder($json, $pluginFolder, $pluginFileBasePath);
-                        admin_toastr(exmtrans('common.message.success_execute'));
-                        $response = back();
-                    }
-                    //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
-                    elseif (is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
-                        $plugin->save();
-                        static::copyPluginNameFolder($json, $pluginFolder, $pluginFileBasePath);
-                        admin_toastr(exmtrans('common.message.success_execute'));
-                        $response = back();
-                    }
-
-                    //If name has existed but uuid does not existed, then delete folder and return error with message
-                    elseif (!is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
-                        $response = back()->with('errorMess', exmtrans('plugin.error.samename_plugin'));
-                    }
-                    //If uuid has existed but name does not existed, then delete folder and return error with message
-                    elseif (is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
-                        $response = back()->with('errorMess', exmtrans('plugin.error.wrongname_plugin'));
-                    }
-                    //rename folder without Uppercase, space, tab, ...
-                    else {
-                        $response = back();
-                    }
+                //If $json nothing, then delete folder extracted, return admin/plugin with error message 'config.json wrong'
+                if ($json == null) {
+                    $response = back()->with('errorMess', exmtrans('common.message.wrongconfig'));
                 } else {
-                    $response = back()->with('errorMess', $checkRuleConfig);
+                    //Validate json file with fields require
+                    $checkRuleConfig = static::checkRuleConfigFile($json);
+                    if ($checkRuleConfig === true) {
+                        //Check if the name of the plugin has existed
+                        $plugineExistByName = Plugin::getPluginByName(array_get($json, 'plugin_name'));
+                        //Check if the uuid of the plugin has existed
+                        $plugineExistByUUID = Plugin::getPluginByUUID(array_get($json, 'uuid'));
+                        
+                        //If json pass validation, prepare data to do continue
+                        $plugin = static::prepareData($json);
+                        //Make path of folder where contain plugin with name is plugin's name
+                        $pluginFolder = $plugin->getPath();
+                        $diskService->initDiskService($plugin);
+
+                        //If both name and uuid existed, update data for this plugin
+                        if (!is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
+                            $pluginUpdated = $plugin->saveOrFail();
+                            //Rename folder with plugin name
+                            static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
+                            admin_toastr(exmtrans('common.message.success_execute'));
+                            $response = back();
+                        }
+                        //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
+                        elseif (is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
+                            $plugin->save();
+                            static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
+                            admin_toastr(exmtrans('common.message.success_execute'));
+                            $response = back();
+                        }
+
+                        //If name has existed but uuid does not existed, then delete folder and return error with message
+                        elseif (!is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
+                            $response = back()->with('errorMess', exmtrans('plugin.error.samename_plugin'));
+                        }
+                        //If uuid has existed but name does not existed, then delete folder and return error with message
+                        elseif (is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
+                            $response = back()->with('errorMess', exmtrans('plugin.error.wrongname_plugin'));
+                        }
+                        //rename folder without Uppercase, space, tab, ...
+                        else {
+                            $response = back();
+                        }
+                    } else {
+                        $response = back()->with('errorMess', $checkRuleConfig);
+                    }
                 }
             }
-        }
-        
-        // delete tmp folder
-        $zip->close();
-        // delete zip
-        File::deleteDirectory($tmpfolderfullpath);
-        unlink($fullpath);
-        //return response
-        if (isset($response)) {
-            return $response;
+            //return response
+            if (isset($response)) {
+                return $response;
+            }
+        } catch (\Exception $ex) {
+            throw $ex;
+        } finally {
+
+            // delete zip
+            if (isset($diskService)) {
+                $diskService->deleteTmpDirectory();
+            }
         }
     }
     
-    //Function validate config.json file with field required
+    /**
+     * Function validate config.json file with field required
+     *
+     * @param [type] $json
+     * @return void
+     */
     protected static function checkRuleConfigFile($json)
     {
         $rules = [
@@ -160,7 +182,12 @@ class PluginInstaller
         }
     }
 
-    //Function prepare data to do continue
+    /**
+     * Function prepare data to do continue
+     *
+     * @param [type] $json
+     * @return void
+     */
     protected static function prepareData($json)
     {
         // find or new $plugin
@@ -177,16 +204,20 @@ class PluginInstaller
         // set options
         $options = array_get($plugin, 'options', []);
         // set if exists
-        if (array_key_value_exists('target_tables', $json)) {
-            $target_tables = array_get($json, 'target_tables');
-            // if is_string $target_tables
-            if (is_string($target_tables)) {
-                $target_tables = [$target_tables];
+        foreach (['target_tables', 'event_triggers'] as $key) {
+            if (array_key_value_exists($key, $json)) {
+                $jsonval = array_get($json, $key);
+                // if is_string $$jsonval
+                if (is_string($jsonval)) {
+                    $jsonval = collect(explode(",", $jsonval))->map(function ($j) {
+                        return trim($j);
+                    })->toArray();
+                }
+                $options[$key] = $jsonval;
             }
-            $options['target_tables'] = $target_tables;
         }
 
-        foreach (['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron', 'cdns', 'uri'] as $key) {
+        foreach (['label', 'icon', 'button_class', 'document_type', 'event_triggers', 'batch_hour', 'batch_cron', 'cdns', 'uri'] as $key) {
             if (array_key_value_exists($key, $json)) {
                 $options[$key] = array_get($json, $key);
             }
@@ -202,36 +233,30 @@ class PluginInstaller
         return $plugin;
     }
 
-    //Copy tmp folder to app folder
-    protected static function copyPluginNameFolder($json, $pluginFolderPath, $pluginFileBasepath)
+    /**
+     * Copy tmp folder to app folder
+     *
+     * @param [type] $plugin
+     * @param [type] $json
+     * @param [type] $pluginFolderPath
+     * @param [type] $pluginFileBasepath
+     * @return void
+     */
+    protected static function copyPluginNameFolder($plugin, $json, $pluginFolderPath, $pluginFileBasepath, $diskService)
     {
         // get all files
-        $pluginDisk = static::pluginDisk();
-        $tmpDisk = static::tmpDisk();
-        $files = $tmpDisk->allFiles($pluginFileBasepath);
+        $files = $diskService->tmpDiskItem()->disk()->allFiles($pluginFileBasepath);
 
-        foreach ($files as $file) {
+        $filelist = collect($files)->mapWithKeys(function ($file) use ($pluginFolderPath, $pluginFileBasepath) {
             // get moved file name
             $movedFileName = str_replace($pluginFileBasepath, '', $file);
             $movedFileName = str_replace(str_replace('\\', '/', $pluginFileBasepath), '', $movedFileName);
             $movedFileName = trim($movedFileName, '/');
             $movedFileName = trim($movedFileName, '\\');
 
-            // upload file
-            $stream = $tmpDisk->readStream($file);
-            $movedpath = path_join($pluginFolderPath, $movedFileName);
-            $pluginDisk->delete($movedpath);
-            $pluginDisk->writeStream($movedpath, $stream);
-        }
-    }
-    
-    protected static function pluginDisk()
-    {
-        return \Storage::disk(Define::DISKNAME_PLUGIN);
-    }
-    
-    protected static function tmpDisk()
-    {
-        return \Storage::disk(Define::DISKNAME_ADMIN_TMP);
+            return [$file => path_join($pluginFolderPath, $movedFileName)];
+        })->filter();
+
+        $diskService->upload($filelist->toArray());
     }
 }

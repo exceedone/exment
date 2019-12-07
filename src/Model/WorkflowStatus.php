@@ -29,6 +29,30 @@ class WorkflowStatus extends ModelBase
     }
     
     /**
+     * Get workflow start status as object
+     *
+     * @param Workflow $workflow
+     * @return WorkflowStatus
+     */
+    public static function getWorkflowStartStatus(Workflow $workflow) : WorkflowStatus
+    {
+        $workflow_status = new WorkflowStatus;
+        $workflow_status->id = null;
+        $workflow_status->workflow_id = strval($workflow->id);
+        $workflow_status->status_type = "0";
+        $workflow_status->order = "-1";
+        $workflow_status->status_name = $workflow->start_status_name;
+        $workflow_status->datalock_flg = "0";
+        $workflow_status->completed_flg = "0";
+        $workflow_status->created_at = $workflow->created_at;
+        $workflow_status->updated_at = $workflow->updated_at;
+        $workflow_status->created_user_id = $workflow->created_user_id;
+        $workflow_status->updated_user_id = $workflow->updated_user_id;
+
+        return $workflow_status;
+    }
+
+    /**
      * Get workflow status name
      *
      * @param [type] $workflow_status

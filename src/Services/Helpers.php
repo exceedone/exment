@@ -344,6 +344,28 @@ if (!function_exists('app_paths')) {
     }
 }
 
+if (!function_exists('path_ltrim')) {
+    /**
+     * ltrim FilePath.
+     */
+    function path_ltrim($path, $ltrim)
+    {
+        foreach (['/', '\\'] as $split) {
+            $l = str_replace($split, '/', $ltrim);
+
+            if (mb_strpos($path, $l) !== 0) {
+                continue;
+            }
+
+            $path = mb_substr($path, mb_strlen($ltrim));
+
+            $path = ltrim($path, '/');
+        }
+
+        return $path;
+    }
+}
+
 if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {
@@ -467,6 +489,27 @@ if (!function_exists('isApiEndpoint')) {
     {
         $basePath = ltrim(admin_base_path(), '/');
         return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
+    }
+}
+
+
+if (!function_exists('deleteDirectory')) {
+    /**
+     * delete target directory
+     */
+    function deleteDirectory($disk, $path)
+    {
+        if (is_nullorempty($path)) {
+            return;
+        }
+        
+        $directories = $disk->directories($path);
+        foreach ($directories as $directory) {
+            deleteDirectory($disk, $directory);
+        }
+
+        $disk->delete($disk->files($path));
+        $disk->deleteDirectory($path);
     }
 }
 
@@ -1101,6 +1144,7 @@ if (!function_exists('getAjaxResponse')) {
         $results = array_merge([
             'result' => true,
             'toastr' => null,
+            'swal' => null,
             'errors' => [],
         ], $results);
 

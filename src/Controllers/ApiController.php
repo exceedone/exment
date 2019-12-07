@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ErrorCode;
+use Validator;
 
 /**
  * Api about target table
@@ -56,18 +57,32 @@ class ApiController extends AdminControllerBase
      */
     public function tablelist(Request $request)
     {
-        if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, ErrorCode::PERMISSION_DENY());
-        }
+        // if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        //     return abortJson(403, ErrorCode::PERMISSION_DENY());
+        // }
 
         // get and check query parameter
         if (($count = $this->getCount($request)) instanceof Response) {
             return $count;
         }
 
+        $options = [
+            'getModel' => false,
+            'with' => $this->getJoinTables($request, 'custom'),
+            'permissions' => Permission::AVAILABLE_ACCESS_CUSTOM_VALUE
+        ];
+        // filterd by id
+        if ($request->has('id')) {
+            $ids = explode(',', $request->get('id'));
+            $options['filter'] = function ($model) use ($ids) {
+                $model->whereIn('id', $ids);
+                return $model;
+            };
+        }
+
         // filter table
         $query = CustomTable::query();
-        CustomTable::filterList($query, ['getModel' => false]);
+        CustomTable::filterList($query, $options);
         return $query->paginate($count ?? config('exment.api_default_data_count'));
     }
 
@@ -137,7 +152,9 @@ class ApiController extends AdminControllerBase
      */
     public function table($tableKey, Request $request)
     {
-        $table = CustomTable::getEloquent($tableKey);
+        $withs = $this->getJoinTables($request, 'custom');
+        $table = CustomTable::getEloquent($tableKey, $withs);
+
         if (!isset($table)) {
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
@@ -194,7 +211,109 @@ class ApiController extends AdminControllerBase
         }
         return CustomTable::getEloquent($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
     }
+
+    /**
+     * create notify
+     */
+    public function notifyCreate(Request $request)
+    {
+        $is_single = false;
+
+        $validator = Validator::make($request->all(), [
+            'target_users' => 'required',
+            'notify_subject' => 'required',
+            'notify_body' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        $target_users = $request->get('target_users');
+
+        if (!is_array($target_users)) {
+            $target_users = explode(',', $target_users);
+            $is_single = count($target_users) == 1;
+        }
+
+        $error_users = collect($target_users)->filter(function ($target_user) {
+            return is_null(getModelName(SystemTableName::USER)::find($target_user));
+        });
+
+        if ($error_users->count() > 0) {
+            return abortJson(400, [
+                'errors' => ['target_users' => exmtrans('api.errors.user_notfound', $error_users->implode(','))]
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        $response = [];
+
+        foreach ($target_users as $target_user) {
+            $notify = new NotifyNavbar();
     
+            $notify->fill([
+                'notify_id' => 0,
+                'target_user_id' => $target_user,
+                'notify_subject' => $request->get('notify_subject'),
+                'notify_body' => $request->get('notify_body'),
+                'trigger_user_id' => \Exment::user()->base_user_id
+            ]);
+    
+            $notify->saveOrFail();
+
+            $response[] = $notify;
+        }
+
+        if ($is_single && count($response) > 0) {
+            return $response[0];
+        } else {
+            return $response;
+        }
+    }
+    
+    /**
+     * Get notify List
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function notifyList(Request $request)
+    {
+        if (($reqCount = $this->getCount($request)) instanceof Response) {
+            return $reqCount;
+        }
+
+        // get notify NotifyNavbar list
+        $query = NotifyNavbar::where('target_user_id', \Exment::user()->base_user_id)
+            ->orderBy('created_at', 'desc');
+                
+        if (!boolval($request->get('all', false))) {
+            $query->where('read_flg', false);
+        }
+
+        $count = $query->count();
+        $paginator = $query->paginate($reqCount);
+
+        // set appends
+        $paginator->appends([
+            'count' => $count,
+        ]);
+        if ($request->has('all')) {
+            $paginator->appends([
+                'all' => $request->get('all'),
+            ]);
+        }
+
+        return $paginator;
+    }
+
+    /**
+     * Get notify for page
+     *
+     * @param Request $request
+     * @return void
+     */
     public function notifyPage(Request $request)
     {
         // get notify NotifyNavbar list

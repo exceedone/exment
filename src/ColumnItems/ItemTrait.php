@@ -24,6 +24,15 @@ trait ItemTrait
     }
 
     /**
+     * get pure value. (In database value)
+     * *Don't override this function
+     */
+    public function pureValue()
+    {
+        return $this->value;
+    }
+
+    /**
      * get or set option for convert
      */
     public function options($options = null)

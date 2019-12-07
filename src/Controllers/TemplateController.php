@@ -85,25 +85,37 @@ class TemplateController extends AdminControllerBase
             //     ];
             // }
     
-            $array = TemplateImportExport\TemplateImporter::getTemplates();
+            $importer = new TemplateImportExport\TemplateImporter;
+            $array = $importer->getTemplates();
             if (is_null($array)) {
                 $array = [];
             }
+            $no_thumbnail_file = base64_encode(file_get_contents(exment_package_path('templates/noimage.png')));
+        
             $datalist = [];
             foreach ($array as $a) {
                 // get thumbnail_path
-                if (isset($a['thumbnail_fullpath'])) {
-                    $thumbnail_path = $a['thumbnail_fullpath'];
+                if (isset($a['thumbnail_file'])) {
+                    $thumbnail_file = $a['thumbnail_file'];
                 } else {
-                    $thumbnail_path = exment_package_path('templates/noimage.png');
+                    $thumbnail_file = $no_thumbnail_file;
                 }
-                array_push($datalist, [
-                    'id' => array_get($a, 'template_name'),
+
+                // get delete url
+                if (array_get($a, 'template_type') == 'user') {
+                    $delete_url = admin_urls('webapi', 'template', 'delete?template=' . array_get($a, 'template_name'));
+                } else {
+                    $delete_url = null;
+                }
+
+                $datalist[] = [
+                    'id' => json_encode(['template_type' => array_get($a, 'template_type'), 'template_name' => array_get($a, 'template_name')]),
                     'title' => array_get($a, 'template_view_name'),
                     'description' => array_get($a, 'description'),
                     'author' => array_get($a, 'author'),
-                    'thumbnail' => 'data:image/png;base64,'.base64_encode(file_get_contents($thumbnail_path))
-                ]);
+                    'thumbnail' => 'data:image/png;base64,'.$thumbnail_file,
+                    'delete_url' => $delete_url,
+                ];
             }
 
             $paginator = new LengthAwarePaginator(
@@ -233,10 +245,28 @@ class TemplateController extends AdminControllerBase
 
         // install templates selected tiles.
         if ($request->has('template')) {
-            TemplateImportExport\TemplateImporter::importTemplate($request->input('template'));
+            $importer = new TemplateImportExport\TemplateImporter;
+            $importer->importTemplate($request->input('template'));
         }
 
         admin_toastr(trans('admin.save_succeeded'));
         return back();
+    }
+
+    /**
+     * delete template
+     */
+    public function delete(Request $request)
+    {
+        // install templates selected tiles.
+        if ($request->has('template')) {
+            $importer = new TemplateImportExport\TemplateImporter;
+            $importer->deleteTemplate($request->input('template'));
+        }
+
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
     }
 }

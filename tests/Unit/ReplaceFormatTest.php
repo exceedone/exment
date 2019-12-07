@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
-use Tests\TestCase;
 use Exceedone\Exment\Services\ReplaceFormat\ReplaceFormatService;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
@@ -11,7 +10,7 @@ use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Enums\SystemColumn;
 
-class ReplaceFormatTest extends TestCase
+class ReplaceFormatTest extends UnitTestBase
 {
     public function testReplaceDateString()
     {

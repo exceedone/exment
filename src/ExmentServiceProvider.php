@@ -10,6 +10,7 @@ use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Plugin\PluginPublicBase;
+use Exceedone\Exment\Services\Plugin\PluginApiBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -64,6 +65,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\ClientListCommand',
         'Exceedone\Exment\Console\BulkInsertCommand',
         'Exceedone\Exment\Console\PatchDataCommand',
+        'Exceedone\Exment\Console\InitTestCommand',
         'Exceedone\Exment\Console\CheckLangCommand',
     ];
 
@@ -81,6 +83,8 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
         'admin.browser'  => \Exceedone\Exment\Middleware\Browser::class,
+        'admin.web-ipfilter'  => \Exceedone\Exment\Middleware\WebIPFilter::class,
+        'admin.api-ipfilter'  => \Exceedone\Exment\Middleware\ApiIPFilter::class,
 
         'admin.pjax'       => AdminMiddleware\Pjax::class,
         'admin.permission' => AdminMiddleware\Permission::class,
@@ -103,6 +107,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected $middlewareGroups = [
         'admin' => [
             'admin.browser',
+            'admin.web-ipfilter',
             'admin.initialize',
             'admin.auth',
             'admin.auth-2factor',
@@ -120,6 +125,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         'admin_anonymous' => [
             'admin.browser',
+            'admin.web-ipfilter',
             'admin.initialize',
             'admin.morph',
             'admin.bootstrap2',
@@ -131,6 +137,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         'admin_install' => [
             'admin.browser',
+            'admin.web-ipfilter',
             'admin.initialize',
             'admin.session',
         ],
@@ -140,11 +147,13 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap2',
         ],
         'adminapi' => [
+            'admin.api-ipfilter',
             'adminapi.auth',
             // 'throttle:60,1',
             'bindings',
         ],
         'adminapi_anonymous' => [
+            'admin.api-ipfilter',
             // 'throttle:60,1',
             'bindings',
         ],
@@ -197,8 +206,8 @@ class ExmentServiceProvider extends ServiceProvider
             app('router')->aliasMiddleware($key, $middleware);
         }
 
-        // register middleware group.
-        foreach ($this->middlewareGroups as $key => $middleware) {
+        ////// register middleware group.
+        foreach ($this->getMiddlewareGroups() as $key => $middleware) {
             app('router')->middlewareGroup($key, $middleware);
         }
 
@@ -211,6 +220,9 @@ class ExmentServiceProvider extends ServiceProvider
 
         // bind plugin for page
         $this->app->bind(PluginPublicBase::class, function ($app) {
+            return Plugin::getPluginPageModel();
+        });
+        $this->app->bind(PluginApiBase::class, function ($app) {
             return Plugin::getPluginPageModel();
         });
         $this->app->bind(CustomTable::class, function ($app) {
@@ -309,9 +321,11 @@ class ExmentServiceProvider extends ServiceProvider
             return new ExmentCustomValidator($translator, $data, $rules, $messages, $customAttributes);
         });
 
-        Storage::extend('exment-driver', function ($app, $config) {
-            return Driver::getExmentDriver($app, $config);
-        });
+        foreach (['exment', 'backup', 'plugin', 'template'] as $driverKey) {
+            Storage::extend("exment-driver-$driverKey", function ($app, $config) use ($driverKey) {
+                return Driver::getExmentDriver($app, $config, $driverKey);
+            });
+        }
 
         Initialize::initializeConfig(false);
         
@@ -378,5 +392,36 @@ class ExmentServiceProvider extends ServiceProvider
     public function policies()
     {
         return $this->policies;
+    }
+
+    /**
+     * Get Middleware Groups
+     * *Merge adminapioauth, adminwebapi
+     *
+     * @return void
+     */
+    public function getMiddlewareGroups()
+    {
+        ////// register middleware group.
+        $middlewareGroups = $this->middlewareGroups;
+        // append oauth login
+        $middleware = $middlewareGroups['admin'];
+        foreach ($middleware as &$m) {
+            if ($m == 'admin.web-ipfilter') {
+                $m = 'admin.api-ipfilter';
+            }
+        }
+        $middlewareGroups['adminapioauth'] = $middleware;
+
+        // append adminwebapi
+        $middleware = $middlewareGroups['adminapi'];
+        foreach ($middleware as &$m) {
+            if ($m == 'admin.api-ipfilter') {
+                $m = 'admin.web-ipfilter';
+            }
+        }
+        $middlewareGroups['adminwebapi'] = $middleware;
+
+        return $middlewareGroups;
     }
 }

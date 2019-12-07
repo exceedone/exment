@@ -5,10 +5,11 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\BackupTarget;
+use Exceedone\Exment\Services\Installer\EnvTrait;
 
 class BackupCommand extends Command
 {
-    use CommandTrait, BackupRestoreTrait;
+    use CommandTrait, BackupRestoreTrait, EnvTrait;
 
     /**
      * The name and signature of the console command.
@@ -43,36 +44,38 @@ class BackupCommand extends Command
      */
     public function handle()
     {
-        $target = $this->option("target") ?? BackupTarget::arrays();
+        try {
+            $target = $this->option("target") ?? BackupTarget::arrays();
 
-        if (is_string($target)) {
-            $target = collect(explode(",", $target))->map(function ($t) {
-                return new BackupTarget($t) ?? null;
-            })->filter()->toArray();
+            if (is_string($target)) {
+                $target = collect(explode(",", $target))->map(function ($t) {
+                    return new BackupTarget($t) ?? null;
+                })->filter()->toArray();
+            }
+    
+            $this->initBackupRestore();
+    
+            // backup database tables
+            if (in_array(BackupTarget::DATABASE, $target)) {
+                \DB::backupDatabase($this->diskService->tmpDiskItem()->dirFullPath());
+            }
+    
+            // backup directory
+            if (!$this->copyFiles($target)) {
+                return -1;
+            }
+    
+            // archive whole folder to zip
+            $this->createZip();
+    
+            $this->removeOldBackups();
+    
+            return 0;
+        } catch (\Exception $e) {
+            throw $e;
+        } finally {
+            $this->diskService->deleteTmpDirectory();
         }
-
-        $this->initBackupRestore();
-
-        // backup database tables
-        if (in_array(BackupTarget::DATABASE, $target)) {
-            \DB::backupDatabase($this->tmpDirFullPath());
-        }
-
-        // backup directory
-        if (!$this->copyFiles($target)) {
-            return -1;
-        }
-
-        // archive whole folder to zip
-        $this->createZip();
-
-        // delete temporary folder
-        $success = static::tmpDisk()->deleteDirectory($this->tmpDirName());
-        static::tmpDisk()->delete($this->zipName());
-
-        $this->removeOldBackups();
-
-        return 0;
     }
 
     /**
@@ -84,43 +87,54 @@ class BackupCommand extends Command
     {
         // get directory paths
         $settings = collect($target)->map(function ($val) {
-            return BackupTarget::dir($val);
+            return BackupTarget::dirOrDisk($val);
         })->filter(function ($val) {
             return isset($val);
         })->toArray();
-        $settings = array_merge(
-            config('exment.backup_info.copy_dir', []),
-            $settings
-        );
         
-        if (is_array($settings)) {
-            foreach ($settings as $setting) {
+        foreach ($settings as $setting) {
+            // is local file
+            if (is_string($setting)) {
                 $from = base_path($setting);
                 if (!\File::exists($from)) {
                     continue;
                 }
 
-                $to = path_join($this->tmpDirName(), $setting);
-
-                if (!static::tmpDisk()->exists($to)) {
-                    static::tmpDisk()->makeDirectory($to, 0755, true);
-                }
-
-                $success = \File::copyDirectory($from, static::tmpDisk()->path($to));
-                if (!$success) {
-                    return false;
-                }
-            }
+                $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting);
                 
-            // if contains 'config' in $settings, copy env file
-            if (in_array('config', $settings)) {
-                $from_env = path_join(base_path(), '.env');
-                $to_env = static::tmpDisk()->path(path_join($this->tmpDirName(), '.env'));
+                if (!$this->tmpDisk()->exists($to)) {
+                    $this->tmpDisk()->makeDirectory($to, 0755, true);
+                }
 
-                if (\File::exists($from_env)) {
-                    \File::copy($from_env, $to_env);
+                \File::copyDirectory($from, $this->tmpDisk()->path($to));
+            }
+            // is croud file
+            else {
+                $disk = $setting[0];
+                
+                $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
+                
+                if (!$this->tmpDisk()->exists($to)) {
+                    $this->tmpDisk()->makeDirectory($to, 0755, true);
+                }
+
+                $files = $disk->allFiles('');
+                foreach ($files as $file) {
+                    // copy from crowd to local
+                    $stream = $disk->readStream($file);
+                    $this->tmpDisk()->writeStream(path_join($to, $file), $stream);
+
+                    fclose($stream);
                 }
             }
+        }
+            
+        // if contains 'config' in $settings, copy env file
+        if (in_array('config', $settings)) {
+            $envLines = $this->getMatchedEnv();
+            $to_env = $this->tmpDisk()->path(path_join($this->diskService->tmpDiskItem()->dirName(), '.env'));
+
+            \File::put($to_env, $envLines);
         }
 
         return true;
@@ -134,27 +148,36 @@ class BackupCommand extends Command
     {
         // open new zip file
         $zip = new \ZipArchive();
-        $res = $zip->open($this->zipFullPath(), \ZipArchive::CREATE);
+        $res = $zip->open($this->diskService->tmpDiskItem()->fileFullPath(), \ZipArchive::CREATE);
 
         if ($res === true) {
             // iterator all files in folder
-            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->tmpDirFullPath()));
+            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->diskService->tmpDiskItem()->dirFullPath()));
             foreach ($files as $name => $file) {
                 if ($file->isDir()) {
                     continue;
                 }
                 $filePath = $file->getRealPath();
-                $relativePath = substr($filePath, strlen($this->tmpDirFullPath()) + 1);
+                $relativePath = substr($filePath, strlen($this->diskService->tmpDiskItem()->dirFullPath()) + 1);
                 $zip->addFile($filePath, $relativePath);
             }
             $zip->close();
         }
 
         // upload file
-        $stream = static::tmpDisk()->readStream($this->zipName());
-        static::disk()->writeStream($this->listZipName(), $stream);
+
+        $uploadPaths = [
+            $this->diskService->tmpDiskItem()->filePath() => $this->diskService->diskItem()->filePath()
+        ];
+
+        $this->diskService->upload($uploadPaths);
     }
     
+    /**
+     * Remove old backup
+     *
+     * @return void
+     */
     protected function removeOldBackups()
     {
         // get history file counts
@@ -169,10 +192,10 @@ class BackupCommand extends Command
             return;
         }
 
-        $disk = static::disk();
+        $disk = $this->disk();
 
         // get files
-        $filenames = $disk->files('list');
+        $filenames = $disk->files($this->diskService->dirName());
 
         // get file infos
         $files = collect($filenames)->map(function ($filename) use ($disk) {
@@ -190,5 +213,44 @@ class BackupCommand extends Command
 
             $disk->delete(array_get($file, 'name'));
         }
+    }
+    
+    /**
+     * get matched env data
+     *
+     */
+    protected function getMatchedEnv()
+    {
+        // get env file
+        $file = path_join(base_path(), '.env');
+        if (!\File::exists($file)) {
+            return null;
+        }
+
+        $matchKeys = [
+            [
+                'keys' => ['EXMENT_'],
+                'prefix' => true,
+            ],
+            [
+                'keys' => ['APP_KEY', 'APP_LOCALE', 'APP_TIMEZONE'],
+                'prefix' => false,
+            ],
+        ];
+
+        $results = [];
+        foreach ($matchKeys as $item) {
+            foreach ($item['keys'] as $key) {
+                if (is_null($lines = $this->getEnv($key, $file, $item['prefix']))) {
+                    continue;
+                }
+
+                $results = array_merge(collect($lines)->map(function ($line) {
+                    return "{$line[0]}={$line[1]}";
+                })->toArray(), $results);
+            }
+        }
+
+        return implode("\n", $results);
     }
 }

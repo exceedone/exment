@@ -173,6 +173,9 @@ class PluginController extends AdminControllerBase
                         return getTransArray(Define::PLUGIN_EVENT_TRIGGER, "plugin.options.event_trigger_options");
                     })->help(exmtrans("plugin.help.event_triggers"));
                 }
+            } elseif ($plugin->matchPluginType(PluginType::API)) {
+                // Plugin_type = 'api'
+                $form->text('uri', exmtrans("plugin.options.uri"))->required();
             } elseif ($plugin->matchPluginType(PluginType::PAGE)) {
                 // Plugin_type = 'page'
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));

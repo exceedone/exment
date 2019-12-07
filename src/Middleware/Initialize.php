@@ -103,18 +103,13 @@ class Initialize
         ]);
     
 
-        if (!Config::has('filesystems.disks.admin')) {
-            Config::set('filesystems.disks.admin', [
-                'driver' => 'exment-driver',
-                'root' => storage_path('app/admin'),
-                'url' => config('app.url').'/'.config('admin.route.prefix'),
-            ]);
-        }
-        
-        if (!Config::has('filesystems.disks.admin_tmp')) {
-            Config::set('filesystems.disks.admin_tmp', [
+        ///// File info
+        /// maybe update setting by user
+        if (!Config::has('filesystems.disks.exment')) {
+            Config::set('filesystems.disks.exment', [
                 'driver' => 'local',
-                'root' => storage_path('app/admin_tmp'),
+                'root' => storage_path('app/admin'),
+                'url' => admin_url(),
             ]);
         }
         
@@ -127,22 +122,53 @@ class Initialize
 
         if (!Config::has('filesystems.disks.plugin')) {
             Config::set('filesystems.disks.plugin', [
-                'driver' => 'exment-driver',
-                'root' => storage_path('app/plugins'),
-            ]);
-        }
-        if (!Config::has('filesystems.disks.plugin_local')) {
-            Config::set('filesystems.disks.plugin_local', [
                 'driver' => 'local',
                 'root' => storage_path('app/plugins'),
             ]);
         }
-        if (!Config::has('filesystems.disks.template_local')) {
-            Config::set('filesystems.disks.template_local', [
+        
+        if (!Config::has('filesystems.disks.template')) {
+            Config::set('filesystems.disks.template', [
                 'driver' => 'local',
                 'root' => storage_path('app/templates'),
             ]);
         }
+
+
+        /// only set by system
+        Config::set('filesystems.disks.admin_tmp', [
+            'driver' => 'local',
+            'root' => storage_path('app/admin_tmp'),
+        ]);
+
+        Config::set('filesystems.disks.admin', [
+            'driver' => 'exment-driver-exment',
+            'mergeFrom' => 'exment',
+        ]);
+        
+        Config::set('filesystems.disks.plugin_sync', [
+            'driver' => 'exment-driver-plugin',
+            'mergeFrom' => 'plugin',
+            'root' => storage_path('app/plugins'),
+        ]);
+
+        Config::set('filesystems.disks.backup_sync', [
+            'driver' => 'exment-driver-backup',
+            'mergeFrom' => 'backup',
+            'root' => storage_path('app/backup'),
+        ]);
+        
+        Config::set('filesystems.disks.template_sync', [
+            'driver' => 'exment-driver-template',
+            'mergeFrom' => 'template',
+            'root' => storage_path('app/templates'),
+        ]);
+
+
+        Config::set('filesystems.disks.plugin_local', [
+            'driver' => 'local',
+            'root' => storage_path('app/plugins'),
+        ]);
 
         // mysql setting
         Config::set('database.connections.mysql.strict', false);

@@ -11,6 +11,11 @@ class WorkflowValue extends ModelBase
         return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
+    /**
+     * Get "Executed" workflow action
+     *
+     * @return void
+     */
     public function workflow_action()
     {
         return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
@@ -19,6 +24,16 @@ class WorkflowValue extends ModelBase
     public function workflow_status()
     {
         return $this->belongsTo(WorkflowStatus::class, 'workflow_status_to_id');
+    }
+
+    public function workflow_status_to()
+    {
+        return $this->workflow_status();
+    }
+
+    public function workflow_status_from()
+    {
+        return $this->belongsTo(WorkflowStatus::class, 'workflow_status_from_id');
     }
 
     public function workflow_value_authorities()
@@ -51,6 +66,37 @@ class WorkflowValue extends ModelBase
         $status = $this->getWorkflowStatusAttribute();
 
         return isset($status)? ($status->editable_flg == 1): true;
+    }
+
+    /**
+     * Get Workflow Value Authorities.
+     * Check from worklfow value header, and check has workflow value authorities. If has, return
+     *
+     * @return void
+     */
+    public function getWorkflowValueAutorities()
+    {
+        $authorities = $this->workflow_value_authorities;
+
+        if (!isset($authorities) || count($authorities) == 0) {
+            $workflow_values = WorkflowValue::where('morph_type', $this->morph_type)
+                ->where('morph_id', $this->morph_id)
+                ->where('workflow_id', $this->workflow_id)
+                ->where('id', '<>', $this->id)
+                ->orderBy('id', 'desc')
+                ->get();
+            
+            foreach ($workflow_values as $workflow_value) {
+                if ($workflow_value->workflow_status_to_id == $this->workflow_status_to_id) {
+                    $authorities = $workflow_value->workflow_value_authorities;
+                    if (!isset($authorities) || count($authorities) == 0) {
+                        continue;
+                    }
+                }
+                break;
+            }
+        }
+        return $authorities;
     }
     
     /**

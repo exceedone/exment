@@ -21,10 +21,10 @@ class CollapseWhitespace extends CollapseWhitespaceBase
 
         // only html, json
         $contentType = $response->headers->get('Content-Type');
-        if (!in_array($contentType, ['text/html', 'application/json'])) {
-            return false;
+        foreach (['text/html', 'application/json'] as $content) {
+            if (strpos($contentType, $content) !== false) {
+                return true;
+            }
         }
-
-        return true;
     }
 }

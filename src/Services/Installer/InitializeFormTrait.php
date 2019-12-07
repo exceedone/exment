@@ -205,6 +205,12 @@ trait InitializeFormTrait
                 ->min(0)
                 ->max(20)
                 ->help(exmtrans("system.help.password_history_cnt"));
+
+            $form->exmheader(exmtrans('system.ip_filter'))->hr();
+            $form->description(exmtrans("system.help.ip_filter"));
+
+            $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
+            $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
         }
 
         // template list
@@ -249,28 +255,10 @@ trait InitializeFormTrait
         $this->uploadTemplate($request);
         // import template
         if ($request->has('template')) {
-            TemplateImportExport\TemplateImporter::importTemplate($request->input('template'));
+            $importer = new TemplateImportExport\TemplateImporter;
+            $importer->importTemplate($request->input('template'));
         }
         return true;
-    }
-    
-    /**
-     * get system template list
-     */
-    protected function getTemplates()
-    {
-        $templates_path = app_path("Templates");
-        $paths = File::glob("$templates_path/*/config.json");
-        $templates = [];
-        foreach ($paths as $path) {
-            try {
-                $json = json_decode(File::get($path));
-                array_push($templates, $json);
-            } catch (Exception $exception) {
-                //TODO:error handling
-            }
-        }
-        return collect($templates);
     }
     
     protected function addTemplateTile($form)
@@ -330,19 +318,20 @@ EOT;
     {
         // upload zip file
         $upload_template = null;
+        $importer = new TemplateImportExport\TemplateImporter;
         if ($request->has('upload_template')) {
             // get upload file
             $file = $request->file('upload_template');
-            $upload_template = TemplateImportExport\TemplateImporter::uploadTemplate($file);
-            TemplateImportExport\TemplateImporter::importTemplate($upload_template);
+            $upload_template = $importer->uploadTemplate($file);
+            $importer->importTemplate($upload_template);
         }
         
         // upload excel file
         if ($request->has('upload_template_excel')) {
             // get upload file
             $file = $request->file('upload_template_excel');
-            $json = TemplateImportExport\TemplateImporter::uploadTemplateExcel($file);
-            TemplateImportExport\TemplateImporter::import($json);
+            $json = $importer->uploadTemplateExcel($file);
+            $importer->import($json);
         }
     }
     

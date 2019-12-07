@@ -107,12 +107,19 @@ var Exment;
                 if (hasValue(res.toastr)) {
                     toastr.success(res.toastr);
                 }
+                else if (hasValue(res.swal)) {
+                    swal(res.swal, '', 'success');
+                }
                 $('.modal').modal('hide');
             }
             else {
                 // show toastr
                 if (hasValue(res.toastr)) {
                     toastr.error(res.toastr);
+                }
+                // show swal
+                else if (hasValue(res.swal)) {
+                    swal(res.swal, '', 'error');
                 }
                 else {
                     toastr.error('Undeifned Error');
