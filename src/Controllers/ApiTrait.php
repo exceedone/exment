@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Model\CustomTable;
 
 /**
  * Api about target table
@@ -66,12 +67,38 @@ trait ApiTrait
                     switch ($expand) {
                         case 'tables':
                         case 'statuses':
+                        case 'action':
                         case 'actions':
                         case 'columns':
+                        case 'status_from':
+                        case 'status_to':
                             return $prefix . '_' . $expand;
                     }
                 })->filter()->toArray();
         }
         return $join_tables;
+    }
+
+    /**
+     * Get Custom Value (or return response)
+     *
+     * @param CustomTable $custom_table
+     * @param [type] $id
+     * @return void
+     */
+    protected function getCustomValue(CustomTable $custom_table, $id){
+        $custom_value = getModelName($custom_table->table_name)::find($id);
+        // not contains data, return empty data.
+        if (!isset($custom_value)) {
+            $code = $custom_table->getNoDataErrorCode($id);
+            if($code == ErrorCode::PERMISSION_DENY){
+                return abortJson(403, $code);
+            }else{
+                // nodata
+                return abortJson(400, $code);
+            }
+        }
+
+        return $custom_value;
     }
 }

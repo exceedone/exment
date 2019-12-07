@@ -226,4 +226,15 @@ class Workflow extends ModelBase
     {
         return boolval($this->setting_completed_flg);
     }
+
+    /**
+     * append workflow status
+     *
+     * @return Workflow
+     */
+    public function appendStartStatus() : Workflow{
+        $this->workflow_statuses->prepend(WorkflowStatus::getWorkflowStartStatus($this));
+
+        return $this;
+    }
 }

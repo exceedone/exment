@@ -12,7 +12,7 @@ class ErrorCode extends EnumBase
     const DELETE_DISABLED = '105';
     const WRONG_SCOPE = '106';
     const DATA_NOT_FOUND = '107';
-    const ACCESS_DENYED = '108';
+    const ACCESS_DENIED = '108';
     const WORKFLOW_LOCK = '201';
     const WORKFLOW_NOSTART = '202';
     const WORKFLOW_END = '203';

@@ -11,6 +11,11 @@ class WorkflowValue extends ModelBase
         return $this->belongsTo(Workflow::class, 'workflow_id');
     }
 
+    /**
+     * Get "Executed" workflow action
+     *
+     * @return void
+     */
     public function workflow_action()
     {
         return $this->belongsTo(WorkflowAction::class, 'workflow_action_id');
@@ -19,6 +24,11 @@ class WorkflowValue extends ModelBase
     public function workflow_status()
     {
         return $this->belongsTo(WorkflowStatus::class, 'workflow_status_to_id');
+    }
+
+    public function workflow_status_to()
+    {
+        return $this->workflow_status();
     }
 
     public function workflow_status_from()

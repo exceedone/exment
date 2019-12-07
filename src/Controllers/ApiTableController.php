@@ -332,15 +332,8 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
-        $custom_value = getModelName($this->custom_table)::find($id);
-        if (!isset($custom_value)) {
-            $code = $this->custom_table->getNoDataErrorCode($id);
-            if ($code == ErrorCode::PERMISSION_DENY) {
-                return abortJson(403, $code);
-            } else {
-                // nodata
-                return abortJson(400, $code);
-            }
+        if(($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response){
+            return $custom_value;
         }
 
         if (($code = $custom_value->enableEdit()) !== true) {
@@ -360,17 +353,9 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
-        $custom_value = getModelName($this->custom_table)::find($id);
-        if (!isset($custom_value)) {
-            $code = $this->custom_table->getNoDataErrorCode($id);
-            if ($code == ErrorCode::PERMISSION_DENY) {
-                return abortJson(403, $code);
-            } else {
-                // nodata
-                return abortJson(400, $code);
-            }
+        if(($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response){
+            return $custom_value;
         }
-
         if (($code = $custom_value->enableDelete()) !== true) {
             return abortJson(403, $code());
         }

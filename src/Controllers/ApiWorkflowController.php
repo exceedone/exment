@@ -33,8 +33,13 @@ class ApiWorkflowController extends AdminControllerBase
         $workflow = Workflow::getEloquent($id, $join_tables);
 
         if ($workflow instanceof Workflow) {
+            if(in_array('workflow_statuses', $join_tables)){
+                return $workflow->appendStartStatus();
+            }
+
             return $workflow;
         }
+
         return abortJson(400, ErrorCode::DATA_NOT_FOUND());
     }
     
@@ -75,13 +80,15 @@ class ApiWorkflowController extends AdminControllerBase
      */
     public function workflowStatus($id, Request $request)
     {
-        $workflow = WorkflowStatus::where('workflow_id', $id)->get();
+        $workflow = Workflow::getEloquent($id, ['workflow_statuses']);
 
-        if (!isset($workflow) || count($workflow) == 0) {
+        if (!isset($workflow)) {
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
-        return $workflow;
+        $workflow = $workflow->appendStartStatus();
+
+        return $workflow->workflow_statuses;
     }
     
     /**
@@ -91,13 +98,13 @@ class ApiWorkflowController extends AdminControllerBase
      */
     public function workflowAction($id, Request $request)
     {
-        $workflow = WorkflowAction::where('workflow_id', $id)->get();
+        $workflow = Workflow::getEloquent($id, ['workflow_actions']);
 
-        if (!isset($workflow) || count($workflow) == 0) {
+        if (!isset($workflow)) {
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
 
-        return $workflow;
+        return $workflow->workflow_actions;
     }
 
     /**
@@ -146,18 +153,9 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        $custom_value = getModelName($custom_table->table_name)::find($id);
-        // not contains data, return empty data.
-        if (!isset($custom_value)) {
-            $code = $custom_table->getNoDataErrorCode($id);
-            if($code == ErrorCode::PERMISSION_DENY){
-                return abortJson(403, $code);
-            }else{
-                // nodata
-                return abortJson(400, $code);
-            }
+        if(($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response){
+            return $custom_value;
         }
-        
         $workflow_value = $custom_value->workflow_value;
 
         // no workflow data
@@ -165,23 +163,21 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(400, ErrorCode::WORKFLOW_NOSTART());
         }
 
-        if ($request->has('expands')){
-            $join_tables = collect(explode(',', $request->get('expands')))
-                ->map(function($expand) {
-                    $expand = trim($expand);
-                    switch ($expand) {
-                        case 'actions':
-                            return 'workflow_action';
-                        case 'status_from':
-                            return 'workflow_status_from';
-                        case 'status_to':
-                            return 'workflow_status';
-                    }
-                })->filter()->toArray();
+        $join_tables = $this->getJoinTables($request, 'workflow');
+        if(!is_nullorempty($join_tables)){
             $workflow_value->load($join_tables);
         }
+        
+        $result = $workflow_value->toArray();
+        if(in_array('workflow_status_from', $join_tables) && is_null($workflow_value->workflow_status_from_id)){
+            $result['workflow_status_from'] = WorkflowStatus::getWorkflowStartStatus($workflow_value->workflow_cache);
+        }
 
-        return $workflow_value;
+        if(in_array('workflow_status_to', $join_tables) && is_null($workflow_value->workflow_status_to_id)){
+            $result['workflow_status_to'] = WorkflowStatus::getWorkflowStartStatus($workflow_value->workflow_cache);
+        }
+
+        return $result;
     }
  
     /**
@@ -200,16 +196,8 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        $custom_value = getModelName($custom_table->table_name)::find($id);
-        // not contains data, return empty data.
-        if (!isset($custom_value)) {
-            $code = $custom_table->getNoDataErrorCode($id);
-            if($code == ErrorCode::PERMISSION_DENY){
-                return abortJson(403, $code);
-            }else{
-                // nodata
-                return abortJson(400, $code);
-            }
+        if(($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response){
+            return $custom_value;
         }
 
         // check if workflow is completed
@@ -245,17 +233,9 @@ class ApiWorkflowController extends AdminControllerBase
         if (($code = $custom_table->enableAccess()) !== true) {
             return abortJson(403, trans('admin.deny'), $code);
         }
-
-        $custom_value = getModelName($custom_table->table_name)::find($id);
-        // not contains data, return empty data.
-        if (!isset($custom_value)) {
-            $code = $custom_table->getNoDataErrorCode($id);
-            if($code == ErrorCode::PERMISSION_DENY){
-                return abortJson(403, $code);
-            }else{
-                // nodata
-                return abortJson(400, $code);
-            }
+        
+        if(($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response){
+            return $custom_value;
         }
 
         // check if workflow is completed
@@ -286,16 +266,8 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        $custom_value = getModelName($custom_table->table_name)::find($id);
-        // not contains data, return empty data.
-        if (!isset($custom_value)) {
-            $code = $custom_table->getNoDataErrorCode($id);
-            if($code == ErrorCode::PERMISSION_DENY){
-                return abortJson(403, $code);
-            }else{
-                // nodata
-                return abortJson(400, $code);
-            }
+        if(($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response){
+            return $custom_value;
         }
 
         $workflow_histories = $custom_value->getWorkflowHistories(false);
@@ -329,16 +301,8 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        $custom_value = getModelName($custom_table->table_name)::find($id);
-        // not contains data, return empty data.
-        if (!isset($custom_value)) {
-            $code = $custom_table->getNoDataErrorCode($id);
-            if($code == ErrorCode::PERMISSION_DENY){
-                return abortJson(403, $code);
-            }else{
-                // nodata
-                return abortJson(400, $code);
-            }
+        if(($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response){
+            return $custom_value;
         }
 
         // get and filter workflow action

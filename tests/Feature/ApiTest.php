@@ -1241,7 +1241,7 @@ class ApiTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'wf', 'workflow', '3', 'statuses'))
             ->assertStatus(200)
-            ->assertJsonCount(2);
+            ->assertJsonCount(3);
     }
 
     public function testGetWorkflowStatusListNotFound(){
@@ -1366,11 +1366,11 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'value') . '?expands=status_from,status_to,actions')
+        ])->get(admin_urls('api', 'wf', 'data', 'roletest_custom_value_edit', '1000', 'value') . '?expands=status_from,status_to,action')
             ->assertStatus(200);
             $response->assertJsonStructure([
                 'workflow_status_from',
-                'workflow_status',
+                'workflow_status_to',
                 'workflow_action',
             ]);
     }
