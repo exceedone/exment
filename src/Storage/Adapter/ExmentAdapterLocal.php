@@ -6,7 +6,6 @@ use League\Flysystem\Adapter\Local;
 
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\Driver;
-use Exceedone\Exment\Model\Define;
 
 class ExmentAdapterLocal extends Local implements ExmentAdapterInterface
 {

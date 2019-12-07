@@ -24,7 +24,7 @@ trait ItemTrait
     }
 
     /**
-     * get pure value. (In database value) 
+     * get pure value. (In database value)
      * *Don't override this function
      */
     public function pureValue()

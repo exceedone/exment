@@ -4,8 +4,6 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\ErrorCode;
-use Exceedone\Exment\Model\System;
-use Symfony\Component\HttpFoundation\IpUtils;
 
 /**
  * Middleware as web ip address filter.
@@ -18,7 +16,8 @@ class ApiIPFilter extends IpFilterBase
         return $this->handleBase($request, $next, 'api_ip_filters');
     }
     
-    protected function returnError(){
+    protected function returnError()
+    {
         return abortJson(400, ErrorCode::DISAPPROVAL_IP());
     }
 }

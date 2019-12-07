@@ -2,10 +2,7 @@
 
 namespace Exceedone\Exment\Storage\Disk;
 
-use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
-use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Model\Define;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -13,7 +10,8 @@ use Illuminate\Support\Facades\Storage;
  */
 class DiskServiceItem
 {
-    public function __construct($disk, $fileName, $dirName){
+    public function __construct($disk, $fileName, $dirName)
+    {
         $this->disk = $disk;
         $this->fileName = $fileName;
         $this->dirName = $dirName;
@@ -40,8 +38,9 @@ class DiskServiceItem
     protected $disk;
 
 
-    public function fileNameNoExtension(){
-        if(is_null($this->fileName)){
+    public function fileNameNoExtension()
+    {
+        if (is_null($this->fileName)) {
             return null;
         }
 
@@ -53,7 +52,8 @@ class DiskServiceItem
      *
      * @return void
      */
-    protected function initializeDirectory(){
+    protected function initializeDirectory()
+    {
         if (!is_null($this->dirName) && !$this->disk->exists($this->dirName)) {
             $this->disk->makeDirectory($this->dirName, 0755, true);
         }
@@ -64,7 +64,8 @@ class DiskServiceItem
      *
      * @return void
      */
-    public function disk(){
+    public function disk()
+    {
         $this->initializeDirectory();
         return $this->disk;
     }
@@ -74,7 +75,8 @@ class DiskServiceItem
      *
      * @return boolean
      */
-    public function isDriverLocal(){
+    public function isDriverLocal()
+    {
         return $this->disk()->getDriver()->getAdapter() instanceof \League\Flysystem\Adapter\Local;
     }
 

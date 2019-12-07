@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
-use Tests\TestCase;
 
 use Exceedone\Exment\Model\CustomTable;
 

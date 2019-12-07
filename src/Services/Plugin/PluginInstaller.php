@@ -23,7 +23,7 @@ class PluginInstaller
      */
     public static function uploadPlugin($uploadFile)
     {
-        try{
+        try {
             $diskService = new PluginDiskService();
             $tmpDiskItem = $diskService->tmpDiskItem();
 
@@ -76,7 +76,7 @@ class PluginInstaller
             }
 
             // remove zip
-            if(isset($zip)){
+            if (isset($zip)) {
                 $zip->close();
             }
             // delete zip
@@ -142,11 +142,9 @@ class PluginInstaller
             if (isset($response)) {
                 return $response;
             }
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             throw $ex;
-        }
-        finally{
+        } finally {
 
             // delete zip
             if (isset($diskService)) {
@@ -211,7 +209,7 @@ class PluginInstaller
                 $jsonval = array_get($json, $key);
                 // if is_string $$jsonval
                 if (is_string($jsonval)) {
-                    $jsonval = collect(explode(",", $jsonval))->map(function($j){
+                    $jsonval = collect(explode(",", $jsonval))->map(function ($j) {
                         return trim($j);
                     })->toArray();
                 }
@@ -249,7 +247,7 @@ class PluginInstaller
         // get all files
         $files = $diskService->tmpDiskItem()->disk()->allFiles($pluginFileBasepath);
 
-        $filelist = collect($files)->mapWithKeys(function($file) use ($pluginFolderPath, $pluginFileBasepath){
+        $filelist = collect($files)->mapWithKeys(function ($file) use ($pluginFolderPath, $pluginFileBasepath) {
             // get moved file name
             $movedFileName = str_replace($pluginFileBasepath, '', $file);
             $movedFileName = str_replace(str_replace('\\', '/', $pluginFileBasepath), '', $movedFileName);

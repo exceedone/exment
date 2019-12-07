@@ -234,7 +234,7 @@ class WorkflowAction extends ModelBase
     protected function setActionCondition()
     {
         $this->workflow_condition_headers()->delete();
-        if(!isset($this->work_condition_headers)){
+        if (!isset($this->work_condition_headers)) {
             return;
         }
         
@@ -458,7 +458,7 @@ class WorkflowAction extends ModelBase
                         $column_values = [$column_values];
                     }
 
-                    foreach($column_values as $column_value) {
+                    foreach ($column_values as $column_value) {
                         if ($column->column_type == ColumnType::USER) {
                             $userIds[] = $column_value->id;
                         } else {

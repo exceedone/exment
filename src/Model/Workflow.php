@@ -232,7 +232,8 @@ class Workflow extends ModelBase
      *
      * @return Workflow
      */
-    public function appendStartStatus() : Workflow{
+    public function appendStartStatus() : Workflow
+    {
         $this->workflow_statuses->prepend(WorkflowStatus::getWorkflowStartStatus($this));
 
         return $this;

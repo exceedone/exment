@@ -28,7 +28,8 @@ class TemplateImporter
 {
     protected $diskService;
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->diskService = new TemplateDiskService();
     }
 
@@ -37,7 +38,7 @@ class TemplateImporter
      */
     public function getTemplates()
     {
-        return array_merge($this->getUserTemplates(), $this->getLocalTemplates());                
+        return array_merge($this->getUserTemplates(), $this->getLocalTemplates());
     }
     
     /**
@@ -45,19 +46,19 @@ class TemplateImporter
      */
     public function importTemplate($importKeys)
     {
-        try{
+        try {
             if (!is_array($importKeys)) {
                 $importKeys = [$importKeys];
             }
             
             $items = $this->getTemplates();
-            foreach(array_filter($importKeys) as $importKey){
-                $item = collect($items)->first(function($item) use($importKey){
+            foreach (array_filter($importKeys) as $importKey) {
+                $item = collect($items)->first(function ($item) use ($importKey) {
                     $importItem = json_decode($importKey, true);
                     return array_get($item, 'template_type') == array_get($importItem, 'template_type')
-                        && array_get($item, 'template_name') == array_get($importItem, 'template_name'); 
+                        && array_get($item, 'template_name') == array_get($importItem, 'template_name');
                 });
-                if(!isset($item)){
+                if (!isset($item)) {
                     continue;
                 }
                 $templateName = array_get($item, 'template_name');
@@ -65,7 +66,7 @@ class TemplateImporter
                 $this->diskService->initDiskService($templateName);
 
                 // if local item
-                if(array_get($item, 'template_type') == 'local'){
+                if (array_get($item, 'template_type') == 'local') {
                     $templates_path = $this->getTemplatePath();
                     if (!isset($templateName)) {
                         continue;
@@ -83,7 +84,7 @@ class TemplateImporter
                 }
 
                 // if crowd
-                if(array_get($item, 'template_type') == 'user'){
+                if (array_get($item, 'template_type') == 'user') {
                     $this->diskService->syncFromDisk();
                     $path = path_join($this->diskService->localSyncDiskItem()->dirFullPath(), $templateName, 'config.json');
     
@@ -96,8 +97,8 @@ class TemplateImporter
                     ]);
                 }
             }
-        }finally{
-            if(isset($this->diskService)){
+        } finally {
+            if (isset($this->diskService)) {
                 $this->diskService->deleteTmpDirectory();
             }
         }
@@ -111,7 +112,7 @@ class TemplateImporter
         $diskItem = $this->diskService->diskItem();
         $disk = $diskItem->disk();
 
-        if(!$disk->exists($teplate_name)){
+        if (!$disk->exists($teplate_name)) {
             return;
         }
 
@@ -132,7 +133,7 @@ class TemplateImporter
         $directories = $disk->directories();
         foreach ($directories as $templates_path) {
             $path = path_join($templates_path, "config.json");
-            if(!$disk->exists($path)){
+            if (!$disk->exists($path)) {
                 continue;
             }
 
@@ -151,11 +152,11 @@ class TemplateImporter
                     $thumbnail_path = path_join($dirname, $json['thumbnail']);
                     if ($disk->exists($thumbnail_path)) {
                         // if local, get path
-                        if($diskItem->isDriverLocal()){
+                        if ($diskItem->isDriverLocal()) {
                             $json['thumbnail_file'] = base64_encode(file_get_contents(path_join($diskItem->dirFullPath(), $thumbnail_path)));
                         }
                         // if crowd, get url
-                        else{
+                        else {
                             $json['thumbnail_file'] = base64_encode($disk->get($thumbnail_path));
                         }
                     }
@@ -225,7 +226,7 @@ class TemplateImporter
         }
 
         $this->importFromFile(File::get($path), [
-            'system_flg' => true, 
+            'system_flg' => true,
             'is_update' => $is_update,
             'basePath' => $templates_base_path,
         ]);
@@ -236,7 +237,7 @@ class TemplateImporter
      */
     public function uploadTemplate($uploadFile)
     {
-        try{
+        try {
             $tmpDiskItem = $this->diskService->tmpDiskItem();
             $tmpDisk = $tmpDiskItem->disk();
 
@@ -296,11 +297,9 @@ class TemplateImporter
                     'basePath' => $tmpfolderpath,
                 ]);
             }
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             throw $ex;
-        }
-        finally{
+        } finally {
             // delete zip
             if (isset($tmpfolderpath)) {
                 File::deleteDirectory($tmpfolderpath);
@@ -313,7 +312,6 @@ class TemplateImporter
             
             $this->diskService->deleteTmpDirectory();
         }
-        
     }
 
     /**
@@ -557,10 +555,10 @@ class TemplateImporter
     {
         extract(array_merge(
             [
-                'system_flg' => false, 
+                'system_flg' => false,
                 'is_update' => false,
                 'basePath' => null,
-            ], 
+            ],
             $options
         ));
 
@@ -577,7 +575,7 @@ class TemplateImporter
         if (File::exists($langpath)) {
             $lang = json_decode(File::get($langpath), true);
             $json = $this->mergeTemplate($json, $lang);
-        }    
+        }
 
         $this->import($json, $system_flg, $is_update);
 
@@ -587,8 +585,7 @@ class TemplateImporter
 
             if (File::exists($dataPath)) {
                 $this->importData($dataPath);
-            }
-            else{
+            } else {
                 $dataPath = path_join($basePath, 'data');
                 // if exists, execute data copy
                 if (File::exists($dataPath)) {
@@ -613,7 +610,7 @@ class TemplateImporter
         // loop csv file
         foreach ($files as $file) {
             $table_name = file_ext_strip(pathinfo($file)['basename']);
-            $format = file_ext(pathinfo($file)['basename']);    
+            $format = file_ext(pathinfo($file)['basename']);
 
             $custom_table = CustomTable::getEloquent($table_name);
             if (!isset($custom_table)) {

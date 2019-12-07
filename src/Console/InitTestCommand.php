@@ -24,7 +24,6 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
-use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
@@ -100,19 +99,21 @@ class InitTestCommand extends Command
         );
     }
 
-    protected function createSystem(){
+    protected function createSystem()
+    {
         // create system data
         $systems = [
             'initialized' => true,
             'system_admin_users' => [1],
             'api_available' => true,
         ];
-        foreach($systems as $key => $value){
+        foreach ($systems as $key => $value) {
             System::{$key}($value);
         }
     }
 
-    protected function createUserOrg(){
+    protected function createUserOrg()
+    {
         // set users
         $values = [
             'user' => [
@@ -130,7 +131,7 @@ class InitTestCommand extends Command
                     'value' => [
                         'user_name' => 'user1',
                         'user_code' => 'user1',
-                        'email' => 'user1@user.foobar.test',    
+                        'email' => 'user1@user.foobar.test',
                     ],
                     'password' => 'user1user1',
                 ],
@@ -206,7 +207,7 @@ class InitTestCommand extends Command
                     ],
                     'password' => 'company2-userF',
                 ],
-            ], 
+            ],
 
             'organization' => [
                 'company1' => [
@@ -288,7 +289,7 @@ class InitTestCommand extends Command
             'user' => [
                 'user1' => [1], //data_admin_group
                 'user2' => [4], //user_group
-                'user3' => [4], //user_group    
+                'user3' => [4], //user_group
             ],
             'organization' => [
                 'dev' => [4], //user_group
@@ -297,24 +298,24 @@ class InitTestCommand extends Command
 
         $relationName = CustomRelation::getRelationNamebyTables('organization', 'user');
 
-        foreach($values as $type => $typevalue){
-            foreach($typevalue as $user_key => &$user){
+        foreach ($values as $type => $typevalue) {
+            foreach ($typevalue as $user_key => &$user) {
                 $model = CustomTable::getEloquent($type)->getValueModel();
-                foreach($user['value'] as $key => $value){
+                foreach ($user['value'] as $key => $value) {
                     $model->setValue($key, $value);
                 }
 
                 $model->save();
 
-                if(array_has($user, 'password')){
+                if (array_has($user, 'password')) {
                     $loginUser = new LoginUser;
                     $loginUser->base_user_id = $model->id;
                     $loginUser->password = $user['password'];
-                    $loginUser->save();    
+                    $loginUser->save();
                 }
 
-                if(array_has($user, 'users')){
-                    $inserts = collect($user['users'])->map(function($item) use($model){
+                if (array_has($user, 'users')) {
+                    $inserts = collect($user['users'])->map(function ($item) use ($model) {
                         return ['parent_id' => $model->id, 'child_id' => $item];
                     })->toArray();
 
@@ -336,7 +337,8 @@ class InitTestCommand extends Command
         return $values['user'];
     }
 
-    protected function createTables($users){
+    protected function createTables($users)
+    {
         // create test table
         $permissions = [
             Permission::CUSTOM_VALUE_EDIT_ALL,
@@ -347,7 +349,7 @@ class InitTestCommand extends Command
         ];
 
         $tables = [];
-        foreach($permissions as $permission){
+        foreach ($permissions as $permission) {
             $custom_table = $this->createTable('roletest_' . $permission, $users);
             $tables[$permission] = $custom_table;
         }
@@ -358,7 +360,8 @@ class InitTestCommand extends Command
         return $tables;
     }
 
-    protected function createTable($keyName, $users){
+    protected function createTable($keyName, $users)
+    {
         // create table
         $custom_table = new CustomTable;
         $custom_table->table_name = $keyName;
@@ -396,11 +399,11 @@ class InitTestCommand extends Command
                 'condition_key' => 1,
                 'target_column_id' => ConditionTypeDetail::ORGANIZATION,
                 'condition_value' => ["2"], // dev
-            ], 
+            ],
             []
         ];
 
-        foreach($custom_form_conditions as $index => $condition){
+        foreach ($custom_form_conditions as $index => $condition) {
             // create form
             $custom_form = new CustomForm;
             $custom_form->custom_table_id = $custom_table->id;
@@ -408,7 +411,7 @@ class InitTestCommand extends Command
             $custom_form->default_flg = ($index === 1);
             $custom_form->save();
         
-            if(count($condition) == 0){
+            if (count($condition) == 0) {
                 continue;
             }
             
@@ -420,7 +423,7 @@ class InitTestCommand extends Command
             $custom_form_condition = new Condition;
             $custom_form_condition->morph_type = 'custom_form_priority';
             $custom_form_condition->morph_id = $custom_form_priority->id;
-            foreach($condition as $k => $c){
+            foreach ($condition as $k => $c) {
                 $custom_form_condition->{$k} = $c;
             }
             $custom_form_condition->save();
@@ -429,7 +432,7 @@ class InitTestCommand extends Command
         $notify_id = $this->createNotify($custom_table);
 
         System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
-        foreach($users as $key => $user){
+        foreach ($users as $key => $user) {
             \Auth::guard('admin')->attempt([
                 'username' => $key,
                 'password' => array_get($user, 'password')
@@ -449,19 +452,20 @@ class InitTestCommand extends Command
 
                 if ($id == 3) {
                     // no notify for User2
-                } else if ($i == 5) {
+                } elseif ($i == 5) {
                     $this->createNotifyNavbar($custom_table, $notify_id, $custom_value, 1);
-                } else if ($i == 10) {
+                } elseif ($i == 10) {
                     $this->createNotifyNavbar($custom_table, $notify_id, $custom_value, 0);
                 }
             }
         }
 
         return $custom_table;
-    }   
+    }
 
-    protected function createPermission($custom_tables){
-        foreach($custom_tables as $permission => $custom_table){
+    protected function createPermission($custom_tables)
+    {
+        foreach ($custom_tables as $permission => $custom_table) {
             $roleGroupPermission = new RoleGroupPermission;
             $roleGroupPermission->role_group_id = 4;
             $roleGroupPermission->role_group_permission_type = 1;
@@ -476,7 +480,8 @@ class InitTestCommand extends Command
      *
      * @return void
      */
-    protected function createNotify($custom_table){
+    protected function createNotify($custom_table)
+    {
         $notify = new Notify;
         $notify->notify_view_name = $custom_table->table_name . '_notify';
         $notify->custom_table_id = $custom_table->id;
@@ -493,7 +498,8 @@ class InitTestCommand extends Command
      *
      * @return void
      */
-    protected function createNotifyNavbar($custom_table, $notify_id, $custom_value, $read_flg){
+    protected function createNotifyNavbar($custom_table, $notify_id, $custom_value, $read_flg)
+    {
         $notify_navbar = new NotifyNavbar;
         $notify_navbar->notify_id = $notify_id;
         $notify_navbar->parent_type = $custom_table->table_name;
@@ -511,7 +517,8 @@ class InitTestCommand extends Command
      *
      * @return void
      */
-    protected function createWorkflow($users){
+    protected function createWorkflow($users)
+    {
         // create workflows
         $workflows = [
             [
@@ -552,14 +559,14 @@ class InitTestCommand extends Command
                         'condition_headers' => [
                             [
                                 'status_to' => 0,
-                                'enabled_flg' => true,    
+                                'enabled_flg' => true,
                             ],
                         ],
     
                         'authorities' => [
                             [
                                 'related_id' => 0,
-                                'related_type' => 'system',                                
+                                'related_type' => 'system',
                             ]
                         ],
                     ],
@@ -578,14 +585,14 @@ class InitTestCommand extends Command
                         'condition_headers' => [
                             [
                                 'status_to' => 1,
-                                'enabled_flg' => true,    
+                                'enabled_flg' => true,
                             ],
                         ],
     
                         'authorities' => [
                             [
                                 'related_id' => 6, // dev-userB
-                                'related_type' => 'user',    
+                                'related_type' => 'user',
                             ]
                         ],
                     ],
@@ -603,7 +610,7 @@ class InitTestCommand extends Command
                         'condition_headers' => [
                             [
                                 'status_to' => 2,
-                                'enabled_flg' => true,    
+                                'enabled_flg' => true,
                             ],
                         ],
     
@@ -655,14 +662,14 @@ class InitTestCommand extends Command
                         'condition_headers' => [
                             [
                                 'status_to' => 0,
-                                'enabled_flg' => true,    
+                                'enabled_flg' => true,
                             ],
                         ],
     
                         'authorities' => [
                             [
                                 'related_id' => 0,
-                                'related_type' => 'system',                                
+                                'related_type' => 'system',
                             ]
                         ],
                     ],
@@ -681,14 +688,14 @@ class InitTestCommand extends Command
                         'condition_headers' => [
                             [
                                 'status_to' => 1,
-                                'enabled_flg' => true,    
+                                'enabled_flg' => true,
                             ],
                         ],
     
                         'authorities' => [
                             [
                                 'related_id' => 6, // dev-userB
-                                'related_type' => 'user',    
+                                'related_type' => 'user',
                             ]
                         ],
                     ],
@@ -734,18 +741,18 @@ class InitTestCommand extends Command
                         'condition_headers' => [
                             [
                                 'status_to' => 0,
-                                'enabled_flg' => true,    
+                                'enabled_flg' => true,
                             ],
                             [
                                 'status_to' => 1,
-                                'enabled_flg' => true,    
+                                'enabled_flg' => true,
                             ],
                         ],
     
                         'authorities' => [
                             [
                                 'related_id' => 0,
-                                'related_type' => 'system',                                
+                                'related_type' => 'system',
                             ]
                         ],
                     ],
@@ -764,14 +771,14 @@ class InitTestCommand extends Command
                         'condition_headers' => [
                             [
                                 'status_to' => 1,
-                                'enabled_flg' => true,    
+                                'enabled_flg' => true,
                             ],
                         ],
     
                         'authorities' => [
                             [
                                 'related_id' => 2, // dev
-                                'related_type' => 'organization',    
+                                'related_type' => 'organization',
                             ]
                         ],
                     ],
@@ -790,14 +797,14 @@ class InitTestCommand extends Command
                         'condition_headers' => [
                             [
                                 'status_to' => 'start',
-                                'enabled_flg' => true,    
+                                'enabled_flg' => true,
                             ],
                         ],
     
                         'authorities' => [
                             [
                                 'related_id' => 0,
-                                'related_type' => 'system',                                
+                                'related_type' => 'system',
                             ]
                         ],
                     ],
@@ -812,19 +819,19 @@ class InitTestCommand extends Command
         ];
 
 
-        foreach($workflows as $workflow){
+        foreach ($workflows as $workflow) {
             $workflowObj = new Workflow;
-            foreach($workflow['items'] as $key => $item){
+            foreach ($workflow['items'] as $key => $item) {
                 $workflowObj->{$key} = $item;
             }
             $workflowObj->start_status_name = 'start';
             $workflowObj->save();
 
-            foreach($workflow['statuses'] as $index => &$status){
+            foreach ($workflow['statuses'] as $index => &$status) {
                 $workflowstatus = new WorkflowStatus;
                 $workflowstatus->workflow_id = $workflowObj->id;
 
-                foreach($status as $key => $item){
+                foreach ($status as $key => $item) {
                     $workflowstatus->{$key} = $item;
                 }
                 $workflowstatus->order = $index;
@@ -835,7 +842,7 @@ class InitTestCommand extends Command
             }
             
             $actionStatusFromTos = [];
-            foreach($workflow['actions'] as &$action){
+            foreach ($workflow['actions'] as &$action) {
                 $actionStatusFromTo = [];
 
                 $workflowaction = new WorkflowAction;
@@ -843,21 +850,21 @@ class InitTestCommand extends Command
                 $workflowaction->action_name = $action['action_name'];
                 $workflowaction->ignore_work = $action['ignore_work']?? 0;
 
-                if($action['status_from'] === 'start'){
+                if ($action['status_from'] === 'start') {
                     $workflowaction->status_from = $action['status_from'];
                     $actionStatusFromTo['status_from'] = null;
-                }else{
+                } else {
                     $workflowaction->status_from = $workflow['statuses'][$action['status_from']]['id'];
                     $actionStatusFromTo['status_from'] = $workflowaction->status_from;
                 }
 
-                foreach($action['options'] as $key => $item){
+                foreach ($action['options'] as $key => $item) {
                     $workflowaction->setOption($key, $item);
                 }
                 $workflowaction->save();
                 $action['id'] = $workflowaction->id;
 
-                foreach($action['authorities'] as $key => $item){
+                foreach ($action['authorities'] as $key => $item) {
                     $item['workflow_action_id'] = $workflowaction->id;
                     if ($item['related_type'] == 'column') {
                         $custom_column = CustomColumn::getEloquent($item['related_id'], $workflow['tables'][0]['custom_table']);
@@ -866,7 +873,7 @@ class InitTestCommand extends Command
                     WorkflowAuthority::insert($item);
                 }
                 
-                foreach($action['condition_headers'] as $key => $item){
+                foreach ($action['condition_headers'] as $key => $item) {
                     $header = new WorkflowConditionHeader;
                     $header->enabled_flg = $item['enabled_flg'];
                     $header->workflow_action_id = $workflowaction->id;
@@ -874,7 +881,7 @@ class InitTestCommand extends Command
                     if ($item['status_to'] === 'start') {
                         $header->status_to = $item['status_to'];
                         $actionStatusFromTo['status_to'] = null;
-                    }else{
+                    } else {
                         $header->status_to = $workflow['statuses'][$item['status_to']]['id'];
                         $actionStatusFromTo['status_to'] = $header->status_to;
                     }
@@ -893,7 +900,7 @@ class InitTestCommand extends Command
                 $wfTable->active_flg = true;
                 $wfTable->save();
 
-                // create workflow value 
+                // create workflow value
                 $wfValueStatuses = array_merge(
                     [['id' => null]],
                     $workflow['statuses']
@@ -909,7 +916,7 @@ class InitTestCommand extends Command
                     'dev1-userC',
                 ];
 
-                foreach($userKeys as $userKey){
+                foreach ($userKeys as $userKey) {
                     $user = $users[$userKey];
                     \Auth::guard('admin')->attempt([
                         'username' => array_get($user, 'value.user_code'),
@@ -922,15 +929,14 @@ class InitTestCommand extends Command
                     $custom_value->id = 1000;
                     $custom_value->save();
 
-                    foreach($wfValueStatuses as $index => $wfValueStatus){
-    
-                        if(!isset($wfValueStatus['id']) || $index == 0){
+                    foreach ($wfValueStatuses as $index => $wfValueStatus) {
+                        if (!isset($wfValueStatus['id']) || $index == 0) {
                             continue;
                         }
     
                         $latest_flg = count($wfValueStatuses) - 1 === $index;
 
-                        if($table['custom_table'] == 'roletest_custom_value_edit_all'){
+                        if ($table['custom_table'] == 'roletest_custom_value_edit_all') {
                             if ($index === 1) {
                                 $latest_flg = true;
                             } else {
@@ -939,10 +945,10 @@ class InitTestCommand extends Command
                         }
 
                         // get target $actionStatusFromTo
-                        $actionStatusFromTo = collect($actionStatusFromTos)->first(function($actionStatusFromTo) use($wfValueStatuses, $index){
+                        $actionStatusFromTo = collect($actionStatusFromTos)->first(function ($actionStatusFromTo) use ($wfValueStatuses, $index) {
                             return $wfValueStatuses[$index - 1]['id'] == $actionStatusFromTo['status_from'] && $wfValueStatuses[$index]['id'] == $actionStatusFromTo['status_to'];
                         });
-                        if(!isset($actionStatusFromTo)){
+                        if (!isset($actionStatusFromTo)) {
                             continue;
                         }
     

@@ -1,9 +1,7 @@
 <?php
 namespace Exceedone\Exment\Console;
 
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Storage\Disk\BackupDiskService;
-use Illuminate\Support\Facades\Storage;
 
 trait BackupRestoreTrait
 {

@@ -321,10 +321,10 @@ class ExmentServiceProvider extends ServiceProvider
             return new ExmentCustomValidator($translator, $data, $rules, $messages, $customAttributes);
         });
 
-        foreach(['exment', 'backup', 'plugin', 'template'] as $driverKey){
-            Storage::extend("exment-driver-$driverKey", function ($app, $config) use($driverKey) {
+        foreach (['exment', 'backup', 'plugin', 'template'] as $driverKey) {
+            Storage::extend("exment-driver-$driverKey", function ($app, $config) use ($driverKey) {
                 return Driver::getExmentDriver($app, $config, $driverKey);
-            });    
+            });
         }
 
         Initialize::initializeConfig(false);
@@ -400,13 +400,14 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function getMiddlewareGroups(){
+    public function getMiddlewareGroups()
+    {
         ////// register middleware group.
         $middlewareGroups = $this->middlewareGroups;
         // append oauth login
         $middleware = $middlewareGroups['admin'];
-        foreach($middleware as &$m){
-            if($m == 'admin.web-ipfilter'){
+        foreach ($middleware as &$m) {
+            if ($m == 'admin.web-ipfilter') {
                 $m = 'admin.api-ipfilter';
             }
         }
@@ -414,8 +415,8 @@ class ExmentServiceProvider extends ServiceProvider
 
         // append adminwebapi
         $middleware = $middlewareGroups['adminapi'];
-        foreach($middleware as &$m){
-            if($m == 'admin.api-ipfilter'){
+        foreach ($middleware as &$m) {
+            if ($m == 'admin.api-ipfilter') {
                 $m = 'admin.web-ipfilter';
             }
         }

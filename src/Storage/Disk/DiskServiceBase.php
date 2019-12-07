@@ -2,11 +2,7 @@
 
 namespace Exceedone\Exment\Storage\Disk;
 
-use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
-use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Model\Define;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Disk Service.
@@ -35,15 +31,18 @@ abstract class DiskServiceBase
      */
     protected $localSyncDiskItem;
 
-    public function diskItem(){
+    public function diskItem()
+    {
         return $this->diskItem;
     }
     
-    public function tmpDiskItem(){
+    public function tmpDiskItem()
+    {
         return $this->tmpDiskItem;
     }
     
-    public function localSyncDiskItem(){
+    public function localSyncDiskItem()
+    {
         return $this->localSyncDiskItem;
     }
     
@@ -204,15 +203,16 @@ abstract class DiskServiceBase
      *
      * @return void
      */
-    public function upload($file){
-        foreach((array)$file as $key => $value){
+    public function upload($file)
+    {
+        foreach ((array)$file as $key => $value) {
             // if $key is not numeric(string), copy from and to
-            if(!is_numeric($key)){
+            if (!is_numeric($key)) {
                 $from = $key;
                 $to = $value;
             }
             // simple array, same from and to path
-            else{
+            else {
                 $from = $value;
                 $to = $value;
             }
@@ -232,8 +232,9 @@ abstract class DiskServiceBase
      *
      * @return void
      */
-    public function deleteTmpDirectory(){
-        if(!$this->isDeleteTmpAfterExecute()){
+    public function deleteTmpDirectory()
+    {
+        if (!$this->isDeleteTmpAfterExecute()) {
             return;
         }
         
@@ -254,5 +255,4 @@ abstract class DiskServiceBase
 
         return $this->sync();
     }
-
 }

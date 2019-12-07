@@ -3,7 +3,6 @@ namespace Exceedone\Exment\Services\Plugin;
 
 use App\Http\Controllers\Controller;
 use BadMethodCallException;
-use Response;
 
 class PluginApiController extends Controller
 {

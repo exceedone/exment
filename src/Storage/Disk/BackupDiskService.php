@@ -2,15 +2,14 @@
 
 namespace Exceedone\Exment\Storage\Disk;
 
-use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
-use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Define;
 use Illuminate\Support\Facades\Storage;
 
 class BackupDiskService extends DiskServiceBase
 {
-    public function __construct(...$args){
+    public function __construct(...$args)
+    {
         $now = date('YmdHis');
         $fileName = isset($args[0]) ? $args[0] : $now;
 
@@ -24,8 +23,9 @@ class BackupDiskService extends DiskServiceBase
      *
      * @return boolean
      */
-    protected function isNeedDownload(){
-        if($this->diskItem()->isDriverLocal()){
+    protected function isNeedDownload()
+    {
+        if ($this->diskItem()->isDriverLocal()) {
             return false;
         }
 
@@ -37,7 +37,8 @@ class BackupDiskService extends DiskServiceBase
      *
      * @return boolean
      */
-    protected function isDeleteTmpAfterExecute(){
+    protected function isDeleteTmpAfterExecute()
+    {
         return true;
     }
     

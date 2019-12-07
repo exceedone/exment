@@ -36,7 +36,7 @@ class SelectTableNumericRule implements Rule
             $value = explode(',', $value);
         }
 
-        if($value instanceof \Exceedone\Exment\Model\CustomValue){
+        if ($value instanceof \Exceedone\Exment\Model\CustomValue) {
             return true;
         }
 

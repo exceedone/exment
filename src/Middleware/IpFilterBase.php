@@ -19,13 +19,13 @@ abstract class IpFilterBase
         }
 
         $filters = System::{$filterFuncName}();
-        if(is_nullorempty($filters)){
+        if (is_nullorempty($filters)) {
             return $next($request);
         }
 
         $filters = explode("\r\n", $filters);
 
-        $filters = collect($filters)->filter()->map(function($filter){
+        $filters = collect($filters)->filter()->map(function ($filter) {
             return trim($filter);
         })->toArray();
 

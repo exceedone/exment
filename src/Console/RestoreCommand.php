@@ -45,7 +45,7 @@ class RestoreCommand extends Command
      */
     public function handle()
     {
-        try{
+        try {
             $file = $this->argument("file");
 
             // unzip backup file
@@ -70,11 +70,9 @@ class RestoreCommand extends Command
             System::clearCache();
             
             return $result;
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             throw $e;
-        }
-        finally{
+        } finally {
             $this->diskService->deleteTmpDirectory();
         }
     }
@@ -130,19 +128,19 @@ __EOT__;
         foreach ($directories as $directory) {
             // check target key name
             $splits = explode("/", $directory);
-            if(count($splits) < 2){
+            if (count($splits) < 2) {
                 continue;
             }
             $keyname = $splits[1];
 
             $setting = BackupTarget::dirOrDisk($keyname);
-            if(is_null($setting)){
+            if (is_null($setting)) {
                 continue;
             }
             
             $fromDirectory = $tmpDisk->path(path_join($this->diskService->tmpDiskItem()->dirName(), $keyname));
             // is local file
-            if(is_string($setting)){
+            if (is_string($setting)) {
                 $topath = base_path($setting);
                 $success = \File::copyDirectory($fromDirectory, $topath);
                 if (!$success) {
@@ -150,7 +148,7 @@ __EOT__;
                 }
             }
             // is croud file
-            else{
+            else {
                 $disk = $setting[0];
                 
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);

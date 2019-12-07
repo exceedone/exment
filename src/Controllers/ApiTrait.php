@@ -58,11 +58,12 @@ trait ApiTrait
      * @param Request $request
      * @param string $prefix
      */
-    protected function getJoinTables(Request $request, $prefix) {
+    protected function getJoinTables(Request $request, $prefix)
+    {
         $join_tables = [];
-        if ($request->has('expands')){
+        if ($request->has('expands')) {
             $join_tables = collect(explode(',', $request->get('expands')))
-                ->map(function($expand) use($prefix) {
+                ->map(function ($expand) use ($prefix) {
                     $expand = trim($expand);
                     switch ($expand) {
                         case 'tables':
@@ -86,14 +87,15 @@ trait ApiTrait
      * @param [type] $id
      * @return void
      */
-    protected function getCustomValue(CustomTable $custom_table, $id){
+    protected function getCustomValue(CustomTable $custom_table, $id)
+    {
         $custom_value = getModelName($custom_table->table_name)::find($id);
         // not contains data, return empty data.
         if (!isset($custom_value)) {
             $code = $custom_table->getNoDataErrorCode($id);
-            if($code == ErrorCode::PERMISSION_DENY){
+            if ($code == ErrorCode::PERMISSION_DENY) {
                 return abortJson(403, $code);
-            }else{
+            } else {
                 // nodata
                 return abortJson(400, $code);
             }

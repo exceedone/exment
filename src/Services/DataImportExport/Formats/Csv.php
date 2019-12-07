@@ -24,7 +24,7 @@ class Csv extends FormatBase
             $path = $file->getRealPath();
             $extension = $file->extension();
             $originalName = $file->getClientOriginalName();
-        } elseif($request instanceof SplFileInfo) {
+        } elseif ($request instanceof SplFileInfo) {
             $path = $request->getPathName();
             $extension = pathinfo($path)['extension'];
             $originalName = pathinfo($path, PATHINFO_BASENAME);

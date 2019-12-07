@@ -367,13 +367,11 @@ class CustomValueController extends AdminControllerTableBase
         ]);
         $response = $class->execute();
         
-        if($response === false){
+        if ($response === false) {
             return getAjaxResponse(false);
-        }
-        elseif ($response instanceof Response) {
+        } elseif ($response instanceof Response) {
             return $response;
-        }
-        elseif(is_array($response)){
+        } elseif (is_array($response)) {
             return getAjaxResponse($response);
         }
         return getAjaxResponse([

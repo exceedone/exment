@@ -10,7 +10,7 @@ use Exceedone\Exment\Controllers\ApiTrait;
 /**
  * Plugin (API) base class
  */
-class PluginApiBase 
+class PluginApiBase
 {
     use ApiTrait;
     use PluginBase;

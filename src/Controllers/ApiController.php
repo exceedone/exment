@@ -67,7 +67,7 @@ class ApiController extends AdminControllerBase
         }
 
         $options = [
-            'getModel' => false, 
+            'getModel' => false,
             'with' => $this->getJoinTables($request, 'custom'),
             'permissions' => Permission::AVAILABLE_ACCESS_CUSTOM_VALUE
         ];
@@ -237,7 +237,7 @@ class ApiController extends AdminControllerBase
             $is_single = count($target_users) == 1;
         }
 
-        $error_users = collect($target_users)->filter(function($target_user) {
+        $error_users = collect($target_users)->filter(function ($target_user) {
             return is_null(getModelName(SystemTableName::USER)::find($target_user));
         });
 
@@ -250,7 +250,6 @@ class ApiController extends AdminControllerBase
         $response = [];
 
         foreach ($target_users as $target_user) {
-
             $notify = new NotifyNavbar();
     
             $notify->fill([
@@ -289,7 +288,7 @@ class ApiController extends AdminControllerBase
         $query = NotifyNavbar::where('target_user_id', \Exment::user()->base_user_id)
             ->orderBy('created_at', 'desc');
                 
-        if(!boolval($request->get('all', false))){
+        if (!boolval($request->get('all', false))) {
             $query->where('read_flg', false);
         }
 
@@ -300,10 +299,10 @@ class ApiController extends AdminControllerBase
         $paginator->appends([
             'count' => $count,
         ]);
-        if($request->has('all')){
+        if ($request->has('all')) {
             $paginator->appends([
                 'all' => $request->get('all'),
-            ]); 
+            ]);
         }
 
         return $paginator;

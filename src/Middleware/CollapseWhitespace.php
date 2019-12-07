@@ -21,8 +21,8 @@ class CollapseWhitespace extends CollapseWhitespaceBase
 
         // only html, json
         $contentType = $response->headers->get('Content-Type');
-        foreach(['text/html', 'application/json'] as $content){
-            if(strpos($contentType, $content) !== false){
+        foreach (['text/html', 'application/json'] as $content) {
+            if (strpos($contentType, $content) !== false) {
                 return true;
             }
         }

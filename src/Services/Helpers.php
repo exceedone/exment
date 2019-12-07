@@ -350,10 +350,10 @@ if (!function_exists('path_ltrim')) {
      */
     function path_ltrim($path, $ltrim)
     {
-        foreach(['/', '\\'] as $split){
+        foreach (['/', '\\'] as $split) {
             $l = str_replace($split, '/', $ltrim);
 
-            if(mb_strpos($path, $l) !== 0){
+            if (mb_strpos($path, $l) !== 0) {
                 continue;
             }
 
@@ -499,12 +499,12 @@ if (!function_exists('deleteDirectory')) {
      */
     function deleteDirectory($disk, $path)
     {
-        if(is_nullorempty($path)){
+        if (is_nullorempty($path)) {
             return;
         }
         
         $directories = $disk->directories($path);
-        foreach($directories as $directory){
+        foreach ($directories as $directory) {
             deleteDirectory($disk, $directory);
         }
 

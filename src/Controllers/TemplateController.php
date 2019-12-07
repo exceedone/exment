@@ -102,9 +102,9 @@ class TemplateController extends AdminControllerBase
                 }
 
                 // get delete url
-                if(array_get($a, 'template_type') == 'user'){
+                if (array_get($a, 'template_type') == 'user') {
                     $delete_url = admin_urls('webapi', 'template', 'delete?template=' . array_get($a, 'template_name'));
-                }else{
+                } else {
                     $delete_url = null;
                 }
 

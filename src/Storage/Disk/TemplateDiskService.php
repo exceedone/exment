@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Storage\Disk;
 
-use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
-use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Define;
 use Illuminate\Support\Facades\Storage;
@@ -12,12 +10,14 @@ class TemplateDiskService extends DiskServiceBase
 {
     protected $now;
 
-    public function __construct(...$args){
+    public function __construct(...$args)
+    {
         $this->now = date('YmdHis');
         $this->initDiskService(isset($args[0]) ? $args[0] : null);
     }
 
-    public function initDiskService($template_name){
+    public function initDiskService($template_name)
+    {
         $this->diskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_TEMPLATE_SYNC), $template_name, $template_name);
         $this->tmpDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_ADMIN_TMP), $template_name, $this->now);
         $this->localSyncDiskItem = $this->tmpDiskItem;
@@ -28,8 +28,9 @@ class TemplateDiskService extends DiskServiceBase
      *
      * @return boolean
      */
-    protected function isNeedDownload(){
-        if($this->diskItem()->isDriverLocal()){
+    protected function isNeedDownload()
+    {
+        if ($this->diskItem()->isDriverLocal()) {
             return false;
         }
 
@@ -41,7 +42,8 @@ class TemplateDiskService extends DiskServiceBase
      *
      * @return boolean
      */
-    protected function isDeleteTmpAfterExecute(){
+    protected function isDeleteTmpAfterExecute()
+    {
         return true;
     }
     

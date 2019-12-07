@@ -45,9 +45,9 @@ class Xlsx extends FormatBase
         if ($request instanceof Request) {
             $file = $request->file('custom_table_file');
             $path = $file->getRealPath();
-        }elseif($request instanceof SplFileInfo) {
+        } elseif ($request instanceof SplFileInfo) {
             $path = $request->getPathName();
-        }else {
+        } else {
             $path = $request;
         }
         

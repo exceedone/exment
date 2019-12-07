@@ -33,7 +33,7 @@ class ApiWorkflowController extends AdminControllerBase
         $workflow = Workflow::getEloquent($id, $join_tables);
 
         if ($workflow instanceof Workflow) {
-            if(in_array('workflow_statuses', $join_tables)){
+            if (in_array('workflow_statuses', $join_tables)) {
                 return $workflow->appendStartStatus();
             }
 
@@ -124,7 +124,7 @@ class ApiWorkflowController extends AdminControllerBase
         if ($request->has('id')) {
             $ids = explode(',', $request->get('id'));
             $query->whereIn('id', $ids);
-        } else if(!boolval($request->get('all', false))){
+        } elseif (!boolval($request->get('all', false))) {
             $query->where('setting_completed_flg', 1);
         }
         
@@ -153,7 +153,7 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        if(($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response){
+        if (($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response) {
             return $custom_value;
         }
         $workflow_value = $custom_value->workflow_value;
@@ -164,16 +164,16 @@ class ApiWorkflowController extends AdminControllerBase
         }
 
         $join_tables = $this->getJoinTables($request, 'workflow');
-        if(!is_nullorempty($join_tables)){
+        if (!is_nullorempty($join_tables)) {
             $workflow_value->load($join_tables);
         }
         
         $result = $workflow_value->toArray();
-        if(in_array('workflow_status_from', $join_tables) && is_null($workflow_value->workflow_status_from_id)){
+        if (in_array('workflow_status_from', $join_tables) && is_null($workflow_value->workflow_status_from_id)) {
             $result['workflow_status_from'] = WorkflowStatus::getWorkflowStartStatus($workflow_value->workflow_cache);
         }
 
-        if(in_array('workflow_status_to', $join_tables) && is_null($workflow_value->workflow_status_to_id)){
+        if (in_array('workflow_status_to', $join_tables) && is_null($workflow_value->workflow_status_to_id)) {
             $result['workflow_status_to'] = WorkflowStatus::getWorkflowStartStatus($workflow_value->workflow_cache);
         }
 
@@ -196,7 +196,7 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        if(($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response){
+        if (($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response) {
             return $custom_value;
         }
 
@@ -234,7 +234,7 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'), $code);
         }
         
-        if(($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response){
+        if (($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response) {
             return $custom_value;
         }
 
@@ -266,7 +266,7 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        if(($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response){
+        if (($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response) {
             return $custom_value;
         }
 
@@ -301,17 +301,17 @@ class ApiWorkflowController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        if(($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response){
+        if (($custom_value = $this->getCustomValue($custom_table, $id)) instanceof Response) {
             return $custom_value;
         }
 
         // get and filter workflow action
         $workflow_action_id = $request->get('workflow_action_id');
-        $workflow_action = $custom_value->getWorkflowActions(true, false)->filter(function($value) use($workflow_action_id) {
+        $workflow_action = $custom_value->getWorkflowActions(true, false)->filter(function ($value) use ($workflow_action_id) {
             return $value->id == $workflow_action_id;
         })->first();
 
-        // workflow action not found or no authority 
+        // workflow action not found or no authority
         if (!isset($workflow_action)) {
             return abortJson(400, ErrorCode::WORKFLOW_ACTION_DISABLED());
         }
@@ -355,7 +355,8 @@ class ApiWorkflowController extends AdminControllerBase
     /**
      * create execute workflow params by request
      */
-    protected function getExecuteParams(Request $request) {
+    protected function getExecuteParams(Request $request)
+    {
         $params = [];
         $next_work_users = [];
         $errors = [];

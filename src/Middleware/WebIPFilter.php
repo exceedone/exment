@@ -3,8 +3,6 @@
 namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
-use Exceedone\Exment\Model\System;
-use Symfony\Component\HttpFoundation\IpUtils;
 
 /**
  * Middleware as web ip address filter.
@@ -17,7 +15,8 @@ class WebIPFilter extends IpFilterBase
         return $this->handleBase($request, $next, 'web_ip_filters');
     }
     
-    protected function returnError(){
+    protected function returnError()
+    {
         return response(view('exment::exception.ipfilter'));
     }
 }

@@ -56,14 +56,14 @@ class Driver extends EnumBase
         $baseConfig = config($baseConfigKey, []);
         $mergeConfig = config($mergeConfigKey, []);
 
-        if(array_get($mergeConfig, 'driver') != 'local'){
+        if (array_get($mergeConfig, 'driver') != 'local') {
             array_forget($mergeConfig, ['root']);
         }
         array_forget($mergeConfig, ['driver']);
 
         $driver = array_get($baseConfig, 'driver');
 
-        foreach($mergeConfig as $k => $m){
+        foreach ($mergeConfig as $k => $m) {
             array_set($baseConfig, $k, $m);
         }
 
@@ -96,8 +96,8 @@ class Driver extends EnumBase
                 break;
         }
 
-        foreach($keys as $k => $v){
-            if(is_nullorempty($v)){
+        foreach ($keys as $k => $v) {
+            if (is_nullorempty($v)) {
                 continue;
             }
             array_set($baseConfig, $k, $v);

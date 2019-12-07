@@ -44,7 +44,7 @@ class BackupCommand extends Command
      */
     public function handle()
     {
-        try{
+        try {
             $target = $this->option("target") ?? BackupTarget::arrays();
 
             if (is_string($target)) {
@@ -71,11 +71,9 @@ class BackupCommand extends Command
             $this->removeOldBackups();
     
             return 0;
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             throw $e;
-        }
-        finally{
+        } finally {
             $this->diskService->deleteTmpDirectory();
         }
     }
@@ -96,7 +94,7 @@ class BackupCommand extends Command
         
         foreach ($settings as $setting) {
             // is local file
-            if(is_string($setting)){
+            if (is_string($setting)) {
                 $from = base_path($setting);
                 if (!\File::exists($from)) {
                     continue;
@@ -111,7 +109,7 @@ class BackupCommand extends Command
                 \File::copyDirectory($from, $this->tmpDisk()->path($to));
             }
             // is croud file
-            else{
+            else {
                 $disk = $setting[0];
                 
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
@@ -247,7 +245,7 @@ class BackupCommand extends Command
                     continue;
                 }
 
-                $results = array_merge(collect($lines)->map(function($line){
+                $results = array_merge(collect($lines)->map(function ($line) {
                     return "{$line[0]}={$line[1]}";
                 })->toArray(), $results);
             }
@@ -255,5 +253,4 @@ class BackupCommand extends Command
 
         return implode("\n", $results);
     }
-
 }

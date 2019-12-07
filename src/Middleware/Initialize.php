@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
