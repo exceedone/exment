@@ -15,9 +15,11 @@ class PluginTriggerBase
     //public $custom_form;
     //public $custom_column;
     public $isCreate;
+
+    // workflow action(if call as workflow)
     public $workflow_action;
 
-    public function __construct($plugin, $custom_table, $custom_value, $workflow_action)
+    public function __construct($plugin, $custom_table, $custom_value, $options = [])
     {
         $this->plugin = $plugin;
         $this->custom_table = $custom_table;
@@ -28,8 +30,8 @@ class PluginTriggerBase
             $this->custom_value = $custom_table->getValueModel($custom_value);
         }
 
-        if (isset($workflow_action)) {
-            $this->$workflow_action = $workflow_action;
+        if (isset($options['workflow_action'])) {
+            $this->workflow_action = $options['workflow_action'];
         }
         $this->isCreate = !isset($custom_value);
     }

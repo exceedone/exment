@@ -22,7 +22,7 @@ trait PluginBase
      * @param Form $form
      * @return void
      */
-    public function setCustomOptionForm(\Encore\Admin\Form &$form)
+    public function setCustomOptionForm(&$form)
     {
     }
 }

@@ -108,13 +108,13 @@ return [
         'ftp' => [
             'exment' => env('FTP_ROOT_EXMENT'),
             'backup' => env('FTP_ROOT_BACKUP'),
-            'plugin' => env('FTP_ROOT_LUGIN'),
+            'plugin' => env('FTP_ROOT_PLUGIN'),
             'template' => env('FTP_ROOT_TEMPLATE'),
         ],
         'sftp' => [
             'exment' => env('SFTP_ROOT_EXMENT'),
             'backup' => env('SFTP_ROOT_BACKUP'),
-            'plugin' => env('SFTP_ROOT_LUGIN'),
+            'plugin' => env('SFTP_ROOT_PLUGIN'),
             'template' => env('SFTP_ROOT_TEMPLATE'),
         ],
     ],

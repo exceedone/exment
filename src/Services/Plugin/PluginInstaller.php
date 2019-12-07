@@ -206,16 +206,20 @@ class PluginInstaller
         // set options
         $options = array_get($plugin, 'options', []);
         // set if exists
-        if (array_key_value_exists('target_tables', $json)) {
-            $target_tables = array_get($json, 'target_tables');
-            // if is_string $target_tables
-            if (is_string($target_tables)) {
-                $target_tables = [$target_tables];
+        foreach (['target_tables', 'event_triggers'] as $key) {
+            if (array_key_value_exists($key, $json)) {
+                $jsonval = array_get($json, $key);
+                // if is_string $$jsonval
+                if (is_string($jsonval)) {
+                    $jsonval = collect(explode(",", $jsonval))->map(function($j){
+                        return trim($j);
+                    })->toArray();
+                }
+                $options[$key] = $jsonval;
             }
-            $options['target_tables'] = $target_tables;
         }
 
-        foreach (['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron', 'cdns', 'uri'] as $key) {
+        foreach (['label', 'icon', 'button_class', 'document_type', 'event_triggers', 'batch_hour', 'batch_cron', 'cdns', 'uri'] as $key) {
             if (array_key_value_exists($key, $json)) {
                 $options[$key] = array_get($json, $key);
             }

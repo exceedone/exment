@@ -256,6 +256,16 @@ class WorkflowAction extends ModelBase
      */
     public function executeAction($custom_value, $data = [])
     {
+        $custom_table = $custom_value->custom_table;
+
+        //execute plugin
+        $plugins = Plugin::getPluginsByTable($custom_table->table_name);
+        Plugin::pluginPreparing($plugins, 'workflow_action_executing', [
+            'custom_table' => $custom_table,
+            'custom_value' => $custom_value,
+            'workflow_action' => $this,
+        ]);
+
         $workflow = Workflow::getEloquent(array_get($this, 'workflow_id'));
         $next = $this->isActionNext($custom_value);
 
@@ -331,6 +341,13 @@ class WorkflowAction extends ModelBase
                 $notify->notifyWorkflow($custom_value, $this, $workflow_value, $status_to);
             }
         }
+
+        // execute plugin
+        Plugin::pluginPreparing($plugins, 'workflow_action_executed', [
+            'custom_table' => $custom_table,
+            'custom_value' => $custom_value,
+            'workflow_action' => $this,
+        ]);
 
         return $workflow_value;
     }
