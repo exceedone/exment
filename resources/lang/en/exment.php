@@ -428,6 +428,7 @@ return [
             'style' => 'Style',
             'dashboard' => 'Dashboard',
             'validator' => 'Validation',
+            'api' => 'API',
         ],
     ],
 
