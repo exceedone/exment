@@ -149,6 +149,8 @@ class Define
         'form_menubutton_show',
         'form_menubutton_create',
         'form_menubutton_edit',
+        'workflow_action_executing',
+        'workflow_action_executed',
     ];
 
     /**
