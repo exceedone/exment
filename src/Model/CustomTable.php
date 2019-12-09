@@ -573,7 +573,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($obj instanceof CustomTable) {
             return static::withLoad($obj, $withs);
         } elseif ($obj instanceof CustomColumn) {
-            return static::withLoad($obj->custom_table, $withs);
+            return static::withLoad(static::getEloquent($obj->custom_table_id), $withs);
         } elseif ($obj instanceof CustomValue) {
             return static::withLoad($obj->custom_table, $withs);
         }
