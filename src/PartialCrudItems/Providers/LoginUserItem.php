@@ -4,6 +4,7 @@ namespace Exceedone\Exment\PartialCrudItems\Providers;
 
 use Exceedone\Exment\PartialCrudItems\ProviderBase;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 
@@ -168,7 +169,7 @@ class LoginUserItem extends ProviderBase
      */
     public function setGridRowAction(&$actions)
     {
-        $this->setEditDelete($actions, $actions->getKey());
+        $this->setEditDelete($actions, $actions->row);
     }
 
     /**
@@ -187,21 +188,23 @@ class LoginUserItem extends ProviderBase
         $this->setEditDelete($tools, $id);
     }
 
-    protected function setEditDelete($tools, $id)
+    protected function setEditDelete($tools, $custom_value)
     {
-        $login_user = $this->getLoginUser($id);
+        if(is_numeric($custom_value)){
+            $custom_value = getModelName(SystemTableName::USER)::findOrFail($custom_value);
+        }
 
-        if (!isset($login_user)) {
+        if (!isset($custom_value)) {
             return;
         }
 
         // only administrator can delete and edit administrator record
-        if (!\Exment::user()->isAdministrator() && $login_user->isAdministrator()) {
+        if (!\Exment::user()->isAdministrator() && $custom_value->isAdministrator()) {
             $tools->disableDelete();
             $tools->disableEdit();
         }
         // cannnot delete myself
-        if (\Exment::user()->base_user_id == $login_user->base_user_id) {
+        if (\Exment::user()->base_user_id == $custom_value->id) {
             $tools->disableDelete();
         }
     }

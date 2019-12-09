@@ -107,4 +107,9 @@ trait UserTrait
         // get default avatar
         return asset(Define::USER_IMAGE_LINK);
     }
+    
+    public function isAdministrator()
+    {
+        return collect(System::system_admin_users())->contains($this->id);
+    }
 }
