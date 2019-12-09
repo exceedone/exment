@@ -3672,10 +3672,6 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   min-width: 50px;
 }
 
-.column-__actions__ .fa {
-  margin: 0 1px;
-}
-
 .bootstrap-duallistbox-container > div:last-child select {
   background-color: #fff900a3;
 }
