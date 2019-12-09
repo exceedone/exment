@@ -153,7 +153,7 @@ class Workflow extends ModelBase
             }
             
             return true;
-        })->first();
+        }, false)->first();
 
         if (!isset($workflowTable)) {
             return null;

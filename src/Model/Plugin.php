@@ -257,7 +257,7 @@ class Plugin extends ModelBase
                 $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
                 
                 $class = $plugin->getClass(PluginType::TRIGGER, $options);
-                if (in_array($event, $event_triggers) && !in_array($event, $event_triggers_button)) {
+                if (in_array($event, (array)$event_triggers) && !in_array($event, (array)$event_triggers_button)) {
                     $pluginCalled = $class->execute();
                     if ($pluginCalled) {
                         admin_toastr('Plugin called: '.$event);
@@ -297,7 +297,7 @@ class Plugin extends ModelBase
                     case PluginType::TRIGGER:
                         $event_triggers = $plugin->options['event_triggers'];
                         $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
-                        if (in_array($event, $event_triggers) && in_array($event, $event_triggers_button)) {
+                        if (in_array($event, (array)$event_triggers) && in_array($event, $event_triggers_button)) {
                             $buttonList[] = [
                                 'plugin_type' => $plugin_type,
                                 'plugin' => $plugin,
