@@ -104,6 +104,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $query->whereIn('options->required', [1, "1", true]);
     }
 
+    public function getCustomTableCacheAttribute()
+    {
+        return CustomTable::getEloquent($this);
+    }
+
     public function getColumnItemAttribute()
     {
         return ColumnItems\CustomItem::getItem($this);
@@ -296,7 +301,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     public function getIndexColumnName($alterColumn = true)
     {
         $name = 'column_'.array_get($this, 'suuid');
-        $db_table_name = getDBTableName($this->custom_table);
+        $db_table_name = getDBTableName($this->custom_table_cache);
 
         // if not exists, execute alter column
         if ($alterColumn && !hasColumn($db_table_name, $name)) {

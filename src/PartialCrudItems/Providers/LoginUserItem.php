@@ -22,7 +22,7 @@ class LoginUserItem extends ProviderBase
         }
 
         $classname = getModelName(SystemTableName::USER);
-        $login_user = $this->getLoginUser($classname::find($id));
+        $login_user = $this->getLoginUser($id);
         $has_loginuser = !is_null($login_user);
         $showLoginInfo = useLoginProvider() && !boolval(config('exment.show_default_login_provider', true));
 
@@ -97,7 +97,7 @@ class LoginUserItem extends ProviderBase
 
         try {
             // get login user
-            $login_user = $this->getLoginUser($user);
+            $login_user = $this->getLoginUser($id);
             // if "$user" has "login_user" obj and unchecked "use_loginuser", delete login user object.
             if (!boolval(array_get($data, 'use_loginuser'))) {
                 if (!is_null($login_user)) {
@@ -189,8 +189,7 @@ class LoginUserItem extends ProviderBase
 
     protected function setEditDelete($tools, $id)
     {
-        $classname = getModelName(SystemTableName::USER);
-        $login_user = $this->getLoginUser($classname::find($id));
+        $login_user = $this->getLoginUser($id);
 
         if (!isset($login_user)) {
             return;
@@ -207,13 +206,13 @@ class LoginUserItem extends ProviderBase
         }
     }
     
-    protected function getLoginUser($user)
+    protected function getLoginUser($base_user_id)
     {
-        if (!isset($user)) {
+        if (!isset($base_user_id)) {
             return null;
         }
 
-        $login_user = $user->login_users()->whereNull('login_provider')->first();
+        $login_user = LoginUser::where('base_user_id', $base_user_id)->whereNull('login_provider')->first();
         return $login_user;
     }
 }

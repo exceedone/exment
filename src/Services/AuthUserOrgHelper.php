@@ -173,198 +173,6 @@ class AuthUserOrgHelper
         $builder->whereIn('id', $target_ids);
         return $builder;
     }
-    
-    /**
-     * get organizations as eloquent model
-     * @return mixed
-     */
-    public static function getOrganizations($withUsers = false)
-    {
-        // if system doesn't use organization, return empty array.
-        if (!System::organization_available()) {
-            return [];
-        }
-        $query = static::getOrganizationQuery();
-        $deeps = intval(config('exment.organization_deeps', 4));
-        
-        if ($withUsers) {
-            $query->with('users');
-        }
-
-        $orgs = $query->get();
-        return $orgs;
-    }
-
-    /**
-     * get organization ids
-     * @return mixed
-     */
-    public static function getOrganizationIds($onlyUserJoined = false, $filterType = JoinedOrgFilterType::ALL, $targetUserId = null)
-    {
-        // if system doesn't use organization, return empty array.
-        if (!System::organization_available()) {
-            return [];
-        }
-        
-        $orgs = static::getOrganizations(true);
-        $org_flattens = [];
-
-        // if get only user joined organization, call function
-        if ($onlyUserJoined) {
-            foreach ($orgs as $org) {
-                static::setFlattenOrganizationsUserJoins($org, $org_flattens, $filterType, false, $targetUserId);
-            }
-        } else {
-            static::setFlattenOrganizations($org, $org_flattens, $onlyUserJoined);
-        }
-
-        return collect($org_flattens)->map(function ($org_flatten) {
-            return $org_flatten->id;
-        })->toArray();
-    }
-
-    public static function getOrganizationQuery()
-    {
-        // get organization ids.
-        $db_table_name_organization = getDBTableName(SystemTableName::ORGANIZATION);
-        $parent_org_index_name = CustomColumn::getEloquent('parent_organization', CustomTable::getEloquent(SystemTableName::ORGANIZATION))->getIndexColumnName();
-        $deeps = intval(config('exment.organization_deeps', 4));
-        
-        // create with
-        $withs = str_repeat('children_organizations.', $deeps);
-
-        $modelname = getModelName(SystemTableName::ORGANIZATION);
-        $query = $modelname::query();
-        $query->with(trim($withs, '.'));
-        $query->whereNull($modelname::getParentOrgIndexName());
-        return $query;
-    }
-
-    /**
-     * Get User, org, role group form
-     *
-     * @return void
-     */
-    public static function getUserOrgModalForm($custom_table = null, $value = [], $options = [])
-    {
-        $options = array_merge([
-            'prependCallback' => null
-        ], $options);
-        
-        $form = new ModalForm();
-
-        if (isset($options['prependCallback'])) {
-            $options['prependCallback']($form);
-        }
-
-        list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
-            'display_table' => $custom_table,
-            'selected_value' => array_get($value, SystemTableName::USER),
-        ]);
-
-        // select target users
-        $form->multipleSelect('modal_' . SystemTableName::USER, exmtrans('menu.system_definitions.user'))
-            ->options($users)
-            ->ajax($ajax)
-            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-            ->default(array_get($value, SystemTableName::USER));
-
-        if (System::organization_available()) {
-            list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
-                'display_table' => $custom_table,
-                'selected_value' => array_get($value, SystemTableName::ORGANIZATION),
-            ]);
-                
-            $form->multipleSelect('modal_' . SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
-                ->options($organizations)
-                ->ajax($ajax)
-                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
-                ->default(array_get($value, SystemTableName::ORGANIZATION));
-        }
-
-        return $form;
-    }
-
-    protected static function setFlattenOrganizations($orgs, &$org_flattens)
-    {
-        foreach ($orgs as $org) {
-            // if exisis, return
-            if (static::isAlreadySetsOrg($org, $org_flattens)) {
-                return false;
-            }
-            $org_flattens[] = $org;
-
-            if ($org->hasChildren()) {
-                static::setFlattenOrganizations($org->children_organizations, $org_flattens);
-            }
-        }
-    }
-
-    /**
-     * filter organizaion only user joined.
-     */
-    protected static function setFlattenOrganizationsUserJoins($org, &$org_flattens, $filterType = JoinedOrgFilterType::ONLY_JOIN, $parentJoin = false, $targetUserId = null)
-    {
-        // if exisis, return
-        if (static::isAlreadySetsOrg($org, $org_flattens)) {
-            return false;
-        }
-
-        if (!isset($targetUserId)) {
-            $targetUserId = \Exment::user()->base_user_id;
-        }
-
-        // first, check this user joins this org
-        // if only user joined, check user id, if not exists, continue;
-        $join = true;
-
-        // if user joins parent organization, set join is true
-        if ($parentJoin && JoinedOrgFilterType::isGetUpper($filterType)) {
-            $join = true;
-        }
-        ///// check user join org.
-        // if not joins users, set join is false
-        elseif (!isset($org->users)) {
-            $join = false;
-        }
-        // not match id, set id is false
-        elseif ($org->users->filter(function ($user) use ($targetUserId) {
-            return $user->id == $targetUserId;
-        })->count() == 0) {
-            $join = false;
-        }
-
-        if ($join) {
-            $org_flattens[] = $org;
-        }
-
-        // second, user joins children's org check childrens
-        $result = $join;
-        if ($org->hasChildren()) {
-            foreach ($org->children_organizations as $children_organization) {
-                // if, user joins some children organizations, join is true.
-                if (static::setFlattenOrganizationsUserJoins($children_organization, $org_flattens, $filterType, $join, $targetUserId)) {
-                    $result = true;
-
-                    // if not sets this org, set this org too.
-                    if (JoinedOrgFilterType::isGetDowner($filterType) && !static::isAlreadySetsOrg($org, $org_flattens)) {
-                        $org_flattens[] = $org;
-                    }
-                }
-            }
-        }
-        return $result;
-    }
-
-    protected static function isAlreadySetsOrg($org, &$org_flattens)
-    {
-        if (collect($org_flattens)->filter(function ($org_flatten) use ($org) {
-            return $org_flatten->id == $org->id;
-        })->count() > 0) {
-            return true;
-        }
-        return false;
-    }
 
     /**
      * get users or organizaitons who can access table.
@@ -433,5 +241,166 @@ class AuthUserOrgHelper
         }
 
         return $target_ids->filter()->unique()->toArray();
+    }
+
+    
+    /**
+     * get organization ids
+     * @return mixed
+     */
+    public static function getOrganizationIds($filterType = JoinedOrgFilterType::ALL, $targetUserId = null)
+    {
+        // if system doesn't use organization, return empty array.
+        if (!System::organization_available()) {
+            return [];
+        }
+        
+        // get organization and ids
+        $orgsArray = static::getOrganizationTreeArray();
+                
+        if (!isset($targetUserId)) {
+            $targetUserId = \Exment::user()->base_user_id;
+        }
+
+        $results = [];
+        foreach ($orgsArray as $org) {
+            static::setJoinedOrganization($results, $org, $filterType, $targetUserId);
+        }
+
+        return collect($results)->pluck('id')->toArray();
+    }
+
+    /**
+     * Get all organization tree array
+     *
+     * @return array
+     */
+    protected static function getOrganizationTreeArray() : array{
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_TREE, function(){
+            $modelname = getModelName(SystemTableName::ORGANIZATION);
+            $indexName = $modelname::getParentOrgIndexName();
+
+            // get query
+            $orgs = $modelname::with('users')->get(['id', $indexName])->toArray();
+            $baseOrgs = $orgs;
+
+            if(is_nullorempty($orgs)){
+                return [];
+            }
+
+            foreach($orgs as &$org){
+                static::parents($org, $baseOrgs, $org, $indexName);
+                static::children($org, $orgs, $org, $indexName);
+            }
+
+            return $orgs;
+        });
+    }
+
+    protected static function parents(&$org, $orgs, $target, $indexName)
+    {
+        if(!isset($target[$indexName])){
+            return;
+        }
+
+        // if same id, return
+        if($org['id'] == $target[$indexName]){
+            return;
+        }
+
+        $newTarget = collect($orgs)->first(function($o) use($target, $indexName){
+            return $target[$indexName] == $o['id'];
+        });
+        if(!isset($newTarget)){
+            return;
+        }
+
+        // set parent
+        $org['parents'][] = $newTarget;
+        static::parents($org, $orgs, $newTarget, $indexName);
+    }
+
+    protected static function children(&$org, $orgs, $target, $indexName)
+    {
+        $children = collect($orgs)->filter(function($o) use($org, $target, $indexName){
+            if(!isset($o[$indexName])){
+                return;
+            }
+
+            return $o[$indexName] == $target['id'];
+        });
+
+        foreach($children as $child){
+            // set children
+            $org['children'][] = $child;
+            static::children($org, $orgs, $child, $indexName);
+        }
+    }
+
+    protected static function setJoinedOrganization(&$results, $org, $filterType, $targetUserId){
+        // set $org id only $targetUserId
+        if(!array_has($org, 'users') || !collect($org['users'])->contains(function($user) use($targetUserId){
+            return $user['id'] == $targetUserId;
+        })){
+            return;
+        }
+
+        $results[] = $org;
+        if (JoinedOrgFilterType::isGetDowner($filterType) && array_has($org, 'parents')) {
+            foreach($org['parents'] as $parent){
+                $results[] = $parent;
+            }
+        }
+
+        if (JoinedOrgFilterType::isGetUpper($filterType) && array_has($org, 'children')) {
+            foreach($org['children'] as $child){
+                $results[] = $child;
+            }
+        }
+    }
+    
+    /**
+     * Get User, org, role group form
+     *
+     * @return void
+     */
+    public static function getUserOrgModalForm($custom_table = null, $value = [], $options = [])
+    {
+        $options = array_merge([
+            'prependCallback' => null
+        ], $options);
+        
+        $form = new ModalForm();
+
+        if (isset($options['prependCallback'])) {
+            $options['prependCallback']($form);
+        }
+
+        list($users, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl([
+            'display_table' => $custom_table,
+            'selected_value' => array_get($value, SystemTableName::USER),
+        ]);
+
+        // select target users
+        $form->multipleSelect('modal_' . SystemTableName::USER, exmtrans('menu.system_definitions.user'))
+            ->options($users)
+            ->ajax($ajax)
+            ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
+            ->default(array_get($value, SystemTableName::USER));
+
+        if (System::organization_available()) {
+            list($organizations, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl([
+                'display_table' => $custom_table,
+                'selected_value' => array_get($value, SystemTableName::ORGANIZATION),
+            ]);
+                
+            $form->multipleSelect('modal_' . SystemTableName::ORGANIZATION, exmtrans('menu.system_definitions.organization'))
+                ->options($organizations)
+                ->ajax($ajax)
+                ->attribute(['data-filter' => json_encode(['key' => 'work_target_type', 'value' => 'fix'])])
+                ->default(array_get($value, SystemTableName::ORGANIZATION));
+        }
+
+        return $form;
     }
 }
