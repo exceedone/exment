@@ -44,7 +44,7 @@ trait UserTrait
         if (!System::organization_available()) {
             return [];
         }
-        return AuthUserOrgHelper::getOrganizationIds(true, $filterType, $this->id);
+        return AuthUserOrgHelper::getOrganizationIds($filterType, $this->id);
     }
 
     /**
