@@ -96,17 +96,14 @@ class PluginDiskService extends DiskServiceBase
         $dirFullPath = $diskItem->dirFullPath();
         $localSyncDirName = $localSyncDiskItem->dirName();
 
-        // // remove in tmp disk
-        $files = $localSyncDisk->allFiles($localSyncDirName);
-        foreach ($files as $file) {
-            $localSyncDisk->delete($file);
-        }
-
         // get file list
         $files = $disk->allFiles($dirFullPath);
         foreach ($files as $file) {
             // copy from crowd to local
             $stream = $disk->readStream($file);
+            if($localSyncDisk->exists($file)){
+                $localSyncDisk->delete($file);
+            }
             $localSyncDisk->writeStream($file, $stream);
 
             fclose($stream);
