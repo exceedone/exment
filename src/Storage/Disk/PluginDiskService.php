@@ -101,7 +101,7 @@ class PluginDiskService extends DiskServiceBase
         foreach ($files as $file) {
             // copy from crowd to local
             $stream = $disk->readStream($file);
-            if($localSyncDisk->exists($file)){
+            if ($localSyncDisk->exists($file)) {
                 $localSyncDisk->delete($file);
             }
             $localSyncDisk->writeStream($file, $stream);

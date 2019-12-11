@@ -4,7 +4,6 @@ namespace Exceedone\Exment\PartialCrudItems\Providers;
 
 use Exceedone\Exment\PartialCrudItems\ProviderBase;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 
@@ -190,7 +189,7 @@ class LoginUserItem extends ProviderBase
 
     protected function setEditDelete($tools, $custom_value)
     {
-        if(is_numeric($custom_value)){
+        if (is_numeric($custom_value)) {
             $custom_value = getModelName(SystemTableName::USER)::findOrFail($custom_value);
         }
 

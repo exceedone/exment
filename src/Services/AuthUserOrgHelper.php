@@ -3,7 +3,6 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -275,8 +274,9 @@ class AuthUserOrgHelper
      *
      * @return array
      */
-    protected static function getOrganizationTreeArray() : array{
-        return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_TREE, function(){
+    protected static function getOrganizationTreeArray() : array
+    {
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_TREE, function () {
             $modelname = getModelName(SystemTableName::ORGANIZATION);
             $indexName = $modelname::getParentOrgIndexName();
 
@@ -284,11 +284,11 @@ class AuthUserOrgHelper
             $orgs = $modelname::with('users')->get(['id', $indexName])->toArray();
             $baseOrgs = $orgs;
 
-            if(is_nullorempty($orgs)){
+            if (is_nullorempty($orgs)) {
                 return [];
             }
 
-            foreach($orgs as &$org){
+            foreach ($orgs as &$org) {
                 static::parents($org, $baseOrgs, $org, $indexName);
                 static::children($org, $orgs, $org, $indexName);
             }
@@ -299,19 +299,19 @@ class AuthUserOrgHelper
 
     protected static function parents(&$org, $orgs, $target, $indexName)
     {
-        if(!isset($target[$indexName])){
+        if (!isset($target[$indexName])) {
             return;
         }
 
         // if same id, return
-        if($org['id'] == $target[$indexName]){
+        if ($org['id'] == $target[$indexName]) {
             return;
         }
 
-        $newTarget = collect($orgs)->first(function($o) use($target, $indexName){
+        $newTarget = collect($orgs)->first(function ($o) use ($target, $indexName) {
             return $target[$indexName] == $o['id'];
         });
-        if(!isset($newTarget)){
+        if (!isset($newTarget)) {
             return;
         }
 
@@ -322,38 +322,39 @@ class AuthUserOrgHelper
 
     protected static function children(&$org, $orgs, $target, $indexName)
     {
-        $children = collect($orgs)->filter(function($o) use($org, $target, $indexName){
-            if(!isset($o[$indexName])){
+        $children = collect($orgs)->filter(function ($o) use ($org, $target, $indexName) {
+            if (!isset($o[$indexName])) {
                 return;
             }
 
             return $o[$indexName] == $target['id'];
         });
 
-        foreach($children as $child){
+        foreach ($children as $child) {
             // set children
             $org['children'][] = $child;
             static::children($org, $orgs, $child, $indexName);
         }
     }
 
-    protected static function setJoinedOrganization(&$results, $org, $filterType, $targetUserId){
+    protected static function setJoinedOrganization(&$results, $org, $filterType, $targetUserId)
+    {
         // set $org id only $targetUserId
-        if(!array_has($org, 'users') || !collect($org['users'])->contains(function($user) use($targetUserId){
+        if (!array_has($org, 'users') || !collect($org['users'])->contains(function ($user) use ($targetUserId) {
             return $user['id'] == $targetUserId;
-        })){
+        })) {
             return;
         }
 
         $results[] = $org;
         if (JoinedOrgFilterType::isGetDowner($filterType) && array_has($org, 'parents')) {
-            foreach($org['parents'] as $parent){
+            foreach ($org['parents'] as $parent) {
                 $results[] = $parent;
             }
         }
 
         if (JoinedOrgFilterType::isGetUpper($filterType) && array_has($org, 'children')) {
-            foreach($org['children'] as $child){
+            foreach ($org['children'] as $child) {
                 $results[] = $child;
             }
         }
