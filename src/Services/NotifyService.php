@@ -280,14 +280,17 @@ class NotifyService
             }
             switch ($notify_action) {
                 case NotifyAction::EMAIL:
+                    // replace value
+                    $mail_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
+                    $mail_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
                     // send mail
                     try {
                         Notifications\MailSender::make($mail_template, $user)
                         ->prms($prms)
                         ->user($user)
                         ->custom_value($custom_value)
-                        ->subject($subject)
-                        ->body($body)
+                        ->subject($mail_subject)
+                        ->body($mail_body)
                         ->attachments($attach_files)
                         ->send();
                     }
