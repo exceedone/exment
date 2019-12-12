@@ -27,7 +27,7 @@ class LogController extends AdminControllerBase
         $grid->model()->orderBy('id', 'DESC');
 
         $grid->column('user.user_name', exmtrans('operation_log.user_name'))->display(function ($foo) {
-            return $this->user->user_name;
+            return ($this->user ? $this->user->user_name : null);
         });
         $grid->column('method', exmtrans('operation_log.method'));
         $grid->column('path', exmtrans('operation_log.path'));
@@ -64,7 +64,7 @@ class LogController extends AdminControllerBase
         $model = OperationLog::findOrFail($id);
         return new Show($model, function (Show $show) use ($id, $model) {
             $show->field('user.user_name', exmtrans('operation_log.user_name'))->as(function ($foo) {
-                return $this->user->user_name;
+                return ($this->user ? $this->user->user_name : null);
             });
             $show->field('method', exmtrans('operation_log.method'));
             $show->field('path', exmtrans('operation_log.path'));
