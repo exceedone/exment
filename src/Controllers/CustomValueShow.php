@@ -549,7 +549,7 @@ EOT;
      */
     protected function getRevisions($id, $modal = false, $all = false)
     {
-        if ($modal || !boolval($this->custom_table->getOption('revision_flg'))) {
+        if ($modal || !boolval($this->custom_table->getOption('revision_flg', true))) {
             return [];
         }
 

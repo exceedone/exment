@@ -287,9 +287,10 @@ trait RevisionableTrait
             ) {
                 return ($class::check()) ? $class::getUser()->id : null;
             }
-            if (class_exists($class = '\Encore\Admin\Facades\Admin')
+            if (class_exists($class = '\Exceedone\Exment\Facades\ExmentFacade')
             ) {
-                return (\Auth::guard('admin')->check()) ? ($class::user()->base_user_id ?? null) : null;
+                $user = $class::user();
+                return isset($user) ? $user->base_user_id : null;
             } elseif (\Auth::check()) {
                 return \Auth::user()->getAuthIdentifier();
             }

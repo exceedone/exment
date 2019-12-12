@@ -35,23 +35,37 @@ class Morph
             
             $tables = Model\CustomTable::allRecords();
                 
-            $morphMaps = [
-                "table" => Model\CustomTable::class,
-                "custom_form_priority" => Model\CustomFormPriority::class,
-                "workflow_condition_header" => Model\WorkflowConditionHeader::class,
-            ];
-            foreach ($tables as $table) {
-                // morphmap
-                $table_name = $table->table_name;
-
-                $morphMaps[$table_name] = ltrim(getModelName($table_name, true), "\\");
-
-                // Define Modelname
-                getModelName($table_name);
-            }
+            $morphMaps = static::getMorphs();
+            
             Relation::morphMap($morphMaps);
         } catch (\Exception $ex) {
             logger($ex);
         }
     }
+
+    /**
+     * return Morph maps
+     *
+     * @return void
+     */
+    public static function getMorphs(){
+        $tables = Model\CustomTable::allRecords();
+            
+        $morphMaps = [
+            "table" => Model\CustomTable::class,
+            "custom_form_priority" => Model\CustomFormPriority::class,
+            "workflow_condition_header" => Model\WorkflowConditionHeader::class,
+        ];
+        foreach ($tables as $table) {
+            // morphmap
+            $table_name = $table->table_name;
+
+            $morphMaps[$table_name] = ltrim(getModelName($table_name, true), "\\");
+
+            // Define Modelname
+            getModelName($table_name);
+        }
+
+        return $morphMaps;
+    } 
 }

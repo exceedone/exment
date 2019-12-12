@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Middleware\Morph;
 use Carbon\Carbon;
 
 class PatchDataCommand extends Command
@@ -106,6 +107,9 @@ class PatchDataCommand extends Command
                 return;
             case 'remove_deleted_table_notify':
                 $this->removeDeletedTableNotify();
+                return;
+            case 'revisionable_type':
+                $this->patchRevisionableType();
                 return;
         }
 
@@ -589,6 +593,30 @@ class PatchDataCommand extends Command
             }
             $oldPath = path_join($beforeFolder, $before);
             \File::move($oldPath, getFullpath($before, $diskName));
+        }
+    }
+    
+    /**
+     * patch revisionable type
+     *
+     * @return void
+     */
+    protected function patchRevisionableType()
+    {
+        $morphs = array_flip(Morph::getMorphs());
+        $morphKeys = array_keys($morphs);
+
+        // get revisions filtering
+        $revisions = \Exceedone\Exment\Revisionable\Revision::whereIn('revisionable_type', $morphKeys)->get();
+
+        foreach($revisions as $revision){
+            $revisionable_type = array_get($morphs, $revision->revisionable_type);
+            if(!isset($revisionable_type)){
+                continue;
+            }
+
+            $revision->revisionable_type = $revisionable_type;
+            $revision->save();
         }
     }
 }
