@@ -27,6 +27,7 @@ class MailSender
     protected $custom_value;
     protected $user;
     protected $history_body;
+    protected $replaceOptions;
     
     public function __construct($mail_key_name, $to)
     {
@@ -146,6 +147,12 @@ class MailSender
         return $this;
     }
     
+    public function replaceOptions($replaceOptions)
+    {
+        $this->replaceOptions = $replaceOptions;
+        return $this;
+    }
+    
     /**
      * Send Mail
      *
@@ -153,8 +160,8 @@ class MailSender
     public function send()
     {
         // get subject
-        $subject = NotifyService::replaceWord($this->subject, $this->custom_value, $this->prms);
-        $body = NotifyService::replaceWord($this->body, $this->custom_value, $this->prms);
+        $subject = NotifyService::replaceWord($this->subject, $this->custom_value, $this->prms, $this->replaceOptions);
+        $body = NotifyService::replaceWord($this->body, $this->custom_value, $this->prms, $this->replaceOptions);
 
         // dispatch jobs
         MailSendJob::dispatch(
