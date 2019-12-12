@@ -609,9 +609,9 @@ class PatchDataCommand extends Command
         // get revisions filtering
         $revisions = \Exceedone\Exment\Revisionable\Revision::whereIn('revisionable_type', $morphKeys)->get();
 
-        foreach($revisions as $revision){
+        foreach ($revisions as $revision) {
             $revisionable_type = array_get($morphs, $revision->revisionable_type);
-            if(!isset($revisionable_type)){
+            if (!isset($revisionable_type)) {
                 continue;
             }
 

@@ -48,7 +48,8 @@ class Morph
      *
      * @return void
      */
-    public static function getMorphs(){
+    public static function getMorphs()
+    {
         $tables = Model\CustomTable::allRecords();
             
         $morphMaps = [
@@ -67,5 +68,5 @@ class Morph
         }
 
         return $morphMaps;
-    } 
+    }
 }
