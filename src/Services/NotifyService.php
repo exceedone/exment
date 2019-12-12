@@ -289,6 +289,7 @@ class NotifyService
                         ->subject($subject)
                         ->body($body)
                         ->attachments($attach_files)
+                        ->replaceOptions($replaceOptions)
                         ->send();
                     }
                     // throw mailsend Exception
