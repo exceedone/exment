@@ -85,10 +85,10 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.browser'  => \Exceedone\Exment\Middleware\Browser::class,
         'admin.web-ipfilter'  => \Exceedone\Exment\Middleware\WebIPFilter::class,
         'admin.api-ipfilter'  => \Exceedone\Exment\Middleware\ApiIPFilter::class,
+        'admin.log'        => \Exceedone\Exment\Middleware\LogOperation::class,
 
         'admin.pjax'       => AdminMiddleware\Pjax::class,
         'admin.permission' => AdminMiddleware\Permission::class,
-        'admin.log'        => AdminMiddleware\LogOperation::class,
         'admin.bootstrap'  => AdminMiddleware\Bootstrap::class,
         'admin.session'    => AdminMiddleware\Session::class,
 
@@ -140,16 +140,19 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.web-ipfilter',
             'admin.initialize',
             'admin.session',
+            'admin.log',
         ],
         'admin_plugin_public' => [
             'admin.auth',
             'admin.auth-2factor',
             'admin.bootstrap2',
+            'admin.log',
         ],
         'adminapi' => [
             'admin.api-ipfilter',
             'adminapi.auth',
             'admin.morph',
+            'admin.log',
             // 'throttle:60,1',
             'bindings',
         ],
@@ -157,6 +160,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.api-ipfilter',
             // 'throttle:60,1',
             'admin.morph',
+            'admin.log',
             'bindings',
         ],
         'exment_web' => [
