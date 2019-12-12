@@ -385,6 +385,10 @@ EOT;
             return;
         }
         
+        if(boolval(config('exment.disable_latest_version_dashboard', false))){
+            return;
+        }
+
         $versionCheck = checkLatestVersion();
         if ($versionCheck == SystemVersion::HAS_NEXT) {
             list($latest, $current) = getExmentVersion();

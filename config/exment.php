@@ -168,6 +168,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Disable Latest version Dashboard
+    |--------------------------------------------------------------------------
+    |
+    | If true, disable showing latest version on dashboard
+    |
+    */
+    'disable_latest_version_dashboard' => env('EXMENT_DISABLE_LATEST_VERSION_DASHBOARD', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Manual Url
     |--------------------------------------------------------------------------
     |
