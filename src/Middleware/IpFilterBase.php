@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\SystemTableName;
 use Symfony\Component\HttpFoundation\IpUtils;
 
 /**
@@ -15,6 +16,9 @@ abstract class IpFilterBase
     public function handleBase(Request $request, \Closure $next, $filterFuncName)
     {
         if (config('exment.ip_filter_disabled', false)) {
+            return $next($request);
+        }
+        if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
             return $next($request);
         }
 
