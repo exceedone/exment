@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Middleware;
 
+use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Middleware\LogOperation as BaseLogOperation;
 use Encore\Admin\Auth\Database\OperationLog as OperationLogModel;
 use Encore\Admin\Facades\Admin;
@@ -47,7 +48,8 @@ class LogOperation extends BaseLogOperation
      */
     protected function shouldLogOperation(Request $request)
     {
-        return config('admin.operation_log.enable')
+        return canConnection() 
+            && hasTable(SystemTableName::LOGIN_USER)
             && !$this->inExceptArray($request)
             && $this->inAllowedMethods($request->method());
     }

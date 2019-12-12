@@ -140,13 +140,11 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.web-ipfilter',
             'admin.initialize',
             'admin.session',
-            'admin.log',
         ],
         'admin_plugin_public' => [
             'admin.auth',
             'admin.auth-2factor',
             'admin.bootstrap2',
-            'admin.log',
         ],
         'adminapi' => [
             'admin.api-ipfilter',
