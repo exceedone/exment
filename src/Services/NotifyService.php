@@ -392,7 +392,7 @@ class NotifyService
                 }
                 return null;
             }
-        ], $replaceOptions);
+        ], (array)$replaceOptions);
 
         $target = replaceTextFromFormat($target, $custom_value, $replaceOptions);
 
