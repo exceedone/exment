@@ -37,6 +37,7 @@ class MailSender
         $this->bcc = [];
         $this->attachments = [];
         $this->prms = [];
+        $this->replaceOptions = [];
         $this->history_body = true;
 
         // get mail template
