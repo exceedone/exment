@@ -133,7 +133,7 @@ __EOT__;
             }
             $keyname = $splits[1];
 
-            $setting = BackupTarget::dirOrDisk($keyname);
+            $setting = BackupTarget::dirOrDisk($splits);
             if (is_null($setting)) {
                 continue;
             }
