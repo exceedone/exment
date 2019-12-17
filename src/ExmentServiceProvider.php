@@ -94,7 +94,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
-        //'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
+        'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
         'laravel-page-speed.jscomments' => \Exceedone\Exment\Middleware\InlineJsRemoveComments::class,
         'laravel-page-speed.comments' => \RenatoMarinho\LaravelPageSpeed\Middleware\RemoveComments::class,
     ];
@@ -105,6 +105,7 @@ class ExmentServiceProvider extends ServiceProvider
      * @var array
      */
     protected $middlewareGroups = [
+        // Exment web page default
         'admin' => [
             'admin.browser',
             'admin.web-ipfilter',
@@ -114,7 +115,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.password-limit',
             'admin.morph',
             'admin.bootstrap2',
-            //'laravel-page-speed.space',
+            'laravel-page-speed.space',
             'laravel-page-speed.jscomments',
             'laravel-page-speed.comments',
             'admin.pjax',
@@ -123,6 +124,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.permission',
             'admin.session',
         ],
+        // Exment not login web page. (Ex. login, forget password)
         'admin_anonymous' => [
             'admin.browser',
             'admin.web-ipfilter',
@@ -135,17 +137,20 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.permission',
             'admin.session',
         ],
+        // Exment install page
         'admin_install' => [
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
             'admin.session',
         ],
+        // Exment plugin's css and js.
         'admin_plugin_public' => [
             'admin.auth',
             'admin.auth-2factor',
             'admin.bootstrap2',
         ],
+        // Exment API page
         'adminapi' => [
             'admin.api-ipfilter',
             'adminapi.auth',
@@ -154,6 +159,7 @@ class ExmentServiceProvider extends ServiceProvider
             // 'throttle:60,1',
             'bindings',
         ],
+        // Exment API not login page. (Ex. get token)
         'adminapi_anonymous' => [
             'admin.api-ipfilter',
             // 'throttle:60,1',
@@ -161,6 +167,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.log',
             'bindings',
         ],
+        // If call exment's parts. Add
         'exment_web' => [
             'admin.initialize',
             'admin.morph',

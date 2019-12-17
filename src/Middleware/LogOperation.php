@@ -53,4 +53,20 @@ class LogOperation extends BaseLogOperation
             && !$this->inExceptArray($request)
             && $this->inAllowedMethods($request->method());
     }
+    
+    /**
+     * Determine if the request has a URI that should pass through CSRF verification.
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return bool
+     */
+    protected function inExceptArray($request)
+    {
+        if($request->is(ltrim(admin_base_path('webapi/notifyPage'), '/'))){
+            return true;
+        }
+
+        return parent::inExceptArray($request);
+    }
 }

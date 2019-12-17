@@ -19,6 +19,15 @@ class CollapseWhitespace extends CollapseWhitespaceBase
             return false;
         }
 
+        if(!boolval(config('exment.remove_response_space', false))){
+            return false;
+        }
+
+        // if has textarea, return false
+        if(strpos($response->getContent(), '<textarea') !== false){
+            return false;
+        }
+        
         // only html, json
         $contentType = $response->headers->get('Content-Type');
         foreach (['text/html', 'application/json'] as $content) {

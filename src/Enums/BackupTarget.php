@@ -20,6 +20,18 @@ class BackupTarget extends EnumBase
      */
     public static function dirOrDisk($target)
     {
+        if(is_array($target)){
+            if(count($target) < 2){
+                $target = null;    
+            }
+            elseif(count($target) >= 3 && $target[1] == 'storage' && $target[2] == 'logs'){
+                $target = static::LOG;
+            }
+            else{
+                $target = $target[1];
+            }
+        }
+
         switch ($target) {
             case static::PLUGIN:
                 return [\Storage::disk(Define::DISKNAME_PLUGIN_SYNC), path_join("storage", "app", "plugins")];
@@ -27,7 +39,7 @@ class BackupTarget extends EnumBase
             case 'storage':
                 return [\Storage::disk(Define::DISKNAME_ADMIN), path_join("storage", "app", "admin")];
             case static::LOG:
-                return path_join("storage", "logs");
+                return "logs";
             case static::CONFIG:
                 return "config";
         }
