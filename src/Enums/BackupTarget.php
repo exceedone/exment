@@ -27,7 +27,7 @@ class BackupTarget extends EnumBase
             case 'storage':
                 return [\Storage::disk(Define::DISKNAME_ADMIN), path_join("storage", "app", "admin")];
             case static::LOG:
-                return path_join("storage", "logs");
+                return "logs";
             case static::CONFIG:
                 return "config";
         }

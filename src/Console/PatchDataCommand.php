@@ -607,16 +607,16 @@ class PatchDataCommand extends Command
         $morphKeys = array_keys($morphs);
 
         // get revisions filtering
-        \Exceedone\Exment\Revisionable\Revision::whereIn('revisionable_type', $morphKeys)->chunk(1000, function($revisions) use($morphs, $morphKeys){
-            foreach ($revisions as $revision) {
-                $revisionable_type = array_get($morphs, $revision->revisionable_type);
-                if (!isset($revisionable_type)) {
-                    continue;
-                }
-    
-                $revision->revisionable_type = $revisionable_type;
-                $revision->save();
-            }    
-        });
+        $revisions = \Exceedone\Exment\Revisionable\Revision::whereIn('revisionable_type', $morphKeys)->get();
+
+        foreach ($revisions as $revision) {
+            $revisionable_type = array_get($morphs, $revision->revisionable_type);
+            if (!isset($revisionable_type)) {
+                continue;
+            }
+
+            $revision->revisionable_type = $revisionable_type;
+            $revision->save();
+        }
     }
 }

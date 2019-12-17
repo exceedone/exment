@@ -220,6 +220,7 @@ __EOT__;
 
         // set to tmp zip file
         if (!boolval($this->option("tmp"))) {
+            $this->diskService->isNeedDownload = true;
             $this->diskService->syncFromDisk();
         }
 
