@@ -195,7 +195,7 @@ class BackupCommand extends Command
         $disk = $this->disk();
 
         // get files
-        $filenames = $disk->files($this->diskService->dirName());
+        $filenames = $disk->files($this->diskService->diskItem()->dirName());
 
         // get file infos
         $files = collect($filenames)->map(function ($filename) use ($disk) {
