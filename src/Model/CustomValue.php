@@ -678,6 +678,17 @@ abstract class CustomValue extends ModelBase
         return $this->setJson('value', $key, $val, $forgetIfNull);
     }
 
+    public function getValues()
+    {
+        $custom_table = $this->custom_table;
+        $values = [];
+
+        foreach($custom_table->custom_columns as $custom_column) {
+            $values[$custom_column->column_name] = $this->getValue($custom_column, true);
+        }
+        return $values;
+    }
+
     public function getValue($column, $label = false, $options = [])
     {
         if (is_null($column)) {
