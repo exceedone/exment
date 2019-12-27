@@ -1541,6 +1541,7 @@ return [
             'invalid_params' => 'パラメータに誤りがあります。',
             'over_maxcount' => 'countに指定できるのは1～%sまでの数値です。',
             'over_createlength' => '同時に新規作成できる件数は%s件までです。',
+            'over_deletelength' => '同時に削除できる件数は%s件までです。',
             'access_denied' => '認証できませんでした。アクセストークンが誤っているか、期限が切れています。',
             'wrong_scope' => 'APIを実行するためのスコープに誤りがあります。開発者にお問い合わせください。',
             'delete_disabled' => 'このデータは削除できません。',

@@ -353,14 +353,29 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
-        if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
-            return $custom_value;
-        }
-        if (($code = $custom_value->enableDelete()) !== true) {
-            return abortJson(403, $code());
+        $ids = stringToArray($id);
+        $max_delete_count = config('exment.api_max_delete_count', 100);
+        if (count($ids) > $max_delete_count) {
+            return abortJson(400, exmtrans('api.errors.over_deletelength', $max_delete_count), ErrorCode::OVER_LENGTH());
         }
 
-        $custom_value->delete();
+        $custom_values = [];
+        foreach((array)$ids as $i){
+            if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+                return $custom_value;
+            }
+            if (($code = $custom_value->enableDelete()) !== true) {
+                return abortJson(403, $code());
+            }
+    
+            $custom_values[] = $custom_value;
+        }
+        
+        \DB::transaction(function () use($custom_values) {
+            foreach($custom_values as $custom_value){
+                $custom_value->delete();
+            }
+        });
 
         if (boolval($request->input('webresponse'))) {
             return response([
@@ -455,7 +470,7 @@ class ApiTableController extends AdminControllerTableBase
 
         $max_create_count = config('exment.api_max_create_count', 100);
         if (count($values) > $max_create_count) {
-            return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count));
+            return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count), ErrorCode::OVER_LENGTH());
         }
 
         $findResult = $this->convertFindKeys($values, $request);

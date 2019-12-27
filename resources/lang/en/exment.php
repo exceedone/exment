@@ -1541,6 +1541,7 @@ return [
             'invalid_params' => 'The parameter is incorrect.',
             'over_maxcount' => 'A number between 1 and %s can be specified for "count".',
             'over_createlength' => 'The number of data that can be newly created at the same time is %s.',
+            'over_deletelength' => 'The number of data that can be deleted at the same time is %s.',
             'access_denied' => 'Could not authenticate. The access token is incorrect or has expired.',
             'wrong_scope' => 'There is an error in the scope for executing the API. Please contact the developer.',
             'delete_disabled' => 'This data cannot be deleted.',
