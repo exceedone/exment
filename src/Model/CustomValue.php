@@ -688,7 +688,7 @@ abstract class CustomValue extends ModelBase
         $custom_table = $this->custom_table;
         $values = [];
 
-        foreach($custom_table->custom_columns as $custom_column) {
+        foreach ($custom_table->custom_columns as $custom_column) {
             $values[$custom_column->column_name] = $this->getValue($custom_column, $label, $options);
         }
         return $values;

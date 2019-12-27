@@ -5,9 +5,7 @@ namespace Exceedone\Exment\Middleware;
 use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Middleware\LogOperation as BaseLogOperation;
 use Encore\Admin\Auth\Database\OperationLog as OperationLogModel;
-use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class LogOperation extends BaseLogOperation
 {
@@ -48,7 +46,7 @@ class LogOperation extends BaseLogOperation
      */
     protected function shouldLogOperation(Request $request)
     {
-        return canConnection() 
+        return canConnection()
             && hasTable(SystemTableName::LOGIN_USER)
             && !$this->inExceptArray($request)
             && $this->inAllowedMethods($request->method());
@@ -63,7 +61,7 @@ class LogOperation extends BaseLogOperation
      */
     protected function inExceptArray($request)
     {
-        if($request->is(ltrim(admin_base_path('webapi/notifyPage'), '/'))){
+        if ($request->is(ltrim(admin_base_path('webapi/notifyPage'), '/'))) {
             return true;
         }
 

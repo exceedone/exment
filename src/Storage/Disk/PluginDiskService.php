@@ -34,7 +34,7 @@ class PluginDiskService extends DiskServiceBase
      */
     protected function isNeedDownload()
     {
-        if(!is_null($this->isNeedDownload)){
+        if (!is_null($this->isNeedDownload)) {
             return $this->isNeedDownload;
         }
 

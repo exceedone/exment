@@ -360,7 +360,7 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         $custom_values = [];
-        foreach((array)$ids as $i){
+        foreach ((array)$ids as $i) {
             if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
                 return $custom_value;
             }
@@ -371,8 +371,8 @@ class ApiTableController extends AdminControllerTableBase
             $custom_values[] = $custom_value;
         }
         
-        \DB::transaction(function () use($custom_values) {
-            foreach($custom_values as $custom_value){
+        \DB::transaction(function () use ($custom_values) {
+            foreach ($custom_values as $custom_value) {
                 $custom_value->delete();
             }
         });

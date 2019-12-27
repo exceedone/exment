@@ -385,7 +385,7 @@ EOT;
             return;
         }
         
-        if(boolval(config('exment.disable_latest_version_dashboard', false))){
+        if (boolval(config('exment.disable_latest_version_dashboard', false))) {
             return;
         }
 

@@ -674,7 +674,7 @@ if (!function_exists('stringToArray')) {
 
         $array = explode(',', $value);
 
-        return collect($array)->map(function($a){
+        return collect($array)->map(function ($a) {
             return trim($a);
         })->toArray();
     }
