@@ -8,6 +8,7 @@ use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\PluginType;
 
@@ -111,7 +112,8 @@ class PluginServiceProvider extends ServiceProvider
                     $method = strtolower($method);
                     // call method in these http method
                     if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
-                        Route::{$method}(array_get($route, 'uri'), $plugin_name . '@'. array_get($route, 'function'));
+                        $router = Route::{$method}(array_get($route, 'uri'), $plugin_name . '@'. array_get($route, 'function'));
+                        $router->middleware(ApiScope::getScopeString(true, ApiScope::PLUGIN));
                     }
                 }
             }

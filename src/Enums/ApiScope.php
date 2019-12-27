@@ -15,6 +15,7 @@ class ApiScope extends EnumBase
     public const WORKFLOW_EXECUTE = 'workflow_execute';
     public const NOTIFY_READ = 'notify_read';
     public const NOTIFY_WRITE = 'notify_write';
+    public const PLUGIN = 'plugin';
 
     /**
      * get scope string for middleware
