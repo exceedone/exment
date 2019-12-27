@@ -537,7 +537,17 @@ return [
     | max length create data
     |
     */
-    'api_max_create_count' => env('EXMENT_API_MAX_CREATE_COUNT', 20),
+    'api_max_create_count' => env('EXMENT_API_MAX_CREATE_COUNT', 100),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | API max delete count 
+    |--------------------------------------------------------------------------
+    |
+    | max length delete data
+    |
+    */
+    'api_max_delete_count' => env('EXMENT_API_MAX_DELETE_COUNT', 100),
     
     /*
     |--------------------------------------------------------------------------
