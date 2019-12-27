@@ -277,6 +277,11 @@ abstract class CustomItem implements ItemInterface
             $field->default(array_get($options, 'default'));
         }
 
+        // default (login user)
+        if (boolval(array_get($options, 'login_user_default'))) {
+            $field->default(\Exment::user()->base_user_id);
+        }
+
         // number_format
         if (boolval(array_get($options, 'number_format'))) {
             $field->attribute(['number_format' => true]);

@@ -654,6 +654,32 @@ if (!function_exists('jsonToArray')) {
     }
 }
 
+if (!function_exists('stringToArray')) {
+    /**
+     * string(as comma) to array
+     *
+     * @param mixed $string
+     * @return array
+     */
+    function stringToArray($value)
+    {
+        if (is_nullorempty($value)) {
+            return [];
+        }
+        
+        // convert json to array
+        if (is_array($value)) {
+            return $value;
+        }
+
+        $array = explode(',', $value);
+
+        return collect($array)->map(function ($a) {
+            return trim($a);
+        })->toArray();
+    }
+}
+
 if (!function_exists('is_json')) {
     function is_json($string)
     {

@@ -62,9 +62,13 @@ EOT;
     public function render()
     {
         // get label
-        if (!is_null(array_get($this->plugin, 'options.label'))) {
-            $label = array_get($this->plugin, 'options.label');
-        } elseif (isset($this->plugin->plugin_view_name)) {
+        $pluginClass = $this->plugin->getClass($this->plugin_type, [
+            'custom_table' => $this->custom_table,
+            'id' => $this->id
+        ]);
+        if ($pluginClass instanceof \Exceedone\Exment\Services\Plugin\PluginTriggerBase) {
+            $label = $pluginClass->getButtonLabel();
+        } else {
             $label = $this->plugin->plugin_view_name;
         }
 

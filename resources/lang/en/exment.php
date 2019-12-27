@@ -785,6 +785,7 @@ return [
             'index_enabled' => 'Index Enabled',
             'unique' => 'Unique',
             'init_only' => 'Input Only Once',
+            'login_user_default' => 'Set initial value to login user',
             'default' => 'Default Value',
             'placeholder' => 'PlaceHolder',
             'help' => 'Help',
@@ -884,6 +885,7 @@ return [
             'add_custom_form_flg' => 'After creating custom column, you can add it to the default custom form. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "Form" page.',
             'add_custom_view_flg' => 'After creating custom column, you can add it to the default custom view. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "View" page.',
             'select_table_deny' => "You don't have the permissions for the referenced table '%s'. Please contact your system administrator to request additional permissions.",
+            'login_user_default' => 'If set to YES, the initial value of the item will be the login user.',
         ],
         'available_characters' => [
             'lower' => 'Lower Letters', 
@@ -1539,6 +1541,7 @@ return [
             'invalid_params' => 'The parameter is incorrect.',
             'over_maxcount' => 'A number between 1 and %s can be specified for "count".',
             'over_createlength' => 'The number of data that can be newly created at the same time is %s.',
+            'over_deletelength' => 'The number of data that can be deleted at the same time is %s.',
             'access_denied' => 'Could not authenticate. The access token is incorrect or has expired.',
             'wrong_scope' => 'There is an error in the scope for executing the API. Please contact the developer.',
             'delete_disabled' => 'This data cannot be deleted.',
