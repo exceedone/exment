@@ -14,6 +14,7 @@
 Exment is open source software for managing information assets on the Web.  
 For Web Database, SFA, CRM, Business improvement, ...  
 <a href="https://en.exment.net" target="_blank">Official Site</a>  
+<a href="https://exment.net/docs/#/">Manual</a>
 
 ## Functions
 - Dashboard
