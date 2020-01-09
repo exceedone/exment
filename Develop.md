@@ -150,8 +150,6 @@ Set "Target Dir" setting "packages/exceedone/exment/public/vendor/exment/css".
 php artisan exment:publish
 ~~~
 
-
-
 ## GitHub
 
 ### Brunch
@@ -175,3 +173,22 @@ composer global require friendsofphp/php-cs-fixer #Only execute first
 php-cs-fixer fix ./vendor/exceedone/exment --rules=no_unused_imports #Remove unused use
 php-cs-fixer fix ./vendor/exceedone/exment/src #Fix all source
 ~~~
+
+
+## Test
+How to test.
+
+### Setup test
+- Please execute this command.  
+<span style="color:red;">CAUTION: If execute this command, reset all data.</span>
+
+```
+php artisan exment:inittest
+```
+
+- Please execute this command.  
+
+```
+.\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Feature
+.\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Unit
+```
