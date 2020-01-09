@@ -83,7 +83,7 @@ php artisan exment:inittest
 - Each tables have above view;
 
 | view_name | view_type | filter_description |
-| ---- | ---- | ---- | ---- |
+| ---- | ---- | ---- |
 | table_name + ' view all' | all | - |
 | table_name + ' view and' | default | odd_even != odd and multiples_of_3 == 1 and user == 2 |
 | table_name + ' view or' | default | odd_even != odd or multiples_of_3 == 1 or user == 2 |
