@@ -286,34 +286,6 @@ namespace Exment {
         }
 
         /**
-        * Calc Date
-        */
-        private static calcDate = () => {
-            var $type = $('.subscription_claim_type');
-            var $start_date = $('.subscription_agreement_start_date');
-            var $term = $('.subscription_agreement_term');
-            var $end_date = $('.subscription_agreement_limit_date');
-            var term = pInt($term.val());
-            if (!$type.val() || !$start_date.val()) {
-                return;
-            }
-
-            // 日付計算
-            var dt = new Date($('.subscription_agreement_start_date').val() as string);
-            if ($type.val() == 'month') {
-                dt.setMonth(dt.getMonth() + term);
-            } else if ($type.val() == 'year') {
-                dt.setFullYear(dt.getFullYear() + term);
-            }
-            dt.setDate(dt.getDate() - 1);
-            // セット
-            $end_date.val(dt.getFullYear() + '-'
-                + ('00' + (dt.getMonth() + 1)).slice(-2)
-                + '-' + ('00' + dt.getDate()).slice(-2)
-            );
-        }
-
-        /**
          * Set changedata event
          */
         public static setChangedataEvent(datalist) {
