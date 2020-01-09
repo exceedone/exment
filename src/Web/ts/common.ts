@@ -123,7 +123,7 @@ namespace Exment {
                     toastr.success(res.toastr);
                 }
                 else if(hasValue(res.swal)){
-                    swal(res.swal, '', 'success');
+                    swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'success');
                 }
                 $('.modal').modal('hide');
             }
@@ -134,7 +134,7 @@ namespace Exment {
                 } 
                 // show swal
                 else if(hasValue(res.swal)){
-                    swal(res.swal, '', 'error');
+                    swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'error');
                 }
                 else {
                     toastr.error('Undeifned Error');
@@ -232,11 +232,11 @@ namespace Exment {
                 .then(function(result) {
                     var data = result.value;
                     if (typeof data === 'object' && hasValue(data.message)) {
-                        if (data.status === true || data.result === true) {
-                            swal(data.message, '', 'success');
-                        } else {
-                            swal(data.message, '', 'error');
-                        }
+                        let message = data.message;
+                        let swaltext = hasValue(data.swaltext) ? data.swaltext : '';
+                        let swalresult = (data.status === true || data.result === true) ? 'success' : 'error';
+                        
+                        swal(message, swaltext, swalresult);
                     } else if (typeof data === 'string') {
                         swal(data, '', 'error');
                     }

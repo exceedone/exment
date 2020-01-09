@@ -1171,6 +1171,7 @@ if (!function_exists('getAjaxResponse')) {
             'result' => true,
             'toastr' => null,
             'swal' => null,
+            'swaltext' => null,
             'errors' => [],
         ], $results);
 
