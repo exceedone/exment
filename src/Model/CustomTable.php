@@ -190,7 +190,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function getSelectTableColumns()
     {
         return $this->custom_columns->filter(function ($item) {
-            return null != array_get($item->options, 'select_target_table');
+            return ColumnType::isSelectTable($item->column_type);
         })->mapWithKeys(function ($item) {
             $key = $item->getIndexColumnName();
             return [$key => $item];
