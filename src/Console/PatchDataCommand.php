@@ -352,7 +352,7 @@ class PatchDataCommand extends Command
                 $view_column->custom_view_id = $aldata_view->id;
                 $view_column->view_column_target = array_get($custom_view_column, 'view_column_target');
                 $view_column->order = array_get($custom_view_column, 'order');
-                array_push($view_columns, $view_column);
+                $view_columns[] = $view_column;
             }
             $aldata_view->custom_view_columns()->saveMany($view_columns);
 
@@ -363,7 +363,7 @@ class PatchDataCommand extends Command
                 $view_sort->view_column_target = array_get($custom_view_sort, 'view_column_target');
                 $view_sort->sort = array_get($custom_view_sort, 'sort');
                 $view_sort->priority = array_get($custom_view_sort, 'priority');
-                array_push($view_sorts, $view_sort);
+                $view_sorts[] = $view_sort;
             }
             $aldata_view->custom_view_sorts()->saveMany($view_sorts);
         }

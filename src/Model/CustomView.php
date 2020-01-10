@@ -472,7 +472,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $view_column->custom_view_id = $this->id;
             $view_column->view_column_target = array_get($view_column_system, 'name');
             $view_column->order = array_get($view_column_system, 'order');
-            array_push($view_columns, $view_column);
+            $view_columns[] = $view_column;
         }
         $this->custom_view_columns()->saveMany($view_columns);
         return $view_columns;
@@ -499,7 +499,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $view_column->view_column_target = array_get($from_view_column, 'view_column_target');
             $view_column->order = array_get($from_view_column, 'order');
             $view_column->options = array_get($from_view_column, 'options');
-            array_push($view_columns, $view_column);
+            $view_columns[] = $view_column;
         }
 
         $this->custom_view_columns()->saveMany($view_columns);
