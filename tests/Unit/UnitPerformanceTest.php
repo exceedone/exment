@@ -59,12 +59,32 @@ class UnitPerformanceTest extends TestCase
 
     public function testEloquentPermissionPerformance()
     {
-        // $this->be(LoginUser::find(2)); // user1
+        $this->be(LoginUser::find(2)); // user1
         
         // for($i = 0; $i < 50; $i++){
-        //     $items = CustomTable::getEloquent('custom_value_edit_all')->getValueModel()->get();
+        //     $items = CustomTable::getEloquent('custom_value_view_all')->getValueModel()->get();
     
-        //     $this->showMicrotimeLog('CustomValue enableEdit', function() use($items){
+        //     $this->showMicrotimeLog('CustomTable enableEdit' . $items->count(), function() use($items){
+        //         $items->each(function($item){
+        //             $item->custom_table->enableEdit(true);
+        //         });
+        //     });
+        // }
+
+        // for($i = 0; $i < 50; $i++){
+        //     $items = CustomTable::getEloquent('custom_value_view_all')->getValueModel()->get();
+    
+        //     $this->showMicrotimeLog('CustomTable hasPermission' . $items->count(), function() use($items){
+        //         $items->each(function($item){
+        //             $item->custom_table->hasPermission();
+        //         });
+        //     });
+        // }
+
+        // for($i = 0; $i < 50; $i++){
+        //     $items = CustomTable::getEloquent('custom_value_view_all')->getValueModel()->get();
+    
+        //     $this->showMicrotimeLog('CustomValue enableEdit' . $items->count(), function() use($items){
         //         $items->each(function($item){
         //             $item->enableEdit(true);
         //         });
@@ -72,9 +92,9 @@ class UnitPerformanceTest extends TestCase
         // }
 
         // for($i = 0; $i < 50; $i++){
-        //     $items = CustomTable::getEloquent('custom_value_edit_all')->getValueModel()->get();
+        //     $items = CustomTable::getEloquent('custom_value_view_all')->getValueModel()->get();
     
-        //     $this->showMicrotimeLog('CustomValue enableDelete', function() use($items){
+        //     $this->showMicrotimeLog('CustomValue enableDelete' . $items->count(), function() use($items){
         //         $items->each(function($item){
         //             $item->enableDelete(true);
         //         });
@@ -82,14 +102,24 @@ class UnitPerformanceTest extends TestCase
         // }
 
         // for($i = 0; $i < 50; $i++){
-        //     $items = CustomTable::getEloquent('custom_value_edit_all')->getValueModel()->get();
+        //     $items = CustomTable::getEloquent('custom_value_view_all')->getValueModel()->get();
     
-        //     $this->showMicrotimeLog('CustomValue lockedWorkflow', function() use($items){
+        //     $this->showMicrotimeLog('CustomValue lockedWorkflow' . $items->count(), function() use($items){
         //         $items->each(function($item){
         //             $item->lockedWorkflow();
         //         });
         //     });
         // }
+
+        for($i = 0; $i < 50; $i++){
+            $items = CustomTable::getEloquent('custom_value_edit_all')->getValueModel()->get();
+    
+            $this->showMicrotimeLog('CustomValue workflow_status' . $items->count(), function() use($items){
+                $items->each(function($item){
+                    $item->workflow_status;
+                });
+            });
+        }
 
         $this->assertTrue(true);
     }

@@ -1664,9 +1664,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         $table_name = $this->table_name;
-        if (!is_array($role_key)) {
-            $role_key = [$role_key];
-        }
+        $role_key = (array)$role_key;
 
         $user = \Exment::user();
         if (!isset($user)) {
@@ -1674,23 +1672,27 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         
         $permissions = $user->allPermissions();
+
         foreach ($permissions as $permission) {
+            $role_type = $permission->getRoleType();
+            $permission_details = $permission->getPermissionDetails();
+
             // check system permission
-            if (RoleType::SYSTEM == $permission->getRoleType()
-                && array_key_exists('system', $permission->getPermissionDetails())) {
+            if (RoleType::SYSTEM == $role_type
+                && array_key_exists('system', $permission_details)) {
                 return true;
             }
 
             // if role type is system, and has key
-            if (RoleType::SYSTEM == $permission->getRoleType()
-                && array_keys_exists($role_key, $permission->getPermissionDetails())) {
+            elseif (RoleType::SYSTEM == $role_type
+                && array_keys_exists($role_key, $permission_details)) {
                 return true;
             }
 
             // if role type is table, and match table name
-            elseif (RoleType::TABLE == $permission->getRoleType() && $permission->getTableName() == $table_name) {
+            elseif (RoleType::TABLE == $role_type && $permission->getTableName() == $table_name) {
                 // if user has role
-                if (array_keys_exists($role_key, $permission->getPermissionDetails())) {
+                if (array_keys_exists($role_key, $permission_details)) {
                     return true;
                 }
             }
