@@ -120,7 +120,7 @@ class DefaultTableProvider extends ProviderBase
         foreach ($dataObjects as $line_no => $value) {
             $check = $this->validateDataRow($line_no, $value, $validate_columns);
             if ($check === true) {
-                array_push($success_data, $value);
+                $success_data[] = $value;
             } else {
                 $error_data = array_merge($error_data, $check);
             }

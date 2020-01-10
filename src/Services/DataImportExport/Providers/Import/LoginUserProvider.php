@@ -74,7 +74,7 @@ class LoginUserProvider extends ProviderBase
         foreach ($dataObjects as $key => $value) {
             $check = $this->validateDataRow($key, $value);
             if ($check === true) {
-                array_push($success_data, $value);
+                $success_data[] = $value;
             } else {
                 $error_data = array_merge($error_data, $check);
             }

@@ -127,19 +127,19 @@ trait HasPermissions
         $permissions = [];
         foreach ($roles as $key => $role) {
             if (RoleType::SYSTEM == $key) {
-                array_push($permissions, new AuthPermission([
+                $permissions[] = new AuthPermission([
                     'role_type' =>$key,
                     'table_name' => null,
                     'permission_details' =>$role,
-                ]));
+                ]);
                 continue;
             }
             foreach ($role as $k => $v) {
-                array_push($permissions, new AuthPermission([
+                $permissions[] =  new AuthPermission([
                     'role_type' =>$key,
                     'table_name' =>$k,
                     'permission_details' =>$v,
-                ]));
+                ]);
             }
         }
 

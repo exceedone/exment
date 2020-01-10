@@ -1590,7 +1590,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                     continue;
                 }
-                array_push($results, ['searchType' => SearchType::SELECT_TABLE, 'table' => $table_obj]);
+                $results[] = ['searchType' => SearchType::SELECT_TABLE, 'table' => $table_obj];
             }
     
             // 2. Get relation tables.
@@ -1608,7 +1608,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     continue;
                 }
                 $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY;
-                array_push($results, ['searchType' => $searchType, 'table' => $table_obj]);
+                $results[] = ['searchType' => $searchType, 'table' => $table_obj];
             }
     
             return $results;
