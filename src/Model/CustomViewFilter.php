@@ -102,7 +102,8 @@ class CustomViewFilter extends ModelBase
         }
 
         if ($this->view_column_type == ConditionType::COLUMN) {
-            $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
+            $column_column = CustomColumn::getEloquent($view_column_target);
+            $view_column_target = isset($column_column) ? $column_column->getIndexColumnName() : null;
         } elseif ($this->view_column_type == ConditionType::PARENT_ID) {
             //TODO: set as 1:n. develop as n:n
             $view_column_target = 'parent_id';
