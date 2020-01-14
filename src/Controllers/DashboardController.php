@@ -357,7 +357,7 @@ EOT;
                 // check role.
                 if ($has_role) {
                     $icons = array_prepend($icons, ['link' => admin_url('dashboardbox/'.$id.'/edit'), 'icon' => 'fa-cog', 'tooltip' => trans('admin.edit')]);
-                    array_push($icons, ['widget' => 'delete', 'icon' => 'fa-trash', 'tooltip' => trans('admin.delete')]);
+                    $icons[] = ['widget' => 'delete', 'icon' => 'fa-trash', 'tooltip' => trans('admin.delete')];
                 }
                 
                 // set column. use grid system

@@ -334,9 +334,9 @@ class CustomFormController extends AdminControllerTableBase
                 // add name for toggle(it's OK random string)
                 $custom_form_column_array['toggle_key_name'] = make_uuid();
 
-                array_push($column_blocks['custom_form_columns'], $custom_form_column_array);
+                $column_blocks['custom_form_columns'][] = $custom_form_column_array;
             }
-            array_push($custom_form_blocks, $column_blocks);
+            $custom_form_blocks[] = $column_blocks;
         }
 
         // if $custom_form_blocks not have $block->form_block_type = default, set as default
@@ -352,7 +352,7 @@ class CustomFormController extends AdminControllerTableBase
             $block->available = 1;
             $block->options = [];
             $block->custom_form_columns = [];
-            array_push($custom_form_blocks, $block->toArray());
+            $custom_form_blocks[] = $block->toArray();
         }
 
         // check relation define.if not exists in custom_form_blocks, add define.
@@ -372,7 +372,7 @@ class CustomFormController extends AdminControllerTableBase
                     'hasmany_type' => null
                 ];
                 $block->custom_form_columns = [];
-                array_push($custom_form_blocks, $block->toArray());
+                $custom_form_blocks[] = $block->toArray();
             }
         }
 
@@ -526,7 +526,7 @@ class CustomFormController extends AdminControllerTableBase
                         'required' => boolval(array_get($custom_column, 'required')),
                     ];
 
-                    array_push($custom_form_columns, $custom_column);
+                    $custom_form_columns[] = $custom_column;
                 }
             }
         
@@ -539,19 +539,19 @@ class CustomFormController extends AdminControllerTableBase
                 $custom_form_column['toggle_key_name'] = make_uuid();
             }
 
-            array_push($suggests, [
+            $suggests[] = [
                 'label' => exmtrans('custom_form.suggest_column_label'),
                 'custom_form_columns' => $custom_form_columns,
                 'clone' => false,
                 'form_column_type' => FormColumnType::COLUMN,
-            ]);
+            ];
         }
 
         // set free html
         $custom_form_columns  = [];
         foreach (FormColumnType::getOptions() as $id => $type) {
             $header_column_name = '[custom_form_columns][NEW__'.make_uuid().']';
-            array_push($custom_form_columns, [
+            $custom_form_columns[] = [
                 'id' => null,
                 'column_view_name' => exmtrans("custom_form.form_column_type_other_options.".array_get($type, 'column_name')),
                 'form_column_type' => FormColumnType::OTHER,
@@ -559,14 +559,14 @@ class CustomFormController extends AdminControllerTableBase
                 'form_column_target_id' => $id,
                 'header_column_name' =>$header_column_name,
                 'toggle_key_name' => make_uuid(),
-            ]);
+            ];
         }
-        array_push($suggests, [
+        $suggests[] = [
             'label' => exmtrans('custom_form.suggest_other_label'),
             'custom_form_columns' => $custom_form_columns,
             'clone' => true,
             'form_column_type' => FormColumnType::OTHER,
-        ]);
+        ];
     }
 
     /**

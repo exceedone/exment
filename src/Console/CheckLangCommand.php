@@ -58,7 +58,7 @@ class CheckLangCommand extends Command
     {
         foreach ($jat as $key => $value) {
             $langKeys = $keys;
-            array_push($langKeys, $key);
+            $langKeys[] = $key;
 
             if (is_array($value)) {
                 $this->checkTrans($langKeys, $value, $lang);
