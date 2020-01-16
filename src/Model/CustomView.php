@@ -211,8 +211,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // get view columns
         $custom_view_columns = $this->custom_view_columns_cache;
         foreach ($custom_view_columns as $custom_view_column) {
-            $item = $custom_view_column->column_item
-                ->label(array_get($custom_view_column, 'view_column_name'))
+            $item = $custom_view_column->column_item;
+            if(!isset($item)){
+                continue;
+            }
+
+            $item = $item->label(array_get($custom_view_column, 'view_column_name'))
                 ->options([
                     'grid_column' => true,
                     'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
@@ -529,7 +533,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         foreach ($this->custom_view_sorts_cache as $custom_view_sort) {
             switch ($custom_view_sort->view_column_type) {
             case ConditionType::COLUMN:
-                $view_column_target = $custom_view_sort->custom_column->column_item->getSortColumn();
+                $custom_column = $custom_view_sort->custom_column;
+                if(!isset($custom_column)){
+                    break;
+                }
+                $column_item = $custom_column->custom_column;
+                if(!isset($column_item)){
+                    break;
+                }
+                $view_column_target = $column_item->getSortColumn();
                 $sort_order = $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc';
                 //set order
                 $model->orderByRaw("$view_column_target $sort_order");

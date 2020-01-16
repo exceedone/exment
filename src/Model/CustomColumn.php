@@ -94,6 +94,24 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             ->where('view_column_type', ConditionType::COLUMN);
     }
 
+    public function custom_view_sorts()
+    {
+        return $this->hasMany(CustomViewSort::class, 'view_column_target_id')
+            ->where('view_column_type', ConditionType::COLUMN);
+    }
+
+    public function custom_view_filters()
+    {
+        return $this->hasMany(CustomViewFilter::class, 'view_column_target_id')
+            ->where('view_column_type', ConditionType::COLUMN);
+    }
+
+    public function custom_view_summaries()
+    {
+        return $this->hasMany(CustomViewSummary::class, 'view_column_target_id')
+            ->where('view_column_type', ConditionType::COLUMN);
+    }
+
     public function scopeIndexEnabled($query)
     {
         return $query->whereIn('options->index_enabled', [1, "1", true]);
@@ -188,6 +206,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     {
         $this->custom_form_columns()->delete();
         $this->custom_view_columns()->delete();
+        $this->custom_view_filters()->delete();
+        $this->custom_view_sorts()->delete();
+        $this->custom_view_summaries()->delete();
     }
 
     protected static function boot()
