@@ -111,15 +111,15 @@ class UnitPerformanceTest extends TestCase
         //     });
         // }
 
-        for($i = 0; $i < 50; $i++){
-            $items = CustomTable::getEloquent('custom_value_edit_all')->getValueModel()->get();
+        // for($i = 0; $i < 50; $i++){
+        //     $items = CustomTable::getEloquent('custom_value_edit_all')->getValueModel()->get();
     
-            $this->showMicrotimeLog('CustomValue workflow_status' . $items->count(), function() use($items){
-                $items->each(function($item){
-                    $item->workflow_status;
-                });
-            });
-        }
+        //     $this->showMicrotimeLog('CustomValue workflow_status' . $items->count(), function() use($items){
+        //         $items->each(function($item){
+        //             $item->workflow_status;
+        //         });
+        //     });
+        // }
 
         $this->assertTrue(true);
     }
