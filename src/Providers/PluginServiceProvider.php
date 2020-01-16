@@ -113,7 +113,7 @@ class PluginServiceProvider extends ServiceProvider
                     // call method in these http method
                     if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
                         $router = Route::{$method}(array_get($route, 'uri'), $plugin_name . '@'. array_get($route, 'function'));
-                        $router->middleware(ApiScope::getScopeString(true, ApiScope::PLUGIN));
+                        $router->middleware(ApiScope::getScopeString($plugin_type == PluginType::API, ApiScope::PLUGIN));
                     }
                 }
             }
