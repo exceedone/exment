@@ -630,7 +630,8 @@ class PatchDataCommand extends Command
      *
      * @return void
      */
-    protected function removeDeletedColumn(){
+    protected function removeDeletedColumn()
+    {
         $classes = [
             Model\CustomViewColumn::class => ['type' => 'view_column_type', 'column' => 'view_column_target_id', 'whereval' => Enums\ConditionType::COLUMN],
             Model\CustomViewSort::class => ['type' => 'view_column_type', 'column' => 'view_column_target_id', 'whereval' => Enums\ConditionType::COLUMN],
@@ -641,18 +642,18 @@ class PatchDataCommand extends Command
             Model\CustomFormColumn::class => ['type' => 'form_column_type', 'column' => 'form_column_target_id', 'whereval' => Enums\FormColumnType::COLUMN],
         ];
 
-        foreach($classes as $class => $val){
+        foreach ($classes as $class => $val) {
             $items = $class::where($val['type'], $val['whereval'])
                 ->get();
 
-            foreach($items as $item){
+            foreach ($items as $item) {
                 $column_id = $item->{$val['column']};
-                if(!isset($column_id)){
+                if (!isset($column_id)) {
                     continue;
                 }
 
                 $custom_column = CustomColumn::getEloquent($column_id);
-                if(isset($custom_column)){
+                if (isset($custom_column)) {
                     continue;
                 }
 
@@ -663,17 +664,17 @@ class PatchDataCommand extends Command
 
         // remove custom_column_multisettings
         $items = Model\CustomColumnMulti::all();
-        foreach($items as $item){
+        foreach ($items as $item) {
             $keys = ['table_label_id', 'unique1_id', 'unique2_id', 'unique3_id'];
 
-            foreach($keys as $key){
+            foreach ($keys as $key) {
                 $column_id = array_get($item, "options.$key");
-                if(!isset($column_id)){
+                if (!isset($column_id)) {
                     continue;
                 }
 
                 $custom_column = CustomColumn::getEloquent($column_id);
-                if(isset($custom_column)){
+                if (isset($custom_column)) {
                     continue;
                 }
 

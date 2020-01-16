@@ -225,9 +225,9 @@ __EOT__;
             $this->diskService->syncFromDisk();
         }
         // if tmp(call from display), copy file
-        else{
+        else {
             $zipPath = getFullpath($file, Define::DISKNAME_ADMIN_TMP);
-             // open new zip file
+            // open new zip file
             $zip = new \ZipArchive();
             if ($zip->open($zipPath) === true) {
                 $zip->extractTo($this->diskService->tmpDiskItem()->dirFullPath());

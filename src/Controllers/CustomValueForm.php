@@ -81,7 +81,7 @@ trait CustomValueForm
                 }
                 $parent_value = $parent_custom_table->getValueModel($parent_id);
 
-                if(isset($parent_id) && isset($parent_value) && isset($parent_custom_table)){
+                if (isset($parent_id) && isset($parent_value) && isset($parent_custom_table)) {
                     $form->hidden('parent_id')->default($parent_id);
                     $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label);
                 }

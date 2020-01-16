@@ -212,7 +212,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $custom_view_columns = $this->custom_view_columns_cache;
         foreach ($custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item;
-            if(!isset($item)){
+            if (!isset($item)) {
                 continue;
             }
 
@@ -534,11 +534,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             switch ($custom_view_sort->view_column_type) {
             case ConditionType::COLUMN:
                 $custom_column = $custom_view_sort->custom_column;
-                if(!isset($custom_column)){
+                if (!isset($custom_column)) {
                     break;
                 }
                 $column_item = $custom_column->custom_column;
-                if(!isset($column_item)){
+                if (!isset($column_item)) {
                     break;
                 }
                 $view_column_target = $column_item->getSortColumn();

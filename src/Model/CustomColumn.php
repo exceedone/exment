@@ -225,13 +225,13 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $this->conditions()->delete();
 
         // remove multisettings
-        $items = CustomColumnMulti::where(function($query){
+        $items = CustomColumnMulti::where(function ($query) {
             $query->where('options->table_label_id', $this->id)
                 ->orWhere('options->unique1_id', $this->id)
                 ->orWhere('options->unique2_id', $this->id)
                 ->orWhere('options->unique3_id', $this->id);
         })->get();
-        $items->each(function($item){
+        $items->each(function ($item) {
             $item->delete();
         });
     }

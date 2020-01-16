@@ -111,7 +111,7 @@ class CustomViewFilter extends ModelBase
             $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['sqlname'] ?? null;
         }
 
-        if(!isset($view_column_target)){
+        if (!isset($view_column_target)) {
             return;
         }
         if (isset($db_table_name)) {
