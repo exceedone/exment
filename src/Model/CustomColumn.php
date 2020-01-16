@@ -112,6 +112,18 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             ->where('view_column_type', ConditionType::COLUMN);
     }
 
+    public function custom_operation_columns()
+    {
+        return $this->hasMany(CustomOperationColumn::class, 'view_column_target_id')
+            ->where('view_column_type', ConditionType::COLUMN);
+    }
+
+    public function conditions()
+    {
+        return $this->hasMany(Condition::class, 'target_column_id')
+            ->where('condition_type', ConditionType::COLUMN);
+    }
+
     public function scopeIndexEnabled($query)
     {
         return $query->whereIn('options->index_enabled', [1, "1", true]);
@@ -209,6 +221,19 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $this->custom_view_filters()->delete();
         $this->custom_view_sorts()->delete();
         $this->custom_view_summaries()->delete();
+        $this->custom_operation_columns()->delete();
+        $this->conditions()->delete();
+
+        // remove multisettings
+        $items = CustomColumnMulti::where(function($query){
+            $query->where('options->table_label_id', $this->id)
+                ->orWhere('options->unique1_id', $this->id)
+                ->orWhere('options->unique2_id', $this->id)
+                ->orWhere('options->unique3_id', $this->id);
+        })->get();
+        $items->each(function($item){
+            $item->delete();
+        });
     }
 
     protected static function boot()
