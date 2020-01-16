@@ -102,7 +102,8 @@ class CustomViewFilter extends ModelBase
         }
 
         if ($this->view_column_type == ConditionType::COLUMN) {
-            $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
+            $column_column = CustomColumn::getEloquent($view_column_target);
+            $view_column_target = isset($column_column) ? $column_column->getIndexColumnName() : null;
         } elseif ($this->view_column_type == ConditionType::PARENT_ID) {
             //TODO: set as 1:n. develop as n:n
             $view_column_target = 'parent_id';
@@ -110,6 +111,9 @@ class CustomViewFilter extends ModelBase
             $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['sqlname'] ?? null;
         }
 
+        if (!isset($view_column_target)) {
+            return;
+        }
         if (isset($db_table_name)) {
             $view_column_target = $db_table_name.'.'.$view_column_target;
         }

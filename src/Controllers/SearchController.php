@@ -108,7 +108,7 @@ EOT;
             foreach ($data as $d) {
                 // get label
                 $text = $d->label;
-                array_push($results, [
+                $results[] = [
                     'value' => $text
                     , 'text' => $text
                     , 'icon' =>array_get($table, 'options.icon')
@@ -116,7 +116,7 @@ EOT;
                     , 'table_name' => array_get($table, 'table_name')
                     , 'value_id' => array_get($d, 'id')
                     , 'color' =>array_get($d, 'options.color') ?? "#3c8dbc"
-                    ]);
+                    ];
                 if (count($results) >= 10) {
                     break;
                 }
@@ -195,7 +195,7 @@ EOT;
                 return true;
             });
             if (!is_null($result)) {
-                array_push($results, $table);
+                $results[] = $table;
             }
         }
         return collect($results);
@@ -377,10 +377,10 @@ EOT;
         // get relation tables
         $relationTables = $value_table->getRelationTables();
         // 1. For self-table
-        array_push($results, $this->getTableArray($value_table, SearchType::SELF));
+        $results[] = $this->getTableArray($value_table, SearchType::SELF);
         // loop and add $results
         foreach ($relationTables as $relationTable) {
-            array_push($results, $this->getTableArray($relationTable['table'], $relationTable['searchType']));
+            $results[] = $this->getTableArray($relationTable['table'], $relationTable['searchType']);
         }
         return $results;
     }

@@ -122,7 +122,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $form_column->form_column_type = FormColumnType::COLUMN;
                 $form_column->form_column_target_id = array_get($search_enabled_column, 'id');
                 $form_column->order = $index+1;
-                array_push($form_columns, $form_column);
+                $form_columns[] = $form_column;
             }
             $form_block->custom_form_columns()->saveMany($form_columns);
             

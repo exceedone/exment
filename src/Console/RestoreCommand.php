@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use \File;
 
 class RestoreCommand extends Command
@@ -222,6 +223,16 @@ __EOT__;
         if (!boolval($this->option("tmp"))) {
             $this->diskService->isNeedDownload = true;
             $this->diskService->syncFromDisk();
+        }
+        // if tmp(call from display), copy file
+        else {
+            $zipPath = getFullpath($file, Define::DISKNAME_ADMIN_TMP);
+            // open new zip file
+            $zip = new \ZipArchive();
+            if ($zip->open($zipPath) === true) {
+                $zip->extractTo($this->diskService->tmpDiskItem()->dirFullPath());
+                $zip->close();
+            }
         }
 
         return true;

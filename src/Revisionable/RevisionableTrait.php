@@ -137,7 +137,7 @@ trait RevisionableTrait
                 } elseif (gettype($val) == 'object' && !method_exists($val, '__toString')) {
                     unset($this->originalData[$key]);
                     unset($this->updatedData[$key]);
-                    array_push($this->dontKeep, $key);
+                    $this->dontKeep[] = $key;
                 }
             }
 
