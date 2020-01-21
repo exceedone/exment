@@ -635,19 +635,14 @@ class PatchDataCommand extends Command
      */
     protected function removeDeletedRelation()
     {
-        $ghost_blocks = Model\CustomFormBlock::join('custom_forms', 'custom_forms.id', 'custom_form_blocks.custom_form_id')
-            ->whereRaw('custom_forms.custom_table_id <> custom_form_blocks.form_block_target_table_id')
-            ->whereNotExists(function($query)
-            {
-                $query->select(\DB::raw(1))
-                      ->from('custom_relations')
-                      ->whereRaw('custom_relations.parent_custom_table_id = custom_forms.custom_table_id AND custom_relations.child_custom_table_id = custom_form_blocks.form_block_target_table_id');
-            })
-            ->select('custom_form_blocks.id')
-            ->get();
-
-        foreach ($ghost_blocks as $ghost_block) {
-            $ghost_block->delete();
+        $custom_form_blocks = Model\CustomFormBlock::where('form_block_type', '<>', Enums\FormBlockType::DEFAULT)->get();
+        foreach ($custom_form_blocks as $custom_form_block) {
+            $is_related = Model\CustomRelation::where('parent_custom_table_id', $custom_form_block->custom_form->custom_table_id)
+                ->where('child_custom_table_id', $custom_form_block->form_block_target_table_id)
+                ->exists();
+            if (!$is_related) {
+                $custom_form_block->delete();
+            }      
         }
     }
 
