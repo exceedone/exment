@@ -193,4 +193,51 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         static::importReplaceJsonCustomColumn($json, 'options.parent_import_column_id', 'options.parent_import_column_name', 'options.parent_import_table_name', $options);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // delete event
+        static::deleting(function ($model) {
+            // Delete items
+            $model->deletingChildren();
+        });
+    }
+    
+    /**
+     * Delete children items
+     */
+    public function deletingChildren()
+    {
+        $target = $this->parent_custom_table;
+
+        // delete child form block
+        foreach ($target->custom_forms as $item) {
+            foreach ($item->custom_form_blocks as $block) {
+                if ($block->form_block_target_table_id == $this->child_custom_table_id) {
+                    $block->delete();
+                }
+            }
+        }
+
+        // delete view column
+        // foreach ($target->custom_views as $item) {
+        //     foreach ($item->custom_view_columns as $column) {
+        //         if ($column->view_column_table_id == $this->child_custom_table_id) {
+        //             $column->delete();
+        //         }
+        //     }
+        //     foreach ($item->custom_view_summaries as $column) {
+        //         if ($column->view_column_table_id == $this->child_custom_table_id) {
+        //             $column->delete();
+        //         }
+        //     }
+        //     foreach ($item->custom_view_filters as $column) {
+        //         if ($column->view_column_table_id == $this->child_custom_table_id) {
+        //             $column->delete();
+        //         }
+        //     }
+        // }
+    }
 }
