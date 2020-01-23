@@ -572,6 +572,11 @@ EOT;
 
             $child_column = $relationColumn['child_column'];
             $child_table = $child_column->select_target_table;
+
+            // skip same table
+            if ($parent_table->id == $child_table->id) {
+                continue;
+            }
                     
             // if not exists $column_name in $relatedlinkage_array
             if (!array_has($relatedlinkage_array, $parent_column_name)) {
