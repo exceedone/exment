@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -566,6 +567,11 @@ EOT;
         $relationColumns = $custom_form_block->target_table->getSelectTableRelationColumns();
 
         foreach ($relationColumns as $relationColumn) {
+            // ignore n:n
+            if ($relationColumn['searchType'] == SearchType::MANY_TO_MANY) {
+                continue;
+            }
+
             $parent_column = $relationColumn['parent_column'];
             $parent_column_name = array_get($parent_column, 'column_name');
             $parent_table = $parent_column->select_target_table;
@@ -577,7 +583,7 @@ EOT;
             if ($parent_table->id == $child_table->id) {
                 continue;
             }
-            
+
             // if not exists $column_name in $relatedlinkage_array
             if (!array_has($relatedlinkage_array, $parent_column_name)) {
                 $relatedlinkage_array[$parent_column_name] = [];
