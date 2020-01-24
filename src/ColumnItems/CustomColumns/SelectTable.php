@@ -184,15 +184,18 @@ class SelectTable extends CustomItem
             //     };
             // }
             else {
-                $searchColumn = $relationColumn['child_column']->select_target_table->custom_columns()
-                    ->where('column_type', ColumnType::SELECT_TABLE)
-                    ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
-                    ->first();
-                if (isset($searchColumn)) {
-                    $callback = function (&$query) use ($parent_v, $searchColumn) {
-                        $query = $query->where("value->{$searchColumn->column_name}", $parent_v);
-                        return $query;
-                    };
+                $child_target_table_id = $relationColumn['child_column']->select_target_table->id;
+                if ($parent_target_table_id != $child_target_table_id) {
+                    $searchColumn = $relationColumn['child_column']->select_target_table->custom_columns()
+                        ->where('column_type', ColumnType::SELECT_TABLE)
+                        ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
+                        ->first();
+                    if (isset($searchColumn)) {
+                        $callback = function (&$query) use ($parent_v, $searchColumn) {
+                            $query = $query->where("value->{$searchColumn->column_name}", $parent_v);
+                            return $query;
+                        };
+                    }
                 }
             }
         }
