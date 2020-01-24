@@ -411,11 +411,6 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.select_load_ajax", config('exment.select_table_limit_count', 100)))
                 ->default("0")
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
-
-            $form->switchbool('show_all_options', exmtrans("custom_column.options.show_all_options"))
-                ->help(exmtrans("custom_column.help.show_all_options"))
-                ->default("0")
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_USER_ORGANIZATION()])]);
             
             // yes/no ----------------------------
             $form->text('true_value', exmtrans("custom_column.options.true_value"))

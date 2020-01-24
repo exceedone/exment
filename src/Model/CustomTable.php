@@ -1076,10 +1076,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $options
         ));
 
-        if (isset($custom_column) && boolval(array_get($custom_column, 'options.show_all_options'))) {
-            $options['all'] = true;
-        }
-
         // if ajax, return []. (set callQuery is false)
         if (!$this->isGetOptions(array_merge(['callQuery' => false], $options))) {
             return $this->getSelectedOptionDefault($selected_value);
