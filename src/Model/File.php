@@ -34,7 +34,7 @@ class File extends ModelBase
             return null;
         }
 
-        return pathinfo($this->local_filename)['extension'];
+        return pathinfo($this->local_filename, PATHINFO_EXTENSION);
     }
 
     /**
