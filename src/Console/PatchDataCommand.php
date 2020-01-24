@@ -116,6 +116,9 @@ class PatchDataCommand extends Command
             case 'remove_deleted_column':
                 $this->removeDeletedColumn();
                 return;
+            case 'remove_deleted_relation':
+                $this->removeDeletedRelation();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -622,6 +625,24 @@ class PatchDataCommand extends Command
 
             $revision->revisionable_type = $revisionable_type;
             $revision->save();
+        }
+    }
+
+    /**
+     * Remove already deleted relation
+     *
+     * @return void
+     */
+    protected function removeDeletedRelation()
+    {
+        $custom_form_blocks = Model\CustomFormBlock::where('form_block_type', '<>', Enums\FormBlockType::DEFAULT)->get();
+        foreach ($custom_form_blocks as $custom_form_block) {
+            $is_related = Model\CustomRelation::where('parent_custom_table_id', $custom_form_block->custom_form->custom_table_id)
+                ->where('child_custom_table_id', $custom_form_block->form_block_target_table_id)
+                ->exists();
+            if (!$is_related) {
+                $custom_form_block->delete();
+            }      
         }
     }
 

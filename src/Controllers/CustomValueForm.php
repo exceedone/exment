@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -501,15 +502,32 @@ EOT;
         // get getting target model name
         $changedata_target_column_id = array_get($form_column_options, 'changedata_target_column_id');
         $changedata_target_column = CustomColumn::getEloquent($changedata_target_column_id);
+        if(is_nullorempty($changedata_target_column)){
+            return;
+        }
+
         $changedata_target_table = $changedata_target_column->custom_table;
-        
+        if(is_nullorempty($changedata_target_table)){
+            return;
+        }
+
         // get table column. It's that when get model data, copied from column
         $changedata_column_id = array_get($form_column_options, 'changedata_column_id');
         $changedata_column = CustomColumn::getEloquent($changedata_column_id);
+        if(is_nullorempty($changedata_column)){
+            return;
+        }
+
         $changedata_table = $changedata_column->custom_table;
+        if(is_nullorempty($changedata_table)){
+            return;
+        }
 
         // get select target table
-        $select_target_table = CustomTable::getEloquent(array_get($changedata_target_column, 'options.select_target_table'));
+        $select_target_table = $changedata_target_column->select_target_table;
+        if(is_nullorempty($select_target_table)){
+            return;
+        }
 
         // if different $column_table and changedata_target_table, get to_target block name using relation
         if ($column_table->id != $changedata_target_table->id) {
@@ -549,6 +567,11 @@ EOT;
         $relationColumns = $custom_form_block->target_table->getSelectTableRelationColumns();
 
         foreach ($relationColumns as $relationColumn) {
+            // ignore n:n
+            if ($relationColumn['searchType'] == SearchType::MANY_TO_MANY) {
+                continue;
+            }
+
             $parent_column = $relationColumn['parent_column'];
             $parent_column_name = array_get($parent_column, 'column_name');
             $parent_table = $parent_column->select_target_table;
@@ -556,6 +579,11 @@ EOT;
             $child_column = $relationColumn['child_column'];
             $child_table = $child_column->select_target_table;
                     
+            // skip same table
+            if ($parent_table->id == $child_table->id) {
+                continue;
+            }
+
             // if not exists $column_name in $relatedlinkage_array
             if (!array_has($relatedlinkage_array, $parent_column_name)) {
                 $relatedlinkage_array[$parent_column_name] = [];
