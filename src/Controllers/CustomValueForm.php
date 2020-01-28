@@ -9,7 +9,6 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SearchType;
@@ -502,30 +501,30 @@ EOT;
         // get getting target model name
         $changedata_target_column_id = array_get($form_column_options, 'changedata_target_column_id');
         $changedata_target_column = CustomColumn::getEloquent($changedata_target_column_id);
-        if(is_nullorempty($changedata_target_column)){
+        if (is_nullorempty($changedata_target_column)) {
             return;
         }
 
         $changedata_target_table = $changedata_target_column->custom_table;
-        if(is_nullorempty($changedata_target_table)){
+        if (is_nullorempty($changedata_target_table)) {
             return;
         }
 
         // get table column. It's that when get model data, copied from column
         $changedata_column_id = array_get($form_column_options, 'changedata_column_id');
         $changedata_column = CustomColumn::getEloquent($changedata_column_id);
-        if(is_nullorempty($changedata_column)){
+        if (is_nullorempty($changedata_column)) {
             return;
         }
 
         $changedata_table = $changedata_column->custom_table;
-        if(is_nullorempty($changedata_table)){
+        if (is_nullorempty($changedata_table)) {
             return;
         }
 
         // get select target table
         $select_target_table = $changedata_target_column->select_target_table;
-        if(is_nullorempty($select_target_table)){
+        if (is_nullorempty($select_target_table)) {
             return;
         }
 

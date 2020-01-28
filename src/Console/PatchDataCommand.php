@@ -642,7 +642,7 @@ class PatchDataCommand extends Command
                 ->exists();
             if (!$is_related) {
                 $custom_form_block->delete();
-            }      
+            }
         }
     }
 

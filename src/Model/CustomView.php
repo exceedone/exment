@@ -537,7 +537,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 if (!isset($custom_column)) {
                     break;
                 }
-                $column_item = $custom_column->custom_column;
+                $column_item = $custom_column->column_item;
                 if (!isset($column_item)) {
                     break;
                 }
