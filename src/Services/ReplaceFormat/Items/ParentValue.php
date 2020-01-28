@@ -21,6 +21,11 @@ class ParentValue extends ItemBase
         }
 
         $parentModel = $this->custom_value->getParentValue(false);
-        return $parentModel->getValue($this->length_array[1], true, $this->matchOptions) ?? '';
+        
+        // replace length_string dotted comma
+        $length_string = $this->length_array[1];
+        $length_string = str_replace('.', ',', $length_string);
+
+        return $parentModel->getValue($length_string, true, $this->matchOptions) ?? '';
     }
 }
