@@ -403,7 +403,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         // create parent type validation array
         if ($systemColumn) {
-            $custom_relation_parent = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
+            $custom_relation_parent = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
             $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
             
             $parent_id_rules = isset($custom_table_parent) ? ['nullable', 'numeric', new CustomValueRule($custom_table_parent)] : [new EmptyRule];

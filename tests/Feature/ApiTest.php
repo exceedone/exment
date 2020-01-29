@@ -530,6 +530,54 @@ class ApiTest extends ApiTestBase
         ]);
     }
 
+    public function testCreateValueWithParent(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'child_table'), [
+            'parent_id' => 5,
+            'parent_type' => 'parent_table',
+            'value' => [
+                'text' => $text,
+                'index_text' => $text,
+                'user' => 2
+            ]
+        ])
+        ->assertStatus(200)
+        ->assertJsonFragment([
+            'parent_id' => '5',
+            'parent_type' => 'parent_table',
+            'value' => [
+                'text' => $text,
+                'index_text' => $text,
+                'user' => 2
+            ],
+            'created_user_id' => "1" //ADMIN
+        ]);
+    }
+
+    public function testCreateValueWrongParent(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'child_table'), [
+            'parent_id' => 999,
+            'parent_type' => 'parent_table',
+            'value' => [
+                'text' => $text,
+                'user' => 2
+            ]
+        ])
+        ->assertStatus(400)
+        ->assertJsonFragment([
+            'code' => ErrorCode::VALIDATION_ERROR
+        ]);
+    }
+
     public function testCreateMultipleValue(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
         $pre_count = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->count();
@@ -542,6 +590,74 @@ class ApiTest extends ApiTestBase
         ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), ['value' => $values])
             ->assertStatus(200);
         $count = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->count();
+        $this->assertTrue(($pre_count + 3) == $count);
+    }
+
+    public function testCreateMultipleValueWithParent(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+        $pre_count = getModelName('parent_table')::find(4)
+            ->getChildrenValues('child_table')->count();
+        $values = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $values[] = [
+                'parent_id' => 4,
+                'parent_type' => 'parent_table',
+                'text' => 'test' . date('YmdHis') . $i
+            ];
+        }
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'child_table'), ['value' => $values])
+            ->assertStatus(200);
+        $count = getModelName('parent_table')::find(4)
+            ->getChildrenValues('child_table')->count();
+        $this->assertTrue(($pre_count + 3) == $count);
+    }
+
+    public function testCreateMultipleValueWrongParent(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+        $values = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $values[] = [
+                'parent_id' => 4,
+                'parent_type' => $i == 2? 'user': 'parent_table',
+                'text' => 'test' . date('YmdHis') . $i
+            ];
+        }
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'child_table'), ['value' => $values])
+        ->assertStatus(400)
+        ->assertJsonFragment([
+            'code' => ErrorCode::VALIDATION_ERROR
+        ]);
+    }
+
+    public function testCreateMultipleValueWithParent2(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+        $parents = getModelName('parent_table')::find([1,2,3]);
+        $pre_count = $parents->sum(function($parent) {
+            return $parent->getChildrenValues('child_table')->count();
+        });
+            
+        $data = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $data[] = [
+                'parent_id' => $i,
+                'parent_type' => 'parent_table',
+                'value' => [
+                    'text' => 'test' . date('YmdHis') . $i
+                ]
+            ];
+        }
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'child_table'), ['data' => $data])
+            ->assertStatus(200);
+        $parents = getModelName('parent_table')::find([1,2,3]);
+        $count = $parents->sum(function($parent) {
+            return $parent->getChildrenValues('child_table')->count();
+        });
         $this->assertTrue(($pre_count + 3) == $count);
     }
 
@@ -721,6 +837,82 @@ class ApiTest extends ApiTestBase
                     'text' => $old_text,
                     'user' => 8,
                     'index_text' => $index_text,
+                ],
+                'updated_user_id' => '2' //ADMIN
+            ]);
+    }
+
+    public function testUpdateValueWithParent(){
+        $data = CustomTable::getEloquent('child_table')->getValueModel()
+            ->where('parent_id', 1)->first();
+
+        $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis') . '_update';
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', 'child_table', $data->id), [
+            'parent_id' => 6,
+            'value' => [
+                'text' => $text,
+            ]
+        ])
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'parent_id' => '6',
+                'parent_type' => 'parent_table',
+                'value' => [
+                    'text' => $text,
+                ],
+                'updated_user_id' => '2' //ADMIN
+            ]);
+    }
+
+    public function testUpdateValueOnlyParent(){
+        $data = CustomTable::getEloquent('child_table')->getValueModel()
+            ->where('parent_id', 3)->first();
+
+        $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', 'child_table', $data->id), [
+            'value' => [
+                'parent_id' => 8,
+                'parent_type' => 'parent_table',
+            ]
+        ])
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'parent_id' => '8',
+                'parent_type' => 'parent_table',
+                'value' => $data->value,
+                'updated_user_id' => '2' //ADMIN
+            ]);
+    }
+
+    public function testUpdateValueWithParent2(){
+        $data = CustomTable::getEloquent('child_table')->getValueModel()
+            ->where('parent_id', 2)->first();
+
+        $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis') . '_update';
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', 'child_table', $data->id), [
+            'value' => [
+                'parent_id' => 7,
+                'parent_type' => 'parent_table',
+                'text' => $text,
+            ]
+        ])
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'parent_id' => '7',
+                'parent_type' => 'parent_table',
+                'value' => [
+                    'text' => $text,
                 ],
                 'updated_user_id' => '2' //ADMIN
             ]);
