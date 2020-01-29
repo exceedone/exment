@@ -382,7 +382,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param string $column_name_prefix if not null, add column prefix name key.
      * @return mixed
      */
-    public function validateValue($value, $systemColumn = false, $custom_value_id = null, $column_name_prefix = null, $appendKeyName = true)
+    public function validateValue($value, $systemColumn = false, $custom_value_id = null, $column_name_prefix = null, $appendKeyName = true, $checkCustomValueExists = true)
     {
         // get fields for validation
         $rules = [];
@@ -406,7 +406,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $custom_relation_parent = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
             $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
             
-            $parent_id_rules = isset($custom_table_parent) ? ['nullable', 'numeric', new CustomValueRule($custom_table_parent)] : [new EmptyRule];
+            if(!isset($custom_table_parent)){
+                $parent_id_rules = [new EmptyRule];
+            }elseif(!$checkCustomValueExists){
+                $parent_id_rules = ['nullable', 'numeric'];
+            }else{
+                $parent_id_rules = ['nullable', 'numeric', new CustomValueRule($custom_table_parent)];
+            }
             $parent_type_rules = isset($custom_table_parent) ? ['nullable', "in:". $custom_table_parent->table_name] : [new EmptyRule];
     
             // create common validate rules.
