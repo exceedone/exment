@@ -160,7 +160,7 @@ class DefaultTableProvider extends ProviderBase
         }
 
         // execute validation
-        $validator = $this->custom_table->validateValue(array_dot_reverse($data), true, array_get($model, 'id'), 'value.');
+        $validator = $this->custom_table->validateValue(array_dot_reverse($data), true, array_get($model, 'id'), 'value.', true, false);
         if ($validator->fails()) {
             // create error message
             foreach ($validator->errors()->messages() as $message) {

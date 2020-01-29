@@ -244,8 +244,9 @@ class Notify extends ModelBase
                 });
         }
 
-        $users = $users->unique()->filter(function ($user) {
-            return \Exment::user()->base_user_id != $user->id;
+        $loginuser = \Exment::user();
+        $users = $users->unique()->filter(function ($user) use($loginuser) {
+            return is_nullorempty($loginuser) || $loginuser->base_user_id != $user->id;
         });
 
         // convert as NotifyTarget
@@ -445,7 +446,8 @@ class Notify extends ModelBase
     protected function approvalSendUser($mail_template, $custom_table, $custom_value, NotifyTarget $user, $checkHistory = true)
     {
         // if $user is myself, return false
-        if ($checkHistory && \Exment::user()->email == $user->email()) {
+        $loginuser = \Exment::user();
+        if ($checkHistory && !is_nullorempty($loginuser) && $loginuser->email == $user->email()) {
             return false;
         }
 
