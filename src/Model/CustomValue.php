@@ -675,7 +675,9 @@ abstract class CustomValue extends ModelBase
 
     public function setValue($key, $val = null, $forgetIfNull = false)
     {
-        $custom_columns = $this->custom_table->custom_columns;
+        $custom_columns = CustomColumn::allRecords(function($custom_column){
+            return $custom_column->custom_table_id == $this->custom_table->id;
+        });
 
         if (is_array($key)) {
             $key = collect($key)->filter(function($item, $itemkey) use($custom_columns) {
