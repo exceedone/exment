@@ -26,6 +26,13 @@ class Yesno extends CustomItem
         if (is_null($this->value)) {
             return 0;
         }
+        if (strtolower($this->value) === 'yes') {
+            return 1;
+        }
+        if (strtolower($this->value) === 'no') {
+            return 0;
+        }
+        return boolval($this->value) ? 1 : 0;
     }
 
     protected function getAdminFieldClass()

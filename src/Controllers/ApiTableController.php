@@ -453,7 +453,7 @@ class ApiTableController extends AdminControllerTableBase
         $is_single = false;
 
         $validator = Validator::make($request->all(), [
-            'value' => 'required',
+            'value' => 'required_without:data',
         ]);
         if ($validator->fails()) {
             return abortJson(400, [
@@ -461,11 +461,29 @@ class ApiTableController extends AdminControllerTableBase
             ], ErrorCode::VALIDATION_ERROR());
         }
 
-        $values = $request->get('value');
+        if ($request->has('value')) {
+            $values = $request->get('value');
+        } else {
+            $values = $request->get('data');
+        }
 
         if (!is_vector($values)) {
+            if ($request->has('parent_id')) {
+                $values['parent_id'] = $request->get('parent_id');
+            }
+            if ($request->has('parent_type')) {
+                $values['parent_type'] = $request->get('parent_type');
+            }
             $values = [$values];
             $is_single = true;
+        } else {
+            $values = collect($values)->map(function ($value) {
+                if (array_key_exists('value', $value)) {
+                    $value = array_merge($value, $value['value']);
+                    unset($value['value']);
+                }
+                return $value;
+            })->toArray();
         }
 
         $max_create_count = config('exment.api_max_create_count', 100);
@@ -485,11 +503,11 @@ class ApiTableController extends AdminControllerTableBase
             if (!isset($custom_value)) {
                 $value = $this->custom_table->setDefaultValue($value);
                 // // get fields for validation
-                $validator = $this->custom_table->validateValue($value);
+                $validator = $this->custom_table->validateValue($value, true);
             } else {
                 $value = $custom_value->mergeValue($value);
                 // // get fields for validation
-                $validator = $this->custom_table->validateValue($value, false, $custom_value->id);
+                $validator = $this->custom_table->validateValue($value, true, $custom_value->id);
             }
 
             if ($validator->fails()) {
@@ -520,6 +538,14 @@ class ApiTableController extends AdminControllerTableBase
             }
 
             $model->setValue($value);
+
+            if (array_key_exists('parent_id', $value)) {
+                $model->parent_id = $value['parent_id'];
+            }
+            if (array_key_exists('parent_type', $value)) {
+                $model->parent_type = $value['parent_type'];
+            }
+
             $model->saveOrFail();
 
             $response[] = getModelName($this->custom_table)::find($model->id)->makeHidden($this->custom_table->getMakeHiddenArray());

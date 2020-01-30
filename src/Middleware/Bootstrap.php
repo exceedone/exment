@@ -86,7 +86,7 @@ class Bootstrap
             $p = $plugin->matchPluginType(PluginType::SCRIPT) ? 'js' : 'css';
             $cdns = array_get($plugin, 'options.cdns', []);
             foreach ($cdns as $cdn) {
-                Ad::{$p}($cdn);
+                Ad::{$p.'last'}($cdn);
             }
 
             // get each scripts
@@ -95,7 +95,7 @@ class Bootstrap
             });
             if (!empty($items)) {
                 foreach ($items as $item) {
-                    Ad::{$p}($item);
+                    Ad::{$p.'last'}($item);
                 }
             }
         }
@@ -111,7 +111,7 @@ class Bootstrap
                 });
                 if (!empty($items)) {
                     foreach ($items as $item) {
-                        Ad::{$p}($item);
+                        Ad::{$p.'last'}($item);
                     }
                 }
             }

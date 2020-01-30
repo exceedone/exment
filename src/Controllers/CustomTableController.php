@@ -350,17 +350,17 @@ HTML;
         ->rowUpDown('priority')
         ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
 
-        if (boolval(config('exment.expart_mode', false))) {
-            $form->embeds('options', exmtrans("custom_table.custom_column_multi.options_label"), function ($form) {
-                $form->checkbox('form_action_disable_flg', exmtrans("custom_table.custom_column_multi.form_action_disable_flg"))
-                    ->help(exmtrans("custom_table.custom_column_multi.help.form_action_disable_flg"))
-                    ->options(FormActionType::transArray('custom_table.custom_column_multi.form_action_options'))
-                ;
+        $form->embeds('options', exmtrans("custom_table.custom_column_multi.options_label"), function ($form) {
+            $form->checkbox('form_action_disable_flg', exmtrans("custom_table.custom_column_multi.form_action_disable_flg"))
+                ->help(exmtrans("custom_table.custom_column_multi.help.form_action_disable_flg"))
+                ->options(FormActionType::transArray('custom_table.custom_column_multi.form_action_options'))
+            ;
+            if (boolval(config('exment.expart_mode', false))) {
                 $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format"))
-                    ->rules("max:200")
-                    ->help(sprintf(exmtrans("custom_table.custom_column_multi.help.table_label_format"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_label_format'))));
-            });
-        }
+                ->rules("max:200")
+                ->help(sprintf(exmtrans("custom_table.custom_column_multi.help.table_label_format"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_label_format'))));
+            }
+        });
 
         $form->tools(function (Form\Tools $tools) use ($id) {
             $tools->disableDelete();

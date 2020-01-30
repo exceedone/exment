@@ -382,14 +382,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param string $column_name_prefix if not null, add column prefix name key.
      * @return mixed
      */
-    public function validateValue($value, $systemColumn = false, $custom_value_id = null, $column_name_prefix = null)
+    public function validateValue($value, $systemColumn = false, $custom_value_id = null, $column_name_prefix = null, $appendKeyName = true, $checkCustomValueExists = true)
     {
         // get fields for validation
+        $rules = [];
         $fields = [];
-        $customAttributes = [];
+
+        // get custom attributes
+        $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
+
         foreach ($this->custom_columns as $custom_column) {
             $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value_id, null, $column_name_prefix, true, true);
-            $customAttributes[$column_name_prefix . $custom_column->column_name] = "{$custom_column->column_view_name}({$custom_column->column_name})";
 
             // if not contains $value[$custom_column->column_name], set as null.
             // if not set, we cannot validate null check because $field->getValidator returns false.
@@ -400,14 +403,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         // create parent type validation array
         if ($systemColumn) {
-            $custom_relation_parent = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
+            $custom_relation_parent = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
             $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
             
-            $parent_id_rules = isset($custom_table_parent) ? ['nullable', 'numeric', new CustomValueRule($custom_table_parent)] : [new EmptyRule];
+            if (!isset($custom_table_parent)) {
+                $parent_id_rules = [new EmptyRule];
+            } elseif (!$checkCustomValueExists) {
+                $parent_id_rules = ['nullable', 'numeric'];
+            } else {
+                $parent_id_rules = ['nullable', 'numeric', new CustomValueRule($custom_table_parent)];
+            }
             $parent_type_rules = isset($custom_table_parent) ? ['nullable', "in:". $custom_table_parent->table_name] : [new EmptyRule];
     
             // create common validate rules.
-            $rules = [
+            $rules = array_merge([
                 'id' => ['nullable', 'numeric'],
                 'parent_id' => $parent_id_rules,
                 'parent_type' => $parent_type_rules,
@@ -415,14 +424,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'created_at' => ['nullable', 'date'],
                 'updated_at' => ['nullable', 'date'],
                 'deleted_at' => ['nullable', 'date'],
-            ];
-            foreach ($rules as $key => $rule) {
-                $customAttributes[$key] = exmtrans("common.$key") . "($key)";
-            }
+            ], $rules);
         }
 
         // foreach for field validation rules
-        $rules = [];
         foreach ($fields as $field) {
             // get field validator
             $field_validator = $field->getValidator($value);
@@ -440,6 +445,36 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
         return $validator;
+    }
+
+    /**
+     * get validation custom attribute
+     */
+    public function getValidateCustomAttributes($systemColumn = false, $column_name_prefix = null, $appendKeyName = true)
+    {
+        $customAttributes = [];
+
+        foreach ($this->custom_columns as $custom_column) {
+            $customAttributes[$column_name_prefix . $custom_column->column_name] = "{$custom_column->column_view_name}" . ($appendKeyName ? "({$custom_column->column_name})" : "");
+
+            if ($systemColumn) {
+                $rules = [
+                    'id',
+                    'parent_id',
+                    'parent_type',
+                    'suuid',
+                    'created_at',
+                    'updated_at',
+                    'deleted_at',
+                ];
+                    
+                foreach ($rules as $key => $rule) {
+                    $customAttributes[$key] = exmtrans("common.$key") . ($appendKeyName ? "($key)" : "");
+                }
+            }
+        }
+        
+        return $customAttributes;
     }
     
 

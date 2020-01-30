@@ -65,6 +65,8 @@ abstract class ItemBase
             $classname = ValueUrl::class;
         } elseif (in_array($key, ["value", SystemTableName::BASEINFO])) {
             $classname = Value::class;
+        } elseif ($key == "select_table") {
+            $classname = SelectTableValue::class;
         } elseif ($key == "sum") {
             $classname = Sum::class;
         } elseif ($key == "child") {
