@@ -477,7 +477,7 @@ class ApiTableController extends AdminControllerTableBase
             $values = [$values];
             $is_single = true;
         } else {
-            $values = collect($values)->map(function($value) {
+            $values = collect($values)->map(function ($value) {
                 if (array_key_exists('value', $value)) {
                     $value = array_merge($value, $value['value']);
                     unset($value['value']);

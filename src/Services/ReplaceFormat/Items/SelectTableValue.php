@@ -1,8 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
-use Exceedone\Exment\Enums\SystemTableName;
-
 /**
  * replace value
  */

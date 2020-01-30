@@ -406,11 +406,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $custom_relation_parent = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
             $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
             
-            if(!isset($custom_table_parent)){
+            if (!isset($custom_table_parent)) {
                 $parent_id_rules = [new EmptyRule];
-            }elseif(!$checkCustomValueExists){
+            } elseif (!$checkCustomValueExists) {
                 $parent_id_rules = ['nullable', 'numeric'];
-            }else{
+            } else {
                 $parent_id_rules = ['nullable', 'numeric', new CustomValueRule($custom_table_parent)];
             }
             $parent_type_rules = isset($custom_table_parent) ? ['nullable', "in:". $custom_table_parent->table_name] : [new EmptyRule];
@@ -450,13 +450,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * get validation custom attribute
      */
-    public function getValidateCustomAttributes($systemColumn = false, $column_name_prefix = null, $appendKeyName = true){
+    public function getValidateCustomAttributes($systemColumn = false, $column_name_prefix = null, $appendKeyName = true)
+    {
         $customAttributes = [];
 
         foreach ($this->custom_columns as $custom_column) {
             $customAttributes[$column_name_prefix . $custom_column->column_name] = "{$custom_column->column_view_name}" . ($appendKeyName ? "({$custom_column->column_name})" : "");
 
-            if($systemColumn){
+            if ($systemColumn) {
                 $rules = [
                     'id',
                     'parent_id',
@@ -469,7 +470,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     
                 foreach ($rules as $key => $rule) {
                     $customAttributes[$key] = exmtrans("common.$key") . ($appendKeyName ? "($key)" : "");
-                } 
+                }
             }
         }
         

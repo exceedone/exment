@@ -675,21 +675,23 @@ abstract class CustomValue extends ModelBase
 
     public function setValue($key, $val = null, $forgetIfNull = false)
     {
-        $custom_columns = CustomColumn::allRecords(function($custom_column){
+        $custom_columns = CustomColumn::allRecords(function ($custom_column) {
             return $custom_column->custom_table_id == $this->custom_table->id;
         });
 
         if (is_array($key)) {
-            $key = collect($key)->filter(function($item, $itemkey) use($custom_columns) {
-                return $custom_columns->contains(function ($rec) use($itemkey) {
+            $key = collect($key)->filter(function ($item, $itemkey) use ($custom_columns) {
+                return $custom_columns->contains(function ($rec) use ($itemkey) {
                     return $rec->column_name == $itemkey;
                 });
             })->toArray();
         } else {
-            $is_exists = $custom_columns->contains(function ($rec) use($key) {
+            $is_exists = $custom_columns->contains(function ($rec) use ($key) {
                 return $rec->column_name == $key;
             });
-            if (!$is_exists) return $this;
+            if (!$is_exists) {
+                return $this;
+            }
         }
         return $this->setJson('value', $key, $val, $forgetIfNull);
     }
