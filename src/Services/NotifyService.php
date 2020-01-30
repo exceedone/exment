@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Widgets\ModalForm;
@@ -274,10 +275,16 @@ class NotifyService
 
         // get notify actions
         $notify_actions = $notify->notify_actions;
+        $plugins = Plugin::getPluginsByTable($custom_value->custom_table);
         foreach ($notify_actions as $notify_action) {
             if (NotifyAction::isChatMessage($notify_action) != $is_chat) {
                 continue;
             }
+            Plugin::pluginPreparing($plugins, 'before_notification', [
+                'custom_table' => $custom_value->custom_table,
+                'custom_value' => $custom_value,
+                'notify' => $notify,
+            ]);
             switch ($notify_action) {
                 case NotifyAction::EMAIL:
                     // send mail
@@ -349,6 +356,11 @@ class NotifyService
                     $notify->notify(new Notifications\MicrosoftTeamsSender($slack_subject, $slack_content));
                     break;
             }
+            Plugin::pluginPreparing($plugins, 'after_notification', [
+                'custom_table' => $custom_value->custom_table,
+                'custom_value' => $custom_value,
+                'notify' => $notify,
+            ]);
         }
     }
 

@@ -400,6 +400,8 @@ return [
                 'form_menubutton_edit' => 'フォームのメニューボタン（更新時）',
                 'workflow_action_executing' => 'ワークフロース実行前',
                 'workflow_action_executed' => 'ワークフロース実行後',
+                'before_notification' => '通知前',
+                'after_notification' => '通知後',
             ]
         ],
 

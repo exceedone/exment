@@ -81,6 +81,7 @@ class PluginType extends EnumBase
                         $custom_value,
                         [
                             'workflow_action' => array_get($options, 'workflow_action'),
+                            'notify' => array_get($options, 'notify'),
                         ]
                     );
                 case PluginType::BATCH:
