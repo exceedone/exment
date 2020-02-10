@@ -167,51 +167,54 @@ trait InitializeFormTrait
                 ;
         }
 
-        // use mail setting
-        if (!boolval(config('exment.mail_setting_env_force', false))) {
-            $form->exmheader(exmtrans('system.system_mail'))->hr();
+        ///// system page only
+        if ($system_page) {
+            // use mail setting
+            if (!boolval(config('exment.mail_setting_env_force', false))) {
+                $form->exmheader(exmtrans('system.system_mail'))->hr();
 
-            $form->description(exmtrans("system.help.system_mail"));
+                $form->description(exmtrans("system.help.system_mail"));
 
-            $form->text('system_mail_host', exmtrans("system.system_mail_host"));
+                $form->text('system_mail_host', exmtrans("system.system_mail_host"));
 
-            $form->text('system_mail_port', exmtrans("system.system_mail_port"));
+                $form->text('system_mail_port', exmtrans("system.system_mail_port"));
 
-            $form->text('system_mail_encryption', exmtrans("system.system_mail_encryption"))
-                ->help(exmtrans("system.help.system_mail_encryption"));
+                $form->text('system_mail_encryption', exmtrans("system.system_mail_encryption"))
+                    ->help(exmtrans("system.help.system_mail_encryption"));
+                    
+                $form->text('system_mail_username', exmtrans("system.system_mail_username"));
+
+                $form->password('system_mail_password', exmtrans("system.system_mail_password"));
                 
-            $form->text('system_mail_username', exmtrans("system.system_mail_username"));
+                $form->email('system_mail_from', exmtrans("system.system_mail_from"))
+                    ->help(exmtrans("system.help.system_mail_from"));
+            }
 
-            $form->password('system_mail_password', exmtrans("system.system_mail_password"));
-            
-            $form->email('system_mail_from', exmtrans("system.system_mail_from"))
-                ->help(exmtrans("system.help.system_mail_from"));
+            $form->exmheader(exmtrans('system.password_policy'))->hr();
+
+            $form->description(exmtrans("system.help.password_policy"));
+
+            $form->switchbool('complex_password', exmtrans("system.complex_password"))
+                ->help(exmtrans("system.help.complex_password"));
+
+            $form->number('password_expiration_days', exmtrans("system.password_expiration_days"))
+                ->default(0)
+                ->min(0)
+                ->max(999)
+                ->help(exmtrans("system.help.password_expiration_days"));
+
+            $form->number('password_history_cnt', exmtrans("system.password_history_cnt"))
+                ->default(0)
+                ->min(0)
+                ->max(20)
+                ->help(exmtrans("system.help.password_history_cnt"));
+
+            $form->exmheader(exmtrans('system.ip_filter'))->hr();
+            $form->description(exmtrans("system.help.ip_filter"));
+
+            $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
+            $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
         }
-
-        $form->exmheader(exmtrans('system.password_policy'))->hr();
-
-        $form->description(exmtrans("system.help.password_policy"));
-
-        $form->switchbool('complex_password', exmtrans("system.complex_password"))
-            ->help(exmtrans("system.help.complex_password"));
-
-        $form->number('password_expiration_days', exmtrans("system.password_expiration_days"))
-            ->default(0)
-            ->min(0)
-            ->max(999)
-            ->help(exmtrans("system.help.password_expiration_days"));
-
-        $form->number('password_history_cnt', exmtrans("system.password_history_cnt"))
-            ->default(0)
-            ->min(0)
-            ->max(20)
-            ->help(exmtrans("system.help.password_history_cnt"));
-
-        $form->exmheader(exmtrans('system.ip_filter'))->hr();
-        $form->description(exmtrans("system.help.ip_filter"));
-
-        $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
-        $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
 
         // template list
         if ($add_template) {

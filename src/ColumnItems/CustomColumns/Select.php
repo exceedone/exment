@@ -88,4 +88,11 @@ class Select extends CustomItem
     {
         return $this->custom_column->createSelectOptions();
     }
+    
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+        $index = \DB::getQueryGrammar()->wrap($this->index());
+        // index is wraped 
+        $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))", $input);
+    }
 }

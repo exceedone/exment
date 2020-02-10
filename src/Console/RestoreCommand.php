@@ -140,9 +140,11 @@ __EOT__;
             }
             
             $fromDirectory = $tmpDisk->path(path_join($this->diskService->tmpDiskItem()->dirName(), $keyname));
+
+            $s = $setting[0];
             // is local file
-            if (is_string($setting)) {
-                $topath = base_path($setting);
+            if (is_string($s)) {
+                $topath = $s;
                 $success = \File::copyDirectory($fromDirectory, $topath);
                 if (!$success) {
                     $result = false;

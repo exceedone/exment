@@ -93,14 +93,16 @@ class BackupCommand extends Command
         })->toArray();
         
         foreach ($settings as $setting) {
+            $s = $setting[0];
+
             // is local file
-            if (is_string($setting)) {
-                $from = base_path($setting);
+            if (is_string($s)) {
+                $from = $s;
                 if (!\File::exists($from)) {
                     continue;
                 }
 
-                $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting);
+                $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
                 
                 if (!$this->tmpDisk()->exists($to)) {
                     $this->tmpDisk()->makeDirectory($to, 0755, true);
