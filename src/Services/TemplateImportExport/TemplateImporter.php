@@ -47,9 +47,7 @@ class TemplateImporter
     public function importTemplate($importKeys)
     {
         try {
-            if (!is_array($importKeys)) {
-                $importKeys = [$importKeys];
-            }
+            $importKeys = (array)$importKeys;
             
             $items = $this->getTemplates();
             foreach (array_filter($importKeys) as $importKey) {
@@ -85,6 +83,7 @@ class TemplateImporter
 
                 // if crowd
                 if (array_get($item, 'template_type') == 'user') {
+                    $this->diskService->isNeedDownload = true;
                     $this->diskService->syncFromDisk();
                     $path = path_join($this->diskService->localSyncDiskItem()->dirFullPath(), $templateName, 'config.json');
     

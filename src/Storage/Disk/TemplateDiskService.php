@@ -70,14 +70,18 @@ class TemplateDiskService extends DiskServiceBase
             $localSyncDisk->makeDirectory($localSyncDiskItem->dirName(), 0755, true);
         }
         // get file list
-        $files = $disk->allFiles($diskItem->dirFullPath());
+        $files = $disk->allFiles($diskItem->dirName());
         foreach ($files as $file) {
             // copy from crowd to local
             $stream = $disk->readStream($file);
             if ($localSyncDisk->exists($file)) {
                 $localSyncDisk->delete($file);
             }
-            $localSyncDisk->writeStream($file, $stream);
+
+            $localPath = path_join($localSyncDiskItem->dirName(), $file);
+            $localSyncDisk->writeStream($localPath, $stream);
+
+            fclose($stream);
         }
         
         return true;
