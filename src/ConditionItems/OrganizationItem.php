@@ -57,10 +57,14 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
     {
         $model = getModelName(SystemTableName::ORGANIZATION)::find($value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
-            $result = $model->map(function ($row) {
+            $result = $model->filter()->map(function ($row) {
                 return $row->getValue('organization_name');
             })->implode(',');
         } else {
+            if(!isset($model)){
+                return null;
+            }
+
             $result = $model->getValue('organization_name');
         }
 
