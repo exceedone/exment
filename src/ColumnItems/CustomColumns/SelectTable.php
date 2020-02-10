@@ -224,8 +224,9 @@ class SelectTable extends CustomItem
     
     public function getAdminFilterWhereQuery($query, $input)
     {
-        $index = $this->index();
-        $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE(`$index`, '[', ''), ' ', ''), '[', ''), '\\\"', ''))", $input);
+        $index = \DB::getQueryGrammar()->wrap($this->index());
+        // index is wraped 
+        $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))", $input);
     }
 
     protected function setAdminFilterOptions(&$filter)
