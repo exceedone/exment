@@ -84,14 +84,15 @@ class PluginServiceProvider extends ServiceProvider
                 $defaultFunction = 'body';
                 break;
         }
+        $isApi = $plugin_type == PluginType::API;
 
         Route::group([
             'prefix'        => url_join(config('admin.route.prefix'), $prefix),
             'namespace'     => 'Exceedone\Exment\Services\Plugin',
-            'middleware'    => config('admin.route.middleware'),
-        ], function (Router $router) use ($plugin_type, $pluginPage, $defaultFunction, $json) {
+            'middleware'    => $isApi ? ['api', 'adminapi'] : config('admin.route.middleware'),
+        ], function (Router $router) use ($plugin_type, $pluginPage, $isApi, $defaultFunction, $json) {
             $routes = array_get($json, 'route', []);
-            
+
             // if not has index endpoint, set.
             if (!$this->hasPluginRouteIndex($routes)) {
                 $routes[] = [
@@ -104,7 +105,7 @@ class PluginServiceProvider extends ServiceProvider
             foreach ($routes as $route) {
                 $method = array_get($route, 'method');
                 $methods = is_string($method) ? [$method] : $method;
-                $plugin_name = $plugin_type == PluginType::API? 'PluginApiController': 'PluginPageController';
+                $plugin_name = $isApi ? 'PluginApiController': 'PluginPageController';
                 foreach ($methods as $method) {
                     if ($method === "") {
                         $method = 'get';
@@ -113,7 +114,7 @@ class PluginServiceProvider extends ServiceProvider
                     // call method in these http method
                     if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
                         $router = Route::{$method}(array_get($route, 'uri'), $plugin_name . '@'. array_get($route, 'function'));
-                        $router->middleware(ApiScope::getScopeString($plugin_type == PluginType::API, ApiScope::PLUGIN));
+                        $router->middleware(ApiScope::getScopeString($isApi, ApiScope::PLUGIN));
                     }
                 }
             }
