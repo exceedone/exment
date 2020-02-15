@@ -62,7 +62,7 @@ class DefaultTableProvider extends ProviderBase
         $lastColumns = ['created_at','updated_at','deleted_at'];
 
         // get custom columns
-        $custom_columns = $this->custom_table->custom_columns()->get(['column_name', 'column_view_name', 'column_type'])->toArray();
+        $custom_columns = $this->custom_table->custom_columns()->get();
         return [$firstColumns, $custom_columns, $lastColumns];
     }
 
@@ -155,11 +155,12 @@ class DefaultTableProvider extends ProviderBase
         $body_items = [];
         foreach ($columns as $column) {
             // get key.
-            if (is_array($column)) {
+            if (is_array($column) || $column instanceof CustomColumn) {
                 $key = (isset($array_header_key) ? $array_header_key : "").array_get($column, 'column_name');
             } else {
                 $key = (isset($array_header_key) ? $array_header_key : "").$column;
             }
+            
             $value = array_get($record, $key);
             if (is_array($value)) {
                 $value = implode(",", $value);
@@ -171,10 +172,45 @@ class DefaultTableProvider extends ProviderBase
                 if (ColumnType::isAttachment(array_get($column, 'column_type'))) {
                     $value = ExmentFile::getUrl($value);
                 }
+
+                // if select table and has select_export_column_id, change value
+                elseif(ColumnType::isSelectTable(array_get($column, 'column_type'))){
+                    $value = $this->getSelectTableExportValue($column, $value);
+                }
             }
 
             $body_items[] = $value;
         }
         return $body_items;
+    }
+
+    /**
+     * Get select target value. Convert to export_column_id
+     *
+     * @param CustomColumn $column
+     * @param string|int|null $value export id
+     * @return mixed
+     */
+    protected function getSelectTableExportValue($column, $value){
+        if(is_nullorempty($value)){
+            return $value;
+        }
+        
+        $select_export_column_id = array_get($column, 'options.select_export_column_id');
+        if(is_nullorempty($select_export_column_id)){
+            return $value;
+        }
+        
+        $select_target_table = $column->select_target_table;
+        if(is_nullorempty($select_target_table)){
+            return $value;
+        }
+
+        $select_custom_value = $select_target_table->getValueModel($value);
+        if(is_nullorempty($select_custom_value)){
+            return $value;
+        }
+
+        return $select_custom_value->getValue($select_export_column_id, true);
     }
 }
