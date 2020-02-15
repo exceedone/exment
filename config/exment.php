@@ -510,6 +510,26 @@ return [
     
     /*
     |--------------------------------------------------------------------------
+    | Disabled import & export csv
+    |--------------------------------------------------------------------------
+    |
+    | Disabled import & export csv
+    |
+    */
+    'export_import_export_disabled_csv' => env('EXMENT_IMPORT_EXPORT_DISABLED_CSV', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled import & export excel
+    |--------------------------------------------------------------------------
+    |
+    | Disabled import & export excel
+    |
+    */
+    'export_import_export_disabled_excel' => env('EXMENT_IMPORT_EXPORT_DISABLED_EXCEL', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | API default get data count 
     |--------------------------------------------------------------------------
     |

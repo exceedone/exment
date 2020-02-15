@@ -1342,7 +1342,7 @@ return [
             'target_column_name' => 'Replacement target column name (alphanumeric characters)',
             'help' => [
                 'description' => 'You can import the data of each table into Exment. <br />Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for details such as the procedure.',
-                'custom_table_file' => 'Select the CSV file that you output the template.',
+                'custom_table_file' => 'Select the %s file that you output the template.',
                 'primary_key' => 'Select the field to narrow down the update data.<br />If this field value matches existing data, it will be imported as update data.<br />If matching data does not exist, it will be imported as new data.',
                 'import_plugin' => 'If you want to process the import file independently, select it after uploading the plug-in in advance.',
                 'error_flow' => 'If an error occurs due to incomplete data , select whether to capture normal data.',
