@@ -402,7 +402,7 @@ class Notify extends ModelBase
 
         // find data. where equal target_date
         if (isset($this->custom_view_id)) {
-            $datalist = $this->custom_view->setValueFilters($table->getValueModel())
+            $datalist = $this->custom_view->setValueFilters($table->getValueModel()->query())
                 ->whereRaw("$raw = ?", [$target_date_str])->get();
         } else {
             $datalist = getModelName($table)::whereRaw("$raw = ?", [$target_date_str])->get();
