@@ -90,7 +90,25 @@ class ApiController extends AdminControllerBase
      * get column list
      * @return mixed
      */
+    public function columns(Request $request)
+    {
+        return $this->_getcolumns($request, false);
+    }
+
+    /**
+     * get column list
+     * @return mixed
+     */
     public function indexcolumns(Request $request)
+    {
+        return $this->_getcolumns($request);
+    }
+
+    /**
+     * get column list
+     * @return mixed
+     */
+    protected function _getcolumns(Request $request, $onlyIndex = true)
     {
         if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
@@ -109,7 +127,11 @@ class ApiController extends AdminControllerBase
             return [];
         }
 
-        return CustomTable::getEloquent($table)->custom_columns()->indexEnabled()->get();
+        if($onlyIndex){
+            return CustomTable::getEloquent($table)->custom_columns()->indexEnabled()->get();
+        }else{
+            return CustomTable::getEloquent($table)->custom_columns()->get();
+        }
     }
 
     /**
