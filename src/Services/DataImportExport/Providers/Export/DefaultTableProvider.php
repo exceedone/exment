@@ -5,7 +5,9 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
 
 class DefaultTableProvider extends ProviderBase
@@ -179,6 +181,11 @@ class DefaultTableProvider extends ProviderBase
                 }
             }
 
+            // export parent id
+            elseif($view_column_type == ConditionType::SYSTEM && $column == 'parent_id'){
+                $value = $this->getParentExportValue($value, array_get($record, 'parent_type'));
+            }
+
             $body_items[] = $value;
         }
         return $body_items;
@@ -213,5 +220,42 @@ class DefaultTableProvider extends ProviderBase
         }
 
         return $select_custom_value->getValue($select_export_column_id, true);
+    }
+    
+    /**
+     * Get parent target value. Convert to export_column_id
+     *
+     * @param CustomColumn $column
+     * @param string|int|null $value export id
+     * @return mixed
+     */
+    protected function getParentExportValue($value, $parent_table)
+    {
+        if (is_nullorempty($value) || is_nullorempty($parent_table)) {
+            return $value;
+        }
+        
+        // get relation
+        $relation = CustomRelation::getRelationByParentChild($parent_table, $this->custom_table);
+        if(!isset($relation)){
+            return $value;
+        }
+
+        $parent_export_column_id = array_get($relation, 'options.parent_export_column_id');
+        if (is_nullorempty($parent_export_column_id)) {
+            return $value;
+        }
+        
+        $parent_table = CustomTable::getEloquent($parent_table);
+        if (is_nullorempty($parent_table)) {
+            return $value;
+        }
+
+        $parent_custom_value = $parent_table->getValueModel($value);
+        if (is_nullorempty($parent_custom_value)) {
+            return $value;
+        }
+
+        return $parent_custom_value->getValue($parent_export_column_id, true);
     }
 }
