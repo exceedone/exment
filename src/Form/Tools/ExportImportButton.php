@@ -61,10 +61,10 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         // output formats
         $formats = [];
         // check config value
-        if(!boolval(config('exment.export_import_export_disabled_csv', false))){
+        if (!boolval(config('exment.export_import_export_disabled_csv', false))) {
             $formats['csv'] = 'CSV';
         }
-        if(!boolval(config('exment.export_import_export_disabled_excel', false))){
+        if (!boolval(config('exment.export_import_export_disabled_excel', false))) {
             $formats['excel'] = 'Excel';
         }
 

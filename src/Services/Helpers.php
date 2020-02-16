@@ -503,16 +503,15 @@ if (!function_exists('deleteDirectory')) {
             return;
         }
         
-        try{
+        try {
             $directories = $disk->directories($path);
             foreach ($directories as $directory) {
                 deleteDirectory($disk, $directory);
             }
     
             $disk->delete($disk->files($path));
-            $disk->deleteDirectory($path);    
-        }
-        catch(\Exception $ex){
+            $disk->deleteDirectory($path);
+        } catch (\Exception $ex) {
         }
     }
 }

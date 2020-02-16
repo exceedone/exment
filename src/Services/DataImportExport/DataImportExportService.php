@@ -260,10 +260,10 @@ class DataImportExportService extends AbstractExporter
         // import formats
         $formats = [];
         // check config value
-        if(!boolval(config('exment.export_import_export_disabled_csv', false))){
+        if (!boolval(config('exment.export_import_export_disabled_csv', false))) {
             $formats['csv'] = 'csv';
         }
-        if(!boolval(config('exment.export_import_export_disabled_excel', false))){
+        if (!boolval(config('exment.export_import_export_disabled_excel', false))) {
             $formats['excel'] = 'xlsx';
         }
 
@@ -273,7 +273,9 @@ class DataImportExportService extends AbstractExporter
             ->options($fileOption)
             ->required()
             ->removable()
-            ->attribute(['accept' => collect(array_values($formats))->map(function($format){return '.' . $format;})->implode(',')])
+            ->attribute(['accept' => collect(array_values($formats))->map(function ($format) {
+                return '.' . $format;
+            })->implode(',')])
             ->help(exmtrans('custom_value.import.help.custom_table_file', implode(',', array_values($formats))) . array_get($fileOption, 'maxFileSizeHelp'));
         
         // get import primary key list

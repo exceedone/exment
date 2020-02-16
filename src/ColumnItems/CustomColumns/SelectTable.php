@@ -164,8 +164,7 @@ class SelectTable extends CustomItem
         $callback = null;
         // if config "select_relation_linkage_disabled" is true, not callback
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
-        }
-        elseif (isset($relationColumn)) {
+        } elseif (isset($relationColumn)) {
             $parent_value = $this->custom_column->custom_table->getValueModel($this->id);
             $parent_v = array_get($parent_value, 'value.' . $relationColumn['parent_column']->column_name);
             $parent_target_table_id = $relationColumn['parent_column']->select_target_table->id;
@@ -228,7 +227,7 @@ class SelectTable extends CustomItem
     public function getAdminFilterWhereQuery($query, $input)
     {
         $index = \DB::getQueryGrammar()->wrap($this->index());
-        // index is wraped 
+        // index is wraped
         $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))", $input);
     }
 

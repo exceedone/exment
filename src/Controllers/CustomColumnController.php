@@ -739,7 +739,8 @@ class CustomColumnController extends AdminControllerTableBase
      *
      * @return void
      */
-    protected function getImportExportColumnSelect($select_table, $form, $id, $isImport = true){
+    protected function getImportExportColumnSelect($select_table, $form, $id, $isImport = true)
+    {
         $data = $form->data();
         if (!isset($data)) {
             return [];

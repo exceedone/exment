@@ -174,7 +174,7 @@ class DefaultTableProvider extends ProviderBase
                 }
 
                 // if select table and has select_export_column_id, change value
-                elseif(ColumnType::isSelectTable(array_get($column, 'column_type'))){
+                elseif (ColumnType::isSelectTable(array_get($column, 'column_type'))) {
                     $value = $this->getSelectTableExportValue($column, $value);
                 }
             }
@@ -191,23 +191,24 @@ class DefaultTableProvider extends ProviderBase
      * @param string|int|null $value export id
      * @return mixed
      */
-    protected function getSelectTableExportValue($column, $value){
-        if(is_nullorempty($value)){
+    protected function getSelectTableExportValue($column, $value)
+    {
+        if (is_nullorempty($value)) {
             return $value;
         }
         
         $select_export_column_id = array_get($column, 'options.select_export_column_id');
-        if(is_nullorempty($select_export_column_id)){
+        if (is_nullorempty($select_export_column_id)) {
             return $value;
         }
         
         $select_target_table = $column->select_target_table;
-        if(is_nullorempty($select_target_table)){
+        if (is_nullorempty($select_target_table)) {
             return $value;
         }
 
         $select_custom_value = $select_target_table->getValueModel($value);
-        if(is_nullorempty($select_custom_value)){
+        if (is_nullorempty($select_custom_value)) {
             return $value;
         }
 

@@ -61,7 +61,7 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
                 return $row->getValue('organization_name');
             })->implode(',');
         } else {
-            if(!isset($model)){
+            if (!isset($model)) {
                 return null;
             }
 

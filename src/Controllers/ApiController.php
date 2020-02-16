@@ -127,9 +127,9 @@ class ApiController extends AdminControllerBase
             return [];
         }
 
-        if($onlyIndex){
+        if ($onlyIndex) {
             return CustomTable::getEloquent($table)->custom_columns()->indexEnabled()->get();
-        }else{
+        } else {
             return CustomTable::getEloquent($table)->custom_columns()->get();
         }
     }
