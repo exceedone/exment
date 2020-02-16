@@ -530,6 +530,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Select relation linkage disabled
+    |--------------------------------------------------------------------------
+    |
+    | Disable select relation linkage
+    | "related linkage": When selecting a value, change the choices of other list. It's for 1:n relation.
+    | 
+    */
+    'select_relation_linkage_disabled' => env('SELECT_RELATION_LINKAGE_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | API default get data count 
     |--------------------------------------------------------------------------
     |
