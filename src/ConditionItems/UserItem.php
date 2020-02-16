@@ -61,7 +61,7 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
                 return $row->getValue('user_name');
             })->implode(',');
         } else {
-            if(!isset($model)){
+            if (!isset($model)) {
                 return null;
             }
 

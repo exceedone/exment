@@ -92,7 +92,7 @@ class Select extends CustomItem
     public function getAdminFilterWhereQuery($query, $input)
     {
         $index = \DB::getQueryGrammar()->wrap($this->index());
-        // index is wraped 
+        // index is wraped
         $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))", $input);
     }
 }

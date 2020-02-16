@@ -256,13 +256,27 @@ class DataImportExportService extends AbstractExporter
         $form = new ModalForm();
 
         $fileOption = Define::FILE_OPTION();
+        
+        // import formats
+        $formats = [];
+        // check config value
+        if (!boolval(config('exment.export_import_export_disabled_csv', false))) {
+            $formats['csv'] = 'csv';
+        }
+        if (!boolval(config('exment.export_import_export_disabled_excel', false))) {
+            $formats['excel'] = 'xlsx';
+        }
+
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
-            ->rules('mimes:csv,xlsx')->setWidth(8, 3)->addElementClass('custom_table_file')
+            ->rules('mimes:' . implode(',', array_keys($formats)))->setWidth(8, 3)->addElementClass('custom_table_file')
             ->options($fileOption)
             ->required()
             ->removable()
-            ->help(exmtrans('custom_value.import.help.custom_table_file') . array_get($fileOption, 'maxFileSizeHelp'));
+            ->attribute(['accept' => collect(array_values($formats))->map(function ($format) {
+                return '.' . $format;
+            })->implode(',')])
+            ->help(exmtrans('custom_value.import.help.custom_table_file', implode(',', array_values($formats))) . array_get($fileOption, 'maxFileSizeHelp'));
         
         // get import primary key list
         $form->select('select_primary_key', exmtrans('custom_value.import.primary_key'))
