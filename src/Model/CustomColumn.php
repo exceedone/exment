@@ -69,10 +69,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                             'table_name' => 'options.select_import_table_name',
                             'column_name' => 'options.select_import_column_name',
                         ]
-                    ]
+                    ],
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.select_export_table_name',
+                            'column_name' => 'options.select_export_column_name',
+                        ]
+                    ], 
                 ],
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
-                'uniqueKeyFunctionArgs' => ['options.select_import_column_id'],
+                'uniqueKeyFunctionArgs' => ['options.select_import_column_id', 'options.select_export_column_id'],
             ],
         ]
     ];
@@ -588,5 +594,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     public static function importReplaceJson(&$json, $options = [])
     {
         static::importReplaceJsonCustomColumn($json, 'options.select_import_column_id', 'options.select_import_column_name', 'options.select_import_table_name', $options);
+        static::importReplaceJsonCustomColumn($json, 'options.select_export_column_id', 'options.select_export_column_name', 'options.select_export_table_name', $options);
     }
 }
