@@ -138,7 +138,17 @@ class CustomRelationController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'relation_type', 'value' => [RelationType::ONE_TO_MANY]])])
                 ->options(function ($select_table, $form) use ($custom_table) {
                     return CustomTable::getEloquent($custom_table)->getColumnsSelectOptions([
-                        'append_table' => true,
+                        'append_table' => false,
+                        'include_system' => false
+                    ]) ?? [];
+                });
+            
+            $form->select('parent_export_column_id', exmtrans("custom_relation.parent_export_column_id"))
+                ->help(exmtrans("custom_relation.help.parent_export_column_id", $manual_url))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'relation_type', 'value' => [RelationType::ONE_TO_MANY]])])
+                ->options(function ($select_table, $form) use ($custom_table) {
+                    return CustomTable::getEloquent($custom_table)->getColumnsSelectOptions([
+                        'append_table' => false,
                         'include_system' => false
                     ]) ?? [];
                 });

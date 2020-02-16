@@ -1204,11 +1204,13 @@ return [
         'parent_custom_table' => 'Parent Table',
         'child_custom_table' => 'Child Table',
         'parent_import_column_id' => 'Key column when importing',
+        'parent_export_column_id' => 'Key column when exporting',
 
         'help' => [
             'relation_caution' => '<span class="red bold"><i class="fa fa-exclamation-circle"></i> In addition to this screen, there is one more method of setting the association between Exment tables.</span><br />Please be sure to check the <a href="%s" target="_blank">manual</a> and make the appropriate selection before registration.',
             'parent_import_column_id' => 'When importing data, you can specify custom columns to refine the data in the parent table. If not set, use id. Please refer to&nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp;for details.',
-        ]
+            'parent_export_column_id' => 'When exporting data, you can specify a custom column to output parent table data. If not set, id is output.',
+        ],
     ],
 
     'custom_copy' => [

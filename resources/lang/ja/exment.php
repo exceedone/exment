@@ -1204,11 +1204,13 @@ return [
         'parent_custom_table' => '親テーブル',
         'child_custom_table' => '子テーブル',
         'parent_import_column_id' => 'インポート時のキー列',
+        'parent_export_column_id' => 'エクスポート時のキー列',
 
         'help' => [
             'relation_caution' => '<span class="red bold"><i class="fa fa-exclamation-circle"></i> Exmentのテーブル間の関連付け設定方法は、この画面の他に、もう1種類あります。</span><br />登録前に、必ず<a href="%s" target="_blank">マニュアル</a>をご確認いただき、適切な選択を行うようにしてください。',
             'parent_import_column_id' => 'データのインポート時、親テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
-        ]
+            'parent_export_column_id' => 'データのエクスポート時、親テーブルのデータの出力するカスタム列を指定することができます。未設定の場合は、idを出力します。',
+        ],
     ],
 
     'custom_copy' => [
