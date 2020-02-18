@@ -963,7 +963,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach (collect($values)->chunk(100) as $chunk) {
             $query = $this->getValueModel()->query();
 
-            $databaseKeyName = str_replace(".", "->", $keyName);
+            if (preg_match("/value\.([a-zA-Z0-9_-]+)/i", $keyName, $matches)) {
+                $databaseKeyName = $this->getIndexColumnName($matches[1]);
+            } else {
+                $databaseKeyName = $keyName;
+            }
             $query->whereIn($databaseKeyName, $chunk);
 
             if ($withTrashed) {
