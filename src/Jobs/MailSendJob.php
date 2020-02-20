@@ -69,7 +69,9 @@ class MailSendJob extends JobBase
             $this->sendMail($subject, $body, true);
         }
 
-        $this->saveMailSendHistory();
+        if (isset($this->mail_template)) {
+            $this->saveMailSendHistory();
+        }
     }
     protected function sendMail($subject = null, $body = null, $noAttach = false)
     {

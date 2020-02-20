@@ -14,6 +14,8 @@ class AjaxButton extends Field
     
     protected $button_class;
 
+    protected $send_params;
+
     public function url($url)
     {
         $this->url = $url;
@@ -35,9 +37,25 @@ class AjaxButton extends Field
         return $this;
     }
 
+    public function send_params($params)
+    {
+        $this->send_params = $params;
+
+        return $this;
+    }
+
     public function render()
     {
         $url = $this->url;
+
+        // $param_scripts = [];
+        // if (isset($this->params)) {
+        //     $param_scripts[] = '';
+        //     $param_script = collect($this->params)->map(function($param) {
+        //         return "$(ev.target).val;";
+        //     })->join('\n');
+        // }
+        $param_scripts = "var data = { _token: LA.token};\ndata['param'] = $('#test_mail_to').val()";
 
         $this->script = <<<EOT
 
@@ -46,10 +64,19 @@ class AjaxButton extends Field
             button.text(button.data('loading-label'));
             button.prop('disabled', true);
 
+            var send_data = {};
+            send_data['_token'] = LA.token;
+            var send_params = button.data('send-params');
+            if (send_params) {
+                send_params.split(',').forEach(function(key) {
+                    send_data[key] = $('#' + key).val();
+                })
+            }
+
             $.ajax({
                 type: "POST",
                 url: "{$url}",
-                data:{ _token: LA.token},
+                data: send_data,
                 success:function(repsonse) {
                     button.text(button.data('default-label'));
                     button.prop('disabled', false);
@@ -67,6 +94,7 @@ EOT;
         return parent::render()->with([
             'button_label' => $this->button_label,
             'button_class' => $this->button_class,
+            'send_params' => $this->send_params,
         ]);
     }
 }
