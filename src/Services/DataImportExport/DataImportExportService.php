@@ -327,9 +327,10 @@ class DataImportExportService extends AbstractExporter
         // default list
         $keys = getTransArray(Define::CUSTOM_VALUE_IMPORT_KEY, "custom_value.import.key_options");
 
-        // get columns where "unique" options is true.
+        // get columns where "unique" and index enabled options is true.
         $columns = $custom_table
             ->custom_columns()
+            ->indexEnabled()
             ->where('options->unique', "1")
             ->pluck('column_view_name', 'column_name')
             ->toArray();
