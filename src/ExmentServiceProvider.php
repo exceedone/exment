@@ -68,6 +68,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\InitTestCommand',
         'Exceedone\Exment\Console\CheckLangCommand',
         'Exceedone\Exment\Console\NotifyTestCommand',
+        'Exceedone\Exment\Console\RefreshDataCommand',
     ];
 
     /**
