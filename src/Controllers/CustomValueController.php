@@ -566,13 +566,13 @@ class CustomValueController extends AdminControllerTableBase
             'title' => exmtrans('common.shared')
         ]);
     }
-    
+
     /**
      * restore trashed value
      */
     public function restoreClick(Request $request, $tableKey, $id)
     {
-        return restore($request, $tableKey, $id);
+        return $this->restore($request, $tableKey, $id);
     }
 
     /**
@@ -580,25 +580,39 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function rowRestore(Request $request, $tableKey)
     {
-        return restore($request, $tableKey, $request->get('id'));
+        return $this->restore($request, $tableKey, $request->get('id'));
     }
 
     protected function restore(Request $request, $tableKey, $id){
-        // get customvalue
-        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id, true);
-        if (!isset($custom_value)) {
-            return getAjaxResponse(false);
-        }
+        $ids = stringToArray($id);
 
-        if(!$custom_value->trashed()){
-            return getAjaxResponse(true);
-        }
+        \DB::beginTransaction();
+        try{
+            foreach($ids as $id){
+                // get customvalue
+                $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id, true);
+                if (!isset($custom_value)) {
+                    \DB::rollback();
+                    return getAjaxResponse(false);
+                }
 
-        if (($response = $this->firstFlow($request, CustomValuePageType::EDIT)) instanceof Response) {
-            return $response;
-        }
+                if(!$custom_value->trashed()){
+                    continue;
+                }
+                
+                if (($response = $this->firstFlow($request, CustomValuePageType::EDIT)) instanceof Response) {
+                    \DB::rollback();
+                    return $response;
+                }
 
-        $custom_value->restore();
+                $custom_value->restore();
+            }
+            
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollback();
+        }
+    
         return getAjaxResponse([
             'result'  => true,
             'message' => exmtrans('custom_value.message.restore_succeeded'),

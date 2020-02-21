@@ -485,6 +485,7 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $hasManyTable->render();
+
     }
 
     /**

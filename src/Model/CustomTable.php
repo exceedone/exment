@@ -1107,6 +1107,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'all' => false,
                 'showMessage_ifDeny' => null,
                 'filterCallback' => null,
+                'target_id' => null,
                 'target_view' => null,
                 'permission' => null,
                 'notAjax' => false,
@@ -1130,25 +1131,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         $items = $query->get()->pluck("label", "id");
 
-        // if not contains, check in $items. if not contains, add
-        if (is_nullorempty($selected_value)) {
-            return $items;
-        }
-        if ($items->contains(function ($value, $key) use ($selected_value) {
-            return $key == $selected_value;
-        })) {
-            return $items;
-        }
-
-        $selected_custom_values = $this->getValueModel()->find((array)$selected_value);
-        if (is_nullorempty($selected_custom_values)) {
-            return $items;
-        }
-
-        $selected_custom_values->each(function ($selected_custom_value) use (&$items) {
-            $items->put($selected_custom_value->id, $selected_custom_value->label);
-        });
-        return $items->unique();
+        return $this->putSelectedValue($items, $selected_value, $options);
     }
 
     /**
@@ -1178,6 +1161,39 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $this->getSelectOptions($options),
             $this->getOptionAjaxUrl($options)
         ];
+    }
+
+    /**
+     * put selected value
+     */
+    protected function putSelectedValue($items, $selected_value, $options = []){
+        if (is_nullorempty($selected_value)) {
+            return $items;
+        }
+
+        // if display_table and $this is same, and contains target_id, remove selects
+        if(!is_null(array_get($options, 'display_table')) && $this->id == array_get($options, 'display_table.id')
+            && !is_null(array_get($options, 'target_id'))){
+            array_forget($items, $options['target_id']);
+        }
+
+        ///// if not contains $selected_value, add
+        if ($items->contains(function ($value, $key) use ($selected_value) {
+            return $key == $selected_value;
+        })) {
+            return $items;
+        }
+
+        $selected_custom_values = $this->getValueModel()->find((array)$selected_value);
+        if (is_nullorempty($selected_custom_values)) {
+            return $items;
+        }
+
+        $selected_custom_values->each(function ($selected_custom_value) use (&$items) {
+            $items->put($selected_custom_value->id, $selected_custom_value->label);
+        });
+
+        return $items->unique();
     }
 
     /**
@@ -1966,20 +1982,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
     
     /**
-     * User can show trashed value
-     *
-     * @return void
-     */
-    public function enableShowTrashed()
-    {
-        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_VIEW_TRASHED])) {
-            return ErrorCode::PERMISSION_DENY();
-        }
-
-        return true;
-    }
-
-    /**
      * User can export this custom value
      *
      * @return void
@@ -2015,6 +2017,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return true;
     }
 
+    /**
+     * User can show trashed value
+     *
+     * @return void
+     */
+    public function enableShowTrashed()
+    {
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_VIEW_TRASHED])) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        return true;
+    }
     /**
      *
      */

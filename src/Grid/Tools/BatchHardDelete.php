@@ -25,7 +25,9 @@ class BatchHardDelete extends BatchAction
         ];
 
         return <<<EOT
+
 $('{$this->getElementClass()}').on('click', function() {
+
     swal({
         title: "{$trans['title']}",
         text: "{$trans['delete_confirm']}",
@@ -48,6 +50,7 @@ $('{$this->getElementClass()}').on('click', function() {
                     },
                     success: function (data) {
                         $.pjax.reload('#pjax-container');
+
                         resolve(data);
                     }
                 });
@@ -64,6 +67,7 @@ $('{$this->getElementClass()}').on('click', function() {
         }
     });
 });
+
 EOT;
     }
 }

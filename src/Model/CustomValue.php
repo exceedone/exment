@@ -26,7 +26,8 @@ abstract class CustomValue extends ModelBase
     protected $casts = ['value' => 'json'];
     protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
-    protected $keepRevisionOf = ['value', 'deleted_at'];
+    protected $keepRevisionOf = ['value'];
+    protected $keepRevisionOfTrigger = ['deleted_at' => 'value'];
 
     /**
      * remove_file_columns.
@@ -85,7 +86,7 @@ abstract class CustomValue extends ModelBase
         // return resuly using cache
         return CustomTable::getEloquent($this->custom_table_name);
     }
-    
+
     public function getDeletedUserAttribute()
     {
         return $this->getUser('deleted_user_id');
@@ -103,6 +104,7 @@ abstract class CustomValue extends ModelBase
         return $this->getUser('deleted_user_id', true, true);
     }
 
+    
     /**
      * Whether this model disable delete
      *
@@ -356,6 +358,8 @@ abstract class CustomValue extends ModelBase
             $model->saved_notify = false;
             $model->save();
             $model->saved_notify = $saved_notify;
+
+            $model->postRestore();
         });
 
         static::addGlobalScope(new CustomValueModelScope);
@@ -1269,7 +1273,7 @@ abstract class CustomValue extends ModelBase
         if (($code = $this->custom_table->enableEdit($checkFormAction)) !== true) {
             return $code;
         }
-
+        
         if (!$this->custom_table->hasPermissionEditData($this)) {
             return ErrorCode::PERMISSION_DENY();
         }
@@ -1282,7 +1286,7 @@ abstract class CustomValue extends ModelBase
         if ($this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
         }
-        
+
         if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableEdit($checkFormAction)) !== true) {
             return $code;
         }
@@ -1290,7 +1294,7 @@ abstract class CustomValue extends ModelBase
         if($this->trashed()){
             return ErrorCode::ALREADY_DELETED();
         }
-
+        
         return true;
     }
 
@@ -1328,7 +1332,7 @@ abstract class CustomValue extends ModelBase
 
         return true;
     }
-
+    
     /**
      * User can share this custom value
      */
@@ -1342,7 +1346,7 @@ abstract class CustomValue extends ModelBase
         if($this->trashed()){
             return false;
         }
-
+        
         $custom_table = $this->custom_table;
 
         // if master, false

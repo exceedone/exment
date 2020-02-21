@@ -8,7 +8,6 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Grid\Tools as GridTools;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Grid\Tools\BatchUpdate;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomOperation;
@@ -22,7 +21,6 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Request as Req;
 
 trait CustomValueGrid
 {
@@ -187,7 +185,7 @@ trait CustomValueGrid
                 } else {
                     $batch->disableDelete();
                 }
-
+                
                 if (request()->get('_scope_') == 'trashed' && $this->custom_table->enableEdit() === true && $this->custom_table->enableShowTrashed() === true) {
                     $batch->disableDelete();
                     $batch->add(exmtrans('custom_value.restore'), new GridTools\BatchRestore());
@@ -219,21 +217,12 @@ trait CustomValueGrid
                         ->tooltip(exmtrans('search.header_relation'));
                     $actions->append($linker);
                 }
-
+                
                 // append restore url
                 if ($actions->row->trashed() && $custom_table->enableEdit() === true && $custom_table->enableShowTrashed() === true) {
                     $enableHardDelete = true;
                 }
-                
-                // if has relations, add link
-                if (count($relationTables) > 0) {
-                    $linker = (new Linker)
-                        ->url($this->row->getRelationSearchUrl())
-                        ->icon('fa-compress')
-                        ->tooltip(exmtrans('search.header_relation'));
-                    $actions->prepend($linker);
-                }
-                
+
                 // if user does't edit permission disable edit row.
                 if ($actions->row->enableEdit(true) !== true) {
                     $enableEdit = false;
@@ -259,7 +248,7 @@ trait CustomValueGrid
                 if($enableHardDelete){
                     $actions->disableView();
                     $actions->disableDelete();
-
+                        
                     // add restore link
                     $restoreUrl = $actions->row->getUrl() . '/restoreClick';
                     $linker = (new Linker)
@@ -275,7 +264,7 @@ trait CustomValueGrid
                         ])
                         ->tooltip(exmtrans('custom_value.restore'));
                     $actions->append($linker);
-
+                    
                     // append show url
                     $showUrl = $actions->row->getUrl() . '?trashed=1';
                     // add new edit link

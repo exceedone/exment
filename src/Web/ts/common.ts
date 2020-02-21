@@ -263,7 +263,7 @@ namespace Exment {
                         'redirect',
                         'preConfirmValidate'
                     ];
-
+                        
                     let options = [];
                     for(let i = 0; i < keys.length; i++){
                         let value = $target.data('add-swal-' + keys[i]);
