@@ -14,7 +14,7 @@ class NotifyTestCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:notifytest {--type=} {--to=}';
+    protected $signature = 'exment:notifytest {--type=mail} {--to=}';
 
     /**
      * The console command description.
@@ -63,8 +63,15 @@ class NotifyTestCommand extends Command
                 'to' => $to_address,
             ]);
 
+            $this->line('Send mail Success.');
             return 0;
-        } catch (\Exception $e) {
+        }
+        // throw mailsend Exception
+        catch (\Swift_TransportException $e) {
+            $this->error('Send mail Error. Please check log.');
+            \Log::error($e);
+        }
+        catch (\Exception $e) {
             return -1;
         } finally {
         }

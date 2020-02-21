@@ -14,6 +14,7 @@ use Exceedone\Exment\Exceptions\NoMailTemplateException;
 use Exceedone\Exment\Form\Widgets\InfoBox;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Support\Facades\DB;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
@@ -239,15 +240,22 @@ class SystemController extends AdminControllerBase
         setTimeLimitLong();
         $test_mail_to = $request->get('test_mail_to');
 
-        $result = \Artisan::call('exment:notifytest', ['--to' => $test_mail_to]);
+        try{
+            NotifyService::executeTestNotify([
+                'type' => 'mail',
+                'to' => $test_mail_to,
+            ]);
 
-        if (isset($result) && $result === 0) {
             return getAjaxResponse([
                 'result'  => true,
                 'toastr' => exmtrans('common.message.sendmail_succeeded'),
                 'reload' => false,
             ]);
-        } else {
+        }
+        // throw mailsend Exception
+        catch (\Swift_TransportException $ex) {
+            \Log::error($ex);
+
             return getAjaxResponse([
                 'result'  => false,
                 'toastr' => exmtrans('error.mailsend_failed'),

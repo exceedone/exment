@@ -48,15 +48,6 @@ class AjaxButton extends Field
     {
         $url = $this->url;
 
-        // $param_scripts = [];
-        // if (isset($this->params)) {
-        //     $param_scripts[] = '';
-        //     $param_script = collect($this->params)->map(function($param) {
-        //         return "$(ev.target).val;";
-        //     })->join('\n');
-        // }
-        $param_scripts = "var data = { _token: LA.token};\ndata['param'] = $('#test_mail_to').val()";
-
         $this->script = <<<EOT
 
         $('{$this->getElementClassSelector()}').off('click').on('click', function(ev) {
@@ -64,7 +55,22 @@ class AjaxButton extends Field
             button.text(button.data('loading-label'));
             button.prop('disabled', true);
 
-            var send_data = {};
+            // get senddata
+            let send_data = {};
+            let senddata_params = button.data('senddata');
+            if (hasValue(senddata_params)) {
+                let parent = button.parents('.fields-group');
+                // get data-key
+                for (let index in senddata_params.key) {
+                    let key = senddata_params.key[index];
+                    let elem = parent.find(CommonEvent.getClassKey(key));
+                    if (elem.length == 0) {
+                        continue;
+                    }
+                    send_data[key] = elem.val();
+                }
+            }
+
             send_data['_token'] = LA.token;
             var send_params = button.data('send-params');
             if (send_params) {
