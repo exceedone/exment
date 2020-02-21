@@ -236,6 +236,40 @@ class NotifyService
     }
     
     /**
+     * Execute Notify test
+     *
+     * @param array $params
+     * @return void
+     */
+    public static function executeTestNotify($params = [])
+    {
+        extract(
+            array_merge(
+                [
+                    'to' => null,
+                    'type' => 'mail',
+                    'subject' => 'Exment TestMail',
+                    'body' => 'Exment TestMail'
+                ],
+                $params
+            )
+        );
+
+
+        // send mail
+        try {
+            Notifications\MailSender::make(null, $to)
+                ->subject($subject)
+                ->body($body)
+                ->send();
+        }
+        // throw mailsend Exception
+        catch (\Swift_TransportException $ex) {
+            throw $ex;
+        }
+    }
+    
+    /**
      * Execute Notify action
      *
      * @param [type] $notify

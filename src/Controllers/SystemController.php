@@ -14,10 +14,12 @@ use Exceedone\Exment\Exceptions\NoMailTemplateException;
 use Exceedone\Exment\Form\Widgets\InfoBox;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Support\Facades\DB;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Carbon\Carbon;
+use Validator;
 
 class SystemController extends AdminControllerBase
 {
@@ -214,6 +216,51 @@ class SystemController extends AdminControllerBase
             //TODO:error handling
             DB::rollback();
             throw $exception;
+        }
+    }
+
+    /**
+     * send test mail
+     *
+     * @return void
+     */
+    public function sendTestMail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'test_mail_to' => 'required|email',
+        ]);
+        if ($validator->fails()) {
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => $validator->errors()->first(),
+                'reload' => false,
+            ]);
+        }
+
+        setTimeLimitLong();
+        $test_mail_to = $request->get('test_mail_to');
+
+        try{
+            NotifyService::executeTestNotify([
+                'type' => 'mail',
+                'to' => $test_mail_to,
+            ]);
+
+            return getAjaxResponse([
+                'result'  => true,
+                'toastr' => exmtrans('common.message.sendmail_succeeded'),
+                'reload' => false,
+            ]);
+        }
+        // throw mailsend Exception
+        catch (\Swift_TransportException $ex) {
+            \Log::error($ex);
+
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => exmtrans('error.mailsend_failed'),
+                'reload' => false,
+            ]);
         }
     }
 

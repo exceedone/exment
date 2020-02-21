@@ -189,6 +189,19 @@ trait InitializeFormTrait
                 $form->email('system_mail_from', exmtrans("system.system_mail_from"))
                     ->help(exmtrans("system.help.system_mail_from"));
             }
+            
+
+            $form->exmheader(exmtrans("system.submit_test_mail"))->hr();
+            $form->description(exmtrans('system.help.test_mail'));
+
+            $form->email('test_mail_to', exmtrans("system.test_mail_to"));
+
+            $form->ajaxButton('test_mail_send_button', exmtrans("system.submit_test_mail"))
+                ->url(admin_urls('system', 'send_testmail'))
+                ->button_class('btn-sm btn-info')
+                ->attribute(['data-senddata' => json_encode(['test_mail_to'])])
+                ->button_label(exmtrans('system.submit_test_mail'))
+                ->send_params('test_mail_to');
 
             $form->exmheader(exmtrans('system.password_policy'))->hr();
 
