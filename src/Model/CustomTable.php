@@ -502,6 +502,34 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Save base64 encode file
+     *
+     * @param array $value input value
+     * @return array Value after saving base64 encode file
+     */
+    public function saveFileData($value)
+    {
+        // get file columns
+        $file_columns = $this->custom_columns->filter(function($column) {
+            return ColumnType::isAttachment($column->column_type);
+        });
+        foreach ($file_columns as $file_column) {
+            // if not key in value, set default value
+            if (array_has($value, $file_column->column_name)) {
+                $file_value = $value[$file_column->column_name];
+                $file_name = $file_value['name'];
+                $file_data = $file_value['base64'];
+                $file_data = base64_decode($file_data);
+                // save file
+                $file = File::storeAs($file_data, $this->table_name, $file_name);
+                $value[$file_column->column_name] = path_join($file->local_dirname, $file->local_filename);
+            }
+        }
+
+        return $value;
+    }
+
+    /**
      * get CustomTable by url
      */
     public static function findByEndpoint($endpoint = null, $withs = [])

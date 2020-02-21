@@ -530,6 +530,8 @@ class ApiTableController extends AdminControllerTableBase
 
         $response = [];
         foreach ($values as &$value) {
+            // save base64 encode file
+            $value = $this->custom_table->saveFileData($value);
             // set default value if new
             if (!isset($custom_value)) {
                 $model = $this->custom_table->getValueModel();
