@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Grid\Tools;
 
+use Exceedone\Exment\Middleware;
 use Encore\Admin\Grid\Tools\BatchAction;
 
 class BatchRestore extends BatchAction
@@ -29,6 +30,7 @@ class BatchRestore extends BatchAction
         $text = exmtrans('custom_value.message.restore');
 
         return <<<EOT
+
 $('{$this->getElementClass()}').on('click', function() {
     var url = '{$url}/rowRestore';
     Exment.CommonEvent.ShowSwal(url, {
@@ -43,6 +45,7 @@ $('{$this->getElementClass()}').on('click', function() {
         },
     });
 });
+
 EOT;
     }
 }
