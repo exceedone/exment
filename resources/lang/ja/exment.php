@@ -1175,7 +1175,7 @@ return [
             'custom_value_view_all' => ['label' => 'データの閲覧', 'help' => 'マスターデータを閲覧できます。'],
         ], 
         'role_type_option_table' => [
-            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除できます。'],
+            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除、論理削除されたデータを再表示できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'システムビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => '全データの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
@@ -1185,6 +1185,7 @@ return [
             'custom_value_view' => ['label' => '担当データの閲覧', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを閲覧できます。'],
             'custom_value_access' => ['label' => '担当データの参照', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
             'custom_value_share' => ['label' => 'データの共有', 'help' => 'データを、他のユーザーに共有することができます。<br />※そのデータに対する編集権限が必要です。'],
+            'custom_value_view_trashed' => ['label' => '削除データの表示', 'help' => '論理削除されたデータを再表示することができます。<br />※データの復元には、そのデータに対する編集権限が必要です。'],
         ], 
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => '編集可能', 'help' => 'このデータを編集できるようになります。'],
@@ -1337,6 +1338,9 @@ return [
         'export' => 'エクスポート',
         'import_label' => 'インポート',
         'view_summary_detail' => '集計データの明細を表示する',
+        'soft_deleted_data' => '削除済データ',
+        'restore' => '復元',
+        'hard_delete' => '完全に削除する',
         'import' => [
             'manual_id' => 'データインポート',
             'import_file' => 'インポートファイル',
@@ -1396,7 +1400,11 @@ return [
         'message' => [
             'operation_notfound' => '更新対象のデータが見つかりませんでした。',
             'operation_succeeded' => '一括更新を実行しました。',
+            'operation_succeeded' => '一括更新を実行しました！',
             'action_disabled' => '画面からの操作が制限されています。',
+            'restore' => '復元しますか？',
+            'restore_succeeded' => '復元が完了しました！',
+            'hard_delete' => '完全に削除しますか？(この操作は復元できません)',
         ],
     ],
 

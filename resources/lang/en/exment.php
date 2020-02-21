@@ -1182,6 +1182,7 @@ return [
             'custom_value_view' => ['label' => 'View Personnel Data', 'help' => 'Users can view personnel data in custom tables.'],
             'custom_value_access' => ['label' => 'Access All Data', 'help' => 'Users can see personnel data in custom tables.<br />*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.'],
             'custom_value_share' => ['label' => 'Data sharing', 'help' => 'Data can be shared with other users.<br />* You need edit permission for the data.'],
+            'custom_value_view_trashed' => ['label' => 'Show Trashed Data', 'help' => 'Users can restore data that has been deleted. <br /> *To restore data, you need to have edit authority for the data.'],
         ], 
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => 'Editor', 'help' => 'Users can edit personnel data in custom tables.'],
@@ -1334,6 +1335,8 @@ return [
         'export' => 'Export',
         'import_label' => 'Import',
         'view_summary_detail' => 'Display the items of aggregated data',
+        'soft_deleted_data' => 'Deleted Data',
+        'restore' => 'Restore',
         'import' => [
             'manual_id' => 'Data Import',
             'import_file' => 'Import File',
@@ -1394,6 +1397,8 @@ return [
             'operation_notfound' => 'The data to be updated was not found.',
             'operation_succeeded' => 'Batch update was performed.',
             'action_disabled' => 'Operations from the screen are restricted.',
+            'restore' => 'Are you sure to restore this item ?',
+            'restore_succeeded' => 'Restore succeeded !',
         ],
     ],
 
@@ -1558,6 +1563,7 @@ return [
             'invalid_user' => 'User with ID:%s does not exist.',
             'invalid_organization' => 'Organization with ID:%s does not exist.',
             'disapproval_ip' => 'Unauthorized IP address.',
+            'already_deleted' => 'Already deleted this data.',
         ],
 
         'help' =>[

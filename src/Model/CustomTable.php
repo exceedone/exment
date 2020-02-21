@@ -1966,6 +1966,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
     
     /**
+     * User can show trashed value
+     *
+     * @return void
+     */
+    public function enableShowTrashed()
+    {
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_VIEW_TRASHED])) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        return true;
+    }
+
+    /**
      * User can export this custom value
      *
      * @return void

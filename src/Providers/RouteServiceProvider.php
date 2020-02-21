@@ -141,6 +141,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/sendShares", 'CustomValueController@sendShares');
             $router->get("data/{tableKey}/{id}/copyModal", 'CustomValueController@copyModal');
             $router->post("data/{tableKey}/{id}/copyClick", 'CustomValueController@copyClick');
+            $router->get("data/{tableKey}/{id}/restoreClick", 'CustomValueController@restoreClick');
+            $router->post("data/{tableKey}/rowRestore", 'CustomValueController@rowRestore');
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
