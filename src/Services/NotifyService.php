@@ -43,7 +43,7 @@ class NotifyService
     public function getNotifyDialogForm()
     {
         // get target users
-        $users = $this->notify->getNotifyTargetUsers($this->custom_value);
+        $users = $this->notify->getNotifyTargetUsers($this->custom_value)->filter();
 
         // if only one data, get form for detail
         if (count($users) <= 1) {
