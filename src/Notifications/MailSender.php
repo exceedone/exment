@@ -41,7 +41,9 @@ class MailSender
         $this->history_body = true;
 
         // get mail template
-        if ($mail_key_name instanceof CustomValue) {
+        if (is_null($mail_key_name)) {
+            return;
+        } elseif ($mail_key_name instanceof CustomValue) {
             $this->mail_template = $mail_key_name;
         } elseif (is_numeric($mail_key_name)) {
             $this->mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_key_name);
