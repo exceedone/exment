@@ -341,6 +341,11 @@ class TemplateImporter
         if (array_key_value_exists('custom_tables', $settings)) {
             foreach ($settings['custom_tables'] as &$custom_table) {
                 $custom_table = array_dot_reverse($custom_table);
+
+                $form_action_disable_flg = array_get($custom_table, 'options.form_action_disable_flg');
+                if(!is_nullorempty($form_action_disable_flg)){
+                    array_set($custom_table, 'options.form_action_disable_flg', stringToArray($form_action_disable_flg));
+                }
             }
         }
 
@@ -348,44 +353,22 @@ class TemplateImporter
         if (array_key_exists('custom_columns', $settings) && array_key_exists('custom_tables', $settings)) {
             $custom_columns = array_get($settings, 'custom_columns');
             foreach ($custom_columns as &$custom_column) {
-                // set calc formula
-                if (array_key_value_exists('options.calc_formula', $custom_column)) {
-                    // split new line
-                    $calc_formula_strings = preg_split('/$\R?^/m', $custom_column['options.calc_formula']);
-                    $calc_formula = [];
-                    foreach ($calc_formula_strings as $calc_formula_string) {
-                        // split ","
-                        $c =  explode(",", $calc_formula_string);
-                        if (count($c) < 2) {
-                            continue;
-                        }
-                        $type = $c[0];
-
-                        // if select table, set type, val and from
-                        if ($type == 'select_table') {
-                            // get custom_column using target column name and from column_name
-                            $vals = explode(".", $c[1]);
-                            if (count($vals) < 2) {
-                                continue;
-                            }
-                            // set calc formula. val and from
-                            $calc_formula[] = ['type' => $type, 'val' => $vals[0], 'from' => $vals[1]];
-                        }
-                        // if select table, set type, val and from
-                        else {
-                            $calc_formula[] = ['type' => $type, 'val' => $c[1]];
-                        }
-                    }
-
-                    $custom_column['options.calc_formula'] = $calc_formula;
-                }
-
+                
                 // get table name
                 $table_name = array_get($custom_column, 'table_name');
                 // find $settings->custom_tables
                 if (!isset($table_name)) {
                     continue;
                 }
+
+                // if contains select_import_column_name ans select_export_column_name, set
+                if(array_key_value_exists('options.select_import_column_name', $custom_column)){
+                    $custom_column['options.select_import_table_name'] = array_get($custom_column, 'options.select_target_table_name');
+                }
+                if(array_key_value_exists('options.select_export_column_name', $custom_column)){
+                    $custom_column['options.select_export_table_name'] = array_get($custom_column, 'options.select_target_table_name');
+                }
+
                 // get target custom table
                 foreach ($settings['custom_tables'] as &$custom_table) {
                     if ($table_name != array_get($custom_table, 'table_name')) {
@@ -406,143 +389,43 @@ class TemplateImporter
         // forget custom_columns array
         array_forget($settings, 'custom_columns');
 
-        // convert custom_form_columns to custom_form_blocks->custom_columns
-        if (array_key_exists('custom_form_columns', $settings) && array_key_exists('custom_form_blocks', $settings)) {
-            $custom_form_columns = array_get($settings, 'custom_form_columns');
-            foreach ($custom_form_columns as &$custom_form_column) {
-                // get target_form_name etc
-                $target_form_name = array_get($custom_form_column, 'target_form_name');
-                $form_block_target_table_name = array_get($custom_form_column, 'form_block_target_table_name');
+        // convert custom_column_multisettings to custom_tables->custom_column_multisettings
+        if (array_key_exists('custom_column_multisettings', $settings) && array_key_exists('custom_tables', $settings)) {
+            $custom_column_multisettings = array_get($settings, 'custom_column_multisettings');
+            foreach ($custom_column_multisettings as &$custom_column_multisetting) {
+                // get table name
+                $table_name = array_get($custom_column_multisetting, 'table_name');
                 // find $settings->custom_tables
-                if (!isset($target_form_name) || !isset($form_block_target_table_name)) {
+                if (!isset($table_name)) {
                     continue;
                 }
-                // get target custom_form_blocks
-                foreach ($settings['custom_form_blocks'] as &$custom_form_block) {
-                    // if not match, continue
-                    if ($target_form_name != array_get($custom_form_block, 'target_form_name')) {
+                // get target custom table
+                foreach ($settings['custom_tables'] as &$custom_table) {
+                    if ($table_name != array_get($custom_table, 'table_name')) {
                         continue;
                     }
-                    if ($form_block_target_table_name != array_get($custom_form_block, 'form_block_target_table_name')) {
-                        continue;
-                    }
-
-                    // set custom_column to $custom_table
-                    $target_custom_form_columns = array_get($custom_form_block, 'custom_form_columns', []);
-                    // remove custom form column form name and table name
-                    array_forget($custom_form_column, 'target_form_name');
-                    array_forget($custom_form_column, 'form_block_target_table_name');
-                    // add array
-                    $target_custom_form_columns[] = array_dot_reverse($custom_form_column);
-                    $custom_form_block['custom_form_columns'] = $target_custom_form_columns;
-                    // jump to next column
-                    break;
-                }
-            }
-        }
-        // forget custom_columns array
-        array_forget($settings, 'custom_form_columns');
-
-
-        // convert custom_form_blocks to custom_forms->custom_form_blocks
-        if (array_key_exists('custom_form_blocks', $settings) && array_key_exists('custom_forms', $settings)) {
-            $custom_form_blocks = array_get($settings, 'custom_form_blocks');
-            foreach ($custom_form_blocks as &$custom_form_block) {
-                // get target_form_name etc
-                $target_form_name = array_get($custom_form_block, 'target_form_name');
-                if (!isset($target_form_name)) {
-                    continue;
-                }
-                // get target custom_form_blocks
-                foreach ($settings['custom_forms'] as &$custom_form) {
-                    // if not match, continue
-                    if ($target_form_name != array_get($custom_form, 'form_name')) {
-                        continue;
-                    }
-
-                    // set custom_column to $custom_table
-                    $target_custom_form_blocks = array_get($custom_form, 'custom_form_blocks', []);
-                    // remove custom form column form name and table name
-                    array_forget($custom_form_block, 'target_form_name');
-                    $target_custom_form_blocks[] = array_dot_reverse($custom_form_block);
-                    $custom_form['custom_form_blocks'] = $target_custom_form_blocks;
-                    // jump to next column
-                    break;
-                }
-            }
-        }
-        // forget custom_blocks array
-        array_forget($settings, 'custom_form_blocks');
-
-        $targets = ['custom_view_columns', 'custom_view_filters', 'custom_view_sorts'];
-        foreach ($targets as $multi) {
-            // convert custom_view_columns to custom_views->custom_view_columns
-            if (array_key_exists($multi, $settings) && array_key_exists('custom_views', $settings)) {
-                $custom_view_columns = array_get($settings, $multi);
-                foreach ($custom_view_columns as &$custom_view_column) {
-                    // get target_view_name etc
-                    $target_view_name = array_get($custom_view_column, 'target_view_name');
-                    if (!isset($target_view_name)) {
-                        continue;
-                    }
-                    // get target views
-                    foreach ($settings['custom_views'] as &$custom_view) {
-                        // if not match, continue
-                        if ($target_view_name != array_get($custom_view, 'target_view_name')) {
+                    // set table_label_column_name
+                    $priority = 1;
+                    foreach(range(1, 5) as $index){
+                        $table_label_column_name = array_get($custom_column_multisetting, "table_label_column_name_$index");
+                        if(\is_nullorempty($table_label_column_name)){
                             continue;
                         }
 
-                        // set custom_view_column to $custom_view
-                        $target_custom_view_columns = array_get($custom_view, $multi, []);
-                        // remove custom view column view name
-                        array_forget($custom_view_column, 'target_view_name');
-                        $target_custom_view_columns[] = array_dot_reverse($custom_view_column);
-                        $custom_view[$multi] = $target_custom_view_columns;
-                        // jump to next column
-                        break;
+                        $custom_table['custom_column_multisettings'][] = [
+                            'priority' => $priority++,
+                            'multisetting_type' => 2,
+                            'options' => [
+                                'table_label_table_name' => $table_name,
+                                'table_label_column_name' => $table_label_column_name,
+                            ]
+                        ];
                     }
                 }
             }
-            // forget custom_view_columns array
-            array_forget($settings, $multi);
         }
-
-        // loop custom_copies and array_dot_reverse for setting options
-        if (array_key_exists('custom_copies', $settings)) {
-            foreach ($settings['custom_copies'] as &$custom_copy) {
-                $custom_copy = array_dot_reverse($custom_copy);
-            }
-        }
-        
-        // convert custom_copy_columns to custom_copies->custom_copy_columns
-        if (array_key_exists('custom_copy_columns', $settings) && array_key_exists('custom_copies', $settings)) {
-            $custom_copy_columns = array_get($settings, 'custom_copy_columns');
-            foreach ($custom_copy_columns as &$custom_copy_column) {
-                // get target_copy_name etc
-                $target_copy_name = array_get($custom_copy_column, 'target_copy_name');
-                if (!isset($target_copy_name)) {
-                    continue;
-                }
-                // get  target_copy_name
-                foreach ($settings['custom_copies'] as &$custom_copy) {
-                    // if not match, continue
-                    if ($target_copy_name != array_get($custom_copy, 'target_copy_name')) {
-                        continue;
-                    }
-
-                    // set custom_copy_column to $custom_copy
-                    $target_custom_copy_columns = array_get($custom_copy, 'custom_copy_columns', []);
-                    // remove custom copy column copy name
-                    array_forget($custom_copy_column, 'target_copy_name');
-                    $target_custom_copy_columns[] = array_dot_reverse($custom_copy_column);
-                    $custom_copy['custom_copy_columns'] = $target_custom_copy_columns;
-                    // jump to next column
-                    break;
-                }
-            }
-        }
-        // forget custom_copy_columns array
-        array_forget($settings, 'custom_copy_columns');
+        // forget custom_column_multisettings array
+        array_forget($settings, 'custom_column_multisettings');
 
         return $settings;
     }

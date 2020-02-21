@@ -290,12 +290,11 @@ trait InitializeFormTrait
             ->help(exmtrans('template.help.upload_template'))
             ->removable()
             ->options(Define::FILE_OPTION());
-        // $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
-        //     ->rules('mimes:xlsx|nullable')
-        //     ->help(exmtrans('template.help.upload_template_excel'))
-        //     ->options(Define::FILE_OPTION());
+        $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
+            ->rules('mimes:xlsx|nullable')
+            ->help(exmtrans('template.help.upload_template_excel'))
+            ->options(Define::FILE_OPTION());
 
-            
         // template search url
         $template_search_url = admin_urls('api', 'template', 'search');
         $script = <<<EOT
