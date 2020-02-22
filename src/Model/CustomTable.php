@@ -1014,7 +1014,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query = $this->getValueModel()->query();
 
             if (preg_match("/value\.([a-zA-Z0-9_-]+)/i", $keyName, $matches)) {
-                $databaseKeyName = $this->getIndexColumnName($matches[1]);
+                // get custom_column
+                $custom_column = CustomColumn::getEloquent($matches[1], $this);
+                if($custom_column->index_enabled){
+                    $databaseKeyName = $this->getIndexColumnName($matches[1]);
+                }
+                else{
+                    $databaseKeyName = "value->{$matches[1]}";
+                }
             } else {
                 $databaseKeyName = $keyName;
             }
