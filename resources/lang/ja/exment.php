@@ -12,6 +12,7 @@ return [
         'change' => '変更',
         'reqired' => '必須',
         'default' => '既定',
+        'basic_setting' => '基本設定',
         'detail_setting' => '詳細設定',
         'no_setting' => '未設定',
         'input' => '入力',
