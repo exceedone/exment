@@ -1548,9 +1548,13 @@ return [
         'scopes' => [
             'me' => 'ログインユーザー情報の取得',
             'table_read' => 'テーブル情報の取得',
-            'table_write' => 'テーブル情報の取得・新規追加・更新・削除',
             'value_read' => 'データの取得',
             'value_write' => 'データの取得・新規追加・更新・削除',
+            'notify_read' => '通知の取得',
+            'notify_write' => '通知の新規追加',
+            'workflow_read' => 'ワークフローの情報の取得',
+            'workflow_execute' => 'ワークフローの実行',
+            'plugin' => 'プラグイン',
         ],
 
         'errors' => [

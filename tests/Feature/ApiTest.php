@@ -212,7 +212,7 @@ class ApiTest extends ApiTestBase
     }
 
     public function testGetTableById(){
-        $token = $this->getAdminAccessToken([ApiScope::TABLE_WRITE]);
+        $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
