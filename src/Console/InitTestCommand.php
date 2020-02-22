@@ -116,6 +116,11 @@ class InitTestCommand extends Command
 
     protected function createUserOrg()
     {
+        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            'user' => ltrim(getModelName('user', true), "\\"),
+            'organization' => ltrim(getModelName('organization', true), "\\"),
+        ]);
+
         // set users
         $values = [
             'user' => [
@@ -301,8 +306,13 @@ class InitTestCommand extends Command
         $relationName = CustomRelation::getRelationNamebyTables('organization', 'user');
 
         foreach ($values as $type => $typevalue) {
+            $custom_table = CustomTable::getEloquent($type);
+            if(!isset($custom_table)){
+                continue;
+            }
+            
             foreach ($typevalue as $user_key => &$user) {
-                $model = CustomTable::getEloquent($type)->getValueModel();
+                $model = $custom_table->getValueModel();
                 foreach ($user['value'] as $key => $value) {
                     $model->setValue($key, $value);
                 }
@@ -386,6 +396,9 @@ class InitTestCommand extends Command
         $custom_table->table_view_name = $keyName;
 
         $custom_table->save();
+        \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
+            $keyName => ltrim(getModelName($custom_table, true), "\\")
+        ]);
 
         $custom_column = new CustomColumn;
         $custom_column->custom_table_id = $custom_table->id;
@@ -410,6 +423,22 @@ class InitTestCommand extends Command
         $custom_column3->column_type = ColumnType::TEXT;
         $custom_column3->options = ['index_enabled' => '1'];
         $custom_column3->save();
+
+        $custom_column4 = new CustomColumn;
+        $custom_column4->custom_table_id = $custom_table->id;
+        $custom_column4->column_name = 'odd_even';
+        $custom_column4->column_view_name = 'odd_even';
+        $custom_column4->column_type = ColumnType::TEXT;
+        $custom_column4->options = ['index_enabled' => '1'];
+        $custom_column4->save();
+
+        $custom_column5 = new CustomColumn;
+        $custom_column5->custom_table_id = $custom_table->id;
+        $custom_column5->column_name = 'multiples_of_3';
+        $custom_column5->column_view_name = 'multiples_of_3';
+        $custom_column5->column_type = ColumnType::YESNO;
+        $custom_column5->options = ['index_enabled' => '1'];
+        $custom_column5->save();
 
         $custom_form_conditions = [
             [
@@ -463,6 +492,8 @@ class InitTestCommand extends Command
                 $custom_value->setValue("text", 'test_'.$id);
                 $custom_value->setValue("user", $id);
                 $custom_value->setValue("index_text", 'index_'.$id.'_'.$i);
+                $custom_value->setValue("odd_even", ($i % 2 == 0 ? 'even' : 'odd'));
+                $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
                 $custom_value->created_user_id = $id;
                 $custom_value->updated_user_id = $id;
     

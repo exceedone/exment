@@ -28,8 +28,10 @@ trait SystemValuesTrait
                 SystemColumn::ID => [],
                 SystemColumn::CREATED_USER => [],
                 SystemColumn::UPDATED_USER => [],
+                SystemColumn::DELETED_USER => ['nullHidden' => true],
                 SystemColumn::CREATED_AT => [],
                 SystemColumn::UPDATED_AT => [],
+                SystemColumn::DELETED_AT => ['nullHidden' => true],
             ]
         ];
 

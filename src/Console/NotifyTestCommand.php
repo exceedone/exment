@@ -24,13 +24,6 @@ class NotifyTestCommand extends Command
     protected $description = 'Test for sending notify';
 
     /**
-     * Install directory.
-     *
-     * @var string
-     */
-    protected $directory = '';
-
-    /**
      * Create a new command instance.
      *
      * @return void

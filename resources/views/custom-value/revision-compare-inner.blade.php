@@ -8,10 +8,10 @@
 <div class="form-group ">
     <label class="col-sm-2 control-label">{{exmtrans('revision.revision_info')}}</label>
     <div class="col-sm-5 old-col">
-        @include('exment::custom-value.revision-compare-info', ['revinfo' => $old_revision]) 
+        @include('exment::custom-value.revision-compare-info', ['revinfo' => $old_revision, 'trashed' => $trashed]) 
     </div>
     <div class="col-sm-5 old-col">
-        @include('exment::custom-value.revision-compare-info', ['revinfo' => $newest_revision]) 
+        @include('exment::custom-value.revision-compare-info', ['revinfo' => $newest_revision, 'trashed' => $trashed]) 
     </div>
 </div>
     

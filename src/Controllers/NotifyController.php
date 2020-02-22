@@ -326,7 +326,7 @@ class NotifyController extends AdminControllerBase
         $options = CustomColumn
             ::where('custom_table_id', $custom_table->id)
             ->whereIn('column_type', [ColumnType::DATE, ColumnType::DATETIME])
-            ->get(['id', DB::raw('column_view_name as text')]);
+            ->get(['id', 'column_view_name as text']);
 
         if ($isApi) {
             return $options;
@@ -350,7 +350,7 @@ class NotifyController extends AdminControllerBase
             ::where('custom_table_id', $custom_table->id)
             ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION, ColumnType::EMAIL])
             ->get(
-                ['id', DB::raw('column_view_name as text')]
+                ['id', 'column_view_name as text']
             )->toArray());
 
 

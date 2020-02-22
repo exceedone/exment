@@ -11,7 +11,7 @@
         </div>
         @endif
         <div class="btn-group pull-right" style="margin-right: 5px">
-            <a href="{{$custom_value->getUrl()}}" class="btn btn-sm btn-default" title="{{ trans('admin.show') }}">
+            <a href="{{$show_url}}" class="btn btn-sm btn-default" title="{{ trans('admin.show') }}">
                 <i class="fa fa-eye"></i><span class="hidden-xs"> {{ trans('admin.show') }}</span>
             </a>
         </div>

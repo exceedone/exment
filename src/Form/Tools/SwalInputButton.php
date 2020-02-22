@@ -14,10 +14,12 @@ class SwalInputButton
     protected $html;
     protected $url;
     protected $label;
+    protected $input;
     protected $redirectUrl;
     protected $confirmKeyword;
     protected $icon;
     protected $confirmError;
+    protected $btn_class;
     protected $method = 'POST';
 
     public function __construct($options = [])
@@ -35,6 +37,7 @@ class SwalInputButton
         $redirectUrl = $this->redirectUrl;
         $title = $this->title;
         $text = $this->text;
+        $input = $this->input;
         $html = $this->html;
         $method = $this->method;
         $confirmKeyword = $this->confirmKeyword;
@@ -49,12 +52,15 @@ class SwalInputButton
                 title: "{$title}",
                 text: "{$text}",
                 html: "{$html}",
-                input: 'text',
+                input: "{$input}",
                 method: '{$method}',
                 confirm:"{$confirm}",
                 cancel:"{$cancel}",
                 redirect: "{$redirectUrl}",
                 preConfirmValidate: function(input){
+                    if('$input' != 'text'){
+                        return true;
+                    }
                     if (input != "{$confirmKeyword}") {
                         return "error";
                     } 
@@ -79,7 +85,7 @@ SCRIPT;
         return view('exment::tools.swal-input-button', [
             'suuid' => $suuid,
             'label' => $this->label ?? null,
-            'button_class' => 'btn-warning',
+            'btn_class' => $this->btn_class ?? 'btn-warning',
             'icon' => $this->icon ?? 'fa-share',
             'url' => $this->url
         ]);

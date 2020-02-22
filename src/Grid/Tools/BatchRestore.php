@@ -2,20 +2,18 @@
 
 namespace Exceedone\Exment\Grid\Tools;
 
+use Exceedone\Exment\Middleware;
 use Encore\Admin\Grid\Tools\BatchAction;
 
-class BatchUpdate extends BatchAction
+class BatchRestore extends BatchAction
 {
-    protected $operation;
-
     /**
      * Create a new Tools instance.
      *
      * @param Grid $grid
      */
-    public function __construct($operation)
+    public function __construct()
     {
-        $this->operation = $operation;
     }
 
     /**
@@ -24,18 +22,17 @@ class BatchUpdate extends BatchAction
     public function script()
     {
         $url = url($this->resource);
-        $operation_id = $this->operation->id;
 
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
 
-        $label = $this->operation->operation_name;
-        $text = exmtrans('common.message.confirm_execute', exmtrans('custom_operation.custom_operation'));
+        $label = exmtrans('custom_value.restore');
+        $text = exmtrans('custom_value.message.restore');
 
         return <<<EOT
 
 $('{$this->getElementClass()}').on('click', function() {
-    var url = '{$url}/{$operation_id}/rowUpdate/' + $.admin.grid.selected().join();
+    var url = '{$url}/rowRestore';
     Exment.CommonEvent.ShowSwal(url, {
         title: "$label",
         confirm:"$confirm",
@@ -43,7 +40,8 @@ $('{$this->getElementClass()}').on('click', function() {
         text:"$text",
         data: {
             _method:'post',
-            _token:'{$this->getToken()}'
+            _token:'{$this->getToken()}',
+            id: $.admin.grid.selected().join()
         },
     });
 });
