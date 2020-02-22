@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
@@ -499,7 +500,13 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         $validates = [];
+        // saved files
+        $files = [];
         foreach ($values as $index => $value) {
+            // Convert base64 encode file
+            list($value, $fileColumns) = $this->custom_table->convertFileData($value);
+            $files[$index] = $fileColumns;
+
             if (!isset($custom_value)) {
                 $value = $this->custom_table->setDefaultValue($value);
                 // // get fields for validation
@@ -529,13 +536,16 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         $response = [];
-        foreach ($values as &$value) {
+        foreach ($values as $index => &$value) {
             // set default value if new
             if (!isset($custom_value)) {
                 $model = $this->custom_table->getValueModel();
             } else {
                 $model = $custom_value;
             }
+
+            // Save file data
+            $this->saveFile($this->custom_table, $files[$index], $value);
 
             $model->setValue($value);
 
@@ -548,7 +558,8 @@ class ApiTableController extends AdminControllerTableBase
 
             $model->saveOrFail();
 
-            $response[] = getModelName($this->custom_table)::find($model->id)->makeHidden($this->custom_table->getMakeHiddenArray());
+            //$response[] = getModelName($this->custom_table)::find($model->id)->makeHidden($this->custom_table->getMakeHiddenArray());
+            $response[] = $model->makeHidden($this->custom_table->getMakeHiddenArray());
         }
 
         if ($is_single && count($response) > 0) {
@@ -787,5 +798,23 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         return $item;
+    }
+
+    /**
+     * Save fileinfo after custom_value save
+     *
+     * @param CustomTable $custom_table
+     * @param array $files
+     * @param array $value
+     * @return void
+     */
+    protected function saveFile($custom_table, $files, &$value){
+        foreach($files as $column_name => $fileInfo){
+            // save filename
+            $file = File::storeAs($fileInfo['data'], $custom_table->table_name, $fileInfo['name']);
+
+            // convert value array
+            $value[$column_name] = path_join($file->local_dirname, $file->local_filename);
+        }
     }
 }

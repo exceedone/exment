@@ -44,7 +44,9 @@ class CreateTableDefine extends Migration
             $table->text('old_value')->nullable();
             $table->text('new_value')->nullable();
             $table->timestamps();
+            $table->timestamp('deleted_at', 0)->nullable();
             $table->integer('create_user_id')->nullable();
+            $table->integer('delete_user_id')->nullable();
 
             $table->index(array('revisionable_id', 'revisionable_type'));
         });

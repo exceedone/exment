@@ -43,6 +43,11 @@ trait RevisionableTrait
     private $doKeep = array();
 
     /**
+     * @var array
+     */
+    private $doKeepTrigger = array();
+
+    /**
      * Keeps the list of values that have been updated
      *
      * @var array
@@ -151,8 +156,13 @@ trait RevisionableTrait
                 array_merge($this->keepRevisionOf, $this->doKeep)
                 : $this->doKeep;
 
+            $this->doKeepTrigger = isset($this->keepRevisionOfTrigger) ?
+                array_merge($this->keepRevisionOfTrigger, $this->doKeepTrigger)
+                : $this->doKeepTrigger;
+
             unset($this->attributes['dontKeepRevisionOf']);
             unset($this->attributes['keepRevisionOf']);
+            unset($this->attributes['keepRevisionOfTrigger']);
 
             $this->dirtyData = $this->getDirty();
             $this->updating = $this->exists;
@@ -257,20 +267,84 @@ trait RevisionableTrait
     {
         if ((!isset($this->revisionEnabled) || $this->revisionEnabled)
             && $this->isSoftDelete()
-            && $this->isRevisionable($this->getDeletedAtColumn())
         ) {
-            $revisions[] = array(
-                'revisionable_type' => $this->getMorphClass(),
-                'revisionable_id' => $this->getKey(),
-                'key' => $this->getDeletedAtColumn(),
-                'old_value' => null,
-                'new_value' => $this->{$this->getDeletedAtColumn()},
-                'create_user_id' => $this->getSystemUserId(),
-                'created_at' => new \DateTime(),
-                'updated_at' => new \DateTime(),
-            );
-            $this->saveData($revisions);
-            \Event::fire('revisionable.deleted', array('model' => $this, 'revisions' => $revisions));
+            if($this->isRevisionable($this->getDeletedAtColumn())){
+                $revisions[] = array(
+                    'revisionable_type' => $this->getMorphClass(),
+                    'revisionable_id' => $this->getKey(),
+                    'key' => $this->getDeletedAtColumn(),
+                    'old_value' => null,
+                    'new_value' => $this->{$this->getDeletedAtColumn()},
+                    'create_user_id' => $this->getSystemUserId(),
+                    'delete_user_id' => $this->getSystemUserId(),
+                    'created_at' => new \DateTime(),
+                    'updated_at' => new \DateTime(),
+                    'deleted_at' => new \DateTime(),
+                );
+                $this->saveData($revisions);
+                \Event::fire('revisionable.deleted', array('model' => $this, 'revisions' => $revisions));
+            }
+            
+            elseif($this->isRevisionableTrigger($this->getDeletedAtColumn())){
+                $triggerKey = array_get($this->doKeepTrigger, $this->getDeletedAtColumn());
+                $revisions[] = array(
+                    'revisionable_type' => $this->getMorphClass(),
+                    'revisionable_id' => $this->getKey(),
+                    'key' => $triggerKey,
+                    'old_value' => null,
+                    'new_value' => array_get($this->updatedData, $triggerKey),
+                    'create_user_id' => $this->getSystemUserId(),
+                    'delete_user_id' => $this->getSystemUserId(),
+                    'created_at' => new \DateTime(),
+                    'updated_at' => new \DateTime(),
+                    'deleted_at' => new \DateTime(),
+                );
+                $this->saveData($revisions);
+                \Event::fire('revisionable.deleted', array('model' => $this, 'revisions' => $revisions));
+            }
+
+        }
+    }
+
+    /**
+     * If softdeletes are enabled, restore event
+     */
+    public function postRestore()
+    {
+        if ((!isset($this->revisionEnabled) || $this->revisionEnabled)
+            && $this->isSoftDelete()
+        ) {
+            if($this->isRevisionable($this->getDeletedAtColumn())){
+                $revisions[] = array(
+                    'revisionable_type' => $this->getMorphClass(),
+                    'revisionable_id' => $this->getKey(),
+                    'key' => $this->getDeletedAtColumn(),
+                    'old_value' => null,
+                    'new_value' => $this->{$this->getDeletedAtColumn()},
+                    'create_user_id' => $this->getSystemUserId(),
+                    'created_at' => new \DateTime(),
+                    'updated_at' => new \DateTime(),
+                );
+                $this->saveData($revisions);
+                \Event::fire('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
+            }
+            
+            elseif($this->isRevisionableTrigger($this->getDeletedAtColumn())){
+                $triggerKey = array_get($this->doKeepTrigger, $this->getDeletedAtColumn());
+                $revisions[] = array(
+                    'revisionable_type' => $this->getMorphClass(),
+                    'revisionable_id' => $this->getKey(),
+                    'key' => $triggerKey,
+                    'old_value' => null,
+                    'new_value' => array_get($this->updatedData, $triggerKey),
+                    'create_user_id' => $this->getSystemUserId(),
+                    'created_at' => new \DateTime(),
+                    'updated_at' => new \DateTime(),
+                );
+                $this->saveData($revisions);
+                \Event::fire('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
+            }
+
         }
     }
 
@@ -367,6 +441,23 @@ trait RevisionableTrait
         }
 
         return empty($this->doKeep);
+    }
+
+
+    /**
+     * Check if this field should have a revision kept as trigger
+     *
+     * @param string $key
+     *
+     * @return bool
+     */
+    private function isRevisionableTrigger($key)
+    {
+        if (isset($this->doKeepTrigger) && array_has($this->doKeepTrigger, $key)) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**

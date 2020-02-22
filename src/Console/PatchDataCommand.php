@@ -113,6 +113,9 @@ class PatchDataCommand extends Command
             case 'revisionable_type':
                 $this->patchRevisionableType();
                 return;
+            case 'parent_org_type':
+                $this->patchParentOrg();
+                return;
             case 'remove_deleted_column':
                 $this->removeDeletedColumn();
                 return;
@@ -647,10 +650,24 @@ class PatchDataCommand extends Command
     }
 
     /**
-     * Remove already deleted column
+     * Patch org select_table to organization
      *
      * @return void
      */
+    protected function patchParentOrg(){
+        $parent_organization = CustomColumn::getEloquent('parent_organization', SystemTableName::ORGANIZATION);
+        if (!isset($parent_organization)) {
+            return;
+        }
+
+        if ($parent_organization->column_type == ColumnType::ORGANIZATION) {
+            return;
+        }
+
+        $parent_organization->column_type = ColumnType::ORGANIZATION;
+        $parent_organization->save();
+    }
+    
     protected function removeDeletedColumn()
     {
         $classes = [

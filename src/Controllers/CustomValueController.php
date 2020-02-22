@@ -568,6 +568,58 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * restore trashed value
+     */
+    public function restoreClick(Request $request, $tableKey, $id)
+    {
+        return $this->restore($request, $tableKey, $id);
+    }
+
+    /**
+     * restore trashed value
+     */
+    public function rowRestore(Request $request, $tableKey)
+    {
+        return $this->restore($request, $tableKey, $request->get('id'));
+    }
+
+    protected function restore(Request $request, $tableKey, $id){
+        $ids = stringToArray($id);
+
+        \DB::beginTransaction();
+        try{
+            foreach($ids as $id){
+                // get customvalue
+                $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id, true);
+                if (!isset($custom_value)) {
+                    \DB::rollback();
+                    return getAjaxResponse(false);
+                }
+
+                if(!$custom_value->trashed()){
+                    continue;
+                }
+                
+                if (($response = $this->firstFlow($request, CustomValuePageType::EDIT)) instanceof Response) {
+                    \DB::rollback();
+                    return $response;
+                }
+
+                $custom_value->restore();
+            }
+            
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollback();
+        }
+    
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => exmtrans('custom_value.message.restore_succeeded'),
+        ]);
+    }
+
+    /**
      * set notify target users and  get form
      */
     public function sendTargetUsers(Request $request, $tableKey, $id = null)
@@ -678,7 +730,7 @@ class CustomValueController extends AdminControllerTableBase
             $custom_value = $this->custom_table->getValueModel($id);
             $code = $custom_value ? $custom_value->enableEdit(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::SHOW) {
-            $custom_value = $this->custom_table->getValueModel($id);
+            $custom_value = $this->custom_table->getValueModel($id, boolval($request->get('trashed')) && $this->custom_table->enableShowTrashed() === true);
             $code = $custom_value ? $custom_value->enableAccess(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::GRID) {
             $code = $this->custom_table->enableView();

@@ -6,8 +6,8 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
+use Exceedone\Exment\Grid\Tools as GridTools;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Grid\Tools\BatchUpdate;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomOperation;
@@ -21,7 +21,6 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Request as Req;
 
 trait CustomValueGrid
 {
@@ -66,6 +65,10 @@ trait CustomValueGrid
         }, 'left');
 
         $grid->filter(function ($filter) use ($search_enabled_columns) {
+            if($this->custom_table->enableShowTrashed() === true){
+                $filter->scope('trashed', exmtrans('custom_value.soft_deleted_data'))->onlyTrashed();
+            }
+
             $filter->disableIdFilter();
 
             $filter->column(count($search_enabled_columns) == 0 ? 1 : 1/2, function ($filter) {
@@ -175,12 +178,18 @@ trait CustomValueGrid
             // manage batch --------------------------------------------------
             $tools->batch(function ($batch) {
                 // if cannot edit, disable delete and update operations
-                if ($this->custom_table->enableEdit()) {
+                if ($this->custom_table->enableEdit() === true) {
                     foreach ($this->custom_table->custom_operations as $custom_operation) {
-                        $batch->add($custom_operation->operation_name, new BatchUpdate($custom_operation));
+                        $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
                     }
                 } else {
                     $batch->disableDelete();
+                }
+                
+                if (request()->get('_scope_') == 'trashed' && $this->custom_table->enableEdit() === true && $this->custom_table->enableShowTrashed() === true) {
+                    $batch->disableDelete();
+                    $batch->add(exmtrans('custom_value.restore'), new GridTools\BatchRestore());
+                    $batch->add(exmtrans('custom_value.hard_delete'), new GridTools\BatchHardDelete(exmtrans('custom_value.hard_delete')));
                 }
             });
         });
@@ -196,17 +205,9 @@ trait CustomValueGrid
             $custom_table = $this->custom_table;
             $relationTables = $custom_table->getRelationTables();
             $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
-                $form_id = Req::get('form');
-                // if has $form_id, remove default edit link, and add new link added form query
-                if (isset($form_id)) {
-                    $actions->disableEdit();
-                    // add new edit link
-                    $linker = (new Linker)
-                        ->url(admin_urls('data', $custom_table->table_name, $actions->getKey(), 'edit').'?form='.$form_id)
-                        ->icon('fa-edit')
-                        ->tooltip(trans('admin.edit'));
-                    $actions->prepend($linker);
-                }
+                $enableEdit = true;
+                $enableDelete = true;
+                $enableHardDelete = false;
 
                 // if has relations, add link
                 if (count($relationTables) > 0) {
@@ -214,21 +215,80 @@ trait CustomValueGrid
                         ->url($this->row->getRelationSearchUrl())
                         ->icon('fa-compress')
                         ->tooltip(exmtrans('search.header_relation'));
-                    $actions->prepend($linker);
+                    $actions->append($linker);
                 }
                 
+                // append restore url
+                if ($actions->row->trashed() && $custom_table->enableEdit() === true && $custom_table->enableShowTrashed() === true) {
+                    $enableHardDelete = true;
+                }
+
                 // if user does't edit permission disable edit row.
                 if ($actions->row->enableEdit(true) !== true) {
-                    $actions->disableEdit();
+                    $enableEdit = false;
                 }
                 
                 if ($actions->row->enableDelete(true) !== true) {
-                    $actions->disableDelete();
+                    $enableDelete = false;
                 }
                 
                 if (!is_null($parent_value = $actions->row->getParentValue()) && $parent_value->enableEdit(true) !== true) {
+                    $enableEdit = false;
+                    $enableDelete = false;
+                }
+
+                if(!$enableEdit){
                     $actions->disableEdit();
+                }
+
+                if(!$enableDelete){
                     $actions->disableDelete();
+                }
+
+                if($enableHardDelete){
+                    $actions->disableView();
+                    $actions->disableDelete();
+                        
+                    // add restore link
+                    $restoreUrl = $actions->row->getUrl() . '/restoreClick';
+                    $linker = (new Linker)
+                        ->icon('fa-undo')
+                        ->script(true)
+                        ->linkattributes([
+                            'data-add-swal' => $restoreUrl,
+                            'data-add-swal-title' => exmtrans('custom_value.restore'),
+                            'data-add-swal-text' => exmtrans('custom_value.message.restore'),
+                            'data-add-swal-method' => 'get',
+                            'data-add-swal-confirm' => trans('admin.confirm'),
+                            'data-add-swal-cancel' => trans('admin.cancel'),
+                        ])
+                        ->tooltip(exmtrans('custom_value.restore'));
+                    $actions->append($linker);
+                    
+                    // append show url
+                    $showUrl = $actions->row->getUrl() . '?trashed=1';
+                    // add new edit link
+                    $linker = (new Linker)
+                        ->url($showUrl)
+                        ->icon('fa-eye')
+                        ->tooltip(trans('admin.show'));
+                    $actions->append($linker);
+
+                    // add hard delete link
+                    $deleteUrl = $actions->row->getUrl();
+                    $linker = (new Linker)
+                        ->icon('fa-trash')
+                        ->script(true)
+                        ->linkattributes([
+                            'data-add-swal' => $deleteUrl,
+                            'data-add-swal-title' => exmtrans('custom_value.hard_delete'),
+                            'data-add-swal-text' => exmtrans('custom_value.message.hard_delete'),
+                            'data-add-swal-method' => 'delete',
+                            'data-add-swal-confirm' => trans('admin.confirm'),
+                            'data-add-swal-cancel' => trans('admin.cancel'),
+                        ])
+                        ->tooltip(exmtrans('custom_value.hard_delete'));
+                    $actions->append($linker);
                 }
 
                 PartialCrudService::setGridRowAction($custom_table, $actions);

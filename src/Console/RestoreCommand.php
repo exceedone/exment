@@ -92,6 +92,11 @@ class RestoreCommand extends Command
         // load table data from tsv file
         foreach ($files as $file) {
             $table = $file->getBasename('.' . $file->getExtension());
+
+            if(!\Schema::hasTable($table)){
+                continue;
+            }
+
             $cmd =<<<__EOT__
             LOAD DATA local INFILE '%s' 
             INTO TABLE %s 

@@ -207,6 +207,7 @@ class SelectTable extends CustomItem
             'display_table' => $this->custom_column->custom_table,
             'filterCallback' => $callback,
             'target_view' => $this->target_view,
+            'target_id' => isset($this->custom_value) ? $this->custom_value->id : null,
         ];
 
         $field->options(function ($value) use ($selectOption, $relationColumn) {

@@ -25,6 +25,13 @@ class HasManyTable extends HasMany
     protected $rowUpDown = null;
 
     /**
+     * power count for row up down
+     *
+     * @var int
+     */
+    protected $power = 1;
+
+    /**
      * hide delete row no.
      * if set int, hide the line's button.
      *
@@ -84,9 +91,10 @@ class HasManyTable extends HasMany
         return $this;
     }
 
-    public function rowUpDown($rowUpDown)
+    public function rowUpDown($rowUpDown, $power = 1)
     {
         $this->rowUpDown = $rowUpDown;
+        $this->power = $power;
         return $this;
     }
     
@@ -294,12 +302,13 @@ EOT;
     {
         // if enable rowUpDown, remove row
         if (isset($this->rowUpDown) && (!is_null($value) && is_array($value))) {
-            $order = 1;
+            $order = 1 * $this->power;
             foreach ($value as &$v) {
                 if ($v[Form::REMOVE_FLAG_NAME] == 1) {
                     continue;
                 }
-                array_set($v, $this->rowUpDown, $order++);
+                array_set($v, $this->rowUpDown, $order);
+                $order = $order + $this->power;
             }
         }
 

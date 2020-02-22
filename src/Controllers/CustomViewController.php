@@ -374,7 +374,7 @@ class CustomViewController extends AdminControllerTableBase
                         $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                         $form->hidden('order')->default(0);
                     })->required()->setTableColumnWidth(7, 3, 2)
-                    ->rowUpDown('order')
+                    ->rowUpDown('order', 10)
                     ->description(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
                 }
 
@@ -485,6 +485,7 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $hasManyTable->render();
+
     }
 
     /**

@@ -363,7 +363,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ->first();
 
             // get view id for after
-            $view->copyFromDefaultViewColumns($fromview);
+            if(isset($fromview)){
+                $view->copyFromDefaultViewColumns($fromview);                
+            }
+            // not fromview, create index columns 
+            else{
+                $view->createDefaultViewColumns(true);
+            }
 
             // re-get view (reload view_columns)
             $view = static::find($view->id);
@@ -467,17 +473,50 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $view;
     }
 
-    public function createDefaultViewColumns()
+    /**
+     * Create default columns
+     *
+     * @param boolean $appendIndexColumn if true, append custom column has index
+     * @return void
+     */
+    public function createDefaultViewColumns($appendIndexColumn = false)
     {
         $view_columns = [];
-        // set default view_column
-        foreach (SystemColumn::getOptions(['default' => true]) as $view_column_system) {
-            $view_column = new CustomViewColumn;
-            $view_column->custom_view_id = $this->id;
-            $view_column->view_column_target = array_get($view_column_system, 'name');
-            $view_column->order = array_get($view_column_system, 'order');
-            $view_columns[] = $view_column;
+
+        // append system column function
+        $systemColumnFunc = function($isHeader, &$view_columns){
+            $filter = ['default' => true, ($isHeader ? 'header' : 'footer') => true];
+            // set default view_column
+            foreach (SystemColumn::getOptions($filter) as $view_column_system) {
+                $view_column = new CustomViewColumn;
+                $view_column->custom_view_id = $this->id;
+                $view_column->view_column_target = array_get($view_column_system, 'name');
+                $view_column->order = array_get($view_column_system, 'order');
+                $view_columns[] = $view_column;
+            }
+        };
+
+        // append system header
+        $systemColumnFunc(true, $view_columns);
+
+        // if $appendIndexColumn is true, append index column
+        if($appendIndexColumn){
+            $custom_columns = $this->custom_table->getSearchEnabledColumns();
+            $order = 20;
+            foreach($custom_columns as $custom_column){
+                $view_column = new CustomViewColumn;
+                $view_column->custom_view_id = $this->id;
+                $view_column->view_column_type = ConditionType::COLUMN;
+                $view_column->view_column_table_id = $custom_column->custom_table_id;
+                $view_column->view_column_target_id = array_get($custom_column, 'id');
+                $view_column->order = $order++;
+                $view_columns[] = $view_column;
+            }
         }
+
+        // append system footer
+        $systemColumnFunc(false, $view_columns);
+
         $this->custom_view_columns()->saveMany($view_columns);
         return $view_columns;
     }

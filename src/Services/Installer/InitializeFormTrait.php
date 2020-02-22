@@ -26,7 +26,7 @@ trait InitializeFormTrait
      * @param boolean $add_template
      * @return void
      */
-    protected function getInitializeForm($routeName, $add_template = false, $system_page = false)
+    protected function getInitializeForm($routeName, $add_template = false)
     {
         $form = new WidgetForm(System::get_system_values(['initialize', 'system']));
         $form->disableReset();
@@ -81,38 +81,11 @@ trait InitializeFormTrait
             ->options(getTransArray(array_keys(Define::SYSTEM_LAYOUT), "system.site_layout_options"))
             ->config('allowClear', false)
             ->help(exmtrans("system.help.site_layout"));
-        
-        if ($system_page) {
-            $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
-                ->options(getPagerOptions())
-                ->config('allowClear', false)
-                ->default(20)
-                ->help(exmtrans("system.help.grid_pager_count"));
-                
-            $form->select('datalist_pager_count', exmtrans("system.datalist_pager_count"))
-                ->options(getPagerOptions(false, Define::PAGER_DATALIST_COUNTS))
-                ->config('allowClear', false)
-                ->default(5)
-                ->help(exmtrans("system.help.datalist_pager_count"));
-            
-            $form->select('default_date_format', exmtrans("system.default_date_format"))
-                ->options(getTransArray(Define::SYSTEM_DATE_FORMAT, "system.date_format_options"))
-                ->config('allowClear', false)
-                ->default('format_default')
-                ->help(exmtrans("system.help.default_date_format"));
+                    
+        $form->switchbool('api_available', exmtrans("system.api_available"))
+            ->default(0)
+            ->help(exmtrans("system.help.api_available"));
 
-            $form->select('filter_search_type', exmtrans("system.filter_search_type"))
-                ->default(FilterSearchType::FORWARD)
-                ->options(FilterSearchType::transArray("system.filter_search_type_options"))
-                ->config('allowClear', false)
-                ->required()
-                ->help(exmtrans("system.help.filter_search_type"));
-                
-            $form->switchbool('api_available', exmtrans("system.api_available"))
-                ->default(0)
-                ->help(exmtrans("system.help.api_available"));
-        }
-        
         $form->switchbool('outside_api', exmtrans("system.outside_api"))
             ->default(!config('exment.outside_api') ? 1 : 0)
             ->help(exmtrans("system.help.outside_api"));
@@ -122,113 +95,7 @@ trait InitializeFormTrait
         
         $form->switchbool('organization_available', exmtrans("system.organization_available"))
             ->help(exmtrans("system.help.organization_available"));
-         
-        if ($system_page) {
-            $form->display('max_file_size', exmtrans("common.max_file_size"))
-            ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
-            ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));
-            
-            $admin_users = System::system_admin_users();
-            $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
-                ->help(exmtrans('system.help.system_admin_users'))
-                ->required()
-                ->ajax(CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl())
-                ->options(function ($option) use ($admin_users) {
-                    return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
-                        'selected_value' => $admin_users,
-                    ]);
-                })->default($admin_users);
-        }
-            
-        ///////// system setting
-        if ($system_page && boolval(System::organization_available())) {
-            $form->exmheader(exmtrans('system.organization_header'))->hr();
-
-            $manualUrl = getManualUrl('organization');
-            $form->select('org_joined_type_role_group', exmtrans("system.org_joined_type_role_group"))
-                ->help(exmtrans("system.help.org_joined_type_role_group") . exmtrans("common.help.more_help_here", $manualUrl))
-                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
-                ->config('allowClear', false)
-                ->default(JoinedOrgFilterType::ALL)
-                ;
-
-            $form->select('org_joined_type_custom_value', exmtrans("system.org_joined_type_custom_value"))
-                ->help(exmtrans("system.help.org_joined_type_custom_value") . exmtrans("common.help.more_help_here", $manualUrl))
-                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
-                ->config('allowClear', false)
-                ->default(JoinedOrgFilterType::ONLY_JOIN)
-                ;
-
-            $form->select('custom_value_save_autoshare', exmtrans("system.custom_value_save_autoshare"))
-                ->help(exmtrans("system.help.custom_value_save_autoshare") . exmtrans("common.help.more_help_here", $manualUrl))
-                ->options(CustomValueAutoShare::transKeyArray('system.custom_value_save_autoshare_options'))
-                ->config('allowClear', false)
-                ->default(CustomValueAutoShare::USER_ONLY)
-                ;
-        }
-
-        ///// system page only
-        if ($system_page) {
-            // use mail setting
-            if (!boolval(config('exment.mail_setting_env_force', false))) {
-                $form->exmheader(exmtrans('system.system_mail'))->hr();
-
-                $form->description(exmtrans("system.help.system_mail"));
-
-                $form->text('system_mail_host', exmtrans("system.system_mail_host"));
-
-                $form->text('system_mail_port', exmtrans("system.system_mail_port"));
-
-                $form->text('system_mail_encryption', exmtrans("system.system_mail_encryption"))
-                    ->help(exmtrans("system.help.system_mail_encryption"));
-                    
-                $form->text('system_mail_username', exmtrans("system.system_mail_username"));
-
-                $form->password('system_mail_password', exmtrans("system.system_mail_password"));
-                
-                $form->email('system_mail_from', exmtrans("system.system_mail_from"))
-                    ->help(exmtrans("system.help.system_mail_from"));
-            }
-            
-
-            $form->exmheader(exmtrans("system.submit_test_mail"))->hr();
-            $form->description(exmtrans('system.help.test_mail'));
-
-            $form->email('test_mail_to', exmtrans("system.test_mail_to"));
-
-            $form->ajaxButton('test_mail_send_button', exmtrans("system.submit_test_mail"))
-                ->url(admin_urls('system', 'send_testmail'))
-                ->button_class('btn-sm btn-info')
-                ->attribute(['data-senddata' => json_encode(['test_mail_to'])])
-                ->button_label(exmtrans('system.submit_test_mail'))
-                ->send_params('test_mail_to');
-
-            $form->exmheader(exmtrans('system.password_policy'))->hr();
-
-            $form->description(exmtrans("system.help.password_policy"));
-
-            $form->switchbool('complex_password', exmtrans("system.complex_password"))
-                ->help(exmtrans("system.help.complex_password"));
-
-            $form->number('password_expiration_days', exmtrans("system.password_expiration_days"))
-                ->default(0)
-                ->min(0)
-                ->max(999)
-                ->help(exmtrans("system.help.password_expiration_days"));
-
-            $form->number('password_history_cnt', exmtrans("system.password_history_cnt"))
-                ->default(0)
-                ->min(0)
-                ->max(20)
-                ->help(exmtrans("system.help.password_history_cnt"));
-
-            $form->exmheader(exmtrans('system.ip_filter'))->hr();
-            $form->description(exmtrans("system.help.ip_filter"));
-
-            $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
-            $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
-        }
-
+        
         // template list
         if ($add_template) {
             $this->addTemplateTile($form);
@@ -236,7 +103,7 @@ trait InitializeFormTrait
         return $form;
     }
     
-    protected function postInitializeForm(Request $request, $group = null, $initialize = false)
+    protected function postInitializeForm(Request $request, $group = null, $initialize = false, $advanced = false)
     {
         $rules = [
             'site_name' => 'max:30',
@@ -249,7 +116,7 @@ trait InitializeFormTrait
                 'email' => 'required|email',
                 'password' => get_password_rule(true, null),
             ]);
-        } else {
+        } elseif(!$advanced) {
             $rules = array_merge($rules, [
                 'system_admin_users' => 'required',
             ]);
@@ -287,15 +154,17 @@ trait InitializeFormTrait
             ;
         $form->file('upload_template', exmtrans('template.upload_template'))
             ->rules('mimes:zip|nullable')
+            ->attribute(['accept' => ".zip"])
             ->help(exmtrans('template.help.upload_template'))
             ->removable()
             ->options(Define::FILE_OPTION());
-        // $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
-        //     ->rules('mimes:xlsx|nullable')
-        //     ->help(exmtrans('template.help.upload_template_excel'))
-        //     ->options(Define::FILE_OPTION());
 
-            
+        $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
+            ->rules('mimes:xlsx|nullable')
+            ->attribute(['accept' => ".xlsx"])
+            ->help(exmtrans('template.help.upload_template_excel'))
+            ->options(Define::FILE_OPTION());
+
         // template search url
         $template_search_url = admin_urls('api', 'template', 'search');
         $script = <<<EOT
@@ -347,7 +216,7 @@ EOT;
             // get upload file
             $file = $request->file('upload_template_excel');
             $json = $importer->uploadTemplateExcel($file);
-            $importer->import($json);
+            $importer->import($json, false, false, true);
         }
     }
     
