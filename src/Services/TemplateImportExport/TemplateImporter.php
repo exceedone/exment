@@ -426,6 +426,27 @@ class TemplateImporter
         }
         // forget custom_column_multisettings array
         array_forget($settings, 'custom_column_multisettings');
+        
+        // convert custom_columns to custom_tables->custom_columns
+        if (array_key_exists('custom_relations', $settings) && array_key_exists('custom_tables', $settings)) {
+            foreach ($settings['custom_relations'] as &$custom_relation) {
+                
+                // get table name
+                $table_name = array_get($custom_relation, 'parent_custom_table_name');
+                // find $settings->custom_tables
+                if (!isset($table_name)) {
+                    continue;
+                }
+
+                // if contains select_import_column_name ans select_export_column_name, set
+                if(array_key_value_exists('options.parent_import_column_name', $custom_relation)){
+                    $custom_relation['options.parent_import_table_name'] = $table_name;
+                }
+                if(array_key_value_exists('options.parent_export_column_name', $custom_relation)){
+                    $custom_relation['options.parent_export_table_name'] = $table_name;
+                }
+            }
+        }
 
         return $settings;
     }
@@ -512,19 +533,32 @@ class TemplateImporter
     }
 
     /**
-     * execute
+     * execute import
+     *
+     * @param array $json import values
+     * @param boolean $system_flg Is called from system(install or update)
+     * @param boolean $is_update Is called for update
+     * @return void
      */
-    public function import($json, $system_flg = false, $is_update=false)
+    public function import($json, $system_flg = false, $is_update = false, $fromExcel = false)
     {
         System::clearCache();
         
-        DB::transaction(function () use ($json, $system_flg, $is_update) {
+        DB::transaction(function () use ($json, $system_flg, $is_update, $fromExcel) {
+            // tables for default form and views
+            $createDefaultTables = [];
+
             // Loop by tables
             foreach (array_get($json, "custom_tables", []) as $table) {
                 // Create tables. --------------------------------------------------
                 $obj_table = CustomTable::importTemplate($table, $is_update, [
                     'system_flg' => $system_flg
                 ]);
+
+                // if call from excel and created first, append list
+                if($fromExcel && $obj_table->wasRecentlyCreated){
+                    $createDefaultTables[] = $obj_table;
+                }
             }
 
             // Re-Loop by tables and create columns
@@ -624,6 +658,12 @@ class TemplateImporter
                         ]);
                     }
                 }
+            }
+
+            // create default form and view
+            foreach($createDefaultTables as $createDefaultTable){
+                CustomForm::getDefault($createDefaultTable);
+                CustomView::getAllData($createDefaultTable);
             }
         });
 

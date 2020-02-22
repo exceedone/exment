@@ -632,7 +632,20 @@ class CustomColumnController extends AdminControllerTableBase
             if ($view->custom_view_columns()->count() == 0) {
                 $order = 1;
             } else {
-                $order = $view->custom_view_columns()->max('order') ?? 1;
+                // get order. ignore system column and footer
+                $order = $view->custom_view_columns
+                    ->filter(function($custom_view_column){
+                        if($custom_view_column->view_column_type != ConditionType::SYSTEM){
+                            return true;
+                        }
+                        $systemColumn = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id]);
+                        if(!isset($systemColumn)){
+                            return false;
+                        }
+
+                        // check not footer
+                        return !boolval(array_get($systemColumn, 'footer'));
+                    })->max('order') ?? 1;
                 $order++;
             }
 

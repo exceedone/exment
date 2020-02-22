@@ -287,11 +287,14 @@ trait InitializeFormTrait
             ;
         $form->file('upload_template', exmtrans('template.upload_template'))
             ->rules('mimes:zip|nullable')
+            ->attribute(['accept' => ".zip"])
             ->help(exmtrans('template.help.upload_template'))
             ->removable()
             ->options(Define::FILE_OPTION());
+
         $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
             ->rules('mimes:xlsx|nullable')
+            ->attribute(['accept' => ".xlsx"])
             ->help(exmtrans('template.help.upload_template_excel'))
             ->options(Define::FILE_OPTION());
 
@@ -346,7 +349,7 @@ EOT;
             // get upload file
             $file = $request->file('upload_template_excel');
             $json = $importer->uploadTemplateExcel($file);
-            $importer->import($json);
+            $importer->import($json, false, false, true);
         }
     }
     
