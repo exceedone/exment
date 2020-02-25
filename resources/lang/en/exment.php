@@ -1451,6 +1451,7 @@ return [
         'header_trigger' => 'Notify Trigger Setting',
         'header_action' => 'Notify Action Setting',
         'description' => 'Perform settings for notifying under specific conditions.',
+        'notify_name' => 'Notify Name',
         'notify_view_name' => 'Notify Display Name',
         'notify_target' => 'Notify Target Name',
         'custom_table_id' => 'Notify Target Name',
