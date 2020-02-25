@@ -1402,7 +1402,6 @@ return [
         ],
         'message' => [
             'operation_notfound' => '更新対象のデータが見つかりませんでした。',
-            'operation_succeeded' => '一括更新を実行しました。',
             'operation_succeeded' => '一括更新を実行しました！',
             'action_disabled' => '画面からの操作が制限されています。',
             'restore' => '復元しますか？',
@@ -1577,6 +1576,7 @@ return [
             'invalid_user' => 'ID:%sのユーザーは存在しません。',
             'invalid_organization' => 'ID:%sの組織は存在しません。',
             'disapproval_ip' => '許可されていないIPアドレスです。',
+            'already_deleted' => 'すでに削除されています。',
         ],
         
         'help' =>[
