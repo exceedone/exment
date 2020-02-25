@@ -314,7 +314,7 @@ class NotifyService
             if (NotifyAction::isChatMessage($notify_action) != $is_chat) {
                 continue;
             }
-            Plugin::pluginPreparing($plugins, 'before_notification', [
+            Plugin::pluginPreparing($plugins, 'notify_executing', [
                 'custom_table' => $custom_value->custom_table,
                 'custom_value' => $custom_value,
                 'notify' => $notify,
@@ -390,7 +390,7 @@ class NotifyService
                     $notify->notify(new Notifications\MicrosoftTeamsSender($slack_subject, $slack_content));
                     break;
             }
-            Plugin::pluginPreparing($plugins, 'after_notification', [
+            Plugin::pluginPreparing($plugins, 'notify_executed', [
                 'custom_table' => $custom_value->custom_table,
                 'custom_value' => $custom_value,
                 'notify' => $notify,
