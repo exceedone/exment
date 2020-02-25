@@ -13,6 +13,7 @@ use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -58,6 +59,7 @@ class NotifyController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new Notify);
+        $grid->column('notify_name', exmtrans("notify.notify_name"))->sortable();
         $grid->column('notify_view_name', exmtrans("notify.notify_view_name"))->sortable();
         $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->display(function ($val) {
             return NotifyTrigger::getEnum($val)->transKey('notify.notify_trigger_options');
@@ -113,6 +115,16 @@ class NotifyController extends AdminControllerBase
         }
 
         $form = new Form(new Notify);
+        $notify = Notify::find($id);
+
+        if (!isset($notify) || is_nullorempty($notify->notify_name)) {
+            $form->text('notify_name', exmtrans("notify.notify_name"))
+                ->rules("max:30|nullable|unique:".Notify::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/")
+                ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
+        } else {
+            $form->display('notify_name', exmtrans("notify.notify_name"));
+        }
+
         $form->text('notify_view_name', exmtrans("notify.notify_view_name"))->required()->rules("max:40");
         // TODO: only role tables
 

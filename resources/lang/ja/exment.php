@@ -1452,6 +1452,7 @@ return [
         'header_trigger' => '通知条件設定',
         'header_action' => '通知アクション設定',
         'description' => '特定の条件で、通知を行うための設定を行います。',
+        'notify_name' => '通知名(英数字)',
         'notify_view_name' => '通知表示名',
         'notify_target' => '対象',
         'custom_table_id' => '対象テーブル',
