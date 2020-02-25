@@ -139,6 +139,7 @@ class TemplateController extends AdminControllerBase
                 'column' => $column,
             ])->render();
         } catch (\Throwable $th) {
+            \Log::error($th);
             // return body and footer
             return view('exment::form.field.tile-items', [
                 'paginator' => null,

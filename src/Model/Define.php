@@ -37,46 +37,55 @@ class Define
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0'],
         'system_admin_users' => ['type' => 'array'],
+
+        // initialize ----------------------------------
         'site_name' => ['default' => 'Exment', 'group' => 'initialize'],
         'site_name_short' => ['default' => 'Exm', 'group' => 'initialize'],
         'site_logo' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_logo_mini' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_favicon' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_skin' => ['config' => 'admin.skin', 'group' => 'initialize'],
+        'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
 
-        'api_available' => ['type' => 'boolean', 'config' => 'exment.api', 'group' => 'system'],
-        'filter_search_type' => ['default' => 'forward', 'group' => 'system'],
-
+        'api_available' => ['type' => 'boolean', 'config' => 'exment.api', 'group' => 'initialize'],
         'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
-        'system_mail_host' => ['config' => 'mail.host', 'group' => 'system'],
-        'system_mail_port' => ['config' => 'mail.port', 'group' => 'system'],
-        'system_mail_username' => ['config' => 'mail.username', 'group' => 'system'],
-        'system_mail_password' => ['type' => 'password', 'config' => 'mail.password', 'group' => 'system'],
-        'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'system'],
-        'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'initialize'],
-        'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
-        'default_date_format' => ['default' => 'format_default', 'group' => 'initialize'],
-        'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'initialize'],
-        'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'initialize'],
-        'complex_password' => ['type' => 'boolean', 'group' => 'system', 'default' => false],
-        'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
-        'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
-        'web_ip_filters' => ['default' => '', 'group' => 'system'] ,
-        'api_ip_filters' => ['default' => '', 'group' => 'system'] ,
-        // org_joined_type
-        'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'system'],
-        'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
-        'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'system'],
         
-        // cannot call getValue function
+        // Advanced ----------------------------------
+        'filter_search_type' => ['default' => 'forward', 'group' => 'advanced'],
+        'system_mail_host' => ['config' => 'mail.host', 'group' => 'advanced'],
+        'system_mail_port' => ['config' => 'mail.port', 'group' => 'advanced'],
+        'system_mail_username' => ['config' => 'mail.username', 'group' => 'advanced'],
+        'system_mail_password' => ['type' => 'password', 'config' => 'mail.password', 'group' => 'advanced'],
+        'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'advanced'],
+        'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'advanced'],
+
+        'default_date_format' => ['default' => 'format_default', 'group' => 'advanced'],
+        'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'advanced'],
+        'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'advanced'],
+
+        'complex_password' => ['type' => 'boolean', 'group' => 'advanced', 'default' => false],
+        'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
+        'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
+
+        'web_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
+        'api_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
+
+        // org_joined_type
+        'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'advanced'],
+        'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
+        'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
+        
+        // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
         'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],
         'backup_automatic_hour' => ['type' => 'int', 'default' => '3', 'group' => 'backup'],
         'backup_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
         'backup_automatic_executed' => ['type' => 'datetime'],
         'backup_history_files' => ['type' => 'int', 'default' => '0', 'group' => 'backup'],
+
+        // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
         'login_2factor_provider' => ['default' => 'email', 'group' => '2factor'],
     ];
@@ -255,16 +264,17 @@ class Define
     public const TEMPLATE_IMPORT_EXCEL_SHEETNAME = [
         'custom_tables',
         'custom_columns',
+        'custom_column_multisettings',
         'custom_relations',
-        'custom_forms',
-        'custom_form_blocks',
-        'custom_form_columns',
-        'custom_views',
-        'custom_view_columns',
-        'custom_view_filters',
-        'custom_view_sorts',
-        'custom_copies',
-        'custom_copy_columns',
+        // 'custom_forms',
+        // 'custom_form_blocks',
+        // 'custom_form_columns',
+        // 'custom_views',
+        // 'custom_view_columns',
+        // 'custom_view_filters',
+        // 'custom_view_sorts',
+        // 'custom_copies',
+        // 'custom_copy_columns',
         'admin_menu',
     ];
 

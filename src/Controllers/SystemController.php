@@ -2,22 +2,32 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Carbon\Carbon;
 use Encore\Admin\Layout\Content;
-use Illuminate\Http\Request;
-use Exceedone\Exment\Exment;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\SystemVersion;
-use Exceedone\Exment\Enums\MailKeyName;
-use Exceedone\Exment\Enums\Login2FactorProviderType;
-use Exceedone\Exment\Exceptions\NoMailTemplateException;
-use Exceedone\Exment\Form\Widgets\InfoBox;
-use Exceedone\Exment\Services\Installer\InitializeFormTrait;
-use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
-use Illuminate\Support\Facades\DB;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
-use Carbon\Carbon;
+use Exceedone\Exment\Enums\CustomValueAutoShare;
+use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\Login2FactorProviderType;
+use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\SystemVersion;
+use Exceedone\Exment\Exceptions\NoMailTemplateException;
+use Exceedone\Exment\Exment;
+use Exceedone\Exment\Form\Widgets\InfoBox;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\Installer\InitializeFormTrait;
+use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\TemplateImportExport;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Validator;
 
 class SystemController extends AdminControllerBase
 {
@@ -35,11 +45,43 @@ class SystemController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
+        if ($request->has('advanced')) {
+            return $this->formAdvanced($request, $content);
+        }
+
+        return $this->formBasic($request, $content);
+    }
+
+    /**
+     * Index interface.
+     *
+     * @return Content
+     */
+    protected function formBasic(Request $request, Content $content)
+    {
         $this->AdminContent($content);
         $form = $this->getInitializeForm('system', false, true);
         $form->action(admin_url('system'));
 
-        $content->row(new Box(trans('admin.edit'), $form));
+        $admin_users = System::system_admin_users();
+        $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
+            ->help(exmtrans('system.help.system_admin_users'))
+            ->required()
+            ->ajax(CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl())
+            ->options(function ($option) use ($admin_users) {
+                return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
+                    'selected_value' => $admin_users,
+                ]);
+            })->default($admin_users);
+
+        $box = new Box(trans('admin.edit'), $form);
+        $box->tools(view('exment::tools.button', [
+            'href' => admin_url('system?advanced=1'),
+            'label' => exmtrans('common.detail_setting'),
+            'icon' => 'fa-cogs',
+        ]));
+        
+        $content->row($box);
 
         if (System::outside_api()) {
             // Version infomation
@@ -47,6 +89,140 @@ class SystemController extends AdminControllerBase
             $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
         }
 
+        return $content;
+    }
+
+    /**
+     * index advanced setting
+     *
+     * @param Request $request
+     * @param Content $content
+     * @return void
+     */
+    protected function formAdvanced(Request $request, Content $content){
+        $this->AdminContent($content);
+
+        $form = new WidgetForm(System::get_system_values(['advanced']));
+        $form->disableReset();
+        $form->action(admin_url('system'));
+        
+        $form->hidden('advanced')->default(1);
+        $form->ignore('advanced');
+
+        $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
+        ->options(getPagerOptions())
+        ->config('allowClear', false)
+        ->default(20)
+        ->help(exmtrans("system.help.grid_pager_count"));
+            
+        $form->select('datalist_pager_count', exmtrans("system.datalist_pager_count"))
+            ->options(getPagerOptions(false, Define::PAGER_DATALIST_COUNTS))
+            ->config('allowClear', false)
+            ->default(5)
+            ->help(exmtrans("system.help.datalist_pager_count"));
+        
+        $form->select('default_date_format', exmtrans("system.default_date_format"))
+            ->options(getTransArray(Define::SYSTEM_DATE_FORMAT, "system.date_format_options"))
+            ->config('allowClear', false)
+            ->default('format_default')
+            ->help(exmtrans("system.help.default_date_format"));
+
+        $form->select('filter_search_type', exmtrans("system.filter_search_type"))
+            ->default(FilterSearchType::FORWARD)
+            ->options(FilterSearchType::transArray("system.filter_search_type_options"))
+            ->config('allowClear', false)
+            ->required()
+            ->help(exmtrans("system.help.filter_search_type"));
+
+        $form->display('max_file_size', exmtrans("common.max_file_size"))
+        ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
+        ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));
+        
+        if (boolval(System::organization_available())) {
+            $form->exmheader(exmtrans('system.organization_header'))->hr();
+
+            $manualUrl = getManualUrl('organization');
+            $form->select('org_joined_type_role_group', exmtrans("system.org_joined_type_role_group"))
+                ->help(exmtrans("system.help.org_joined_type_role_group") . exmtrans("common.help.more_help_here", $manualUrl))
+                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
+                ->config('allowClear', false)
+                ->default(JoinedOrgFilterType::ALL)
+                ;
+
+            $form->select('org_joined_type_custom_value', exmtrans("system.org_joined_type_custom_value"))
+                ->help(exmtrans("system.help.org_joined_type_custom_value") . exmtrans("common.help.more_help_here", $manualUrl))
+                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
+                ->config('allowClear', false)
+                ->default(JoinedOrgFilterType::ONLY_JOIN)
+                ;
+
+            $form->select('custom_value_save_autoshare', exmtrans("system.custom_value_save_autoshare"))
+                ->help(exmtrans("system.help.custom_value_save_autoshare") . exmtrans("common.help.more_help_here", $manualUrl))
+                ->options(CustomValueAutoShare::transKeyArray('system.custom_value_save_autoshare_options'))
+                ->config('allowClear', false)
+                ->default(CustomValueAutoShare::USER_ONLY)
+                ;
+        }
+
+        // use mail setting
+        if (!boolval(config('exment.mail_setting_env_force', false))) {
+            $form->exmheader(exmtrans('system.system_mail'))->hr();
+
+            $form->description(exmtrans("system.help.system_mail"));
+
+            $form->text('system_mail_host', exmtrans("system.system_mail_host"));
+
+            $form->text('system_mail_port', exmtrans("system.system_mail_port"));
+
+            $form->text('system_mail_encryption', exmtrans("system.system_mail_encryption"))
+                ->help(exmtrans("system.help.system_mail_encryption"));
+                
+            $form->text('system_mail_username', exmtrans("system.system_mail_username"));
+
+            $form->password('system_mail_password', exmtrans("system.system_mail_password"));
+            
+            $form->email('system_mail_from', exmtrans("system.system_mail_from"))
+                ->help(exmtrans("system.help.system_mail_from"));
+        }
+        
+        $form->exmheader(exmtrans('system.password_policy'))->hr();
+
+        $form->description(exmtrans("system.help.password_policy"));
+
+        $form->switchbool('complex_password', exmtrans("system.complex_password"))
+            ->help(exmtrans("system.help.complex_password"));
+
+        $form->number('password_expiration_days', exmtrans("system.password_expiration_days"))
+            ->default(0)
+            ->min(0)
+            ->max(999)
+            ->help(exmtrans("system.help.password_expiration_days"));
+
+        $form->number('password_history_cnt', exmtrans("system.password_history_cnt"))
+            ->default(0)
+            ->min(0)
+            ->max(20)
+            ->help(exmtrans("system.help.password_history_cnt"));
+
+        $form->exmheader(exmtrans('system.ip_filter'))->hr();
+        $form->description(exmtrans("system.help.ip_filter"));
+
+        $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
+        $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
+
+        $box = new Box(exmtrans('common.detail_setting'), $form);
+        $box->tools(view('exment::tools.button', [
+            'href' => admin_url('system'),
+            'label' => exmtrans('common.basic_setting'),
+            'icon' => 'fa-cog',
+        ]));
+        $content->row($box);
+
+        // sendmail test
+        $box = $this->getsendmailTestBox();
+        $content->row(new Box(exmtrans("system.submit_test_mail"), $box->render()));
+
+        // 2factor box
         if (boolval(config('exment.login_use_2factor', false))) {
             $box = $this->get2factorSettingBox();
             $content->row(new Box(exmtrans("2factor.2factor"), $box->render()));
@@ -54,7 +230,6 @@ class SystemController extends AdminControllerBase
 
         return $content;
     }
-
     
     /**
      * get 2factor setting box.
@@ -91,6 +266,32 @@ class SystemController extends AdminControllerBase
             ->required()
             ->help(exmtrans("2factor.help.login_2factor_verify_code"))
             ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1'])]);
+
+        return $form;
+    }
+
+    /**
+     * get sendmail test box.
+     *
+     * @return Content
+     */
+    protected function getsendmailTestBox()
+    {
+        $form = new WidgetForm();
+        $form->action(admin_urls('system/2factor'));
+        $form->disableReset();
+        $form->disableSubmit();
+
+        $form->description(exmtrans('system.help.test_mail'));
+
+        $form->email('test_mail_to', exmtrans("system.test_mail_to"));
+
+        $form->ajaxButton('test_mail_send_button', exmtrans("system.submit_test_mail"))
+            ->url(admin_urls('system', 'send_testmail'))
+            ->button_class('btn-sm btn-info')
+            ->attribute(['data-senddata' => json_encode(['test_mail_to'])])
+            ->button_label(exmtrans('system.submit_test_mail'))
+            ->send_params('test_mail_to');
 
         return $form;
     }
@@ -155,19 +356,23 @@ class SystemController extends AdminControllerBase
     {
         DB::beginTransaction();
         try {
-            $result = $this->postInitializeForm($request, ['initialize', 'system']);
+            $advanced = $request->has('advanced');
+
+            $result = $this->postInitializeForm($request, ($advanced ? ['advanced'] : ['initialize', 'system']), false, true);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }
 
             // Set Role
-            System::system_admin_users($request->get('system_admin_users'));
+            if(!$advanced){
+                System::system_admin_users($request->get('system_admin_users'));
+            }
 
             DB::commit();
 
             admin_toastr(trans('admin.save_succeeded'));
 
-            return redirect(admin_url('system'));
+            return redirect(admin_url('system') . ($advanced ? '?advanced=1' : ''));
         } catch (Exception $exception) {
             //TODO:error handling
             DB::rollback();
@@ -214,6 +419,51 @@ class SystemController extends AdminControllerBase
             //TODO:error handling
             DB::rollback();
             throw $exception;
+        }
+    }
+
+    /**
+     * send test mail
+     *
+     * @return void
+     */
+    public function sendTestMail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'test_mail_to' => 'required|email',
+        ]);
+        if ($validator->fails()) {
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => $validator->errors()->first(),
+                'reload' => false,
+            ]);
+        }
+
+        setTimeLimitLong();
+        $test_mail_to = $request->get('test_mail_to');
+
+        try{
+            NotifyService::executeTestNotify([
+                'type' => 'mail',
+                'to' => $test_mail_to,
+            ]);
+
+            return getAjaxResponse([
+                'result'  => true,
+                'toastr' => exmtrans('common.message.sendmail_succeeded'),
+                'reload' => false,
+            ]);
+        }
+        // throw mailsend Exception
+        catch (\Swift_TransportException $ex) {
+            \Log::error($ex);
+
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => exmtrans('error.mailsend_failed'),
+                'reload' => false,
+            ]);
         }
     }
 

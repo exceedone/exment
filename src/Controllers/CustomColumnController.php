@@ -147,6 +147,7 @@ class CustomColumnController extends AdminControllerTableBase
      */
     protected function form($id = null)
     {
+        $controller = $this;
         $form = new Form(new CustomColumn);
         // set script
         $ver = getExmentCurrentVersion();
@@ -185,6 +186,10 @@ class CustomColumnController extends AdminControllerTableBase
                     'url' => admin_url('webapi/table/indexcolumns'),
                     'text' => 'column_view_name',
                 ],
+                'options_select_export_column_id' => [
+                    'url' => admin_url('webapi/table/columns'),
+                    'text' => 'column_view_name',
+                ],
                 'options_select_target_view' => [
                     'url' => admin_url('webapi/table/filterviews'),
                     'text' => 'view_view_name',
@@ -199,7 +204,7 @@ class CustomColumnController extends AdminControllerTableBase
         }
 
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
-        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id) {
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id, $controller) {
             $form->switchbool('required', exmtrans("common.reqired"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
                 ->rules("maxTableIndex:{$this->custom_table->id},$id|usingIndexColumn:{$id}")
@@ -340,6 +345,10 @@ class CustomColumnController extends AdminControllerTableBase
                                 'url' => admin_url('webapi/table/indexcolumns'),
                                 'text' => 'column_view_name',
                             ],
+                            'options_select_export_column_id' => [
+                                'url' => admin_url('webapi/table/columns'),
+                                'text' => 'column_view_name',
+                            ],
                             'options_select_target_view' => [
                                 'url' => admin_url('webapi/table/filterviews'),
                                 'text' => 'view_view_name',
@@ -377,33 +386,15 @@ class CustomColumnController extends AdminControllerTableBase
             $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
             $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
                 ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
-                ->options(function ($select_table, $form) use ($id) {
-                    $data = $form->data();
-                    if (!isset($data)) {
-                        return [];
-                    }
+                ->options(function ($select_table, $form) use ($id, $controller) {
+                    return $controller->getImportExportColumnSelect($select_table, $form, $id);
+                })
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
 
-                    // whether column_type is user or org
-                    if (!is_null(old('column_type'))) {
-                        $model = CustomColumn::getEloquent(old('column_type'), $this->custom_table);
-                    } elseif (isset($id) || old('column_type')) {
-                        $model = CustomColumn::getEloquent($id);
-                    }
-                    if (isset($model) && in_array($model->column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
-                        return CustomTable::getEloquent($model->column_type)->getColumnsSelectOptions([
-                            'index_enabled_only' => true,
-                            'include_system' => false,
-                        ]) ?? [];
-                    }
-
-                    // select_table
-                    if (is_null($select_target_table = array_get($data, 'select_target_table'))) {
-                        return [];
-                    }
-                    return CustomTable::getEloquent($select_target_table)->getColumnsSelectOptions([
-                        'index_enabled_only' => true,
-                        'include_system' => false,
-                    ]) ?? [];
+            $form->select('select_export_column_id', exmtrans("custom_column.options.select_export_column_id"))
+                ->help(exmtrans("custom_column.help.select_export_column_id"))
+                ->options(function ($select_table, $form) use ($id, $controller) {
+                    return $controller->getImportExportColumnSelect($select_table, $form, $id, false);
                 })
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
 
@@ -641,7 +632,20 @@ class CustomColumnController extends AdminControllerTableBase
             if ($view->custom_view_columns()->count() == 0) {
                 $order = 1;
             } else {
-                $order = $view->custom_view_columns()->max('order') ?? 1;
+                // get order. ignore system column and footer
+                $order = $view->custom_view_columns
+                    ->filter(function($custom_view_column){
+                        if($custom_view_column->view_column_type != ConditionType::SYSTEM){
+                            return true;
+                        }
+                        $systemColumn = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id]);
+                        if(!isset($systemColumn)){
+                            return false;
+                        }
+
+                        // check not footer
+                        return !boolval(array_get($systemColumn, 'footer'));
+                    })->max('order') ?? 1;
                 $order++;
             }
 
@@ -741,5 +745,40 @@ class CustomColumnController extends AdminControllerTableBase
         }
         
         return $options;
+    }
+
+    /**
+     * Get import export select list
+     *
+     * @return void
+     */
+    protected function getImportExportColumnSelect($select_table, $form, $id, $isImport = true)
+    {
+        $data = $form->data();
+        if (!isset($data)) {
+            return [];
+        }
+
+        // whether column_type is user or org
+        if (!is_null(old('column_type'))) {
+            $model = CustomColumn::getEloquent(old('column_type'), $this->custom_table);
+        } elseif (isset($id) || old('column_type')) {
+            $model = CustomColumn::getEloquent($id);
+        }
+        if (isset($model) && in_array($model->column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
+            return CustomTable::getEloquent($model->column_type)->getColumnsSelectOptions([
+                'index_enabled_only' => $isImport,
+                'include_system' => false,
+            ]) ?? [];
+        }
+
+        // select_table
+        if (is_null($select_target_table = array_get($data, 'select_target_table'))) {
+            return [];
+        }
+        return CustomTable::getEloquent($select_target_table)->getColumnsSelectOptions([
+            'index_enabled_only' => $isImport,
+            'include_system' => false,
+        ]) ?? [];
     }
 }

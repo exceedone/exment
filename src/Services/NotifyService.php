@@ -44,7 +44,7 @@ class NotifyService
     public function getNotifyDialogForm()
     {
         // get target users
-        $users = $this->notify->getNotifyTargetUsers($this->custom_value);
+        $users = $this->notify->getNotifyTargetUsers($this->custom_value)->filter();
 
         // if only one data, get form for detail
         if (count($users) <= 1) {
@@ -233,6 +233,40 @@ class NotifyService
                 'errors' => ['send_error_message' => ['type' => 'input',
                     'message' => exmtrans('custom_value.sendmail.message.empty_error')]],
             ]);
+        }
+    }
+    
+    /**
+     * Execute Notify test
+     *
+     * @param array $params
+     * @return void
+     */
+    public static function executeTestNotify($params = [])
+    {
+        extract(
+            array_merge(
+                [
+                    'to' => null,
+                    'type' => 'mail',
+                    'subject' => 'Exment TestMail',
+                    'body' => 'Exment TestMail'
+                ],
+                $params
+            )
+        );
+
+
+        // send mail
+        try {
+            Notifications\MailSender::make(null, $to)
+                ->subject($subject)
+                ->body($body)
+                ->send();
+        }
+        // throw mailsend Exception
+        catch (\Swift_TransportException $ex) {
+            throw $ex;
         }
     }
     

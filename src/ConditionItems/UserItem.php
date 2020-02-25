@@ -57,10 +57,14 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
     {
         $model = getModelName(SystemTableName::USER)::find($value);
         if ($model instanceof \Illuminate\Database\Eloquent\Collection) {
-            $result = $model->map(function ($row) {
+            $result = $model->filter()->map(function ($row) {
                 return $row->getValue('user_name');
             })->implode(',');
         } else {
+            if (!isset($model)) {
+                return null;
+            }
+
             $result = $model->getValue('user_name');
         }
         return $result . ($showFilter ? FilterOption::getConditionKeyText($key) : '');

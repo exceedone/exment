@@ -55,10 +55,16 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                             'table_name' => 'options.parent_import_table_name',
                             'column_name' => 'options.parent_import_column_name',
                         ]
-                    ]
+                    ],
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.parent_export_table_name',
+                            'column_name' => 'options.parent_export_column_name',
+                        ]
+                    ],
                 ],
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
-                'uniqueKeyFunctionArgs' => ['options.parent_import_column_id'],
+                'uniqueKeyFunctionArgs' => ['options.parent_import_column_id', 'options.parent_export_column_id'],
             ],
         ]
     ];
@@ -111,6 +117,29 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         $child_table = CustomTable::getEloquent($child_table);
 
         return static::allRecordsCache(function ($record) use ($child_table, $relation_type) {
+            if ($record->child_custom_table_id != array_get($child_table, 'id')) {
+                return false;
+            }
+            if (isset($relation_type) && $record->relation_type != $relation_type) {
+                return false;
+            }
+            return true;
+        }, $reget_database);
+    }
+
+
+    /**
+     * get relation by parent and child table.
+     */
+    public static function getRelationByParentChild($parent_table, $child_table, $relation_type = null, $reget_database = false)
+    {
+        $parent_table = CustomTable::getEloquent($parent_table);
+        $child_table = CustomTable::getEloquent($child_table);
+
+        return static::firstRecordCache(function ($record) use ($parent_table, $child_table, $relation_type) {
+            if ($record->parent_custom_table_id != array_get($parent_table, 'id')) {
+                return false;
+            }
             if ($record->child_custom_table_id != array_get($child_table, 'id')) {
                 return false;
             }
@@ -189,9 +218,15 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         return CustomColumn::getEloquent($this->getOption('parent_import_column_id'));
     }
     
+    public function getParentExportColumnAttribute()
+    {
+        return CustomColumn::getEloquent($this->getOption('parent_export_column_id'));
+    }
+    
     public static function importReplaceJson(&$json, $options = [])
     {
         static::importReplaceJsonCustomColumn($json, 'options.parent_import_column_id', 'options.parent_import_column_name', 'options.parent_import_table_name', $options);
+        static::importReplaceJsonCustomColumn($json, 'options.parent_export_column_id', 'options.parent_export_column_name', 'options.parent_export_table_name', $options);
     }
 
     protected static function boot()

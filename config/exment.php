@@ -510,6 +510,37 @@ return [
     
     /*
     |--------------------------------------------------------------------------
+    | Disabled import & export csv
+    |--------------------------------------------------------------------------
+    |
+    | Disabled import & export csv
+    |
+    */
+    'export_import_export_disabled_csv' => env('EXMENT_IMPORT_EXPORT_DISABLED_CSV', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled import & export excel
+    |--------------------------------------------------------------------------
+    |
+    | Disabled import & export excel
+    |
+    */
+    'export_import_export_disabled_excel' => env('EXMENT_IMPORT_EXPORT_DISABLED_EXCEL', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Select relation linkage disabled
+    |--------------------------------------------------------------------------
+    |
+    | Disable select relation linkage
+    | "related linkage": When selecting a value, change the choices of other list. It's for 1:n relation.
+    | 
+    */
+    'select_relation_linkage_disabled' => env('SELECT_RELATION_LINKAGE_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | API default get data count 
     |--------------------------------------------------------------------------
     |

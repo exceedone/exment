@@ -132,6 +132,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * get Custom columns using cache
+     */
+    public function getCustomColumnsCacheAttribute()
+    {
+        return $this->hasManyCache(CustomColumn::class, 'custom_table_id');
+    }
+
+    /**
      * Get Columns where select_target_table's id is this table.
      *
      * @return void
@@ -406,11 +414,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $custom_relation_parent = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
             $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
             
-            if(!isset($custom_table_parent)){
+            if (!isset($custom_table_parent)) {
                 $parent_id_rules = [new EmptyRule];
-            }elseif(!$checkCustomValueExists){
+            } elseif (!$checkCustomValueExists) {
                 $parent_id_rules = ['nullable', 'numeric'];
-            }else{
+            } else {
                 $parent_id_rules = ['nullable', 'numeric', new CustomValueRule($custom_table_parent)];
             }
             $parent_type_rules = isset($custom_table_parent) ? ['nullable', "in:". $custom_table_parent->table_name] : [new EmptyRule];
@@ -450,13 +458,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * get validation custom attribute
      */
-    public function getValidateCustomAttributes($systemColumn = false, $column_name_prefix = null, $appendKeyName = true){
+    public function getValidateCustomAttributes($systemColumn = false, $column_name_prefix = null, $appendKeyName = true)
+    {
         $customAttributes = [];
 
         foreach ($this->custom_columns as $custom_column) {
             $customAttributes[$column_name_prefix . $custom_column->column_name] = "{$custom_column->column_view_name}" . ($appendKeyName ? "({$custom_column->column_name})" : "");
 
-            if($systemColumn){
+            if ($systemColumn) {
                 $rules = [
                     'id',
                     'parent_id',
@@ -469,7 +478,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     
                 foreach ($rules as $key => $rule) {
                     $customAttributes[$key] = exmtrans("common.$key") . ($appendKeyName ? "($key)" : "");
-                } 
+                }
             }
         }
         
@@ -498,6 +507,48 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return $value;
+    }
+
+    /**
+     * Convert base64 encode file
+     *
+     * @param array $value input value
+     * @return array Value after converting base64 encode file, and files value
+     */
+    public function convertFileData($value)
+    {
+        // get file columns
+        $file_columns = $this->custom_columns_cache->filter(function($column) {
+            return ColumnType::isAttachment($column->column_type);
+        });
+        
+        $files = [];
+
+        foreach ($file_columns as $file_column) {
+            // if not key in value, set default value
+            if (!array_has($value, $file_column->column_name)) {
+                continue;
+            }
+            $file_value = $value[$file_column->column_name];
+            if (!array_has($file_value, 'name') && !array_has($file_value, 'base64')) {
+                continue;
+            }
+
+            $file_name = $file_value['name'];
+            $file_data = $file_value['base64'];
+            $file_data = base64_decode($file_data);
+
+            // convert file name for validation
+            $value[$file_column->column_name] = null;
+
+            // append file data
+            $files[$file_column->column_name] = [
+                'name' => $file_name,
+                'data' => $file_data,
+            ];
+        }
+
+        return [$value, $files];
     }
 
     /**
@@ -962,7 +1013,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach (collect($values)->chunk(100) as $chunk) {
             $query = $this->getValueModel()->query();
 
-            $databaseKeyName = str_replace(".", "->", $keyName);
+            if (preg_match("/value\.([a-zA-Z0-9_-]+)/i", $keyName, $matches)) {
+                // get custom_column
+                $custom_column = CustomColumn::getEloquent($matches[1], $this);
+                if($custom_column->index_enabled){
+                    $databaseKeyName = $this->getIndexColumnName($matches[1]);
+                }
+                else{
+                    $databaseKeyName = "value->{$matches[1]}";
+                }
+            } else {
+                $databaseKeyName = $keyName;
+            }
             $query->whereIn($databaseKeyName, $chunk);
 
             if ($withTrashed) {
@@ -1102,6 +1164,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'all' => false,
                 'showMessage_ifDeny' => null,
                 'filterCallback' => null,
+                'target_id' => null,
                 'target_view' => null,
                 'permission' => null,
                 'notAjax' => false,
@@ -1125,25 +1188,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         $items = $query->get()->pluck("label", "id");
 
-        // if not contains, check in $items. if not contains, add
-        if (is_nullorempty($selected_value)) {
-            return $items;
-        }
-        if ($items->contains(function ($value, $key) use ($selected_value) {
-            return $key == $selected_value;
-        })) {
-            return $items;
-        }
-
-        $selected_custom_values = $this->getValueModel()->find((array)$selected_value);
-        if (is_nullorempty($selected_custom_values)) {
-            return $items;
-        }
-
-        $selected_custom_values->each(function ($selected_custom_value) use (&$items) {
-            $items->put($selected_custom_value->id, $selected_custom_value->label);
-        });
-        return $items->unique();
+        return $this->putSelectedValue($items, $selected_value, $options);
     }
 
     /**
@@ -1173,6 +1218,39 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $this->getSelectOptions($options),
             $this->getOptionAjaxUrl($options)
         ];
+    }
+
+    /**
+     * put selected value
+     */
+    protected function putSelectedValue($items, $selected_value, $options = []){
+        if (is_nullorempty($selected_value)) {
+            return $items;
+        }
+
+        // if display_table and $this is same, and contains target_id, remove selects
+        if(!is_null(array_get($options, 'display_table')) && $this->id == array_get($options, 'display_table.id')
+            && !is_null(array_get($options, 'target_id'))){
+            array_forget($items, $options['target_id']);
+        }
+
+        ///// if not contains $selected_value, add
+        if ($items->contains(function ($value, $key) use ($selected_value) {
+            return $key == $selected_value;
+        })) {
+            return $items;
+        }
+
+        $selected_custom_values = $this->getValueModel()->find((array)$selected_value);
+        if (is_nullorempty($selected_custom_values)) {
+            return $items;
+        }
+
+        $selected_custom_values->each(function ($selected_custom_value) use (&$items) {
+            $items->put($selected_custom_value->id, $selected_custom_value->label);
+        });
+
+        return $items->unique();
     }
 
     /**
@@ -1996,6 +2074,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return true;
     }
 
+    /**
+     * User can show trashed value
+     *
+     * @return void
+     */
+    public function enableShowTrashed()
+    {
+        if (!$this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_VIEW_TRASHED])) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        return true;
+    }
     /**
      *
      */

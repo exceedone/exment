@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Revisionable;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Support\Facades\Log;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\CustomTable;
 
 /**
  * Revision.
@@ -43,7 +44,12 @@ class Revision extends Eloquent
 
     public function getUserAttribute()
     {
-        return $this->getUser();
+        return $this->getUser('create_user_id', true);
+    }
+
+    public function getDeleteUserAttribute()
+    {
+        return $this->getUser('delete_user_id', false);
     }
 
     /**
@@ -309,11 +315,11 @@ class Revision extends Eloquent
     /**
      * get user from id
      */
-    protected function getUser()
+    protected function getUser(string $keyName, bool $emptyAsSystem)
     {
-        $value = getModelName(SystemTableName::USER)::find($this->create_user_id);
+        $value = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($this->{$keyName});
         if (!isset($value)) {
-            return 'system';
+            return $emptyAsSystem ? 'system' : null;
         }
         return $value->getLabel();
     }

@@ -557,6 +557,11 @@ EOT;
      */
     protected function setRelatedLinkageArray($custom_form_block, &$relatedlinkage_array)
     {
+        // if config "select_relation_linkage_disabled" is true, return
+        if (boolval(config('exment.select_relation_linkage_disabled', false))) {
+            return;
+        }
+
         // if available is false, continue
         if (!$custom_form_block->available || !isset($custom_form_block->target_table)) {
             return;

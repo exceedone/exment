@@ -92,6 +92,11 @@ class RestoreCommand extends Command
         // load table data from tsv file
         foreach ($files as $file) {
             $table = $file->getBasename('.' . $file->getExtension());
+
+            if(!\Schema::hasTable($table)){
+                continue;
+            }
+
             $cmd =<<<__EOT__
             LOAD DATA local INFILE '%s' 
             INTO TABLE %s 
@@ -140,9 +145,11 @@ __EOT__;
             }
             
             $fromDirectory = $tmpDisk->path(path_join($this->diskService->tmpDiskItem()->dirName(), $keyname));
+
+            $s = $setting[0];
             // is local file
-            if (is_string($setting)) {
-                $topath = base_path($setting);
+            if (is_string($s)) {
+                $topath = $s;
                 $success = \File::copyDirectory($fromDirectory, $topath);
                 if (!$success) {
                     $result = false;

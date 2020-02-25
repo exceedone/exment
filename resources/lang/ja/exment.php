@@ -12,6 +12,7 @@ return [
         'change' => '変更',
         'reqired' => '必須',
         'default' => '既定',
+        'basic_setting' => '基本設定',
         'detail_setting' => '詳細設定',
         'no_setting' => '未設定',
         'input' => '入力',
@@ -194,6 +195,8 @@ return [
         'system_mail_password' => 'パスワード',
         'system_mail_encryption' => '暗号化形式',
         'system_mail_from' => '送信元アドレス',
+        'test_mail_to' => 'テストメール送信先',
+        'submit_test_mail' => 'テストメール送信',
         'grid_pager_count' => 'データ一覧の表示件数',
         'datalist_pager_count' => '検索・ダッシュボードの表示件数',
         'template' => 'インストールテンプレート',
@@ -285,6 +288,7 @@ return [
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
             'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
+            'test_mail' => '入力した送信先にテストメールを送ります。<br /><b>※上記のメール設定を必ず保存してから実行してください。入力途中の設定は無効になります。</b>',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
             'default_date_format' => '日付と時刻の表示書式を設定します。',
@@ -811,6 +815,7 @@ return [
             'select_target_table' => '対象テーブル',
             'select_target_view' => '対象ビュー',
             'select_import_column_id' => 'インポート時のキー列',
+            'select_export_column_id' => 'エクスポート時のキー列',
             'select_load_ajax' => '選択肢を絞り込む',
             'true_value' => '選択肢1のときの値',
             'true_label' => '選択肢1のときの表示',
@@ -874,6 +879,7 @@ return [
             'select_target_view' => 'データを絞り込む場合に、条件ビューを指定します。条件ビューは、先にカスタムテーブルの設定画面で作成してください。',
             'select_import_column_id' => 'データのインポート時、選択テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'select_import_column_id_key' => '親テーブルのデータの指定方法変更',
+            'select_export_column_id' => 'データのエクスポート時、選択テーブルのデータの出力するカスタム列を指定することができます。未設定の場合は、idを出力します。',
             'true_value' => '1つ目の選択肢を保存した場合に登録する値を入力してください。',
             'true_label' => '1つ目の選択肢を保存した場合に表示する文字列を入力してください。',
             'false_value' => '2つ目の選択肢を保存した場合に登録する値を入力してください。',
@@ -1172,7 +1178,7 @@ return [
             'custom_value_view_all' => ['label' => 'データの閲覧', 'help' => 'マスターデータを閲覧できます。'],
         ], 
         'role_type_option_table' => [
-            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除できます。'],
+            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除、論理削除されたデータを再表示できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'システムビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => '全データの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
@@ -1182,6 +1188,7 @@ return [
             'custom_value_view' => ['label' => '担当データの閲覧', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを閲覧できます。'],
             'custom_value_access' => ['label' => '担当データの参照', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
             'custom_value_share' => ['label' => 'データの共有', 'help' => 'データを、他のユーザーに共有することができます。<br />※そのデータに対する編集権限が必要です。'],
+            'custom_value_view_trashed' => ['label' => '削除データの表示', 'help' => '論理削除されたデータを再表示することができます。<br />※データの復元には、そのデータに対する編集権限が必要です。'],
         ], 
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => '編集可能', 'help' => 'このデータを編集できるようになります。'],
@@ -1204,11 +1211,13 @@ return [
         'parent_custom_table' => '親テーブル',
         'child_custom_table' => '子テーブル',
         'parent_import_column_id' => 'インポート時のキー列',
+        'parent_export_column_id' => 'エクスポート時のキー列',
 
         'help' => [
             'relation_caution' => '<span class="red bold"><i class="fa fa-exclamation-circle"></i> Exmentのテーブル間の関連付け設定方法は、この画面の他に、もう1種類あります。</span><br />登録前に、必ず<a href="%s" target="_blank">マニュアル</a>をご確認いただき、適切な選択を行うようにしてください。',
             'parent_import_column_id' => 'データのインポート時、親テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
-        ]
+            'parent_export_column_id' => 'データのエクスポート時、親テーブルのデータの出力するカスタム列を指定することができます。未設定の場合は、idを出力します。',
+        ],
     ],
 
     'custom_copy' => [
@@ -1332,6 +1341,9 @@ return [
         'export' => 'エクスポート',
         'import_label' => 'インポート',
         'view_summary_detail' => '集計データの明細を表示する',
+        'soft_deleted_data' => '削除済データ',
+        'restore' => '復元',
+        'hard_delete' => '完全に削除する',
         'import' => [
             'manual_id' => 'データインポート',
             'import_file' => 'インポートファイル',
@@ -1344,8 +1356,8 @@ return [
             'target_column_name' => '置換対象列名(英数字)',
             'help' => [
                 'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
-                'custom_table_file' => 'テンプレート出力した、CSVファイル、もしくはExcelファイル(xlsx形式)を選択してください。',
-                'primary_key' => '更新データを絞り込む対象のフィールドを選択します。<br />このフィールド値が、すでにあるデータと合致していた場合、更新データとして取り込みを行います。<br />合致するデータが存在しなかった場合、新規データとして取り込みます。',
+                'custom_table_file' => 'テンプレート出力した%sファイルを選択してください。',
+                'primary_key' => '更新データを絞り込む対象のフィールドを選択します。<br />このフィールド値が、すでにあるデータと合致していた場合、更新データとして取り込みを行います。<br />合致するデータが存在しなかった場合、新規データとして取り込みます。<br />※カスタム列は、「ユニーク」かつ「検索インデックス」列が表示されます。',
                 'import_plugin' => '取込ファイルを独自に処理する場合は、あらかじめプラグインをアップロードした上で選択してください。',
                 'error_flow' => 'データ不備などでエラーが発生した場合、正常データを取り込むかどうか選択します。',
                 'import_error_message' => '取込ファイルに不備があった場合、この項目に、行番号と、エラーメッセージを表示します。',
@@ -1391,7 +1403,11 @@ return [
         'message' => [
             'operation_notfound' => '更新対象のデータが見つかりませんでした。',
             'operation_succeeded' => '一括更新を実行しました。',
+            'operation_succeeded' => '一括更新を実行しました！',
             'action_disabled' => '画面からの操作が制限されています。',
+            'restore' => '復元しますか？',
+            'restore_succeeded' => '復元が完了しました！',
+            'hard_delete' => '完全に削除しますか？(この操作は復元できません)',
         ],
     ],
 
@@ -1534,9 +1550,13 @@ return [
         'scopes' => [
             'me' => 'ログインユーザー情報の取得',
             'table_read' => 'テーブル情報の取得',
-            'table_write' => 'テーブル情報の取得・新規追加・更新・削除',
             'value_read' => 'データの取得',
             'value_write' => 'データの取得・新規追加・更新・削除',
+            'notify_read' => '通知の取得',
+            'notify_write' => '通知の新規追加',
+            'workflow_read' => 'ワークフローの情報の取得',
+            'workflow_execute' => 'ワークフローの実行',
+            'plugin' => 'プラグイン',
         ],
 
         'errors' => [

@@ -162,7 +162,9 @@ class SelectTable extends CustomItem
         // get callback
         //TODO:refactor
         $callback = null;
-        if (isset($relationColumn)) {
+        // if config "select_relation_linkage_disabled" is true, not callback
+        if (boolval(config('exment.select_relation_linkage_disabled', false))) {
+        } elseif (isset($relationColumn)) {
             $parent_value = $this->custom_column->custom_table->getValueModel($this->id);
             $parent_v = array_get($parent_value, 'value.' . $relationColumn['parent_column']->column_name);
             $parent_target_table_id = $relationColumn['parent_column']->select_target_table->id;
@@ -205,6 +207,7 @@ class SelectTable extends CustomItem
             'display_table' => $this->custom_column->custom_table,
             'filterCallback' => $callback,
             'target_view' => $this->target_view,
+            'target_id' => isset($this->custom_value) ? $this->custom_value->id : null,
         ];
 
         $field->options(function ($value) use ($selectOption, $relationColumn) {
@@ -224,8 +227,9 @@ class SelectTable extends CustomItem
     
     public function getAdminFilterWhereQuery($query, $input)
     {
-        $index = $this->index();
-        $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE(`$index`, '[', ''), ' ', ''), '[', ''), '\\\"', ''))", $input);
+        $index = \DB::getQueryGrammar()->wrap($this->index());
+        // index is wraped
+        $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))", $input);
     }
 
     protected function setAdminFilterOptions(&$filter)

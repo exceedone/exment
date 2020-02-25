@@ -1,6 +1,6 @@
 <div class="btn-group pull-right" style="margin-right: 5px">
     <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-        <i class="fa fa-plus"></i>&nbsp; <span class="hidden-xs">{{ $label ?? null }}</span>
+        <i class="fa fa-plus"></i>&nbsp; <span class="hidden-xs">{{ $label ?? null }}&nbsp;</span>
         <span class="caret"></span>
     </button>
     <ul class="dropdown-menu" role="menu">
