@@ -61,6 +61,8 @@ return [
         'available' => '使用する',
         'history' => '履歴',
         'create_only_setting' => '新規作成時設定',
+        'join_and' => 'かつ',
+        'join_or' => 'または',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -1609,6 +1611,7 @@ return [
         'condition_target' => '条件項目',
         'condition_key' => '検索条件',
         'condition_value' => '条件値',
+        'condition_join' => '条件の結合',
         'condition_type_options' => [
             'user' => 'ユーザー',
             'organization' => '組織',
@@ -1625,6 +1628,11 @@ return [
             'number_lte' => '以下',
             'day_on_or_after' => '以降',
             'day_on_or_before' => '以前',
+        ],
+
+        'condition_join_options' => [
+            'and' => 'すべての条件に一致',
+            'or' => 'いずれかの条件に一致',
         ],
     ],
 ];

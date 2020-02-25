@@ -24,7 +24,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\DatabaseJsonTrait;
 
     //protected $appends = ['view_calendar_target', 'pager_count'];
-    protected $appends = ['pager_count'];
+    protected $appends = ['pager_count', 'condition_join'];
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json'];
     //protected $with = ['custom_table', 'custom_view_columns'];
@@ -554,8 +554,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function setValueFilters($model, $db_table_name = null)
     {
+        $is_or = $this->condition_join == 'or';
         foreach ($this->custom_view_filters_cache as $filter) {
-            $filter->setValueFilter($model, $db_table_name);
+            $filter->setValueFilter($model, $db_table_name, $is_or);
         }
         return $model;
     }
@@ -580,6 +581,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 if (!isset($column_item)) {
                     break;
                 }
+                // $view_column_target is wraped
                 $view_column_target = $column_item->getSortColumn();
                 $sort_order = $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc';
                 //set order
@@ -977,6 +979,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setPagerCountAttribute($val)
     {
         $this->setOption('pager_count', $val);
+
+        return $this;
+    }
+    
+    public function getConditionJoinAttribute()
+    {
+        return $this->getOption('condition_join');
+    }
+
+    public function setConditionJoinAttribute($val)
+    {
+        $this->setOption('condition_join', $val);
 
         return $this;
     }

@@ -61,6 +61,8 @@ return [
         'available' => 'Available',
         'history' => 'History',
         'create_only_setting' => 'Setting when creating data',
+        'join_and' => 'And',
+        'join_or' => 'Or',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -1610,6 +1612,7 @@ return [
         'condition_target' => 'Condition Item',
         'condition_key' => 'Search Condition',
         'condition_value' => 'Condtion Value',
+        'condition_join' => 'Condtion Join',
         'condition_type_options' => [
             'user' => 'User',
             'organization' => 'Organization',
@@ -1626,6 +1629,11 @@ return [
             'number_lte' => 'Less Than or Equal',
             'day_on_or_after' => 'After',
             'day_on_or_before' => 'Before',
+        ],
+
+        'condition_join_options' => [
+            'and' => 'Match All Condition',
+            'or' => 'Match Any Condition',
         ],
     ],
 ];

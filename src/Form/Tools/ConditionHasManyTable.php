@@ -17,12 +17,15 @@ class ConditionHasManyTable
     protected $name;
     protected $custom_table;
     protected $label;
+    protected $useJoinOptions = true;
+    protected $useJoinOptionAttribute;
 
     protected $callbackField;
 
     protected $condition_target_name = 'condition_target';
     protected $condition_key_name = 'condition_key';
     protected $condition_value_name = 'condition_value';
+    protected $condition_join_name = 'condition_join';
     protected $filterKind = FilterKind::VIEW;
     protected $showConditionKey = true;
 
@@ -108,6 +111,16 @@ class ConditionHasManyTable
             $field->setTableColumnWidth(4, 4, 3, 1);
         } else {
             $field->setTableColumnWidth(6, 5, 1);
+        }
+
+        if ($this->useJoinOptions) {
+            $radioField = $this->form->radio($this->condition_join_name, exmtrans("condition.condition_join"))
+            ->options(exmtrans("condition.condition_join_options"))
+            ->default('and');
+
+            if(isset($this->useJoinOptionAttribute)){
+                $radioField->attribute($this->useJoinOptionAttribute);
+            }
         }
 
         if (isset($this->callbackField)) {

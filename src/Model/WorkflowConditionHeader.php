@@ -6,6 +6,10 @@ class WorkflowConditionHeader extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
+    use Traits\DatabaseJsonTrait;
+
+    protected $appends = ['condition_join'];
+    protected $casts = ['options' => 'json'];
 
     public function workflow_action()
     {
@@ -22,12 +26,19 @@ class WorkflowConditionHeader extends ModelBase
      */
     public function isMatchCondition($custom_value)
     {
+        $is_or = $this->condition_join == 'or';
         foreach ($this->workflow_conditions as $condition) {
-            if (!$condition->isMatchCondition($custom_value)) {
-                return false;
+            if ($is_or) {
+                if ($condition->isMatchCondition($custom_value)) {
+                    return true;
+                }
+            } else {
+                if (!$condition->isMatchCondition($custom_value)) {
+                    return false;
+                }
             }
         }
-        return true;
+        return !$is_or;
     }
 
     protected static function boot()
@@ -46,5 +57,26 @@ class WorkflowConditionHeader extends ModelBase
         foreach ($keys as $key) {
             $this->{$key}()->delete();
         }
+    }
+
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
+    }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
+    }
+    
+    public function getConditionJoinAttribute()
+    {
+        return $this->getOption('condition_join');
+    }
+
+    public function setConditionJoinAttribute($val)
+    {
+        $this->setOption('condition_join', $val);
+
+        return $this;
     }
 }
