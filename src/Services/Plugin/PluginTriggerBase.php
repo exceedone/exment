@@ -19,6 +19,9 @@ class PluginTriggerBase
     // workflow action(if call as workflow)
     public $workflow_action;
 
+    // notify(if call as notify)
+    public $notify;
+
     public function __construct($plugin, $custom_table, $custom_value, $options = [])
     {
         $this->plugin = $plugin;
@@ -32,6 +35,9 @@ class PluginTriggerBase
 
         if (isset($options['workflow_action'])) {
             $this->workflow_action = $options['workflow_action'];
+        }
+        if (isset($options['notify'])) {
+            $this->notify = $options['notify'];
         }
         $this->isCreate = !isset($custom_value);
     }

@@ -404,6 +404,8 @@ return [
                 'form_menubutton_edit' => 'Menu button on Form Edit View',
                 'workflow_action_executing' => 'Before Workflow Action',
                 'workflow_action_executed' => 'After Workflow Action',
+                'before_notification' => 'Before notification',
+                'after_notification' => 'After notification',
             ]
         ],
 
@@ -1449,6 +1451,7 @@ return [
         'header_trigger' => 'Notify Trigger Setting',
         'header_action' => 'Notify Action Setting',
         'description' => 'Perform settings for notifying under specific conditions.',
+        'notify_name' => 'Notify Name',
         'notify_view_name' => 'Notify Display Name',
         'notify_target' => 'Notify Target Name',
         'custom_table_id' => 'Notify Target Name',

@@ -161,6 +161,8 @@ class Define
         'form_menubutton_edit',
         'workflow_action_executing',
         'workflow_action_executed',
+        'before_notification',
+        'after_notification',
     ];
 
     /**
