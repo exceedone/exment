@@ -404,8 +404,8 @@ return [
                 'form_menubutton_edit' => 'Menu button on Form Edit View',
                 'workflow_action_executing' => 'Before Workflow Action',
                 'workflow_action_executed' => 'After Workflow Action',
-                'before_notification' => 'Before notification',
-                'after_notification' => 'After notification',
+                'notify_executing' => 'Before notification',
+                'notify_executed' => 'After notification',
             ]
         ],
 
