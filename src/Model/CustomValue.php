@@ -1238,6 +1238,11 @@ abstract class CustomValue extends ModelBase
     public function lockedWorkflow()
     {
         // check workflow
+        if (is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
+            return false;
+        }
+
+        // check workflow value
         if ($this->workflow_value === null || $this->workflow_status === null) {
             return false;
         }
