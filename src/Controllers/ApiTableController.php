@@ -69,7 +69,7 @@ class ApiTableController extends AdminControllerTableBase
                 $orderby_list[] = [$column_name, count($values) > 1? $values[1]: 'asc'];
             }
         }
-
+        
         // get paginate
         $model = $this->custom_table->getValueModel()->query();
 
@@ -98,6 +98,14 @@ class ApiTableController extends AdminControllerTableBase
 
         // execute makehidden
         $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
+
+        // append label
+        if ($request->has('label') && boolval($request->get('label'))) {
+            $value->map(function($rec) {
+                $rec->append('label');
+            });
+        }
+
         $paginator->value = $value;
 
         // set appends
@@ -173,11 +181,17 @@ class ApiTableController extends AdminControllerTableBase
             $custom_view = CustomView::getEloquent($request->get('target_view_id'));
         }
 
+        $getLabel = false;
+        if ($request->has('label')) {
+            $getLabel = boolval($request->get('label'));
+        }
+
         $paginator = $this->custom_table->searchValue($q, [
             'paginate' => true,
             'makeHidden' => true,
             'target_view' => $custom_view,
             'maxCount' => $count,
+            'getLabel' => $getLabel,
         ]);
 
         $paginator->appends([
@@ -264,6 +278,14 @@ class ApiTableController extends AdminControllerTableBase
 
         // execute makehidden
         $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
+
+        // append label
+        if ($request->has('label') && boolval($request->get('label'))) {
+            $value->map(function($rec) {
+                $rec->append('label');
+            });
+        }
+
         $paginator->value = $value;
 
         // set appends
@@ -300,6 +322,11 @@ class ApiTableController extends AdminControllerTableBase
 
         if (($code = $model->enableAccess()) !== true) {
             return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        // append label
+        if ($request->has('label') && boolval($request->get('label'))) {
+            $model->append('label');
         }
 
         $result = $model->makeHidden($this->custom_table->getMakeHiddenArray())
