@@ -100,8 +100,8 @@ class ApiTableController extends AdminControllerTableBase
         $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
 
         // append label
-        if ($request->has('label') && boolval($request->get('label'))) {
-            $value->map(function($rec) {
+        if ($this->isAppendLabel($request)) {
+            $value->map(function ($rec) {
                 $rec->append('label');
             });
         }
@@ -181,11 +181,7 @@ class ApiTableController extends AdminControllerTableBase
             $custom_view = CustomView::getEloquent($request->get('target_view_id'));
         }
 
-        $getLabel = false;
-        if ($request->has('label')) {
-            $getLabel = boolval($request->get('label'));
-        }
-
+        $getLabel = $this->isAppendLabel($request);
         $paginator = $this->custom_table->searchValue($q, [
             'paginate' => true,
             'makeHidden' => true,
@@ -280,7 +276,7 @@ class ApiTableController extends AdminControllerTableBase
         $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
 
         // append label
-        if ($request->has('label') && boolval($request->get('label'))) {
+        if ($this->isAppendLabel($request)) {
             $value->map(function($rec) {
                 $rec->append('label');
             });
@@ -325,7 +321,7 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         // append label
-        if ($request->has('label') && boolval($request->get('label'))) {
+        if ($this->isAppendLabel($request)) {
             $model->append('label');
         }
 
@@ -433,6 +429,7 @@ class ApiTableController extends AdminControllerTableBase
         $options = [
             'paginate' => false,
             'maxCount' => null,
+            'getLabel' => true,
         ];
         $datalist = $this->custom_table->searchRelationValue($request->get('search_type'), $q, $child_table, $options);
         return collect($datalist)->map(function ($data) {
@@ -584,6 +581,11 @@ class ApiTableController extends AdminControllerTableBase
             }
 
             $model->saveOrFail();
+
+            // append label
+            if ($this->isAppendLabel($request)) {
+                $model->append('label');
+            }
 
             //$response[] = getModelName($this->custom_table)::find($model->id)->makeHidden($this->custom_table->getMakeHiddenArray());
             $response[] = $model->makeHidden($this->custom_table->getMakeHiddenArray());
@@ -843,5 +845,23 @@ class ApiTableController extends AdminControllerTableBase
             // convert value array
             $value[$column_name] = path_join($file->local_dirname, $file->local_filename);
         }
+    }
+
+    /**
+     * Check whether use label
+     *
+     * @return bool if use, return true
+     */
+    protected function isAppendLabel(Request $request){
+        if(boolval(config('exment.api_append_label', false))){
+            return true;
+        }
+
+        // append label
+        if (boolval($request->get('label', false))) {
+            return true;
+        }
+
+        return false;
     }
 }
