@@ -24,7 +24,7 @@ abstract class CustomValue extends ModelBase
     \Exceedone\Exment\Revisionable\RevisionableTrait;
 
     protected $casts = ['value' => 'json'];
-    protected $appends = ['label'];
+    // protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
     protected $keepRevisionOfTrigger = ['deleted_at' => 'value'];
@@ -46,6 +46,12 @@ abstract class CustomValue extends ModelBase
      * if true, not call saved event again.
      */
     protected $already_updated = false;
+
+    /**
+     * label work.
+     * get label only first time.
+     */
+    protected $_label;
 
 
     /**
@@ -78,7 +84,10 @@ abstract class CustomValue extends ModelBase
 
     public function getLabelAttribute()
     {
-        return $this->getLabel();
+        if (is_null($this->_label)) {
+            $this->_label = $this->getLabel();
+        }
+        return $this->_label;
     }
 
     public function getCustomTableAttribute()
@@ -1238,6 +1247,11 @@ abstract class CustomValue extends ModelBase
     public function lockedWorkflow()
     {
         // check workflow
+        if (is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
+            return false;
+        }
+
+        // check workflow value
         if ($this->workflow_value === null || $this->workflow_status === null) {
             return false;
         }

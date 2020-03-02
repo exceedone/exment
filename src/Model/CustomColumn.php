@@ -314,7 +314,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     public function alterColumn($forceDropIndex = false)
     {
         // Create index --------------------------------------------------
-        $table = $this->custom_table;
+        $table = $this->custom_table_cache;
         $column_name = $this->column_name;
 
         //DB table name
@@ -371,7 +371,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      */
     public function getSelectTableRelationName()
     {
-        $name = 'select_table_'.array_get($this->custom_table, 'suuid') . '_' . $this->select_target_table->suuid . '_' . $this->id;
+        $name = 'select_table_'.array_get($this->custom_table_cache, 'suuid') . '_' . $this->select_target_table->suuid . '_' . $this->id;
         return $name;
     }
 

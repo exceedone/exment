@@ -27,7 +27,7 @@ trait ConnectionTrait
     public function canConnection()
     {
         try {
-            $this->getSchemaBuilder()->getTableListing();
+            $this->getSchemaBuilder()->getVersion();
             return true;
         } catch (\Exception $ex) {
             return false;
