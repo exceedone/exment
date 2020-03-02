@@ -91,7 +91,7 @@ class Plugin extends ModelBase
         }
 
         return static::getByPluginTypes([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT, PluginType::VALIDATOR])->filter(function ($plugin) use ($custom_table) {
-            $target_tables = array_get($plugin, 'options.target_tables');
+            $target_tables = array_get($plugin, 'options.target_tables', []);
             if(is_nullorempty($target_tables)){
                 return false;
             }
