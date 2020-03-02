@@ -73,7 +73,6 @@ class ReplaceFormatTest extends UnitTestBase
 
         foreach($dateFormats as $format){
             $text = ReplaceFormatService::replaceTextFromFormat('${now:'  . $format . '}');
-            \Log::debug("format {$format} is {$text}");
             $this->assertTrue($text == $now->format($format));
         }
     }
