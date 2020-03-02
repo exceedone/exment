@@ -56,6 +56,28 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    public function testReplaceNow()
+    {
+        $dateFormats = [
+            'Ymd',
+            'YMd',
+            'YMD',
+            'ymd',
+            'yMd',
+            'yMD',
+            'YmdH',
+            'Ymdh',
+        ];
+
+        $now = \Carbon\Carbon::now();
+
+        foreach($dateFormats as $format){
+            $text = ReplaceFormatService::replaceTextFromFormat('${now:'  . $format . '}');
+            \Log::debug("format {$format} is {$text}");
+            $this->assertTrue($text == $now->format($format));
+        }
+    }
+
     public function testReplaceValueUrl()
     {
         $info = CustomTable::getEloquent('information')->getValueModel(1);

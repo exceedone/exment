@@ -29,36 +29,6 @@ abstract class ItemBase
 
         $systemValues = collect(SystemColumn::getOptions())->pluck('name')->toArray();
 
-        // define date array
-        $dateStrings = [
-            'ymdhms' => 'YmdHis',
-            'ymdhm' => 'YmdHi',
-            'ymdh' => 'YmdH',
-            'ymd' => 'Ymd',
-            'ym' => 'Ym',
-            'hms' => 'His',
-            'hm' => 'Hi',
-
-            'ymdhis' => 'YmdHis',
-            'ymdhi' => 'YmdHi',
-            'his' => 'His',
-            'hi' => 'Hi',
-        ];
-        $dateValues = [
-            'year' => 'year',
-            'month' => 'month',
-            'day' => 'day',
-            'hour' => 'hour',
-            'minute' => 'minute',
-            'second' => 'second',
-            'y' => 'year',
-            'm' => 'month',
-            'd' => 'day',
-            'h' => 'hour',
-            'i' => 'minute',
-            's' => 'second',
-        ];
-
         if (in_array($key, $systemValues)) {
             $classname = SystemValue::class;
         } elseif ($key == "value_url") {
@@ -79,15 +49,17 @@ abstract class ItemBase
             $classname = UuidValue::class;
         } elseif ($key == "system") {
             $classname = System::class;
+        } elseif ($key == "now") {
+            $classname = Now::class;
         }
 
         // if has $datestrings, conbert using date string
-        elseif (array_key_exists(strtolower($key), $dateStrings)) {
+        elseif (array_key_exists(strtolower($key), DateString::dateStrings)) {
             $classname = DateString::class;
         }
 
         // if has $dateValues, conbert using date value
-        elseif (array_key_exists(strtolower($key), $dateValues)) {
+        elseif (array_key_exists(strtolower($key), DateValue::dateValues)) {
             $classname = DateValue::class;
         }
 
