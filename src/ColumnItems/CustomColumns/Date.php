@@ -80,6 +80,12 @@ class Date extends CustomItem
         return Filter\BetweenDatetime::class;
     }
 
+    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
+    {
+        $this->autoDate();
+        return parent::getCustomField($classname, $form_column_options, $column_name_prefix);
+    }
+
     protected function setAdminOptions(&$field, $form_column_options)
     {
         if ($this->displayDate()) {
@@ -106,15 +112,22 @@ class Date extends CustomItem
      */
     protected function autoDate()
     {
+        $autoDate = false;
+
         // if datetime_now_saving is true
         if (boolval(array_get($this->custom_column, 'options.datetime_now_saving'))) {
-            return true;
+            $autoDate = true;
         }
         // if not has id(creating) and datetime_now_creating is true
         elseif (!isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_creating'))) {
-            return true;
+            $autoDate = true;
         }
         
+        if($autoDate){
+            $this->required = false;
+            return true;
+        }
+
         return false;
     }
 
