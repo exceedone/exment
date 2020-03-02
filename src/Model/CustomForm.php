@@ -62,7 +62,6 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         return $this->hasManyThrough(CustomFormColumn::class, CustomFormBlock::class, 'custom_form_id', 'custom_form_block_id');
     }
-
     
     /**
      * get default form using table

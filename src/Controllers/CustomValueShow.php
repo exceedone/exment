@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
+use Encore\Admin\Grid;
 use Exceedone\Exment\Form\Show;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
@@ -32,6 +33,23 @@ use Exceedone\Exment\Services\PartialCrudService;
  */
 trait CustomValueShow
 {
+    /**
+     * set option boxes.
+     * contains file uploads, revisions
+     */
+    protected function setOptionBoxes($row, $id, $modal = false)
+    {
+        $custom_value = $this->custom_table->getValueModel($id);
+        
+        $this->setChildBlockBox($row, $custom_value, $id, $modal);
+
+        $this->setDocumentBox($row, $custom_value, $id, $modal);
+
+        $this->setRevisionBox($row, $custom_value, $id, $modal);
+ 
+        $this->setCommentBox($row, $custom_value, $id, $modal);
+    }
+    
     /**
      * create show form list
      */
@@ -101,51 +119,6 @@ trait CustomValueShow
                             $field->setWidth(9, 3);
                         }
                     }
-                }
-                ////// relation block
-                else {
-                    // if modal, dont show children
-                    if ($modal) {
-                        continue;
-                    }
-                    list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
-                    $target_table = $custom_form_block->target_table;
-                    $show->{$relation_name}($block_label, function ($grid) use ($custom_value, $custom_form_block, $target_table, $id) {
-                        $custom_view = CustomView::getDefault($target_table);
-                        $custom_view->setGrid($grid);
-                        
-                        $grid->disableFilter();
-                        $grid->disableCreateButton();
-                        $grid->disableExport();
-                        $grid->tools(function ($tools) use ($custom_value, $target_table, $id, $custom_form_block) {
-                            // Add new button if one_to_many
-                            if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY && $custom_value->enableEdit(true) === true && $target_table->enableCreate(true) === true) {
-                                $tools->append(view(
-                                    'exment::custom-value.new-button',
-                                    ['table_name' => $target_table->table_name, 'params' => ['select_parent' => $id]]
-                                ));
-                            }
-
-                            $tools->batch(function ($batch) {
-                                $batch->disableDelete();
-                            });
-                        });
-                        $grid->disableRowSelector();
-
-                        $grid->actions(function ($actions) {
-                            $actions->disableView();
-                            $actions->disableEdit();
-                            $actions->disableDelete();
-                        
-                            // add show link
-                            $actions->append($actions->row->getUrl([
-                                'tag' => true,
-                                'modal' => true,
-                                'icon' => 'fa-external-link',
-                                'add_id' => true,
-                            ]));
-                        });
-                    });
                 }
             }
             
@@ -265,20 +238,95 @@ trait CustomValueShow
     }
 
     /**
-     * set option boxes.
-     * contains file uploads, revisions
+     * Append child block box.
+     *
+     * @param Row $row
+     * @param CustomValue $custom_value
+     * @param int $id
+     * @param boolean $modal
+     * @return void
      */
-    protected function setOptionBoxes($row, $id, $modal = false)
-    {
-        $custom_value = $this->custom_table->getValueModel($id);
-        
-        $this->setDocumentBox($row, $custom_value, $id, $modal);
+    protected function setChildBlockBox($row, $custom_value, $id = null, $modal = false){
+        // if modal, dont show children
+        if ($modal) {
+            return;
+        }
 
-        $this->setRevisionBox($row, $custom_value, $id, $modal);
- 
-        $this->setCommentBox($row, $custom_value, $id, $modal);
+        // loop for custom form blocks
+        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+            // if available is false, continue
+            if (!$custom_form_block->available) {
+                continue;
+            }
+            ////// default block(no relation block)
+            if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
+                continue;
+            }
+            ////// relation block
+            else {
+                list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
+                $target_table = $custom_form_block->target_table;
+                if(!isset($target_table)){
+                    return;
+                }
+
+                $classname = getModelName($target_table);
+                $grid = new Grid(new $classname);
+                $grid->setTitle($block_label);
+                
+                // one to many
+                if($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY){
+                    // append filter
+                    $grid->model()->where('parent_id', $id);
+                }
+                // one to many
+                elseif($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY){
+                    // first, getting children ids
+                    $children_ids = $custom_value->{$relation_name}()->get()->pluck('id');
+                    // second, filtering children ids
+                    $grid->model()->whereIn('id', $children_ids->toArray());
+                }
+                
+                $custom_view = CustomView::getDefault($target_table);
+                $custom_view->setGrid($grid);
+                
+                $grid->disableFilter();
+                $grid->disableCreateButton();
+                $grid->disableExport();
+                $grid->tools(function ($tools) use ($custom_value, $target_table, $id, $custom_form_block) {
+                    // Add new button if one_to_many
+                    if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY && $custom_value->enableEdit(true) === true && $target_table->enableCreate(true) === true) {
+                        $tools->append(view(
+                            'exment::custom-value.new-button',
+                            ['table_name' => $target_table->table_name, 'params' => ['select_parent' => $id]]
+                        ));
+                    }
+
+                    $tools->batch(function ($batch) {
+                        $batch->disableDelete();
+                    });
+                });
+                $grid->disableRowSelector();
+
+                $grid->actions(function ($actions) {
+                    $actions->disableView();
+                    $actions->disableEdit();
+                    $actions->disableDelete();
+                
+                    // add show link
+                    $actions->append($actions->row->getUrl([
+                        'tag' => true,
+                        'modal' => true,
+                        'icon' => 'fa-external-link',
+                        'add_id' => true,
+                    ]));
+                });
+
+                $row->column(['xs' => 12, 'sm' => 12], $grid->render());
+            }
+        }
     }
-    
+
     /**
      * compare
      */
