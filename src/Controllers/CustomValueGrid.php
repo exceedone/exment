@@ -215,7 +215,7 @@ trait CustomValueGrid
                         ->url($this->row->getRelationSearchUrl())
                         ->icon('fa-compress')
                         ->tooltip(exmtrans('search.header_relation'));
-                    $actions->append($linker);
+                    $actions->prepend($linker);
                 }
                 
                 // append restore url
