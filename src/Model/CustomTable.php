@@ -812,6 +812,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'searchColumns' => null,
                 'relation' => false,
                 'target_view' => null,
+                'getLabel' => false,
             ],
             $options
         );
@@ -851,6 +852,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             if (boolval($makeHidden)) {
                 $data = $paginates->makeHidden($this->getMakeHiddenArray());
                 $paginates->data = $data;
+            }
+
+            // append label
+            if (boolval($getLabel)) {
+                $paginates->map(function($model) {
+                    $model->append('label');
+                });
             }
 
             return $paginates;

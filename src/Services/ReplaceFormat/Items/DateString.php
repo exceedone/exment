@@ -8,25 +8,26 @@ use Carbon\Carbon;
  */
 class DateString extends ItemBase
 {
+    public const dateStrings = [
+        'ymdhms' => 'YmdHis',
+        'ymdhm' => 'YmdHi',
+        'ymdh' => 'YmdH',
+        'ymd' => 'Ymd',
+        'ym' => 'Ym',
+        'hms' => 'His',
+        'hm' => 'Hi',
+
+        'ymdhis' => 'YmdHis',
+        'ymdhi' => 'YmdHi',
+        'his' => 'His',
+        'hi' => 'Hi',
+    ];
+
     /**
-     * Replace value from format. ex. ${value:user_name} to user_name's value
+     * Replace date
      */
     public function replace($format, $options = [])
     {
-        $dateStrings = [
-            'ymdhms' => 'YmdHis',
-            'ymdhm' => 'YmdHi',
-            'ymdh' => 'YmdH',
-            'ymd' => 'Ymd',
-            'ym' => 'Ym',
-            'hms' => 'His',
-            'hm' => 'Hi',
-
-            'ymdhis' => 'YmdHis',
-            'ymdhi' => 'YmdHi',
-            'his' => 'His',
-            'hi' => 'Hi',
-        ];
-        return Carbon::now()->format($dateStrings[strtolower($this->key)]);
+        return Carbon::now()->format(static::dateStrings[strtolower($this->key)]);
     }
 }
