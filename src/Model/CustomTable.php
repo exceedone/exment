@@ -1599,7 +1599,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         /// get system columns for summary
         foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-            $key = static::getOptionKey(array_get($option, 'name'));
+            $key = static::getOptionKey(array_get($option, 'name'), true, $this->id);
             $options[$key] = exmtrans('common.'.array_get($option, 'name'));
         }
 
@@ -1608,7 +1608,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($custom_columns as $option) {
             $column_type = array_get($option, 'column_type');
             if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                $key = static::getOptionKey(array_get($option, 'id'));
+                $key = static::getOptionKey(array_get($option, 'id'), true, $this->id);
                 $options[$key] = array_get($option, 'column_view_name');
             }
         }
