@@ -740,7 +740,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             //$query = $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
             $alter_name = is_string($table_no)? $table_no : 'table_'.$table_no;
             $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As $alter_name"), $db_table_name.'.id', "$alter_name.id");
-            $query = $query->mergeBindings($sub_query);
+            $query = $query->addBinding($sub_query->getBindings(), 'join');
         }
 
         if (count($sort_columns) > 0) {
