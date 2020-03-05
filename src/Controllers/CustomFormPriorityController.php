@@ -59,6 +59,10 @@ class CustomFormPriorityController extends AdminControllerTableBase
 
         $hasManyTable->render();
 
+        $form->radio('condition_join', exmtrans("condition.condition_join"))
+            ->options(exmtrans("condition.condition_join_options"))
+            ->default('and');
+
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add((new Tools\GridChangePageMenu('form', $custom_table, false))->render());
 

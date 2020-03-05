@@ -113,16 +113,6 @@ class ConditionHasManyTable
             $field->setTableColumnWidth(6, 5, 1);
         }
 
-        if ($this->useJoinOptions) {
-            $radioField = $this->form->radio($this->condition_join_name, exmtrans("condition.condition_join"))
-            ->options(exmtrans("condition.condition_join_options"))
-            ->default('and');
-
-            if(isset($this->useJoinOptionAttribute)){
-                $radioField->attribute($this->useJoinOptionAttribute);
-            }
-        }
-
         if (isset($this->callbackField)) {
             $func = $this->callbackField;
             $func($field);
