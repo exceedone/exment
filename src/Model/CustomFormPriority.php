@@ -46,4 +46,18 @@ class CustomFormPriority extends ModelBase
         }
         return '';
     }
+    
+    public function deletingChildren()
+    {
+        $this->custom_form_priority_conditions()->delete();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::deleting(function ($model) {
+            $model->deletingChildren();
+        });
+    }
 }

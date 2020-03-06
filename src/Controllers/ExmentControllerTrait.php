@@ -52,7 +52,7 @@ trait ExmentControllerTrait
         $table = CustomTable::getEloquent($table);
         //check permission
         // if not exists, filter model using permission
-        if (!$table->hasPermission($role_name)) {
+        if (!isset($table) || !$table->hasPermission($role_name)) {
             Checker::error();
             return false;
         }
