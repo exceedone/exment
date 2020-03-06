@@ -471,16 +471,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         ]);
         
         // importReplaceJsonCustomColumn using import and update column
-        $importExportColumn = false;
+        $update_flg = false;
         if(static::importReplaceJsonCustomColumn($json, 'options.select_import_column_id', 'options.select_import_column_name', 'options.select_import_table_name', $options)){
-            $importExportColumn = true;
+            $update_flg = true;
             $obj_column->setOption('select_import_column_id', array_get($json, 'options.select_import_column_id'));
         }
         if(static::importReplaceJsonCustomColumn($json, 'options.select_export_column_id', 'options.select_export_column_name', 'options.select_export_table_name', $options)){
-            $importExportColumn = true;
+            $update_flg = true;
             $obj_column->setOption('select_export_column_id', array_get($json, 'options.select_export_column_id'));
         }
-        if($importExportColumn){
+        if($update_flg){
             $obj_column->save();
         }
 
