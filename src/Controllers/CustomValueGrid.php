@@ -89,9 +89,9 @@ trait CustomValueGrid
                 // switch 1:n or n:n
                 if ($relation->relation_type == RelationType::ONE_TO_MANY) {
                     if (isset($ajax)) {
-                        $filterItems[] = function($filter){ $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'text'); };
+                        $filterItems[] = function($filter) use($table_view_name, $ajax){ $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'text'); };
                     } else {
-                        $filterItems[] = function($filter){ $filter->equal('parent_id', $table_view_name)->select($options); };
+                        $filterItems[] = function($filter) use($table_view_name, $options){ $filter->equal('parent_id', $table_view_name)->select($options); };
                     }
                 } else {
                     $relationQuery = function ($query) use ($relation) {
@@ -102,9 +102,9 @@ trait CustomValueGrid
 
                     // set relation
                     if (isset($ajax)) {
-                        $filterItems[] = function($filter){ $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text'); };
+                        $filterItems[] = function($filter) use($relationQuery, $table_view_name, $ajax){ $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text'); };
                     } else {
-                        $filterItems[] = function($filter){ $filter->where($relationQuery, $table_view_name)->select($options); };
+                        $filterItems[] = function($filter) use($relationQuery, $table_view_name, $options){ $filter->where($relationQuery, $table_view_name)->select($options); };
                     }
                 }
             }
@@ -138,7 +138,6 @@ trait CustomValueGrid
                     $search_column->column_item->setAdminFilter($filter);
                 };
             }
-
 
             // set filter item
             if(count($filterItems) <= 6){
