@@ -165,6 +165,8 @@ return [
         'complex_password' => 'パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
         'not_has_custom_value' => '列:attributeに入力の値:valueが、テーブル「:table_view_name」に存在しません。データをご確認ください。',
         'empty' => ':attributeの値は空欄のみ指定できます。',
+        'max_table_index' => '1つのテーブルに設定できる検索インデックスは:count件までです。',
+        'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
     ],
 
     'system' => [
