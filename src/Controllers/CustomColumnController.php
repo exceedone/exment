@@ -25,6 +25,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Validator;
 use Illuminate\Validation\Rule;
 
 class CustomColumnController extends AdminControllerTableBase
@@ -207,7 +208,10 @@ class CustomColumnController extends AdminControllerTableBase
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id, $controller) {
             $form->switchbool('required', exmtrans("common.reqired"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
-                ->rules("maxTableIndex:{$this->custom_table->id},$id|usingIndexColumn:{$id}")
+                ->rules([
+                    new Validator\CustomColumnIndexCountRule($this->custom_table, $id),
+                    new Validator\CustomColumnUsingIndexRule($id),
+                ])
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));

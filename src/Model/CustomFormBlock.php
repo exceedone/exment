@@ -125,7 +125,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     
     public function deletingChildren()
     {
-        $this->custom_form_columns()->delete();
+        $this->custom_form_columns()->withoutGlobalScope('remove_system_column')->delete();
     }
 
     protected static function boot()

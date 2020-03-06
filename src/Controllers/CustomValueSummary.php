@@ -90,6 +90,8 @@ trait CustomValueSummary
 
     protected function getSummaryDetailFilter($group_keys)
     {
+        // save summary view
+        $custom_view = $this->custom_view;
         // replace view
         $this->custom_view = CustomView::getAllData($this->custom_table);
         $filters = [];
@@ -104,10 +106,11 @@ trait CustomValueSummary
             $custom_view_filter->view_filter_condition_value_text = $value;
             $filters[] = $custom_view_filter;
         }
-        $filter_func = function ($model) use ($filters) {
+        $filter_func = function ($model) use ($filters, $custom_view) {
             foreach ($filters as $filter) {
                 $model = $filter->setValueFilter($model);
             }
+            $custom_view->setValueFilters($model);
             return $model;
         };
         return $filter_func;

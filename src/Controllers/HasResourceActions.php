@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Controllers\HasResourceActions as ParentResourceActions;
+use Symfony\Component\HttpFoundation\Response;
 
 trait HasResourceActions
 {
@@ -65,9 +66,21 @@ trait HasResourceActions
                     $result = false;
                     return;
                 }
-            } elseif (!$this->form($id)->destroy($id)) {
-                $result = false;
-                return;
+            }else{
+                $response = $this->form($id)->destroy($id);
+                if($response === false){
+                    $result = false;
+                    return;    
+                }
+
+                // if response instanceof Reponse, and status is false, result is false
+                elseif($response instanceof Response){
+                    $content = jsonToArray($response->content());
+                    if(is_array($content) && !boolval(array_get($content, 'status', true))){
+                        $result = false;
+                        return;
+                    }
+                }
             }
         });
 

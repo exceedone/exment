@@ -108,6 +108,7 @@ class DefaultTableProvider extends ProviderBase
      */
     protected function getRecords()
     {
+        $this->grid->applyQuickSearch();
         $this->grid->getFilter()->chunk(function ($data) use (&$records) {
             if (!isset($records)) {
                 $records = new Collection;

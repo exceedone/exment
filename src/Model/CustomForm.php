@@ -143,8 +143,13 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function deletingChildren()
     {
         foreach ($this->custom_form_blocks as $item) {
-            $item->custom_form_columns()->delete();
+            $item->deletingChildren();
         }
+        foreach ($this->custom_form_priorities as $item) {
+            $item->deletingChildren();
+        }
+        $this->custom_form_blocks()->delete();
+        $this->custom_form_priorities()->delete();
     }
 
     protected static function boot()
@@ -163,7 +168,6 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         
         static::deleting(function ($model) {
             $model->deletingChildren();
-            $model->custom_form_blocks()->delete();
         });
     }
 }
