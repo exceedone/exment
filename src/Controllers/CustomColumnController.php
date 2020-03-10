@@ -574,12 +574,16 @@ class CustomColumnController extends AdminControllerTableBase
             case 'count':
                 if (isset($table)) {
                     $child_table = CustomTable::getEloquent($table);
-                    $text = exmtrans('custom_column.child_count_text', $child_table->table_view_name);
+                    if (isset($child_table)) {
+                        $text = exmtrans('custom_column.child_count_text', $child_table->table_view_name);
+                    }
                 }
                 break;
             case 'summary':
                 $column = CustomColumn::getEloquent($val);
-                $text = exmtrans('custom_column.child_sum_text', $column->custom_table->table_view_name, $column->column_view_name);
+                if (isset($column)) {
+                    $text = exmtrans('custom_column.child_sum_text', $column->custom_table->table_view_name, $column->column_view_name);
+                }
                 break;
             case 'symbol':
                 $symbols = exmtrans('custom_column.symbols');

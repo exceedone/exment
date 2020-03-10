@@ -647,7 +647,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition'), 'summary_index' => $index, 'is_child' => $is_child]);
                 $groupSqlName = $column_item->sqlname();
                 $groupSqlAsName = $column_item->sqlAsName();
-                $group_columns[] = $groupSqlName;
+                $group_columns[] = $is_child? $groupSqlAsName : $groupSqlName;
                 $column_item->options(['groupby' => false, 'group_condition' => null]);
 
                 // parent_id need parent_type
@@ -665,7 +665,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 // if this is child table, set as sub group by
                 if ($is_child) {
                     $custom_tables[$item->custom_table->id]['subGroupby'][] = $groupSqlAsName;
-                    $custom_tables[$item->custom_table->id]['select_group'][] = $groupSqlName;
+                    $custom_tables[$item->custom_table->id]['select_group'][] = $groupSqlAsName;
                 }
             }
             // set summary columns
@@ -740,7 +740,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             //$query = $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
             $alter_name = is_string($table_no)? $table_no : 'table_'.$table_no;
             $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As $alter_name"), $db_table_name.'.id', "$alter_name.id");
-            $query = $query->mergeBindings($sub_query);
+            $query = $query->addBinding($sub_query->getBindings(), 'join');
         }
 
         if (count($sort_columns) > 0) {
