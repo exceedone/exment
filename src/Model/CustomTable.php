@@ -417,8 +417,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // if not contains $value[$custom_column->column_name], set as null.
             // if not set, we cannot validate null check because $field->getValidator returns false.
-            if (!array_has($value, $custom_column->column_name)) {
-                $value[$custom_column->column_name] = null;
+            if (is_null($custom_value_id) && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
+                array_set($value, $column_name_prefix.$custom_column->column_name, null);
             }
         }
         

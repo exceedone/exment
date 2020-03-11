@@ -1341,6 +1341,7 @@ return [
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
         'export' => 'エクスポート',
+        'view_export' => 'ビュー出力',
         'import_label' => 'インポート',
         'view_summary_detail' => '集計データの明細を表示する',
         'soft_deleted_data' => '削除済データ',

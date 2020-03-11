@@ -64,6 +64,7 @@ trait CustomValueSummary
                     'grid' => $grid,
                     'custom_table' => $this->custom_table,
                     'custom_view' => $this->custom_view,
+                    'is_summary' => true,
                 ]
             ));
         $grid->exporter($service);
