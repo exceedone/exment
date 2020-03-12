@@ -12,14 +12,14 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
     protected $endpoint;
     protected $export_flg;
     protected $import_flg;
-    protected $export_view_flg;
+    protected $view_flg;
 
-    public function __construct($endpoint, Grid $grid, $export_flg = true, $import_flg = true, $view_flg = false)
+    public function __construct($endpoint, Grid $grid, $view_flg = false, $export_flg = true, $import_flg = true)
     {
         $this->endpoint = $endpoint;
         $this->export_flg = $export_flg;
         $this->import_flg = $import_flg;
-        $this->export_view_flg = $view_flg;
+        $this->view_flg = boolval(config('exment.exment_export_view_disabled', false))&& $view_flg;
         parent::__construct($grid);
     }
 
@@ -87,14 +87,14 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
                     'label' => trans('admin.export'),
                     'items' => $items
                 ];
-            }
-            if ($this->export_view_flg) {                
-                ///// view export
-                $menulist[] = [
-                    'action' => 'view_export',
-                    'label' => exmtrans('custom_value.view_export'),
-                    'items' => $items
-                ];
+                if ($this->view_flg) {                
+                    ///// view export
+                    $menulist[] = [
+                        'action' => 'view_export',
+                        'label' => exmtrans('custom_value.view_export'),
+                        'items' => $items
+                    ];
+                }
             }
 
             if ($this->import_flg) {

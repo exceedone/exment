@@ -181,7 +181,7 @@ trait CustomValueGrid
             $import = $this->custom_table->enableImport();
             $export = $this->custom_table->enableExport();
             if ($import === true || $export === true) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $import === true, $export === true));
+                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true, $export === true, $import === true));
             }
             
             if ($this->custom_table->enableCreate(true) === true) {

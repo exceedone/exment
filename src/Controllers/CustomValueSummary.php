@@ -78,7 +78,7 @@ trait CustomValueSummary
             }
             
             if ($edit_flg && $this->custom_table->enableExport() === true) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true, false));
+                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false));
             }
             
             $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
