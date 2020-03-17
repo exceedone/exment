@@ -530,13 +530,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Disabled import
+    |--------------------------------------------------------------------------
+    |
+    | Disabled import mode
+    |
+    */
+    'import_disabled' => env('EXMENT_IMPORT_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled export mode
+    |--------------------------------------------------------------------------
+    |
+    | Disabled export mode
+    |
+    */
+    'export_disabled' => env('EXMENT_EXPORT_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Disabled export view mode
     |--------------------------------------------------------------------------
     |
     | Disabled export view mode
     |
     */
-    'exment_export_view_disabled' => env('EXMENT_EXPORT_VIEW_DISABLED', false),
+    'export_view_disabled' => env('EXMENT_EXPORT_VIEW_DISABLED', false),
 
     /*
     |--------------------------------------------------------------------------

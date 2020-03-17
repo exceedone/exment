@@ -647,7 +647,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition'), 'summary_index' => $index, 'is_child' => $is_child]);
                 $groupSqlName = $column_item->sqlname();
                 $groupSqlAsName = $column_item->sqlAsName();
-                $group_columns[] = $is_child? $groupSqlAsName : $groupSqlName;
+                $group_columns[] = $is_child ? $groupSqlAsName : $groupSqlName;
                 $column_item->options(['groupby' => false, 'group_condition' => null]);
 
                 // parent_id need parent_type

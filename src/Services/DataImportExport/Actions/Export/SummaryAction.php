@@ -16,7 +16,7 @@ class SummaryAction extends CustomTableAction
 
         $this->custom_view = array_get($args, 'custom_view');
 
-        $this->is_summary = array_get($args, 'is_summary')?? false;
+        $this->is_summary = array_get($args, 'is_summary', false);
 
         $this->grid = array_get($args, 'grid');
     }

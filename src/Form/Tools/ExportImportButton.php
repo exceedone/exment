@@ -17,9 +17,9 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
     public function __construct($endpoint, Grid $grid, $view_flg = false, $export_flg = true, $import_flg = true)
     {
         $this->endpoint = $endpoint;
-        $this->export_flg = $export_flg;
-        $this->import_flg = $import_flg;
-        $this->view_flg = boolval(config('exment.exment_export_view_disabled', false))&& $view_flg;
+        $this->export_flg = !boolval(config('exment.export_disabled', false)) && $export_flg;
+        $this->import_flg = !boolval(config('exment.import_disabled', false)) && $import_flg;
+        $this->view_flg = !boolval(config('exment.export_view_disabled', false)) && $view_flg;
         parent::__construct($grid);
     }
 
@@ -34,6 +34,10 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         //     return '';
         // }
 
+        if($this->disabledButton()){
+            return;
+        }
+
         $this->setUpScripts();
 
         $export = trans('admin.export');
@@ -47,12 +51,16 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         $import_template_trans = exmtrans('custom_value.template');
 
         // switch label
-        if ($this->export_flg && $this->import_flg) {
+        $export_flg = $this->export_flg || $this->view_flg;
+
+        if ($export_flg && $this->import_flg) {
             $label = exmtrans('custom_value.import_export');
-        } elseif ($this->export_flg) {
+        } elseif ($export_flg) {
             $label = exmtrans('custom_value.export');
         } elseif ($this->import_flg) {
             $label = exmtrans('custom_value.import_label');
+        }else{
+            $label = '';
         }
 
         $page = request('page', 1);
@@ -80,13 +88,15 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
             }
 
             $menulist = [];
-            if ($this->export_flg) {
-                ///// export
-                $menulist[] = [
-                    'action' => 'export',
-                    'label' => trans('admin.export'),
-                    'items' => $items
-                ];
+            if ($export_flg) {
+                if($this->export_flg){
+                    ///// export
+                    $menulist[] = [
+                        'action' => 'export',
+                        'label' => trans('admin.export'),
+                        'items' => $items
+                    ];
+                }
                 if ($this->view_flg) {                
                     ///// view export
                     $menulist[] = [
@@ -119,5 +129,17 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
             'buttons' => $buttons,
             'button_caption' => $label,
         ]);
+    }
+
+    protected function disabledButton(){
+        if(boolval(config('exment.export_view_disabled', false)) && boolval(config('exment.export_disabled', false)) && boolval(config('exment.import_disabled', false))){
+            return true;
+        }
+
+        if (boolval(config('exment.export_import_export_disabled_csv', false)) && boolval(config('exment.export_import_export_disabled_excel', false))) {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -165,6 +165,8 @@ return [
         'complex_password' => 'The password must be at least 12 characters long and must contain three types of characters (uppercase letters, lowercase letters, numbers, symbols).',
         'not_has_custom_value' => 'Input value :value in column :attribute does not exist in table ":table_view_name". Please check the data.',
         'empty' => 'Only a blank value can be specified for the value of :attribute.',
+        'max_table_index' => 'Up to :count search indexes can be set in one table.',
+        'using_index_column' => 'Search index cannot be released because it is in use by a view.',
     ],
 
     'system' => [
@@ -1339,6 +1341,7 @@ return [
         'template' => 'Export Template',
         'import_export' => 'Import/Export',
         'export' => 'Export',
+        'view_export' => 'View Export',
         'import_label' => 'Import',
         'view_summary_detail' => 'Display the items of aggregated data',
         'soft_deleted_data' => 'Deleted Data',
@@ -1397,6 +1400,7 @@ return [
             'no_columns_admin' => 'Custom column has not been registered. Please register a custom column first.',
             'no_columns_user' => 'Custom column has not been registered. Please contact your administrator and request additional custom columns.',
             'reference_error' => 'This data can not be deleted because it is referenced from another table.',
+            'relation_error' => 'This table cannot be deleted because it has a parent-child relationship.',
             'multiple_uniques' => 'The value for which %s is key is already registered.',
             'init_flg' => 'Cannot edit after save.',
         ],
