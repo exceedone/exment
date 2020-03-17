@@ -6,6 +6,8 @@ class SummaryProvider extends DefaultTableProvider
 {
     protected $custom_view;
 
+    protected $is_summary;
+
     protected $summary_index_and_view_columns;
     
     public function __construct($args = [])
@@ -13,6 +15,8 @@ class SummaryProvider extends DefaultTableProvider
         parent::__construct($args);
 
         $this->custom_view = array_get($args, 'custom_view');
+
+        $this->is_summary = array_get($args, 'is_summary')?? false;
 
         $this->summary_index_and_view_columns = $this->custom_view->getSummaryIndexAndViewColumns();
     }
@@ -65,7 +69,8 @@ class SummaryProvider extends DefaultTableProvider
      */
     protected function getRecords()
     {
-        $records = collect($this->grid->getFilter()->execute());
+        $this->grid->applyQuickSearch();
+        $records = collect($this->grid->getFilter()->execute(false));
         return $records;
     }
 
@@ -86,12 +91,20 @@ class SummaryProvider extends DefaultTableProvider
                 $index = array_get($summary_index_and_view_column, 'index');
                 $item = array_get($summary_index_and_view_column, 'item');
 
-                return $item->column_item->options([
-                    'summary' => true,
-                    'summary_index' => $index,
+                $options = [
                     'disable_number_format' => true,
                     'disable_currency_symbol' => true,
-                ])->setCustomValue($record)->text();
+                    'view_pivot_column' => $item->view_pivot_column_id ?? null,
+                    'view_pivot_table' => $item->view_pivot_table_id ?? null,
+                ];
+
+                if ($this->is_summary) {
+                    $options['summary'] = true;
+                    $options['summary_index'] = $index;
+                }
+
+                return $item->column_item->options($options)
+                    ->setCustomValue($record)->text();
                 //return array_get($record, 'column_' . $index);
             })->toArray();
 

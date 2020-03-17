@@ -224,7 +224,27 @@
     .slimScrollDiv, .slimScrollDiv .menu{
         height:auto !important;
     }
+
+    .fa-bell.ring {
+        animation: ring_notify 2.4s ease;
+        transform-origin: 50% 0%;
+    }
 }
+
+@keyframes ring_notify {
+    0% { transform: rotate(-15deg) }
+    1.66667% { transform: rotate(15deg) }
+    3.33333% { transform: rotate(-18deg) }
+    5% { transform: rotate(18deg) }
+    6.66667% { transform: rotate(-22deg) }
+    8.33333% { transform: rotate(22deg) }
+    10% { transform: rotate(-18deg) }
+    11.66667% { transform: rotate(18deg) }
+    13.33333% { transform: rotate(-12deg) }
+    15% { transform: rotate(12deg) }
+    16.66667% { transform: rotate(0deg) }
+    100% { transform: rotate(0deg) }
+  }
 
 body .main-header .navbar .nav>li>a>.label{
     font-size:11px;

@@ -11,6 +11,7 @@ use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
@@ -501,6 +502,16 @@ HTML;
      */
     protected function validateDestroy($id)
     {
+        // check select_table
+        $child_count = CustomRelation::where('parent_custom_table_id', $id)
+            ->count();
+
+        if ($child_count > 0) {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_value.help.relation_error'),
+            ];
+        }
         // check select_table
         $column_count = CustomColumn::whereIn('options->select_target_table', [strval($id), intval($id)])
             ->where('custom_table_id', '<>', $id)

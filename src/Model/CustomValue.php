@@ -1053,7 +1053,10 @@ abstract class CustomValue extends ModelBase
             return null;
         }
         
-        $model = CustomTable::getEloquent($this->parent_type)->getValueModel($this->parent_id);
+        $parent = CustomTable::getEloquent($this->parent_type);
+        if (isset($parent)) {
+            $model = $parent->getValueModel($this->parent_id);
+        }
         if (!$isonly_label) {
             return $model ?? null;
         }

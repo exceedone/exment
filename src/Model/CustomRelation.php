@@ -233,6 +233,14 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         parent::boot();
         
+        // update event
+        static::updating(function ($model) {
+            if ($model->isDirty('child_custom_table_id')) {
+                // Delete items
+                $model->deletingChildren();
+            }
+        });
+        
         // delete event
         static::deleting(function ($model) {
             // Delete items
@@ -250,7 +258,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         // delete child form block
         foreach ($target->custom_forms as $item) {
             foreach ($item->custom_form_blocks as $block) {
-                if ($block->form_block_target_table_id == $this->child_custom_table_id) {
+                if ($block->form_block_target_table_id == $this->getOriginal('child_custom_table_id')) {
                     $block->delete();
                 }
             }
