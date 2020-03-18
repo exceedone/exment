@@ -5,10 +5,9 @@ namespace Exceedone\Exment\Jobs;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
-abstract class JobBase implements ShouldQueue
+trait JobTrait
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -17,7 +16,7 @@ abstract class JobBase implements ShouldQueue
      *
      * @var int
      */
-    public $tries = 5;
+    public $tries = 3;
 
     /**
      * Job timeout seconds
