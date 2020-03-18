@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\DashboardBoxItems;
 
 use Exceedone\Exment\Enums\DashboardBoxSystemPage;
+use Exceedone\Exment\DashboardBoxItems\SystemItems;
 
 class SystemItem implements ItemInterface
 {
@@ -22,7 +23,7 @@ class SystemItem implements ItemInterface
 
         // get class
         $class = $item['class'];
-        $this->systemItem = new $class;
+        $this->systemItem = new $class($this->dashboard_box);
     }
 
     /**
@@ -61,8 +62,17 @@ class SystemItem implements ItemInterface
         }
         $form->select('target_system_id', exmtrans("dashboard.dashboard_box_options.target_system_id"))
             ->required()
+            ->attribute(['data-filtertrigger' =>true])
             ->options($options)
             ;
+
+        // set embed options
+        foreach (DashboardBoxSystemPage::options() as $page) {
+            $classname = array_get($page, 'class');
+            if(isset($classname) && method_exists($classname, "setAdminOptions")){
+                $classname::setAdminOptions($form, $dashboard);
+            }
+        }
     }
 
     /**
