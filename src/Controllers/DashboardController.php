@@ -318,9 +318,8 @@ EOT;
             // check role.
             $has_role = $this->dashboard->hasEditPermission();
             for ($i = 1; $i <= $row_column_count; $i++) {
-                $func = "dashboard_row{$row_no}_boxes";
                 // get $boxes as $row_no
-                $boxes = $this->dashboard->{$func}();
+                $boxes = $this->dashboard->dashboard_row_boxes($row_no);
 
                 // get target column by database
                 $dashboard_column = $boxes->where('column_no', $i)->first();
