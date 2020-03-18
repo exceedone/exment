@@ -273,7 +273,7 @@ class NotifyController extends AdminControllerBase
             $controller = $this;
             
             $form->text('webhook_url', exmtrans("notify.webhook_url"))
-                ->rules(["max:300", new RequiredIfExRule(['notify_actions', NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS])])
+                ->rules(["max:300", new RequiredIfExRule([['notify_actions', NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS]])])])])
                 ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify_webhook')))
                 ->setLabelClass(['asterisk'])
                 ->attribute([
