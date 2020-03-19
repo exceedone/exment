@@ -385,7 +385,7 @@ class NotifyService
                     $slack_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
                     $slack_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
                     // send message
-                    (new Notifications\MicrosoftTeamsSender($slack_body, $slack_body))->send($notify);
+                    (new Notifications\MicrosoftTeamsSender($slack_subject, $slack_body))->send($notify);
                     break;
             }
             Plugin::pluginPreparing($plugins, 'notify_executed', [
