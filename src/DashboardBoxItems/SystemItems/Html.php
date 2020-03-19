@@ -40,7 +40,7 @@ class Html
     public function body()
     {
         // not escape.
-        return esc_script_tag('<div class="dashboard-box-editor">' . $this->dashboard_box->getOption('html') . '</div>');
+        return '<div class="dashboard-box-editor">' . $this->dashboard_box->getOption('html') . '</div>';
     }
 
     /**
