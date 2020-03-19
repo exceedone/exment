@@ -64,4 +64,26 @@ class Yesno extends CustomItem
             1    => 'YES',
         ];
     }
+    
+    /**
+     * Set Search orWhere for free text search
+     *
+     * @param [type] $mark
+     * @param [type] $value
+     * @param [type] $takeCount
+     * @return void
+     */
+    public function setSearchOrWhere(&$query, $mark, $value, $q)
+    {
+        if(strtolower($q) == 'yes'){
+            $query->orWhere($this->custom_column->getIndexColumnName(), '=', 1);
+            return;
+        }elseif(strtolower($q) == 'no'){
+            $query->orWhere($this->custom_column->getIndexColumnName(), '=', 0);
+            return;
+        }
+
+        return parent::setSearchOrWhere($query, $mark, $value, $q);
+    }
+
 }

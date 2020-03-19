@@ -1140,18 +1140,39 @@ abstract class CustomValue extends ModelBase
         $searchColumns = collect($searchColumns);
         for ($i = 0; $i < count($searchColumns) - 1; $i++) {
             $searchColumn = collect($searchColumns)->values()->get($i);
-            $query = static::query();
-            $query->where($searchColumn, $mark, $value)->select('id');
-            $query->take($takeCount);
+            if($searchColumn instanceof CustomColumn){
+                $column_item = $searchColumn->column_item;
+                if(!isset($column_item)){
+                    continue;
+                }
 
-            $queries[] = $query;
+                foreach($column_item->getSearchQueries($mark, $value, $takeCount) as $query){
+                    $queries[] = $query; 
+                }
+            }else{
+                $query = static::query();
+                $query->where($searchColumn, $mark, $value)->select('id');
+                $query->take($takeCount);
+    
+                $queries[] = $query; 
+            }
         }
 
         $searchColumn = $searchColumns->last();
-        $subquery = static::query();
-        $subquery->where($searchColumn, $mark, $value)->select('id');
-        $subquery->take($takeCount);
 
+        if($searchColumn instanceof CustomColumn){
+            $column_item = $searchColumn->column_item;
+            if(!isset($column_item)){
+                $subquery = static::query();
+            }else{
+                $subquery = $column_item->getSearchQueries($mark, $value, $takeCount)[0];
+            }
+        }else{
+            $subquery = static::query();
+            $subquery->where($searchColumn, $mark, $value)->select('id');
+        }
+
+        $subquery->take($takeCount);
         foreach ($queries as $inq) {
             $subquery->union($inq);
         }
@@ -1177,7 +1198,17 @@ abstract class CustomValue extends ModelBase
             $searchColumns = collect($searchColumns);
             for ($i = 0; $i < count($searchColumns); $i++) {
                 $searchColumn = $searchColumns->values()->get($i);
-                $query->orWhere($searchColumn, $mark, $value);
+
+                if($searchColumn instanceof CustomColumn){
+                    $column_item = $searchColumn->column_item;
+                    if(!isset($column_item)){
+                        continue;
+                    }
+                        
+                    $column_item->setSearchOrWhere($query, $mark, $value, $q);
+                }else{
+                    $query->orWhere($searchColumn, $mark, $value);
+                }
             }
         });
     }
@@ -1199,7 +1230,6 @@ abstract class CustomValue extends ModelBase
                 'makeHidden' => false,
                 'searchColumns' => null,
                 'relation' => false,
-
             ],
             $options
         );
@@ -1207,9 +1237,7 @@ abstract class CustomValue extends ModelBase
 
         // if selected target column,
         if (is_null($searchColumns)) {
-            $searchColumns = $this->custom_table->getSearchEnabledColumns()->map(function ($c) {
-                return $c->getIndexColumnName();
-            });
+            $searchColumns = $this->custom_table->getSearchEnabledColumns();
         }
 
         if (!isset($searchColumns) || count($searchColumns) == 0) {
@@ -1238,6 +1266,7 @@ abstract class CustomValue extends ModelBase
         $options['takeCount'] = $takeCount;
         $options['mark'] = $mark;
         $options['value'] = $value;
+        $options['q'] = $q;
 
         return $options;
     }
