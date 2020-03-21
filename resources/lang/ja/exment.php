@@ -1536,11 +1536,12 @@ return [
     ],
     
     'chart' => [
+        'chartitem_label' => 'データ見出し',
         'chart_type_options' => [
             'bar' => '棒グラフ',
             'line' => '折れ線グラフ',
             'pie' => '円グラフ',
-        ]
+        ],
     ],
 
     'calendar' => [

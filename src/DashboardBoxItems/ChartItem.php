@@ -6,6 +6,7 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewSummary;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ChartAxisType;
 use Exceedone\Exment\Enums\ChartOptionType;
 use Exceedone\Exment\Enums\ChartType;
@@ -63,7 +64,7 @@ class ChartItem implements ItemInterface
      */
     public function header()
     {
-        return null;
+        return $this->tableheader();
     }
     
     /**
@@ -130,25 +131,34 @@ class ChartItem implements ItemInterface
             return false;
         }
 
-        $item_x = $view_column_x->column_item;
-        $item_y = $view_column_y->column_item;
-
         // create model for getting data --------------------------------------------------
         $model = $this->custom_table->getValueModel()->query();
 
         // get data
-        \Exment::user()->filterModel($model, $this->custom_view)->get();
-        $chart_label = $model->map(function ($val) use ($item_x) {
-            return esc_html($item_x->setCustomValue($val)->text());
+        \Exment::user()->filterModel($model, $this->custom_view);
+        $items = $model->get();
+
+        $chart_label = $items->map(function ($val) use ($view_column_x) {
+            // if get as CHARTITEM_LABEL, return label.
+            if($view_column_x == Define::CHARTITEM_LABEL){
+                return $val->getLabel();
+            }
+            return esc_html($view_column_x->column_item->setCustomValue($val)->text());
         });
         $axis_y_name = $view_column_y->custom_column->column_name;
-        $chart_data = $model->pluck('value.'.$axis_y_name);
+        $chart_data = $items->pluck('value.'.$axis_y_name);
+
+        if($view_column_x == Define::CHARTITEM_LABEL){
+            $axisx_label = $this->custom_table->table_view_name;
+        }else{
+            $axisx_label = array_get($view_column_x, 'view_column_name') ?? $view_column_x->column_item->label();
+        }
 
         return [
             'chart_data'    => $chart_data,
             'chart_label'   => $chart_label,
-            'axisx_label'   => array_get($view_column_x, 'view_column_name')?? $item_x->label(),
-            'axisy_label'   => array_get($view_column_y, 'view_column_name')?? $item_y->label(),
+            'axisx_label'   => $axisx_label,
+            'axisy_label'   => array_get($view_column_y, 'view_column_name') ?? $view_column_y->column_item->label(),
         ];
     }
 
@@ -255,6 +265,7 @@ class ChartItem implements ItemInterface
 
         $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
             ->required()
+            ->default(Define::CHARTITEM_LABEL)
             ->options(function ($value, $model) {
                 $target_view_id = array_get($model->data(), 'target_view_id');
                 if (!isset($target_view_id)) {
@@ -269,6 +280,7 @@ class ChartItem implements ItemInterface
                 $options = $custom_view->getViewColumnsSelectOptions(false);
                 return array_column($options, 'text', 'id');
             });
+
         $form->select('chart_axisy', exmtrans("dashboard.dashboard_box_options.chart_axisy"))
             ->required()
             ->options(function ($value, $model) {
