@@ -10,11 +10,14 @@ use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\ZipService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
-class MailSendJob extends JobBase
+class MailSendJob implements ShouldQueue
 {
+    use JobTrait;
+
     protected $from;
     protected $to;
     protected $cc;

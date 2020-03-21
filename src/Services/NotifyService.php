@@ -376,18 +376,16 @@ class NotifyService
                     // replace word
                     $slack_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
                     $slack_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
-                    $slack_content = Notifications\SlackSender::editContent($slack_subject, $slack_body);
                     // send slack message
-                    $notify->notify(new Notifications\SlackSender($slack_content));
+                    (new Notifications\SlackSender($slack_subject, $slack_body))->send($notify);
                     break;
     
                 case NotifyAction::MICROSOFT_TEAMS:
                     // replace word
                     $slack_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
                     $slack_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
-                    $slack_content = Notifications\MicrosoftTeamsSender::editContent($slack_subject, $slack_body);
-                    // send slack message
-                    $notify->notify(new Notifications\MicrosoftTeamsSender($slack_subject, $slack_content));
+                    // send message
+                    (new Notifications\MicrosoftTeamsSender($slack_subject, $slack_body))->send($notify);
                     break;
             }
             Plugin::pluginPreparing($plugins, 'notify_executed', [
