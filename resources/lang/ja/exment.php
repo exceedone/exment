@@ -351,11 +351,15 @@ return [
             'chart_legend' => '凡例を表示する',
             'chart_options' => 'オプション設定',
             'calendar_type' => 'カレンダーの種類',
+            'content' => '本文',
+            'html' => 'HTML',
         ],
 
         'dashboard_box_system_pages' => [
             'guideline' => 'ガイドライン',
             'news' => 'Exment新着情報一覧',
+            'editor' => 'エディター',
+            'html' => 'HTML',
         ],
 
         'dashboard_menulist' => [
@@ -367,6 +371,13 @@ return [
             'need_setting' => 'ダッシュボードの設定変更が必要です。再度、設定を行ってください。',
             'not_exists_table' => 'テーブルまたはビューが削除されました。',
         ],
+
+        'help' => [
+            'dashboard_box_options' => [
+                'content' => '表示する本文を記入してください。※スクリプトを使用したい場合は、HTMLを選択してください',
+                'html' => '表示するHTMLを記入してください。<span class="red">※入力したHTMLがそのまま埋め込まれます。またスクリプトも実行されます。入力には十分注意してください。</span>',
+            ],
+        ]
     ],
 
     'plugin' => [
