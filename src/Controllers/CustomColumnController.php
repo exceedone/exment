@@ -99,7 +99,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
             return esc_html(array_get(ColumnType::transArray("custom_column.column_type_options"), $val));
         });
-        $grid->column('required', exmtrans("common.reqired"))->sortable()->display(function ($val) {
+        $grid->column('required', exmtrans("common.required"))->sortable()->display(function ($val) {
             return getTrueMark($val);
         });
         $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->sortable()->display(function ($val) {
@@ -137,6 +137,16 @@ class CustomColumnController extends AdminControllerTableBase
             $filter->equal('column_type', exmtrans("custom_column.column_type"))->select(function ($val) {
                 return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
             });
+
+            $keys = ['required' => 'common', 'index_enabled' => 'custom_column.options', 'unique' => 'custom_column.options'];
+            foreach($keys as $key => $label){
+                $filter->where(function ($query) use($key, $label) {
+                    $query->whereIn("options->$key", [1, "1"]);
+                }, exmtrans("$label.$key"))->radio([
+                    '' => 'All',
+                    '1' => 'YES',
+                ]);                    
+            }
         });
         return $grid;
     }
@@ -206,7 +216,7 @@ class CustomColumnController extends AdminControllerTableBase
 
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id, $controller) {
-            $form->switchbool('required', exmtrans("common.reqired"));
+            $form->switchbool('required', exmtrans("common.required"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
                 ->rules([
                     new Validator\CustomColumnIndexCountRule($this->custom_table, $id),

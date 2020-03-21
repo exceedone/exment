@@ -10,7 +10,7 @@ return [
         'copy' => 'Copy',
         'shared' => 'Share',
         'change' => 'Change',
-        'reqired' => 'Required',
+        'required' => 'Required',
         'default' => 'Default',
         'basic_setting' => 'Basic Setting',
         'detail_setting' => 'Detail Setting',
