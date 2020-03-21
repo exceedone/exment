@@ -25,7 +25,6 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Validator\RequiredIfExRule;
-use DB;
 
 class NotifyController extends AdminControllerBase
 {
