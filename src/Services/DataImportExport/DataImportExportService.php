@@ -400,7 +400,7 @@ class DataImportExportService extends AbstractExporter
                         })->first();
                     }
                     if (isset($target_column->column_item)) {
-                        $target_table = isset($target_column->select_target_table) ? $target_column->select_target_table : $target_column->custom_table;
+                        $target_table = isset($target_column->select_target_table) ? $target_column->select_target_table : $target_column->custom_table_cache;
                         static::getImportColumnValue($data, $key, $value, $target_column->column_item, $target_column->column_item->label(), $s ?? null, $target_table, $options);
                     }
                 }

@@ -184,7 +184,7 @@ class ChartItem implements ItemInterface
         $item_y = $view_column_y->column_item;
 
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueModel();
+        $model = $this->custom_table->getValueModel()->query();
 
         // get data
         $datalist = $this->custom_view->getValueSummary($model, $this->custom_table->table_name)->get();
@@ -262,6 +262,9 @@ class ChartItem implements ItemInterface
                 ['options_chart_axisx', 'options_chart_axisy'],
                 [admin_url('dashboardbox/chart_axis').'/x', admin_url('dashboardbox/chart_axis').'/y']
             );
+
+        // link to manual
+        $form->description(sprintf(exmtrans("chart.help.chartitem_manual"), getManualUrl('dashboard?id='.exmtrans('chart.chartitem_manual'))));
 
         $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
             ->required()

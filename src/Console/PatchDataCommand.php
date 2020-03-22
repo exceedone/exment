@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -121,6 +122,9 @@ class PatchDataCommand extends Command
                 return;
             case 'remove_deleted_relation':
                 $this->removeDeletedRelation();
+                return;
+            case 'chartitem_x_label':
+                $this->patchDashboardBoxSummaryX();
                 return;
         }
 
@@ -718,6 +722,32 @@ class PatchDataCommand extends Command
 
                 $item->delete();
             }
+        }
+    }
+
+    /**
+     * Patch chartX selection column to Define::CHARTITEM_LABEL
+     *
+     * @return void
+     */
+    protected function patchDashboardBoxSummaryX()
+    {
+        $dashboardBoxes = DashboardBox::whereNotNull('options->target_view_id')->where('options->chart_axisx', '<>', Define::CHARTITEM_LABEL)->get();
+        foreach($dashboardBoxes as $dashboardBox){
+            if(is_null($target_view_id = $dashboardBox->getOption('target_view_id'))){
+                continue;
+            }
+
+            if(is_null($view = CustomView::getEloquent($target_view_id))){
+                continue;
+            }
+
+            if($view->view_kind_type != Enums\ViewKindType::AGGREGATE){
+                continue;
+            }
+
+            $dashboardBox->setOption('chart_axisx', Define::CHARTITEM_LABEL);
+            $dashboardBox->save();
         }
     }
 }

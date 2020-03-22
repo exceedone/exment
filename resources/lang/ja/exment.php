@@ -1537,10 +1537,16 @@ return [
     
     'chart' => [
         'chartitem_label' => 'データ見出し',
+        'chartitem_manual' => 'チャートの設定内容',
+
         'chart_type_options' => [
             'bar' => '棒グラフ',
             'line' => '折れ線グラフ',
             'pie' => '円グラフ',
+        ],
+
+        'help' => [
+            'chartitem_manual' => '※グラフの設定内容については、<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。'
         ],
     ],
 
