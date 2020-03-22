@@ -10,7 +10,7 @@ return [
         'copy' => 'コピー',
         'shared' => '共有',
         'change' => '変更',
-        'reqired' => '必須',
+        'required' => '必須',
         'default' => '既定',
         'basic_setting' => '基本設定',
         'detail_setting' => '詳細設定',
@@ -351,11 +351,15 @@ return [
             'chart_legend' => '凡例を表示する',
             'chart_options' => 'オプション設定',
             'calendar_type' => 'カレンダーの種類',
+            'content' => '本文',
+            'html' => 'HTML',
         ],
 
         'dashboard_box_system_pages' => [
             'guideline' => 'ガイドライン',
             'news' => 'Exment新着情報一覧',
+            'editor' => 'エディター',
+            'html' => 'HTML',
         ],
 
         'dashboard_menulist' => [
@@ -367,6 +371,13 @@ return [
             'need_setting' => 'ダッシュボードの設定変更が必要です。再度、設定を行ってください。',
             'not_exists_table' => 'テーブルまたはビューが削除されました。',
         ],
+
+        'help' => [
+            'dashboard_box_options' => [
+                'content' => '表示する本文を記入してください。※スクリプトを使用したい場合は、HTMLを選択してください',
+                'html' => '表示するHTMLを記入してください。<span class="red">※入力したHTMLがそのまま埋め込まれます。またスクリプトも実行されます。入力には十分注意してください。</span>',
+            ],
+        ]
     ],
 
     'plugin' => [
@@ -1525,11 +1536,18 @@ return [
     ],
     
     'chart' => [
+        'chartitem_label' => 'データ見出し',
+        'chartitem_manual' => 'チャートの設定内容',
+
         'chart_type_options' => [
             'bar' => '棒グラフ',
             'line' => '折れ線グラフ',
             'pie' => '円グラフ',
-        ]
+        ],
+
+        'help' => [
+            'chartitem_manual' => '※グラフの設定内容については、<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。'
+        ],
     ],
 
     'calendar' => [

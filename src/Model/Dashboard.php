@@ -48,27 +48,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         ->orderBy('column_no');
     }
     
-    public function dashboard_row1_boxes()
-    {
-        return $this->dashboard_row_boxes(1);
-    }
-
-    public function dashboard_row2_boxes()
-    {
-        return $this->dashboard_row_boxes(2);
-    }
-    
-    public function dashboard_row3_boxes()
-    {
-        return $this->dashboard_row_boxes(3);
-    }
-
-    public function dashboard_row4_boxes()
-    {
-        return $this->dashboard_row_boxes(4);
-    }
-
-    protected function dashboard_row_boxes($row_no)
+    public function dashboard_row_boxes($row_no)
     {
         return $this->hasMany(DashboardBox::class, 'dashboard_id')
         ->where('row_no', $row_no)
@@ -158,6 +138,12 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         static::updating(function ($model) {
             $model->setDefaultFlg(null, 'setDefaultFlgFilter', 'setDefaultFlgSet');
         });
+
+        // delete event
+        static::deleting(function ($model) {
+            // Delete items
+            $model->deletingChildren();
+        });
         
         // add global scope
         static::addGlobalScope('showableDashboards', function (Builder $builder) {
@@ -230,5 +216,10 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     public static function hasPermission()
     {
         return !boolval(config('exment.userdashboard_disabled', false)) || static::hasSystemPermission();
+    }
+
+    public function deletingChildren()
+    {
+        $this->dashboard_boxes()->delete();
     }
 }

@@ -48,6 +48,12 @@ class WorkflowItem extends SystemItem
         return new self($custom_table, $column_name, $custom_value);
     }
 
+    /**
+     * Get workflow item as status name string
+     *
+     * @param [type] $html
+     * @return void
+     */
     protected function getTargetValue($html)
     {
         $val = parent::getTargetValue($html);
@@ -56,12 +62,26 @@ class WorkflowItem extends SystemItem
             if (isset($val)) {
                 $model = WorkflowStatus::find($val);
                 return array_get($model, 'status_name');
-            } else {
-                return $this->custom_table->workflow->start_status_name;
             }
         }
 
-        return $val;
+        // if null, get default status name
+        if (!isset($val)) {
+            $workflow = Workflow::getWorkflowByTable($this->custom_table);
+            if(!$workflow){
+                return null;
+            }
+
+            $status_name = WorkflowStatus::getWorkflowStatusName(null, $workflow);
+
+            return $html ? esc_html($status_name) : $status_name;
+        }
+        elseif(is_string($val)){
+            return $html ? esc_html($val) : $val;
+        }
+        else{
+            return array_get($val, 'status_name');
+        }
     }
     
     public function getFilterField($value_type = null)
