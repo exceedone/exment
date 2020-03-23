@@ -151,10 +151,15 @@ abstract class CustomValue extends ModelBase
         return null;
     }
 
+    /**
+     * Get workflow status tag. Please escape workflow_status_name
+     *
+     * @return void
+     */
     public function getWorkflowStatusTagAttribute()
     {
         $icon = ' <i class="fa fa-lock" aria-hidden="true" data-toggle="tooltip" title="' . esc_html(exmtrans('workflow.message.locked')) . '"></i>';
-        return $this->workflow_status_name .
+        return esc_html($this->workflow_status_name) .
             ($this->lockedWorkflow() ? $icon : '');
     }
 

@@ -101,11 +101,11 @@ class CustomViewController extends AdminControllerTableBase
         $grid = new Grid(new CustomView);
         $grid->column('table_name', exmtrans("custom_table.table_name"))
             ->display(function () {
-                return $this->custom_table->table_name;
+                return esc_html($this->custom_table->table_name);
             });
         $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))
             ->display(function () {
-                return $this->custom_table->table_view_name;
+                return esc_html($this->custom_table->table_view_name);
             });
         $grid->column('view_view_name', exmtrans("custom_view.view_view_name"))->sortable();
         if ($this->custom_table->hasSystemViewPermission()) {

@@ -35,7 +35,7 @@ class NotifyNavbarController extends AdminControllerBase
             if (is_null($parent_type)) {
                 return null;
             }
-            return CustomTable::getEloquent($parent_type)->table_view_name;
+            return esc_html(CustomTable::getEloquent($parent_type)->table_view_name);
         });
         $grid->column('notify_subject', exmtrans('notify_navbar.notify_subject'))->sortable();
         $grid->column('created_at', exmtrans('common.created_at'))->sortable();

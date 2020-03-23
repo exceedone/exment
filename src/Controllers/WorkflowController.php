@@ -66,11 +66,11 @@ class WorkflowController extends AdminControllerBase
                 return null;
             }
 
-            return $custom_table->table_view_name;
+            return esc_html($custom_table->table_view_name);
         });
         $grid->column('workflow_view_name', exmtrans("workflow.workflow_view_name"))->sortable();
         $grid->column('workflow_statuses', exmtrans("workflow.status_name"))->display(function ($value) {
-            return $this->getStatusesString();
+            return esc_html($this->getStatusesString());
         });
         $grid->column('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->display(function ($value) {
             if (boolval($value)) {

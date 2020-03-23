@@ -77,7 +77,7 @@ class WorkflowItem extends SystemItem
             return $html ? esc_html($status_name) : $status_name;
         }
         elseif(is_string($val)){
-            return $html ? esc_html($val) : $val;
+            return $val;
         }
         else{
             return array_get($val, 'status_name');
