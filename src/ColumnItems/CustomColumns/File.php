@@ -24,7 +24,7 @@ class File extends CustomItem
     public function text()
     {
         // get image url
-        return ExmentFile::getUrl($this->fileValue());
+        return ExmentFile::getUrl($this->fileValue(), boolval(array_get($this->options, 'asApi')));
     }
 
     /**

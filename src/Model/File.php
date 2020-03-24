@@ -77,7 +77,7 @@ class File extends ModelBase
      * get the file url
      * @return void
      */
-    public static function getUrl($path)
+    public static function getUrl($path, ?bool $asApi = false) : ?string
     {
         $file = static::getData($path);
         if (is_null($file)) {
@@ -89,6 +89,11 @@ class File extends ModelBase
         } else {
             $name = "files/".$file->uuid;
         }
+
+        if($asApi){
+            $name = url_join('api', "files/".$file->uuid);
+        }
+
         return admin_url($name);
     }
 
@@ -148,7 +153,7 @@ class File extends ModelBase
     /**
      * Download file
      */
-    public static function downloadFile($uuid)
+    public static function downloadFile($uuid, ?bool $asBase64 = false)
     {
         $uuid = pathinfo($uuid, PATHINFO_FILENAME);
         $data = static::getData($uuid);
@@ -174,6 +179,15 @@ class File extends ModelBase
         $type = Storage::disk(config('admin.upload.disk'))->mimeType($path);
         // get page name
         $name = rawurlencode($data->filename);
+
+        if($asBase64){
+            return response([
+                'type' => $type,
+                'name' => $data->filename,
+                'base64' => base64_encode(($file)),
+            ]);
+        }
+
         // create response
         $response = Response::make($file, 200);
         $response->header("Content-Type", $type);
