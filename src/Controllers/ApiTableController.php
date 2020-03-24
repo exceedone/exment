@@ -870,6 +870,7 @@ class ApiTableController extends AdminControllerTableBase
         }
         // as single model
         elseif($target instanceof CustomValue){
+            $target = $target->makeHidden($this->custom_table->getMakeHiddenArray());
             return $this->modifyCustomValue($request, $target);
         }
     }
