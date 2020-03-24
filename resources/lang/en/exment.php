@@ -353,11 +353,15 @@ return [
             'chart_legend' => 'Show legend',
             'chart_options' => 'Option settings',
             'calendar_type' => 'Calendar Type',
+            'content' => 'Content',
+            'html' => 'HTML',
         ],
 
         'dashboard_box_system_pages' => [
             'guideline' => 'Guideline',
             'news' => 'Exment new arrival information list',
+            'editor' => 'Editor',
+            'html' => 'HTML',
         ],
 
         'dashboard_menulist' => [
@@ -368,6 +372,13 @@ return [
         'message' => [
             'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
             'not_exists_table' => 'The table or view has been deleted.',
+        ],
+
+        'help' => [
+            'dashboard_box_options' => [
+                'content' => 'Enter the text to be displayed. *If you want to use a script, please select HTML.',
+                'html' => 'Enter the HTML to be displayed. <span class="red">*The entered HTML is embedded as it is. The script is also executed. Please be careful when inputting.</span>',
+            ],
         ],
     ],
 
@@ -1527,11 +1538,18 @@ return [
     ],
     
     'chart' => [
+        'chartitem_label' => 'Chart Label',
+        'chartitem_manual' => 'Chart Setting',
+
         'chart_type_options' => [
             'bar' => 'Bar chart',
             'line' => 'Line chart',
             'pie' => 'Pie chart',
-        ]
+        ],
+        
+        'help' => [
+            'chartitem_manual' => '*Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for the setting contents of the graph.'
+        ],
     ],
 
     'calendar' => [
