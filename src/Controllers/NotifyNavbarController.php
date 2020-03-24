@@ -28,14 +28,14 @@ class NotifyNavbarController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new NotifyNavbar);
-        $grid->column('read_flg', exmtrans('notify_navbar.read_flg'))->sortable()->display(function ($read_flg) {
+        $grid->column('read_flg', exmtrans('notify_navbar.read_flg'))->sortable()->displayEscape(function ($read_flg) {
             return exmtrans("notify_navbar.read_flg_options.$read_flg");
         });
-        $grid->column('parent_type', exmtrans('notify_navbar.parent_type'))->sortable()->display(function ($parent_type) {
+        $grid->column('parent_type', exmtrans('notify_navbar.parent_type'))->sortable()->displayEscape(function ($parent_type) {
             if (is_null($parent_type)) {
                 return null;
             }
-            return esc_html(CustomTable::getEloquent($parent_type)->table_view_name);
+            return CustomTable::getEloquent($parent_type)->table_view_name;
         });
         $grid->column('notify_subject', exmtrans('notify_navbar.notify_subject'))->sortable();
         $grid->column('created_at', exmtrans('common.created_at'))->sortable();
