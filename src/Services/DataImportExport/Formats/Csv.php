@@ -58,7 +58,7 @@ class Csv extends FormatBase
                 });
 
                 // if over row size, return number
-                if (($count = $this->getRowCount($files)) > config('exment.import_max_row_count', 1500)) {
+                if (($count = $this->getRowCount($files)) > config('exment.import_max_row_count', 1000)) {
                     return $count;
                 }
 
@@ -84,7 +84,7 @@ class Csv extends FormatBase
             }
         } else {
             // if over row size, return number
-            if (($count = $this->getRowCount($path)) > config('exment.import_max_row_count', 1500)) {
+            if (($count = $this->getRowCount($path)) > config('exment.import_max_row_count', 1000)) {
                 return $count;
             }
 
