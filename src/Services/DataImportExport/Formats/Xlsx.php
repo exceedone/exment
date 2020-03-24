@@ -57,6 +57,11 @@ class Xlsx extends FormatBase
         $datalist = [];
 
         try {
+            // if over row size, return number
+            if(($count = $this->getRowCount($spreadsheet)) > config('exment.import_max_row_count', 1500)){
+                return $count;
+            }
+
             // get all data
             foreach ($spreadsheet->getSheetNames() as $sheetName) {
                 $sheet = $spreadsheet->getSheetByName($sheetName);
@@ -71,6 +76,26 @@ class Xlsx extends FormatBase
 
         return $datalist;
     }
+
+    /**
+     * Get all sheet's row count
+     *
+     * @param [type] $spreadsheet
+     * @return int
+     */
+    protected function getRowCount($spreadsheet) : int
+    {
+        $count = 0;
+
+        // get data count
+        foreach ($spreadsheet->getSheetNames() as $sheetName) {
+            $sheet = $spreadsheet->getSheetByName($sheetName);
+            $count += intval($sheet->getHighestRow());
+        }
+
+        return $count;
+    }
+
     /**
      * whether this out is as zip.
      * This table is parent and contains relation 1:n or n:n.
