@@ -43,30 +43,51 @@ class Csv extends FormatBase
             $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
     
             // open zip file
-            $zip = new \ZipArchive;
-            //Define variable like flag to check exitsed file config (config.json) before extract zip file
-            $res = $zip->open($fullpath);
-            if ($res !== true) {
-                //TODO:error
+            try {
+                $zip = new \ZipArchive;
+                //Define variable like flag to check exitsed file config (config.json) before extract zip file
+                $res = $zip->open($fullpath);
+                if ($res !== true) {
+                    //TODO:error
+                }
+                $zip->extractTo($tmpfolderpath);
+
+                // get all files
+                $files = collect(\File::files($tmpfolderpath))->filter(function ($value) {
+                    return pathinfo($value)['extension'] == 'csv';
+                });
+
+                // if over row size, return number
+                if (($count = $this->getRowCount($files)) > config('exment.import_max_row_count', 1000)) {
+                    return $count;
+                }
+
+                foreach ($files as $csvfile) {
+                    $basename = $csvfile->getBasename('.csv');
+                    $datalist[$basename] = $this->getCsvArray($csvfile->getRealPath());
+                }
+
+                return $datalist;
             }
-            $zip->extractTo($tmpfolderpath);
-
-            // get all files
-            $files = collect(\File::files($tmpfolderpath))->filter(function ($value) {
-                return pathinfo($value)['extension'] == 'csv';
-            });
-
-            foreach ($files as $csvfile) {
-                $basename = $csvfile->getBasename('.csv');
-                $datalist[$basename] = $this->getCsvArray($csvfile->getRealPath());
+            finally{
+                // delete tmp folder
+                if(isset($zip)){
+                    $zip->close();
+                }
+                // delete zip
+                if(isset($tmpfolderpath)){
+                    \File::deleteDirectory($tmpfolderpath);
+                }
+                if(isset($fullpath)){
+                    \File::delete($fullpath);
+                }
             }
-
-            // delete tmp folder
-            $zip->close();
-            // delete zip
-            \File::deleteDirectory($tmpfolderpath);
-            \File::delete($fullpath);
         } else {
+            // if over row size, return number
+            if (($count = $this->getRowCount($path)) > config('exment.import_max_row_count', 1000)) {
+                return $count;
+            }
+
             $basename = $this->filebasename;
             $datalist[$basename] = $this->getCsvArray($path);
         }
@@ -155,6 +176,32 @@ class Csv extends FormatBase
         return IOFactory::createReader('Csv');
     }
 
+    /**
+     * Get all csv's row count
+     *
+     * @param [type] $spreadsheet
+     * @return int
+     */
+    protected function getRowCount($files) : int
+    {
+        $count = 0;
+        if(is_string($files)){
+            $files = [$files];
+        }
+
+        // get data count
+        foreach ($files as $file) {
+            $reader = $this->createReader();
+            $reader->setInputEncoding('UTF-8');
+            $reader->setDelimiter(",");
+            $spreadsheet = $reader->load($file);
+            
+            $count += intval($spreadsheet->getActiveSheet()->getHighestRow());
+        }
+
+        return $count;
+    }
+
     protected function getCsvArray($file)
     {
         $reader = $this->createReader();
@@ -163,4 +210,5 @@ class Csv extends FormatBase
         $spreadsheet = $reader->load($file);
         return $spreadsheet->getActiveSheet()->toArray();
     }
+
 }

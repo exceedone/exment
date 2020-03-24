@@ -87,6 +87,7 @@ return [
             'order' => 'This is the display order when %s is listed.',
             'max_file_size_link' => 'File upload upper limit size change.',
             'max_file_size' => 'This is the size limit when uploading files from the page.Please execute<a href="%s" target="_blank">this<i class="fa fa-external-link"></i></a>to change.',
+            'import_max_row_count' => 'Up to :count data items can be imported at one time. For data with more than that number, split and upload.',
             'init_flg' => 'Cannot edit after save.',
             'more_help' => '<span class="red">For a detailed explanation, click the "?" Icon at the top right of the page and check the manual.</span>',
             'more_help_here' => 'Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
@@ -115,6 +116,7 @@ return [
         'error_message' => 'Error Message',
         'error_trace' => 'Error Trace',
         'failure_import_file' => 'The format of the uploaded file is incorrect. Please check the file.',
+        'import_max_row_count' => 'Up to :count data items can be imported at one time. Please divide and upload.',
         'not_install' => 'Exment is not installed. Please install Exment according to the following URL. <br /> https://exment.net/docs/#/quickstart',
         'disabled_outside_api' => 'External connection is not permitted.',
         'login_failed' => 'ID or password is wrong.',
@@ -351,11 +353,15 @@ return [
             'chart_legend' => 'Show legend',
             'chart_options' => 'Option settings',
             'calendar_type' => 'Calendar Type',
+            'content' => 'Content',
+            'html' => 'HTML',
         ],
 
         'dashboard_box_system_pages' => [
             'guideline' => 'Guideline',
             'news' => 'Exment new arrival information list',
+            'editor' => 'Editor',
+            'html' => 'HTML',
         ],
 
         'dashboard_menulist' => [
@@ -366,6 +372,13 @@ return [
         'message' => [
             'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
             'not_exists_table' => 'The table or view has been deleted.',
+        ],
+
+        'help' => [
+            'dashboard_box_options' => [
+                'content' => 'Enter the text to be displayed. *If you want to use a script, please select HTML.',
+                'html' => 'Enter the HTML to be displayed. <span class="red">*The entered HTML is embedded as it is. The script is also executed. Please be careful when inputting.</span>',
+            ],
         ],
     ],
 
@@ -1525,11 +1538,18 @@ return [
     ],
     
     'chart' => [
+        'chartitem_label' => 'Chart Label',
+        'chartitem_manual' => 'Chart Setting',
+
         'chart_type_options' => [
             'bar' => 'Bar chart',
             'line' => 'Line chart',
             'pie' => 'Pie chart',
-        ]
+        ],
+        
+        'help' => [
+            'chartitem_manual' => '*Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for the setting contents of the graph.'
+        ],
     ],
 
     'calendar' => [

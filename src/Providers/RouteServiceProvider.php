@@ -233,11 +233,11 @@ class RouteServiceProvider extends ServiceProvider
     {
         // define adminapi(for webapi), api(for web)
         $routes = [
-            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminwebapi'], 'addScope' => false],
+            ['type' => 'webapi', 'prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminwebapi'], 'addScope' => false],
         ];
         
         if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
-            $routes[] = ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true];
+            $routes[] = ['type' => 'api', 'prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true];
         }
 
         foreach ($routes as $route) {
@@ -295,6 +295,13 @@ class RouteServiceProvider extends ServiceProvider
                 $router->get("wf/data/{tableKey}/{id}/actions", 'ApiWorkflowController@getActions')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
                 $router->get("wf/data/{tableKey}/{id}/histories", 'ApiWorkflowController@getHistories')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
                 $router->post("wf/data/{tableKey}/{id}/value", 'ApiWorkflowController@execute')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_EXECUTE));
+
+                // only call as api
+                if($route['type'] == 'api'){
+                    $router->get('files/{uuid}', function ($uuid) {
+                        return File::downloadFile($uuid, boolval(request()->get('base64', false)));
+                    })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                }
             });
         }
     }

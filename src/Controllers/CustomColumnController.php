@@ -96,8 +96,8 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table"))->sortable();
         $grid->column('column_name', exmtrans("custom_column.column_name"))->sortable();
         $grid->column('column_view_name', exmtrans("custom_column.column_view_name"))->sortable();
-        $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
-            return esc_html(array_get(ColumnType::transArray("custom_column.column_type_options"), $val));
+        $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->displayEscape(function ($val) {
+            return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
         });
         $grid->column('required', exmtrans("common.required"))->sortable()->display(function ($val) {
             return getTrueMark($val);

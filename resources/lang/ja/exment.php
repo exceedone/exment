@@ -87,6 +87,7 @@ return [
             'order' => '%sを一覧表示した時の表示順です。',
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
+            'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。それ以上の件数のデータは、分割してアップロードを行ってください。',
             'init_flg' => '保存後、変更はできません。',
             'more_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
             'more_help_here' => '詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -114,7 +115,7 @@ return [
         'description' => 'エラーが発生しました。エラー内容をご確認ください。',
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
-        'failure_import_file' => 'アップロードしたファイルのフォーマットが誤っています。ファイルをご確認ください。',
+        'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。分割してアップロードを行ってください。',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
@@ -377,7 +378,7 @@ return [
                 'content' => '表示する本文を記入してください。※スクリプトを使用したい場合は、HTMLを選択してください',
                 'html' => '表示するHTMLを記入してください。<span class="red">※入力したHTMLがそのまま埋め込まれます。またスクリプトも実行されます。入力には十分注意してください。</span>',
             ],
-        ]
+        ],
     ],
 
     'plugin' => [

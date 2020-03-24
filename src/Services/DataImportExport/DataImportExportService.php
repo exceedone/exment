@@ -187,6 +187,17 @@ class DataImportExportService extends AbstractExporter
             $datalist = $this->format->getDataTable($request);
         }
 
+        // if over count, return over length
+        if(is_int($datalist)){
+            return [
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error'),
+                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('common.help.import_max_row_count', [
+                    'count' => config('exment.import_max_row_count', 1000),
+                ])]],
+            ];
+        }
+
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
         
@@ -282,11 +293,17 @@ class DataImportExportService extends AbstractExporter
         // check config value
         if (!boolval(config('exment.export_import_export_disabled_csv', false))) {
             $formats['csv'] = 'csv';
+            $formats['zip'] = 'zip';
         }
         if (!boolval(config('exment.export_import_export_disabled_excel', false))) {
             $formats['excel'] = 'xlsx';
         }
 
+        $form->description('<span class="red">' . exmtrans('common.help.import_max_row_count', [
+            'count' => config('exment.import_max_row_count', 1000),
+        ]) . '</span>')
+        ->setWidth(8, 3);
+        
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
             ->rules('mimes:' . implode(',', array_keys($formats)))->setWidth(8, 3)->addElementClass('custom_table_file')
@@ -297,7 +314,7 @@ class DataImportExportService extends AbstractExporter
                 return '.' . $format;
             })->implode(',')])
             ->help(exmtrans('custom_value.import.help.custom_table_file', implode(',', array_values($formats))) . array_get($fileOption, 'maxFileSizeHelp'));
-        
+    
         // get import primary key list
         $form->select('select_primary_key', exmtrans('custom_value.import.primary_key'))
             ->options($this->importAction->getPrimaryKeys())
