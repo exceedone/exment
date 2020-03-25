@@ -575,36 +575,6 @@ abstract class CustomItem implements ItemInterface
         return $validates;
     }
 
-    /**
-     * Get Search queries for free text search
-     *
-     * @param [type] $mark
-     * @param [type] $value
-     * @param [type] $takeCount
-     * @return void
-     */
-    public function getSearchQueries($mark, $value, $takeCount){
-        $query = $this->custom_table->getValueModel()->query();
-        $query->where($this->custom_column->getIndexColumnName(), $mark, $value)->select('id');
-        $query->take($takeCount);
-
-        return [$query]; 
-    }
-
-    /**
-     * Set Search orWhere for free text search
-     *
-     * @param [type] $mark
-     * @param [type] $value
-     * @param [type] $takeCount
-     * @return void
-     */
-    public function setSearchOrWhere(&$query, $mark, $value, $q){
-        $query->orWhere($this->custom_column->getIndexColumnName(), $mark, $value);
-
-        return $this;
-    }
-
     protected function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));

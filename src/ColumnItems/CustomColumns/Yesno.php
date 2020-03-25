@@ -64,26 +64,21 @@ class Yesno extends CustomItem
             1    => 'YES',
         ];
     }
-    
+
     /**
-     * Set Search orWhere for free text search
+     * Get pure value. If you want to change the search value, change it with this function.
      *
-     * @param [type] $mark
      * @param [type] $value
-     * @param [type] $takeCount
-     * @return void
+     * @return ?string string:matched, null:not matched
      */
-    public function setSearchOrWhere(&$query, $mark, $value, $q)
-    {
-        if(strtolower($q) == 'yes'){
-            $query->orWhere($this->custom_column->getIndexColumnName(), '=', 1);
-            return;
-        }elseif(strtolower($q) == 'no'){
-            $query->orWhere($this->custom_column->getIndexColumnName(), '=', 0);
-            return;
+    public function getPureValue($label){
+        $option = $this->getImportValueOption();
+
+        foreach($option as $value => $l){
+            if(strtolower($label) == strtolower($l)){
+                return $value;
+            }    
         }
-
-        return parent::setSearchOrWhere($query, $mark, $value, $q);
+        return null;
     }
-
 }

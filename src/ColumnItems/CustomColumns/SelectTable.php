@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
@@ -343,5 +344,101 @@ class SelectTable extends CustomItem
 
             return $values;
         });
+    }
+    
+    /**
+     * Get pure value. If you want to change the search value, change it with this function.
+     *
+     * @param [type] $value
+     * @return ?string string:matched, null:not matched
+     */
+    public function getPureValue($label){
+        $select_table = $this->custom_column->select_target_table ?? null;
+        if(!isset($select_table)){
+            return null;
+        }
+
+        // get label columns
+        $labelColumns = $select_table->getLabelColumns();
+
+        // not support table_label_format
+        if(is_string($labelColumns)){
+            return null;
+        }
+
+        $use_table_label_id = boolval($select_table->getOption('use_label_id_flg', false));
+
+        // searching select table query
+        $query = $select_table->getValueModel()::query();
+        $executeSearch = false;
+
+        // only single search column, search
+        if(!$use_table_label_id && count($labelColumns) == 1){
+            if($this->setSelectTableQuery($query, array_get($labelColumns[0], 'table_label_id'), $label)){
+                $executeSearch = true;
+            }
+        }
+        else{
+            // split $label space. zen-han
+            $label = str_replace('　', ' ', $label);
+            $label = preg_replace('/\s+/', ' ', $label);
+            $items = preg_split('/[\s|\x{3000}]+/u', $label);
+
+            $searchAsId = $use_table_label_id && substr($items[0], 0, 1) == '#';
+
+            if($searchAsId){
+                $searchId = substr($items[0], 1);
+                $query->where('id', $searchId);
+
+                $executeSearch = true;
+            }
+
+            $labelColumnIndex = 0;
+            for($i = ($searchAsId ? 1 : 0); $i < count($items); $i++){
+                if(count($labelColumns) <= $labelColumnIndex){
+                    return null;
+                }
+
+                if($this->setSelectTableQuery($query, array_get($labelColumns[$labelColumnIndex++], 'table_label_id'), $items[$i])){
+                    $executeSearch = true;
+                }
+            }
+        }
+
+        if(!$executeSearch){
+            return null;
+        }
+
+        // get value
+        $ids = $query->pluck('id');
+        return is_nullorempty($ids) ? null : $ids;
+    }
+
+    protected function setSelectTableQuery($query, $custom_column_id, $value){
+        $custom_column = CustomColumn::getEloquent($custom_column_id);
+        if(!isset($custom_column)){
+            return false;
+        }
+
+        $column_item = $custom_column->column_item;
+        if(!isset($column_item)){
+            return false;
+        }
+
+        $searchValue = $column_item->getPureValue($value);
+        if(!isset($searchValue)){
+            $searchValue = $value;
+        }
+
+        if (System::filter_search_type() == FilterSearchType::ALL) {
+            $searchValue = '%' . $searchValue . '%';
+        } else {
+            $searchValue = $searchValue . '%';
+        }
+
+        $name = $custom_column->index_enabled ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
+        $query->where($name, 'LIKE', $searchValue);
+        
+        return true;
     }
 }

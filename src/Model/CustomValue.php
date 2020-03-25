@@ -849,17 +849,12 @@ abstract class CustomValue extends ModelBase
      */
     public function getLabel()
     {
-        $custom_table = $this->custom_table;
-
-        $key = 'custom_table_use_label_flg_' . $this->custom_table_name;
-        $label_columns = System::requestSession($key, function () use ($custom_table) {
-            $table_label_format = $custom_table->getOption('table_label_format');
-            if (boolval(config('exment.expart_mode', false)) && isset($table_label_format)) {
-                return $table_label_format;
-            }
-            return $custom_table->table_labels;
-        });
-
+        if (!is_null($this->_label)) {
+            return $this->_label;
+        }
+        
+        $label_columns = $this->custom_table->getLabelColumns();
+        
         if (isset($label_columns) && is_string($label_columns)) {
             return $this->getExpansionLabel($label_columns);
         } else {
@@ -1146,7 +1141,7 @@ abstract class CustomValue extends ModelBase
                     continue;
                 }
 
-                foreach($column_item->getSearchQueries($mark, $value, $takeCount) as $query){
+                foreach($column_item->getSearchQueries($mark, $value, $takeCount, $q) as $query){
                     $queries[] = $query; 
                 }
             }else{
@@ -1165,7 +1160,7 @@ abstract class CustomValue extends ModelBase
             if(!isset($column_item)){
                 $subquery = static::query();
             }else{
-                $subquery = $column_item->getSearchQueries($mark, $value, $takeCount)[0];
+                $subquery = $column_item->getSearchQueries($mark, $value, $takeCount, $q)[0];
             }
         }else{
             $subquery = static::query();

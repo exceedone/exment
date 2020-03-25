@@ -212,6 +212,23 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Get Label Columns.
+     * 
+     * @return Collection|string
+     */
+    public function getLabelColumns()
+    {
+        $key = 'custom_table_use_label_flg_' . $this->table_name;
+        return System::requestSession($key, function () {
+            $table_label_format = $this->getOption('table_label_format');
+            if (boolval(config('exment.expart_mode', false)) && isset($table_label_format)) {
+                return $table_label_format;
+            }
+            return $this->table_labels;
+        });
+    }
+
+    /**
      * Get key-value items.
      * Key is column index name.
      * Value is select_target_table's table id.

@@ -28,40 +28,18 @@ class SelectValtext extends Select
     }
 
     /**
-     * Get Search queries for free text search
+     * Get pure value. If you want to change the search value, change it with this function.
      *
-     * @param [type] $mark
      * @param [type] $value
-     * @param [type] $takeCount
-     * @return void
+     * @return ?string string:matched, null:not matched
      */
-    public function getSearchQueries($mark, $value, $takeCount){
-        $query = $this->custom_table->getValueModel()->query();
-        $query->where($this->custom_column->getIndexColumnName(), $mark, $value)->select('id');
-        $query->take($takeCount);
-
-        return [$query]; 
-    }
-
-    /**
-     * Set Search orWhere for free text search
-     *
-     * @param [type] $mark
-     * @param [type] $value
-     * @param [type] $takeCount
-     * @return void
-     */
-    public function setSearchOrWhere(&$query, $mark, $value, $q)
-    {
-        // loop for key index
+    public function getPureValue($label){
         foreach($this->custom_column->createSelectOptions() as $key => $label){
             if($label == $q){
-                $query->orWhere($this->custom_column->getIndexColumnName(), '=', $key);
-                return;
+                return $key;
             }
         }
 
-        return parent::setSearchOrWhere($query, $mark, $value, $q);
+        return null;
     }
-
 }
