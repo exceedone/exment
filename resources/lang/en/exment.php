@@ -751,7 +751,7 @@ return [
             'add_parent_menu' => 'Please select the menu name to be parent.',
             'add_notify_flg' => 'You can add settings for performing in-system notification to authorized users when creating/updating/sharing/commenting data, after creating a new table. Please add YES if you want to add.<br/>* It can be set only when creating a new table. Please set from the "notification" screen when updating.',
             'saved_redirect_column' => 'Save succeeded ! Please set column column.',
-            'delete_confirm_message' => 'Please enter "%s" to delete it.',
+            'delete_confirm_message' => 'Please enter %s to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
         ],
 
