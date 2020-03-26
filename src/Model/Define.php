@@ -294,6 +294,11 @@ class Define
         'sqlsrv' => '13.0.0.0',
     ];
 
+    public const PHP_VERSION = [
+        '7.1.3',
+        '7.4.0',
+    ];
+
     public static function FILE_OPTION()
     {
         // get max size

@@ -578,7 +578,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             $tableKey = app('request')->route()->parameter('tableKey');
             if (!isset($tableKey)) {
-                abort(404);
+                return null;
             }
         } else {
             $tableKey = explode('/', $endpoint)[0];
@@ -587,7 +587,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $custom_table = static::getEloquent($tableKey);
         if (!isset($custom_table)) {
-            abort(404);
+            return null;
         }
 
         return $custom_table;

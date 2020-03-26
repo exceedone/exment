@@ -32,7 +32,7 @@ class CustomColumnController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
 
-    public function __construct(CustomTable $custom_table, Request $request)
+    public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
         

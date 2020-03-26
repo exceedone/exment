@@ -156,8 +156,9 @@ return [
 
         'error' => [
             'database_canconnection' => 'Could not connect to the database. Please check your settings.',
-            'not_require_database_version' => '%s requires at least version %s. The version used is %s.',
-            'mistake_mysql_mariadb' => 'The database you are using is %s, but you have selected %s. Please check the settings.',
+            'not_require_database_version' => ':database requires at least version :min. The version used is :current.',
+            'mistake_mysql_mariadb' => 'The database you are using is :database, but you have selected :database_select. Please check the settings.',
+            'not_require_php_version' => 'The PHP you are using is :current, but you have selected :min or more and less than :max. Please check the settings.',
         ],
     ],
 
@@ -750,7 +751,7 @@ return [
             'add_parent_menu' => 'Please select the menu name to be parent.',
             'add_notify_flg' => 'You can add settings for performing in-system notification to authorized users when creating/updating/sharing/commenting data, after creating a new table. Please add YES if you want to add.<br/>* It can be set only when creating a new table. Please set from the "notification" screen when updating.',
             'saved_redirect_column' => 'Save succeeded ! Please set column column.',
-            'delete_confirm_message' => 'Please enter "%s" to delete it.',
+            'delete_confirm_message' => 'Please enter %s to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
         ],
 

@@ -48,13 +48,9 @@ class CustomValueController extends AdminControllerTableBase
      * CustomValueController constructor.
      * @param Request $request
      */
-    public function __construct(CustomTable $custom_table, Request $request)
+    public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
-
-        if (!isset($this->custom_table)) {
-            return;
-        }
 
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
 

@@ -351,7 +351,7 @@ class ApiTableController extends AdminControllerTableBase
 
         $custom_values = [];
         foreach ((array)$ids as $i) {
-            if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            if (($custom_value = $this->getCustomValue($this->custom_table, $i)) instanceof Response) {
                 return $custom_value;
             }
             if (($code = $custom_value->enableDelete()) !== true) {
