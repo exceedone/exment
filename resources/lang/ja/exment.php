@@ -155,8 +155,9 @@ return [
 
         'error' => [
             'database_canconnection' => 'データベースに接続できませんでした。設定内容をご確認ください。',
-            'not_require_database_version' => '%sはバージョン%s以上が必要です。ご利用のバージョンは%sです。',
-            'mistake_mysql_mariadb' => 'お使いのデータベースは%sですが、%sを選択しています。設定内容をご確認ください。',
+            'not_require_database_version' => ':databaseはバージョン:min以上が必要です。ご利用のバージョンは:currentです。',
+            'mistake_mysql_mariadb' => 'お使いのデータベースは:databaseですが、:database_selectを選択しています。設定内容をご確認ください。',
+            'not_require_php_version' => 'PHPはバージョン:min以上:max未満が必要です。ご利用のバージョンは:currentです。',
         ],
     ],
 
