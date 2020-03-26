@@ -47,12 +47,9 @@ And more and more and more functions....
 ### List of Data
 ![List of Data](https://exment.net/wp-content/uploads/2020/03/list_of_data.gif)  
   
-### List Edit
-![CList Edit](https://exment.net/wp-content/uploads/2020/03/list_edit.gif)  
+### Data Edit
+![Data Edit](https://exment.net/wp-content/uploads/2020/03/list_edit.gif)  
   
-### List Definition
-![List Definition](https://exment.net/wp-content/uploads/2020/03/definition_settings.gif)
-
 ### Search
 ![Search](https://exment.net/wp-content/uploads/2020/03/search.gif)
 
