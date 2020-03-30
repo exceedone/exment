@@ -30,6 +30,13 @@ class OrgazanizationTreeItem extends ProviderBase
             $tree->disableAction();
             $tree->disableExpandCollapse();
 
+            $tree->getCallback(function ($items) {
+                foreach($items as $item){
+                    $item->append('label');
+                }
+                return $items;
+            });
+
             $tree->branch(function ($branch) {
                 return array_get($branch, 'label');
             });

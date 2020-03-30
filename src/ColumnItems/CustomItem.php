@@ -263,7 +263,7 @@ abstract class CustomItem implements ItemInterface
             $this->setAdminOptions($field, $form_column_options);
         }
 
-        if ($this->initonly() && isset($this->value)) {
+        if (!boolval(array_get($form_column_options, 'hidden')) && $this->initonly() && isset($this->value)) {
             $field->displayText($this->html());
         }
 

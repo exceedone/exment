@@ -85,7 +85,7 @@ class DefaultTableProvider extends ProviderBase
             // if exists, firstOrNew
             else {
                 // get model from models
-                $model = array_get($models, $primary_value);
+                $model = array_get($models, strval($primary_value));
                 if (!isset($model)) {
                     $model = new $modelName;
                 }
@@ -240,7 +240,7 @@ class DefaultTableProvider extends ProviderBase
                 continue;
             }
             // setvalue function if key is value
-            if ($dkey == 'value') {
+            if ($dkey == 'value' && is_array($dvalue)) {
                 // loop dvalue
                 foreach ($dvalue as $dvalueKey => $dvalueValue) {
                     $model->setValue($dvalueKey, $dvalueValue);

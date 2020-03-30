@@ -33,11 +33,15 @@ trait UniqueKeyCustomColumnTrait
     {
         $custom_column = CustomColumn::getEloquent(array_get($json, $custom_column_key), array_get($json, $custom_table_key));
 
+        $result = false;
         if (isset($custom_column)) {
             array_set($json, $replace_custom_column_key, $custom_column->id);
+            $result = true;
         }
 
         array_forget($json, $custom_column_key);
         array_forget($json, $custom_table_key);
+
+        return $result;
     }
 }

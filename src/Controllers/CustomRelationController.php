@@ -18,7 +18,7 @@ class CustomRelationController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
 
-    public function __construct(CustomTable $custom_table, Request $request)
+    public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
         
@@ -81,7 +81,7 @@ class CustomRelationController extends AdminControllerTableBase
         $grid = new Grid(new CustomRelation);
         $grid->column('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table"))->sortable();
         $grid->column('child_custom_table.table_view_name', exmtrans("custom_relation.child_custom_table"))->sortable();
-        $grid->column('relation_type', exmtrans("custom_relation.relation_type"))->sortable()->display(function ($relation_type) {
+        $grid->column('relation_type', exmtrans("custom_relation.relation_type"))->sortable()->displayEscape(function ($relation_type) {
             return RelationType::getEnum($relation_type)->transKey('custom_relation.relation_type_options') ?? null;
         });
 

@@ -10,7 +10,7 @@ return [
         'copy' => 'コピー',
         'shared' => '共有',
         'change' => '変更',
-        'reqired' => '必須',
+        'required' => '必須',
         'default' => '既定',
         'basic_setting' => '基本設定',
         'detail_setting' => '詳細設定',
@@ -87,6 +87,7 @@ return [
             'order' => '%sを一覧表示した時の表示順です。',
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
+            'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。それ以上の件数のデータは、分割してアップロードを行ってください。',
             'init_flg' => '保存後、変更はできません。',
             'more_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
             'more_help_here' => '詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -114,7 +115,7 @@ return [
         'description' => 'エラーが発生しました。エラー内容をご確認ください。',
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
-        'failure_import_file' => 'アップロードしたファイルのフォーマットが誤っています。ファイルをご確認ください。',
+        'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。分割してアップロードを行ってください。',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
@@ -154,8 +155,9 @@ return [
 
         'error' => [
             'database_canconnection' => 'データベースに接続できませんでした。設定内容をご確認ください。',
-            'not_require_database_version' => '%sはバージョン%s以上が必要です。ご利用のバージョンは%sです。',
-            'mistake_mysql_mariadb' => 'お使いのデータベースは%sですが、%sを選択しています。設定内容をご確認ください。',
+            'not_require_database_version' => ':databaseはバージョン:min以上が必要です。ご利用のバージョンは:currentです。',
+            'mistake_mysql_mariadb' => 'お使いのデータベースは:databaseですが、:database_selectを選択しています。設定内容をご確認ください。',
+            'not_require_php_version' => 'PHPはバージョン:min以上:max未満が必要です。ご利用のバージョンは:currentです。',
         ],
     ],
 
@@ -165,6 +167,8 @@ return [
         'complex_password' => 'パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
         'not_has_custom_value' => '列:attributeに入力の値:valueが、テーブル「:table_view_name」に存在しません。データをご確認ください。',
         'empty' => ':attributeの値は空欄のみ指定できます。',
+        'max_table_index' => '1つのテーブルに設定できる検索インデックスは:count件までです。',
+        'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
     ],
 
     'system' => [
@@ -349,11 +353,15 @@ return [
             'chart_legend' => '凡例を表示する',
             'chart_options' => 'オプション設定',
             'calendar_type' => 'カレンダーの種類',
+            'content' => '本文',
+            'html' => 'HTML',
         ],
 
         'dashboard_box_system_pages' => [
             'guideline' => 'ガイドライン',
             'news' => 'Exment新着情報一覧',
+            'editor' => 'エディター',
+            'html' => 'HTML',
         ],
 
         'dashboard_menulist' => [
@@ -364,6 +372,13 @@ return [
         'message' => [
             'need_setting' => 'ダッシュボードの設定変更が必要です。再度、設定を行ってください。',
             'not_exists_table' => 'テーブルまたはビューが削除されました。',
+        ],
+
+        'help' => [
+            'dashboard_box_options' => [
+                'content' => '表示する本文を記入してください。※スクリプトを使用したい場合は、HTMLを選択してください',
+                'html' => '表示するHTMLを記入してください。<span class="red">※入力したHTMLがそのまま埋め込まれます。またスクリプトも実行されます。入力には十分注意してください。</span>',
+            ],
         ],
     ],
 
@@ -1339,6 +1354,7 @@ return [
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
         'export' => 'エクスポート',
+        'view_export' => 'ビュー出力',
         'import_label' => 'インポート',
         'view_summary_detail' => '集計データの明細を表示する',
         'soft_deleted_data' => '削除済データ',
@@ -1397,6 +1413,7 @@ return [
             'no_columns_admin' => 'カスタム列が登録されていません。先にカスタム列を登録してください。',
             'no_columns_user' => 'カスタム列が登録されていません。管理者に問い合わせし、カスタム列を追加の依頼を行ってください。',
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
+            'relation_error' => 'このテーブルは親子関係が設定されているため、削除できません。',
             'multiple_uniques' => '%sがキーとなるその値は、すでに登録されています。',
             'init_flg' => '保存後、変更はできません。',
         ],
@@ -1521,11 +1538,18 @@ return [
     ],
     
     'chart' => [
+        'chartitem_label' => 'データ見出し',
+        'chartitem_manual' => 'チャートの設定内容',
+
         'chart_type_options' => [
             'bar' => '棒グラフ',
             'line' => '折れ線グラフ',
             'pie' => '円グラフ',
-        ]
+        ],
+
+        'help' => [
+            'chartitem_manual' => '※グラフの設定内容については、<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。'
+        ],
     ],
 
     'calendar' => [

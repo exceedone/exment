@@ -18,12 +18,12 @@ class AdminControllerTableBase extends Controller
     protected $custom_view;
     protected $custom_form;
 
-    public function __construct(CustomTable $custom_table, Request $request)
+    public function __construct(?CustomTable $custom_table, Request $request)
     {
         $this->custom_table = $custom_table;
         
         if (!isset($this->custom_table)) {
-            return;
+            abort(404);
         }
 
         $this->custom_table->load('custom_columns');

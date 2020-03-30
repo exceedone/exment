@@ -26,7 +26,7 @@ class LogController extends AdminControllerBase
 
         $grid->model()->orderBy('id', 'DESC');
 
-        $grid->column('user.user_name', exmtrans('operation_log.user_name'))->display(function ($foo) {
+        $grid->column('user.user_name', exmtrans('operation_log.user_name'))->displayEscape(function ($foo) {
             return ($this->user ? $this->user->user_name : null);
         });
         $grid->column('method', exmtrans('operation_log.method'));

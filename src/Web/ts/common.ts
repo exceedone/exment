@@ -137,6 +137,9 @@ namespace Exment {
                 else if(hasValue(res.swal)){
                     swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'error');
                 }
+                // if has message, not execute action
+                else if(hasValue(res.message)){
+                }
                 else {
                     toastr.error('Undeifned Error');
                 }

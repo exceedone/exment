@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
@@ -107,6 +108,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function custom_form_priorities()
     {
         return $this->hasManyThrough(CustomFormPriority::class, CustomForm::class, 'custom_table_id', 'custom_form_id');
+    }
+
+    public function workflow_tables()
+    {
+        return $this->hasMany(WorkflowTable::class, 'custom_table_id');
     }
 
     public function multi_uniques()
@@ -347,6 +353,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($this->custom_form_block_target_tables as $item) {
             $item->deletingChildren();
         }
+
+        foreach(WorkflowValue::where('morph_type', $this->table_name)->get() as $item){
+            $item->deletingChildren();
+            $item->delete();
+        }
     }
 
     protected static function boot()
@@ -362,12 +373,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // delete event
         static::deleting(function ($model) {
-            // delete custom values table
-            $model->dropTable();
-
             // Delete items
             $model->deletingChildren();
             
+            $model->workflow_tables()->delete();
             $model->custom_form_block_target_tables()->delete();
             $model->child_custom_relations()->delete();
             $model->custom_views()->delete();
@@ -378,6 +387,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // delete items
             Notify::where('custom_table_id', $model->id)->delete();
             Menu::where('menu_type', MenuType::TABLE)->where('menu_target', $model->id)->delete();
+            Revision::where('revisionable_type', $model->table_name)->delete();
+            
+            // delete custom values table
+            $model->dropTable();
         });
     }
 
@@ -404,8 +417,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // if not contains $value[$custom_column->column_name], set as null.
             // if not set, we cannot validate null check because $field->getValidator returns false.
-            if (!array_has($value, $custom_column->column_name)) {
-                $value[$custom_column->column_name] = null;
+            if (is_null($custom_value_id) && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
+                array_set($value, $column_name_prefix.$custom_column->column_name, null);
             }
         }
         
@@ -565,7 +578,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             $tableKey = app('request')->route()->parameter('tableKey');
             if (!isset($tableKey)) {
-                abort(404);
+                return null;
             }
         } else {
             $tableKey = explode('/', $endpoint)[0];
@@ -574,7 +587,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $custom_table = static::getEloquent($tableKey);
         if (!isset($custom_table)) {
-            abort(404);
+            return null;
         }
 
         return $custom_table;
@@ -791,7 +804,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return ['system_flg', 'showlist_flg'];
     }
 
-    public function importSaved($options = [])
+    public function importSaved($json, $options = [])
     {
         $this->createTable();
 

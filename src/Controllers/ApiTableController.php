@@ -7,10 +7,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
@@ -96,25 +98,12 @@ class ApiTableController extends AdminControllerTableBase
 
         $paginator = $model->paginate($count);
 
-        // execute makehidden
-        $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
-
-        // append label
-        if ($this->isAppendLabel($request)) {
-            $value->map(function ($rec) {
-                $rec->append('label');
-            });
-        }
-
-        $paginator->value = $value;
-
-        // set appends
-        $paginator->appends([
-            'count' => $count,
-            'orderby' => $orderby,
+        return $this->modifyAfterGetValue($request, $paginator, [
+            'appends' => [
+                'count' => $count,
+                'orderby' => $orderby,
+            ]
         ]);
-
-        return $paginator;
     }
 
     /**
@@ -189,13 +178,13 @@ class ApiTableController extends AdminControllerTableBase
             'maxCount' => $count,
             'getLabel' => $getLabel,
         ]);
-
-        $paginator->appends([
-            'q' => $q,
-            'count' => $count,
+        
+        return $this->modifyAfterGetValue($request, $paginator, [
+            'appends' => [
+                'q' => $q,
+                'count' => $count,
+            ]
         ]);
-
-        return $paginator;
     }
     
     /**
@@ -272,24 +261,11 @@ class ApiTableController extends AdminControllerTableBase
 
         $paginator = $model->paginate($count);
 
-        // execute makehidden
-        $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
-
-        // append label
-        if ($this->isAppendLabel($request)) {
-            $value->map(function($rec) {
-                $rec->append('label');
-            });
-        }
-
-        $paginator->value = $value;
-
-        // set appends
-        $paginator->appends([
-            'count' => $count,
+        return $this->modifyAfterGetValue($request, $paginator, [
+            'appends' => [
+                'count' => $count,
+            ]
         ]);
-
-        return $paginator;
     }
     
     /**
@@ -320,17 +296,7 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        // append label
-        if ($this->isAppendLabel($request)) {
-            $model->append('label');
-        }
-
-        $result = $model->makeHidden($this->custom_table->getMakeHiddenArray())
-                    ->toArray();
-        if ($request->has('dot') && boolval($request->get('dot'))) {
-            $result = array_dot($result);
-        }
-        return $result;
+        return $this->modifyAfterGetValue($request, $model);
     }
 
     /**
@@ -385,7 +351,7 @@ class ApiTableController extends AdminControllerTableBase
 
         $custom_values = [];
         foreach ((array)$ids as $i) {
-            if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            if (($custom_value = $this->getCustomValue($this->custom_table, $i)) instanceof Response) {
                 return $custom_value;
             }
             if (($code = $custom_value->enableDelete()) !== true) {
@@ -582,13 +548,8 @@ class ApiTableController extends AdminControllerTableBase
 
             $model->saveOrFail();
 
-            // append label
-            if ($this->isAppendLabel($request)) {
-                $model->append('label');
-            }
+            $response[] = $this->modifyAfterGetValue($request, $model);
 
-            //$response[] = getModelName($this->custom_table)::find($model->id)->makeHidden($this->custom_table->getMakeHiddenArray());
-            $response[] = $model->makeHidden($this->custom_table->getMakeHiddenArray());
         }
 
         if ($is_single && count($response) > 0) {
@@ -863,5 +824,73 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         return false;
+    }
+
+    /**
+     * Modify logic for getting value
+     *
+     * @return void
+     */
+    protected function modifyAfterGetValue(Request $request, $target, $options = []){
+        // for paginate logic
+        if ($target instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            $options = array_merge(
+                [
+                    'appends' => [],
+                ]
+                , $options
+            );
+
+            $appends = array_merge($request->all([
+                    'label',
+                    'count',
+                    'page',
+                    'valuetype',
+                    'q',
+                    'id',
+                    'target_view_id',
+                ]) , $options['appends']
+            );
+
+            // execute makehidden
+            $results = $target->makeHidden($this->custom_table->getMakeHiddenArray());
+
+            $results->map(function ($result) use($request) {
+                $this->modifyCustomValue($request, $result);
+            });
+
+            $target->value = $results;
+
+            // set appends
+            if(!is_nullorempty($appends)){
+                $target->appends($appends);
+            }
+
+            return $target;
+        }
+        // as single model
+        elseif($target instanceof CustomValue){
+            $target = $target->makeHidden($this->custom_table->getMakeHiddenArray());
+            return $this->modifyCustomValue($request, $target);
+        }
+    }
+
+    protected function modifyCustomValue(Request $request, $custom_value){
+        // append label
+        if ($this->isAppendLabel($request)) {
+            $custom_value->append('label');
+        }
+
+        // convert to custom values
+        $valuetype = $request->get('valuetype');
+        if($request->has('valuetype') && ValueType::filterApiValueType($valuetype)){
+            $custom_value->setValue($custom_value->getValues(ValueType::getEnum($valuetype), ['asApi' => true]));
+        }
+
+        if ($request->has('dot') && boolval($request->get('dot'))) {
+            $custom_value = array_dot($custom_value->toArray());
+        }
+
+        return $custom_value;
     }
 }

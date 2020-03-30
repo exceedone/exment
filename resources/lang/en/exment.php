@@ -10,7 +10,7 @@ return [
         'copy' => 'Copy',
         'shared' => 'Share',
         'change' => 'Change',
-        'reqired' => 'Required',
+        'required' => 'Required',
         'default' => 'Default',
         'basic_setting' => 'Basic Setting',
         'detail_setting' => 'Detail Setting',
@@ -87,6 +87,7 @@ return [
             'order' => 'This is the display order when %s is listed.',
             'max_file_size_link' => 'File upload upper limit size change.',
             'max_file_size' => 'This is the size limit when uploading files from the page.Please execute<a href="%s" target="_blank">this<i class="fa fa-external-link"></i></a>to change.',
+            'import_max_row_count' => 'Up to :count data items can be imported at one time. For data with more than that number, split and upload.',
             'init_flg' => 'Cannot edit after save.',
             'more_help' => '<span class="red">For a detailed explanation, click the "?" Icon at the top right of the page and check the manual.</span>',
             'more_help_here' => 'Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
@@ -115,6 +116,7 @@ return [
         'error_message' => 'Error Message',
         'error_trace' => 'Error Trace',
         'failure_import_file' => 'The format of the uploaded file is incorrect. Please check the file.',
+        'import_max_row_count' => 'Up to :count data items can be imported at one time. Please divide and upload.',
         'not_install' => 'Exment is not installed. Please install Exment according to the following URL. <br /> https://exment.net/docs/#/quickstart',
         'disabled_outside_api' => 'External connection is not permitted.',
         'login_failed' => 'ID or password is wrong.',
@@ -154,8 +156,9 @@ return [
 
         'error' => [
             'database_canconnection' => 'Could not connect to the database. Please check your settings.',
-            'not_require_database_version' => '%s requires at least version %s. The version used is %s.',
-            'mistake_mysql_mariadb' => 'The database you are using is %s, but you have selected %s. Please check the settings.',
+            'not_require_database_version' => ':database requires at least version :min. The version used is :current.',
+            'mistake_mysql_mariadb' => 'The database you are using is :database, but you have selected :database_select. Please check the settings.',
+            'not_require_php_version' => 'The PHP you are using is :current, but you have selected :min or more and less than :max. Please check the settings.',
         ],
     ],
 
@@ -165,6 +168,8 @@ return [
         'complex_password' => 'The password must be at least 12 characters long and must contain three types of characters (uppercase letters, lowercase letters, numbers, symbols).',
         'not_has_custom_value' => 'Input value :value in column :attribute does not exist in table ":table_view_name". Please check the data.',
         'empty' => 'Only a blank value can be specified for the value of :attribute.',
+        'max_table_index' => 'Up to :count search indexes can be set in one table.',
+        'using_index_column' => 'Search index cannot be released because it is in use by a view.',
     ],
 
     'system' => [
@@ -349,11 +354,15 @@ return [
             'chart_legend' => 'Show legend',
             'chart_options' => 'Option settings',
             'calendar_type' => 'Calendar Type',
+            'content' => 'Content',
+            'html' => 'HTML',
         ],
 
         'dashboard_box_system_pages' => [
             'guideline' => 'Guideline',
             'news' => 'Exment new arrival information list',
+            'editor' => 'Editor',
+            'html' => 'HTML',
         ],
 
         'dashboard_menulist' => [
@@ -364,6 +373,13 @@ return [
         'message' => [
             'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
             'not_exists_table' => 'The table or view has been deleted.',
+        ],
+
+        'help' => [
+            'dashboard_box_options' => [
+                'content' => 'Enter the text to be displayed. *If you want to use a script, please select HTML.',
+                'html' => 'Enter the HTML to be displayed. <span class="red">*The entered HTML is embedded as it is. The script is also executed. Please be careful when inputting.</span>',
+            ],
         ],
     ],
 
@@ -735,7 +751,7 @@ return [
             'add_parent_menu' => 'Please select the menu name to be parent.',
             'add_notify_flg' => 'You can add settings for performing in-system notification to authorized users when creating/updating/sharing/commenting data, after creating a new table. Please add YES if you want to add.<br/>* It can be set only when creating a new table. Please set from the "notification" screen when updating.',
             'saved_redirect_column' => 'Save succeeded ! Please set column column.',
-            'delete_confirm_message' => 'Please enter "%s" to delete it.',
+            'delete_confirm_message' => 'Please enter %s to delete it.',
             'delete_confirm_error' => 'Keyword is not correct.',
         ],
 
@@ -1339,6 +1355,7 @@ return [
         'template' => 'Export Template',
         'import_export' => 'Import/Export',
         'export' => 'Export',
+        'view_export' => 'View Export',
         'import_label' => 'Import',
         'view_summary_detail' => 'Display the items of aggregated data',
         'soft_deleted_data' => 'Deleted Data',
@@ -1397,6 +1414,7 @@ return [
             'no_columns_admin' => 'Custom column has not been registered. Please register a custom column first.',
             'no_columns_user' => 'Custom column has not been registered. Please contact your administrator and request additional custom columns.',
             'reference_error' => 'This data can not be deleted because it is referenced from another table.',
+            'relation_error' => 'This table cannot be deleted because it has a parent-child relationship.',
             'multiple_uniques' => 'The value for which %s is key is already registered.',
             'init_flg' => 'Cannot edit after save.',
         ],
@@ -1521,11 +1539,18 @@ return [
     ],
     
     'chart' => [
+        'chartitem_label' => 'Chart Label',
+        'chartitem_manual' => 'Chart Setting',
+
         'chart_type_options' => [
             'bar' => 'Bar chart',
             'line' => 'Line chart',
             'pie' => 'Pie chart',
-        ]
+        ],
+        
+        'help' => [
+            'chartitem_manual' => '*Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for the setting contents of the graph.'
+        ],
     ],
 
     'calendar' => [

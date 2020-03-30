@@ -294,6 +294,11 @@ class Define
         'sqlsrv' => '13.0.0.0',
     ];
 
+    public const PHP_VERSION = [
+        '7.1.3',
+        '7.4.0',
+    ];
+
     public static function FILE_OPTION()
     {
         // get max size
@@ -352,4 +357,6 @@ class Define
     public const DISKNAME_PLUGIN_SYNC = 'plugin_sync';
     public const DISKNAME_PLUGIN_LOCAL = 'plugin_local';
     public const DISKNAME_TEMPLATE_SYNC = 'template_sync';
+
+    public const CHARTITEM_LABEL = 'chartitem_label';
 }

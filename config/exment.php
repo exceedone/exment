@@ -510,6 +510,16 @@ return [
     
     /*
     |--------------------------------------------------------------------------
+    | Impoer row max count
+    |--------------------------------------------------------------------------
+    |
+    | Impoer row max count
+    |
+    */
+    'import_max_row_count' => env('EXMENT_IMPORT_MAX_ROW_COUNT', 1000),
+    
+    /*
+    |--------------------------------------------------------------------------
     | Disabled import & export csv
     |--------------------------------------------------------------------------
     |
@@ -527,6 +537,36 @@ return [
     |
     */
     'export_import_export_disabled_excel' => env('EXMENT_IMPORT_EXPORT_DISABLED_EXCEL', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled import
+    |--------------------------------------------------------------------------
+    |
+    | Disabled import mode
+    |
+    */
+    'import_disabled' => env('EXMENT_IMPORT_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled export mode
+    |--------------------------------------------------------------------------
+    |
+    | Disabled export mode
+    |
+    */
+    'export_disabled' => env('EXMENT_EXPORT_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled export view mode
+    |--------------------------------------------------------------------------
+    |
+    | Disabled export view mode
+    |
+    */
+    'export_view_disabled' => env('EXMENT_EXPORT_VIEW_DISABLED', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -599,6 +639,16 @@ return [
     |
     */
     'api_append_label_default' => env('EXMENT_API_APPEND_LABEL', true),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Column Index Enabled count
+    |--------------------------------------------------------------------------
+    |
+    | Custom Column Index Enabled count
+    |
+    */
+    'column_index_enabled_count' => env('EXMENT_COLUMN_INDEX_ENABLED_COUNT', 20),
     
     /*
     |--------------------------------------------------------------------------

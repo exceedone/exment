@@ -71,68 +71,92 @@ trait CustomValueGrid
 
             $filter->disableIdFilter();
 
-            $filter->column(count($search_enabled_columns) == 0 ? 1 : 1/2, function ($filter) {
-                $filter->equal('id', exmtrans('common.id'));
-                $filter->betweendatetime('created_at', exmtrans('common.created_at'))->date();
-                $filter->betweendatetime('updated_at', exmtrans('common.updated_at'))->date();
-                
-                // check 1:n relation
-                $relation = CustomRelation::getRelationByChild($this->custom_table);
-                // if set, create select
-                if (isset($relation)) {
-                    // get options and ajax url
-                    $options = $relation->parent_custom_table->getSelectOptions();
-                    $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
-                    $table_view_name = $relation->parent_custom_table->table_view_name;
 
-                    // switch 1:n or n:n
-                    if ($relation->relation_type == RelationType::ONE_TO_MANY) {
-                        if (isset($ajax)) {
-                            $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'text');
-                        } else {
-                            $filter->equal('parent_id', $table_view_name)->select($options);
-                        }
+            $filterItems = [];
+            $filterItems[] = function($filter){ $filter->equal('id', exmtrans('common.id')); };
+            $filterItems[] = function($filter){ $filter->betweendatetime('created_at', exmtrans('common.created_at'))->date(); };
+            $filterItems[] = function($filter){ $filter->betweendatetime('updated_at', exmtrans('common.updated_at'))->date(); };
+
+            // check 1:n relation
+            $relation = CustomRelation::getRelationByChild($this->custom_table);
+            // if set, create select
+            if (isset($relation)) {
+                // get options and ajax url
+                $options = $relation->parent_custom_table->getSelectOptions();
+                $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
+                $table_view_name = $relation->parent_custom_table->table_view_name;
+
+                // switch 1:n or n:n
+                if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+                    if (isset($ajax)) {
+                        $filterItems[] = function($filter) use($table_view_name, $ajax){ $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'text'); };
                     } else {
-                        $relationQuery = function ($query) use ($relation) {
-                            $query->whereHas($relation->getRelationName(), function ($query) use ($relation) {
-                                $query->where($relation->getRelationName() . '.parent_id', $this->input);
-                            });
-                        };
+                        $filterItems[] = function($filter) use($table_view_name, $options){ $filter->equal('parent_id', $table_view_name)->select($options); };
+                    }
+                } else {
+                    $relationQuery = function ($query) use ($relation) {
+                        $query->whereHas($relation->getRelationName(), function ($query) use ($relation) {
+                            $query->where($relation->getRelationName() . '.parent_id', $this->input);
+                        });
+                    };
 
-                        // set relation
-                        if (isset($ajax)) {
-                            $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
-                        } else {
-                            $filter->where($relationQuery, $table_view_name)->select($options);
-                        }
+                    // set relation
+                    if (isset($ajax)) {
+                        $filterItems[] = function($filter) use($relationQuery, $table_view_name, $ajax){ $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text'); };
+                    } else {
+                        $filterItems[] = function($filter) use($relationQuery, $table_view_name, $options){ $filter->where($relationQuery, $table_view_name)->select($options); };
                     }
                 }
+            }
 
-                // filter workflow
-                if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
-                    $custom_table = $this->custom_table;
+            // filter workflow
+            if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
+                $custom_table = $this->custom_table;
+
+                $filterItems[] = function($filter) use($workflow, $custom_table){ 
                     $field = $filter->where(function ($query) use ($custom_table) {
                         WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
                     }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
                     if (boolval(request()->get($field->getFilter()->getId()))) {
                         System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
                     }
-                    
+                };
+
+                $filterItems[] = function($filter) use($workflow, $custom_table){ 
                     $field = $filter->where(function ($query) use ($custom_table) {
                     }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
 
                     if (boolval(request()->get($field->getFilter()->getId()))) {
                         System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
                     }
-                }
-            });
+                };
+            }
 
             // loop custom column
-            $filter->column(1/2, function ($filter) use ($search_enabled_columns) {
-                foreach ($search_enabled_columns as $search_column) {
+            foreach ($search_enabled_columns as $search_column) {
+                $filterItems[] = function($filter) use($search_column){ 
                     $search_column->column_item->setAdminFilter($filter);
+                };
+            }
+
+            // set filter item
+            if(count($filterItems) <= 6){
+                foreach($filterItems as $filterItem){
+                    $filterItem($filter);
                 }
-            });
+            }else{
+                $separate = floor(count($filterItems) /  2);
+                $filter->column(1/2, function ($filter) use($filterItems, $separate) {
+                    for($i = 0; $i < $separate; $i++){
+                        $filterItems[$i]($filter);
+                    }
+                });
+                $filter->column(1/2, function ($filter) use($filterItems, $separate) {
+                    for($i = $separate; $i < count($filterItems); $i++){
+                        $filterItems[$i]($filter);
+                    }
+                });
+            }
         });
     }
 
@@ -157,7 +181,7 @@ trait CustomValueGrid
             $import = $this->custom_table->enableImport();
             $export = $this->custom_table->enableExport();
             if ($import === true || $export === true) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $import === true));
+                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true, $export === true, $import === true));
             }
             
             if ($this->custom_table->enableCreate(true) === true) {
@@ -316,6 +340,12 @@ trait CustomValueGrid
             ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
                 [
                     'custom_table' => $this->custom_table,
+                    'grid' => $grid,
+                ]
+            ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
+                [
+                    'custom_table' => $this->custom_table,
+                    'custom_view' => $this->custom_view,
                     'grid' => $grid,
                 ]
             ))->importAction(new DataImportExport\Actions\Import\CustomTableAction(
