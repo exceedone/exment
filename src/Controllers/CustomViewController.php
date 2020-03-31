@@ -320,10 +320,24 @@ class CustomViewController extends AdminControllerTableBase
                         ->options($this->custom_table->getSummaryColumnsSelectOptions())
                         ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
                     $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
-                        ->options(function ($val) {
-                            return array_map(function ($array) {
-                                return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
-                            }, SummaryCondition::getOptions());
+                        ->options(function ($val, $form) {
+                            $view_column_target = array_get($form->data(), 'view_column_target');
+                            if (isset($view_column_target)) {
+                                $columnItem = CustomViewColumn::getColumnItem($view_column_target);
+                                if (isset($columnItem)) {
+                                    // only numeric
+                                    if ($columnItem->isNumeric()) {
+                                        $options = SummaryCondition::getOptions();
+                                    } else {
+                                        $options = SummaryCondition::getOptions(['numeric' => false]);
+                                    }
+
+                                    return array_map(function ($array) {
+                                        return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
+                                    }, $options);
+                                }
+                            }
+                            return [];
                         })
                         ->required()->rules('summaryCondition');
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"))->icon(null);

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\ConditionType;
 
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -265,22 +266,25 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         }
 
         // delete view column
-        // foreach ($target->custom_views as $item) {
-        //     foreach ($item->custom_view_columns as $column) {
-        //         if ($column->view_column_table_id == $this->child_custom_table_id) {
-        //             $column->delete();
-        //         }
-        //     }
-        //     foreach ($item->custom_view_summaries as $column) {
-        //         if ($column->view_column_table_id == $this->child_custom_table_id) {
-        //             $column->delete();
-        //         }
-        //     }
-        //     foreach ($item->custom_view_filters as $column) {
-        //         if ($column->view_column_table_id == $this->child_custom_table_id) {
-        //             $column->delete();
-        //         }
-        //     }
-        // }
+        foreach ($target->custom_views as $item) {
+            foreach ($item->custom_view_columns as $column) {
+                if (ConditionType::isTableItem($column->view_column_type) && 
+                    $column->view_column_table_id == $this->child_custom_table_id) {
+                    $column->delete();
+                }
+            }
+            foreach ($item->custom_view_summaries as $column) {
+                if (ConditionType::isTableItem($column->view_column_type) && 
+                    $column->view_column_table_id == $this->child_custom_table_id) {
+                    $column->delete();
+                }
+            }
+            foreach ($item->custom_view_filters as $column) {
+                if (ConditionType::isTableItem($column->view_column_type) && 
+                    $column->view_column_table_id == $this->child_custom_table_id) {
+                    $column->delete();
+                }
+            }
+        }
     }
 }
