@@ -716,7 +716,7 @@ class CustomValueController extends AdminControllerTableBase
             return back();
         }
 
-        $this->setFormViewInfo($request);
+        $this->setFormViewInfo($request, $id);
  
         // id set, checking as update.
         // check for update
@@ -793,12 +793,12 @@ class CustomValueController extends AdminControllerTableBase
      * set view and form info.
      * use session etc
      */
-    protected function setFormViewInfo(Request $request)
+    protected function setFormViewInfo(Request $request, $id = null)
     {
         // set view
         $this->custom_view = CustomView::getDefault($this->custom_table);
 
         // set form
-        $this->custom_form = CustomForm::getDefault($this->custom_table);
+        $this->custom_form = $this->custom_table->getPriorityForm($id);
     }
 }
