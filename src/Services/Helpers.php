@@ -683,6 +683,33 @@ if (!function_exists('stringToArray')) {
     }
 }
 
+if (!function_exists('toArray')) {
+    /**
+     * Convert array. Such as casting array
+     * string : casting array
+     * Collection : $collect->toArray()
+     *
+     * @param mixed $value
+     * @return ?array
+     */
+    function toArray($value) : ?array
+    {
+        if (is_null($value)) {
+            return null;
+        }
+
+        if(is_array($value)){
+            return $value;
+        }
+
+        if($value instanceof \Illuminate\Support\Collection){
+            return $value->toArray();
+        }
+
+        return (array)$value;
+    }
+}
+
 if (!function_exists('is_json')) {
     function is_json($string)
     {
@@ -701,6 +728,22 @@ if (!function_exists('is_vector')) {
     }
 }
 
+if (!function_exists('is_list')) {
+    /**
+     * is value is array or Collection
+     *
+     * @param mixed $value
+     * @return array
+     */
+    function is_list($value) : bool
+    {
+        if (is_null($value)) {
+            return false;
+        }
+
+        return is_array($value) || $value instanceof \Illuminate\Support\Collection;
+    }
+}
 
 // string --------------------------------------------------
 if (!function_exists('make_password')) {

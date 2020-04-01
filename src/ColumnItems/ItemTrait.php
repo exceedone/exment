@@ -143,4 +143,71 @@ trait ItemTrait
     {
         return false;
     }
+    
+    /**
+     * Get Search queries for free text search
+     *
+     * @param [type] $mark
+     * @param [type] $value
+     * @param [type] $takeCount
+     * @return void
+     */
+    public function getSearchQueries($mark, $value, $takeCount, $q){
+        list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q);     
+
+        $query = $this->custom_table->getValueModel()->query();
+        
+        if(is_list($pureValue)){
+            $query->whereIn($this->custom_column->getIndexColumnName(), toArray($pureValue))->select('id');
+        }else{
+            $query->where($this->custom_column->getIndexColumnName(), $mark, $pureValue)->select('id');
+        }
+        
+        $query->take($takeCount);
+
+        return [$query]; 
+    }
+
+    /**
+     * Set Search orWhere for free text search
+     *
+     * @param [type] $mark
+     * @param [type] $value
+     * @param [type] $takeCount
+     * @return void
+     */
+    public function setSearchOrWhere(&$query, $mark, $value, $q){  
+        list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q);
+
+        if(is_list($pureValue)){
+            $query->orWhereIn($this->custom_column->getIndexColumnName(), toArray($pureValue));
+        }else{
+            $query->orWhere($this->custom_column->getIndexColumnName(), $mark, $pureValue);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get pure value. If you want to change the search value, change it with this function.
+     *
+     * @param [type] $value
+     * @return ?string string:matched, null:not matched
+     */
+    public function getPureValue($label){
+        return null;
+    }
+
+    protected function getQueryMarkAndValue($mark, $value, $q){
+        if(is_nullorempty($q)){
+            return [$mark, $value];
+        }
+
+        $pureValue = $this->getPureValue($q);
+        if(is_null($pureValue)){
+            return [$mark, $value];
+        }
+
+        return ['=', $pureValue];
+    }
 }
