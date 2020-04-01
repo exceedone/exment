@@ -255,11 +255,12 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     public function deletingChildren()
     {
         $target = $this->parent_custom_table;
+        $original_child_id = $this->getOriginal('child_custom_table_id');
 
         // delete child form block
         foreach ($target->custom_forms as $item) {
             foreach ($item->custom_form_blocks as $block) {
-                if ($block->form_block_target_table_id == $this->getOriginal('child_custom_table_id')) {
+                if ($block->form_block_target_table_id == $original_child_id) {
                     $block->delete();
                 }
             }
@@ -269,19 +270,19 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         foreach ($target->custom_views as $item) {
             foreach ($item->custom_view_columns as $column) {
                 if (ConditionType::isTableItem($column->view_column_type) && 
-                    $column->view_column_table_id == $this->child_custom_table_id) {
+                    $column->view_column_table_id == $original_child_id) {
                     $column->delete();
                 }
             }
             foreach ($item->custom_view_summaries as $column) {
                 if (ConditionType::isTableItem($column->view_column_type) && 
-                    $column->view_column_table_id == $this->child_custom_table_id) {
+                    $column->view_column_table_id == $original_child_id) {
                     $column->delete();
                 }
             }
             foreach ($item->custom_view_filters as $column) {
                 if (ConditionType::isTableItem($column->view_column_type) && 
-                    $column->view_column_table_id == $this->child_custom_table_id) {
+                    $column->view_column_table_id == $original_child_id) {
                     $column->delete();
                 }
             }
