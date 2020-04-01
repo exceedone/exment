@@ -576,7 +576,12 @@ class TemplateImporter
                 }
                 
                 // Create columnmultis. --------------------------------------------------
-                foreach (array_get($table, 'custom_column_multisettings', []) as $column) {
+                $custom_column_multisettings = array_get($table, 'custom_column_multisettings', []);
+                // delete all data related custom_table before insert 
+                if (count($custom_column_multisettings) > 0) {
+                    CustomColumnMulti::where('custom_table_id', $obj_table->id)->delete();
+                }
+                foreach ($custom_column_multisettings as $column) {
                     CustomColumnMulti::importTemplate($column, $is_update, [
                         'parent' => $obj_table,
                     ]);

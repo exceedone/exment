@@ -183,10 +183,9 @@ EOT;
         $this->script();
 
         if (isset($field)) {
-            if (boolval(array_get($this->attributes, 'required'))) {
-                if (!($field instanceof \Exceedone\Exment\Form\Field\SwitchField)) {
-                    $field->required();
-                }
+            if (!($field instanceof \Exceedone\Exment\Form\Field\SwitchField)) {
+                // required if visible
+                $field->required();
             }
             
             $field->setWidth(12, 0)->setLabelClass(['hidden'])->setElementClass(['w-100'])->attribute(['style' => 'max-width:999999px']);
