@@ -301,17 +301,21 @@ class CustomViewFilter extends ModelBase
             // for select --------------------------------------------------
             case FilterOption::SELECT_EXISTS:
                 $raw = "JSON_SEARCH($view_column_target, 'one', '$condition_value_text')";
-                $model->where(function ($query) use ($view_column_target, $raw) {
-                    $query->where($view_column_target, 'LIKE', '[%]')
-                          ->whereNotNull(\DB::raw($raw));
-                })->orWhere($view_column_target, $condition_value_text);
+                $model->where(function ($query) use ($view_column_target, $raw, $condition_value_text) {
+                    $query->where(function ($q) use ($view_column_target, $raw) {
+                        $q->where($view_column_target, 'LIKE', '[%]')
+                            ->whereNotNull(\DB::raw($raw));
+                    })->orWhere($view_column_target, $condition_value_text);
+                });
                 break;
             case FilterOption::SELECT_NOT_EXISTS:
                 $raw = "JSON_SEARCH($view_column_target, 'one', '$condition_value_text')";
-                $model->where(function ($query) use ($view_column_target, $raw) {
-                    $query->where($view_column_target, 'LIKE', '[%]')
-                        ->whereNull(\DB::raw($raw));
-                })->orWhere($view_column_target, '<>', $condition_value_text);
+                $model->where(function ($query) use ($view_column_target, $raw, $condition_value_text) {
+                    $query->where(function ($q) use ($view_column_target, $raw) {
+                        $q->where($view_column_target, 'LIKE', '[%]')
+                            ->whereNull(\DB::raw($raw));
+                    })->orWhere($view_column_target, '<>', $condition_value_text);
+                });
                 break;
         
             // for user --------------------------------------------------

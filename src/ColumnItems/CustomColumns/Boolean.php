@@ -72,4 +72,21 @@ class Boolean extends CustomItem
             array_get($column, 'options.true_value')    => array_get($column, 'options.true_label')
         ];
     }
+
+    /**
+     * Get pure value. If you want to change the search value, change it with this function.
+     *
+     * @param [type] $value
+     * @return ?string string:matched, null:not matched
+     */
+    public function getPureValue($label){
+        $option = $this->getImportValueOption();
+
+        foreach($option as $value => $l){
+            if(strtolower($label) == strtolower($l)){
+                return $value;
+            }    
+        }
+        return null;
+    }
 }

@@ -27,13 +27,8 @@ trait CustomValueForm
     protected function form($id = null)
     {
         $request = request();
-        $this->setFormViewInfo($request);
+        $this->setFormViewInfo($request, $id);
         
-        $custom_form = $this->custom_table->getPriorityForm($id);
-        if (isset($custom_form)) {
-            $this->custom_form =$custom_form;
-        }
-
         $classname = getModelName($this->custom_table);
         $form = new Form(new $classname);
 

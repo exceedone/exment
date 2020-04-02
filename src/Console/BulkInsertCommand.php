@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
+use Exceedone\Exment\Model\Define;
 use \File;
 
 class BulkInsertCommand extends Command
@@ -23,6 +24,13 @@ class BulkInsertCommand extends Command
      * @var string
      */
     protected $description = 'Insert large amount of data from tsv file placed in specified folder';
+
+    /**
+     * full path stored bulk insert files.
+     *
+     * @var string
+     */
+    protected $directory;
 
     /**
      * Create a new command instance.
@@ -47,8 +55,16 @@ class BulkInsertCommand extends Command
             // get target directory (argument)
             $dir = $this->argument("dir");
 
+            // check if parameter directory include separater
+            if (preg_match('/[\\\\\/]/', $dir)) {
+                throw new \Exception('parameter directory error : ' . $dir);
+            }
+
+            // get directory full path
+            $this->directory = storage_path(path_join('app\bulkinsert', $dir));
+
             // get all csv file names in target directory
-            $files = $this->getFiles($dir, 'csv');
+            $files = $this->getFiles('csv');
 
             $this->line("該当ファイル数：".count($files));
 
@@ -56,14 +72,14 @@ class BulkInsertCommand extends Command
                 $this->line(($index + 1) . "件目 実施開始 ファイル:{$file->getFileName()}");
 
                 // convert all csv files in target folder
-                $path = $this->convertFile($dir, $file);
+                $path = $this->convertFile($file);
 
                 // import tsv file to database table
                 $this->importTsv($path);
             }
 
             // delete working folder
-            File::deleteDirectory($path);
+            File::deleteDirectory(dirname($path));
         } catch (\Exception $e) {
             $this->error($e->getMessage());
             return -1;
@@ -76,13 +92,13 @@ class BulkInsertCommand extends Command
      * get file names in target folder (filter extension)
      *
      */
-    private function getFiles($dir, $ext = 'tsv', $include_sub = false)
+    private function getFiles($ext = 'tsv', $include_sub = false)
     {
         // get files in target folder
         if ($include_sub) {
-            $files = File::allFiles($dir);
+            $files = File::allFiles($this->directory);
         } else {
-            $files = File::files($dir);
+            $files = File::files($this->directory);
         }
         // filter files by extension
         $files = array_filter($files, function ($file) use ($ext) {
@@ -95,16 +111,16 @@ class BulkInsertCommand extends Command
      * convert all csv files in target folder into tsv files
      *
      */
-    private function convertFile($dir, $file, $include_sub = false)
+    private function convertFile($file, $include_sub = false)
     {
 
         // check if directory is exists
-        if (!File::isDirectory($dir)) {
-            throw new \Exception('Not found directory : ' . $dir);
+        if (!File::isDirectory($this->directory)) {
+            throw new \Exception('Not found directory : ' . $this->directory);
         }
 
         // get temp directory full path
-        $tempdir = storage_path('app/tmp/bulkins/' . date('YmdHis'));
+        $tempdir = getFullpath(date('YmdHis'), Define::DISKNAME_ADMIN_TMP);
 
         // create temp directory if not exists
         if (!File::exists($tempdir)) {

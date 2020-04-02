@@ -30,4 +30,13 @@ class ConditionType extends EnumBase
                 return $detail->getConditionItem($custom_table, $target);
         }
     }
+
+    public static function isTableItem($condition_type)
+    {
+        return in_array($condition_type,  [
+            ConditionType::COLUMN,
+            ConditionType::SYSTEM,
+            ConditionType::PARENT_ID,
+        ]);
+    }
 }
