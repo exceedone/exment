@@ -192,7 +192,7 @@ class DataImportExportService extends AbstractExporter
             return [
                 'result' => false,
                 'toastr' => exmtrans('common.message.import_error'),
-                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('common.help.import_max_row_count', [
+                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.import_max_row_count', [
                     'count' => config('exment.import_max_row_count', 1000),
                 ])]],
             ];
@@ -301,6 +301,7 @@ class DataImportExportService extends AbstractExporter
 
         $form->description('<span class="red">' . exmtrans('common.help.import_max_row_count', [
             'count' => config('exment.import_max_row_count', 1000),
+            'manual' => \getManualUrl('data_bulk_insert')
         ]) . '</span>')
         ->setWidth(8, 3);
         
