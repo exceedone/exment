@@ -423,10 +423,12 @@ abstract class CustomValue extends ModelBase
      * @param array $input laravel-admin input
      * @return mixed
      */
-    public function validatorSaving($input)
+    public function validatorSaving($input, bool $asApi = false)
     {
         // validate multiple column set is unique
-        $errors = $this->validatorMultiUniques($input);
+        $errors = $this->validatorMultiUniques($input, $asApi);
+
+        $errors = array_merge($this->validatorLock($input, $asApi), $errors);
 
         // call plugin validator
         $errors = array_merge_recursive($errors, Plugin::pluginValidator(Plugin::getPluginsByTable($this->custom_table), [
@@ -438,7 +440,7 @@ abstract class CustomValue extends ModelBase
         return count($errors) > 0 ? $errors : true;
     }
 
-    protected function validatorMultiUniques($input)
+    protected function validatorMultiUniques($input, bool $asApi = false)
     {
         $errors = [];
 
@@ -505,6 +507,33 @@ abstract class CustomValue extends ModelBase
         }
         return $errors;
     }
+    
+    protected function validatorLock($input, bool $asApi = false)
+    {
+        if(!array_key_value_exists('updated_at', $input)){
+            return [];
+        }
+
+        $errors = [];
+
+        // re-get updated_at value
+        $updated_at = $this->query()->select(['updated_at'])->find($this->id)->updated_at ?? null;
+
+        if(!isset($updated_at)){
+            return [];
+        }
+
+        if(\Carbon\Carbon::parse($input['updated_at']) != $updated_at){
+            $errors["updated_at"] = [exmtrans('custom_value.help.lock_error')];
+
+            if(!$asApi){
+                admin_warning(exmtrans('error.header'), exmtrans('custom_value.help.lock_error'));
+            }
+        }
+
+        return $errors;
+    }
+
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
     protected function prepareValue()
