@@ -1240,7 +1240,7 @@ class ApiTest extends ApiTestBase
             'name' => 'test1.txt',
             'base64' => 'dGVzdA==', //"test" text file.
         ])
-        ->assertStatus(200);
+        ->assertStatus(201);
 
         $json = json_decode($response->baseResponse->getContent(), true);
         $this->assertTrue(array_has($json, 'url'));
@@ -1263,7 +1263,8 @@ class ApiTest extends ApiTestBase
         $json = json_decode($response->baseResponse->getContent(), true);
         $data = collect(array_get($json, 'data'))->first();
         
-        $this->assertTrue(array_get($data, 'url') == $document->api_url);
+        $this->assertTrue(array_get($data, 'url') == $document->url);
+        $this->assertTrue(array_get($data, 'api_url') == $document->api_url);
         $this->assertTrue(array_get($data, 'name') == $document->label);
         $this->assertTrue(array_get($data, 'created_at') == $document->created_at->__toString());
         $this->assertTrue(array_get($data, 'created_user_id') == $document->created_user_id);

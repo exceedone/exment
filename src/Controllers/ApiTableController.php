@@ -453,7 +453,7 @@ class ApiTableController extends AdminControllerTableBase
         // save document model
         $document_model = $file->saveDocumentModel($custom_value, $filename);
         
-        return $this->getDocumentArray($document_model);
+        return response($this->getDocumentArray($document_model), 201);
     }
 
     /**
@@ -977,7 +977,8 @@ class ApiTableController extends AdminControllerTableBase
     protected function getDocumentArray($document){
         return [
             'name' => $document->label,
-            'url' => $document->api_url,
+            'url' => $document->url,
+            'api_url' => $document->api_url,
             'created_at' => $document->created_at->__toString(),
             'created_user_id' => $document->created_user_id,
         ];
