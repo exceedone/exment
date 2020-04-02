@@ -377,6 +377,86 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
+     * Get Attachment files
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function getDocuments(Request $request, $tableKey, $id){
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        if (($code = $custom_value->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+        
+        // get and check query parameter
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
+
+        $documents = $custom_value->getDocuments([
+            'count' => $count,
+            'paginate' => true,
+        ]);
+
+        $documents->appends([
+            'count' => $count
+        ]);
+
+        $documents->getCollection()->transform(function ($document) {
+            return $this->getDocumentArray($document);
+        });
+        
+        return $documents;
+    }
+
+    /**
+     * create Attachment files
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function createDocument(Request $request, $tableKey, $id){
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
+        }
+
+        if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        if (($code = $custom_value->enableEdit()) !== true) {
+            return abortJson(403, $code);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'base64' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        $file_data = base64_decode($request->get('base64'));
+        $filename = $request->get('name');
+
+        $file = File::storeAs($file_data, $this->custom_table->table_name, $filename)
+            ->saveCustomValue($custom_value->id, null, $this->custom_table);
+        // save document model
+        $document_model = $file->saveDocumentModel($custom_value, $filename);
+        
+        return $this->getDocumentArray($document_model);
+    }
+
+    /**
      * get selected id's children values
      */
     public function relatedLinkage(Request $request)
@@ -892,5 +972,14 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         return $custom_value;
+    }
+
+    protected function getDocumentArray($document){
+        return [
+            'name' => $document->label,
+            'url' => $document->api_url,
+            'created_at' => $document->created_at->__toString(),
+            'created_user_id' => $document->created_user_id,
+        ];
     }
 }

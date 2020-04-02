@@ -252,6 +252,7 @@ class Define
         'user' => "\Exceedone\Exment\Model\Traits\UserTrait",
         'organization' => "\Exceedone\Exment\Model\Traits\OrganizationTrait",
         'mail_template' => "\Exceedone\Exment\Model\Traits\MailTemplateTrait",
+        'document' => "\Exceedone\Exment\Model\Traits\DocumentTrait",
     ];
 
     public const GRID_MAX_LENGTH = 50;

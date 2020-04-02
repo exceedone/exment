@@ -955,6 +955,7 @@ abstract class CustomValue extends ModelBase
                 'add_id' => false,
                 'add_avatar' => false,
                 'only_avatar' => false,
+                'asApi' => false,
             ],
             $options
         );
@@ -962,7 +963,8 @@ abstract class CustomValue extends ModelBase
 
         // if this table is document, create target blank link
         if ($this->custom_table->table_name == SystemTableName::DOCUMENT) {
-            $url = admin_urls('files', $this->getValue('file_uuid', true));
+            $url = admin_urls(($options['asApi'] ? 'api' : null), 'files', $this->getValue('file_uuid', true));
+
             if (!$tag) {
                 return $url;
             }
@@ -1009,6 +1011,30 @@ abstract class CustomValue extends ModelBase
         }
 
         return "<a href='$href'$widgetmodal_url>$label</a>";
+    }
+
+    /**
+     * Get document list 
+     *
+     * @return void
+     */
+    public function getDocuments($options = []){
+        $options = array_merge(
+            [
+                'count' => 20,
+                'paginate' => false,
+            ],
+            $options
+        );
+        $query = getModelName(SystemTableName::DOCUMENT)
+            ::where('parent_id', $this->id)
+            ->where('parent_type', $this->custom_table_name)
+            ;
+
+        if($options['paginate']){
+            return $query->paginate($options['count']);
+        }
+            return $query->get();
     }
 
     /**

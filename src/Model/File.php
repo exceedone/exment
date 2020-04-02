@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Services\Uuids;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ErrorCode;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Response;
@@ -153,17 +154,32 @@ class File extends ModelBase
     /**
      * Download file
      */
-    public static function downloadFile($uuid, ?bool $asBase64 = false)
+    public static function downloadFile($uuid, $options = [])
     {
+        $options = array_merge(
+            [
+                'asApi' => false,
+                'asBase64' => false,
+            ],
+            $options
+        );
+
         $uuid = pathinfo($uuid, PATHINFO_FILENAME);
         $data = static::getData($uuid);
         if (!$data) {
+            if($options['asApi']){
+                return abortJson(404, ErrorCode::DATA_NOT_FOUND());
+            }
             abort(404);
         }
+
         $path = $data->path;
         $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
         
         if (!$exists) {
+            if($options['asApi']){
+                return abortJson(404, ErrorCode::DATA_NOT_FOUND());
+            }
             abort(404);
         }
 
@@ -171,6 +187,10 @@ class File extends ModelBase
         if (isset($data->parent_id) && isset($data->parent_type)) {
             $custom_table = CustomTable::getEloquent($data->parent_type);
             if (!$custom_table->hasPermissionData($data->parent_id)) {
+                if($options['asApi']){
+                    return abortJson(403, ErrorCode::PERMISSION_DENY());
+                }
+
                 abort(403);
             }
         }
@@ -180,7 +200,7 @@ class File extends ModelBase
         // get page name
         $name = rawurlencode($data->filename);
 
-        if($asBase64){
+        if($options['asBase64']){
             return response([
                 'type' => $type,
                 'name' => $data->filename,
@@ -219,17 +239,35 @@ class File extends ModelBase
             [
                 'removeDocumentInfo' => true,
                 'removeFileInfo' => true,
+                'asApi' => false,
             ],
             $options
         );
         $data = static::getData($uuid);
         if (!$data) {
+            if($options['asApi']){
+                return abortJson(404, ErrorCode::DATA_NOT_FOUND());
+            }
             abort(404);
         }
 
         // if not has delete setting, abort 403
         if (boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->base_user_id) {
+            if($options['asApi']){
+                return abortJson(403, ErrorCode::PERMISSION_DENY());
+            }
             abort(403);
+        }
+
+        // if has parent_id, check permission
+        if (isset($data->parent_id) && isset($data->parent_type)) {
+            $custom_value = CustomTable::getEloquent($data->parent_type)->getValueModel($data->parent_id);
+            if ($custom_value->enableDelete() !== true) {
+                if($options['asApi']){
+                    return abortJson(403, ErrorCode::PERMISSION_DENY());
+                }
+                abort(403);
+            }
         }
 
         $path = $data->path;
@@ -256,6 +294,10 @@ class File extends ModelBase
             static::deleteFileInfo($file);
         }
 
+        if ($options['asApi']) {
+            return response(null, 204);
+        }
+        
         return response([
             'status'  => true,
             'message' => trans('admin.delete_succeeded'),

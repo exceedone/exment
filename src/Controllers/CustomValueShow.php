@@ -481,20 +481,17 @@ EOT;
         return !$modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
     
-    protected function getDocuments($id, $modal = false)
+    protected function getDocuments($custom_value, $modal = false)
     {
         if ($modal) {
             return [];
         }
-        return getModelName(SystemTableName::DOCUMENT)
-            ::where('parent_id', $id)
-            ->where('parent_type', $this->custom_table->table_name)
-            ->get();
+        return $custom_value->getDocuments();
     }
     
     protected function setDocumentBox($row, $custom_value, $id, $modal = false)
     {
-        $documents = $this->getDocuments($id, $modal);
+        $documents = $this->getDocuments($custom_value, $modal);
         $useFileUpload = $this->useFileUpload($custom_value, $modal);
 
         if (count($documents) == 0 && !$useFileUpload) {
