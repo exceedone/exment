@@ -15,9 +15,25 @@ class Display extends Field\Display
      */
     protected $displayText;
 
+    /**
+     * Display class
+     *
+     * @var mixed
+     */
+    protected $displayClass;
+
     public function displayText($displayText)
     {
         $this->displayText = $displayText;
+
+        return $this;
+    }
+    
+    public function displayClass($displayClass)
+    {
+        $this->displayClass = $displayClass;
+
+        return $this;
     }
     
     /**
@@ -26,8 +42,13 @@ class Display extends Field\Display
      */
     public function render()
     {
+        if($this->displayText instanceof \Closure){
+            $this->displayText = $this->displayText->call($this, $this->value);
+        }
+
         return parent::render()->with([
-            'displayText' => $this->displayText
+            'displayText' => $this->displayText,
+            'displayClass' => $this->displayClass,
         ]);
     }
 }

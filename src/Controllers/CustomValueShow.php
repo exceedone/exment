@@ -627,7 +627,7 @@ EOT;
             $form->display('created_at', exmtrans("workflow.executed_at"));
             $form->display('workflow_action.action_name', exmtrans("workflow.action_name"));
             $form->display('workflow_action.status_from_to_name', exmtrans("workflow.status"));
-            $form->display('created_user', exmtrans("workflow.executed_user"));
+            $form->display('created_user', exmtrans("common.executed_user"));
             $form->display('comment', exmtrans("common.comment"));
         })->setTableWidth(12, 0)
         ->disableOptions()

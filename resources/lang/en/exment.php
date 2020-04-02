@@ -36,6 +36,7 @@ return [
         'created_user' => 'Created User',
         'updated_user' => 'Updated User', 
         'deleted_user' => 'Deleted User',   
+        'executed_user' => 'Executed User', 
         'workflow_status' => 'Current Status', 
         'workflow_work_users' => 'Current Work Users', 
         'workflow_history' => 'Work History',
@@ -646,7 +647,6 @@ return [
         'flow_next_type' => 'Condition to advance to next status',
         'upper_user' => 'more than people',
         'all_user' => 'All user execute',
-        'executed_user' => 'Executed User', 
         'executed_at' => 'Executed Datetime', 
         'next_work_users' => 'Next Work User', 
         'login_work_user' => 'You Work User', 
@@ -1180,6 +1180,8 @@ return [
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
             'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
             'custom_value_edit_all' => ['label' => 'All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
+            'api_all' => ['label' => 'Manage API Application', 'help' => 'Users can add, edit, delete all API applications.'],
+            'api' => ['label' => 'API Application', 'help' => 'Users can add, edit, delete API applications only user created.'],
         ],
         'role_type_option_role_group' => [
             'role_group_all' => ['label' => 'Manage the entire role group', 'help' => 'You can change the settings for the entire role group.<br/>You can add, change and delete groups, change permission settings for groups, and change user and organization settings.'],
@@ -1608,11 +1610,14 @@ return [
         'help' =>[
             'redirect' => 'Enter the URL to redirect after authentication.',
             'client_secret' => 'Click the icon on the left if you want to display the key.',
+            'api_key' => 'API key used for authentication.',
+            'executed_user' => 'The API runs as this user.',
         ],
 
         'client_type_options' => [
             'client_credentials' => 'Client Login on Display',
             'password_grant' => 'Password Grant',
+            'api_key' => 'API Key',
         ],
 
         'oauth' => [
@@ -1628,6 +1633,7 @@ return [
         'client_type_text' => 'Authentication Type',
         'client_id' => 'Client ID',
         'client_secret' => 'Client Secret',
+        'api_key' => 'API Key',
         'redirect' => 'Redirect URL',
     ],
 

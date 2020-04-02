@@ -36,6 +36,7 @@ return [
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
+        'executed_user' => '実行ユーザー', 
         'workflow_status' => '現在のステータス', 
         'workflow_work_users' => '現在の作業ユーザー', 
         'workflow_history' => 'ワークフロー履歴',
@@ -645,7 +646,6 @@ return [
         'flow_next_type' => '次のステータスへ進む条件',
         'upper_user' => '人以上実行',
         'all_user' => '全員実行',
-        'executed_user' => '実行ユーザー', 
         'executed_at' => '実行日時', 
         'next_work_users' => '次の作業ユーザー', 
         'login_work_user' => '自分が作業ユーザー', 
@@ -1179,6 +1179,8 @@ return [
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'システムビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータ編集', 'help' => 'カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
+            'api_all' => ['label' => 'APIアプリ全体管理', 'help' => 'すべてのAPIアプリを追加・変更・削除できます。'],
+            'api' => ['label' => 'APIアプリ管理', 'help' => '自分が作成したAPIアプリのみ追加・変更・削除できます。'],
         ],
         'role_type_option_role_group' => [
             'role_group_all' => ['label' => '役割グループ全体の管理', 'help' => '役割グループ全体の設定を変更できます。<br/>グループの追加・変更・削除、グループの権限設定変更、ユーザー・組織の設定変更ができます。'],
@@ -1606,11 +1608,14 @@ return [
         'help' =>[
             'redirect' => '認証後にリダイレクトするURLを入力してください。',
             'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',
+            'api_key' => '認証に使用するAPIのキーです。',
+            'executed_user' => 'APIは、このユーザーとして実行されます。',
         ],
 
         'client_type_options' => [
             'client_credentials' => '画面ログイン形式',
             'password_grant' => 'パスワード形式',
+            'api_key' => 'APIキー形式',
         ],
 
         'oauth' => [
@@ -1626,6 +1631,7 @@ return [
         'client_type_text' => '認証形式',
         'client_id' => 'Client ID',
         'client_secret' => 'Client Secret',
+        'api_key' => 'APIキー',
         'redirect' => 'リダイレクトURL',
     ],
 

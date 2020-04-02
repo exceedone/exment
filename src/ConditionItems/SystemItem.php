@@ -53,7 +53,7 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
         $query->orWhere(function ($query) use ($tableName, $authorityTableName) {
             $query->where($authorityTableName . '.related_id', WorkflowTargetSystem::CREATED_USER)
                 ->where($authorityTableName . '.related_type', ConditionTypeDetail::SYSTEM()->lowerkey())
-                ->where($tableName . '.created_user_id', \Exment::user()->id);
+                ->where($tableName . '.created_user_id', \Exment::user()->base_user_id);
         });
     }
 }
