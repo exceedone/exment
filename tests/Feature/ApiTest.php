@@ -10,6 +10,8 @@ use Exceedone\Exment\Model\WorkflowValueAuthority;
 
 class ApiTest extends ApiTestBase
 {
+    private const FILE_BASE64 = 'dGVzdA=='; //"test" text file.
+
     public function testOkAuthorize(){
         $response = $this->getPasswordToken('admin', 'adminadmin');
         
@@ -1291,7 +1293,56 @@ class ApiTest extends ApiTestBase
 
     
     
-    // document, attachment -------------------------------------
+    // file, document, attachment -------------------------------------
+    // test file column
+    public function testPostFile(){
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->post(admin_urls('api', 'data', 'roletest_custom_value_edit'), [
+            'value' => [
+                'text' => $text,
+                'user' => 2,
+                'file' => [
+                    'name' => 'test.txt',
+                    'base64' => static::FILE_BASE64,
+                ],
+            ]
+        ])
+        ->assertStatus(201);
+
+        $this->assertJsonTrue($response, [
+            'value' => [
+                'text' => $text,
+                'user' => 2
+            ],
+            'created_user_id' => "1" //ADMIN
+        ]);
+
+        $this->assertFileUrl($token, $response);
+    }
+    
+    public function testPutFile(){
+        $token = $this->getUser1AccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis');
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', 'roletest_custom_value_edit', 1), [
+            'value' => [
+                'file' => [
+                    'name' => 'test.txt',
+                    'base64' => static::FILE_BASE64,
+                ],
+            ]
+        ])
+        ->assertStatus(200);
+
+        $this->assertFileUrl($token, $response);
+    }
+
     public function testPostDocument(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
 
@@ -1299,7 +1350,7 @@ class ApiTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->post(admin_urls('api', 'document', 'roletest_custom_value_edit', 1), [
             'name' => 'test1.txt',
-            'base64' => 'dGVzdA==', //"test" text file.
+            'base64' => static::FILE_BASE64, //"test" text file.
         ])
         ->assertStatus(201);
 
@@ -1430,7 +1481,7 @@ class ApiTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->post(admin_urls('api', 'document', 'roletest_custom_value_edit', 1), [
             'name' => 'test1.txt',
-            'base64' => 'dGVzdA==', //"test" text file.
+            'base64' => static::FILE_BASE64, //"test" text file.
         ])
             ->assertStatus(403)
             ->assertJsonFragment([
@@ -2400,8 +2451,32 @@ class ApiTest extends ApiTestBase
             }
             else{
                 $checkKey = implode('.', $copykeys);
-                $this->assertTrue(array_get($json, $checkKey) == $v);
+                $checkValue = array_get($json, $checkKey);
+                $jsonString = json_encode($json);
+                $this->assertTrue($checkValue == $v, "key $checkKey is $checkValue, but value is $v".PHP_EOL.PHP_EOL.$jsonString);
             }
         }
+    }
+
+    protected function assertFileUrl($token, $response){
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $id = array_get($json, 'id');
+
+        // get file url
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit', $id . '?valuetype=text'))
+        ->assertStatus(200);
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $url = array_get($json, 'value.file');
+        $this->assertTrue(isset($url));
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get($url);
+
+        $file = $response->baseResponse->getContent();
+
+        $this->assertTrue($file == 'test');
     }
 }
