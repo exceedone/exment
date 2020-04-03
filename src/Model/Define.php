@@ -31,6 +31,7 @@ class Define
     public const YES_KEYWORD = 'yes';
 
     public const API_FEATURE_TEST = 'API_FEATURE_TEST';
+    public const API_FEATURE_TEST_APIKEY = 'API_FEATURE_TEST_APIKEY';
 
     public const MAX_SIZE_NUMBER = 1000000000000;
 
