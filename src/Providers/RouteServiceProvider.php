@@ -260,6 +260,9 @@ class RouteServiceProvider extends ServiceProvider
                 $router->delete("data/{tableKey}/{id}", 'ApiTableController@dataDelete')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/column/{column_name}", 'ApiTableController@columnData')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
 
+                $router->get("document/{tableKey}/{id}", 'ApiTableController@getDocuments')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->post("document/{tableKey}/{id}", 'ApiTableController@createDocument')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+
                 // table --------------------------------------------------
                 $router->get("table", 'ApiController@tablelist')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 $router->get("table/columns", 'ApiController@columns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
@@ -299,8 +302,17 @@ class RouteServiceProvider extends ServiceProvider
                 // only call as api
                 if($route['type'] == 'api'){
                     $router->get('files/{uuid}', function ($uuid) {
-                        return File::downloadFile($uuid, boolval(request()->get('base64', false)));
+                        return File::downloadFile($uuid, [
+                            'asBase64' => boolval(request()->get('base64', false)),
+                            'asApi' => true,
+                        ]);
                     })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+
+                    $router->delete('files/{uuid}', function ($uuid) {
+                        return File::deleteFile($uuid, [
+                            'asApi' => true,
+                        ]);
+                    })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                 }
             });
         }
