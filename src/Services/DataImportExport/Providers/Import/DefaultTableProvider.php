@@ -160,7 +160,13 @@ class DefaultTableProvider extends ProviderBase
         }
 
         // execute validation
-        $validator = $this->custom_table->validateValue(array_dot_reverse($data), true, array_get($model, 'id'), 'value.', true, false);
+        $validator = $this->custom_table->validateValue(array_dot_reverse($data), array_get($model, 'id'), [
+            'systemColumn' => true,
+            'column_name_prefix' => 'value.',
+            'appendKeyName' => true,
+            'checkCustomValueExists' => false,
+        ]);
+
         if ($validator->fails()) {
             // create error message
             foreach ($validator->errors()->messages() as $message) {
