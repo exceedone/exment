@@ -687,6 +687,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $files[$file_column->column_name] = [
                 'name' => $file_name,
                 'data' => $file_data,
+                'custom_column' => $file_column,
             ];
         }
 

@@ -36,6 +36,12 @@ abstract class CustomValue extends ModelBase
     protected $remove_file_columns = [];
 
     /**
+     * disabled saved event.
+     * if true, disable.
+     */
+    protected $disable_saved_event = false;
+
+    /**
      * saved notify.
      * if false, don't notify
      */
@@ -317,6 +323,12 @@ abstract class CustomValue extends ModelBase
         return $this;
     }
 
+    public function disable_saved_event($disable_saved_event)
+    {
+        $this->disable_saved_event = $disable_saved_event;
+        return $this;
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -387,6 +399,10 @@ abstract class CustomValue extends ModelBase
      */
     protected function savedEvent($isCreate)
     {
+        if($this->disable_saved_event){
+            return;
+        }
+
         // save file value
         $this->setFileValue();
 
@@ -899,12 +915,14 @@ abstract class CustomValue extends ModelBase
         // if this table is document, create target blank link
         if ($this->custom_table->table_name == SystemTableName::DOCUMENT) {
             $url = admin_urls(($options['asApi'] ? 'api' : null), 'files', $this->getValue('file_uuid', true));
+            $document_name = $this->getValue('document_name');
 
             if (!$tag) {
                 return $url;
             }
-            $label = esc_html($this->getValue('document_name'));
-            return "<a href='$url' target='_blank'>$label</a>";
+            $label = esc_html($document_name);
+            $title = exmtrans('common.download');
+            return "<a href='$url' target='_blank' data-toggle='tooltip' title='$title'>$label</a>";
         }
         $url = admin_urls('data', $this->custom_table->table_name);
         if (!boolval($options['list'])) {

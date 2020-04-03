@@ -39,7 +39,8 @@ class File extends CustomItem
             return $url;
         }
 
-        return '<a href="'.$url.'" target="_blank">'.esc_html($file->filename).'</a>';
+        $title = exmtrans('common.download');
+        return "<a href='$url' target='_blank' data-toggle='tooltip' title='$title'>".esc_html($file->filename).'</a>';
     }
 
     /**

@@ -6,7 +6,7 @@
 </small>
 
 @if($candelete && (!boolval(config('exment.file_delete_useronly', false)) || $document->created_user_id == \Exment::user()->base_user_id))
-<a href="javascript:void(0);" data-exment-delete="{{ $document->url }}">
+<a href="javascript:void(0);" data-exment-delete="{{ $document->url }}" data-toggle='tooltip' title="{{trans('admin.delete')}}">
     <i class="fa fa-trash"></i>
 </a>
 @endif

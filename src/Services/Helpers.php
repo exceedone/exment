@@ -288,7 +288,8 @@ if (!function_exists('path_join')) {
      */
     function path_join(...$pass_array)
     {
-        return join_paths(DIRECTORY_SEPARATOR, $pass_array);
+        return join_paths('/', $pass_array);
+        //return join_paths(DIRECTORY_SEPARATOR, $pass_array);
     }
 }
 

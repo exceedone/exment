@@ -614,6 +614,8 @@ class ApiTableController extends AdminControllerTableBase
 
             $model->saveOrFail();
 
+            $this->customValueFile($this->custom_table, $files[$index], $model);
+
             $response[] = $this->modifyAfterGetValue($request, $model);
 
         }
@@ -918,13 +920,29 @@ class ApiTableController extends AdminControllerTableBase
      * @param array $value
      * @return void
      */
-    protected function saveFile($custom_table, $files, &$value){
-        foreach($files as $column_name => $fileInfo){
+    protected function saveFile($custom_table, &$files, &$value){
+        foreach($files as $column_name => &$fileInfo){
             // save filename
             $file = File::storeAs($fileInfo['data'], $custom_table->table_name, $fileInfo['name']);
 
             // convert value array
             $value[$column_name] = path_join($file->local_dirname, $file->local_filename);
+
+            $fileInfo['model'] = $file;
+        }
+    }
+
+    /**
+     * Append custom value info after custom_value save
+     *
+     * @param CustomTable $custom_table
+     * @param array $files
+     * @param CustomValue $custom_value
+     * @return void
+     */
+    protected function customValueFile($custom_table, $files, $custom_value){
+        foreach($files as $column_name => $fileInfo){
+            $fileInfo['model']->saveCustomValue($custom_value->id, $fileInfo['custom_column'], $custom_table);
         }
     }
 
