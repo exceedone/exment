@@ -2401,7 +2401,7 @@ class ApiTest extends ApiTestBase
         $json = json_decode($response->baseResponse->getContent(), true);
         $id = array_get($json, 'id');
 
-        // get file url
+        // get file url as uuid
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit', $id . '?valuetype=text'))
@@ -2413,6 +2413,24 @@ class ApiTest extends ApiTestBase
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get($url);
+
+        $file = $response->baseResponse->getContent();
+
+        $this->assertTrue($file == 'test');
+
+
+        // get file url as tableKey and filename
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'roletest_custom_value_edit', $id))
+        ->assertStatus(200);
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $path = array_get($json, 'value.file');
+        $this->assertTrue(isset($path));
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'files', str_replace("\\", "/", $path)));
 
         $file = $response->baseResponse->getContent();
 

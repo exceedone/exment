@@ -164,7 +164,10 @@ class File extends ModelBase
             $options
         );
 
-        $uuid = pathinfo($uuid, PATHINFO_FILENAME);
+        if(!$options['asApi']){
+            $uuid = pathinfo($uuid, PATHINFO_FILENAME);
+        }
+
         $data = static::getData($uuid);
         if (!$data) {
             if($options['asApi']){
@@ -406,17 +409,20 @@ class File extends ModelBase
         // get by uuid
         $file = static::where('uuid', $pathOrUuid)->first();
 
-        if (is_null($file)) {
-            // get by $dirname, $filename
-            list($dirname, $filename) = static::getDirAndFileName($pathOrUuid);
-            $file = static::where('local_dirname', $dirname)
-                ->where('local_filename', $filename)
-                ->first();
-            if (is_null($file)) {
-                return null;
-            }
+        if(isset($file)){
+            return $file;
         }
-        return $file;
+
+        // get by $dirname, $filename
+        list($dirname, $filename) = static::getDirAndFileName($pathOrUuid);
+        $file = static::where('local_dirname', $dirname)
+            ->where('local_filename', $filename)
+            ->first();
+        if (isset($file)) {
+            return $file;
+        }
+
+        return null;
     }
     
     /**

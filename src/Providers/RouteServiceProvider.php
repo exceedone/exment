@@ -308,8 +308,21 @@ class RouteServiceProvider extends ServiceProvider
                         ]);
                     })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
 
+                    $router->get('files/{tableKey}/{uuid}', function ($tableKey, $uuid) {
+                        return File::downloadFile(path_join($tableKey, $uuid), [
+                            'asBase64' => boolval(request()->get('base64', false)),
+                            'asApi' => true,
+                        ]);
+                    })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+
                     $router->delete('files/{uuid}', function ($uuid) {
                         return File::deleteFile($uuid, [
+                            'asApi' => true,
+                        ]);
+                    })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+                    
+                    $router->delete('files/{tableKey}/{uuid}', function ($tableKey, $uuid) {
+                        return File::deleteFile($tableKey, $uuid, [
                             'asApi' => true,
                         ]);
                     })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
