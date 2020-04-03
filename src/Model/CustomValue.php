@@ -36,6 +36,12 @@ abstract class CustomValue extends ModelBase
     protected $remove_file_columns = [];
 
     /**
+     * disabled saved event.
+     * if true, disable.
+     */
+    protected $disable_saved_event = false;
+
+    /**
      * saved notify.
      * if false, don't notify
      */
@@ -317,6 +323,12 @@ abstract class CustomValue extends ModelBase
         return $this;
     }
 
+    public function disable_saved_event($disable_saved_event)
+    {
+        $this->disable_saved_event = $disable_saved_event;
+        return $this;
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -387,6 +399,10 @@ abstract class CustomValue extends ModelBase
      */
     protected function savedEvent($isCreate)
     {
+        if($this->disable_saved_event){
+            return;
+        }
+        
         // save file value
         $this->setFileValue();
 

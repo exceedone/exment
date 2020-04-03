@@ -159,12 +159,11 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
         
-            $router->get('files/{uuid}', function ($uuid) {
-                return File::downloadFile($uuid);
-            });
-            $router->delete('files/{uuid}', function ($uuid) {
-                return File::deleteFile($uuid);
-            });
+            $router->get('files/{uuid}','FileController@download');
+            $router->get('files/{tableKey}/{uuid}','FileController@downloadTable');
+            
+            $router->delete('files/{uuid}','FileController@delete');
+            $router->delete('files/{tableKey}/{uuid}','FileController@deleteTable');
             
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
@@ -301,31 +300,12 @@ class RouteServiceProvider extends ServiceProvider
 
                 // only call as api
                 if($route['type'] == 'api'){
-                    $router->get('files/{uuid}', function ($uuid) {
-                        return File::downloadFile($uuid, [
-                            'asBase64' => boolval(request()->get('base64', false)),
-                            'asApi' => true,
-                        ]);
-                    })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-
-                    $router->get('files/{tableKey}/{uuid}', function ($tableKey, $uuid) {
-                        return File::downloadFile(path_join($tableKey, $uuid), [
-                            'asBase64' => boolval(request()->get('base64', false)),
-                            'asApi' => true,
-                        ]);
-                    })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-
-                    $router->delete('files/{uuid}', function ($uuid) {
-                        return File::deleteFile($uuid, [
-                            'asApi' => true,
-                        ]);
-                    })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+                            
+                    $router->get('files/{uuid}','FileController@downloadApi')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                    $router->get('files/{tableKey}/{uuid}','FileController@downloadTableApi')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                     
-                    $router->delete('files/{tableKey}/{uuid}', function ($tableKey, $uuid) {
-                        return File::deleteFile($tableKey, $uuid, [
-                            'asApi' => true,
-                        ]);
-                    })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+                    $router->delete('files/{uuid}','FileController@deleteApi')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+                    $router->delete('files/{tableKey}/{uuid}','FileController@deleteTableApi')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                 }
             });
         }
