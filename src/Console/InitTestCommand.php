@@ -440,6 +440,13 @@ class InitTestCommand extends Command
         $custom_column5->options = ['index_enabled' => '1'];
         $custom_column5->save();
 
+        $custom_column6 = new CustomColumn;
+        $custom_column6->custom_table_id = $custom_table->id;
+        $custom_column6->column_name = 'file';
+        $custom_column6->column_view_name = 'file';
+        $custom_column6->column_type = ColumnType::FILE;
+        $custom_column6->save();
+
         $custom_form_conditions = [
             [
                 'condition_type' => ConditionType::CONDITION,
