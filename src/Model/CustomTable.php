@@ -420,8 +420,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param string $column_name_prefix if not null, add column prefix name key.
      * @return mixed
      */
-    public function validateValue($value, $systemColumn = false, $custom_value_id = null, $column_name_prefix = null, $appendKeyName = true, $checkCustomValueExists = true)
+    public function validateValue($value, $custom_value_id = null, array $options = [])
     {
+        extract(
+            array_merge([
+                'systemColumn' => false,
+                'column_name_prefix' => null,
+                'appendKeyName' => true,
+                'checkCustomValueExists' => true,
+                'asApi' => false,
+            ], $options)
+        );
+
         // get fields for validation
         $rules = [];
         $fields = [];
@@ -482,6 +492,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // execute validation
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
+        $errors = array_merge(
+            $this->validatorMultiUniques($value, $custom_value_id, $asApi),
+            $this->validatorLock($value, $custom_value_id, $asApi)
+        );
+        if(count($errors) > 0){
+            $validator->setCustomMessages($errors);
+        }
+
         return $validator;
     }
 
@@ -515,6 +533,100 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $customAttributes;
     }
     
+    protected function validatorMultiUniques($input, $custom_value_id = null, bool $asApi = false)
+    {
+        $errors = [];
+
+        // getting custom_table's custom_column_multi_uniques
+        $multi_uniques = $this->getMultipleUniques();
+
+        if (!isset($multi_uniques) || count($multi_uniques) == 0) {
+            return $errors;
+        }
+
+        foreach ($multi_uniques as $multi_unique) {
+            $query = static::query();
+            $column_keys = [];
+            foreach ([1,2,3] as $key) {
+                if (is_null($column_id = $multi_unique->{'unique' . $key})) {
+                    continue;
+                }
+
+                $column = CustomColumn::getEloquent($column_id);
+                $column_name = $column->column_name;
+
+                // get query key
+                if ($column->index_enabled) {
+                    $query_key = $column->getIndexColumnName();
+                } else {
+                    $query_key = 'value->' . $column_name;
+                }
+
+                // get value
+                $value = array_get($input, 'value.' . $column_name);
+                if (is_array($value)) {
+                    $value = json_encode(array_filter($value));
+                }
+
+                $query->where($query_key, $value);
+
+                $column_keys[] = $column;
+            }
+
+            if (empty($column_keys)) {
+                continue;
+            }
+
+            // if all column's value is empty, continue.
+            if (collect($column_keys)->filter(function ($column) use ($input) {
+                return !is_nullorempty(array_get($input, 'value.' . $column->column_name));
+            })->count() == 0) {
+                continue;
+            }
+
+            if (isset($custom_value_id)) {
+                $query->where('id', '<>', $custom_value_id);
+            }
+
+            if ($query->count() > 0) {
+                $errorTexts = collect($column_keys)->map(function ($column_key) {
+                    return $column_key->column_view_name;
+                });
+                $errorText = implode(exmtrans('common.separate_word'), $errorTexts->toArray());
+                foreach ($column_keys as $column_key) {
+                    $errors["value.{$column_key->column_name}"] = [exmtrans('custom_value.help.multiple_uniques', $errorText)];
+                }
+            }
+        }
+        return $errors;
+    }
+    
+    protected function validatorLock($input, $custom_value_id = null, bool $asApi = false)
+    {
+        if(!array_key_value_exists('updated_at', $input)){
+            return [];
+        }
+
+        $errors = [];
+
+        // re-get updated_at value
+        $updated_at = $this->getValueModel()->query()->select(['updated_at'])->find($custom_value_id)->updated_at ?? null;
+
+        if(!isset($updated_at)){
+            return [];
+        }
+
+        if(\Carbon\Carbon::parse($input['updated_at']) != $updated_at){
+            $errors["updated_at"] = [$asApi ? exmtrans('custom_value.help.lock_error_api') : exmtrans('custom_value.help.lock_error')];
+
+            if(!$asApi){
+                admin_warning(exmtrans('error.header'), exmtrans('custom_value.help.lock_error'));
+            }
+        }
+
+        return $errors;
+    }
+
 
     /**
      * Set default value from custom column info

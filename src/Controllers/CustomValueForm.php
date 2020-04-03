@@ -47,6 +47,9 @@ trait CustomValueForm
         $form->hidden('laravel_admin_escape');
         $form->hidden('select_parent')->default($select_parent);
 
+        // for lock data
+        $form->hidden('updated_at');
+
         // add parent select if this form is 1:n relation
         $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
         if (isset($relation)) {

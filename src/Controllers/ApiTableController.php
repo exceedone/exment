@@ -441,8 +441,6 @@ class ApiTableController extends AdminControllerTableBase
 
     protected function saveData($request, $custom_value = null)
     {
-        $is_single = false;
-
         $validator = Validator::make($request->all(), [
             'value' => 'required_without:data',
         ]);
@@ -452,37 +450,15 @@ class ApiTableController extends AdminControllerTableBase
             ], ErrorCode::VALIDATION_ERROR());
         }
 
-        if ($request->has('value')) {
-            $values = $request->get('value');
-        } else {
-            $values = $request->get('data');
-        }
-
-        if (!is_vector($values)) {
-            if ($request->has('parent_id')) {
-                $values['parent_id'] = $request->get('parent_id');
-            }
-            if ($request->has('parent_type')) {
-                $values['parent_type'] = $request->get('parent_type');
-            }
-            $values = [$values];
-            $is_single = true;
-        } else {
-            $values = collect($values)->map(function ($value) {
-                if (array_key_exists('value', $value)) {
-                    $value = array_merge($value, $value['value']);
-                    unset($value['value']);
-                }
-                return $value;
-            })->toArray();
-        }
+        $is_single = false;
+        $rootValues = $this->getRootValuesFromPost($request, $is_single);
 
         $max_create_count = config('exment.api_max_create_count', 100);
-        if (count($values) > $max_create_count) {
+        if (count($rootValues) > $max_create_count) {
             return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count), ErrorCode::OVER_LENGTH());
         }
 
-        $findResult = $this->convertFindKeys($values, $request);
+        $findResult = $this->convertFindKeys($rootValues, $request);
         if ($findResult !== true) {
             return abortJson(400, [
                 'errors' => $findResult
@@ -492,22 +468,30 @@ class ApiTableController extends AdminControllerTableBase
         $validates = [];
         // saved files
         $files = [];
-        foreach ($values as $index => $value) {
+        foreach ($rootValues as $index => $rootValue) {
+            $validateValue = $rootValue;
+            $value = array_get($rootValue, 'value');
+
             // Convert base64 encode file
             list($value, $fileColumns) = $this->custom_table->convertFileData($value);
             $files[$index] = $fileColumns;
 
             if (!isset($custom_value)) {
                 $value = $this->custom_table->setDefaultValue($value);
-                // // get fields for validation
-                $validator = $this->custom_table->validateValue($value, true);
             } else {
                 $value = $custom_value->mergeValue($value);
-                // // get fields for validation
-                $validator = $this->custom_table->validateValue($value, true, $custom_value->id);
             }
+            $validateValue['value'] = $value;
 
-            if ($validator->fails()) {
+            // // get fields for validation
+            $validator = $this->custom_table->validateValue($validateValue, isset($custom_value) ? $custom_value->id : null, [
+                'systemColumn' => true,
+                'column_name_prefix' => 'value.',
+                'appendKeyName' => false,
+                'asApi' => true,
+            ]);
+
+            if ($validator->fails() || count($validator->customMessages) > 0) {
                 if ($is_single) {
                     $validates[] = $this->getErrorMessages($validator);
                 } else {
@@ -526,24 +510,26 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         $response = [];
-        foreach ($values as $index => &$value) {
+        foreach ($rootValues as $index => &$rootValue) {
             // set default value if new
             if (!isset($custom_value)) {
                 $model = $this->custom_table->getValueModel();
-            } else {
+            } 
+            // now update is only one record, so it's OK.
+            else {
                 $model = $custom_value;
             }
 
             // Save file data
-            $this->saveFile($this->custom_table, $files[$index], $value);
+            $this->saveFile($this->custom_table, $files[$index], $rootValue['value']);
 
-            $model->setValue($value);
+            $model->setValue($rootValue['value']);
 
-            if (array_key_exists('parent_id', $value)) {
-                $model->parent_id = $value['parent_id'];
+            if (array_key_exists('parent_id', $rootValue)) {
+                $model->parent_id = $rootValue['parent_id'];
             }
-            if (array_key_exists('parent_type', $value)) {
-                $model->parent_type = $value['parent_type'];
+            if (array_key_exists('parent_type', $rootValue)) {
+                $model->parent_type = $rootValue['parent_type'];
             }
 
             $model->saveOrFail();
@@ -559,7 +545,61 @@ class ApiTableController extends AdminControllerTableBase
         }
     }
 
-    protected function convertFindKeys(&$values, $request)
+    /**
+     * Get root values from post data.
+     * root value is ex. {"parent_type": "sales", "parent_id": 1, "value": {"sale_code": "XYZ", "sale_name": "Sample"}}
+     *
+     * @return void
+     */
+    protected function getRootValuesFromPost(Request $request, &$is_single)
+    {
+        $rootValues = [];
+        $systemKeys = ['parent_id', 'parent_type', 'updated_at'];
+
+        if ($request->has('value')) {
+            $values = $request->get('value');
+        } else {
+            $values = $request->get('data');
+        }
+
+        if (!is_vector($values)) {
+            $rootValue = ['value' => $values];
+            
+            foreach($systemKeys as $systemKey){
+                if ($request->has($systemKey)) {
+                    $rootValue[$systemKey] = $request->get($systemKey);
+                }
+                if(array_key_exists($systemKey, $rootValue['value'])){
+                    $rootValue[$systemKey] = $rootValue['value'][$systemKey];
+                    unset($rootValue['value'][$systemKey]);
+                }
+            }
+
+            $rootValues[] = $rootValue;
+            $is_single = true;
+        } else {
+            $rootValues = collect($values)->map(function ($value) use($systemKeys) {
+                if(array_key_exists('value', $value)){
+                    $rootValue = $value;
+                }else{
+                    $rootValue = ['value' => $value];
+                    
+                    foreach($systemKeys as $systemKey){
+                        if(array_key_exists($systemKey, $rootValue['value'])){
+                            $rootValue[$systemKey] = $rootValue['value'][$systemKey];
+                            unset($rootValue['value'][$systemKey]);
+                        }
+                    }
+                }
+
+                return $rootValue;
+            })->toArray();
+        }
+
+        return $rootValues;
+    }
+
+    protected function convertFindKeys(&$rootValues, $request)
     {
         if (is_null($findKeys = $request->get('findKeys'))) {
             return true;
@@ -579,8 +619,8 @@ class ApiTableController extends AdminControllerTableBase
                 ];
             })->toArray()];
 
-        foreach ($values as &$value) {
-            $value = DataImportExportService::processCustomValue($this->custom_columns, $value, $processOptions);
+        foreach ($rootValues as &$rootValue) {
+            $rootValue['value'] = DataImportExportService::processCustomValue($this->custom_columns, array_get($rootValue, 'value'), $processOptions);
         }
 
         return count($errors) > 0 ? $errors : true;

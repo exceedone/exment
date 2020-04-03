@@ -423,10 +423,12 @@ abstract class CustomValue extends ModelBase
      * @param array $input laravel-admin input
      * @return mixed
      */
-    public function validatorSaving($input)
+    public function validatorSaving($input, bool $asApi = false)
     {
         // validate multiple column set is unique
-        $errors = $this->validatorMultiUniques($input);
+        $errors = $this->custom_table->validatorMultiUniques($input, $this->id, $asApi);
+
+        $errors = array_merge($this->custom_table->validatorLock($input, $this->id, $asApi), $errors);
 
         // call plugin validator
         $errors = array_merge_recursive($errors, Plugin::pluginValidator(Plugin::getPluginsByTable($this->custom_table), [
@@ -438,73 +440,6 @@ abstract class CustomValue extends ModelBase
         return count($errors) > 0 ? $errors : true;
     }
 
-    protected function validatorMultiUniques($input)
-    {
-        $errors = [];
-
-        // getting custom_table's custom_column_multi_uniques
-        $multi_uniques = $this->custom_table->getMultipleUniques();
-
-        if (!isset($multi_uniques) || count($multi_uniques) == 0) {
-            return $errors;
-        }
-
-        foreach ($multi_uniques as $multi_unique) {
-            $query = static::query();
-            $column_keys = [];
-            foreach ([1,2,3] as $key) {
-                if (is_null($column_id = $multi_unique->{'unique' . $key})) {
-                    continue;
-                }
-
-                $column = CustomColumn::getEloquent($column_id);
-                $column_name = $column->column_name;
-
-                // get query key
-                if ($column->index_enabled) {
-                    $query_key = $column->getIndexColumnName();
-                } else {
-                    $query_key = 'value->' . $column_name;
-                }
-
-                // get value
-                $value = array_get($input, 'value.' . $column_name);
-                if (is_array($value)) {
-                    $value = json_encode(array_filter($value));
-                }
-
-                $query->where($query_key, $value);
-
-                $column_keys[] = $column;
-            }
-
-            if (empty($column_keys)) {
-                continue;
-            }
-
-            // if all column's value is empty, continue.
-            if (collect($column_keys)->filter(function ($column) use ($input) {
-                return !is_nullorempty(array_get($input, 'value.' . $column->column_name));
-            })->count() == 0) {
-                continue;
-            }
-
-            if (isset($this->id)) {
-                $query->where('id', '<>', $this->id);
-            }
-
-            if ($query->count() > 0) {
-                $errorTexts = collect($column_keys)->map(function ($column_key) {
-                    return $column_key->column_view_name;
-                });
-                $errorText = implode(exmtrans('common.separate_word'), $errorTexts->toArray());
-                foreach ($column_keys as $column_key) {
-                    $errors["value.{$column_key->column_name}"] = [exmtrans('custom_value.help.multiple_uniques', $errorText)];
-                }
-            }
-        }
-        return $errors;
-    }
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
     protected function prepareValue()

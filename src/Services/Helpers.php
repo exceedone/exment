@@ -721,6 +721,11 @@ if (!function_exists('is_json')) {
 if (!function_exists('is_vector')) {
     /**
      * whether array is vector array(not associative array)
+     *
+     * @param array $arr checking array
+     * @return boolean
+     * true: [0, 1, 2]
+     * false: ['foo' => 0, 'bar' => 1]
      */
     function is_vector(array $arr)
     {
