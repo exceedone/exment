@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
 use Exceedone\Exment\Exment;
 use Exceedone\Exment\Form\Widgets\InfoBox;
@@ -133,6 +134,14 @@ class SystemController extends AdminControllerBase
             ->config('allowClear', false)
             ->required()
             ->help(exmtrans("system.help.filter_search_type"));
+
+        $form->checkbox('grid_filter_disable_flg', exmtrans("system.grid_filter_disable_flg"))
+            ->options(function(){
+                return collect(SystemColumn::transArray("common"))->filter(function($value, $key){
+                    return boolval(array_get(SystemColumn::getOption(['name' => $key]), 'grid_filter', false));
+                })->toArray();
+                })
+            ->help(exmtrans("system.help.grid_filter_disable_flg"));
 
         $form->display('max_file_size', exmtrans("common.max_file_size"))
         ->default(Define::FILE_OPTION()['maxFileSizeHuman'])

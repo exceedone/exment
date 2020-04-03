@@ -73,9 +73,24 @@ trait CustomValueGrid
 
 
             $filterItems = [];
-            $filterItems[] = function($filter){ $filter->equal('id', exmtrans('common.id')); };
-            $filterItems[] = function($filter){ $filter->betweendatetime('created_at', exmtrans('common.created_at'))->date(); };
-            $filterItems[] = function($filter){ $filter->betweendatetime('updated_at', exmtrans('common.updated_at'))->date(); };
+
+            foreach([
+                'id' => 'equal',
+                'created_at' => 'date',
+                'updated_at' => 'date',
+            ] as $filterKey => $filterType){
+                if($this->custom_table->gridFilterDisable($filterKey)){
+                    continue;
+                }
+
+                $filterItems[] = function($filter) use($filterKey, $filterType){
+                    if($filterType == 'date'){
+                        $filter->betweendatetime($filterKey, exmtrans("common.$filterKey"))->date();
+                    }else{
+                        $filter->equal($filterKey, exmtrans("common.$filterKey")); 
+                    }
+                };
+            }
 
             // check 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table);
@@ -113,23 +128,27 @@ trait CustomValueGrid
             if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
                 $custom_table = $this->custom_table;
 
-                $filterItems[] = function($filter) use($workflow, $custom_table){ 
-                    $field = $filter->where(function ($query) use ($custom_table) {
-                        WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
-                    }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
-                    if (boolval(request()->get($field->getFilter()->getId()))) {
-                        System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
-                    }
-                };
+                if (!$custom_table->gridFilterDisable('workflow_status')) {
+                    $filterItems[] = function ($filter) use ($workflow, $custom_table) {
+                        $field = $filter->where(function ($query) use ($custom_table) {
+                            WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
+                        }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
+                        if (boolval(request()->get($field->getFilter()->getId()))) {
+                            System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
+                        }
+                    };
+                }
 
-                $filterItems[] = function($filter) use($workflow, $custom_table){ 
-                    $field = $filter->where(function ($query) use ($custom_table) {
-                    }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
-
-                    if (boolval(request()->get($field->getFilter()->getId()))) {
-                        System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
-                    }
-                };
+                if(!$custom_table->gridFilterDisable('workflow_work_users')){
+                    $filterItems[] = function($filter) use($workflow, $custom_table){ 
+                        $field = $filter->where(function ($query) use ($custom_table) {
+                        }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
+    
+                        if (boolval(request()->get($field->getFilter()->getId()))) {
+                            System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
+                        }
+                    };
+                }
             }
 
             // loop custom column

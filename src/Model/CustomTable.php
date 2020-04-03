@@ -2012,6 +2012,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     *
+     */
+    public function gridFilterDisable($action_type)
+    {
+        $grid_filter_disable_flg = System::grid_filter_disable_flg() ?? [];
+        return in_array($action_type, $grid_filter_disable_flg);
+    }
+
+    /**
      * User can access this custom value
      *
      * @return void
@@ -2125,6 +2134,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         return true;
     }
+
     /**
      *
      */
