@@ -29,7 +29,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Laravel\Passport\ClientRepository;
+use Exceedone\Exment\Model\ApiClientRepository;
 
 class InitTestCommand extends Command
 {
@@ -93,10 +93,15 @@ class InitTestCommand extends Command
         $this->createRelationTables($users);
 
         // init api
-        $clientRepository = new ClientRepository;
-        $client = $clientRepository->createPasswordGrantClient(
+        $clientRepository = new ApiClientRepository;
+        $clientRepository->createPasswordGrantClient(
             1,
             Define::API_FEATURE_TEST,
+            'http://localhost'
+        );
+        $clientRepository->createApiKey(
+            1,
+            Define::API_FEATURE_TEST_APIKEY,
             'http://localhost'
         );
     }

@@ -23,6 +23,19 @@ class ApiTest extends ApiTestBase
             ]);
     }
 
+    public function testOkAuthorizeApiKey(){
+        $response = $this->getApiKey();
+        
+        $response
+            ->assertStatus(200)
+            ->assertJsonStructure([
+                'token_type',
+                'expires_in',
+                'access_token',
+                'refresh_token',
+            ]);
+    }
+
     public function testErrorAuthorize(){
         $response = $this->getPasswordToken('adjfjke', 'adjfjkeadjfjkeadjfjkeadjfjke');
         
@@ -47,6 +60,18 @@ class ApiTest extends ApiTestBase
             ]);
     }
 
+    public function testGetVersionApiKey(){
+        $token = $this->getAdminAccessTokenAsApiKey();
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'version'))
+            ->assertStatus(200)
+            ->assertJson([
+                'version' => getExmentCurrentVersion()
+            ]);
+    }
+
     public function testWrongScopeMe(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
@@ -61,6 +86,42 @@ class ApiTest extends ApiTestBase
 
     public function testGetMe(){
         $token = $this->getAdminAccessToken([ApiScope::ME]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'me'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'value' => [
+                    "email"=> "admin@admin.foobar.test",
+                    "user_code"=> "admin",
+                    "user_name"=> "admin"
+                ]
+            ])
+            ->assertJsonStructure([
+                'id',
+                'suuid',
+                'created_at',
+                'updated_at',
+                'created_user_id',
+                'updated_user_id',
+            ]);
+    }
+
+    public function testWrongScopeMeApiKey(){
+        $token = $this->getAdminAccessTokenAsApiKey([ApiScope::VALUE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'me'))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::WRONG_SCOPE
+            ]);
+    }
+
+    public function testGetMeApiKey(){
+        $token = $this->getAdminAccessTokenAsApiKey([ApiScope::ME]);
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
