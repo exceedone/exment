@@ -533,7 +533,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $customAttributes;
     }
     
-    protected function validatorMultiUniques($input, $custom_value_id = null, bool $asApi = false)
+    public function validatorMultiUniques($input, $custom_value_id = null, bool $asApi = false)
     {
         $errors = [];
 
@@ -601,7 +601,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $errors;
     }
     
-    protected function validatorLock($input, $custom_value_id = null, bool $asApi = false)
+    public function validatorLock($input, $custom_value_id = null, bool $asApi = false)
     {
         if(!array_key_value_exists('updated_at', $input)){
             return [];
