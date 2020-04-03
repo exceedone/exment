@@ -235,6 +235,10 @@
     }
 }
 
+.copyScript{
+    cursor: pointer;
+}
+
 @keyframes ring_notify {
     0% { transform: rotate(-15deg) }
     1.66667% { transform: rotate(15deg) }

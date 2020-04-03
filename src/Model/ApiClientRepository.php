@@ -41,7 +41,7 @@ class ApiClientRepository extends ClientRepository
         $apikey = new ApiKey([
             'client_id' => $client->id,
             'user_id' => $userId,
-            'key' => Str::random(30),
+            'key' => 'key_' . Str::random(30),
         ]);
         $apikey->save();
         

@@ -81,14 +81,16 @@ class ApiSettingController extends AdminControllerBase
         }
 
         if (isset($id)) {
-            $form->text('id', exmtrans('api.client_id'))->readonly();
+            $form->text('id', exmtrans('api.client_id'))->setElementClass(['copyScript'])->readonly();
             $form->password('secret', exmtrans('api.client_secret'))->readonly()->toggleShowEvent()
+                ->setElementClass(['copyScript'])
                 ->help(exmtrans('api.help.client_secret'));    
 
             if($client->client_type == ApiClientType::API_KEY){
                 $client_api_key = $client->client_api_key;
 
                 $form->password('client_api_key.key', exmtrans('api.api_key'))->readonly()->toggleShowEvent()
+                    ->setElementClass(['copyScript'])
                     ->help(exmtrans('api.help.api_key') . exmtrans('api.help.client_secret'));
 
                 $form->display('user_id', exmtrans('common.executed_user'))->displayText(function ($user_id) {

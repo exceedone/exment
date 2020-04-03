@@ -26,6 +26,7 @@ var Exment;
             });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
             $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
+            $(document).off('click', '.copyScript').on('click', '.copyScript', {}, CommonEvent.copyScriptEvent);
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
@@ -86,6 +87,18 @@ var Exment;
         static showHelpModalEvent(ev) {
             let elem = $(ev.target).closest('[data-help-text]');
             swal(elem.data('help-title'), elem.data('help-text'), 'info');
+        }
+        /**
+         * Copy Script event
+         */
+        static copyScriptEvent(ev) {
+            let input = $(ev.target).closest('input');
+            if (input.prop('type') != 'text') {
+                return;
+            }
+            input.select();
+            document.execCommand('copy');
+            toastr.info($('#copy_toastr').val(), null, { timeOut: 1000 });
         }
         /**
          *

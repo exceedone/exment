@@ -67,6 +67,7 @@ return [
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'success_execute' => '実行完了しました！',
+            'copy_execute' => 'コピーしました！',
             'error_execute' => '実行失敗しました。',
             'execution_takes_time' => '実行には時間がかかります。',
             'import_success' => 'インポート完了しました！',

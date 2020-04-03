@@ -27,6 +27,8 @@ namespace Exment {
 
             $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
 
+            $(document).off('click', '.copyScript').on('click', '.copyScript', {}, CommonEvent.copyScriptEvent);
+
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
@@ -97,6 +99,20 @@ namespace Exment {
                 elem.data('help-text'),
                 'info'
             );
+        }
+        
+        /**
+         * Copy Script event
+         */
+        public static copyScriptEvent(ev){
+            let input = $(ev.target).closest('input');
+            if(input.prop('type') != 'text'){
+                return;
+            }
+
+            input.select();
+            document.execCommand('copy');
+            toastr.info($('#copy_toastr').val(), null, {timeOut:1000});
         }
         
         /**
