@@ -41,6 +41,10 @@
     display: inline-block;
 }
 
+.pt-0{
+    padding-top: 0 !important;
+}
+
 .asterisk::after{
     content: " *";
     color: red;

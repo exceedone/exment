@@ -23,6 +23,8 @@ class Permission extends EnumBase
     const ROLE_GROUP_PERMISSION = 'role_group_permission';
     const ROLE_GROUP_USER_ORGANIZATION = 'role_group_user_organization';
     const WORKFLOW = 'workflow';
+    const API_ALL = 'api_all';
+    const API = 'api';
 
 
     public const AVAILABLE_ACCESS_CUSTOM_VALUE = [self::CUSTOM_TABLE, self::CUSTOM_VALUE_EDIT_ALL, self::CUSTOM_VALUE_VIEW_ALL, self::CUSTOM_VALUE_ACCESS_ALL, self::CUSTOM_VALUE_EDIT, self::CUSTOM_VALUE_VIEW];
@@ -31,13 +33,17 @@ class Permission extends EnumBase
     public const AVAILABLE_ALL_CUSTOM_VALUE = [self::CUSTOM_TABLE, self::CUSTOM_VALUE_EDIT_ALL, self::CUSTOM_VALUE_VIEW_ALL, self::CUSTOM_VALUE_ACCESS_ALL];
     public const AVAILABLE_ALL_EDIT_CUSTOM_VALUE = [self::CUSTOM_TABLE, self::CUSTOM_VALUE_EDIT_ALL];
     public const AVAILABLE_ACCESS_ROLE_GROUP = [self::ROLE_GROUP_ALL, self::ROLE_GROUP_PERMISSION, self::ROLE_GROUP_USER_ORGANIZATION];
+    public const AVAILABLE_API = [self::API_ALL, self::API];
 
     public const SYSTEM_ROLE_PERMISSIONS = [
         self::CUSTOM_TABLE,
         self::CUSTOM_VALUE_EDIT_ALL,
         self::LOGIN_USER,
         self::WORKFLOW,
+        self::API_ALL,
+        self::API,
     ];
+
     public const ROLE_GROUP_ROLE_PERMISSION = [
         self::ROLE_GROUP_ALL,
         self::ROLE_GROUP_PERMISSION,
