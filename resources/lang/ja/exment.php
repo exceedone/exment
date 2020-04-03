@@ -61,6 +61,7 @@ return [
         'available' => '使用する',
         'history' => '履歴',
         'create_only_setting' => '新規作成時設定',
+        'download' => 'ダウンロード',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -461,7 +462,6 @@ return [
         'file_size' => 'ファイルサイズ',
         'backup' => 'バックアップ',
         'restore' => 'リストア',
-        'download' => 'ダウンロード',
         'restore_upload' => 'ファイルアップロード',
         'backuprestore' => 'バックアップ・リストア',
         'backup_target' => 'バックアップ対象',

@@ -250,22 +250,26 @@ class File extends ModelBase
             return null;
         }
 
-        // get by uuid
-        $file = static::where('uuid', $pathOrUuid)->first();
-
-        if(isset($file)){
-            return $file;
+        $funcUuid = function($pathOrUuid){
+            return static::where('uuid', $pathOrUuid)->first();
+        };
+        $funcPath = function($pathOrUuid){
+            // get by $dirname, $filename
+            list($dirname, $filename) = static::getDirAndFileName($pathOrUuid);
+            $file = static::where('local_dirname', $dirname)
+                ->where('local_filename', $filename)
+                ->first();
+            if (isset($file)) {
+                return $file;
+            }
+        };
+        
+        if(strpos($pathOrUuid, '/') !== false){
+            return $funcPath($pathOrUuid) ?: $funcUuid($pathOrUuid) ?: null;
         }
-
-        // get by $dirname, $filename
-        list($dirname, $filename) = static::getDirAndFileName($pathOrUuid);
-        $file = static::where('local_dirname', $dirname)
-            ->where('local_filename', $filename)
-            ->first();
-        if (isset($file)) {
-            return $file;
+        else{
+            return $funcUuid($pathOrUuid) ?: $funcPath($pathOrUuid) ?: null;
         }
-
         return null;
     }
     
