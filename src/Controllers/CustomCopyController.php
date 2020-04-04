@@ -129,7 +129,7 @@ class CustomCopyController extends AdminControllerTableBase
                       $item['options']['label'],
                       $from_name,
                       $to_name
-                    )];
+                  )];
               })->toArray();
         }
     }

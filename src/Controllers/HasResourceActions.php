@@ -66,17 +66,17 @@ trait HasResourceActions
                     $result = false;
                     return;
                 }
-            }else{
+            } else {
                 $response = $this->form($id)->destroy($id);
-                if($response === false){
+                if ($response === false) {
                     $result = false;
-                    return;    
+                    return;
                 }
 
                 // if response instanceof Reponse, and status is false, result is false
-                elseif($response instanceof Response){
+                elseif ($response instanceof Response) {
                     $content = jsonToArray($response->content());
-                    if(is_array($content) && !boolval(array_get($content, 'status', true))){
+                    if (is_array($content) && !boolval(array_get($content, 'status', true))) {
                         $result = false;
                         return;
                     }

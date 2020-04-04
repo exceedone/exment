@@ -58,7 +58,7 @@ class Xlsx extends FormatBase
 
         try {
             // if over row size, return number
-            if(($count = $this->getRowCount($spreadsheet)) > (config('exment.import_max_row_count', 1000) + 2)){
+            if (($count = $this->getRowCount($spreadsheet)) > (config('exment.import_max_row_count', 1000) + 2)) {
                 return $count;
             }
 

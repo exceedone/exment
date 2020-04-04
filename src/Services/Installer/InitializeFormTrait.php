@@ -4,11 +4,6 @@ namespace Exceedone\Exment\Services\Installer;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\FilterSearchType;
-use Exceedone\Exment\Enums\JoinedOrgFilterType;
-use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -116,7 +111,7 @@ trait InitializeFormTrait
                 'email' => 'required|email',
                 'password' => get_password_rule(true, null),
             ]);
-        } elseif(!$advanced) {
+        } elseif (!$advanced) {
             $rules = array_merge($rules, [
                 'system_admin_users' => 'required',
             ]);

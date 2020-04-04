@@ -12,7 +12,7 @@ class ApiKey extends Model
 {
     protected $fillable = ['key', 'client_id', 'user_id'];
 
-    protected $table = 'oauth_api_keys'; 
+    protected $table = 'oauth_api_keys';
 
     public $timestamps = false;
     
@@ -31,7 +31,7 @@ class ApiKey extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            if(!$model->id){
+            if (!$model->id) {
                 $model->id = make_uuid();
             }
         });

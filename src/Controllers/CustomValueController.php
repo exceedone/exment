@@ -15,7 +15,6 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\WorkflowAction;
@@ -579,12 +578,13 @@ class CustomValueController extends AdminControllerTableBase
         return $this->restore($request, $tableKey, $request->get('id'));
     }
 
-    protected function restore(Request $request, $tableKey, $id){
+    protected function restore(Request $request, $tableKey, $id)
+    {
         $ids = stringToArray($id);
 
         \DB::beginTransaction();
-        try{
-            foreach($ids as $id){
+        try {
+            foreach ($ids as $id) {
                 // get customvalue
                 $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id, true);
                 if (!isset($custom_value)) {
@@ -592,7 +592,7 @@ class CustomValueController extends AdminControllerTableBase
                     return getAjaxResponse(false);
                 }
 
-                if(!$custom_value->trashed()){
+                if (!$custom_value->trashed()) {
                     continue;
                 }
                 

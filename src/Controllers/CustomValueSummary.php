@@ -83,7 +83,6 @@ trait CustomValueSummary
             
             $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
-            
         });
 
         Plugin::pluginPreparing($this->plugins, 'loaded');

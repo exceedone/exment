@@ -699,11 +699,11 @@ if (!function_exists('toArray')) {
             return null;
         }
 
-        if(is_array($value)){
+        if (is_array($value)) {
             return $value;
         }
 
-        if($value instanceof \Illuminate\Support\Collection){
+        if ($value instanceof \Illuminate\Support\Collection) {
             return $value->toArray();
         }
 

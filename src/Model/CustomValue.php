@@ -366,7 +366,7 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleted(function ($model) {
-            if($model->isForceDeleting()){
+            if ($model->isForceDeleting()) {
                 return;
             }
             
@@ -399,7 +399,7 @@ abstract class CustomValue extends ModelBase
      */
     protected function savedEvent($isCreate)
     {
-        if($this->disable_saved_event){
+        if ($this->disable_saved_event) {
             return;
         }
 
@@ -654,7 +654,7 @@ abstract class CustomValue extends ModelBase
         RoleGroupUserOrganization::deleteRoleGroupUserOrganization($this);
 
         // remove history if hard deleting
-        if($this->isForceDeleting()){
+        if ($this->isForceDeleting()) {
             $this->revisionHistory()->delete();
         }
     }
@@ -970,11 +970,12 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
-     * Get document list 
+     * Get document list
      *
      * @return void
      */
-    public function getDocuments($options = []){
+    public function getDocuments($options = [])
+    {
         $options = array_merge(
             [
                 'count' => 20,
@@ -987,10 +988,10 @@ abstract class CustomValue extends ModelBase
             ->where('parent_type', $this->custom_table_name)
             ;
 
-        if($options['paginate']){
+        if ($options['paginate']) {
             return $query->paginate($options['count']);
         }
-            return $query->get();
+        return $query->get();
     }
 
     /**
@@ -1122,34 +1123,34 @@ abstract class CustomValue extends ModelBase
         $searchColumns = collect($searchColumns);
         for ($i = 0; $i < count($searchColumns) - 1; $i++) {
             $searchColumn = collect($searchColumns)->values()->get($i);
-            if($searchColumn instanceof CustomColumn){
+            if ($searchColumn instanceof CustomColumn) {
                 $column_item = $searchColumn->column_item;
-                if(!isset($column_item)){
+                if (!isset($column_item)) {
                     continue;
                 }
 
-                foreach($column_item->getSearchQueries($mark, $value, $takeCount, $q) as $query){
-                    $queries[] = $query; 
+                foreach ($column_item->getSearchQueries($mark, $value, $takeCount, $q) as $query) {
+                    $queries[] = $query;
                 }
-            }else{
+            } else {
                 $query = static::query();
                 $query->where($searchColumn, $mark, $value)->select('id');
                 $query->take($takeCount);
     
-                $queries[] = $query; 
+                $queries[] = $query;
             }
         }
 
         $searchColumn = $searchColumns->last();
 
-        if($searchColumn instanceof CustomColumn){
+        if ($searchColumn instanceof CustomColumn) {
             $column_item = $searchColumn->column_item;
-            if(!isset($column_item)){
+            if (!isset($column_item)) {
                 $subquery = static::query();
-            }else{
+            } else {
                 $subquery = $column_item->getSearchQueries($mark, $value, $takeCount, $q)[0];
             }
-        }else{
+        } else {
             $subquery = static::query();
             $subquery->where($searchColumn, $mark, $value)->select('id');
         }
@@ -1181,14 +1182,14 @@ abstract class CustomValue extends ModelBase
             for ($i = 0; $i < count($searchColumns); $i++) {
                 $searchColumn = $searchColumns->values()->get($i);
 
-                if($searchColumn instanceof CustomColumn){
+                if ($searchColumn instanceof CustomColumn) {
                     $column_item = $searchColumn->column_item;
-                    if(!isset($column_item)){
+                    if (!isset($column_item)) {
                         continue;
                     }
                         
                     $column_item->setSearchOrWhere($query, $mark, $value, $q);
-                }else{
+                } else {
                     $query->orWhere($searchColumn, $mark, $value);
                 }
             }
@@ -1319,7 +1320,7 @@ abstract class CustomValue extends ModelBase
             return $code;
         }
 
-        if($this->trashed()){
+        if ($this->trashed()) {
             return ErrorCode::ALREADY_DELETED();
         }
         
@@ -1371,7 +1372,7 @@ abstract class CustomValue extends ModelBase
             return false;
         }
 
-        if($this->trashed()){
+        if ($this->trashed()) {
             return false;
         }
         

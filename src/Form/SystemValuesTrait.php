@@ -66,10 +66,10 @@ trait SystemValuesTrait
             $param = array_get($option, 'avatarname') ?: array_get($option, 'tagname') ?: array_get($option, 'name');
             
             $value = null;
-            if(boolval(array_get($options, 'getOld'))){
+            if (boolval(array_get($options, 'getOld'))) {
                 $value = old($param);
             }
-            if(is_nullorempty($value)){
+            if (is_nullorempty($value)) {
                 $value = $custom_value->{$param};
             }
 

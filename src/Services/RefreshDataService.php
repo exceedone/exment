@@ -3,18 +3,13 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\Notify;
-use Exceedone\Exment\Model\NotifyTarget;
-use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Form\Widgets\ModalForm;
-use Exceedone\Exment\Notifications;
 
 /**
- * Refresh Data Service. truncate exm__ table data etc. 
+ * Refresh Data Service. truncate exm__ table data etc.
  */
 class RefreshDataService
 {
@@ -23,7 +18,8 @@ class RefreshDataService
      *
      * @return void
      */
-    public static function refresh(){
+    public static function refresh()
+    {
         // trancate tables
         $tables = [
             'admin_operation_log',
@@ -43,38 +39,36 @@ class RefreshDataService
         // pivot custom value's
         $tables = array_merge(CustomRelation::where('relation_type', RelationType::MANY_TO_MANY)
             ->get()
-            ->filter(function($relation) use($user, $org){
+            ->filter(function ($relation) use ($user, $org) {
                 // if org-user data, return false;
-                if($relation->parent_custom_table_id == $org->id && $relation->child_custom_table_id == $user->id){
+                if ($relation->parent_custom_table_id == $org->id && $relation->child_custom_table_id == $user->id) {
                     return false;
                 }
 
                 return true;
             })
-            ->map(function($relation){
+            ->map(function ($relation) {
                 return $relation->getRelationName();
             })
-            ->filter(function($relation){
+            ->filter(function ($relation) {
                 return hasTable($relation);
-            })->toArray()
-        , $tables);
+            })->toArray(), $tables);
 
         // exm__ tables (ignore org)
         $custom_tables = CustomTable
             ::whereNotIn('id', [$user->id, $org->id, $mail_template->id])
             ->get()
-            ->filter(function($table){
+            ->filter(function ($table) {
                 return hasTable(getDBTableName($table));
             });
 
-        $tables = array_merge($custom_tables->map(function($table){
-                return getDBTableName($table);
-            })->toArray()
-        , $tables);
+        $tables = array_merge($custom_tables->map(function ($table) {
+            return getDBTableName($table);
+        })->toArray(), $tables);
 
         // call truncate
-        \DB::transaction(function() use($tables){
-            foreach($tables as $table){
+        \DB::transaction(function () use ($tables) {
+            foreach ($tables as $table) {
                 \DB::table($table)->truncate();
             }
         });
@@ -89,10 +83,11 @@ class RefreshDataService
      * @param [type] $custom_tables
      * @return void
      */
-    public static function removeAttachmentFiles($custom_tables){
+    public static function removeAttachmentFiles($custom_tables)
+    {
         $disk = \Storage::disk(Define::DISKNAME_ADMIN);
 
-        foreach($custom_tables as $custom_table){
+        foreach ($custom_tables as $custom_table) {
             // remove file table
             ExmentFile::where('parent_type', $custom_table->table_name)
                 ->delete();
@@ -102,7 +97,7 @@ class RefreshDataService
             }
 
             // if avatar or system, continue
-            if(in_array($custom_table->table_name, ['avatar', 'system'])){
+            if (in_array($custom_table->table_name, ['avatar', 'system'])) {
                 continue;
             }
             deleteDirectory($disk, $custom_table->table_name);

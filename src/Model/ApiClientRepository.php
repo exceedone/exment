@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\ApiClientType;
 use Laravel\Passport\ClientRepository;
 use Laravel\Passport\Passport;
 use Illuminate\Support\Str;
@@ -47,5 +46,4 @@ class ApiClientRepository extends ClientRepository
         
         return $client;
     }
-
 }

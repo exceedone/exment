@@ -42,7 +42,7 @@ class Display extends Field\Display
      */
     public function render()
     {
-        if($this->displayText instanceof \Closure){
+        if ($this->displayText instanceof \Closure) {
             $this->displayText = $this->displayText->call($this, $this->value);
         }
 

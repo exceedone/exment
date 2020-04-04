@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Exceedone\Exment\Services\Uuids;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Model\CustomTable;
@@ -10,7 +9,6 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
-use Webpatser\Uuid\Uuid;
 use Response;
 
 class FileController extends AdminControllerBase
@@ -18,28 +16,32 @@ class FileController extends AdminControllerBase
     /**
      * Download file (call as web)
      */
-    public function download(Request $request, $uuid){
+    public function download(Request $request, $uuid)
+    {
         return static::downloadFile($uuid);
     }
 
     /**
      * Download file (call as web)
      */
-    public function downloadTable(Request $request, $tableKey, $uuid){
+    public function downloadTable(Request $request, $tableKey, $uuid)
+    {
         return static::downloadFile(url_join($tableKey, $uuid));
     }
 
     /**
      * Delete file (call as web)
      */
-    public function delete(Request $request, $uuid){
+    public function delete(Request $request, $uuid)
+    {
         return static::deleteFile($uuid);
     }
 
     /**
      * Delete file (call as web)
      */
-    public function deleteTable(Request $request, $tableKey, $uuid){
+    public function deleteTable(Request $request, $tableKey, $uuid)
+    {
         return static::deleteFile(url_join($tableKey, $uuid));
     }
 
@@ -48,43 +50,55 @@ class FileController extends AdminControllerBase
     /**
      * Download file (call as Api)
      */
-    public function downloadApi(Request $request, $uuid){
-        return static::downloadFile($uuid, 
-        [
+    public function downloadApi(Request $request, $uuid)
+    {
+        return static::downloadFile(
+            $uuid,
+            [
             'asBase64' => boolval($request->get('base64', false)),
             'asApi' => true,
-        ]);
+        ]
+        );
     }
 
     /**
      * Download file (call as Api)
      */
-    public function downloadTableApi(Request $request, $tableKey, $uuid){
-        return static::downloadFile(url_join($tableKey, $uuid), 
-        [
+    public function downloadTableApi(Request $request, $tableKey, $uuid)
+    {
+        return static::downloadFile(
+            url_join($tableKey, $uuid),
+            [
             'asBase64' => boolval($request->get('base64', false)),
             'asApi' => true,
-        ]);
+        ]
+        );
     }
 
     /**
      * Delete file (call as Api)
      */
-    public function deleteApi(Request $request, $uuid){
-        return static::deleteFile($uuid, 
-        [
+    public function deleteApi(Request $request, $uuid)
+    {
+        return static::deleteFile(
+            $uuid,
+            [
             'asApi' => true,
-        ]);
+        ]
+        );
     }
 
     /**
      * Delete file (call as Api)
      */
-    public function deleteTableApi(Request $request, $tableKey, $uuid){
-        return static::deleteFile(url_join($tableKey, $uuid),
-        [
+    public function deleteTableApi(Request $request, $tableKey, $uuid)
+    {
+        return static::deleteFile(
+            url_join($tableKey, $uuid),
+            [
             'asApi' => true,
-        ]);
+        ]
+        );
     }
 
 
@@ -120,7 +134,7 @@ class FileController extends AdminControllerBase
 
         $data = File::getData($uuid);
         if (!$data) {
-            if($options['asApi']){
+            if ($options['asApi']) {
                 return abortJson(404, ErrorCode::DATA_NOT_FOUND());
             }
             abort(404);
@@ -130,7 +144,7 @@ class FileController extends AdminControllerBase
         $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
         
         if (!$exists) {
-            if($options['asApi']){
+            if ($options['asApi']) {
                 return abortJson(404, ErrorCode::DATA_NOT_FOUND());
             }
             abort(404);
@@ -140,7 +154,7 @@ class FileController extends AdminControllerBase
         if (isset($data->parent_id) && isset($data->parent_type)) {
             $custom_table = CustomTable::getEloquent($data->parent_type);
             if (!$custom_table->hasPermissionData($data->parent_id)) {
-                if($options['asApi']){
+                if ($options['asApi']) {
                     return abortJson(403, ErrorCode::PERMISSION_DENY());
                 }
 
@@ -153,7 +167,7 @@ class FileController extends AdminControllerBase
         // get page name
         $name = rawurlencode($data->filename);
 
-        if($options['asBase64']){
+        if ($options['asBase64']) {
             return response([
                 'type' => $type,
                 'name' => $data->filename,
@@ -184,7 +198,7 @@ class FileController extends AdminControllerBase
         );
         $data = File::getData($uuid);
         if (!$data) {
-            if($options['asApi']){
+            if ($options['asApi']) {
                 return abortJson(404, ErrorCode::DATA_NOT_FOUND());
             }
             abort(404);
@@ -199,7 +213,7 @@ class FileController extends AdminControllerBase
         if (isset($data->parent_id) && isset($data->parent_type)) {
             $custom_value = CustomTable::getEloquent($data->parent_type)->getValueModel($data->parent_id);
             if ($custom_value->enableDelete() !== true) {
-                if($options['asApi']){
+                if ($options['asApi']) {
                     return abortJson(403, ErrorCode::PERMISSION_DENY());
                 }
                 abort(403);
@@ -239,5 +253,4 @@ class FileController extends AdminControllerBase
             'message' => trans('admin.delete_succeeded'),
         ]);
     }
-
 }
