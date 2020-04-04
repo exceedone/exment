@@ -3,6 +3,7 @@ namespace Exment {
     export class NotifyNavbarEvent {
         private static timeout_id;
         private static reget_flg;
+        private static before_count;
 
         /**
          * Call only once. It's $(document).on event.
@@ -47,6 +48,15 @@ namespace Exment {
                     $('.navbar-notify ul.menu').empty();
                     $('.container-notify .label-danger').remove();
                     if(data.count > 0){
+                        
+                        // if up data.count, append ring move class
+                        if(NotifyNavbarEvent.before_count === null || NotifyNavbarEvent.before_count === undefined || NotifyNavbarEvent.before_count < data.count){
+                            NotifyNavbarEvent.before_count = data.count;
+                            $('.navbar-notify .fa-bell').addClass('ring').delay(2500).queue(function(){
+                                $('.navbar-notify .fa-bell').removeClass('ring');
+                            });
+                        }
+
                         $('.container-notify').append('<span class="label label-danger">' + data.count + '</span>');
 
                         for(let i = 0; i < data.items.length; i++){

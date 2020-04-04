@@ -25,7 +25,7 @@ class CustomViewController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
 
-    public function __construct(CustomTable $custom_table, Request $request)
+    public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
         
@@ -100,16 +100,16 @@ class CustomViewController extends AdminControllerTableBase
     {
         $grid = new Grid(new CustomView);
         $grid->column('table_name', exmtrans("custom_table.table_name"))
-            ->display(function () {
+            ->displayEscape(function () {
                 return $this->custom_table->table_name;
             });
         $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))
-            ->display(function () {
+            ->displayEscape(function () {
                 return $this->custom_table->table_view_name;
             });
         $grid->column('view_view_name', exmtrans("custom_view.view_view_name"))->sortable();
         if ($this->custom_table->hasSystemViewPermission()) {
-            $grid->column('view_type', exmtrans("custom_view.view_type"))->sortable()->display(function ($view_type) {
+            $grid->column('view_type', exmtrans("custom_view.view_type"))->sortable()->displayEscape(function ($view_type) {
                 return Enums\ViewType::getEnum($view_type)->transKey("custom_view.custom_view_type_options");
             });
         }
@@ -118,7 +118,7 @@ class CustomViewController extends AdminControllerTableBase
             $grid->model()->where('view_type', Enums\ViewType::USER);
         }
         
-        $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->display(function ($view_kind_type) {
+        $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->displayEscape(function ($view_kind_type) {
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
         });
 
@@ -320,10 +320,24 @@ class CustomViewController extends AdminControllerTableBase
                         ->options($this->custom_table->getSummaryColumnsSelectOptions())
                         ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
                     $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
-                        ->options(function ($val) {
-                            return array_map(function ($array) {
-                                return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
-                            }, SummaryCondition::getOptions());
+                        ->options(function ($val, $form) {
+                            $view_column_target = array_get($form->data(), 'view_column_target');
+                            if (isset($view_column_target)) {
+                                $columnItem = CustomViewColumn::getColumnItem($view_column_target);
+                                if (isset($columnItem)) {
+                                    // only numeric
+                                    if ($columnItem->isNumeric()) {
+                                        $options = SummaryCondition::getOptions();
+                                    } else {
+                                        $options = SummaryCondition::getOptions(['numeric' => false]);
+                                    }
+
+                                    return array_map(function ($array) {
+                                        return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
+                                    }, $options);
+                                }
+                            }
+                            return [];
                         })
                         ->required()->rules('summaryCondition');
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"))->icon(null);
@@ -485,7 +499,6 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $hasManyTable->render();
-
     }
 
     /**

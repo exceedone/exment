@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -121,6 +122,12 @@ class PatchDataCommand extends Command
                 return;
             case 'remove_deleted_relation':
                 $this->removeDeletedRelation();
+                return;
+            case 'chartitem_x_label':
+                $this->patchDashboardBoxSummaryX();
+                return;
+            case 'back_slash_replace':
+                $this->patchFileNameBackSlash();
                 return;
         }
 
@@ -654,7 +661,8 @@ class PatchDataCommand extends Command
      *
      * @return void
      */
-    protected function patchParentOrg(){
+    protected function patchParentOrg()
+    {
         $parent_organization = CustomColumn::getEloquent('parent_organization', SystemTableName::ORGANIZATION);
         if (!isset($parent_organization)) {
             return;
@@ -719,5 +727,80 @@ class PatchDataCommand extends Command
                 $item->delete();
             }
         }
+    }
+
+    /**
+     * Patch chartX selection column to Define::CHARTITEM_LABEL
+     *
+     * @return void
+     */
+    protected function patchDashboardBoxSummaryX()
+    {
+        $dashboardBoxes = DashboardBox::whereNotNull('options->target_view_id')->where('options->chart_axisx', '<>', Define::CHARTITEM_LABEL)->get();
+        foreach ($dashboardBoxes as $dashboardBox) {
+            if (is_null($target_view_id = $dashboardBox->getOption('target_view_id'))) {
+                continue;
+            }
+
+            if (is_null($view = CustomView::getEloquent($target_view_id))) {
+                continue;
+            }
+
+            if ($view->view_kind_type != Enums\ViewKindType::AGGREGATE) {
+                continue;
+            }
+
+            $dashboardBox->setOption('chart_axisx', Define::CHARTITEM_LABEL);
+            $dashboardBox->save();
+        }
+    }
+
+    /**
+     * Patch data batchslash
+     *
+     * @return void
+     */
+    protected function patchFileNameBackSlash()
+    {
+        if (!canConnection() || !hasTable(SystemTableName::CUSTOM_TABLE)) {
+            return;
+        }
+
+        $func = function ($query, $column_name, $setValueCallback) {
+            // find file column contains
+            $items = $query->where($column_name, 'LIKE', '%\\\\%')
+                ->get();
+            foreach ($items as $item) {
+                $setValueCallback($item);
+                $item->save();
+            }
+        };
+
+        // modify custom table file column
+        CustomTable::all()->each(function ($custom_table) use ($func) {
+            $custom_columns = $custom_table->custom_columns_cache->filter(function ($column) {
+                return ColumnType::isAttachment($column->column_type);
+            });
+
+            foreach ($custom_columns as $custom_column) {
+                $func($custom_table->getValueModel()->query(), $custom_column->getQueryKey(), function ($item) use ($custom_column) {
+                    $value = array_get($item, "value.{$custom_column->column_name}");
+                    $item->setValue($custom_column->column_name, str_replace('\\', '/', $value));
+                    $item->disable_saved_event(true);
+                });
+            }
+        });
+
+        // Modify system
+        $query = System::query()->whereIn('system_name', [
+            'site_favicon',
+            'site_logo',
+            'site_logo_mini'
+        ]);
+
+        $func($query, 'system_value', function ($item) {
+            $value = array_get($item, "system_value");
+            $item->system_value = str_replace('\\', '/', $value);
+        });
     }
 }

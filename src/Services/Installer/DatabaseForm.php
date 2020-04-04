@@ -58,6 +58,12 @@ class DatabaseForm
             return back()->withInput()->withErrors($validation);
         }
 
+        if (($result = $this->checkPhpVersion()) !== true) {
+            return back()->withInput()->withErrors([
+                'database_canconnection' => $result,
+            ]);
+        }
+        
         if (!$this->canDatabaseConnection($request)) {
             return back()->withInput()->withErrors([
                 'database_canconnection' => exmtrans('install.error.database_canconnection'),
@@ -133,7 +139,13 @@ class DatabaseForm
             return true;
         }
 
-        return exmtrans('install.error.not_require_database_version', Define::DATABASE_TYPE[$this->database_default], Define::DATABASE_MIN_VERSION[$this->database_default], $version);
+        $errorMessage = exmtrans('install.error.not_require_database_version', [
+            'min' => Define::DATABASE_MIN_VERSION[$this->database_default],
+            'database' => Define::DATABASE_TYPE[$this->database_default],
+            'current' => $version
+        ]);
+        
+        return $errorMessage;
     }
     
     /**
@@ -150,15 +162,44 @@ class DatabaseForm
                 if (!$this->connection()->isMariaDB() === true) {
                     return true;
                 }
-                return exmtrans('install.error.mistake_mysql_mariadb', Define::DATABASE_TYPE[DatabaseType::MARIADB], Define::DATABASE_TYPE[DatabaseType::MYSQL]);
+                $current = Define::DATABASE_TYPE[DatabaseType::MARIADB];
+                $select = Define::DATABASE_TYPE[DatabaseType::MYSQL];
+                break;
             case DatabaseType::MARIADB:
                 if ($this->connection()->isMariaDB() === true) {
                     return true;
                 }
-                return exmtrans('install.error.mistake_mysql_mariadb', Define::DATABASE_TYPE[DatabaseType::MYSQL], Define::DATABASE_TYPE[DatabaseType::MARIADB]);
+                $current = Define::DATABASE_TYPE[DatabaseType::MYSQL];
+                $select = Define::DATABASE_TYPE[DatabaseType::MARIADB];
+                break;
         }
+        return exmtrans('install.error.mistake_mysql_mariadb', [
+            'database' => $current ?? null,
+            'database_select' => $select ?? null,
+        ]);
+    }
 
-        return false;
+    /**
+     * Check PHP version
+     *
+     * @return void
+     */
+    protected function checkPhpVersion()
+    {
+        $version = phpversion();
+
+        $errorMessage = exmtrans('install.error.not_require_php_version', [
+            'min' => Define::PHP_VERSION[0],
+            'max' => Define::PHP_VERSION[1],
+            'current' => $version
+        ]);
+        if (version_compare($version, Define::PHP_VERSION[0]) < 0) {
+            return $errorMessage;
+        }
+        if (version_compare($version, Define::PHP_VERSION[1]) >= 0) {
+            return $errorMessage;
+        }
+        return true;
     }
 
     protected function connection()

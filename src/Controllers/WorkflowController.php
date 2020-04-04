@@ -58,10 +58,10 @@ class WorkflowController extends AdminControllerBase
     {
         $grid = new Grid(new Workflow);
         $grid->column('id', exmtrans("common.id"));
-        $grid->column('workflow_type', exmtrans("workflow.workflow_type"))->display(function ($v) {
+        $grid->column('workflow_type', exmtrans("workflow.workflow_type"))->displayEscape(function ($v) {
             return WorkflowType::getEnum($v)->transKey('workflow.workflow_type_options');
         });
-        $grid->column('workflow_tables', exmtrans("custom_table.table"))->display(function ($v) {
+        $grid->column('workflow_tables', exmtrans("custom_table.table"))->displayEscape(function ($v) {
             if (is_null($custom_table = $this->getDesignatedTable())) {
                 return null;
             }
@@ -69,7 +69,7 @@ class WorkflowController extends AdminControllerBase
             return $custom_table->table_view_name;
         });
         $grid->column('workflow_view_name', exmtrans("workflow.workflow_view_name"))->sortable();
-        $grid->column('workflow_statuses', exmtrans("workflow.status_name"))->display(function ($value) {
+        $grid->column('workflow_statuses', exmtrans("workflow.status_name"))->displayEscape(function ($value) {
             return $this->getStatusesString();
         });
         $grid->column('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->display(function ($value) {

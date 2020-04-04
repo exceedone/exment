@@ -36,6 +36,12 @@ abstract class CustomValue extends ModelBase
     protected $remove_file_columns = [];
 
     /**
+     * disabled saved event.
+     * if true, disable.
+     */
+    protected $disable_saved_event = false;
+
+    /**
      * saved notify.
      * if false, don't notify
      */
@@ -151,10 +157,15 @@ abstract class CustomValue extends ModelBase
         return null;
     }
 
+    /**
+     * Get workflow status tag. Please escape workflow_status_name
+     *
+     * @return void
+     */
     public function getWorkflowStatusTagAttribute()
     {
         $icon = ' <i class="fa fa-lock" aria-hidden="true" data-toggle="tooltip" title="' . esc_html(exmtrans('workflow.message.locked')) . '"></i>';
-        return $this->workflow_status_name .
+        return esc_html($this->workflow_status_name) .
             ($this->lockedWorkflow() ? $icon : '');
     }
 
@@ -312,6 +323,12 @@ abstract class CustomValue extends ModelBase
         return $this;
     }
 
+    public function disable_saved_event($disable_saved_event)
+    {
+        $this->disable_saved_event = $disable_saved_event;
+        return $this;
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -349,7 +366,7 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleted(function ($model) {
-            if($model->isForceDeleting()){
+            if ($model->isForceDeleting()) {
                 return;
             }
             
@@ -382,6 +399,10 @@ abstract class CustomValue extends ModelBase
      */
     protected function savedEvent($isCreate)
     {
+        if ($this->disable_saved_event) {
+            return;
+        }
+
         // save file value
         $this->setFileValue();
 
@@ -418,10 +439,15 @@ abstract class CustomValue extends ModelBase
      * @param array $input laravel-admin input
      * @return mixed
      */
-    public function validatorSaving($input)
+    public function validatorSaving($input, bool $asApi = false)
     {
         // validate multiple column set is unique
-        $errors = $this->validatorMultiUniques($input);
+        $errors = $this->custom_table->validatorMultiUniques($input, $this->id, [
+            'asApi' => $asApi,
+            'appendErrorAllColumn' => true,
+        ]);
+
+        $errors = array_merge($this->custom_table->validatorLock($input, $this->id, $asApi), $errors);
 
         // call plugin validator
         $errors = array_merge_recursive($errors, Plugin::pluginValidator(Plugin::getPluginsByTable($this->custom_table), [
@@ -433,73 +459,6 @@ abstract class CustomValue extends ModelBase
         return count($errors) > 0 ? $errors : true;
     }
 
-    protected function validatorMultiUniques($input)
-    {
-        $errors = [];
-
-        // getting custom_table's custom_column_multi_uniques
-        $multi_uniques = $this->custom_table->getMultipleUniques();
-
-        if (!isset($multi_uniques) || count($multi_uniques) == 0) {
-            return $errors;
-        }
-
-        foreach ($multi_uniques as $multi_unique) {
-            $query = static::query();
-            $column_keys = [];
-            foreach ([1,2,3] as $key) {
-                if (is_null($column_id = $multi_unique->{'unique' . $key})) {
-                    continue;
-                }
-
-                $column = CustomColumn::getEloquent($column_id);
-                $column_name = $column->column_name;
-
-                // get query key
-                if ($column->index_enabled) {
-                    $query_key = $column->getIndexColumnName();
-                } else {
-                    $query_key = 'value->' . $column_name;
-                }
-
-                // get value
-                $value = array_get($input, 'value.' . $column_name);
-                if (is_array($value)) {
-                    $value = json_encode(array_filter($value));
-                }
-
-                $query->where($query_key, $value);
-
-                $column_keys[] = $column;
-            }
-
-            if (empty($column_keys)) {
-                continue;
-            }
-
-            // if all column's value is empty, continue.
-            if (collect($column_keys)->filter(function ($column) use ($input) {
-                return !is_nullorempty(array_get($input, 'value.' . $column->column_name));
-            })->count() == 0) {
-                continue;
-            }
-
-            if (isset($this->id)) {
-                $query->where('id', '<>', $this->id);
-            }
-
-            if ($query->count() > 0) {
-                $errorTexts = collect($column_keys)->map(function ($column_key) {
-                    return $column_key->column_view_name;
-                });
-                $errorText = implode(exmtrans('common.separate_word'), $errorTexts->toArray());
-                foreach ($column_keys as $column_key) {
-                    $errors["value.{$column_key->column_name}"] = [exmtrans('custom_value.help.multiple_uniques', $errorText)];
-                }
-            }
-        }
-        return $errors;
-    }
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
     protected function prepareValue()
@@ -695,7 +654,7 @@ abstract class CustomValue extends ModelBase
         RoleGroupUserOrganization::deleteRoleGroupUserOrganization($this);
 
         // remove history if hard deleting
-        if($this->isForceDeleting()){
+        if ($this->isForceDeleting()) {
             $this->revisionHistory()->delete();
         }
     }
@@ -849,17 +808,12 @@ abstract class CustomValue extends ModelBase
      */
     public function getLabel()
     {
-        $custom_table = $this->custom_table;
-
-        $key = 'custom_table_use_label_flg_' . $this->custom_table_name;
-        $label_columns = System::requestSession($key, function () use ($custom_table) {
-            $table_label_format = $custom_table->getOption('table_label_format');
-            if (boolval(config('exment.expart_mode', false)) && isset($table_label_format)) {
-                return $table_label_format;
-            }
-            return $custom_table->table_labels;
-        });
-
+        if (!is_null($this->_label)) {
+            return $this->_label;
+        }
+        
+        $label_columns = $this->custom_table->getLabelColumns();
+        
         if (isset($label_columns) && is_string($label_columns)) {
             return $this->getExpansionLabel($label_columns);
         } else {
@@ -955,6 +909,7 @@ abstract class CustomValue extends ModelBase
                 'add_id' => false,
                 'add_avatar' => false,
                 'only_avatar' => false,
+                'asApi' => false,
             ],
             $options
         );
@@ -962,12 +917,15 @@ abstract class CustomValue extends ModelBase
 
         // if this table is document, create target blank link
         if ($this->custom_table->table_name == SystemTableName::DOCUMENT) {
-            $url = admin_urls('files', $this->getValue('file_uuid', true));
+            $url = admin_urls(($options['asApi'] ? 'api' : null), 'files', $this->getValue('file_uuid', true));
+            $document_name = $this->getValue('document_name');
+
             if (!$tag) {
                 return $url;
             }
-            $label = esc_html($this->getValue('document_name'));
-            return "<a href='$url' target='_blank'>$label</a>";
+            $label = esc_html($document_name);
+            $title = exmtrans('common.download');
+            return "<a href='$url' target='_blank' data-toggle='tooltip' title='$title'>$label</a>";
         }
         $url = admin_urls('data', $this->custom_table->table_name);
         if (!boolval($options['list'])) {
@@ -1012,6 +970,31 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
+     * Get document list
+     *
+     * @return void
+     */
+    public function getDocuments($options = [])
+    {
+        $options = array_merge(
+            [
+                'count' => 20,
+                'paginate' => false,
+            ],
+            $options
+        );
+        $query = getModelName(SystemTableName::DOCUMENT)
+            ::where('parent_id', $this->id)
+            ->where('parent_type', $this->custom_table_name)
+            ;
+
+        if ($options['paginate']) {
+            return $query->paginate($options['count']);
+        }
+        return $query->get();
+    }
+
+    /**
      * get target custom_value's relation search url
      */
     public function getRelationSearchUrl($options = [])
@@ -1053,7 +1036,10 @@ abstract class CustomValue extends ModelBase
             return null;
         }
         
-        $model = CustomTable::getEloquent($this->parent_type)->getValueModel($this->parent_id);
+        $parent = CustomTable::getEloquent($this->parent_type);
+        if (isset($parent)) {
+            $model = $parent->getValueModel($this->parent_id);
+        }
         if (!$isonly_label) {
             return $model ?? null;
         }
@@ -1065,7 +1051,7 @@ abstract class CustomValue extends ModelBase
      */
     public function getSum($custom_column)
     {
-        $name = $custom_column->index_enabled ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
+        $name = $custom_column->getQueryKey();
 
         if (!isset($name)) {
             return 0;
@@ -1137,18 +1123,39 @@ abstract class CustomValue extends ModelBase
         $searchColumns = collect($searchColumns);
         for ($i = 0; $i < count($searchColumns) - 1; $i++) {
             $searchColumn = collect($searchColumns)->values()->get($i);
-            $query = static::query();
-            $query->where($searchColumn, $mark, $value)->select('id');
-            $query->take($takeCount);
+            if ($searchColumn instanceof CustomColumn) {
+                $column_item = $searchColumn->column_item;
+                if (!isset($column_item)) {
+                    continue;
+                }
 
-            $queries[] = $query;
+                foreach ($column_item->getSearchQueries($mark, $value, $takeCount, $q) as $query) {
+                    $queries[] = $query;
+                }
+            } else {
+                $query = static::query();
+                $query->where($searchColumn, $mark, $value)->select('id');
+                $query->take($takeCount);
+    
+                $queries[] = $query;
+            }
         }
 
         $searchColumn = $searchColumns->last();
-        $subquery = static::query();
-        $subquery->where($searchColumn, $mark, $value)->select('id');
-        $subquery->take($takeCount);
 
+        if ($searchColumn instanceof CustomColumn) {
+            $column_item = $searchColumn->column_item;
+            if (!isset($column_item)) {
+                $subquery = static::query();
+            } else {
+                $subquery = $column_item->getSearchQueries($mark, $value, $takeCount, $q)[0];
+            }
+        } else {
+            $subquery = static::query();
+            $subquery->where($searchColumn, $mark, $value)->select('id');
+        }
+
+        $subquery->take($takeCount);
         foreach ($queries as $inq) {
             $subquery->union($inq);
         }
@@ -1174,7 +1181,17 @@ abstract class CustomValue extends ModelBase
             $searchColumns = collect($searchColumns);
             for ($i = 0; $i < count($searchColumns); $i++) {
                 $searchColumn = $searchColumns->values()->get($i);
-                $query->orWhere($searchColumn, $mark, $value);
+
+                if ($searchColumn instanceof CustomColumn) {
+                    $column_item = $searchColumn->column_item;
+                    if (!isset($column_item)) {
+                        continue;
+                    }
+                        
+                    $column_item->setSearchOrWhere($query, $mark, $value, $q);
+                } else {
+                    $query->orWhere($searchColumn, $mark, $value);
+                }
             }
         });
     }
@@ -1196,7 +1213,6 @@ abstract class CustomValue extends ModelBase
                 'makeHidden' => false,
                 'searchColumns' => null,
                 'relation' => false,
-
             ],
             $options
         );
@@ -1204,9 +1220,7 @@ abstract class CustomValue extends ModelBase
 
         // if selected target column,
         if (is_null($searchColumns)) {
-            $searchColumns = $this->custom_table->getSearchEnabledColumns()->map(function ($c) {
-                return $c->getIndexColumnName();
-            });
+            $searchColumns = $this->custom_table->getSearchEnabledColumns();
         }
 
         if (!isset($searchColumns) || count($searchColumns) == 0) {
@@ -1235,6 +1249,7 @@ abstract class CustomValue extends ModelBase
         $options['takeCount'] = $takeCount;
         $options['mark'] = $mark;
         $options['value'] = $value;
+        $options['q'] = $q;
 
         return $options;
     }
@@ -1305,7 +1320,7 @@ abstract class CustomValue extends ModelBase
             return $code;
         }
 
-        if($this->trashed()){
+        if ($this->trashed()) {
             return ErrorCode::ALREADY_DELETED();
         }
         
@@ -1357,7 +1372,7 @@ abstract class CustomValue extends ModelBase
             return false;
         }
 
-        if($this->trashed()){
+        if ($this->trashed()) {
             return false;
         }
         

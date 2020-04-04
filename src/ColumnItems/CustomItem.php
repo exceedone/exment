@@ -89,10 +89,8 @@ abstract class CustomItem implements ItemInterface
         if (boolval(array_get($this->options, 'groupby'))) {
             return $this->getGroupBySqlName();
         }
-        if (!$this->custom_column->index_enabled) {
-            return 'value->'.$this->custom_column->column_name;
-        }
-        return $this->index();
+
+        return $this->custom_column->getQueryKey();
     }
 
     /**
@@ -263,7 +261,7 @@ abstract class CustomItem implements ItemInterface
             $this->setAdminOptions($field, $form_column_options);
         }
 
-        if ($this->initonly() && isset($this->value)) {
+        if (!boolval(array_get($form_column_options, 'hidden')) && $this->initonly() && isset($this->value)) {
             $field->displayText($this->html());
         }
 

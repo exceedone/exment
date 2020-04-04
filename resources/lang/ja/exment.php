@@ -10,7 +10,7 @@ return [
         'copy' => 'コピー',
         'shared' => '共有',
         'change' => '変更',
-        'reqired' => '必須',
+        'required' => '必須',
         'default' => '既定',
         'basic_setting' => '基本設定',
         'detail_setting' => '詳細設定',
@@ -36,6 +36,7 @@ return [
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
+        'executed_user' => '実行ユーザー', 
         'workflow_status' => '現在のステータス', 
         'workflow_work_users' => '現在の作業ユーザー', 
         'workflow_history' => 'ワークフロー履歴',
@@ -63,10 +64,12 @@ return [
         'create_only_setting' => '新規作成時設定',
         'join_and' => 'かつ',
         'join_or' => 'または',
+        'download' => 'ダウンロード',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'success_execute' => '実行完了しました！',
+            'copy_execute' => 'コピーしました！',
             'error_execute' => '実行失敗しました。',
             'execution_takes_time' => '実行には時間がかかります。',
             'import_success' => 'インポート完了しました！',
@@ -89,6 +92,7 @@ return [
             'order' => '%sを一覧表示した時の表示順です。',
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
+            'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。それ以上の件数のデータは、分割してアップロードをいただくか、<a href=":manual" target="_blank">大量データ投入<i class="fa fa-external-link"></i></a>を行ってください。',
             'init_flg' => '保存後、変更はできません。',
             'more_help' => '<span class="red">詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
             'more_help_here' => '詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -116,7 +120,7 @@ return [
         'description' => 'エラーが発生しました。エラー内容をご確認ください。',
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
-        'failure_import_file' => 'アップロードしたファイルのフォーマットが誤っています。ファイルをご確認ください。',
+        'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。分割してアップロードをいただくか、大量データ投入を行ってください。',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
@@ -156,8 +160,9 @@ return [
 
         'error' => [
             'database_canconnection' => 'データベースに接続できませんでした。設定内容をご確認ください。',
-            'not_require_database_version' => '%sはバージョン%s以上が必要です。ご利用のバージョンは%sです。',
-            'mistake_mysql_mariadb' => 'お使いのデータベースは%sですが、%sを選択しています。設定内容をご確認ください。',
+            'not_require_database_version' => ':databaseはバージョン:min以上が必要です。ご利用のバージョンは:currentです。',
+            'mistake_mysql_mariadb' => 'お使いのデータベースは:databaseですが、:database_selectを選択しています。設定内容をご確認ください。',
+            'not_require_php_version' => 'PHPはバージョン:min以上:max未満が必要です。ご利用のバージョンは:currentです。',
         ],
     ],
 
@@ -167,6 +172,8 @@ return [
         'complex_password' => 'パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
         'not_has_custom_value' => '列:attributeに入力の値:valueが、テーブル「:table_view_name」に存在しません。データをご確認ください。',
         'empty' => ':attributeの値は空欄のみ指定できます。',
+        'max_table_index' => '1つのテーブルに設定できる検索インデックスは:count件までです。',
+        'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
     ],
 
     'system' => [
@@ -185,6 +192,7 @@ return [
         'site_layout' => 'サイトメニューレイアウト',
         'default_date_format' => '日時表示書式',
         'filter_search_type' => 'データ検索方法',
+        'grid_filter_disable_flg' => 'データ一覧のフィルタ非表示',
         'api_available' => 'APIを使用する',
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
@@ -280,6 +288,7 @@ return [
             'site_skin' => 'サイトのテーマ色を選択します。※保存後、再読込で反映されます。',
             'site_layout' => 'ページ左の、サイトメニューのレイアウトを選択します。※保存後、再読込で反映されます。',
             'filter_search_type' => '登録データの検索方法を設定します。※部分一致の場合、データ件数によって、パフォーマンスに影響がある場合があります。',
+            'grid_filter_disable_flg' => 'チェックした項目が、データ一覧画面のフィルタ項目で、非表示になります。',
             'api_available' => 'YESにした場合、APIを使用することができます。',
             'outside_api' => 'YESにした場合、Exmentの最新バージョンの通知など、外部サーバー通信を行う処理を実行できます。データの受信のみ行います。※外部ネットワークに接続できない環境で使用する場合など、通信を行わない場合には、NOに設定してください。',
             'grid_pager_count' => '一覧ページで表示されるデータの、既定の表示件数です。システム全体に反映されます。',
@@ -351,11 +360,15 @@ return [
             'chart_legend' => '凡例を表示する',
             'chart_options' => 'オプション設定',
             'calendar_type' => 'カレンダーの種類',
+            'content' => '本文',
+            'html' => 'HTML',
         ],
 
         'dashboard_box_system_pages' => [
             'guideline' => 'ガイドライン',
             'news' => 'Exment新着情報一覧',
+            'editor' => 'エディター',
+            'html' => 'HTML',
         ],
 
         'dashboard_menulist' => [
@@ -366,6 +379,13 @@ return [
         'message' => [
             'need_setting' => 'ダッシュボードの設定変更が必要です。再度、設定を行ってください。',
             'not_exists_table' => 'テーブルまたはビューが削除されました。',
+        ],
+
+        'help' => [
+            'dashboard_box_options' => [
+                'content' => '表示する本文を記入してください。※スクリプトを使用したい場合は、HTMLを選択してください',
+                'html' => '表示するHTMLを記入してください。<span class="red">※入力したHTMLがそのまま埋め込まれます。またスクリプトも実行されます。入力には十分注意してください。</span>',
+            ],
         ],
     ],
 
@@ -448,7 +468,6 @@ return [
         'file_size' => 'ファイルサイズ',
         'backup' => 'バックアップ',
         'restore' => 'リストア',
-        'download' => 'ダウンロード',
         'restore_upload' => 'ファイルアップロード',
         'backuprestore' => 'バックアップ・リストア',
         'backup_target' => 'バックアップ対象',
@@ -632,7 +651,6 @@ return [
         'flow_next_type' => '次のステータスへ進む条件',
         'upper_user' => '人以上実行',
         'all_user' => '全員実行',
-        'executed_user' => '実行ユーザー', 
         'executed_at' => '実行日時', 
         'next_work_users' => '次の作業ユーザー', 
         'login_work_user' => '自分が作業ユーザー', 
@@ -1166,6 +1184,8 @@ return [
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'システムビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータ編集', 'help' => 'カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
+            'api_all' => ['label' => 'APIアプリ全体管理', 'help' => 'すべてのAPIアプリを追加・変更・削除できます。'],
+            'api' => ['label' => 'APIアプリ管理', 'help' => '自分が作成したAPIアプリのみ追加・変更・削除できます。'],
         ],
         'role_type_option_role_group' => [
             'role_group_all' => ['label' => '役割グループ全体の管理', 'help' => '役割グループ全体の設定を変更できます。<br/>グループの追加・変更・削除、グループの権限設定変更、ユーザー・組織の設定変更ができます。'],
@@ -1341,6 +1361,7 @@ return [
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
         'export' => 'エクスポート',
+        'view_export' => 'ビュー出力',
         'import_label' => 'インポート',
         'view_summary_detail' => '集計データの明細を表示する',
         'soft_deleted_data' => '削除済データ',
@@ -1399,7 +1420,10 @@ return [
             'no_columns_admin' => 'カスタム列が登録されていません。先にカスタム列を登録してください。',
             'no_columns_user' => 'カスタム列が登録されていません。管理者に問い合わせし、カスタム列を追加の依頼を行ってください。',
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
+            'relation_error' => 'このテーブルは親子関係が設定されているため、削除できません。',
             'multiple_uniques' => '%sがキーとなるその値は、すでに登録されています。',
+            'lock_error' => '対象のデータは別のユーザーによって更新されました。画面の更新後、再度入力を行ってください。',
+            'lock_error_api' => '対象のデータは別のユーザーによって更新されました。',
             'init_flg' => '保存後、変更はできません。',
         ],
         'message' => [
@@ -1523,11 +1547,18 @@ return [
     ],
     
     'chart' => [
+        'chartitem_label' => 'データ見出し',
+        'chartitem_manual' => 'チャートの設定内容',
+
         'chart_type_options' => [
             'bar' => '棒グラフ',
             'line' => '折れ線グラフ',
             'pie' => '円グラフ',
-        ]
+        ],
+
+        'help' => [
+            'chartitem_manual' => '※グラフの設定内容については、<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。'
+        ],
     ],
 
     'calendar' => [
@@ -1584,11 +1615,14 @@ return [
         'help' =>[
             'redirect' => '認証後にリダイレクトするURLを入力してください。',
             'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',
+            'api_key' => '認証に使用するAPIのキーです。',
+            'executed_user' => 'APIは、このユーザーとして実行されます。',
         ],
 
         'client_type_options' => [
             'client_credentials' => '画面ログイン形式',
             'password_grant' => 'パスワード形式',
+            'api_key' => 'APIキー形式',
         ],
 
         'oauth' => [
@@ -1604,6 +1638,7 @@ return [
         'client_type_text' => '認証形式',
         'client_id' => 'Client ID',
         'client_secret' => 'Client Secret',
+        'api_key' => 'APIキー',
         'redirect' => 'リダイレクトURL',
     ],
 

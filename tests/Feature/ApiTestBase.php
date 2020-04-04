@@ -17,11 +17,22 @@ abstract class ApiTestBase extends TestCase
      */
     protected function getClientIdAndSecret(){
         // get client id and secret token
-        $client = ApiClient::where('name', Define::API_FEATURE_TEST)->first();
+        $client = ApiClient::withoutGlobalScope('only_self')->where('name', Define::API_FEATURE_TEST)->first();
 
         return [$client->id, $client->secret];
     }
 
+    /**
+     * Get Client Id and Secret and Key
+     *
+     * @return void
+     */
+    protected function getClientIdAndSecretAndKey(){
+        // get client id and secret token
+        $client = ApiClient::withoutGlobalScope('only_self')->where('name', Define::API_FEATURE_TEST_APIKEY)->first();
+
+        return [$client->id, $client->secret, $client->client_api_key->key];
+    }
     /**
      * Get Password token
      *
@@ -46,6 +57,29 @@ abstract class ApiTestBase extends TestCase
         ]);
     }
 
+    /**
+     * Get API Key 
+     *
+     * @return void
+     */
+    protected function getApiKey($scope = []){
+        System::clearCache();
+        \Exceedone\Exment\Middleware\Morph::defineMorphMap();
+        list($client_id, $client_secret, $api_key) = $this->getClientIdAndSecretAndKey();
+        
+        if(\is_nullorempty($scope)){
+            $scope = ApiScope::arrays();
+        }
+
+        return $this->post(admin_urls('oauth', 'token'), [
+            "grant_type" => "api_key",
+            "client_id" => $client_id,
+            "client_secret" =>  $client_secret,
+            "api_key" =>  $api_key,
+            "scope" =>  implode(' ', $scope),
+        ]);
+    }
+
     
     /**
      * Get Admin access token for administrator
@@ -54,6 +88,17 @@ abstract class ApiTestBase extends TestCase
      */
     protected function getAdminAccessToken($scope = []){
         $response = $this->getPasswordToken('admin', 'adminadmin', $scope);
+
+        return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
+    }
+    
+    /**
+     * Get Admin access token for administrator. get as api key
+     *
+     * @return void
+     */
+    protected function getAdminAccessTokenAsApiKey($scope = []){
+        $response = $this->getApiKey($scope);
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
     }

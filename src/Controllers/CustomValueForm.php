@@ -10,7 +10,6 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -27,13 +26,8 @@ trait CustomValueForm
     protected function form($id = null)
     {
         $request = request();
-        $this->setFormViewInfo($request);
+        $this->setFormViewInfo($request, $id);
         
-        $custom_form = $this->custom_table->getPriorityForm($id);
-        if (isset($custom_form)) {
-            $this->custom_form =$custom_form;
-        }
-
         $classname = getModelName($this->custom_table);
         $form = new Form(new $classname);
 
@@ -51,6 +45,9 @@ trait CustomValueForm
         //https://github.com/z-song/laravel-admin/issues/1998
         $form->hidden('laravel_admin_escape');
         $form->hidden('select_parent')->default($select_parent);
+
+        // for lock data
+        $form->hidden('updated_at');
 
         // add parent select if this form is 1:n relation
         $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);

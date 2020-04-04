@@ -2,70 +2,43 @@
 
 namespace Exceedone\Exment\Notifications;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Notifications\MicrosoftTeams\MicrosoftTeamsMessage;
+use Exceedone\Exment\Jobs;
 
-class MicrosoftTeamsSender extends Notification
+class MicrosoftTeamsSender
 {
-    use Queueable;
-
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($subject, $content)
+    public function __construct($subject, $body)
     {
         //$this->name = config('exment.slack_from_name') ?? System::site_name();
         //$this->icon = config('exment.slack_from_icon') ?? ':information_source:';
-        $this->content = $content;
         $this->subject = $subject;
+        $this->body = $body;
     }
 
     /**
-     * Get the notification's delivery channels.
+     * Send notify
      *
-     * @param  mixed  $notifiable
-     * @return array
+     * @return void
      */
-    public function via($notifiable)
+    public function send($notify)
     {
-        return [MicrosoftTeams\MicrosoftTeamsChannel::class];
-    }
-
-    /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
-     */
-    public function toChat($notifiable)
-    {
-        return (new MicrosoftTeamsMessage)
-            ->content($this->content)
-            ->title($this->subject);
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
-    public function toArray($notifiable)
-    {
-        return [
-            //
-        ];
+        // replace word
+        $teams_content = static::editContent($this->subject, $this->body);
+        // send slack message
+        $notify->notify(new Jobs\MicrosoftTeamsJob($this->subject, $teams_content));
     }
 
     /**
      * replace url to slack format.
      */
-    public static function editContent($subject, $body)
+    protected static function editContent($subject, $body)
     {
         $content = $body;
         preg_match_all(Define::RULES_REGEX_LINK_FORMAT, $content, $matches);

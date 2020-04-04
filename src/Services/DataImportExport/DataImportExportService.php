@@ -45,6 +45,11 @@ class DataImportExportService extends AbstractExporter
      */
     protected $exportAction;
 
+    /**
+     * view export action.
+     */
+    protected $viewExportAction;
+
     public function __construct($args = [])
     {
         $this->format = static::getFormat($args);
@@ -115,13 +120,28 @@ class DataImportExportService extends AbstractExporter
         return $this;
     }
     
+    public function viewExportAction($viewExportAction)
+    {
+        $this->viewExportAction = $viewExportAction;
+
+        return $this;
+    }
+    
     /**
      * execute export
      */
     public function export()
     {
         setTimeLimitLong();
-        $datalist = $this->exportAction->datalist();
+
+        // get export action type
+        $action = request()->get('action');
+
+        if ($action == 'view_export' && isset($this->viewExportAction)) {
+            $datalist = $this->viewExportAction->datalist();
+        } else {
+            $datalist = $this->exportAction->datalist();
+        }
 
         $files = $this->format
             ->datalist($datalist)
@@ -165,6 +185,17 @@ class DataImportExportService extends AbstractExporter
             $datalist = $this->importAction->getDataTable($request);
         } else {
             $datalist = $this->format->getDataTable($request);
+        }
+
+        // if over count, return over length
+        if (is_int($datalist)) {
+            return [
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error'),
+                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.import_max_row_count', [
+                    'count' => config('exment.import_max_row_count', 1000),
+                ])]],
+            ];
         }
 
         // filter data
@@ -243,7 +274,7 @@ class DataImportExportService extends AbstractExporter
         );
         if ($validator->fails()) {
             // return errors as custom_table_file.
-            return $validator->errors()->messages();
+            return $validator->getMessages();
         }
 
         return true;
@@ -262,11 +293,18 @@ class DataImportExportService extends AbstractExporter
         // check config value
         if (!boolval(config('exment.export_import_export_disabled_csv', false))) {
             $formats['csv'] = 'csv';
+            $formats['zip'] = 'zip';
         }
         if (!boolval(config('exment.export_import_export_disabled_excel', false))) {
             $formats['excel'] = 'xlsx';
         }
 
+        $form->description('<span class="red">' . exmtrans('common.help.import_max_row_count', [
+            'count' => config('exment.import_max_row_count', 1000),
+            'manual' => \getManualUrl('data_bulk_insert')
+        ]) . '</span>')
+        ->setWidth(8, 3);
+        
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
             ->rules('mimes:' . implode(',', array_keys($formats)))->setWidth(8, 3)->addElementClass('custom_table_file')
@@ -277,7 +315,7 @@ class DataImportExportService extends AbstractExporter
                 return '.' . $format;
             })->implode(',')])
             ->help(exmtrans('custom_value.import.help.custom_table_file', implode(',', array_values($formats))) . array_get($fileOption, 'maxFileSizeHelp'));
-        
+    
         // get import primary key list
         $form->select('select_primary_key', exmtrans('custom_value.import.primary_key'))
             ->options($this->importAction->getPrimaryKeys())
@@ -380,7 +418,7 @@ class DataImportExportService extends AbstractExporter
                         })->first();
                     }
                     if (isset($target_column->column_item)) {
-                        $target_table = isset($target_column->select_target_table) ? $target_column->select_target_table : $target_column->custom_table;
+                        $target_table = isset($target_column->select_target_table) ? $target_column->select_target_table : $target_column->custom_table_cache;
                         static::getImportColumnValue($data, $key, $value, $target_column->column_item, $target_column->column_item->label(), $s ?? null, $target_table, $options);
                     }
                 }

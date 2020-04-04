@@ -29,7 +29,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Laravel\Passport\ClientRepository;
+use Exceedone\Exment\Model\ApiClientRepository;
 
 class InitTestCommand extends Command
 {
@@ -93,10 +93,15 @@ class InitTestCommand extends Command
         $this->createRelationTables($users);
 
         // init api
-        $clientRepository = new ClientRepository;
-        $client = $clientRepository->createPasswordGrantClient(
+        $clientRepository = new ApiClientRepository;
+        $clientRepository->createPasswordGrantClient(
             1,
             Define::API_FEATURE_TEST,
+            'http://localhost'
+        );
+        $clientRepository->createApiKey(
+            1,
+            Define::API_FEATURE_TEST_APIKEY,
             'http://localhost'
         );
     }
@@ -307,7 +312,7 @@ class InitTestCommand extends Command
 
         foreach ($values as $type => $typevalue) {
             $custom_table = CustomTable::getEloquent($type);
-            if(!isset($custom_table)){
+            if (!isset($custom_table)) {
                 continue;
             }
             
@@ -439,6 +444,13 @@ class InitTestCommand extends Command
         $custom_column5->column_type = ColumnType::YESNO;
         $custom_column5->options = ['index_enabled' => '1'];
         $custom_column5->save();
+
+        $custom_column6 = new CustomColumn;
+        $custom_column6->custom_table_id = $custom_table->id;
+        $custom_column6->column_name = 'file';
+        $custom_column6->column_view_name = 'file';
+        $custom_column6->column_type = ColumnType::FILE;
+        $custom_column6->save();
 
         $custom_form_conditions = [
             [

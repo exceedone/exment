@@ -7,10 +7,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
@@ -96,25 +98,12 @@ class ApiTableController extends AdminControllerTableBase
 
         $paginator = $model->paginate($count);
 
-        // execute makehidden
-        $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
-
-        // append label
-        if ($this->isAppendLabel($request)) {
-            $value->map(function ($rec) {
-                $rec->append('label');
-            });
-        }
-
-        $paginator->value = $value;
-
-        // set appends
-        $paginator->appends([
-            'count' => $count,
-            'orderby' => $orderby,
+        return $this->modifyAfterGetValue($request, $paginator, [
+            'appends' => [
+                'count' => $count,
+                'orderby' => $orderby,
+            ]
         ]);
-
-        return $paginator;
     }
 
     /**
@@ -189,13 +178,13 @@ class ApiTableController extends AdminControllerTableBase
             'maxCount' => $count,
             'getLabel' => $getLabel,
         ]);
-
-        $paginator->appends([
-            'q' => $q,
-            'count' => $count,
+        
+        return $this->modifyAfterGetValue($request, $paginator, [
+            'appends' => [
+                'q' => $q,
+                'count' => $count,
+            ]
         ]);
-
-        return $paginator;
     }
     
     /**
@@ -272,24 +261,11 @@ class ApiTableController extends AdminControllerTableBase
 
         $paginator = $model->paginate($count);
 
-        // execute makehidden
-        $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
-
-        // append label
-        if ($this->isAppendLabel($request)) {
-            $value->map(function($rec) {
-                $rec->append('label');
-            });
-        }
-
-        $paginator->value = $value;
-
-        // set appends
-        $paginator->appends([
-            'count' => $count,
+        return $this->modifyAfterGetValue($request, $paginator, [
+            'appends' => [
+                'count' => $count,
+            ]
         ]);
-
-        return $paginator;
     }
     
     /**
@@ -320,17 +296,7 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, trans('admin.deny'), $code);
         }
 
-        // append label
-        if ($this->isAppendLabel($request)) {
-            $model->append('label');
-        }
-
-        $result = $model->makeHidden($this->custom_table->getMakeHiddenArray())
-                    ->toArray();
-        if ($request->has('dot') && boolval($request->get('dot'))) {
-            $result = array_dot($result);
-        }
-        return $result;
+        return $this->modifyAfterGetValue($request, $model);
     }
 
     /**
@@ -385,7 +351,7 @@ class ApiTableController extends AdminControllerTableBase
 
         $custom_values = [];
         foreach ((array)$ids as $i) {
-            if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            if (($custom_value = $this->getCustomValue($this->custom_table, $i)) instanceof Response) {
                 return $custom_value;
             }
             if (($code = $custom_value->enableDelete()) !== true) {
@@ -408,6 +374,88 @@ class ApiTableController extends AdminControllerTableBase
             ], 200);
         }
         return response(null, 204);
+    }
+
+    /**
+     * Get Attachment files
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function getDocuments(Request $request, $tableKey, $id)
+    {
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        if (($code = $custom_value->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+        
+        // get and check query parameter
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
+
+        $documents = $custom_value->getDocuments([
+            'count' => $count,
+            'paginate' => true,
+        ]);
+
+        $documents->appends([
+            'count' => $count
+        ]);
+
+        $documents->getCollection()->transform(function ($document) {
+            return $this->getDocumentArray($document);
+        });
+        
+        return $documents;
+    }
+
+    /**
+     * create Attachment files
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function createDocument(Request $request, $tableKey, $id)
+    {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
+        }
+
+        if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        if (($code = $custom_value->enableEdit()) !== true) {
+            return abortJson(403, $code);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'base64' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        $file_data = base64_decode($request->get('base64'));
+        $filename = $request->get('name');
+
+        $file = File::storeAs($file_data, $this->custom_table->table_name, $filename)
+            ->saveCustomValue($custom_value->id, null, $this->custom_table);
+        // save document model
+        $document_model = $file->saveDocumentModel($custom_value, $filename);
+        
+        return response($this->getDocumentArray($document_model), 201);
     }
 
     /**
@@ -475,8 +523,6 @@ class ApiTableController extends AdminControllerTableBase
 
     protected function saveData($request, $custom_value = null)
     {
-        $is_single = false;
-
         $validator = Validator::make($request->all(), [
             'value' => 'required_without:data',
         ]);
@@ -486,37 +532,15 @@ class ApiTableController extends AdminControllerTableBase
             ], ErrorCode::VALIDATION_ERROR());
         }
 
-        if ($request->has('value')) {
-            $values = $request->get('value');
-        } else {
-            $values = $request->get('data');
-        }
-
-        if (!is_vector($values)) {
-            if ($request->has('parent_id')) {
-                $values['parent_id'] = $request->get('parent_id');
-            }
-            if ($request->has('parent_type')) {
-                $values['parent_type'] = $request->get('parent_type');
-            }
-            $values = [$values];
-            $is_single = true;
-        } else {
-            $values = collect($values)->map(function ($value) {
-                if (array_key_exists('value', $value)) {
-                    $value = array_merge($value, $value['value']);
-                    unset($value['value']);
-                }
-                return $value;
-            })->toArray();
-        }
+        $is_single = false;
+        $rootValues = $this->getRootValuesFromPost($request, $is_single);
 
         $max_create_count = config('exment.api_max_create_count', 100);
-        if (count($values) > $max_create_count) {
+        if (count($rootValues) > $max_create_count) {
             return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count), ErrorCode::OVER_LENGTH());
         }
 
-        $findResult = $this->convertFindKeys($values, $request);
+        $findResult = $this->convertFindKeys($rootValues, $request);
         if ($findResult !== true) {
             return abortJson(400, [
                 'errors' => $findResult
@@ -526,20 +550,28 @@ class ApiTableController extends AdminControllerTableBase
         $validates = [];
         // saved files
         $files = [];
-        foreach ($values as $index => $value) {
+        foreach ($rootValues as $index => $rootValue) {
+            $validateValue = $rootValue;
+            $value = array_get($rootValue, 'value');
+
             // Convert base64 encode file
             list($value, $fileColumns) = $this->custom_table->convertFileData($value);
             $files[$index] = $fileColumns;
 
             if (!isset($custom_value)) {
                 $value = $this->custom_table->setDefaultValue($value);
-                // // get fields for validation
-                $validator = $this->custom_table->validateValue($value, true);
             } else {
                 $value = $custom_value->mergeValue($value);
-                // // get fields for validation
-                $validator = $this->custom_table->validateValue($value, true, $custom_value->id);
             }
+            $validateValue['value'] = $value;
+
+            // // get fields for validation
+            $validator = $this->custom_table->validateValue($validateValue, isset($custom_value) ? $custom_value->id : null, [
+                'systemColumn' => true,
+                'column_name_prefix' => 'value.',
+                'appendKeyName' => false,
+                'asApi' => true,
+            ]);
 
             if ($validator->fails()) {
                 if ($is_single) {
@@ -560,35 +592,33 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         $response = [];
-        foreach ($values as $index => &$value) {
+        foreach ($rootValues as $index => &$rootValue) {
             // set default value if new
             if (!isset($custom_value)) {
                 $model = $this->custom_table->getValueModel();
-            } else {
+            }
+            // now update is only one record, so it's OK.
+            else {
                 $model = $custom_value;
             }
 
             // Save file data
-            $this->saveFile($this->custom_table, $files[$index], $value);
+            $this->saveFile($this->custom_table, $files[$index], $rootValue['value']);
 
-            $model->setValue($value);
+            $model->setValue($rootValue['value']);
 
-            if (array_key_exists('parent_id', $value)) {
-                $model->parent_id = $value['parent_id'];
+            if (array_key_exists('parent_id', $rootValue)) {
+                $model->parent_id = $rootValue['parent_id'];
             }
-            if (array_key_exists('parent_type', $value)) {
-                $model->parent_type = $value['parent_type'];
+            if (array_key_exists('parent_type', $rootValue)) {
+                $model->parent_type = $rootValue['parent_type'];
             }
 
             $model->saveOrFail();
 
-            // append label
-            if ($this->isAppendLabel($request)) {
-                $model->append('label');
-            }
+            $this->customValueFile($this->custom_table, $files[$index], $model);
 
-            //$response[] = getModelName($this->custom_table)::find($model->id)->makeHidden($this->custom_table->getMakeHiddenArray());
-            $response[] = $model->makeHidden($this->custom_table->getMakeHiddenArray());
+            $response[] = $this->modifyAfterGetValue($request, $model);
         }
 
         if ($is_single && count($response) > 0) {
@@ -598,7 +628,61 @@ class ApiTableController extends AdminControllerTableBase
         }
     }
 
-    protected function convertFindKeys(&$values, $request)
+    /**
+     * Get root values from post data.
+     * root value is ex. {"parent_type": "sales", "parent_id": 1, "value": {"sale_code": "XYZ", "sale_name": "Sample"}}
+     *
+     * @return void
+     */
+    protected function getRootValuesFromPost(Request $request, &$is_single)
+    {
+        $rootValues = [];
+        $systemKeys = ['parent_id', 'parent_type', 'updated_at'];
+
+        if ($request->has('value')) {
+            $values = $request->get('value');
+        } else {
+            $values = $request->get('data');
+        }
+
+        if (!is_vector($values)) {
+            $rootValue = ['value' => $values];
+            
+            foreach ($systemKeys as $systemKey) {
+                if ($request->has($systemKey)) {
+                    $rootValue[$systemKey] = $request->get($systemKey);
+                }
+                if (array_key_exists($systemKey, $rootValue['value'])) {
+                    $rootValue[$systemKey] = $rootValue['value'][$systemKey];
+                    unset($rootValue['value'][$systemKey]);
+                }
+            }
+
+            $rootValues[] = $rootValue;
+            $is_single = true;
+        } else {
+            $rootValues = collect($values)->map(function ($value) use ($systemKeys) {
+                if (array_key_exists('value', $value)) {
+                    $rootValue = $value;
+                } else {
+                    $rootValue = ['value' => $value];
+                    
+                    foreach ($systemKeys as $systemKey) {
+                        if (array_key_exists($systemKey, $rootValue['value'])) {
+                            $rootValue[$systemKey] = $rootValue['value'][$systemKey];
+                            unset($rootValue['value'][$systemKey]);
+                        }
+                    }
+                }
+
+                return $rootValue;
+            })->toArray();
+        }
+
+        return $rootValues;
+    }
+
+    protected function convertFindKeys(&$rootValues, $request)
     {
         if (is_null($findKeys = $request->get('findKeys'))) {
             return true;
@@ -618,8 +702,8 @@ class ApiTableController extends AdminControllerTableBase
                 ];
             })->toArray()];
 
-        foreach ($values as &$value) {
-            $value = DataImportExportService::processCustomValue($this->custom_columns, $value, $processOptions);
+        foreach ($rootValues as &$rootValue) {
+            $rootValue['value'] = DataImportExportService::processCustomValue($this->custom_columns, array_get($rootValue, 'value'), $processOptions);
         }
 
         return count($errors) > 0 ? $errors : true;
@@ -837,13 +921,31 @@ class ApiTableController extends AdminControllerTableBase
      * @param array $value
      * @return void
      */
-    protected function saveFile($custom_table, $files, &$value){
-        foreach($files as $column_name => $fileInfo){
+    protected function saveFile($custom_table, &$files, &$value)
+    {
+        foreach ($files as $column_name => &$fileInfo) {
             // save filename
             $file = File::storeAs($fileInfo['data'], $custom_table->table_name, $fileInfo['name']);
 
             // convert value array
             $value[$column_name] = path_join($file->local_dirname, $file->local_filename);
+
+            $fileInfo['model'] = $file;
+        }
+    }
+
+    /**
+     * Append custom value info after custom_value save
+     *
+     * @param CustomTable $custom_table
+     * @param array $files
+     * @param CustomValue $custom_value
+     * @return void
+     */
+    protected function customValueFile($custom_table, $files, $custom_value)
+    {
+        foreach ($files as $column_name => $fileInfo) {
+            $fileInfo['model']->saveCustomValue($custom_value->id, $fileInfo['custom_column'], $custom_table);
         }
     }
 
@@ -853,15 +955,99 @@ class ApiTableController extends AdminControllerTableBase
      *
      * @return bool if use, return true
      */
-    protected function isAppendLabel(Request $request){
-        if($request->has('label')){
-            return boolval($request->get('label', false));    
+    protected function isAppendLabel(Request $request)
+    {
+        if ($request->has('label')) {
+            return boolval($request->get('label', false));
         }
 
-        if(boolval(config('exment.api_append_label_default', true))){
+        if (boolval(config('exment.api_append_label_default', true))) {
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Modify logic for getting value
+     *
+     * @return void
+     */
+    protected function modifyAfterGetValue(Request $request, $target, $options = [])
+    {
+        // for paginate logic
+        if ($target instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            $options = array_merge(
+                [
+                    'appends' => [],
+                ],
+                $options
+            );
+
+            $appends = array_merge(
+                $request->all([
+                    'label',
+                    'count',
+                    'page',
+                    'valuetype',
+                    'q',
+                    'id',
+                    'target_view_id',
+                ]),
+                $options['appends']
+            );
+
+            // execute makehidden
+            $results = $target->makeHidden($this->custom_table->getMakeHiddenArray());
+
+            $results->map(function ($result) use ($request) {
+                $this->modifyCustomValue($request, $result);
+            });
+
+            $target->value = $results;
+
+            // set appends
+            if (!is_nullorempty($appends)) {
+                $target->appends($appends);
+            }
+
+            return $target;
+        }
+        // as single model
+        elseif ($target instanceof CustomValue) {
+            $target = $target->makeHidden($this->custom_table->getMakeHiddenArray());
+            return $this->modifyCustomValue($request, $target);
+        }
+    }
+
+    protected function modifyCustomValue(Request $request, $custom_value)
+    {
+        // append label
+        if ($this->isAppendLabel($request)) {
+            $custom_value->append('label');
+        }
+
+        // convert to custom values
+        $valuetype = $request->get('valuetype');
+        if ($request->has('valuetype') && ValueType::filterApiValueType($valuetype)) {
+            $custom_value->setValue($custom_value->getValues(ValueType::getEnum($valuetype), ['asApi' => true]));
+        }
+
+        if ($request->has('dot') && boolval($request->get('dot'))) {
+            $custom_value = array_dot($custom_value->toArray());
+        }
+
+        return $custom_value;
+    }
+
+    protected function getDocumentArray($document)
+    {
+        return [
+            'name' => $document->label,
+            'url' => $document->url,
+            'api_url' => $document->api_url,
+            'created_at' => $document->created_at->__toString(),
+            'created_user_id' => $document->created_user_id,
+        ];
     }
 }

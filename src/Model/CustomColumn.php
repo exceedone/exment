@@ -75,7 +75,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                             'table_name' => 'options.select_export_table_name',
                             'column_name' => 'options.select_export_column_name',
                         ]
-                    ], 
+                    ],
                 ],
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
                 'uniqueKeyFunctionArgs' => ['options.select_import_column_id', 'options.select_export_column_id'],
@@ -362,6 +362,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $name;
     }
 
+    /**
+     * Get where query. index name or value->XXXX
+     *
+     * @return void
+     */
+    public function getQueryKey()
+    {
+        return $this->index_enabled ? $this->getIndexColumnName() : 'value->' . $this->column_name;
+    }
+
     
     /**
      * Get select table relation name.
@@ -447,7 +457,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return ['options.available_characters'];
     }
     
-    public function importSaved($options = [])
+    public function importSaved($json, $options = [])
     {
         if (!$this->index_enabled) {
             return $this;
@@ -469,6 +479,20 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             'custom_table_id' => $custom_table->id,
             'column_name' => $column_name
         ]);
+        
+        // importReplaceJsonCustomColumn using import and update column
+        $update_flg = false;
+        if (static::importReplaceJsonCustomColumn($json, 'options.select_import_column_id', 'options.select_import_column_name', 'options.select_import_table_name', $options)) {
+            $update_flg = true;
+            $obj_column->setOption('select_import_column_id', array_get($json, 'options.select_import_column_id'));
+        }
+        if (static::importReplaceJsonCustomColumn($json, 'options.select_export_column_id', 'options.select_export_column_name', 'options.select_export_table_name', $options)) {
+            $update_flg = true;
+            $obj_column->setOption('select_export_column_id', array_get($json, 'options.select_export_column_id'));
+        }
+        if ($update_flg) {
+            $obj_column->save();
+        }
 
         // if record is already exists skip process, when update
         if ($is_update && $obj_column->exists) {
@@ -589,11 +613,5 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         array_set($array, 'options.calc_formula', $calc_formula);
         
         return $array;
-    }
-    
-    public static function importReplaceJson(&$json, $options = [])
-    {
-        static::importReplaceJsonCustomColumn($json, 'options.select_import_column_id', 'options.select_import_column_name', 'options.select_import_table_name', $options);
-        static::importReplaceJsonCustomColumn($json, 'options.select_export_column_id', 'options.select_export_column_name', 'options.select_export_table_name', $options);
     }
 }

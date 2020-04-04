@@ -26,4 +26,21 @@ class SelectValtext extends Select
     {
         return $this->custom_column->createSelectOptions();
     }
+
+    /**
+     * Get pure value. If you want to change the search value, change it with this function.
+     *
+     * @param [type] $value
+     * @return ?string string:matched, null:not matched
+     */
+    public function getPureValue($label)
+    {
+        foreach ($this->custom_column->createSelectOptions() as $key => $q) {
+            if ($label == $q) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
 }

@@ -25,13 +25,13 @@ trait SystemValuesTrait
                 'show_workflow_histories' => ['nullHidden' => true, 'function' => 'showWorkflowHistories'],
             ],
             'bodies' => [
-                SystemColumn::ID => [],
-                SystemColumn::CREATED_USER => [],
-                SystemColumn::UPDATED_USER => [],
-                SystemColumn::DELETED_USER => ['nullHidden' => true],
-                SystemColumn::CREATED_AT => [],
-                SystemColumn::UPDATED_AT => [],
-                SystemColumn::DELETED_AT => ['nullHidden' => true],
+                SystemColumn::ID => ['getOld' => true],
+                SystemColumn::CREATED_USER => ['getOld' => true],
+                SystemColumn::UPDATED_USER => ['getOld' => true],
+                SystemColumn::DELETED_USER => ['getOld' => true, 'nullHidden' => true],
+                SystemColumn::CREATED_AT => ['getOld' => true],
+                SystemColumn::UPDATED_AT => ['getOld' => true],
+                SystemColumn::DELETED_AT => ['getOld' => true, 'nullHidden' => true],
             ]
         ];
 
@@ -64,7 +64,14 @@ trait SystemValuesTrait
         
             $option = SystemColumn::getEnum($key)->option();
             $param = array_get($option, 'avatarname') ?: array_get($option, 'tagname') ?: array_get($option, 'name');
-            $value = $custom_value->{$param};
+            
+            $value = null;
+            if (boolval(array_get($options, 'getOld'))) {
+                $value = old($param);
+            }
+            if (is_nullorempty($value)) {
+                $value = $custom_value->{$param};
+            }
 
             if (boolval(array_get($options, 'nullHidden')) && empty($value)) {
                 continue;
@@ -72,7 +79,7 @@ trait SystemValuesTrait
 
             $result[] = [
                 'label' => exmtrans("common.$key"),
-                'value' => $custom_value->{$param}
+                'value' => $value
             ];
         }
 

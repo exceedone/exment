@@ -113,4 +113,18 @@ class WorkflowValue extends ModelBase
             ->where('workflow_action_id', $action_id)
             ->count() > 0;
     }
+    
+    public function deletingChildren()
+    {
+        $this->workflow_value_authorities()->delete();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::deleting(function ($model) {
+            $model->deletingChildren();
+        });
+    }
 }

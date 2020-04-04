@@ -31,6 +31,7 @@ class Define
     public const YES_KEYWORD = 'yes';
 
     public const API_FEATURE_TEST = 'API_FEATURE_TEST';
+    public const API_FEATURE_TEST_APIKEY = 'API_FEATURE_TEST_APIKEY';
 
     public const MAX_SIZE_NUMBER = 1000000000000;
 
@@ -64,6 +65,8 @@ class Define
         'default_date_format' => ['default' => 'format_default', 'group' => 'advanced'],
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'advanced'],
         'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'advanced'],
+
+        'grid_filter_disable_flg' => ['type' => 'array', 'default' => '', 'group' => 'advanced'] ,
 
         'complex_password' => ['type' => 'boolean', 'group' => 'advanced', 'default' => false],
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
@@ -252,6 +255,7 @@ class Define
         'user' => "\Exceedone\Exment\Model\Traits\UserTrait",
         'organization' => "\Exceedone\Exment\Model\Traits\OrganizationTrait",
         'mail_template' => "\Exceedone\Exment\Model\Traits\MailTemplateTrait",
+        'document' => "\Exceedone\Exment\Model\Traits\DocumentTrait",
     ];
 
     public const GRID_MAX_LENGTH = 50;
@@ -292,6 +296,11 @@ class Define
         'mysql' => '5.7.8',
         'mariadb' => '10.2.7',
         'sqlsrv' => '13.0.0.0',
+    ];
+
+    public const PHP_VERSION = [
+        '7.1.3',
+        '7.4.0',
     ];
 
     public static function FILE_OPTION()
@@ -352,4 +361,6 @@ class Define
     public const DISKNAME_PLUGIN_SYNC = 'plugin_sync';
     public const DISKNAME_PLUGIN_LOCAL = 'plugin_local';
     public const DISKNAME_TEMPLATE_SYNC = 'template_sync';
+
+    public const CHARTITEM_LABEL = 'chartitem_label';
 }

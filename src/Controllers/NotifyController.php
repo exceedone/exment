@@ -25,7 +25,6 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Validator\RequiredIfExRule;
-use DB;
 
 class NotifyController extends AdminControllerBase
 {
@@ -61,14 +60,14 @@ class NotifyController extends AdminControllerBase
         $grid = new Grid(new Notify);
         $grid->column('notify_name', exmtrans("notify.notify_name"))->sortable();
         $grid->column('notify_view_name', exmtrans("notify.notify_view_name"))->sortable();
-        $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->display(function ($val) {
+        $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->displayEscape(function ($val) {
             return NotifyTrigger::getEnum($val)->transKey('notify.notify_trigger_options');
         });
 
-        $grid->column('custom_table_id', exmtrans("notify.notify_target"))->sortable()->display(function ($val) {
+        $grid->column('custom_table_id', exmtrans("notify.notify_target"))->sortable()->displayEscape(function ($val) {
             $custom_table = CustomTable::getEloquent($val);
             if (isset($custom_table)) {
-                return esc_html($custom_table->table_view_name ?? null);
+                return $custom_table->table_view_name ?? null;
             }
             if (isset($this->workflow_id)) {
                 return Workflow::getEloquent($this->workflow_id)->workflow_view_name;
@@ -77,7 +76,7 @@ class NotifyController extends AdminControllerBase
             return null;
         });
 
-        $grid->column('notify_actions', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
+        $grid->column('notify_actions', exmtrans("notify.notify_action"))->sortable()->displayEscape(function ($val) {
             return implode(exmtrans('common.separate_word'), collect($val)->map(function ($v) {
                 $enum = NotifyAction::getEnum($v);
                 return isset($enum) ? $enum->transKey('notify.notify_action_options') : null;
@@ -273,7 +272,7 @@ class NotifyController extends AdminControllerBase
             $controller = $this;
             
             $form->text('webhook_url', exmtrans("notify.webhook_url"))
-                ->rules(["max:300", new RequiredIfExRule(['notify_actions', NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS])])
+                ->rules(["max:300", new RequiredIfExRule([['notify_actions', NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS]])])
                 ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify_webhook')))
                 ->setLabelClass(['asterisk'])
                 ->attribute([

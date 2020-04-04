@@ -146,6 +146,16 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                 'view_column_type' => null,
                 'view_kind_type' => null,
             ];
+        } elseif ($view_column == Define::CHARTITEM_LABEL) {
+            // get table name and view name
+            $custom_table = CustomTable::getEloquent($this->getOption('target_table_id'));
+            $custom_view = CustomView::getEloquent($this->getOption('target_view_id'));
+            return [
+                'table_name' => array_get($custom_table, 'table_name'),
+                'column_name' => $view_column,
+                'view_column_type' => $view_column,
+                'view_kind_type' => array_get($custom_view, 'view_kind_type'),
+            ];
         }
 
         $items = $view_column->getUniqueKeyValues();
@@ -198,6 +208,9 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         $view_column_type = array_get($json, $view_column_type_key);
 
         switch ($view_column_type) {
+            case Define::CHARTITEM_LABEL:
+                $id = $view_column_type;
+                break;
             case ConditionType::COLUMN:
                 $custom_column = CustomColumn::getEloquent($column_name, $table_name);
                 $id = array_get($custom_column, 'id');
@@ -211,7 +224,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                 break;
         }
 
-        if (isset($id)) {
+        if (isset($id) && \is_numeric($id)) {
             $table_type = array_get($json, $table_type_key);
             if ($table_type == ViewKindType::AGGREGATE) {
                 $view_column = CustomViewSummary::where('custom_view_id', array_get($json, 'options.target_view_id'))
@@ -225,6 +238,10 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
             if (isset($view_column)) {
                 array_set($json, "options.{$key}", $table_type.'_'.$view_column->id);
             }
+        }
+        // Define::CHARTITEM_LABEL
+        elseif (isset($id) && is_string($id)) {
+            array_set($json, "options.{$key}", $id);
         }
 
         array_forget($json, $custom_column_key);

@@ -151,6 +151,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     $row['uri'] = $plugin->getRouteUri();
                     break;
                 case MenuType::TABLE:
+                    if (!isset($row['table_name'])) {
+                        $result = false;
+                        break;
+                    }
                     if (is_nullorempty($row['icon'])) {
                         $table_options = json_decode(array_get($row, 'table_options'), true);
                         $row['icon'] = array_get($table_options, 'icon');

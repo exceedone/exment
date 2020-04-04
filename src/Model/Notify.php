@@ -240,7 +240,7 @@ class Notify extends ModelBase
                     $users = $users->merge(
                         $workflow_action->getAuthorityTargets($custom_value, true),
                         $users
-                );
+                    );
                 });
         }
 

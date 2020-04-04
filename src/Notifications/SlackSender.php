@@ -2,63 +2,37 @@
 
 namespace Exceedone\Exment\Notifications;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\SlackMessage;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Jobs;
 
-class SlackSender extends Notification
+class SlackSender
 {
-    use Queueable;
-
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($content)
+    public function __construct($subject, $body)
     {
         $this->name = config('exment.slack_from_name') ?? System::site_name();
         $this->icon = config('exment.slack_from_icon') ?? ':information_source:';
-        $this->content = $content;
+        $this->subject = $subject;
+        $this->body = $body;
     }
 
     /**
-     * Get the notification's delivery channels.
+     * Send notify
      *
-     * @param  mixed  $notifiable
-     * @return array
+     * @return void
      */
-    public function via($notifiable)
+    public function send($notify)
     {
-        return ['slack'];
-    }
-
-    /**
-     * Get the mail representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return \Illuminate\Notifications\Messages\MailMessage
-     */
-    public function toSlack($notifiable)
-    {
-        return (new SlackMessage)
-                ->from($this->name, $this->icon)
-                ->content($this->content);
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
-    public function toArray($notifiable)
-    {
-        return [
-            //
-        ];
+        // replace word
+        $slack_content = static::editContent($this->subject, $this->body);
+        // send slack message
+        $notify->notify(new Jobs\SlackSendJob($this->name, $this->icon, $slack_content));
     }
 
     /**

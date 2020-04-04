@@ -343,7 +343,7 @@ class TemplateImporter
                 $custom_table = array_dot_reverse($custom_table);
 
                 $form_action_disable_flg = array_get($custom_table, 'options.form_action_disable_flg');
-                if(!is_nullorempty($form_action_disable_flg)){
+                if (!is_nullorempty($form_action_disable_flg)) {
                     array_set($custom_table, 'options.form_action_disable_flg', stringToArray($form_action_disable_flg));
                 }
             }
@@ -362,10 +362,10 @@ class TemplateImporter
                 }
 
                 // if contains select_import_column_name ans select_export_column_name, set
-                if(array_key_value_exists('options.select_import_column_name', $custom_column)){
+                if (array_key_value_exists('options.select_import_column_name', $custom_column)) {
                     $custom_column['options.select_import_table_name'] = array_get($custom_column, 'options.select_target_table_name');
                 }
-                if(array_key_value_exists('options.select_export_column_name', $custom_column)){
+                if (array_key_value_exists('options.select_export_column_name', $custom_column)) {
                     $custom_column['options.select_export_table_name'] = array_get($custom_column, 'options.select_target_table_name');
                 }
 
@@ -406,9 +406,9 @@ class TemplateImporter
                     }
                     // set table_label_column_name
                     $priority = 1;
-                    foreach(range(1, 5) as $index){
+                    foreach (range(1, 5) as $index) {
                         $table_label_column_name = array_get($custom_column_multisetting, "table_label_column_name_$index");
-                        if(\is_nullorempty($table_label_column_name)){
+                        if (\is_nullorempty($table_label_column_name)) {
                             continue;
                         }
 
@@ -439,10 +439,10 @@ class TemplateImporter
                 }
 
                 // if contains select_import_column_name ans select_export_column_name, set
-                if(array_key_value_exists('options.parent_import_column_name', $custom_relation)){
+                if (array_key_value_exists('options.parent_import_column_name', $custom_relation)) {
                     $custom_relation['options.parent_import_table_name'] = $table_name;
                 }
-                if(array_key_value_exists('options.parent_export_column_name', $custom_relation)){
+                if (array_key_value_exists('options.parent_export_column_name', $custom_relation)) {
                     $custom_relation['options.parent_export_table_name'] = $table_name;
                 }
             }
@@ -556,7 +556,7 @@ class TemplateImporter
                 ]);
 
                 // if call from excel and created first, append list
-                if($fromExcel && $obj_table->wasRecentlyCreated){
+                if ($fromExcel && $obj_table->wasRecentlyCreated) {
                     $createDefaultTables[] = $obj_table;
                 }
             }
@@ -576,7 +576,12 @@ class TemplateImporter
                 }
                 
                 // Create columnmultis. --------------------------------------------------
-                foreach (array_get($table, 'custom_column_multisettings', []) as $column) {
+                $custom_column_multisettings = array_get($table, 'custom_column_multisettings', []);
+                // delete all data related custom_table before insert
+                if (count($custom_column_multisettings) > 0) {
+                    CustomColumnMulti::where('custom_table_id', $obj_table->id)->delete();
+                }
+                foreach ($custom_column_multisettings as $column) {
                     CustomColumnMulti::importTemplate($column, $is_update, [
                         'parent' => $obj_table,
                     ]);
@@ -661,7 +666,7 @@ class TemplateImporter
             }
 
             // create default form and view
-            foreach($createDefaultTables as $createDefaultTable){
+            foreach ($createDefaultTables as $createDefaultTable) {
                 CustomForm::getDefault($createDefaultTable);
                 CustomView::getAllData($createDefaultTable);
             }
@@ -669,11 +674,11 @@ class TemplateImporter
 
         // after transaction, execute create table etc
         foreach (array_get($json, "custom_tables", []) as $table) {
-            $obj = CustomTable::getEloquent(array_get($table, 'table_name'))->importSaved();
+            $obj = CustomTable::getEloquent(array_get($table, 'table_name'))->importSaved($table);
 
             if (array_key_exists('custom_columns', $table)) {
                 foreach (array_get($table, 'custom_columns') as $column) {
-                    CustomColumn::getEloquent(array_get($column, 'column_name'), $obj)->importSaved();
+                    CustomColumn::getEloquent(array_get($column, 'column_name'), $obj)->importSaved($column);
                 }
             }
         }

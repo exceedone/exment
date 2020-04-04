@@ -19,6 +19,15 @@ class File extends CustomItem
     }
 
     /**
+     * get text
+     */
+    public function text()
+    {
+        // get image url
+        return ExmentFile::getUrl($this->fileValue(), boolval(array_get($this->options, 'asApi')));
+    }
+
+    /**
      * get html. show link to file
      */
     public function html()
@@ -30,7 +39,8 @@ class File extends CustomItem
             return $url;
         }
 
-        return '<a href="'.$url.'" target="_blank">'.esc_html($file->filename).'</a>';
+        $title = exmtrans('common.download');
+        return "<a href='$url' target='_blank' data-toggle='tooltip' title='$title'>".esc_html($file->filename).'</a>';
     }
 
     /**
@@ -64,6 +74,10 @@ class File extends CustomItem
         $field->move($custom_table->table_name);
         $field->callableName(function ($file) use ($custom_table) {
             return File::setFileInfo($this, $file, $custom_table);
+        });
+        $field->caption(function ($caption) {
+            $file = ExmentFile::getData($caption);
+            return $file->filename ?? basename($caption);
         });
     }
     

@@ -18,7 +18,6 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\CustomValuePageType;
@@ -169,7 +168,7 @@ trait CustomValueShow
                     $notifies = $this->custom_table->notifies;
      
                     // only not trashed
-                    if(!$custom_value->trashed()){
+                    if (!$custom_value->trashed()) {
                         foreach ($listButtons as $plugin) {
                             $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
                         }
@@ -203,8 +202,8 @@ trait CustomValueShow
                         }
                     }
                     // only trashed
-                    else{
-                        if($enableEdit === true || $enableEdit == ErrorCode::ALREADY_DELETED){
+                    else {
+                        if ($enableEdit === true || $enableEdit == ErrorCode::ALREADY_DELETED) {
                             $tools->disableDelete();
 
                             // add hard delete button
@@ -246,7 +245,8 @@ trait CustomValueShow
      * @param boolean $modal
      * @return void
      */
-    protected function setChildBlockBox($row, $custom_value, $id = null, $modal = false){
+    protected function setChildBlockBox($row, $custom_value, $id = null, $modal = false)
+    {
         // if modal, dont show children
         if ($modal) {
             return;
@@ -266,7 +266,7 @@ trait CustomValueShow
             else {
                 list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                 $target_table = $custom_form_block->target_table;
-                if(!isset($target_table)){
+                if (!isset($target_table)) {
                     return;
                 }
 
@@ -275,12 +275,12 @@ trait CustomValueShow
                 $grid->setTitle($block_label);
                 
                 // one to many
-                if($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY){
+                if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
                     // append filter
                     $grid->model()->where('parent_id', $id);
                 }
                 // one to many
-                elseif($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY){
+                elseif ($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY) {
                     // first, getting children ids
                     $children_ids = $custom_value->{$relation_name}()->get()->pluck('id');
                     // second, filtering children ids
@@ -481,20 +481,17 @@ EOT;
         return !$modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
     
-    protected function getDocuments($id, $modal = false)
+    protected function getDocuments($custom_value, $modal = false)
     {
         if ($modal) {
             return [];
         }
-        return getModelName(SystemTableName::DOCUMENT)
-            ::where('parent_id', $id)
-            ->where('parent_type', $this->custom_table->table_name)
-            ->get();
+        return $custom_value->getDocuments();
     }
     
     protected function setDocumentBox($row, $custom_value, $id, $modal = false)
     {
-        $documents = $this->getDocuments($id, $modal);
+        $documents = $this->getDocuments($custom_value, $modal);
         $useFileUpload = $this->useFileUpload($custom_value, $modal);
 
         if (count($documents) == 0 && !$useFileUpload) {
@@ -593,9 +590,9 @@ EOT;
                 ->setWidth(8, 3);
         }
 
-        if($custom_value->trashed()){
+        if ($custom_value->trashed()) {
             $form->disableSubmit();
-        }else{
+        } else {
             $form->textarea('comment', exmtrans("common.comment"))
             ->rows(3)
             ->required()
@@ -627,7 +624,7 @@ EOT;
             $form->display('created_at', exmtrans("workflow.executed_at"));
             $form->display('workflow_action.action_name', exmtrans("workflow.action_name"));
             $form->display('workflow_action.status_from_to_name', exmtrans("workflow.status"));
-            $form->display('created_user', exmtrans("workflow.executed_user"));
+            $form->display('created_user', exmtrans("common.executed_user"));
             $form->display('comment', exmtrans("common.comment"));
         })->setTableWidth(12, 0)
         ->disableOptions()

@@ -85,7 +85,7 @@ class DefaultTableProvider extends ProviderBase
             // if exists, firstOrNew
             else {
                 // get model from models
-                $model = array_get($models, $primary_value);
+                $model = array_get($models, strval($primary_value));
                 if (!isset($model)) {
                     $model = new $modelName;
                 }
@@ -160,10 +160,17 @@ class DefaultTableProvider extends ProviderBase
         }
 
         // execute validation
-        $validator = $this->custom_table->validateValue(array_dot_reverse($data), true, array_get($model, 'id'), 'value.', true, false);
+        $validator = $this->custom_table->validateValue(array_dot_reverse($data), array_get($model, 'id'), [
+            'systemColumn' => true,
+            'column_name_prefix' => 'value.',
+            'appendKeyName' => true,
+            'checkCustomValueExists' => false,
+            'validateLock' => false,
+        ]);
+
         if ($validator->fails()) {
             // create error message
-            foreach ($validator->errors()->messages() as $message) {
+            foreach ($validator->getMessages() as $message) {
                 $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), implode(',', $message));
             }
             // return $errors;
@@ -240,7 +247,7 @@ class DefaultTableProvider extends ProviderBase
                 continue;
             }
             // setvalue function if key is value
-            if ($dkey == 'value') {
+            if ($dkey == 'value' && is_array($dvalue)) {
                 // loop dvalue
                 foreach ($dvalue as $dvalueKey => $dvalueValue) {
                     $model->setValue($dvalueKey, $dvalueValue);

@@ -17,6 +17,7 @@ class Hidden implements Renderable
             'admin_uri' => admin_url(),
             'gridrow_select_edit' => config('exment.gridrow_select_edit', 0),
             'gridrow_select_disabled' => config('exment.gridrow_select_disabled', 0),
+            'copy_toastr' => exmtrans('common.message.copy_execute'),
         ];
 
         $html = '';

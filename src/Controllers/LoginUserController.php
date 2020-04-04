@@ -50,7 +50,7 @@ class LoginUserController extends AdminControllerBase
         $grid->column($table->getIndexColumnName('email'), exmtrans('user.email'));
         
         $controller = $this;
-        $grid->column('login_user_id', exmtrans('user.login_user'))->display(function ($login_user_id) use ($controller) {
+        $grid->column('login_user_id', exmtrans('user.login_user'))->displayEscape(function ($login_user_id) use ($controller) {
             return !is_null($controller->getLoginUser($this)) ? 'YES' : '';
         });
 
@@ -66,7 +66,7 @@ class LoginUserController extends AdminControllerBase
         $grid->exporter($service);
         
         $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
-            $tools->append(new Tools\ExportImportButton(admin_url('loginuser'), $grid));
+            $tools->append(new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true));
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
             });
@@ -168,7 +168,7 @@ class LoginUserController extends AdminControllerBase
                     [
                     'primary_key' => app('request')->input('select_primary_key') ?? null,
                 ]
-            )
+                )
             )->format($request->file('custom_table_file'));
         $result = $service->import($request);
 

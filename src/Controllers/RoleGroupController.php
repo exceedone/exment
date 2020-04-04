@@ -41,12 +41,12 @@ class RoleGroupController extends AdminControllerBase
         $grid = new Grid(new RoleGroup);
         $grid->column('role_group_name', exmtrans('role_group.role_group_name'));
         $grid->column('role_group_view_name', exmtrans('role_group.role_group_view_name'));
-        $grid->column('role_group_users', exmtrans('role_group.users_count'))->display(function ($counts) {
+        $grid->column('role_group_users', exmtrans('role_group.users_count'))->displayEscape(function ($counts) {
             return count($counts);
         });
 
         if (System::organization_available()) {
-            $grid->column('role_group_organizations', exmtrans('role_group.organizations_count'))->display(function ($counts) {
+            $grid->column('role_group_organizations', exmtrans('role_group.organizations_count'))->displayEscape(function ($counts) {
                 return count($counts);
             });
         }

@@ -20,7 +20,7 @@ class CustomCopyController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
 
-    public function __construct(CustomTable $custom_table, Request $request)
+    public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
         
@@ -83,8 +83,8 @@ class CustomCopyController extends AdminControllerTableBase
         $grid = new Grid(new CustomCopy);
         $grid->column('from_custom_table.table_view_name', exmtrans("custom_copy.from_custom_table_view_name"))->sortable();
         $grid->column('to_custom_table.table_view_name', exmtrans("custom_copy.to_custom_table_view_name"))->sortable();
-        $grid->column('label', exmtrans("plugin.options.label"))->sortable()->display(function ($value) {
-            return esc_html(array_get($this, 'options.label'));
+        $grid->column('label', exmtrans("plugin.options.label"))->sortable()->displayEscape(function ($value) {
+            return array_get($this, 'options.label');
         });
         
         if (isset($this->custom_table)) {
@@ -129,7 +129,7 @@ class CustomCopyController extends AdminControllerTableBase
                       $item['options']['label'],
                       $from_name,
                       $to_name
-                    )];
+                  )];
               })->toArray();
         }
     }

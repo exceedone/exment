@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\ConditionType;
 
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -233,6 +234,14 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         parent::boot();
         
+        // update event
+        static::updating(function ($model) {
+            if ($model->isDirty('child_custom_table_id')) {
+                // Delete items
+                $model->deletingChildren();
+            }
+        });
+        
         // delete event
         static::deleting(function ($model) {
             // Delete items
@@ -246,33 +255,37 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     public function deletingChildren()
     {
         $target = $this->parent_custom_table;
+        $original_child_id = $this->getOriginal('child_custom_table_id');
 
         // delete child form block
         foreach ($target->custom_forms as $item) {
             foreach ($item->custom_form_blocks as $block) {
-                if ($block->form_block_target_table_id == $this->child_custom_table_id) {
+                if ($block->form_block_target_table_id == $original_child_id) {
                     $block->delete();
                 }
             }
         }
 
         // delete view column
-        // foreach ($target->custom_views as $item) {
-        //     foreach ($item->custom_view_columns as $column) {
-        //         if ($column->view_column_table_id == $this->child_custom_table_id) {
-        //             $column->delete();
-        //         }
-        //     }
-        //     foreach ($item->custom_view_summaries as $column) {
-        //         if ($column->view_column_table_id == $this->child_custom_table_id) {
-        //             $column->delete();
-        //         }
-        //     }
-        //     foreach ($item->custom_view_filters as $column) {
-        //         if ($column->view_column_table_id == $this->child_custom_table_id) {
-        //             $column->delete();
-        //         }
-        //     }
-        // }
+        foreach ($target->custom_views as $item) {
+            foreach ($item->custom_view_columns as $column) {
+                if (ConditionType::isTableItem($column->view_column_type) &&
+                    $column->view_column_table_id == $original_child_id) {
+                    $column->delete();
+                }
+            }
+            foreach ($item->custom_view_summaries as $column) {
+                if (ConditionType::isTableItem($column->view_column_type) &&
+                    $column->view_column_table_id == $original_child_id) {
+                    $column->delete();
+                }
+            }
+            foreach ($item->custom_view_filters as $column) {
+                if (ConditionType::isTableItem($column->view_column_type) &&
+                    $column->view_column_table_id == $original_child_id) {
+                    $column->delete();
+                }
+            }
+        }
     }
 }

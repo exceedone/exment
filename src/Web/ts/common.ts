@@ -27,6 +27,8 @@ namespace Exment {
 
             $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
 
+            $(document).off('click', '.copyScript').on('click', '.copyScript', {}, CommonEvent.copyScriptEvent);
+
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
@@ -100,6 +102,20 @@ namespace Exment {
         }
         
         /**
+         * Copy Script event
+         */
+        public static copyScriptEvent(ev){
+            let input = $(ev.target).closest('input');
+            if(input.prop('type') != 'text'){
+                return;
+            }
+
+            input.select();
+            document.execCommand('copy');
+            toastr.success($('#copy_toastr').val(), null, {timeOut:1000});
+        }
+        
+        /**
          * 
          */
         public static CallbackExmentAjax(res) {
@@ -136,6 +152,9 @@ namespace Exment {
                 // show swal
                 else if(hasValue(res.swal)){
                     swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'error');
+                }
+                // if has message, not execute action
+                else if(hasValue(res.message)){
                 }
                 else {
                     toastr.error('Undeifned Error');
