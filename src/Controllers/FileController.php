@@ -88,6 +88,20 @@ class FileController extends AdminControllerBase
     }
 
 
+    /**
+     * Download favicon image
+     */
+    public function downloadFavicon()
+    {
+        $record = System::where('system_name', 'site_favicon')->first();
+
+        if (!isset($record)) {
+            abort(404);
+        }
+
+        return static::downloadFile($record->system_value);
+    }
+
 
     /**
      * Download file
@@ -102,9 +116,7 @@ class FileController extends AdminControllerBase
             $options
         );
 
-        if(!$options['asApi']){
-            $uuid = pathinfo($uuid, PATHINFO_FILENAME);
-        }
+        $uuid = [$uuid, pathinfo($uuid, PATHINFO_FILENAME)];
 
         $data = File::getData($uuid);
         if (!$data) {
@@ -158,20 +170,6 @@ class FileController extends AdminControllerBase
     }
 
     /**
-     * Download favicon image
-     */
-    public static function downloadFavicon()
-    {
-        $record = System::where('system_name', 'site_favicon')->first();
-
-        if (!isset($record)) {
-            abort(404);
-        }
-
-        return self::downloadFile($record->system_value);
-    }
-
-    /**
      * Delete file and document info
      */
     public static function deleteFile($uuid, $options = [])
@@ -193,10 +191,7 @@ class FileController extends AdminControllerBase
         }
 
         // if not has delete setting, abort 403
-        if (boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->base_user_id) {
-            if($options['asApi']){
-                return abortJson(403, ErrorCode::PERMISSION_DENY());
-            }
+        if (!$options['asApi'] && boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->base_user_id) {
             abort(403);
         }
 

@@ -203,9 +203,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
             $router->get('auth/change', 'ChangePasswordController@showChangeForm');
             $router->post('auth/change', 'ChangePasswordController@change');
-            $router->get('favicon', function () {
-                return File::downloadFavicon();
-            });
+            $router->get('favicon','FileController@downloadFavicon');
 
             // get config about login provider
             $login_providers = config('exment.login_providers');

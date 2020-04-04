@@ -244,9 +244,9 @@ class File extends ModelBase
     /**
      * Get file model using path or uuid
      */
-    protected static function getData($pathOrUuid)
+    protected static function getData($pathOrUuids)
     {
-        if (is_nullorempty($pathOrUuid)) {
+        if (is_nullorempty($pathOrUuids)) {
             return null;
         }
 
@@ -264,12 +264,19 @@ class File extends ModelBase
             }
         };
         
-        if(strpos($pathOrUuid, '/') !== false){
-            return $funcPath($pathOrUuid) ?: $funcUuid($pathOrUuid) ?: null;
+        foreach(toArray($pathOrUuids) as $pathOrUuid){
+            if(strpos($pathOrUuid, '/') !== false){
+                $val = $funcPath($pathOrUuid) ?: $funcUuid($pathOrUuid) ?: null;
+            }
+            else{
+                $val = $funcUuid($pathOrUuid) ?: $funcPath($pathOrUuid) ?: null;
+            }
+
+            if(isset($val)){
+                return $val;
+            }
         }
-        else{
-            return $funcUuid($pathOrUuid) ?: $funcPath($pathOrUuid) ?: null;
-        }
+
         return null;
     }
     
