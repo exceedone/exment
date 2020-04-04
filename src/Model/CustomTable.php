@@ -413,22 +413,21 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * validation custom_value using each column setting.
+     * *If use this function, Please check customMessages.
      *
      * @param array $value input value
-     * @param bool $systemColumn if true, contains validation system column
-     * @param string|int $custom_value_id custom value id
-     * @param string $column_name_prefix if not null, add column prefix name key.
      * @return mixed
      */
     public function validateValue($value, $custom_value_id = null, array $options = [])
     {
         extract(
             array_merge([
-                'systemColumn' => false,
-                'column_name_prefix' => null,
-                'appendKeyName' => true,
-                'checkCustomValueExists' => true,
-                'asApi' => false,
+                'systemColumn' => false,  // whether checking system column
+                'column_name_prefix' => null,  // appending error key's prefix, and value prefix
+                'appendKeyName' => true, // whether appending key name if eror
+                'checkCustomValueExists' => true, // whether checking require custom column
+                'asApi' => false, // calling as api
+                'appendErrorAllColumn' => false, // if error, append error message for all column
             ], $options)
         );
 
@@ -493,7 +492,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
         $errors = array_merge(
-            $this->validatorMultiUniques($value, $custom_value_id, $asApi),
+            $this->validatorMultiUniques($value, $custom_value_id, $options),
             $this->validatorLock($value, $custom_value_id, $asApi)
         );
         if(count($errors) > 0){
@@ -533,8 +532,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $customAttributes;
     }
     
-    public function validatorMultiUniques($input, $custom_value_id = null, bool $asApi = false)
+    public function validatorMultiUniques($input, $custom_value_id = null, array $options = [])
     {
+        extract(
+            array_merge([
+                'asApi' => false, // calling as api
+                'appendErrorAllColumn' => false, // if error, append error message for all column
+            ], $options)
+        );
+
         $errors = [];
 
         // getting custom_table's custom_column_multi_uniques
@@ -545,7 +551,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         foreach ($multi_uniques as $multi_unique) {
-            $query = static::query();
+            $query = $this->getValueModel()->query();
             $column_keys = [];
             foreach ([1,2,3] as $key) {
                 if (is_null($column_id = $multi_unique->{'unique' . $key})) {
@@ -553,22 +559,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 }
 
                 $column = CustomColumn::getEloquent($column_id);
-                $column_name = $column->column_name;
-
-                // get query key
-                if ($column->index_enabled) {
-                    $query_key = $column->getIndexColumnName();
-                } else {
-                    $query_key = 'value->' . $column_name;
-                }
-
                 // get value
-                $value = array_get($input, 'value.' . $column_name);
+                $value = array_get($input, 'value.' . $column->column_name);
                 if (is_array($value)) {
                     $value = json_encode(array_filter($value));
                 }
 
-                $query->where($query_key, $value);
+                $query->where($column->getQueryKey(), $value);
 
                 $column_keys[] = $column;
             }
@@ -593,8 +590,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     return $column_key->column_view_name;
                 });
                 $errorText = implode(exmtrans('common.separate_word'), $errorTexts->toArray());
+                
+                // append error message
                 foreach ($column_keys as $column_key) {
                     $errors["value.{$column_key->column_name}"] = [exmtrans('custom_value.help.multiple_uniques', $errorText)];
+                    if(!$appendErrorAllColumn){
+                        break;
+                    }
                 }
             }
         }
@@ -1121,7 +1123,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $relation_name = $select_column->getSelectTableRelationName();
             getModelName($this)::addDynamicRelation($relation_name, function ($model) use ($select_column) {
                 $modelname = getModelName($select_column->select_target_table);
-                return $model->belongsTo($modelname, $select_column->index_enabled ? $select_column->getIndexColumnName() : 'value->' . $this->column_name);
+                return $model->belongsTo($modelname, $select_column->getQueryKey());
             });
             
             $query->with($relation_name);

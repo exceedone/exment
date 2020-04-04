@@ -274,7 +274,7 @@ class DataImportExportService extends AbstractExporter
         );
         if ($validator->fails()) {
             // return errors as custom_table_file.
-            return $validator->errors()->messages();
+            return $validator->getMessages();
         }
 
         return true;

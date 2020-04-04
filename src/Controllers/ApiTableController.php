@@ -571,7 +571,7 @@ class ApiTableController extends AdminControllerTableBase
                 'asApi' => true,
             ]);
 
-            if ($validator->fails() || count($validator->customMessages) > 0) {
+            if ($validator->fails()) {
                 if ($is_single) {
                     $validates[] = $this->getErrorMessages($validator);
                 } else {

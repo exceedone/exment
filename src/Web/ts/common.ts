@@ -112,7 +112,7 @@ namespace Exment {
 
             input.select();
             document.execCommand('copy');
-            toastr.info($('#copy_toastr').val(), null, {timeOut:1000});
+            toastr.success($('#copy_toastr').val(), null, {timeOut:1000});
         }
         
         /**

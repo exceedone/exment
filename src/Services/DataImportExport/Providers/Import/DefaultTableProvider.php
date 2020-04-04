@@ -169,7 +169,7 @@ class DefaultTableProvider extends ProviderBase
 
         if ($validator->fails()) {
             // create error message
-            foreach ($validator->errors()->messages() as $message) {
+            foreach ($validator->getMessages() as $message) {
                 $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), implode(',', $message));
             }
             // return $errors;
