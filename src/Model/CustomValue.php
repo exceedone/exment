@@ -1047,7 +1047,7 @@ abstract class CustomValue extends ModelBase
      */
     public function getSum($custom_column)
     {
-        $name = $custom_column->index_enabled ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
+        $name = $custom_column->getQueryKey();
 
         if (!isset($name)) {
             return 0;

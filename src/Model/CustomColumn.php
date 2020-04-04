@@ -362,6 +362,15 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $name;
     }
 
+    /**
+     * Get where query. index name or value->XXXX
+     *
+     * @return void
+     */
+    public function getQueryKey(){
+        return $this->index_enabled ? $this->getIndexColumnName() : 'value->' . $this->column_name;
+    }
+
     
     /**
      * Get select table relation name.

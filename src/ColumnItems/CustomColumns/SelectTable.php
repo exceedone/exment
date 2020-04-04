@@ -436,7 +436,7 @@ class SelectTable extends CustomItem
             $searchValue = $searchValue . '%';
         }
 
-        $name = $custom_column->index_enabled ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
+        $name = $custom_column->getQueryKey();
         $query->where($name, 'LIKE', $searchValue);
         
         return true;
