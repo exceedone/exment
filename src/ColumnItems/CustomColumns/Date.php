@@ -123,7 +123,7 @@ class Date extends CustomItem
             $autoDate = true;
         }
         
-        if($autoDate){
+        if ($autoDate) {
             $this->required = false;
             return true;
         }

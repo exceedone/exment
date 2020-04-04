@@ -159,12 +159,11 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
         
-            $router->get('files/{uuid}', function ($uuid) {
-                return File::downloadFile($uuid);
-            });
-            $router->delete('files/{uuid}', function ($uuid) {
-                return File::deleteFile($uuid);
-            });
+            $router->get('files/{uuid}', 'FileController@download');
+            $router->get('files/{tableKey}/{uuid}', 'FileController@downloadTable');
+            
+            $router->delete('files/{uuid}', 'FileController@delete');
+            $router->delete('files/{tableKey}/{uuid}', 'FileController@deleteTable');
             
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
@@ -204,9 +203,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
             $router->get('auth/change', 'ChangePasswordController@showChangeForm');
             $router->post('auth/change', 'ChangePasswordController@change');
-            $router->get('favicon', function () {
-                return File::downloadFavicon();
-            });
+            $router->get('favicon', 'FileController@downloadFavicon');
 
             // get config about login provider
             $login_providers = config('exment.login_providers');
@@ -260,6 +257,17 @@ class RouteServiceProvider extends ServiceProvider
                 $router->delete("data/{tableKey}/{id}", 'ApiTableController@dataDelete')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/column/{column_name}", 'ApiTableController@columnData')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
 
+
+                // file, document --------------------------------------------------
+                $router->get('files/{uuid}', 'FileController@downloadApi')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get('files/{tableKey}/{uuid}', 'FileController@downloadTableApi')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->delete('files/{uuid}', 'FileController@deleteApi')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+                $router->delete('files/{tableKey}/{uuid}', 'FileController@deleteTableApi')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+
+                $router->get("document/{tableKey}/{id}", 'ApiTableController@getDocuments')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->post("document/{tableKey}/{id}", 'ApiTableController@createDocument')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+
+
                 // table --------------------------------------------------
                 $router->get("table", 'ApiController@tablelist')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 $router->get("table/columns", 'ApiController@columns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
@@ -295,13 +303,6 @@ class RouteServiceProvider extends ServiceProvider
                 $router->get("wf/data/{tableKey}/{id}/actions", 'ApiWorkflowController@getActions')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
                 $router->get("wf/data/{tableKey}/{id}/histories", 'ApiWorkflowController@getHistories')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
                 $router->post("wf/data/{tableKey}/{id}/value", 'ApiWorkflowController@execute')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_EXECUTE));
-
-                // only call as api
-                if($route['type'] == 'api'){
-                    $router->get('files/{uuid}', function ($uuid) {
-                        return File::downloadFile($uuid, boolval(request()->get('base64', false)));
-                    })->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                }
             });
         }
     }

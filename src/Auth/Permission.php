@@ -161,7 +161,6 @@ class Permission
             case "database":
             case "auth/menu":
             case "auth/logs":
-            case "api_setting":
                 if ($systemRole) {
                     return array_key_exists('system', $this->permission_details);
                 }
@@ -172,6 +171,11 @@ class Permission
             case "loginuser":
                 if ($systemRole) {
                     return array_key_exists(PermissionEnum::LOGIN_USER, $this->permission_details);
+                }
+                return false;
+            case "api_setting":
+                if ($systemRole) {
+                    return array_keys_exists(PermissionEnum::AVAILABLE_API, $this->permission_details);
                 }
                 return false;
             case "workflow":

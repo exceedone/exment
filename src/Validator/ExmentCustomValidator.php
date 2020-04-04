@@ -17,6 +17,21 @@ class ExmentCustomValidator extends AdminValidator
 {
     use ColumnOptionQueryTrait;
 
+    public function passes()
+    {
+        return parent::passes() && count($this->customMessages) == 0;
+    }
+
+    public function fails()
+    {
+        return parent::fails() || count($this->customMessages) > 0;
+    }
+
+    public function getMessages()
+    {
+        return array_merge($this->errors()->messages(), $this->customMessages);
+    }
+
     /**
     * Validation in table
     *

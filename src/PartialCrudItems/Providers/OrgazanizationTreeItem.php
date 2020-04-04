@@ -31,7 +31,7 @@ class OrgazanizationTreeItem extends ProviderBase
             $tree->disableExpandCollapse();
 
             $tree->getCallback(function ($items) {
-                foreach($items as $item){
+                foreach ($items as $item) {
                     $item->append('label');
                 }
                 return $items;

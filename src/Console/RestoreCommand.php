@@ -93,7 +93,7 @@ class RestoreCommand extends Command
         foreach ($files as $file) {
             $table = $file->getBasename('.' . $file->getExtension());
 
-            if(!\Schema::hasTable($table)){
+            if (!\Schema::hasTable($table)) {
                 continue;
             }
 

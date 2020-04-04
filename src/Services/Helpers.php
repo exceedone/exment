@@ -288,7 +288,8 @@ if (!function_exists('path_join')) {
      */
     function path_join(...$pass_array)
     {
-        return join_paths(DIRECTORY_SEPARATOR, $pass_array);
+        return join_paths('/', $pass_array);
+        //return join_paths(DIRECTORY_SEPARATOR, $pass_array);
     }
 }
 
@@ -698,11 +699,11 @@ if (!function_exists('toArray')) {
             return null;
         }
 
-        if(is_array($value)){
+        if (is_array($value)) {
             return $value;
         }
 
-        if($value instanceof \Illuminate\Support\Collection){
+        if ($value instanceof \Illuminate\Support\Collection) {
             return $value->toArray();
         }
 
@@ -721,6 +722,11 @@ if (!function_exists('is_json')) {
 if (!function_exists('is_vector')) {
     /**
      * whether array is vector array(not associative array)
+     *
+     * @param array $arr checking array
+     * @return boolean
+     * true: [0, 1, 2]
+     * false: ['foo' => 0, 'bar' => 1]
      */
     function is_vector(array $arr)
     {

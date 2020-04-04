@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\ApiClient;
+use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Enums\ApiClientType;
 use Laravel\Passport\Client;
-use Laravel\Passport\ClientRepository;
 
 class ApiSettingController extends AdminControllerBase
 {
@@ -58,10 +58,7 @@ class ApiSettingController extends AdminControllerBase
         $form->description(exmtrans('common.help.more_help'));
 
         if (!isset($id)) {
-            $form->radio('client_type', exmtrans('api.client_type_text'))->options([
-                ApiClientType::CLIENT_CREDENTIALS => exmtrans('api.client_type_options.client_credentials'),
-                ApiClientType::PASSWORD_GRANT => exmtrans('api.client_type_options.password_grant'),
-            ])
+            $form->radio('client_type', exmtrans('api.client_type_text'))->options(ApiClientType::transArray('api.client_type_options'))
             ->default(ApiClientType::CLIENT_CREDENTIALS)
             ->required()
             ->attribute(['data-filtertrigger' =>true])
@@ -83,9 +80,22 @@ class ApiSettingController extends AdminControllerBase
         }
 
         if (isset($id)) {
-            $form->text('id', exmtrans('api.client_id'))->readonly();
+            $form->text('id', exmtrans('api.client_id'))->setElementClass(['copyScript'])->readonly();
             $form->password('secret', exmtrans('api.client_secret'))->readonly()->toggleShowEvent()
+                ->setElementClass(['copyScript'])
                 ->help(exmtrans('api.help.client_secret'));
+
+            if ($client->client_type == ApiClientType::API_KEY) {
+                $client_api_key = $client->client_api_key;
+
+                $form->password('client_api_key.key', exmtrans('api.api_key'))->readonly()->toggleShowEvent()
+                    ->setElementClass(['copyScript'])
+                    ->help(exmtrans('api.help.api_key') . exmtrans('api.help.client_secret'));
+
+                $form->display('user_id', exmtrans('common.executed_user'))->displayText(function ($user_id) {
+                    return getUserName($user_id, true);
+                })->help(exmtrans('api.help.executed_user'));
+            }
         }
 
         $form->disableReset();
@@ -137,24 +147,34 @@ class ApiSettingController extends AdminControllerBase
             return back()->withInput()->withErrors($validator);
         }
 
-        $clientRepository = new ClientRepository;
+        $clientRepository = new ApiClientRepository;
         DB::beginTransaction();
         try {
             // for create token
             if (!isset($id)) {
+                $user_id = \Exment::user()->base_user_id;
+                $name = $request->get('name');
+                $client_type = $request->get('client_type');
+
                 // create for CLIENT_CREDENTIALS
-                if ($request->get('client_type') == ApiClientType::CLIENT_CREDENTIALS) {
+                if ($client_type == ApiClientType::CLIENT_CREDENTIALS) {
                     $client = $clientRepository->create(
-                        \Exment::user()->id,
-                        $request->get('name'),
+                        $user_id,
+                        $name,
                         $request->get('redirect')
                     );
                 }
                 // create for password
-                else {
+                elseif ($client_type == ApiClientType::PASSWORD_GRANT) {
                     $client = $clientRepository->createPasswordGrantClient(
-                        \Exment::user()->id,
-                        $request->get('name'),
+                        $user_id,
+                        $name,
+                        'http://localhost'
+                    );
+                } elseif ($client_type == ApiClientType::API_KEY) {
+                    $client = $clientRepository->createApiKey(
+                        $user_id,
+                        $name,
                         'http://localhost'
                     );
                 }

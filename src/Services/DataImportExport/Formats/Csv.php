@@ -68,17 +68,16 @@ class Csv extends FormatBase
                 }
 
                 return $datalist;
-            }
-            finally{
+            } finally {
                 // delete tmp folder
-                if(isset($zip)){
+                if (isset($zip)) {
                     $zip->close();
                 }
                 // delete zip
-                if(isset($tmpfolderpath)){
+                if (isset($tmpfolderpath)) {
                     \File::deleteDirectory($tmpfolderpath);
                 }
-                if(isset($fullpath)){
+                if (isset($fullpath)) {
                     \File::delete($fullpath);
                 }
             }
@@ -185,7 +184,7 @@ class Csv extends FormatBase
     protected function getRowCount($files) : int
     {
         $count = 0;
-        if(is_string($files)){
+        if (is_string($files)) {
             $files = [$files];
         }
 
@@ -210,5 +209,4 @@ class Csv extends FormatBase
         $spreadsheet = $reader->load($file);
         return $spreadsheet->getActiveSheet()->toArray();
     }
-
 }

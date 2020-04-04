@@ -352,9 +352,10 @@ class SelectTable extends CustomItem
      * @param [type] $value
      * @return ?string string:matched, null:not matched
      */
-    public function getPureValue($label){
+    public function getPureValue($label)
+    {
         $select_table = $this->custom_column->select_target_table ?? null;
-        if(!isset($select_table)){
+        if (!isset($select_table)) {
             return null;
         }
 
@@ -362,7 +363,7 @@ class SelectTable extends CustomItem
         $labelColumns = $select_table->getLabelColumns();
 
         // not support table_label_format
-        if(is_string($labelColumns)){
+        if (is_string($labelColumns)) {
             return null;
         }
 
@@ -373,12 +374,11 @@ class SelectTable extends CustomItem
         $executeSearch = false;
 
         // only single search column, search
-        if(!$use_table_label_id && count($labelColumns) == 1){
-            if($this->setSelectTableQuery($query, array_get($labelColumns[0], 'table_label_id'), $label)){
+        if (!$use_table_label_id && count($labelColumns) == 1) {
+            if ($this->setSelectTableQuery($query, array_get($labelColumns[0], 'table_label_id'), $label)) {
                 $executeSearch = true;
             }
-        }
-        else{
+        } else {
             // split $label space. zen-han
             $label = str_replace('　', ' ', $label);
             $label = preg_replace('/\s+/', ' ', $label);
@@ -386,7 +386,7 @@ class SelectTable extends CustomItem
 
             $searchAsId = $use_table_label_id && substr($items[0], 0, 1) == '#';
 
-            if($searchAsId){
+            if ($searchAsId) {
                 $searchId = substr($items[0], 1);
                 $query->where('id', $searchId);
 
@@ -394,18 +394,18 @@ class SelectTable extends CustomItem
             }
 
             $labelColumnIndex = 0;
-            for($i = ($searchAsId ? 1 : 0); $i < count($items); $i++){
-                if(count($labelColumns) <= $labelColumnIndex){
+            for ($i = ($searchAsId ? 1 : 0); $i < count($items); $i++) {
+                if (count($labelColumns) <= $labelColumnIndex) {
                     return null;
                 }
 
-                if($this->setSelectTableQuery($query, array_get($labelColumns[$labelColumnIndex++], 'table_label_id'), $items[$i])){
+                if ($this->setSelectTableQuery($query, array_get($labelColumns[$labelColumnIndex++], 'table_label_id'), $items[$i])) {
                     $executeSearch = true;
                 }
             }
         }
 
-        if(!$executeSearch){
+        if (!$executeSearch) {
             return null;
         }
 
@@ -414,19 +414,20 @@ class SelectTable extends CustomItem
         return is_nullorempty($ids) ? null : $ids;
     }
 
-    protected function setSelectTableQuery($query, $custom_column_id, $value){
+    protected function setSelectTableQuery($query, $custom_column_id, $value)
+    {
         $custom_column = CustomColumn::getEloquent($custom_column_id);
-        if(!isset($custom_column)){
+        if (!isset($custom_column)) {
             return false;
         }
 
         $column_item = $custom_column->column_item;
-        if(!isset($column_item)){
+        if (!isset($column_item)) {
             return false;
         }
 
         $searchValue = $column_item->getPureValue($value);
-        if(!isset($searchValue)){
+        if (!isset($searchValue)) {
             $searchValue = $value;
         }
 
@@ -436,7 +437,7 @@ class SelectTable extends CustomItem
             $searchValue = $searchValue . '%';
         }
 
-        $name = $custom_column->index_enabled ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
+        $name = $custom_column->getQueryKey();
         $query->where($name, 'LIKE', $searchValue);
         
         return true;

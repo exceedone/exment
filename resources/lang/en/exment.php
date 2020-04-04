@@ -36,6 +36,7 @@ return [
         'created_user' => 'Created User',
         'updated_user' => 'Updated User', 
         'deleted_user' => 'Deleted User',   
+        'executed_user' => 'Executed User', 
         'workflow_status' => 'Current Status', 
         'workflow_work_users' => 'Current Work Users', 
         'workflow_history' => 'Work History',
@@ -61,10 +62,12 @@ return [
         'available' => 'Available',
         'history' => 'History',
         'create_only_setting' => 'Setting when creating data',
+        'download' => 'Download',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
             'success_execute' => 'Execute Success!',
+            'copy_execute' => 'Copy Success!',
             'error_execute' => 'Execute Error',
             'execution_takes_time' => 'Execution takes time.',
             'import_success' => 'Success Import!',
@@ -188,6 +191,7 @@ return [
         'site_layout' => 'Site Menu Layout',
         'default_date_format' => 'Date and time display format',
         'filter_search_type' => 'Data search method',
+        'grid_filter_disable_flg' => 'Disable Grid Filter',
         'api_available' => 'API Available',
         'outside_api' => 'Perform server external communication',
         'permission_available' => 'Use Role Management',
@@ -283,6 +287,7 @@ return [
             'site_skin' => 'Select the site theme color. *After saving, it will be reflected in reloading.',
             'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
             'filter_search_type' => 'Set the search method for registered data. *In the case of partial match, performance may be affected depending on the number of data.',
+            'grid_filter_disable_flg' => 'The checked item will be hidden in the filter item of the data list screen.',
             'api_available' => 'If set to YES, you can use the API.',
             'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
             'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',
@@ -646,7 +651,6 @@ return [
         'flow_next_type' => 'Condition to advance to next status',
         'upper_user' => 'more than people',
         'all_user' => 'All user execute',
-        'executed_user' => 'Executed User', 
         'executed_at' => 'Executed Datetime', 
         'next_work_users' => 'Next Work User', 
         'login_work_user' => 'You Work User', 
@@ -1180,6 +1184,8 @@ return [
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
             'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
             'custom_value_edit_all' => ['label' => 'All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
+            'api_all' => ['label' => 'Manage API Application', 'help' => 'Users can add, edit, delete all API applications.'],
+            'api' => ['label' => 'API Application', 'help' => 'Users can add, edit, delete API applications only user created.'],
         ],
         'role_type_option_role_group' => [
             'role_group_all' => ['label' => 'Manage the entire role group', 'help' => 'You can change the settings for the entire role group.<br/>You can add, change and delete groups, change permission settings for groups, and change user and organization settings.'],
@@ -1416,6 +1422,8 @@ return [
             'reference_error' => 'This data can not be deleted because it is referenced from another table.',
             'relation_error' => 'This table cannot be deleted because it has a parent-child relationship.',
             'multiple_uniques' => 'The value for which %s is key is already registered.',
+            'lock_error' => 'The data in question has been updated by another user. After updating the screen, enter again.',
+            'lock_error_api' => 'The data in question has been updated by another user.',
             'init_flg' => 'Cannot edit after save.',
         ],
         'message' => [
@@ -1608,11 +1616,14 @@ return [
         'help' =>[
             'redirect' => 'Enter the URL to redirect after authentication.',
             'client_secret' => 'Click the icon on the left if you want to display the key.',
+            'api_key' => 'API key used for authentication.',
+            'executed_user' => 'The API runs as this user.',
         ],
 
         'client_type_options' => [
             'client_credentials' => 'Client Login on Display',
             'password_grant' => 'Password Grant',
+            'api_key' => 'API Key',
         ],
 
         'oauth' => [
@@ -1628,6 +1639,7 @@ return [
         'client_type_text' => 'Authentication Type',
         'client_id' => 'Client ID',
         'client_secret' => 'Client Secret',
+        'api_key' => 'API Key',
         'redirect' => 'Redirect URL',
     ],
 

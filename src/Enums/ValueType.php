@@ -48,9 +48,10 @@ class ValueType extends EnumBase
      *
      * @return void
      */
-    public static function filterApiValueType($valueType){
+    public static function filterApiValueType($valueType)
+    {
         $enum = static::getEnum($valueType);
-        switch($enum){
+        switch ($enum) {
             case static::TEXT:
             case static::PURE_VALUE:
                 return true;

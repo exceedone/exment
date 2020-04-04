@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Services\Installer;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\InitializeStatus;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 
 /**

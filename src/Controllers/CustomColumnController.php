@@ -139,13 +139,13 @@ class CustomColumnController extends AdminControllerTableBase
             });
 
             $keys = ['required' => 'common', 'index_enabled' => 'custom_column.options', 'unique' => 'custom_column.options'];
-            foreach($keys as $key => $label){
-                $filter->where(function ($query) use($key, $label) {
+            foreach ($keys as $key => $label) {
+                $filter->where(function ($query) use ($key, $label) {
                     $query->whereIn("options->$key", [1, "1"]);
                 }, exmtrans("$label.$key"))->radio([
                     '' => 'All',
                     '1' => 'YES',
-                ]);                    
+                ]);
             }
         });
         return $grid;
@@ -652,12 +652,12 @@ class CustomColumnController extends AdminControllerTableBase
             } else {
                 // get order. ignore system column and footer
                 $order = $view->custom_view_columns
-                    ->filter(function($custom_view_column){
-                        if($custom_view_column->view_column_type != ConditionType::SYSTEM){
+                    ->filter(function ($custom_view_column) {
+                        if ($custom_view_column->view_column_type != ConditionType::SYSTEM) {
                             return true;
                         }
                         $systemColumn = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id]);
-                        if(!isset($systemColumn)){
+                        if (!isset($systemColumn)) {
                             return false;
                         }
 

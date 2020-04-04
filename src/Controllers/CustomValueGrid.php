@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Facades\Admin;
-use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Grid\Tools as GridTools;
@@ -65,7 +64,7 @@ trait CustomValueGrid
         }, 'left');
 
         $grid->filter(function ($filter) use ($search_enabled_columns) {
-            if($this->custom_table->enableShowTrashed() === true){
+            if ($this->custom_table->enableShowTrashed() === true) {
                 $filter->scope('trashed', exmtrans('custom_value.soft_deleted_data'))->onlyTrashed();
             }
 
@@ -73,9 +72,24 @@ trait CustomValueGrid
 
 
             $filterItems = [];
-            $filterItems[] = function($filter){ $filter->equal('id', exmtrans('common.id')); };
-            $filterItems[] = function($filter){ $filter->betweendatetime('created_at', exmtrans('common.created_at'))->date(); };
-            $filterItems[] = function($filter){ $filter->betweendatetime('updated_at', exmtrans('common.updated_at'))->date(); };
+
+            foreach ([
+                'id' => 'equal',
+                'created_at' => 'date',
+                'updated_at' => 'date',
+            ] as $filterKey => $filterType) {
+                if ($this->custom_table->gridFilterDisable($filterKey)) {
+                    continue;
+                }
+
+                $filterItems[] = function ($filter) use ($filterKey, $filterType) {
+                    if ($filterType == 'date') {
+                        $filter->betweendatetime($filterKey, exmtrans("common.$filterKey"))->date();
+                    } else {
+                        $filter->equal($filterKey, exmtrans("common.$filterKey"));
+                    }
+                };
+            }
 
             // check 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table);
@@ -89,9 +103,13 @@ trait CustomValueGrid
                 // switch 1:n or n:n
                 if ($relation->relation_type == RelationType::ONE_TO_MANY) {
                     if (isset($ajax)) {
-                        $filterItems[] = function($filter) use($table_view_name, $ajax){ $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'text'); };
+                        $filterItems[] = function ($filter) use ($table_view_name, $ajax) {
+                            $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'text');
+                        };
                     } else {
-                        $filterItems[] = function($filter) use($table_view_name, $options){ $filter->equal('parent_id', $table_view_name)->select($options); };
+                        $filterItems[] = function ($filter) use ($table_view_name, $options) {
+                            $filter->equal('parent_id', $table_view_name)->select($options);
+                        };
                     }
                 } else {
                     $relationQuery = function ($query) use ($relation) {
@@ -102,9 +120,13 @@ trait CustomValueGrid
 
                     // set relation
                     if (isset($ajax)) {
-                        $filterItems[] = function($filter) use($relationQuery, $table_view_name, $ajax){ $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text'); };
+                        $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
+                            $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
+                        };
                     } else {
-                        $filterItems[] = function($filter) use($relationQuery, $table_view_name, $options){ $filter->where($relationQuery, $table_view_name)->select($options); };
+                        $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
+                            $filter->where($relationQuery, $table_view_name)->select($options);
+                        };
                     }
                 }
             }
@@ -113,46 +135,50 @@ trait CustomValueGrid
             if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
                 $custom_table = $this->custom_table;
 
-                $filterItems[] = function($filter) use($workflow, $custom_table){ 
-                    $field = $filter->where(function ($query) use ($custom_table) {
-                        WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
-                    }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
-                    if (boolval(request()->get($field->getFilter()->getId()))) {
-                        System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
-                    }
-                };
+                if (!$custom_table->gridFilterDisable('workflow_status')) {
+                    $filterItems[] = function ($filter) use ($workflow, $custom_table) {
+                        $field = $filter->where(function ($query) use ($custom_table) {
+                            WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
+                        }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
+                        if (boolval(request()->get($field->getFilter()->getId()))) {
+                            System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
+                        }
+                    };
+                }
 
-                $filterItems[] = function($filter) use($workflow, $custom_table){ 
-                    $field = $filter->where(function ($query) use ($custom_table) {
-                    }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
-
-                    if (boolval(request()->get($field->getFilter()->getId()))) {
-                        System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
-                    }
-                };
+                if (!$custom_table->gridFilterDisable('workflow_work_users')) {
+                    $filterItems[] = function ($filter) use ($workflow, $custom_table) {
+                        $field = $filter->where(function ($query) use ($custom_table) {
+                        }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
+    
+                        if (boolval(request()->get($field->getFilter()->getId()))) {
+                            System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
+                        }
+                    };
+                }
             }
 
             // loop custom column
             foreach ($search_enabled_columns as $search_column) {
-                $filterItems[] = function($filter) use($search_column){ 
+                $filterItems[] = function ($filter) use ($search_column) {
                     $search_column->column_item->setAdminFilter($filter);
                 };
             }
 
             // set filter item
-            if(count($filterItems) <= 6){
-                foreach($filterItems as $filterItem){
+            if (count($filterItems) <= 6) {
+                foreach ($filterItems as $filterItem) {
                     $filterItem($filter);
                 }
-            }else{
+            } else {
                 $separate = floor(count($filterItems) /  2);
-                $filter->column(1/2, function ($filter) use($filterItems, $separate) {
-                    for($i = 0; $i < $separate; $i++){
+                $filter->column(1/2, function ($filter) use ($filterItems, $separate) {
+                    for ($i = 0; $i < $separate; $i++) {
                         $filterItems[$i]($filter);
                     }
                 });
-                $filter->column(1/2, function ($filter) use($filterItems, $separate) {
-                    for($i = $separate; $i < count($filterItems); $i++){
+                $filter->column(1/2, function ($filter) use ($filterItems, $separate) {
+                    for ($i = $separate; $i < count($filterItems); $i++) {
                         $filterItems[$i]($filter);
                     }
                 });
@@ -261,15 +287,15 @@ trait CustomValueGrid
                     $enableDelete = false;
                 }
 
-                if(!$enableEdit){
+                if (!$enableEdit) {
                     $actions->disableEdit();
                 }
 
-                if(!$enableDelete){
+                if (!$enableDelete) {
                     $actions->disableDelete();
                 }
 
-                if($enableHardDelete){
+                if ($enableHardDelete) {
                     $actions->disableView();
                     $actions->disableDelete();
                         

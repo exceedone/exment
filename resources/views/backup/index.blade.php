@@ -66,7 +66,7 @@
                         <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-toggle="tooltip" title="{{trans('admin.delete')}}" class="grid-row-delete">
                             <i class="fa fa-trash"></i>
                         </a>
-                        <a href="{{admin_url('backup/download/'.$file['file_key'])}}" data-toggle="tooltip" title="{{exmtrans('backup.download')}}" target="_blank">
+                        <a href="{{admin_url('backup/download/'.$file['file_key'])}}" data-toggle="tooltip" title="{{exmtrans('common.download')}}" target="_blank">
                             <i class="fa fa-download"></i>
                         </a>
                     </td>

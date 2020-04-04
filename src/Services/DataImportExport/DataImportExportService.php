@@ -188,7 +188,7 @@ class DataImportExportService extends AbstractExporter
         }
 
         // if over count, return over length
-        if(is_int($datalist)){
+        if (is_int($datalist)) {
             return [
                 'result' => false,
                 'toastr' => exmtrans('common.message.import_error'),
@@ -274,7 +274,7 @@ class DataImportExportService extends AbstractExporter
         );
         if ($validator->fails()) {
             // return errors as custom_table_file.
-            return $validator->errors()->messages();
+            return $validator->getMessages();
         }
 
         return true;
