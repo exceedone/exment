@@ -71,11 +71,15 @@ class ApiClient extends Client
         });
         
         static::addGlobalScope('only_self', function ($builder) {
-            if(\Exment::user()->hasPermission(Permission::API_ALL)){
+            $user = \Exment::user();
+            if(!isset($user)){
+                return;
+            }
+            if($user->hasPermission(Permission::API_ALL)){
                 return;
             }
 
-            $builder->where('user_id', \Exment::user()->base_user_id);
+            $builder->where('user_id', $user->base_user_id);
         });
     }
 }

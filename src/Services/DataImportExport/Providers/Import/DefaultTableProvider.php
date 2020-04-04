@@ -165,6 +165,7 @@ class DefaultTableProvider extends ProviderBase
             'column_name_prefix' => 'value.',
             'appendKeyName' => true,
             'checkCustomValueExists' => false,
+            'validateLock' => false,
         ]);
 
         if ($validator->fails()) {

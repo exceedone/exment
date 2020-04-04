@@ -428,6 +428,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'checkCustomValueExists' => true, // whether checking require custom column
                 'asApi' => false, // calling as api
                 'appendErrorAllColumn' => false, // if error, append error message for all column
+                'validateLock' => true, // whether validate update lock
             ], $options)
         );
 
@@ -491,10 +492,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // execute validation
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
-        $errors = array_merge(
-            $this->validatorMultiUniques($value, $custom_value_id, $options),
-            $this->validatorLock($value, $custom_value_id, $asApi)
-        );
+        $errors = $this->validatorMultiUniques($value, $custom_value_id, $options);
+        if($validateLock){
+            $errors = array_merge(
+                $this->validatorLock($value, $custom_value_id, $asApi), $errors
+            );
+        }
+
         if(count($errors) > 0){
             $validator->setCustomMessages($errors);
         }

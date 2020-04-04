@@ -93,6 +93,7 @@ class ApiKeyGrant extends AbstractGrant
             throw OAuthServerException::invalidCredentials();
         }
 
+        // this "user_id" is user table's id. not login user tbale's id.
         $user_id = $api_key->client->user_id;
 
         $user = getModelName(SystemTableName::USER)::find($user_id);
