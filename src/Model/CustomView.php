@@ -130,6 +130,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->custom_table->table_name;
     }
 
+    public function getFilterIsOrAttribute()
+    {
+        return $this->condition_join == 'or';
+    }
+
     public function getOption($key, $default = null)
     {
         return $this->getJson('options', $key, $default);
@@ -554,9 +559,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function setValueFilters($model, $db_table_name = null)
     {
-        $is_or = $this->condition_join == 'or';
         foreach ($this->custom_view_filters_cache as $filter) {
-            $filter->setValueFilter($model, $db_table_name, $is_or);
+            $filter->setValueFilter($model, $db_table_name, $this->filter_is_or);
         }
         return $model;
     }
@@ -714,7 +718,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             })) {
                 $sub_query = $this->getSubQuery($db_table_name, 'id', 'parent_id', $custom_table);
                 if (array_key_exists('select_group', $custom_table)) {
-                    $query = $query->addSelect($custom_table['select_group']);
+                    $query->addSelect($custom_table['select_group']);
                 }
                 $sub_queries[] = $sub_query;
                 continue;
@@ -730,7 +734,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $column_key = array_search($table_id, $selected_table_columns);
                 $sub_query = $this->getSubQuery($db_table_name, 'id', $column_key, $custom_table);
                 if (array_key_exists('select_group', $custom_table)) {
-                    $query = $query->addSelect($custom_table['select_group']);
+                    $query->addSelect($custom_table['select_group']);
                 }
                 $sub_queries[] = $sub_query;
                 continue;
@@ -739,21 +743,21 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // join subquery
         foreach ($sub_queries as $table_no => $sub_query) {
-            //$query = $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
+            //$query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
             $alter_name = is_string($table_no)? $table_no : 'table_'.$table_no;
             $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As $alter_name"), $db_table_name.'.id', "$alter_name.id");
-            $query = $query->addBinding($sub_query->getBindings(), 'join');
+            $query->addBinding($sub_query->getBindings(), 'join');
         }
 
         if (count($sort_columns) > 0) {
             $orders = collect($sort_columns)->sortBy('key')->all();
             foreach ($orders as $order) {
                 $sort = ViewColumnSort::getEnum(array_get($order, 'sort_type'), ViewColumnSort::ASC)->lowerKey();
-                $query = $query->orderBy(array_get($order, 'column_name'), $sort);
+                $query->orderBy(array_get($order, 'column_name'), $sort);
             }
         }
         // set sql grouping columns
-        $query = $query->groupBy($group_columns);
+        $query->groupBy($group_columns);
 
         return $query;
     }
@@ -818,15 +822,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $table_name = array_get($custom_table, 'table_name');
         if ($table_name != $table_main) {
-            $query = $query->join($table_name, "$table_main.$key_main", "$table_name.$key_sub");
-            $query = $query->whereNull("$table_name.deleted_at");
+            $query->join($table_name, "$table_main.$key_main", "$table_name.$key_sub");
+            $query->whereNull("$table_name.deleted_at");
         }
         if (array_key_exists('select', $custom_table)) {
-            $query = $query->addSelect($custom_table['select']);
+            $query->addSelect($custom_table['select']);
         }
         if (array_key_exists('filter', $custom_table)) {
             foreach ($custom_table['filter'] as $filter) {
-                $filter->setValueFilter($query, $table_name);
+                $filter->setValueFilter($query, $table_name, $this->filter_is_or);
             }
         }
     }
@@ -851,7 +855,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         if (array_key_exists('filter', $custom_table)) {
             foreach ($custom_table['filter'] as $filter) {
-                $filter->setValueFilter($sub_query, $table_name);
+                $filter->setValueFilter($sub_query, $table_name, $this->filter_is_or);
             }
         }
         return $sub_query;
