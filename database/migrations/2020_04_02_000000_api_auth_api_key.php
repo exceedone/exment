@@ -25,10 +25,11 @@ class ApiAuthApiKey extends Migration
             Schema::create('oauth_api_keys', function (Blueprint $table) {
                 $table->uuid('id', 100)->primary();
                 $table->uuid('client_id');
-                $table->integer('user_id')->index()->nullable();
                 $table->string('key', 100)->index();
             });
         }
+
+        \Artisan::call('exment:patchdata', ['action' => 'back_slash_replace']);
     }
 
     /**
