@@ -761,6 +761,10 @@ class PatchDataCommand extends Command
      */
     protected function patchFileNameBackSlash()
     {
+        if (!canConnection() || !hasTable(SystemTableName::CUSTOM_TABLE)) {
+            return;
+        }
+
         $func = function($query, $column_name, $setValueCallback){
             // find file column contains
             $items = $query->where($column_name, 'LIKE', '%\\\\%')

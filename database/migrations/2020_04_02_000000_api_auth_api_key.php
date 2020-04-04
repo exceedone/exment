@@ -39,5 +39,15 @@ class ApiAuthApiKey extends Migration
      */
     public function down()
     {
+        if(Schema::hasTable('oauth_clients')){
+            Schema::table('oauth_clients', function (Blueprint $table) {
+                if(Schema::hasColumn('oauth_clients', 'api_key_client')){
+                    $table->dropColumn('api_key_client');
+                }
+            });
+        }
+        if (Schema::hasTable('oauth_api_keys')) {
+            Schema::dropIfExists('oauth_api_keys');
+        }
     }
 }
