@@ -62,10 +62,12 @@ return [
         'available' => 'Available',
         'history' => 'History',
         'create_only_setting' => 'Setting when creating data',
+        'download' => 'Download',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
             'success_execute' => 'Execute Success!',
+            'copy_execute' => 'Copy Success!',
             'error_execute' => 'Execute Error',
             'execution_takes_time' => 'Execution takes time.',
             'import_success' => 'Success Import!',
@@ -189,6 +191,7 @@ return [
         'site_layout' => 'Site Menu Layout',
         'default_date_format' => 'Date and time display format',
         'filter_search_type' => 'Data search method',
+        'grid_filter_disable_flg' => 'Disable Grid Filter',
         'api_available' => 'API Available',
         'outside_api' => 'Perform server external communication',
         'permission_available' => 'Use Role Management',
@@ -284,6 +287,7 @@ return [
             'site_skin' => 'Select the site theme color. *After saving, it will be reflected in reloading.',
             'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
             'filter_search_type' => 'Set the search method for registered data. *In the case of partial match, performance may be affected depending on the number of data.',
+            'grid_filter_disable_flg' => 'The checked item will be hidden in the filter item of the data list screen.',
             'api_available' => 'If set to YES, you can use the API.',
             'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
             'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',
@@ -1418,6 +1422,8 @@ return [
             'reference_error' => 'This data can not be deleted because it is referenced from another table.',
             'relation_error' => 'This table cannot be deleted because it has a parent-child relationship.',
             'multiple_uniques' => 'The value for which %s is key is already registered.',
+            'lock_error' => 'The data in question has been updated by another user. After updating the screen, enter again.',
+            'lock_error_api' => 'The data in question has been updated by another user.',
             'init_flg' => 'Cannot edit after save.',
         ],
         'message' => [
