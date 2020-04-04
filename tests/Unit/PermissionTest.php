@@ -377,7 +377,7 @@ class PermissionTest extends UnitTestBase
         System::org_joined_type_role_group($joinedOrgFilterType);
         
         $func = $result ? 'assertTrue' : 'assertFalse';
-        $this->{$func}(CustomTable::getEloquent('roletest_custom_value_edit')->hasPermission());
+        $this->{$func}(CustomTable::getEloquent('custom_value_edit')->hasPermission());
     }
 
     protected function executeTestCustomValue($loginId, $joinedOrgFilterType, bool $result){
@@ -387,7 +387,7 @@ class PermissionTest extends UnitTestBase
         System::org_joined_type_custom_value($joinedOrgFilterType);
         
         $func = $result ? 'assertTrue' : 'assertFalse';
-        $custom_value = CustomTable::getEloquent('roletest_custom_value_edit')->getValueModel()->find(51); // 51 --- created by dev user
+        $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel()->find(51); // 51 --- created by dev user
         $this->{$func}(isset($custom_value));
     }
 }
