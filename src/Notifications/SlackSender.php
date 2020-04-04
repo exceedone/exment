@@ -2,9 +2,7 @@
 
 namespace Exceedone\Exment\Notifications;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\SlackMessage;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Jobs;
@@ -29,7 +27,8 @@ class SlackSender
      *
      * @return void
      */
-    public function send($notify){
+    public function send($notify)
+    {
         // replace word
         $slack_content = static::editContent($this->subject, $this->body);
         // send slack message

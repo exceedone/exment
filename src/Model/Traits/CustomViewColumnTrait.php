@@ -215,7 +215,7 @@ trait CustomViewColumnTrait
      */
     public static function getSummaryViewColumn($column_keys)
     {
-        if($column_keys == Define::CHARTITEM_LABEL){
+        if ($column_keys == Define::CHARTITEM_LABEL) {
             return $column_keys;
         }
         if (preg_match('/\d+_\d+$/i', $column_keys) === 1) {

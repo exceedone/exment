@@ -133,10 +133,10 @@ class Workflow extends ModelBase
     public static function getWorkflowByTable($custom_table)
     {
         // if not has workflow, return false
-        $hasWorkflow = System::cache(Define::SYSTEM_KEY_SESSION_HAS_WORLFLOW, function(){
-            return WorkflowTable::count() > 0;    
+        $hasWorkflow = System::cache(Define::SYSTEM_KEY_SESSION_HAS_WORLFLOW, function () {
+            return WorkflowTable::count() > 0;
         });
-        if(!$hasWorkflow){
+        if (!$hasWorkflow) {
             return null;
         }
 

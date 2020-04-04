@@ -268,7 +268,7 @@ trait RevisionableTrait
         if ((!isset($this->revisionEnabled) || $this->revisionEnabled)
             && $this->isSoftDelete()
         ) {
-            if($this->isRevisionable($this->getDeletedAtColumn())){
+            if ($this->isRevisionable($this->getDeletedAtColumn())) {
                 $revisions[] = array(
                     'revisionable_type' => $this->getMorphClass(),
                     'revisionable_id' => $this->getKey(),
@@ -283,9 +283,7 @@ trait RevisionableTrait
                 );
                 $this->saveData($revisions);
                 \Event::fire('revisionable.deleted', array('model' => $this, 'revisions' => $revisions));
-            }
-            
-            elseif($this->isRevisionableTrigger($this->getDeletedAtColumn())){
+            } elseif ($this->isRevisionableTrigger($this->getDeletedAtColumn())) {
                 $triggerKey = array_get($this->doKeepTrigger, $this->getDeletedAtColumn());
                 $revisions[] = array(
                     'revisionable_type' => $this->getMorphClass(),
@@ -302,7 +300,6 @@ trait RevisionableTrait
                 $this->saveData($revisions);
                 \Event::fire('revisionable.deleted', array('model' => $this, 'revisions' => $revisions));
             }
-
         }
     }
 
@@ -314,7 +311,7 @@ trait RevisionableTrait
         if ((!isset($this->revisionEnabled) || $this->revisionEnabled)
             && $this->isSoftDelete()
         ) {
-            if($this->isRevisionable($this->getDeletedAtColumn())){
+            if ($this->isRevisionable($this->getDeletedAtColumn())) {
                 $revisions[] = array(
                     'revisionable_type' => $this->getMorphClass(),
                     'revisionable_id' => $this->getKey(),
@@ -327,9 +324,7 @@ trait RevisionableTrait
                 );
                 $this->saveData($revisions);
                 \Event::fire('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
-            }
-            
-            elseif($this->isRevisionableTrigger($this->getDeletedAtColumn())){
+            } elseif ($this->isRevisionableTrigger($this->getDeletedAtColumn())) {
                 $triggerKey = array_get($this->doKeepTrigger, $this->getDeletedAtColumn());
                 $revisions[] = array(
                     'revisionable_type' => $this->getMorphClass(),
@@ -344,7 +339,6 @@ trait RevisionableTrait
                 $this->saveData($revisions);
                 \Event::fire('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
             }
-
         }
     }
 

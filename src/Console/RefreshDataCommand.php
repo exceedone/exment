@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Services\RefreshDataService;
 
 /**
- * Refresh custom data. 
+ * Refresh custom data.
  */
 class RefreshDataCommand extends Command
 {

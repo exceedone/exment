@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\ReplaceFormat\Items;
 
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 

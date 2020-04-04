@@ -146,7 +146,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                 'view_column_type' => null,
                 'view_kind_type' => null,
             ];
-        }elseif($view_column == Define::CHARTITEM_LABEL){
+        } elseif ($view_column == Define::CHARTITEM_LABEL) {
             // get table name and view name
             $custom_table = CustomTable::getEloquent($this->getOption('target_table_id'));
             $custom_view = CustomView::getEloquent($this->getOption('target_view_id'));

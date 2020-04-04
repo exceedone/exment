@@ -63,8 +63,7 @@ class NotifyTestCommand extends Command
         catch (\Swift_TransportException $e) {
             $this->error('Send mail Error. Please check log.');
             \Log::error($e);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return -1;
         } finally {
         }

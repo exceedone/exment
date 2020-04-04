@@ -41,6 +41,10 @@
     display: inline-block;
 }
 
+.pt-0{
+    padding-top: 0 !important;
+}
+
 .asterisk::after{
     content: " *";
     color: red;
@@ -229,6 +233,10 @@
         animation: ring_notify 2.4s ease;
         transform-origin: 50% 0%;
     }
+}
+
+.copyScript{
+    cursor: pointer;
 }
 
 @keyframes ring_notify {

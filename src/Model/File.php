@@ -6,7 +6,6 @@ use Exceedone\Exment\Services\Uuids;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
-use Response;
 
 /**
  * Exment file model.
@@ -90,7 +89,7 @@ class File extends ModelBase
             $name = "files/".$file->uuid;
         }
 
-        if($asApi){
+        if ($asApi) {
             $name = url_join('api', "files/".$file->uuid);
         }
 
@@ -148,118 +147,6 @@ class File extends ModelBase
         $file->delete();
 
         Storage::disk(config('admin.upload.disk'))->delete($path);
-    }
-
-    /**
-     * Download file
-     */
-    public static function downloadFile($uuid, ?bool $asBase64 = false)
-    {
-        $uuid = pathinfo($uuid, PATHINFO_FILENAME);
-        $data = static::getData($uuid);
-        if (!$data) {
-            abort(404);
-        }
-        $path = $data->path;
-        $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
-        
-        if (!$exists) {
-            abort(404);
-        }
-
-        // if has parent_id, check permission
-        if (isset($data->parent_id) && isset($data->parent_type)) {
-            $custom_table = CustomTable::getEloquent($data->parent_type);
-            if (!$custom_table->hasPermissionData($data->parent_id)) {
-                abort(403);
-            }
-        }
-
-        $file = Storage::disk(config('admin.upload.disk'))->get($path);
-        $type = Storage::disk(config('admin.upload.disk'))->mimeType($path);
-        // get page name
-        $name = rawurlencode($data->filename);
-
-        if($asBase64){
-            return response([
-                'type' => $type,
-                'name' => $data->filename,
-                'base64' => base64_encode(($file)),
-            ]);
-        }
-
-        // create response
-        $response = Response::make($file, 200);
-        $response->header("Content-Type", $type);
-        $response->header('Content-Disposition', "inline; filename*=UTF-8''$name");
-
-        return $response;
-    }
-
-    /**
-     * Download favicon image
-     */
-    public static function downloadFavicon()
-    {
-        $record = System::where('system_name', 'site_favicon')->first();
-
-        if (!isset($record)) {
-            abort(404);
-        }
-
-        return self::downloadFile($record->system_value);
-    }
-
-    /**
-     * Delete file and document info
-     */
-    public static function deleteFile($uuid, $options = [])
-    {
-        $options = array_merge(
-            [
-                'removeDocumentInfo' => true,
-                'removeFileInfo' => true,
-            ],
-            $options
-        );
-        $data = static::getData($uuid);
-        if (!$data) {
-            abort(404);
-        }
-
-        // if not has delete setting, abort 403
-        if (boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->base_user_id) {
-            abort(403);
-        }
-
-        $path = $data->path;
-        $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
-        
-        // if exists, delete file
-        if ($exists) {
-            Storage::disk(config('admin.upload.disk'))->delete($path);
-        }
-
-        // if has document, remove document info
-        if (boolval($options['removeDocumentInfo'])) {
-            $column_name = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getIndexColumnName('file_uuid');
-        
-            // delete document info
-            getModelName(SystemTableName::DOCUMENT)
-                ::where($column_name, $uuid)
-                ->delete();
-        }
-        
-        // delete file info
-        if (boolval($options['removeFileInfo'])) {
-            $file = static::getData($uuid);
-            static::deleteFileInfo($file);
-        }
-
-        return response([
-            'status'  => true,
-            'message' => trans('admin.delete_succeeded'),
-        ]);
     }
 
     /**
@@ -355,26 +242,39 @@ class File extends ModelBase
     /**
      * Get file model using path or uuid
      */
-    protected static function getData($pathOrUuid)
+    protected static function getData($pathOrUuids)
     {
-        if (is_nullorempty($pathOrUuid)) {
+        if (is_nullorempty($pathOrUuids)) {
             return null;
         }
 
-        // get by uuid
-        $file = static::where('uuid', $pathOrUuid)->first();
-
-        if (is_null($file)) {
+        $funcUuid = function ($pathOrUuid) {
+            return static::where('uuid', $pathOrUuid)->first();
+        };
+        $funcPath = function ($pathOrUuid) {
             // get by $dirname, $filename
             list($dirname, $filename) = static::getDirAndFileName($pathOrUuid);
             $file = static::where('local_dirname', $dirname)
                 ->where('local_filename', $filename)
                 ->first();
-            if (is_null($file)) {
-                return null;
+            if (isset($file)) {
+                return $file;
+            }
+        };
+        
+        foreach (toArray($pathOrUuids) as $pathOrUuid) {
+            if (strpos($pathOrUuid, '/') !== false) {
+                $val = $funcPath($pathOrUuid) ?: $funcUuid($pathOrUuid) ?: null;
+            } else {
+                $val = $funcUuid($pathOrUuid) ?: $funcPath($pathOrUuid) ?: null;
+            }
+
+            if (isset($val)) {
+                return $val;
             }
         }
-        return $file;
+
+        return null;
     }
     
     /**

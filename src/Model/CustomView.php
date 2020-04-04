@@ -363,11 +363,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ->first();
 
             // get view id for after
-            if(isset($fromview)){
-                $view->copyFromDefaultViewColumns($fromview);                
+            if (isset($fromview)) {
+                $view->copyFromDefaultViewColumns($fromview);
             }
-            // not fromview, create index columns 
-            else{
+            // not fromview, create index columns
+            else {
                 $view->createDefaultViewColumns(true);
             }
 
@@ -484,7 +484,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $view_columns = [];
 
         // append system column function
-        $systemColumnFunc = function($isHeader, &$view_columns){
+        $systemColumnFunc = function ($isHeader, &$view_columns) {
             $filter = ['default' => true, ($isHeader ? 'header' : 'footer') => true];
             // set default view_column
             foreach (SystemColumn::getOptions($filter) as $view_column_system) {
@@ -500,10 +500,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $systemColumnFunc(true, $view_columns);
 
         // if $appendIndexColumn is true, append index column
-        if($appendIndexColumn){
+        if ($appendIndexColumn) {
             $custom_columns = $this->custom_table->getSearchEnabledColumns();
             $order = 20;
-            foreach($custom_columns as $custom_column){
+            foreach ($custom_columns as $custom_column) {
                 $view_column = new CustomViewColumn;
                 $view_column->custom_view_id = $this->id;
                 $view_column->view_column_type = ConditionType::COLUMN;
@@ -891,13 +891,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $options = [];
         
         // is summary view
-        if($this->view_kind_type == ViewKindType::AGGREGATE){
+        if ($this->view_kind_type == ViewKindType::AGGREGATE) {
             // if x column, set x as chart column
-            if(!$is_y){
+            if (!$is_y) {
                 $options[] = ['id' => Define::CHARTITEM_LABEL, 'text' => exmtrans('chart.chartitem_label')];
             }
             // set as y
-            else{
+            else {
                 foreach ($this->custom_view_columns_cache as $custom_view_column) {
                     $this->setViewColumnsOptions($options, ViewKindType::DEFAULT, $custom_view_column, true);
                 }
@@ -906,7 +906,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                     $this->setViewColumnsOptions($options, ViewKindType::AGGREGATE, $custom_view_summary, true);
                 }
             }
-        }else{
+        } else {
             // set as default view
             if (!$is_y) {
                 $options[] = ['id' => Define::CHARTITEM_LABEL, 'text' => exmtrans('chart.chartitem_label')];
@@ -920,7 +920,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $options;
     }
 
-    protected function setViewColumnsOptions(&$options, $view_kind_type, $custom_view_column, ?bool $is_number){
+    protected function setViewColumnsOptions(&$options, $view_kind_type, $custom_view_column, ?bool $is_number)
+    {
         $option = $this->getSelectColumn($view_kind_type, $custom_view_column);
         if (is_null($is_number) || array_get($option, 'is_number') === $is_number) {
             $options[] = $option;

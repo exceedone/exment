@@ -2,7 +2,6 @@
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewFilter;
@@ -41,7 +40,7 @@ class CustomColumnUsingIndexRule implements Rule
 
         // if saved is false, return false
         $custom_column = CustomColumn::getEloquent($this->custom_column_id);
-        if(!isset($custom_column) || !$custom_column->index_enabled){
+        if (!isset($custom_column) || !$custom_column->index_enabled) {
             return true;
         }
 

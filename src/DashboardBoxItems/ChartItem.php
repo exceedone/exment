@@ -140,7 +140,7 @@ class ChartItem implements ItemInterface
 
         $chart_label = $items->map(function ($val) use ($view_column_x) {
             // if get as CHARTITEM_LABEL, return label.
-            if($view_column_x == Define::CHARTITEM_LABEL){
+            if ($view_column_x == Define::CHARTITEM_LABEL) {
                 return $val->getLabel();
             }
             return esc_html($view_column_x->column_item->setCustomValue($val)->text());
@@ -148,9 +148,9 @@ class ChartItem implements ItemInterface
         $axis_y_name = $view_column_y->custom_column->column_name;
         $chart_data = $items->pluck('value.'.$axis_y_name);
 
-        if($view_column_x == Define::CHARTITEM_LABEL){
+        if ($view_column_x == Define::CHARTITEM_LABEL) {
             $axisx_label = $this->custom_table->table_view_name;
-        }else{
+        } else {
             $axisx_label = array_get($view_column_x, 'view_column_name') ?? $view_column_x->column_item->label();
         }
 
