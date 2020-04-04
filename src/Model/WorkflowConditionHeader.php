@@ -75,7 +75,11 @@ class WorkflowConditionHeader extends ModelBase
 
     public function setConditionJoinAttribute($val)
     {
-        $this->setOption('condition_join', $val);
+        if (is_null($val)) {
+            $this->forgetJson('options', 'condition_join');
+        } else {
+            $this->setOption('condition_join', $val);
+        }
 
         return $this;
     }

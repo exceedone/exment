@@ -51,7 +51,7 @@ var Exment;
             return { value: JSON.stringify(values), text: texts.join('<br />') };
         }
         static GetConditionSettingValText() {
-            const targetKeys = ['workflow_conditions', 'status_to', 'enabled_flg', 'id'];
+            const targetKeys = ['workflow_conditions', 'status_to', 'enabled_flg', 'id', 'condition_join'];
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_conditions"] form');
             // get value

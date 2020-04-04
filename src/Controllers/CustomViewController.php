@@ -499,6 +499,12 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $hasManyTable->render();
+
+        if (!$is_aggregate) {
+            $form->radio('condition_join', exmtrans("condition.condition_join"))
+            ->options(exmtrans("condition.condition_join_options"))
+            ->default('and');
+        }
     }
 
     /**

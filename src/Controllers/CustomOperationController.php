@@ -171,7 +171,6 @@ class CustomOperationController extends AdminControllerTableBase
             'condition_target_name' => 'view_column_target',
             'condition_key_name' => 'view_column_target',
             'condition_value_name' => 'update_value',
-            'useJoinOptions' => false
         ]);
 
         $hasManyTable->callbackField(function ($field) {

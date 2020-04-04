@@ -104,7 +104,7 @@ class WorkflowAction extends ModelBase
             })->toArray();
             return array_only(
                 $header,
-                ['id', 'status_to', 'enabled_flg', 'workflow_conditions']
+                ['id', 'status_to', 'enabled_flg', 'workflow_conditions', 'condition_join']
             );
         });
     }
