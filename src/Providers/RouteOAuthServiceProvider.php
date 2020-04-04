@@ -171,10 +171,12 @@ class RouteOAuthServiceProvider extends ServiceProvider
     {
         parent::boot();
         
-        app(AuthorizationServer::class)->enableGrantType(
-            $this->makeApiKeyGrant(),
-            Passport::tokensExpireIn()
-        );
+        if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
+            app(AuthorizationServer::class)->enableGrantType(
+                $this->makeApiKeyGrant(),
+                Passport::tokensExpireIn()
+            );
+        }
     }
 
     protected function makeApiKeyGrant()
