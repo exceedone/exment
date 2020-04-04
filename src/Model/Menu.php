@@ -151,7 +151,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     $row['uri'] = $plugin->getRouteUri();
                     break;
                 case MenuType::TABLE:
-                    if(!isset($row['table_name'])){
+                    if (!isset($row['table_name'])) {
                         $result = false;
                         break;
                     }

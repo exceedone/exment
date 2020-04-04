@@ -2,12 +2,9 @@
 
 namespace Exceedone\Exment\Jobs;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\SlackMessage;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\System;
 
 class SlackSendJob extends Notification implements ShouldQueue
 {

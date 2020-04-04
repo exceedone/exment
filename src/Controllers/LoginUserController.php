@@ -168,7 +168,7 @@ class LoginUserController extends AdminControllerBase
                     [
                     'primary_key' => app('request')->input('select_primary_key') ?? null,
                 ]
-            )
+                )
             )->format($request->file('custom_table_file'));
         $result = $service->import($request);
 

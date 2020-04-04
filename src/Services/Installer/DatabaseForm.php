@@ -140,8 +140,8 @@ class DatabaseForm
         }
 
         $errorMessage = exmtrans('install.error.not_require_database_version', [
-            'min' => Define::DATABASE_MIN_VERSION[$this->database_default], 
-            'database' => Define::DATABASE_TYPE[$this->database_default], 
+            'min' => Define::DATABASE_MIN_VERSION[$this->database_default],
+            'database' => Define::DATABASE_TYPE[$this->database_default],
             'current' => $version
         ]);
         
@@ -189,11 +189,11 @@ class DatabaseForm
         $version = phpversion();
 
         $errorMessage = exmtrans('install.error.not_require_php_version', [
-            'min' => Define::PHP_VERSION[0], 
-            'max' => Define::PHP_VERSION[1], 
+            'min' => Define::PHP_VERSION[0],
+            'max' => Define::PHP_VERSION[1],
             'current' => $version
         ]);
-        if(version_compare($version, Define::PHP_VERSION[0]) < 0){
+        if (version_compare($version, Define::PHP_VERSION[0]) < 0) {
             return $errorMessage;
         }
         if (version_compare($version, Define::PHP_VERSION[1]) >= 0) {

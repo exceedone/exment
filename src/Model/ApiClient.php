@@ -26,11 +26,13 @@ class ApiClient extends Client
 
     protected $keyType = 'string';
 
-    public function client_api_key(){
+    public function client_api_key()
+    {
         return $this->hasOne(ApiKey::class, 'client_id');
     }
 
-    public function getApiKeyStringAttribute(){
+    public function getApiKeyStringAttribute()
+    {
         return $this->client_api_key->key ?? null;
     }
 
@@ -65,17 +67,17 @@ class ApiClient extends Client
         parent::boot();
 
         static::deleting(function ($model) {
-            if($model->client_api_key){
+            if ($model->client_api_key) {
                 $model->client_api_key->delete();
             }
         });
         
         static::addGlobalScope('only_self', function ($builder) {
             $user = \Exment::user();
-            if(!isset($user)){
+            if (!isset($user)) {
                 return;
             }
-            if($user->hasPermission(Permission::API_ALL)){
+            if ($user->hasPermission(Permission::API_ALL)) {
                 return;
             }
 

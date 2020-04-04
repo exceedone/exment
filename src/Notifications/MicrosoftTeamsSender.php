@@ -2,12 +2,10 @@
 
 namespace Exceedone\Exment\Notifications;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Jobs;
-use Exceedone\Exment\Notifications\MicrosoftTeams\MicrosoftTeamsMessage;
 
 class MicrosoftTeamsSender
 {
@@ -29,7 +27,8 @@ class MicrosoftTeamsSender
      *
      * @return void
      */
-    public function send($notify){
+    public function send($notify)
+    {
         // replace word
         $teams_content = static::editContent($this->subject, $this->body);
         // send slack message

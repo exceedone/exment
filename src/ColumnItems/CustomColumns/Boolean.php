@@ -79,13 +79,14 @@ class Boolean extends CustomItem
      * @param [type] $value
      * @return ?string string:matched, null:not matched
      */
-    public function getPureValue($label){
+    public function getPureValue($label)
+    {
         $option = $this->getImportValueOption();
 
-        foreach($option as $value => $l){
-            if(strtolower($label) == strtolower($l)){
+        foreach ($option as $value => $l) {
+            if (strtolower($label) == strtolower($l)) {
                 return $value;
-            }    
+            }
         }
         return null;
     }

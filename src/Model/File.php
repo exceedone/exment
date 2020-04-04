@@ -4,10 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Services\Uuids;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ErrorCode;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
-use Response;
 
 /**
  * Exment file model.
@@ -91,7 +89,7 @@ class File extends ModelBase
             $name = "files/".$file->uuid;
         }
 
-        if($asApi){
+        if ($asApi) {
             $name = url_join('api', "files/".$file->uuid);
         }
 
@@ -250,10 +248,10 @@ class File extends ModelBase
             return null;
         }
 
-        $funcUuid = function($pathOrUuid){
+        $funcUuid = function ($pathOrUuid) {
             return static::where('uuid', $pathOrUuid)->first();
         };
-        $funcPath = function($pathOrUuid){
+        $funcPath = function ($pathOrUuid) {
             // get by $dirname, $filename
             list($dirname, $filename) = static::getDirAndFileName($pathOrUuid);
             $file = static::where('local_dirname', $dirname)
@@ -264,15 +262,14 @@ class File extends ModelBase
             }
         };
         
-        foreach(toArray($pathOrUuids) as $pathOrUuid){
-            if(strpos($pathOrUuid, '/') !== false){
+        foreach (toArray($pathOrUuids) as $pathOrUuid) {
+            if (strpos($pathOrUuid, '/') !== false) {
                 $val = $funcPath($pathOrUuid) ?: $funcUuid($pathOrUuid) ?: null;
-            }
-            else{
+            } else {
                 $val = $funcUuid($pathOrUuid) ?: $funcPath($pathOrUuid) ?: null;
             }
 
-            if(isset($val)){
+            if (isset($val)) {
                 return $val;
             }
         }

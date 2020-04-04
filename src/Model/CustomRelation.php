@@ -269,19 +269,19 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         // delete view column
         foreach ($target->custom_views as $item) {
             foreach ($item->custom_view_columns as $column) {
-                if (ConditionType::isTableItem($column->view_column_type) && 
+                if (ConditionType::isTableItem($column->view_column_type) &&
                     $column->view_column_table_id == $original_child_id) {
                     $column->delete();
                 }
             }
             foreach ($item->custom_view_summaries as $column) {
-                if (ConditionType::isTableItem($column->view_column_type) && 
+                if (ConditionType::isTableItem($column->view_column_type) &&
                     $column->view_column_table_id == $original_child_id) {
                     $column->delete();
                 }
             }
             foreach ($item->custom_view_filters as $column) {
-                if (ConditionType::isTableItem($column->view_column_type) && 
+                if (ConditionType::isTableItem($column->view_column_type) &&
                     $column->view_column_table_id == $original_child_id) {
                     $column->delete();
                 }

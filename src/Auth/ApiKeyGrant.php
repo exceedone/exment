@@ -1,12 +1,9 @@
 <?php
 namespace Exceedone\Exment\Auth;
 
-use RuntimeException;
 use Illuminate\Http\Request;
-use App\Exceptions\OtpException;
 use Laravel\Passport\Bridge\User;
 use League\OAuth2\Server\RequestEvent;
-use App\Auth\Grants\OtpVerifierFactory;
 use Psr\Http\Message\ServerRequestInterface;
 use League\OAuth2\Server\Grant\AbstractGrant;
 use League\OAuth2\Server\Entities\UserEntityInterface;
@@ -98,7 +95,7 @@ class ApiKeyGrant extends AbstractGrant
 
         $user = getModelName(SystemTableName::USER)::find($user_id);
         $login_user = $user->login_user ?? null;
-        if(is_null($login_user)){
+        if (is_null($login_user)) {
             return null;
         }
 

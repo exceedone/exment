@@ -2,13 +2,10 @@
 
 namespace Exceedone\Exment\Jobs;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Exceedone\Exment\Notifications\MicrosoftTeams\MicrosoftTeamsMessage;
 use Exceedone\Exment\Notifications\MicrosoftTeams\MicrosoftTeamsChannel;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\System;
 
 class MicrosoftTeamsJob extends Notification implements ShouldQueue
 {

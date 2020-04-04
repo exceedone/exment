@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\ApiClient;
 use Exceedone\Exment\Model\ApiClientRepository;
-use Exceedone\Exment\Model\ApiKey;
 use Exceedone\Exment\Enums\ApiClientType;
 use Laravel\Passport\Client;
 
@@ -84,9 +83,9 @@ class ApiSettingController extends AdminControllerBase
             $form->text('id', exmtrans('api.client_id'))->setElementClass(['copyScript'])->readonly();
             $form->password('secret', exmtrans('api.client_secret'))->readonly()->toggleShowEvent()
                 ->setElementClass(['copyScript'])
-                ->help(exmtrans('api.help.client_secret'));    
+                ->help(exmtrans('api.help.client_secret'));
 
-            if($client->client_type == ApiClientType::API_KEY){
+            if ($client->client_type == ApiClientType::API_KEY) {
                 $client_api_key = $client->client_api_key;
 
                 $form->password('client_api_key.key', exmtrans('api.api_key'))->readonly()->toggleShowEvent()
@@ -166,13 +165,13 @@ class ApiSettingController extends AdminControllerBase
                     );
                 }
                 // create for password
-                elseif($client_type == ApiClientType::PASSWORD_GRANT) {
+                elseif ($client_type == ApiClientType::PASSWORD_GRANT) {
                     $client = $clientRepository->createPasswordGrantClient(
                         $user_id,
                         $name,
                         'http://localhost'
                     );
-                }elseif($client_type == ApiClientType::API_KEY){
+                } elseif ($client_type == ApiClientType::API_KEY) {
                     $client = $clientRepository->createApiKey(
                         $user_id,
                         $name,

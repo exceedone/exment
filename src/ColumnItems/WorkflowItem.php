@@ -68,18 +68,16 @@ class WorkflowItem extends SystemItem
         // if null, get default status name
         if (!isset($val)) {
             $workflow = Workflow::getWorkflowByTable($this->custom_table);
-            if(!$workflow){
+            if (!$workflow) {
                 return null;
             }
 
             $status_name = WorkflowStatus::getWorkflowStatusName(null, $workflow);
 
             return $html ? esc_html($status_name) : $status_name;
-        }
-        elseif(is_string($val)){
+        } elseif (is_string($val)) {
             return $val;
-        }
-        else{
+        } else {
             return array_get($val, 'status_name');
         }
     }

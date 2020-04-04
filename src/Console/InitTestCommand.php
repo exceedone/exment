@@ -312,7 +312,7 @@ class InitTestCommand extends Command
 
         foreach ($values as $type => $typevalue) {
             $custom_table = CustomTable::getEloquent($type);
-            if(!isset($custom_table)){
+            if (!isset($custom_table)) {
                 continue;
             }
             

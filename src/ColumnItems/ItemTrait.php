@@ -152,20 +152,21 @@ trait ItemTrait
      * @param [type] $takeCount
      * @return void
      */
-    public function getSearchQueries($mark, $value, $takeCount, $q){
-        list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q);     
+    public function getSearchQueries($mark, $value, $takeCount, $q)
+    {
+        list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q);
 
         $query = $this->custom_table->getValueModel()->query();
         
-        if(is_list($pureValue)){
+        if (is_list($pureValue)) {
             $query->whereIn($this->custom_column->getIndexColumnName(), toArray($pureValue))->select('id');
-        }else{
+        } else {
             $query->where($this->custom_column->getIndexColumnName(), $mark, $pureValue)->select('id');
         }
         
         $query->take($takeCount);
 
-        return [$query]; 
+        return [$query];
     }
 
     /**
@@ -176,12 +177,13 @@ trait ItemTrait
      * @param [type] $takeCount
      * @return void
      */
-    public function setSearchOrWhere(&$query, $mark, $value, $q){  
+    public function setSearchOrWhere(&$query, $mark, $value, $q)
+    {
         list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q);
 
-        if(is_list($pureValue)){
+        if (is_list($pureValue)) {
             $query->orWhereIn($this->custom_column->getIndexColumnName(), toArray($pureValue));
-        }else{
+        } else {
             $query->orWhere($this->custom_column->getIndexColumnName(), $mark, $pureValue);
         }
 
@@ -194,17 +196,19 @@ trait ItemTrait
      * @param [type] $value
      * @return ?string string:matched, null:not matched
      */
-    public function getPureValue($label){
+    public function getPureValue($label)
+    {
         return null;
     }
 
-    protected function getQueryMarkAndValue($mark, $value, $q){
-        if(is_nullorempty($q)){
+    protected function getQueryMarkAndValue($mark, $value, $q)
+    {
+        if (is_nullorempty($q)) {
             return [$mark, $value];
         }
 
         $pureValue = $this->getPureValue($q);
-        if(is_null($pureValue)){
+        if (is_null($pureValue)) {
             return [$mark, $value];
         }
 

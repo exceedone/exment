@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Exceedone\Exment\Database\ExtendedBlueprint;
 
 class AddNotifyName extends Migration
 {

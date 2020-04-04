@@ -183,7 +183,7 @@ class DefaultTableProvider extends ProviderBase
             }
 
             // export parent id
-            elseif($view_column_type == ConditionType::SYSTEM && $column == 'parent_id'){
+            elseif ($view_column_type == ConditionType::SYSTEM && $column == 'parent_id') {
                 $value = $this->getParentExportValue($value, array_get($record, 'parent_type'));
             }
 
@@ -238,7 +238,7 @@ class DefaultTableProvider extends ProviderBase
         
         // get relation
         $relation = CustomRelation::getRelationByParentChild($parent_table, $this->custom_table);
-        if(!isset($relation)){
+        if (!isset($relation)) {
             return $value;
         }
 

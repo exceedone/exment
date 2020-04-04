@@ -20,7 +20,7 @@ trait ApiTrait
     protected function getErrorMessages($validator)
     {
         $errors = [];
-        foreach($validator->getMessages() as $key => $message) {
+        foreach ($validator->getMessages() as $key => $message) {
             // remove "value." key
             $key = str_replace("value.", "", $key);
             if (is_array($message)) {
