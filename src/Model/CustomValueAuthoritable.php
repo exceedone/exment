@@ -67,7 +67,7 @@ class CustomValueAuthoritable extends ModelBase
      *
      * @return void
      */
-    public static function setAuthoritableByUserOrgArray($custom_value, $arrays)
+    public static function setAuthoritableByUserOrgArray($custom_value, $arrays, $is_edit = false)
     {
         $custom_table = $custom_value->custom_table;
         $table_name = $custom_table->table_name;
@@ -91,7 +91,7 @@ class CustomValueAuthoritable extends ModelBase
             self::firstOrCreate([
                 'parent_id' => $custom_value->id,
                 'parent_type' => $table_name,
-                'authoritable_type' => Permission::CUSTOM_VALUE_VIEW,
+                'authoritable_type' => $is_edit? Permission::CUSTOM_VALUE_EDIT: Permission::CUSTOM_VALUE_VIEW,
                 'authoritable_user_org_type' => $related_type,
                 'authoritable_target_id' => $related_id,
             ]);

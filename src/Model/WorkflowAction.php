@@ -267,11 +267,12 @@ class WorkflowAction extends ModelBase
         ]);
 
         $workflow = Workflow::getEloquent(array_get($this, 'workflow_id'));
+        $is_edit = boolval($workflow->workflow_edit_flg);
         $next = $this->isActionNext($custom_value);
 
         $workflow_value = null;
         $status_to = $this->getStatusToId($custom_value);
-        \DB::transaction(function () use ($custom_value, $data, &$workflow_value, &$status_to, $next) {
+        \DB::transaction(function () use ($custom_value, $data, $is_edit, &$workflow_value, &$status_to, $next) {
             $status_from = $custom_value->workflow_value->workflow_status_to_id ?? null;
             $morph_type = $custom_value->custom_table->table_name;
             $morph_id = $custom_value->id;
@@ -325,13 +326,13 @@ class WorkflowAction extends ModelBase
                 WorkflowValueAuthority::insert($user_organizations->toArray());
 
                 // set Custom Value Authoritable
-                CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations);
+                CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $is_edit);
 
                 $custom_value->load(['workflow_value', 'workflow_value.workflow_value_authorities']);
             } else {
                 // get this getAuthorityTargets
                 $toActionAuthorities = $this->getNextActionAuthorities($custom_value, $status_to);
-                CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities);
+                CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities, $is_edit);
             }
         });
 
