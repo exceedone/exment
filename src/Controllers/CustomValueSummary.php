@@ -108,10 +108,13 @@ trait CustomValueSummary
             $filters[] = $custom_view_filter;
         }
         $filter_func = function ($model) use ($filters, $custom_view) {
-            foreach ($filters as $filter) {
-                $model = $filter->setValueFilter($model);
-            }
-            $custom_view->setValueFilters($model);
+            $model->where(function($query) use($filters){
+                foreach ($filters as $filter) {
+                    $query = $filter->setValueFilter($query);
+                }
+            })->where(function($query) use($custom_view){
+                $custom_view->setValueFilters($query);
+            });
             return $model;
         };
         return $filter_func;
@@ -131,6 +134,10 @@ trait CustomValueSummary
     {
         return !$this->custom_view->custom_view_columns->contains(function ($custom_view_column) {
             return $this->custom_table->id != $custom_view_column->view_column_table_id;
+        }) && !$this->custom_view->custom_view_summaries->contains(function ($custom_view_summary) {
+            return $this->custom_table->id != $custom_view_summary->view_column_table_id;
+        }) && !$this->custom_view->custom_view_filters->contains(function ($custom_view_filter) {
+            return $this->custom_table->id != $custom_view_filter->view_column_table_id;
         });
     }
 }
