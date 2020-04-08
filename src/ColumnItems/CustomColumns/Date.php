@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Grid\Filter;
 use Exceedone\Exment\Form\Field as ExmentField;
 
@@ -32,6 +33,15 @@ class Date extends CustomItem
 
         // else, return
         return $this->value();
+    }
+
+    /**
+     * get cast name for sort
+     */
+    public function getCastName()
+    {
+        $grammar = \DB::getQueryGrammar();
+        return $grammar->getCastString(DatabaseDataType::TYPE_DATE, true);
     }
 
     protected function getDisplayFormat()
