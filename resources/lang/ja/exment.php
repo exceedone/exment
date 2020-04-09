@@ -596,6 +596,7 @@ return [
 
         'message' => [
             'not_install_library' => '※:nameを実行するためのライブラリが設定されていません。 <a href=":url" target="_blank">こちら<i class="fa fa-external-link"></i></a> の手順でインストールを行ってください。',
+            'login_provider_caution' => '※はじめに、OAuthのログインを行うための追加設定が必要です。 <a href=":url" target="_blank">こちら<i class="fa fa-external-link"></i></a> の手順でインストールを行ってください。',
         ],
 
         'login_type_options' => [

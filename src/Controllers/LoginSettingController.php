@@ -51,7 +51,9 @@ class LoginSettingController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new LoginSetting);
-        $grid->column('login_type', exmtrans('login.login_type'));
+        $grid->column('login_type', exmtrans('login.login_type'))->displayEscape(function($v){
+            return LoginType::getEnum($v)->transKey('login.login_type_options');
+        });
         $grid->column('name', exmtrans('login.login_setting_name'));
 
         $grid->disableFilter();
@@ -111,6 +113,12 @@ class LoginSettingController extends AdminControllerBase
         ->options(LoginProviderType::transKeyArray('login.login_provider_type_options'))
         ->required()
         ->attribute(['data-filtertrigger' => true, 'data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
+
+        $login_provider_caution = '<span class="red">' . exmtrans('login.message.login_provider_caution', [
+            'url' => getManualUrl('sso'),
+        ]) . '</span>';
+        $form->description($login_provider_caution)
+        ->attribute(['data-filter' => json_encode(['key' => 'options_login_provider_type', 'value' => [LoginProviderType::OTHER]])]);
 
         $form->text('login_provider_name', exmtrans('login.login_provider_name'))
         ->required()

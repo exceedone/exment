@@ -56,4 +56,14 @@ class LoginSetting extends ModelBase
             //->stateless();
             ;
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::saving(function ($model) {
+            $model->prepareJson('options');
+        });
+    }
+
 }
