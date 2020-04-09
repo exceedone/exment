@@ -8,6 +8,7 @@ use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
 
@@ -88,6 +89,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
+            $router->resource('login_setting', 'LoginSettingController', ['except' => ['show']]);
+            $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal');
             $router->resource('api_setting', 'ApiSettingController', ['except' => ['show']]);
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
@@ -206,10 +209,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('favicon', 'FileController@downloadFavicon');
 
             // get config about login provider
-            $login_providers = config('exment.login_providers');
-            if (!is_nullorempty($login_providers)) {
-                $router->get('auth/login/{provider}', 'AuthController@getLoginProvider');
-                $router->get('auth/login/{provider}/callback', 'AuthController@callbackLoginProvider');
+            if (LoginSetting::allRecords()->count() > 0) {
+                $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider');
+                $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callbackLoginProvider');
             }
         });
     }

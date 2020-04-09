@@ -3,29 +3,31 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\LoginSetting;
 
 trait AuthTrait
 {
     public function getLoginPageData($array = [])
     {
-        // whether using sso
-        $login_providers = config('exment.login_providers');
-        if (!is_null($login_providers)) {
-            if (is_string($login_providers)) {
-                $login_providers = explode(",", $login_providers);
-            }
+        $array['site_name'] = System::site_name();
 
+        // get login settings
+        $login_settings = LoginSetting::allRecords();
+
+        if (!is_nullorempty($login_settings)) {
             // create login provider items for login page
             $login_provider_items = [];
-            foreach ($login_providers as $login_provider) {
-                $login_provider_items[$login_provider] = [
-                    'font_owesome' => config("services.$login_provider.font_owesome", "fa-$login_provider"),
-                    'btn_name' => 'btn-'.$login_provider,
-                    'display_name' => config("services.$login_provider.display_name", pascalize($login_provider)),
-                    'background_color' => config("services.$login_provider.background_color"),
-                    'font_color' => config("services.$login_provider.font_color"),
-                    'background_color_hover' => config("services.$login_provider.background_color_hover"),
-                    'font_color_hover' => config("services.$login_provider.font_color_hover"),
+            foreach($login_settings as $login_setting){
+                $provider_name = $login_setting->provider_name;
+
+                $login_provider_items[$provider_name] = [
+                    'font_owesome' => $login_setting->getOption("login_button_icon", "fa-$provider_name"),
+                    'btn_name' => 'btn-'.$provider_name,
+                    'display_name' => $login_setting->getOption("login_button_label", pascalize($provider_name)),
+                    'background_color' => $login_setting->getOption("login_button_background_color"),
+                    'font_color' => $login_setting->getOption("login_button_font_color"),
+                    'background_color_hover' => $login_setting->getOption("login_button_background_color_hover"),
+                    'font_color_hover' => $login_setting->getOption("login_button_font_color_hover"),
                 ];
             }
 
@@ -36,7 +38,6 @@ trait AuthTrait
             $array['show_default_login_provider']= true;
         }
 
-        $array['site_name'] = System::site_name();
         return $array;
     }
 }

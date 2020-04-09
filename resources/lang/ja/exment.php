@@ -228,7 +228,7 @@ return [
         'web_ip_filters' => 'Webページ',
         'api_ip_filters' => 'API',
         'sso_setting' => 'SSO設定',
-        'sso_accept_mail_domain' => '許可メールドメイン',
+        'sso_accept_mail_domain' => 'ログイン許可ドメイン',
         'sso_jit' => 'ユーザー新規作成',
 
         'site_skin_options' => [
@@ -563,6 +563,54 @@ return [
         'noexists_user' => 'Exmentにユーザーが存在しませんでした。先にユーザーを追加するよう、管理者にお問い合わせください。',
         'throttle' => 'ログイン試行回数が多すぎます。%s分経過後、再度お試しください。',
         'not_accept_domain' => 'そのドメインでのログインは許可されていません。',
+
+        'header' => 'ログイン設定',
+        'description' => 'SSO認証など、ログインの設定を行います。',
+        'login_setting_name' => 'ログイン設定表示名',
+        'login_type' => 'ログイン種類',
+        'login_provider_type' => 'プロバイダ種類',
+        'login_provider_name' => 'プロバイダ種類(英数字)',
+        'client_id' => 'クライアントID',
+        'client_secret' => 'クライアントシークレット',
+        'scope' => 'スコープ',
+        'redirect_url' => 'リダイレクトURL',
+        'login_button_label' => 'ログインボタン - ラベル',
+        'login_button_icon' => 'ログインボタン - アイコン',
+        'login_button_background_color' => 'ログインボタン - 背景色',
+        'login_button_background_color_hover' => 'ログインボタン - 背景色(オンマウス)',
+        'login_button_font_color' => 'ログインボタン - 文字色',
+        'login_button_font_color_hover' => 'ログインボタン - 文字色(オンマウス)',
+        
+        'help' => [
+            'login_provider_type' => 'ログインのプロバイダの種類を選択してください。',
+            'login_provider_name' => 'ログインのプロバイダのSocialite名を、英数字で入力してください。',
+            'scope' => 'スコープを指定したい場合、カンマ区切りで入力してください。',
+            'redirect_url' => '自動的に設定されるので、基本的には空欄としてください。リダイレクトURLを明示的に指定したい場合に入力してください。',
+            'login_button_label' => 'ログインボタンのラベルを入力してください。',
+            'login_button_icon' => 'ログインボタンのアイコンを選択してください。',
+            'login_button_background_color' => 'ログインボタンの背景色を入力してください。',
+            'login_button_background_color_hover' => 'ログインボタンの背景色(オンマウス時)を入力してください。',
+            'login_button_font_color' => 'ログインボタンの文字色を入力してください。',
+            'login_button_font_color_hover' => 'ログインボタンの文字色(オンマウス時)を入力してください。',
+        ],
+
+        'message' => [
+            'not_install_library' => '※:nameを実行するためのライブラリが設定されていません。 <a href=":url" target="_blank">こちら<i class="fa fa-external-link"></i></a> の手順でインストールを行ってください。',
+        ],
+
+        'login_type_options' => [
+            'oauth' => 'OAuth認証',
+        ],
+
+        'login_provider_type_options' => [
+            'google' => 'Google',
+            'github' => 'Github',
+            'facebook' => 'Facebook',
+            'twitter' => 'Twitter',
+            'linkedin' => 'Linkedin',
+            'bitbucket' => 'Bitbucket',
+            'other' => 'その他',
+        ],
     ],
 
     '2factor' => [

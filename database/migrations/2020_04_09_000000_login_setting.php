@@ -1,0 +1,46 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+use Exceedone\Exment\Database\ExtendedBlueprint;
+
+class LoginSetting extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        $schema = \DB::connection()->getSchemaBuilder();
+        $schema->blueprintResolver(function($table, $callback) {
+            return new ExtendedBlueprint($table, $callback);
+        });
+
+        if(!Schema::hasTable('login_settings')){
+            $schema->create('login_settings', function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('name');
+                $table->string('login_type');
+                $table->json('options')->nullable();
+                
+                $table->timestamps();
+                $table->timeusers();
+            });
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        if (Schema::hasTable('login_settings')) {
+            Schema::dropIfExists('login_settings');
+        }
+    }
+}

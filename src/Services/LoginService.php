@@ -53,24 +53,4 @@ class LoginService
     {
         return static::getToken()['refresh_token'];
     }
-    
-    /**
-     * get Socialite Provider
-     */
-    public static function getSocialiteProvider(string $login_provider)
-    {
-        if (is_null(config("services.$login_provider.redirect"))) {
-            config(["services.$login_provider.redirect" => admin_urls("auth", "login", $login_provider, "callback")]);
-        }
-        
-        $scope = config("services.$login_provider.scope", []);
-        if (!empty($scope)) {
-            $scope = is_string($scope) ? explode(',', $scope) : $scope;
-        }
-        
-        return \Socialite::with($login_provider)
-            ->scopes($scope)
-            //->stateless();
-            ;
-    }
 }

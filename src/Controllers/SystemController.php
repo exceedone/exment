@@ -193,49 +193,6 @@ class SystemController extends AdminControllerBase
                 ->help(exmtrans("system.help.system_mail_from"));
         }
        
-        
-
-        $form->exmheader(exmtrans('system.password_policy'))->hr();
-
-        $form->description(exmtrans("system.help.password_policy"));
-
-        $form->switchbool('complex_password', exmtrans("system.complex_password"))
-            ->help(exmtrans("system.help.complex_password"));
-
-        $form->number('password_expiration_days', exmtrans("system.password_expiration_days"))
-            ->default(0)
-            ->min(0)
-            ->max(999)
-            ->help(exmtrans("system.help.password_expiration_days"));
-
-        $form->number('password_history_cnt', exmtrans("system.password_history_cnt"))
-            ->default(0)
-            ->min(0)
-            ->max(20)
-            ->help(exmtrans("system.help.password_history_cnt"));
-
-    
-        if (!is_nullorempty(config('exment.login_providers'))) {
-            $form->exmheader(exmtrans('system.sso_setting'))->hr();
-
-            $form->switchbool('sso_jit', exmtrans("system.sso_jit"))
-                ->help(exmtrans("system.help.sso_jit"))
-                ->attribute(['data-filtertrigger' =>true]);
-
-            $form->textarea('sso_accept_mail_domain', exmtrans('system.sso_accept_mail_domain'))
-                ->help(exmtrans("system.help.sso_accept_mail_domain"))
-                ->attribute(['data-filter' => json_encode(['key' => 'sso_jit', 'value' => '1'])])
-                ->rows(3)
-                ;
-
-            $form->multipleSelect('sso_rolegroups', exmtrans("role_group.header"))
-            ->help(exmtrans('system.help.sso_rolegroups'))
-            ->options(function ($option) {
-                return RoleGroup::all()->pluck('role_group_view_name', 'id');
-            })
-            ->attribute(['data-filter' => json_encode(['key' => 'sso_jit', 'value' => '1'])]);
-        }
-
         $form->exmheader(exmtrans('system.ip_filter'))->hr();
         $form->description(exmtrans("system.help.ip_filter"));
 
@@ -390,7 +347,7 @@ class SystemController extends AdminControllerBase
         try {
             $advanced = $request->has('advanced');
 
-            $result = $this->postInitializeForm($request, ($advanced ? ['advanced'] : ['initialize', 'system']), false, true);
+            $result = $this->postInitializeForm($request, ($advanced ? ['advanced'] : ['initialize', 'system']), false, !$advanced);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }
