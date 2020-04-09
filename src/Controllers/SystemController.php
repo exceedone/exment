@@ -20,6 +20,7 @@ use Exceedone\Exment\Form\Widgets\InfoBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\NotifyService;
@@ -191,7 +192,9 @@ class SystemController extends AdminControllerBase
             $form->email('system_mail_from', exmtrans("system.system_mail_from"))
                 ->help(exmtrans("system.help.system_mail_from"));
         }
+       
         
+
         $form->exmheader(exmtrans('system.password_policy'))->hr();
 
         $form->description(exmtrans("system.help.password_policy"));
@@ -210,6 +213,28 @@ class SystemController extends AdminControllerBase
             ->min(0)
             ->max(20)
             ->help(exmtrans("system.help.password_history_cnt"));
+
+    
+        if (!is_nullorempty(config('exment.login_providers'))) {
+            $form->exmheader(exmtrans('system.sso_setting'))->hr();
+
+            $form->switchbool('sso_jit', exmtrans("system.sso_jit"))
+                ->help(exmtrans("system.help.sso_jit"))
+                ->attribute(['data-filtertrigger' =>true]);
+
+            $form->textarea('sso_accept_mail_domain', exmtrans('system.sso_accept_mail_domain'))
+                ->help(exmtrans("system.help.sso_accept_mail_domain"))
+                ->attribute(['data-filter' => json_encode(['key' => 'sso_jit', 'value' => '1'])])
+                ->rows(3)
+                ;
+
+            $form->multipleSelect('sso_rolegroups', exmtrans("role_group.header"))
+            ->help(exmtrans('system.help.sso_rolegroups'))
+            ->options(function ($option) {
+                return RoleGroup::all()->pluck('role_group_view_name', 'id');
+            })
+            ->attribute(['data-filter' => json_encode(['key' => 'sso_jit', 'value' => '1'])]);
+        }
 
         $form->exmheader(exmtrans('system.ip_filter'))->hr();
         $form->description(exmtrans("system.help.ip_filter"));

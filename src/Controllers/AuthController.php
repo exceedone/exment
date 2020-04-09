@@ -6,6 +6,7 @@ use Exceedone\Exment\Services\LoginService;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\PasswordHistory;
@@ -21,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request as Req;
+use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 
 /**
@@ -190,11 +192,12 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         // check exment user
         $exment_user = $this->getExmentUser($provider_user);
         if ($exment_user === false) {
-            $this->incrementLoginAttempts($request);
-
-            return redirect($error_url)->withInput()->withErrors(
-                [$this->username() => exmtrans('login.noexists_user')]
-            );
+            // Check system setting jit
+            $exment_user = $this->createExmentUser($provider_user, $error_url);
+            if($exment_user instanceof Response){
+                $this->incrementLoginAttempts($request);
+                return $exment_user;
+            }
         }
 
         $login_user = $this->getLoginUser($socialiteProvider, $login_provider, $exment_user, $provider_user);
@@ -254,6 +257,62 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             'user_name' => $provider_user->name ?: $provider_user->email
         ]);
         $exment_user->save();
+
+        return $exment_user;
+    }
+    /**
+     * create exment user from users table
+     */
+    protected function createExmentUser($provider_user, $error_url)
+    {
+        if(!System::sso_jit()){
+            return redirect($error_url)->withInput()->withErrors(
+                [$this->username() => exmtrans('login.noexists_user')]
+            );
+        }
+
+        if(!is_nullorempty($sso_accept_mail_domains = System::sso_accept_mail_domain())){
+            // check domain
+            $email_domain = explode("@", $provider_user->email)[1];
+            $domain_result = false;
+            foreach(explodeBreak($sso_accept_mail_domains) as $sso_accept_mail_domain){
+                if($email_domain == $sso_accept_mail_domain){
+                    $domain_result = true;
+                    break;
+                }
+            }
+                
+            if(!$domain_result){
+                return redirect($error_url)->withInput()->withErrors(
+                    [$this->username() => exmtrans('login.not_accept_domain')]
+                );
+            }
+        }
+
+
+        $exment_user = null;
+        \DB::transaction(function() use($provider_user, &$exment_user){
+            $exment_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
+            $exment_user->setValue([
+                'user_name' => $provider_user->name ?: $provider_user->email,
+                'user_code' => $provider_user->id,
+                'email' => $provider_user->email,
+            ]);
+            $exment_user->save();
+    
+            // Set roles
+            if(!is_nullorempty($sso_rolegroups = System::sso_rolegroups())){
+                $sso_rolegroups = collect(System::sso_rolegroups())->map(function($sso_rolegroup) use($exment_user){
+                    return [
+                        'role_group_id' => $sso_rolegroup,
+                        'role_group_user_org_type' => SystemTableName::USER,
+                        'role_group_target_id' => $exment_user->id,
+                    ];
+                })->toArray();
+                    
+                \DB::table(SystemTableName::ROLE_GROUP_USER_ORGANIZATION)->insert($sso_rolegroups);
+            }
+        });
 
         return $exment_user;
     }

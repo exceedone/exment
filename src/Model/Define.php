@@ -75,6 +75,10 @@ class Define
         'web_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
         'api_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
 
+        'sso_jit' => ['type' => 'boolean', 'default' => '0', 'group' => 'advanced'] ,
+        'sso_accept_mail_domain' => ['default' => '', 'group' => 'advanced'] ,
+        'sso_rolegroups' => ['type' => 'array', 'default' => '', 'group' => 'advanced'] ,
+
         // org_joined_type
         'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'advanced'],
         'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
