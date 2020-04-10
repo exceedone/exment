@@ -16,7 +16,7 @@
                 <label>
                     <input type="radio" name="{{$name['flow_next_type']}}" value="some" class="minimal {{$class['flow_next_type']}}" {{ (old($column['flow_next_type'], array_get($value, 'flow_next_type')) ?? 'some' === 'some') ?'checked':'' }} />&nbsp;
                     
-                    <input type="text" name="{{$name['flow_next_count']}}" style="width:50px; text-align:right;" value="{{old($column['flow_next_count'], array_get($value, 'ignore_work')) ?? 1}}" required />
+                    <input type="text" name="{{$name['flow_next_count']}}" style="width:50px; text-align:right;" value="{{old($column['flow_next_count'], array_get($value, 'flow_next_count')) ?? 1}}" required />
                     &nbsp;{{exmtrans('workflow.upper_user')}}
                 </label>
             </div>
