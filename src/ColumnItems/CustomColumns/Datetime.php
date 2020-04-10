@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Form\Field as ExmentField;
 
@@ -28,5 +29,14 @@ class Datetime extends Date
             return Field\Date::class;
         }
         return Field\Datetime::class;
+    }
+
+    /**
+     * get cast name for sort
+     */
+    public function getCastName()
+    {
+        $grammar = \DB::getQueryGrammar();
+        return $grammar->getCastString(DatabaseDataType::TYPE_DATETIME, true);
     }
 }

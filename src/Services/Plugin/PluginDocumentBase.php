@@ -116,6 +116,16 @@ abstract class PluginDocumentBase
         ];
     }
     
+    public function getButtonLabel()
+    {
+        // get label
+        if (!is_null(array_get($this->plugin, 'options.label'))) {
+            return array_get($this->plugin, 'options.label');
+        } elseif (isset($this->plugin->plugin_view_name)) {
+            return $this->plugin->plugin_view_name;
+        }
+    }
+    
     /**
      * execute before creating document
      */

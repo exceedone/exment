@@ -26,7 +26,7 @@ class ReplaceFormatTest extends UnitTestBase
 
         foreach($dateStrings as $key => $value){
             $text = ReplaceFormatService::replaceTextFromFormat('${' . $key . '}');
-            $this->assertTrue($text == $now->format($value));
+            $this->assertMatch($text, $now->format($value));
         }
     }
 
@@ -52,7 +52,7 @@ class ReplaceFormatTest extends UnitTestBase
 
         foreach($dateValues as $key => $value){
             $text = ReplaceFormatService::replaceTextFromFormat('${' . $key . '}');
-            $this->assertTrue($text == $now->{$value});
+            $this->assertMatch($text, $now->{$value});
         }
     }
 
@@ -73,7 +73,28 @@ class ReplaceFormatTest extends UnitTestBase
 
         foreach($dateFormats as $format){
             $text = ReplaceFormatService::replaceTextFromFormat('${now:'  . $format . '}');
-            $this->assertTrue($text == $now->format($format));
+            $this->assertMatch($text, $now->format($format));
+        }
+    }
+
+    public function testReplaceValueDateFormat()
+    {
+        $dateFormats = [
+            'Ymd',
+            'YMd',
+            'YMD',
+            'ymd',
+            'yMd',
+            'yMD',
+            'Y/m/d'
+        ];
+
+        $custom_value_edit = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
+        $date = \Carbon\Carbon::parse($custom_value_edit->getValue('date'));
+        
+        foreach($dateFormats as $format){
+            $text = ReplaceFormatService::replaceTextFromFormat('${value:date/format="'  . $format . '"}', $custom_value_edit);
+            $this->assertMatch($text, $date->format($format));
         }
     }
 
@@ -81,7 +102,7 @@ class ReplaceFormatTest extends UnitTestBase
     {
         $info = CustomTable::getEloquent('information')->getValueModel(1);
         $text = ReplaceFormatService::replaceTextFromFormat('${value_url}', $info);
-        $this->assertTrue($info->getUrl() == $text);
+        $this->assertMatch($info->getUrl(), $text);
     }
 
     public function testReplaceSystemValue()
@@ -92,7 +113,7 @@ class ReplaceFormatTest extends UnitTestBase
 
         foreach($systemValues as $systemValue){
             $text = ReplaceFormatService::replaceTextFromFormat('${' . $systemValue . '}', $info);
-            $this->assertTrue($info->{$systemValue} == $text);
+            $this->assertMatch($info->{$systemValue}, $text);
         }
     }
 
@@ -104,7 +125,7 @@ class ReplaceFormatTest extends UnitTestBase
 
         foreach($custom_columns as $custom_column){
             $text = ReplaceFormatService::replaceTextFromFormat('${value:' . $custom_column->column_name . '}', $info);
-            $this->assertTrue($info->getValue($custom_column->column_name, true) == $text);
+            $this->assertMatch($info->getValue($custom_column->column_name, true), $text);
         }
     }
 
@@ -128,7 +149,7 @@ class ReplaceFormatTest extends UnitTestBase
         ];
         foreach($keys as $key => $value){
             $text = ReplaceFormatService::replaceTextFromFormat('${system:' . $key . '}');
-            $this->assertTrue($text == $value);
+            $this->assertMatch($text, $value);
         }
     }
     
@@ -158,7 +179,7 @@ class ReplaceFormatTest extends UnitTestBase
                 'workflow_action' => $workflow_action,
                 'workflow_value' => $workflow_value,
             ]);
-            $this->assertTrue($text == $value);
+            $this->assertMatch($text, $value);
         }
     }
 }

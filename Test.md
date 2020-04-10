@@ -59,11 +59,11 @@ php artisan exment:inittest
 ### CustomTable
 | id | table_name | description |
 | ---- | ---- | ---- |
-| 9 | roletest_custom_value_edit_all | user_group users can edit all_custom_value. |
-| 10 | roletest_custom_value_view_all | user_group users can view all_custom_value. |
-| 11 | roletest_custom_value_access_all | user_group users can access all_custom_value. |
-| 12 | roletest_custom_value_edit | user_group users can edit custom_value. And has workflow. |
-| 13 | roletest_custom_value_view | user_group users can view custom_value. |
+| 9 | custom_value_edit_all | user_group users can edit all_custom_value. |
+| 10 | custom_value_view_all | user_group users can view all_custom_value. |
+| 11 | custom_value_access_all | user_group users can access all_custom_value. |
+| 12 | custom_value_edit | user_group users can edit custom_value. And has workflow. |
+| 13 | custom_value_view | user_group users can view custom_value. |
 | 14 | no_permission | user_group users don't have permission. |
 
 
@@ -112,6 +112,6 @@ Ex.
 
 | id | workflow_name | workflow_type | setting_completed_flg | target_table |
 | ---- | ---- | ---- | ---- | ---- |
-| 1 | workflow_common_company | common | 1 | roletest_custom_value_edit_all |
+| 1 | workflow_common_company | common | 1 | custom_value_edit_all |
 | 2 | workflow_common_no_complete | common | - | - |
-| 3 | workflow_for_individual_table | table | 1 | roletest_custom_value_edit |
+| 3 | workflow_for_individual_table | table | 1 | custom_value_edit |

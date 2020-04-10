@@ -7,9 +7,12 @@ use Exceedone\Exment\Model\ApiClient;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\ApiScope;
+use Exceedone\Exment\Tests\TestTrait;
 
 abstract class ApiTestBase extends TestCase
 {
+    use TestTrait;
+    
     /**
      * Get Client Id and Secret 
      *
@@ -135,4 +138,31 @@ abstract class ApiTestBase extends TestCase
 
         return array_get(json_decode($response->baseResponse->getContent(), true), 'access_token');
     }
+    
+    /**
+     * Json inner fragment
+     *
+     * @return void
+     */
+    protected function assertJsonTrue($response, $arrays){
+        $json = json_decode($response->baseResponse->getContent(), true);
+        $this->assertJsonTrueFunc([], $arrays, $json);
+    }
+
+    protected function assertJsonTrueFunc($keys, $arrays, $json){
+        foreach($arrays as $k => $v){
+            $copykeys = $keys;
+            $copykeys[] = $k;
+            if(is_array($v)){
+                $this->assertJsonTrueFunc($copykeys, $v, $json);
+            }
+            else{
+                $checkKey = implode('.', $copykeys);
+                $checkValue = array_get($json, $checkKey);
+                $jsonString = json_encode($json);
+                $this->assertTrue($checkValue == $v, "key $checkKey is $checkValue, but value is $v".PHP_EOL.PHP_EOL.$jsonString);
+            }
+        }
+    }
+
 }

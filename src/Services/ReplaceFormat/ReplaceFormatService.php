@@ -37,18 +37,19 @@ class ReplaceFormatService
                         $match = $matches[1][$i];
                         $matchString = $matches[0][$i];
                         
-                        //split semi-coron
+                        //split slach
                         $length_array = explode("/", $match);
                         $matchOptions = [];
                         if (count($length_array) > 1) {
                             $targetFormat = $length_array[0];
-                            // $item is splited comma, key=value string
-                            foreach (explode(',', $length_array[1]) as $item) {
+                            // $item is splited slach, key=value string
+                            $optionString = implode('/', array_slice($length_array, 1));
+                            foreach (explode(',', $optionString) as $item) {
                                 $kv = explode('=', $item);
                                 if (count($kv) <= 1) {
                                     continue;
                                 }
-                                $matchOptions[$kv[0]] = $kv[1];
+                                $matchOptions[$kv[0]] = str_replace('"', "", $kv[1]);
                             }
                         } else {
                             $targetFormat = $length_array[0];
