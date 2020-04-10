@@ -27,9 +27,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 
 /**
- * For login oauth controller
+ * For login saml controller
  */
-class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
+class AuthSamlController extends \Encore\Admin\Controllers\AuthController
 {
     use AuthTrait, ThrottlesLogins;
 
@@ -65,7 +65,7 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
      *
      * @return \Illuminate\Contracts\View\Factory|Redirect|\Illuminate\View\View
      */
-    public function loginSaml(Request $request, $login_provider)
+    public function callbackLoginProvider(Request $request, $login_provider)
     {
         if ($this->guard()->check()) {
             return redirect($this->redirectPath());

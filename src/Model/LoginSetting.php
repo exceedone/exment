@@ -24,11 +24,33 @@ class LoginSetting extends ModelBase
     }
     
     public function getProviderNameAttribute(){
-        if(!is_nullorempty($name = $this->getOption('login_provider_name'))){
+        if(!is_nullorempty($name = $this->getOption('oauth_login_provider_name'))){
             return $name;
         }
 
-        return $this->getOption('login_provider_type');
+        return $this->getOption('oauth_login_provider_type');
+    }
+    
+    /**
+     * Get OAuth's all settings
+     *
+     * @return void
+     */
+    public static function getOAuthSettings(){
+        return static::allRecords(function($record){
+            return $record->login_type == LoginType::OAUTH;
+        });
+    }
+
+    /**
+     * Get SAML's all settings
+     *
+     * @return void
+     */
+    public static function getSamlSettings(){
+        return static::allRecords(function($record){
+            return $record->login_type == LoginType::SAML;
+        });
     }
     
     /**
@@ -37,7 +59,11 @@ class LoginSetting extends ModelBase
     public static function getSocialiteProvider(string $login_provider)
     {
         $provider = static::firstRecord(function($record) use($login_provider){
-            return $record->getOption('login_provider_name') == $login_provider || $record->getOption('login_provider_type') == $login_provider;
+            if($record->login_type != LoginType::OAUTH){
+                return false;
+            }
+            
+            return $record->getOption('loauth_ogin_provider_name') == $login_provider || $record->getOption('oauth_login_provider_type') == $login_provider;
         });
 
         //create config
@@ -46,7 +72,7 @@ class LoginSetting extends ModelBase
 
 
         if (is_null(config("services.$login_provider.redirect"))) {
-            $redirect_url = $provider->getOption('redirect_url') ?? admin_urls("auth", "login", $login_provider, "callback");
+            $redirect_url = $provider->getOption('oauth_redirect_url') ?? admin_urls("auth", "login", $login_provider, "callback");
             config(["services.$login_provider.redirect" => $redirect_url]);
         }
         

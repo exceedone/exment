@@ -568,12 +568,26 @@ return [
         'description' => 'SSO認証など、ログインの設定を行います。',
         'login_setting_name' => 'ログイン設定表示名',
         'login_type' => 'ログイン種類',
-        'login_provider_type' => 'プロバイダ種類',
-        'login_provider_name' => 'プロバイダ種類(英数字)',
-        'client_id' => 'クライアントID',
-        'client_secret' => 'クライアントシークレット',
-        'scope' => 'スコープ',
+        'oauth_provider_type' => 'プロバイダ種類',
+        'oauth_provider_name' => 'プロバイダ種類(英数字)',
+        'oauth_client_id' => 'クライアントID',
+        'oauth_client_secret' => 'クライアントシークレット',
+        'oauth_scope' => 'スコープ',
+        
+        'saml_idp' => 'IdP設定',
+        'saml_idp_entityid' => 'IdP Entity ID',
+        'saml_idp_sso_url' => 'IdP サインオンURL',
+        'saml_idp_ssout_url' => 'IdP サインアウトURL',
+        'saml_idp_x509' => 'IdP X.509 Certificate',
+        
+        'saml_sp' => 'SP設定',
+        'saml_sp_entityid' => 'SP Entity ID',
+        'saml_sp_name_id_format' => 'SP NameIDFormat',
+        'saml_sp_x509' => 'SP X.509 Certificate',
+        'saml_sp_privatekey' => 'SP Private Key',
+        
         'redirect_url' => 'リダイレクトURL',
+
         'login_button_label' => 'ログインボタン - ラベル',
         'login_button_icon' => 'ログインボタン - アイコン',
         'login_button_background_color' => 'ログインボタン - 背景色',
@@ -601,9 +615,10 @@ return [
 
         'login_type_options' => [
             'oauth' => 'OAuth認証',
+            'saml' => 'SAML認証',
         ],
 
-        'login_provider_type_options' => [
+        'oauth_provider_type_options' => [
             'google' => 'Google',
             'github' => 'Github',
             'facebook' => 'Facebook',

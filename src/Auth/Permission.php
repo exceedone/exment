@@ -147,6 +147,8 @@ class Permission
             case "auth-2factor":
             case "auth/login":
             case "auth/logout":
+            case "saml/login":
+            case "saml/logout":
             case "auth/setting":
             case "auth/change":
             case "dashboard":

@@ -96,6 +96,9 @@ class LoginSettingController extends AdminControllerBase
             if (!isset($login_setting) || $login_setting->login_type == LoginType::OAUTH) {
                 $this->setOAuthForm($form, $errors);
             }
+            if (!isset($login_setting) || $login_setting->login_type == LoginType::SAML) {
+                $this->setSamlForm($form, $errors);
+            }
         })->disableHeader();
 
         $form->disableReset();
@@ -104,41 +107,42 @@ class LoginSettingController extends AdminControllerBase
 
     protected function setOAuthForm($form, $errors){
         if(array_has($errors, LoginType::OAUTH)){
-            $form->description($errors[LoginType::OAUTH]);
+            $form->description($errors[LoginType::OAUTH])
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
 
             return;
         }
 
-        $form->select('login_provider_type', exmtrans('login.login_provider_type'))
-        ->options(LoginProviderType::transKeyArray('login.login_provider_type_options'))
+        $form->select('oauth_provider_type', exmtrans('login.oauth_provider_type'))
+        ->options(LoginProviderType::transKeyArray('login.oauth_provider_type_options'))
         ->required()
         ->attribute(['data-filtertrigger' => true, 'data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
 
-        $login_provider_caution = '<span class="red">' . exmtrans('login.message.login_provider_caution', [
+        $login_provider_caution = '<span class="red">' . exmtrans('login.message.oauth_provider_caution', [
             'url' => getManualUrl('sso'),
         ]) . '</span>';
         $form->description($login_provider_caution)
-        ->attribute(['data-filter' => json_encode(['key' => 'options_login_provider_type', 'value' => [LoginProviderType::OTHER]])]);
+        ->attribute(['data-filter' => json_encode(['key' => 'options_provider_type', 'value' => [LoginProviderType::OTHER]])]);
 
-        $form->text('login_provider_name', exmtrans('login.login_provider_name'))
+        $form->text('oauth_provider_name', exmtrans('login.oauth_provider_name'))
         ->required()
         ->help(exmtrans('login.help.login_provider_name'))
         ->attribute(['data-filter' => json_encode(['key' => 'options_login_provider_type', 'value' => [LoginProviderType::OTHER]])]);
 
-        $form->text('client_id', exmtrans('login.client_id'))
+        $form->text('oauth_client_id', exmtrans('login.oauth_client_id'))
         ->required()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
 
-        $form->text('client_secret', exmtrans('login.client_secret'))
+        $form->text('oauth_client_secret', exmtrans('login.oauth_client_secret'))
         ->required()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
 
-        $form->text('scope', exmtrans('login.scope'))
+        $form->text('oauth_scope', exmtrans('login.oauth_scope'))
         ->help(exmtrans('login.help.scope'))
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
 
         if (boolval(config('exment.expart_mode', false))) {
-            $form->url('redirect_url', exmtrans('login.redirect_url'))
+            $form->url('oauth_redirect_url', exmtrans('login.redirect_url'))
             ->help(exmtrans('login.help.redirect_url'))
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
         }
@@ -174,6 +178,77 @@ class LoginSettingController extends AdminControllerBase
         ->attribute(['data-filter' => json_encode(['key' => 'options_login_provider_type', 'value' => [LoginProviderType::OTHER]])]);
     }
 
+    protected function setSamlForm($form, $errors){
+        if(array_has($errors, LoginType::SAML)){
+            $form->description($errors[LoginType::SAML])
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+
+            return;
+        }
+
+        $form->exmheader(exmtrans('login.saml_idp'))->hr()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+
+        $form->text('saml_idp_entityid', exmtrans('login.saml_idp_entityid'))
+        ->help(exmtrans('login.help.saml_idp_entityid'))
+        ->required()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+        
+        $form->url('saml_idp_sso_url', exmtrans('login.saml_idp_sso_url'))
+        ->help(exmtrans('login.help.saml_idp_sso_url'))
+        ->required()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+        
+        $form->url('saml_idp_ssout_url', exmtrans('login.saml_idp_ssout_url'))
+        ->help(exmtrans('login.help.saml_idp_ssout_url'))
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+        
+        $form->textarea('saml_idp_x509', exmtrans('login.saml_idp_x509'))
+        ->help(exmtrans('login.help.saml_idp_x509'))
+        ->required()
+        ->rows(4)
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+        
+
+        $form->exmheader(exmtrans('login.saml_sp'))->hr()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+
+        $form->text('saml_sp_name_id_format', exmtrans('login.saml_sp_name_id_format'))
+        ->help(exmtrans('login.help.saml_sp_name_id_format'))
+        ->required()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+        
+        $form->text('saml_sp_entityid', exmtrans('login.saml_sp_entityid'))
+        ->help(exmtrans('login.help.saml_sp_entityid'))
+        ->required()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+        
+        $form->textarea('saml_sp_x509', exmtrans('login.saml_sp_x509'))
+        ->help(exmtrans('login.help.saml_sp_x509'))
+        ->required()
+        ->rows(4)
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+        
+        $form->textarea('saml_sp_privatekey', exmtrans('login.saml_sp_privatekey'))
+        ->help(exmtrans('login.help.saml_privatekey'))
+        ->required()
+        ->rows(4)
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+        
+        
+        $form->switchbool('saml_option_name_id_encrypted', exmtrans("custom_column.options.saml_option_name_id_encrypted"))
+        ->help(exmtrans("custom_column.help.saml_option_name_id_encrypted"))
+        ->default("0")
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+        
+        $form->switchbool('saml_option_authn_requests_signed', exmtrans("custom_column.options.saml_option_authn_requests_signed"))
+        ->help(exmtrans("custom_column.help.saml_option_authn_requests_signed"))
+        ->default("0")
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+
+
+    }
+
     /**
      * Checking OAuth library
      *
@@ -183,6 +258,10 @@ class LoginSettingController extends AdminControllerBase
         $errors = [];
         if(!class_exists('\\Laravel\\Socialite\\SocialiteServiceProvider')){
             $errors[] = LoginType::OAUTH();
+        }
+
+        if(!class_exists('\\Aacotroneo\\Saml2\\Saml2Auth')){
+            $errors[] = LoginType::SAML();
         }
 
         return collect($errors)->mapWithKeys(function($error){

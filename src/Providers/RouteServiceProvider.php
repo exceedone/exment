@@ -209,9 +209,14 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('favicon', 'FileController@downloadFavicon');
 
             // get config about login provider
-            if (LoginSetting::allRecords()->count() > 0) {
+            if (LoginSetting::getOAuthSettings()->count() > 0) {
                 $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider');
                 $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callbackLoginProvider');
+            }
+            // get config about login provider
+            if (LoginSetting::getSamlSettings()->count() > 0) {
+                $router->get('saml/login/{provider}', 'AuthSamlController@loginSaml');
+                $router->get('saml/login/{provider}/callback', 'AuthSamlController@callbackLoginProvider');
             }
         });
     }
