@@ -77,6 +77,26 @@ class ReplaceFormatTest extends UnitTestBase
         }
     }
 
+    public function testReplaceValueDateFormat()
+    {
+        $dateFormats = [
+            'Ymd',
+            'YMd',
+            'YMD',
+            'ymd',
+            'yMd',
+            'yMD',
+        ];
+
+        $custom_value_edit = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
+        $date = \Carbon\Carbon::parse($custom_value_edit->getValue('date'));
+        
+        foreach($dateFormats as $format){
+            $text = ReplaceFormatService::replaceTextFromFormat('${value:date/format='  . $format . '}', $custom_value_edit);
+            $this->assertTrue($text == $date->format($format));
+        }
+    }
+
     public function testReplaceValueUrl()
     {
         $info = CustomTable::getEloquent('information')->getValueModel(1);

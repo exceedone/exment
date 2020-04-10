@@ -238,6 +238,7 @@ class TestDataSeeder extends Seeder
             ['column_name' => 'odd_even', 'column_view_name' => 'odd_even', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1']],
             ['column_name' => 'multiples_of_3', 'column_view_name' => 'multiples_of_3', 'column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
             ['column_name' => 'file', 'column_view_name' => 'file', 'column_type' => ColumnType::FILE, 'options' => []],
+            ['column_name' => 'date', 'column_view_name' => 'date', 'column_type' => ColumnType::DATE, 'options' => []],
         ];
 
         $custom_columns = [];
@@ -309,6 +310,7 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("index_text", 'index_'.$id.'_'.$i);
                 $custom_value->setValue("odd_even", ($i % 2 == 0 ? 'even' : 'odd'));
                 $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
+                $custom_value->setValue("date", \Carbon\Carbon::now());
                 $custom_value->created_user_id = $id;
                 $custom_value->updated_user_id = $id;
     
