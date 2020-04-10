@@ -129,6 +129,9 @@ class PatchDataCommand extends Command
             case 'back_slash_replace':
                 $this->patchFileNameBackSlash();
                 return;
+            case 'remove_stored_revision':
+                $this->removeStoredRevision();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -801,6 +804,69 @@ class PatchDataCommand extends Command
         $func($query, 'system_value', function ($item) {
             $value = array_get($item, "system_value");
             $item->system_value = str_replace('\\', '/', $value);
+        });
+    }
+
+    /**
+     * removeStoredRevision
+     *
+     * @return void
+     */
+    protected function removeStoredRevision()
+    {
+        if (!canConnection() || !hasTable(SystemTableName::CUSTOM_TABLE)) {
+            return;
+        }
+
+        \DB::transaction(function(){
+            // modify custom table file column
+            CustomTable::all()->each(function ($custom_table) {
+                $dbName = getDBTableName($custom_table);
+                if(!hasTable($dbName)){
+                    return;
+                }
+
+                $query = \DB::table("$dbName as custom_value")
+                    ->join(SystemTableName::REVISION, function($join) use($custom_table){
+                        $join->on('custom_value.id', 'revisions.revisionable_id');
+                        $join->where('revisions.revisionable_type', $custom_table->table_name);   
+                    })->whereRaw('custom_value.created_at > (revisions.created_at + INTERVAL 240 SECOND)')
+                    ->select(['revisions.id as revision_id', 'revisions.suuid', 'revisionable_type', 'revisionable_id', 'revision_no', 'new_value', 'revisions.created_at as revision_created_at', 'custom_value.created_at as custom_value_created_at']);
+
+                $revisions = $query->get(); // ONLY WORK MYSQL
+
+                foreach ($revisions as $revision) {
+                    $r = (array)$revision;
+
+                    // check data
+                    $revision_id = array_get($r, 'revision_id');                    
+                    if(is_nullorempty($revision_id)){
+                        continue;
+                    }
+
+                    $revision_created_at = \Carbon\Carbon::parse($r['revision_created_at']);
+                    $custom_value_created_at = \Carbon\Carbon::parse($r['custom_value_created_at']);
+                    if($revision_created_at->gte($custom_value_created_at)){
+                        continue;
+                    }
+
+                    // delete target revision
+                    \DB::table(SystemTableName::REVISION)->where('id', $revision_id)->delete();
+
+                    // re-set revision_no
+                    $reset_revisions = \DB::table(SystemTableName::REVISION)
+                        ->where('revisionable_id', array_get($r, 'revisionable_id'))
+                        ->where('revisionable_type', array_get($r, 'revisionable_type'))
+                        ->orderBy('revision_no')
+                        ->select(['id', 'revision_no'])
+                        ->get();
+                    
+                    foreach($reset_revisions as $index => $reset_revision){
+                        $reset_r = (array)$reset_revision;
+                        \DB::table(SystemTableName::REVISION)->where('id', $reset_r['id'])->update(['revision_no' => ($index + 1)]);
+                    }
+                }
+            });
         });
     }
 }

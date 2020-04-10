@@ -25,6 +25,7 @@ class SystemTableName extends EnumBase
     const EMAIL_CODE_VERIFY = 'email_code_verifies';
     const NOTIFY_NAVBAR = 'notify_navbars';
     const PASSWORD_RESET = 'password_resets';
+    const REVISION = 'revisions';
     const WORKFLOW_AUTHORITY = 'workflow_authorities';
     const WORKFLOW = 'workflows';
     const WORKFLOW_TABLE = 'workflow_tables';
