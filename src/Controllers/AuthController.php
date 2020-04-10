@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\PasswordHistory;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
@@ -76,6 +77,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         $credentials = $request->only([$this->username(), 'password']);
         $remember = boolval($request->get('remember', false));
+        $credentials['login_type'] = LoginType::PURE;
 
         if ($this->guard()->attempt($credentials, $remember)) {
             if (!$this->checkPasswordLimit()) {
@@ -123,6 +125,30 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         }
 
         return true;
+    }
+
+    /**
+     * User logout.
+     *
+     * @return Redirect
+     */
+    public function getLogout(Request $request)
+    {
+        $login_user = \Exment::user();
+        $this->guard()->logout();
+
+        // get option before clear session
+        $options = [
+            Define::SYSTEM_KEY_SESSION_SAML_SESSION => session(Define::SYSTEM_KEY_SESSION_SAML_SESSION),
+        ];
+
+        $request->session()->invalidate();
+
+        if(isset($login_user) && $login_user->login_type != LoginType::PURE){
+            return $this->logoutSso($request, $login_user, $options);
+        }
+
+        return redirect(config('admin.route.prefix'));
     }
 
     protected function postVerifyEmail()

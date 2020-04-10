@@ -69,14 +69,14 @@
         @endforeach
 
         @foreach($login_providers as $login_provider_name => $login_provider)
-        <a href="{{ admin_url('auth/login/'.$login_provider_name) }}" class="btn btn-block btn-social btn-flat {{ $login_provider['btn_name'] ?? '' }}">
-            <i class="fa {{ $login_provider['font_owesome'] ?? '' }}"></i> Sign in using {{ $login_provider['display_name'] }}
+        <a href="{{ $login_provider['login_url'] }}" class="btn btn-block btn-social btn-flat {{ $login_provider['btn_name'] ?? '' }}">
+            <i class="fa {{ $login_provider['font_owesome'] ?? '' }}"></i> {{ $login_provider['display_name'] }}
         </a>
         @endforeach
         
-        @if($errors->has('username'))
+        @if($errors->has('sso_error'))
         <div class="has-error">
-        @foreach($errors->get('username') as $message)
+        @foreach($errors->get('sso_error') as $message)
         <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
         @endforeach 
         </div>

@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
+use Exceedone\Exment\Auth\SSOUser;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
@@ -42,247 +43,84 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
     }
 
     /**
+     * metadata
+     *
+     * @return \Illuminate\Contracts\View\Factory|Redirect|\Illuminate\View\View
+     */
+    public function metadata(Request $request, $provider_name)
+    {
+        $saml2Auth = LoginSetting::getSamlAuth($provider_name);
+        if (!isset($saml2Auth)) {
+            abort(404);
+        }
+
+        $metadata = $saml2Auth->getMetadata();
+
+        return response($metadata, 200, ['Content-Type' => 'text/xml']);
+    }
+
+    /**
      * Login page using provider (SSO).
      *
      * @return \Illuminate\Contracts\View\Factory|Redirect|\Illuminate\View\View
      */
-    public function getLoginProvider(Request $request, $login_provider)
+    public function login(Request $request, $provider_name)
     {
         if ($this->guard()->check()) {
             return redirect($this->redirectPath());
         }
 
-        // provider check
-        $socialiteProvider = LoginSetting::getSocialiteProvider($login_provider);
-        if (!isset($socialiteProvider)) {
+        $saml2Auth = LoginSetting::getSamlAuth($provider_name);
+        if (!isset($saml2Auth)) {
             abort(404);
         }
-        return $socialiteProvider->redirect();
+        
+        $saml2Auth->login();
     }
 
     /**
-     * callback login provider and login exment
+     * Process an incoming saml2 assertion request.
+     * Fires 'Saml2LoginEvent' event if a valid user is found.
      *
-     * @return \Illuminate\Contracts\View\Factory|Redirect|\Illuminate\View\View
+     * @return \Illuminate\Http\Response
      */
-    public function callbackLoginProvider(Request $request, $login_provider)
+    public function acs(Request $request, $provider_name)
     {
-        if ($this->guard()->check()) {
-            return redirect($this->redirectPath());
-        }
-
+        $saml2Auth = LoginSetting::getSamlAuth($provider_name);
+        
+        $errors = $saml2Auth->acs();
         $error_url = admin_url('auth/login');
-        
-        $socialiteProvider = LoginSetting::getSocialiteProvider($login_provider);
 
-        // get provider user
-        $provider_user = null;
-        try {
-            $provider_user = $socialiteProvider->user();
-        } catch (\Exception $ex) {
-            \Log::error($ex);
-            return redirect($error_url)->withInput()->withErrors(
-                [$this->username() => exmtrans('login.sso_provider_error')]
-            );
+        if (!empty($errors)) {
+            logger()->error('Saml2 error_detail', ['error' => $saml2Auth->getLastErrorReason()]);
+            session()->flash('saml2_error_detail', [$saml2Auth->getLastErrorReason()]);
+
+            logger()->error('Saml2 error', $errors);
+            session()->flash('saml2_error', $errors);
+            return redirect($error_url);
         }
 
-        // If the class is using the ThrottlesLogins trait, we can automatically throttle
-        // the login attempts for this application. We'll key this by the username and
-        // the IP address of the client making these requests into this application.
-        if ($this->throttle && $this->hasTooManyLoginAttempts($request)) {
-            $this->fireLockoutEvent($request);
-
-            return $this->sendLockoutResponse($request);
-        }
-
-        // check exment user
-        $exment_user = $this->getExmentUser($provider_user);
-        if ($exment_user === false) {
-            // Check system setting jit
-            $exment_user = $this->createExmentUser($provider_user, $error_url);
-            if($exment_user instanceof Response){
-                $this->incrementLoginAttempts($request);
-                return $exment_user;
-            }
-        }
-
-        $login_user = $this->getLoginUser($socialiteProvider, $login_provider, $exment_user, $provider_user);
-        
-        if ($this->guard()->attempt(
-            [
-                'username' => $provider_user->email,
-                'login_provider' => $login_provider,
-                'password' => $provider_user->id,
-            ]
-        )) {
-            // set session for 2factor
-            session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
-            
-            // set session access key
-            LoginService::setToken($login_provider, $provider_user);
-
-            return $this->sendLoginResponse($request);
-        }
-
-        $this->incrementLoginAttempts($request);
-
-        return redirect($error_url)->withInput()->withErrors([$this->username() => $this->getFailedLoginMessage()]);
-    }
-
-    /**
-     * get exment user from users table
-     */
-    protected function getExmentUser($provider_user)
-    {
-        $exment_user = getModelName(SystemTableName::USER)
-            ::where('value->email', $provider_user->email)
-            ->first();
-        if (!isset($exment_user)) {
-            return false;
-        }
-
-        // update user info
-        $exment_user->setValue([
-            'user_name' => $provider_user->name ?: $provider_user->email
-        ]);
-        $exment_user->save();
-
-        return $exment_user;
-    }
-
-    /**
-     * create exment user from users table
-     */
-    protected function createExmentUser($provider_user, $error_url)
-    {
-        if(!System::sso_jit()){
-            return redirect($error_url)->withInput()->withErrors(
-                [$this->username() => exmtrans('login.noexists_user')]
-            );
-        }
-
-        if(!is_nullorempty($sso_accept_mail_domains = System::sso_accept_mail_domain())){
-            // check domain
-            $email_domain = explode("@", $provider_user->email)[1];
-            $domain_result = false;
-            foreach(explodeBreak($sso_accept_mail_domains) as $sso_accept_mail_domain){
-                if($email_domain == $sso_accept_mail_domain){
-                    $domain_result = true;
-                    break;
-                }
-            }
-                
-            if(!$domain_result){
-                return redirect($error_url)->withInput()->withErrors(
-                    [$this->username() => exmtrans('login.not_accept_domain')]
-                );
-            }
-        }
-
-
-        $exment_user = null;
-        \DB::transaction(function() use($provider_user, &$exment_user){
-            $exment_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
-            $exment_user->setValue([
-                'user_name' => $provider_user->name ?: $provider_user->email,
-                'user_code' => $provider_user->id,
-                'email' => $provider_user->email,
-            ]);
-            $exment_user->save();
-    
-            // Set roles
-            if(!is_nullorempty($sso_rolegroups = System::sso_rolegroups())){
-                $sso_rolegroups = collect(System::sso_rolegroups())->map(function($sso_rolegroup) use($exment_user){
-                    return [
-                        'role_group_id' => $sso_rolegroup,
-                        'role_group_user_org_type' => SystemTableName::USER,
-                        'role_group_target_id' => $exment_user->id,
-                    ];
-                })->toArray();
-                    
-                \DB::table(SystemTableName::ROLE_GROUP_USER_ORGANIZATION)->insert($sso_rolegroups);
-            }
+        $sso_user = SSOUser::withSaml($provider_name, $saml2Auth->getSaml2User());
+        return $this->executeLogin($request, $sso_user, null, function() use($saml2Auth){
+            session([Define::SYSTEM_KEY_SESSION_SAML_SESSION => [
+                'sessionIndex' => $saml2Auth->getSaml2User()->getSessionIndex(),
+                'nameId' => $saml2Auth->getSaml2User()->getNameId(),
+            ]]);
         });
-
-        return $exment_user;
     }
 
     /**
-     * get login_user from login_users table
+     * Process an incoming saml2 logout request.
+     * Fires 'Saml2LogoutEvent' event if its valid.
+     * This means the user logged out of the SSO infrastructure, you 'should' log them out locally too.
+     *
+     * @param Saml2Auth $saml2Auth
+     * @param $idpName
+     * @return \Illuminate\Http\Response
      */
-    protected function getLoginUser($socialiteProvider, $login_provider, $exment_user, $provider_user)
+    public function sls(Request $request)
     {
-        $hasLoginUser = false;
-        // get login_user
-        $login_user = CustomUserProvider::RetrieveByCredential(
-            [
-                'username' => $provider_user->email,
-                'login_provider' => $login_provider
-            ]
-        );
-        if (isset($login_user)) {
-            // check password
-            if (CustomUserProvider::ValidateCredential($login_user, [
-                'password' => $provider_user->id
-            ])) {
-                $hasLoginUser = true;
-            }
-        }
-
-        // get avatar
-        $avatar  = $this->getAvatar($socialiteProvider, $provider_user);
-
-        // if don't has, create loginuser or match email
-        if (!$hasLoginUser) {
-            $login_user = LoginUser::firstOrNew([
-                'base_user_id' => $exment_user->id,
-                'login_provider' => $login_provider,
-            ]);
-            $login_user->base_user_id = $exment_user->id;
-            $login_user->login_provider = $login_provider;
-            $login_user->password = $provider_user->id;
-        }
-
-        if (isset($avatar)) {
-            $login_user->avatar = $avatar;
-        }
-        $login_user->save();
-        return $login_user;
+        return redirect(admin_url('auth/login')); //may be set a configurable default
     }
 
-    protected function getAvatar($socialiteProvider, $provider_user)
-    {
-        try {
-            // if socialiteProvider implements ProviderAvatar, call getAvatar
-            if (is_subclass_of($socialiteProvider, ProviderAvatar::class)) {
-                $stream = $socialiteProvider->getAvatar($provider_user->token);
-            }
-            // if user obj has avatar, download avatar.
-            elseif (isset($provider_user->avatar)) {
-                $client = new \GuzzleHttp\Client();
-                $response = $client->request('GET', $provider_user->avatar, [
-                    'http_errors' => false,
-                ]);
-                $stream = $response->getBody()->getContents();
-            }
-            // file upload.
-            if (isset($stream)) {
-                $file = ExmentFile::put(path_join("avatar", $provider_user->id), $stream, true);
-                return $file->path;
-            }
-        } finally {
-        }
-        return null;
-    }
-
-    /**
-     * @return string|\Symfony\Component\Translation\TranslatorInterface
-     */
-    protected function getFailedLoginMessage()
-    {
-        if (Lang::has('exment::exment.error.login_failed')) {
-            return exmtrans('error.login_failed');
-        }
-        return parent::getFailedLoginMessage();
-    }
 }

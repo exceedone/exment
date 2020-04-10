@@ -25,6 +25,7 @@ use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Middleware\Morph;
 use Carbon\Carbon;
@@ -131,6 +132,9 @@ class PatchDataCommand extends Command
                 return;
             case 'remove_stored_revision':
                 $this->removeStoredRevision();
+                return;
+            case 'set_login_type_sso':
+                $this->setLoginTypeSso();
                 return;
         }
 
@@ -868,5 +872,15 @@ class PatchDataCommand extends Command
                 }
             });
         });
+    }
+    
+    /**
+     * setLoginType
+     *
+     * @return void
+     */
+    protected function setLoginTypeSso()
+    {
+        \DB::table('login_users')->whereNotNull('login_provider')->update(['login_type' => LoginType::OAUTH]);
     }
 }

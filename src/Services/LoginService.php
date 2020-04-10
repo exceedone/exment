@@ -2,20 +2,26 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Auth\SSOUser;
 
 /**
  * LoginService
  */
 class LoginService
 {
-    public static function setToken($login_provider, $provider_user)
+    public static function setToken(SSOUser $sso_user)
     {
+        if($sso_user != LoginType::OAUTH){
+            return;
+        }
+
         // set session access key
         session([Define::SYSTEM_KEY_SESSION_PROVIDER_TOKEN => [
-            'access_token' => $provider_user->token,
-            'refresh_token' => $provider_user->refreshToken,
-            'provider' => $login_provider,
-            'expiresIn' =>  $provider_user->expiresIn,
+            'access_token' => $sso_user->token,
+            'refresh_token' => $sso_user->refreshToken,
+            'provider' => $sso_user->provider_name,
+            'expiresIn' =>  $sso_user->expiresIn,
         ]]);
     }
 

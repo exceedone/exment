@@ -199,6 +199,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('initialize', 'InitializeController@post');
             $router->put('initialize/filedelete', 'InitializeController@filedelete');
             $router->get('auth/login', 'AuthController@getLoginExment');
+            $router->get('auth/logout', 'AuthController@getLogout')->name('logout');
             $router->post('auth/login', 'AuthController@postLogin');
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
@@ -209,14 +210,18 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('favicon', 'FileController@downloadFavicon');
 
             // get config about login provider
-            if (LoginSetting::getOAuthSettings()->count() > 0) {
-                $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider');
-                $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callbackLoginProvider');
-            }
-            // get config about login provider
-            if (LoginSetting::getSamlSettings()->count() > 0) {
-                $router->get('saml/login/{provider}', 'AuthSamlController@loginSaml');
-                $router->get('saml/login/{provider}/callback', 'AuthSamlController@callbackLoginProvider');
+            if (canConnection() && hasTable(SystemTableName::LOGIN_SETTINGS)) {
+                if (LoginSetting::getOAuthSettings()->count() > 0) {
+                    $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider')->name('oauth_login');
+                    $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callback')->name('oauth_callback');
+                }
+                // get config about login provider
+                if (LoginSetting::getSamlSettings()->count() > 0) {
+                    $router->get('saml/logout', 'AuthSamlController@sls')->name('saml_sls');
+                    $router->get('saml/login/{provider}', 'AuthSamlController@login')->name('saml_login');
+                    $router->get('saml/login/{provider}/metadata', 'AuthSamlController@metadata');
+                    $router->post('saml/login/{provider}/acs', 'AuthSamlController@acs')->name('saml_acs');
+                }
             }
         });
     }

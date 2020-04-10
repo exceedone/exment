@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\LoginType;
 
 class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
 {
@@ -56,11 +57,11 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
                 $query->where($user->getIndexColumnName($key), array_get($credentials, 'username'));
             });
 
+            $query = $query->where('login_type', array_get($credentials, 'login_type'));
+
             // has login provider
             if (array_has($credentials, 'login_provider')) {
                 $query = $query->where('login_provider', array_get($credentials, 'login_provider'));
-            } else {
-                $query = $query->whereNull('login_provider');
             }
 
             $login_user = $query->first();

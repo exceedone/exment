@@ -26,6 +26,7 @@ class SystemTableName extends EnumBase
     const NOTIFY_NAVBAR = 'notify_navbars';
     const PASSWORD_RESET = 'password_resets';
     const REVISION = 'revisions';
+    const LOGIN_SETTINGS = 'login_settings';
     const WORKFLOW_AUTHORITY = 'workflow_authorities';
     const WORKFLOW = 'workflows';
     const WORKFLOW_TABLE = 'workflow_tables';

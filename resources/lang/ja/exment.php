@@ -227,9 +227,6 @@ return [
         'ip_filter' => 'IPフィルタ設定',
         'web_ip_filters' => 'Webページ',
         'api_ip_filters' => 'API',
-        'sso_setting' => 'SSO設定',
-        'sso_accept_mail_domain' => 'ログイン許可ドメイン',
-        'sso_jit' => 'ユーザー新規作成',
 
         'site_skin_options' => [
             "skin-blue" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
@@ -312,9 +309,6 @@ return [
             'org_joined_type_custom_value' => '各カスタムデータの共有設定に組織を設定したとき、親子階層の組織を含める範囲を設定します。',
             'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により、所属組織にも共有することができます。',
             'ip_filter' => '通信を許可するIPアドレスを設定します。固定IP（例：12.3.5.6）、および範囲指定形式（例：123.4.5.0/24）が使用できます。未設定の場合は、すべてのIPアドレスを許可します。<br />複数設定する場合は改行で区切ってください。',
-            'sso_jit' => 'ログインしたユーザーがExmentに存在しなかった場合、ログイン情報を使用し、Exmentユーザーを新規作成します。NOの場合は、事前にExmentにユーザーを作成する必要があります。',
-            'sso_accept_mail_domain' => 'ログインを許可するドメインを指定する場合は記入してください。複数ある場合は改行区切りで記入してください。',
-            'sso_rolegroups' => '新規ユーザー作成時に、既定の役割グループを割り振りたい場合は記入してください。',
         ],
     ],
 
@@ -563,6 +557,7 @@ return [
         'noexists_user' => 'Exmentにユーザーが存在しませんでした。先にユーザーを追加するよう、管理者にお問い合わせください。',
         'throttle' => 'ログイン試行回数が多すぎます。%s分経過後、再度お試しください。',
         'not_accept_domain' => 'そのドメインでのログインは許可されていません。',
+        'login_button_format' => ':display_nameでログイン',
 
         'header' => 'ログイン設定',
         'description' => 'SSO認証など、ログインの設定を行います。',
@@ -574,6 +569,16 @@ return [
         'oauth_client_secret' => 'クライアントシークレット',
         'oauth_scope' => 'スコープ',
         
+        'user_setting' => 'ユーザー設定',
+        'mapping_user_column' => 'アカウント検索列',
+        'update_user_info' => 'ユーザー情報を更新する',
+        'show_default_login_provider' => '既定のログインを表示する',
+        'sso_redirect_force' => 'SSOログインにリダイレクト',
+        'sso_setting' => 'SSO設定',
+        'sso_accept_mail_domain' => 'ログイン許可ドメイン',
+        'sso_jit' => 'ユーザー新規作成',
+
+        'saml_name' => 'SAML名(英数字)',
         'saml_idp' => 'IdP設定',
         'saml_idp_entityid' => 'IdP Entity ID',
         'saml_idp_sso_url' => 'IdP サインオンURL',
@@ -582,18 +587,25 @@ return [
         
         'saml_sp' => 'SP設定',
         'saml_sp_entityid' => 'SP Entity ID',
-        'saml_sp_name_id_format' => 'SP NameIDFormat',
+        'saml_sp_name_id_format' => 'SP Name ID Format',
         'saml_sp_x509' => 'SP X.509 Certificate',
         'saml_sp_privatekey' => 'SP Private Key',
+
+        'saml_option' => 'オプション設定',
+        'saml_option_name_id_encrypted' => 'Encrypt NameID',
+        'saml_option_authn_request_signed' => 'Sign AuthnRequest',
+        'saml_option_logout_request_signed' => 'Sign LogoutRequest',
+        'saml_option_logout_response_signed' => 'Sign LogoutResponse',
         
         'redirect_url' => 'リダイレクトURL',
 
-        'login_button_label' => 'ログインボタン - ラベル',
-        'login_button_icon' => 'ログインボタン - アイコン',
-        'login_button_background_color' => 'ログインボタン - 背景色',
-        'login_button_background_color_hover' => 'ログインボタン - 背景色(オンマウス)',
-        'login_button_font_color' => 'ログインボタン - 文字色',
-        'login_button_font_color_hover' => 'ログインボタン - 文字色(オンマウス)',
+        'login_button' => 'ログインボタン設定',
+        'login_button_label' => 'ボタン表示名',
+        'login_button_icon' => 'アイコン',
+        'login_button_background_color' => '背景色',
+        'login_button_background_color_hover' => '背景色(オンマウス)',
+        'login_button_font_color' => '文字色',
+        'login_button_font_color_hover' => '文字色(オンマウス)',
         
         'help' => [
             'login_provider_type' => 'ログインのプロバイダの種類を選択してください。',
@@ -606,6 +618,14 @@ return [
             'login_button_background_color_hover' => 'ログインボタンの背景色(オンマウス時)を入力してください。',
             'login_button_font_color' => 'ログインボタンの文字色を入力してください。',
             'login_button_font_color_hover' => 'ログインボタンの文字色(オンマウス時)を入力してください。',
+            'show_default_login_provider' => 'YESの場合、ExmentのID・パスワードを使用したログインフォームも表示します。',
+            'sso_redirect_force' => 'YESの場合、Exmentのログインページを表示せず、SSOのログインページにリダイレクトします。※SSOのプロバイダが1件のみの場合に有効になります。',
+            'sso_jit' => 'YESの場合、ログインしたユーザーがExmentに存在しなかった場合、ログイン情報を使用し、Exmentユーザーを新規作成します。NOの場合は、事前にExmentにユーザーを作成する必要があります。',
+            'update_user_info' => 'YESの場合、ログイン時に、Exmentのユーザー情報を更新します。',
+            'mapping_user_column' => 'SSOで取得したアカウントから、どの列を使用し、Exmentのアカウントを検索するかどうかを設定します。',
+            'sso_accept_mail_domain' => 'ログインを許可するドメインを指定する場合は記入してください。複数ある場合は改行区切りで記入してください。',
+            'jit_rolegroups' => '新規ユーザー作成時に、既定の役割グループを割り振りたい場合は記入してください。',
+            'mapping_description' => 'IdPから返却されるフィールド名と、Exmentのユーザーフィールド名を合致させる必要があります。IdPから返却されるフィールド名を入力してください。',
         ],
 
         'message' => [
