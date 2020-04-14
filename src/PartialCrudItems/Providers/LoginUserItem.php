@@ -4,6 +4,7 @@ namespace Exceedone\Exment\PartialCrudItems\Providers;
 
 use Exceedone\Exment\PartialCrudItems\ProviderBase;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 
@@ -24,7 +25,7 @@ class LoginUserItem extends ProviderBase
         $classname = getModelName(SystemTableName::USER);
         $login_user = $this->getLoginUser($id);
         $has_loginuser = !is_null($login_user);
-        $showLoginInfo = useLoginProvider() && !boolval(config('exment.show_default_login_provider', true));
+        $showLoginInfo = LoginSetting::getAllSettings()->count() > 0 && !boolval(config('exment.show_default_login_provider', true));
 
         if (!$showLoginInfo) {
             $form->exmheader(exmtrans('user.login'))->hr();

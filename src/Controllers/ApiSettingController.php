@@ -14,7 +14,7 @@ use Laravel\Passport\Client;
 
 class ApiSettingController extends AdminControllerBase
 {
-    use HasResourceActions;
+    use HasResourceActions, SystemSettingTrait;
 
     public function __construct(Request $request)
     {
@@ -41,6 +41,11 @@ class ApiSettingController extends AdminControllerBase
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
+        });
+        $grid->tools(function (Grid\Tools $tools) {
+            $this->setBaseSettingButton($tools);
+            $this->setAdvancedSettingButton($tools);
+            $this->setLoginSettingButton($tools);
         });
         return $grid;
     }

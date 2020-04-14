@@ -50,7 +50,7 @@
                             </div>
                             @endif
                             <div class="pull-right">
-                                <a href="{{ admin_url('auth/logout') }}" class="btn btn-default btn-flat">{{ trans('admin.logout') }}</a>
+                                <a href="{{ admin_url('auth/logout') }}" class="btn btn-default btn-flat" data-nopjax>{{ trans('admin.logout') }}</a>
                             </div>
                         </li>
                     </ul>

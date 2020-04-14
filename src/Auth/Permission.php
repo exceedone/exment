@@ -262,7 +262,7 @@ class Permission
             }
 
             // if $uri is "auth", get next uri.
-            if (in_array($uri, ['data', 'auth'])) {
+            if (in_array($uri, ['data', 'auth', 'saml'])) {
                 // but url is last item, return $uri.
                 if (count($uris) <= $k+1) {
                     return $uri;

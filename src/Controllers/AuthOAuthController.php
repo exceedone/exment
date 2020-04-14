@@ -89,7 +89,7 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
             );
         }
 
-        return $this->executeLogin($request, $sso_user, $socialiteProvider, function($sso_user) use($saml2Auth){
+        return $this->executeLogin($request, $sso_user, $socialiteProvider, function($sso_user){
             // set session access key
             LoginService::setToken($sso_user);
         });

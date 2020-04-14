@@ -148,7 +148,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             return $this->logoutSso($request, $login_user, $options);
         }
 
-        return redirect(config('admin.route.prefix'));
+        return redirect(\URL::route('exment_login'));
     }
 
     protected function postVerifyEmail()
@@ -216,7 +216,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                     return $exmentfile->local_filename;
                 });
 
-            if (!useLoginProvider() || boolval(config('exment.show_default_login_provider', true))) {
+            if (\Exment::user()->login_type == LoginType::PURE) {
                 $form->password('current_password', exmtrans('user.current_password'))->rules(['required_with:password', new ExmentValidator\CurrentPasswordRule])->help(exmtrans('user.help.change_only'));
                 $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false, \Exment::user()))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));

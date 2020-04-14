@@ -22,8 +22,7 @@ use Encore\Admin\Layout\Content;
 
 class LoginSettingController extends AdminControllerBase
 {
-    use InitializeFormTrait;
-    use HasResourceActions;
+    use HasResourceActions, InitializeFormTrait, SystemSettingTrait;
 
     public function __construct(Request $request)
     {
@@ -64,6 +63,11 @@ class LoginSettingController extends AdminControllerBase
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
+        });
+        $grid->tools(function (Grid\Tools $tools) {
+            $this->setBaseSettingButton($tools);
+            $this->setAdvancedSettingButton($tools);
+            $this->setApiSettingButton($tools);
         });
         return $grid;
     }

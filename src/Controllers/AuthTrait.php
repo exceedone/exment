@@ -60,7 +60,7 @@ trait AuthTrait
             return $this->logoutSaml($request, $login_user->login_provider, $options);
         }
 
-        return redirect(config('admin.route.prefix'));
+        return redirect(\URL::route('exment_login'));
     }
 
     /**
@@ -69,8 +69,14 @@ trait AuthTrait
      */
     protected function logoutSaml(Request $request, $provider_name, $options = [])
     {
-        $saml2Auth = LoginSetting::getSamlAuth($provider_name);
         $login_setting = LoginSetting::getSamlSetting($provider_name);
+        
+        // if not set ssout_url, return login
+        if(is_nullorempty($login_setting->getOption('saml_idp_ssout_url'))){
+            return redirect(\URL::route('exment_login'));
+        }
+
+        $saml2Auth = LoginSetting::getSamlAuth($provider_name);
         
         $returnTo = \URL::route('saml_sls');
         $sessionIndex = array_get($options, Define::SYSTEM_KEY_SESSION_SAML_SESSION . '.sessionIndex');

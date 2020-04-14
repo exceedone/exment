@@ -560,7 +560,7 @@ return [
         'login_button_format' => ':display_nameでログイン',
 
         'header' => 'ログイン設定',
-        'description' => 'SSO認証など、ログインの設定を行います。',
+        'description' => 'SSO認証など、Exmentのログインの設定を行います。',
         'login_setting_name' => 'ログイン設定表示名',
         'login_type' => 'ログイン種類',
         'oauth_provider_type' => 'プロバイダ種類',
@@ -619,7 +619,7 @@ return [
             'login_button_font_color' => 'ログインボタンの文字色を入力してください。',
             'login_button_font_color_hover' => 'ログインボタンの文字色(オンマウス時)を入力してください。',
             'show_default_login_provider' => 'YESの場合、ExmentのID・パスワードを使用したログインフォームも表示します。',
-            'sso_redirect_force' => 'YESの場合、Exmentのログインページを表示せず、SSOのログインページにリダイレクトします。※SSOのプロバイダが1件のみの場合に有効になります。',
+            'sso_redirect_force' => 'YESの場合、Exmentのログインページを表示せず、SSOのログインページに直接リダイレクトします。※SSOのプロバイダが1件のみの場合に有効になります。',
             'sso_jit' => 'YESの場合、ログインしたユーザーがExmentに存在しなかった場合、ログイン情報を使用し、Exmentユーザーを新規作成します。NOの場合は、事前にExmentにユーザーを作成する必要があります。',
             'update_user_info' => 'YESの場合、ログイン時に、Exmentのユーザー情報を更新します。',
             'mapping_user_column' => 'SSOで取得したアカウントから、どの列を使用し、Exmentのアカウントを検索するかどうかを設定します。',

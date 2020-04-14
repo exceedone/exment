@@ -1567,43 +1567,27 @@ if (!function_exists('getUserName')) {
     }
 }
 
-if (!function_exists('useLoginProvider')) {
+if (!function_exists('admin_exclusion_path')) {
     /**
-     * use login provider
+     * Get admin exclusion url.
+     * Ex. admin/data/testtable to data/testtable
+     *
+     * @param string $path
+     *
+     * @return string
      */
-    function useLoginProvider()
+    function admin_exclusion_path($path = '')
     {
-        $config = config('exment.login_providers');
-        if (is_nullorempty($config)) {
-            return false;
-        } elseif (is_array($config)) {
-            return (count($config) > 0);
-        } else {
-            return true;
+        $path = trim($path, '/');
+
+        $prefix = trim(config('admin.route.prefix'), '/');
+
+        if (starts_with($path, $prefix)) {
+            $path = substr($path, strlen($prefix));
         }
-    }
 
-    if (!function_exists('admin_exclusion_path')) {
-        /**
-         * Get admin exclusion url.
-         *
-         * @param string $path
-         *
-         * @return string
-         */
-        function admin_exclusion_path($path = '')
-        {
-            $path = trim($path, '/');
+        $path = trim($path, '/');
 
-            $prefix = trim(config('admin.route.prefix'), '/');
-
-            if (starts_with($path, $prefix)) {
-                $path = substr($path, strlen($prefix));
-            }
-
-            $path = trim($path, '/');
-    
-            return $path?? '/';
-        }
+        return $path?? '/';
     }
 }

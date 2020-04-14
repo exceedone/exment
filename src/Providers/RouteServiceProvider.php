@@ -198,8 +198,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('initialize', 'InitializeController@index');
             $router->post('initialize', 'InitializeController@post');
             $router->put('initialize/filedelete', 'InitializeController@filedelete');
-            $router->get('auth/login', 'AuthController@getLoginExment');
-            $router->get('auth/logout', 'AuthController@getLogout')->name('logout');
+            $router->get('auth/login', 'AuthController@getLoginExment')->name('exment_login');
+            $router->get('auth/logout', 'AuthController@getLogout')->name('exment_logout');
             $router->post('auth/login', 'AuthController@postLogin');
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');

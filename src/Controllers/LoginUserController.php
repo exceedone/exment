@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\PartialCrudItems\Providers\LoginUserItem;
@@ -115,7 +116,7 @@ class LoginUserController extends AdminControllerBase
 
         LoginUserItem::getItem()->setAdminFormOptions($form, $id);
 
-        $showLoginInfo = useLoginProvider() && !boolval(config('exment.show_default_login_provider', true));
+        $showLoginInfo = LoginSetting::getAllSettings()->count() && !boolval(config('exment.show_default_login_provider', true));
         if ($showLoginInfo) {
             $form->disableSubmit();
         }

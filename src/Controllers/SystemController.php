@@ -30,7 +30,7 @@ use Validator;
 
 class SystemController extends AdminControllerBase
 {
-    use InitializeFormTrait;
+    use InitializeFormTrait, SystemSettingTrait;
     
     public function __construct(Request $request)
     {
@@ -74,12 +74,10 @@ class SystemController extends AdminControllerBase
             })->default($admin_users);
 
         $box = new Box(trans('admin.edit'), $form);
-        $box->tools(view('exment::tools.button', [
-            'href' => admin_url('system?advanced=1'),
-            'label' => exmtrans('common.detail_setting'),
-            'icon' => 'fa-cogs',
-        ]));
-        
+        $this->setApiSettingButton($box);
+        $this->setLoginSettingButton($box);
+        $this->setAdvancedSettingButton($box);
+
         $content->row($box);
 
         if (System::outside_api()) {
@@ -200,11 +198,10 @@ class SystemController extends AdminControllerBase
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
 
         $box = new Box(exmtrans('common.detail_setting'), $form);
-        $box->tools(view('exment::tools.button', [
-            'href' => admin_url('system'),
-            'label' => exmtrans('common.basic_setting'),
-            'icon' => 'fa-cog',
-        ]));
+        $this->setApiSettingButton($box);
+        $this->setLoginSettingButton($box);
+        $this->setBaseSettingButton($box);
+
         $content->row($box);
 
         // sendmail test

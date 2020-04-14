@@ -120,7 +120,10 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
      */
     public function sls(Request $request)
     {
-        return redirect(admin_url('auth/login')); //may be set a configurable default
+        $this->guard()->logout();
+        $request->session()->invalidate();
+
+        return redirect(\URL::route('exment_login')); //may be set a configurable default
     }
 
 }
