@@ -30,6 +30,8 @@ class LoginSetting extends Migration
                 $table->timeusers();
             });
         }
+
+        \Artisan::call('exment:patchdata', ['action' => 'sso_oauth_database']);
     }
 
     /**
