@@ -60,6 +60,9 @@ class UpdateCommand extends Command
      */
     public function initDatabase()
     {
+        if (boolval(config('exment.use_cache', false))) {
+            $this->call('cache:clear');
+        }
         $this->call('migrate');
 
         // Remove template import if update
