@@ -133,7 +133,7 @@ class PatchDataCommand extends Command
             case 'remove_stored_revision':
                 $this->removeStoredRevision();
                 return;
-            case 'set_login_type_sso':
+            case 'login_type_sso':
                 $this->setLoginTypeSso();
                 return;
         }
@@ -881,6 +881,52 @@ class PatchDataCommand extends Command
      */
     protected function setLoginTypeSso()
     {
-        \DB::table('login_users')->whereNotNull('login_provider')->update(['login_type' => LoginType::OAUTH]);
+        \DB::table('login_users')->whereNotNull('login_provider')->where('login_type', LoginType::PURE)->update(['login_type' => LoginType::OAUTH]);
+
+
+        // move to config to database
+        $providers = stringToArray(config('exment.login_providers', ''));
+        foreach($providers as $provider){
+            $config = config("services.$provider");
+            if(is_nullorempty($config)){
+                continue;
+            }
+
+            $login_provider_type = Enums\LoginProviderType::getEnum($provider);
+            $login_provider_name = !isset($login_provider_type) ? $provider : null;
+            $login_provider_type = isset($login_provider_type) ? $login_provider_type->getValue() : Enums\LoginProviderType::OTHER;
+            
+            // check has already executed
+            if(Model\LoginSetting::where('login_type', Enums\LoginType::OAUTH)
+            ->where('options->login_provider_type', $login_provider_type)
+            ->where('options->login_provider_name', $login_provider_name)
+            ->count() > 0){
+                continue;
+            }
+
+            $name = array_get($config, 'display_name') ?? pascalize($provider);
+
+            $login_setting = new Model\LoginSetting([
+                'name' => $name,
+                'login_type' => Enums\LoginType::OAUTH,
+                'active_flg' => true,
+                'options' => [
+                    'login_provider_type' => $login_provider_type,
+                    'login_provider_name' => $login_provider_name,
+                    'client_id' => array_get($config, 'client_id'),
+                    'client_secret' => array_get($config, 'client_secret'),
+                    'redirect_url' => array_get($config, 'redirect'),
+                    'scope' => array_get($config, 'scope'),
+                    'login_button_label' => array_get($config, 'display_name'),
+                    'login_button_icon' => array_get($config, 'font_owesome'),
+                    'login_button_background_color' => array_get($config, 'background_color'),
+                    'login_button_background_color_hover' => array_get($config, 'background_color_hover'),
+                    'login_button_font_color' => array_get($config, 'font_color'),
+                    'login_button_font_color_hover' => array_get($config, 'font_color_hover'),
+                ]
+            ]);
+
+            $login_setting->save();
+        }
     }
 }
