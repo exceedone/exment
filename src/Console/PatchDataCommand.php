@@ -892,14 +892,14 @@ class PatchDataCommand extends Command
                 continue;
             }
 
-            $login_provider_type = Enums\LoginProviderType::getEnum($provider);
-            $login_provider_name = !isset($login_provider_type) ? $provider : null;
-            $login_provider_type = isset($login_provider_type) ? $login_provider_type->getValue() : Enums\LoginProviderType::OTHER;
+            $oauth_provider_type = Enums\LoginProviderType::getEnum($provider);
+            $oauth_provider_name = !isset($oauth_provider_type) ? $provider : null;
+            $oauth_provider_type = isset($oauth_provider_type) ? $oauth_provider_type->getValue() : Enums\LoginProviderType::OTHER;
             
             // check has already executed
             if(Model\LoginSetting::where('login_type', Enums\LoginType::OAUTH)
-            ->where('options->login_provider_type', $login_provider_type)
-            ->where('options->login_provider_name', $login_provider_name)
+            ->where('options->oauth_provider_type', $oauth_provider_type)
+            ->where('options->oauth_provider_name', $oauth_provider_name)
             ->count() > 0){
                 continue;
             }
@@ -911,12 +911,12 @@ class PatchDataCommand extends Command
                 'login_type' => Enums\LoginType::OAUTH,
                 'active_flg' => true,
                 'options' => [
-                    'login_provider_type' => $login_provider_type,
-                    'login_provider_name' => $login_provider_name,
-                    'client_id' => array_get($config, 'client_id'),
-                    'client_secret' => array_get($config, 'client_secret'),
-                    'redirect_url' => array_get($config, 'redirect'),
-                    'scope' => array_get($config, 'scope'),
+                    'oauth_provider_type' => $oauth_provider_type,
+                    'oauth_provider_name' => $oauth_provider_name,
+                    'oauth_client_id' => array_get($config, 'client_id'),
+                    'oauth_client_secret' => array_get($config, 'client_secret'),
+                    'oauth_redirect_url' => array_get($config, 'redirect'),
+                    'oauth_scope' => array_get($config, 'scope'),
                     'login_button_label' => array_get($config, 'display_name'),
                     'login_button_icon' => array_get($config, 'font_owesome'),
                     'login_button_background_color' => array_get($config, 'background_color'),
