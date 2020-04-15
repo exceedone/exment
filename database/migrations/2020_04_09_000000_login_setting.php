@@ -41,7 +41,7 @@ class LoginSetting extends Migration
             });
         }
         
-        \Artisan::call('exment:patchdata', ['action' => 'set_login_type_sso']);
+        \Artisan::call('exment:patchdata', ['action' => 'login_type_sso']);
     }
 
     /**
