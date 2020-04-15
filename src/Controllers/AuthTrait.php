@@ -139,7 +139,7 @@ trait AuthTrait
     protected function getExmentUser(SSOUser $sso_user)
     {
         $exment_user = getModelName(SystemTableName::USER)
-            ::where("value->$mapping_user_column", $sso_user->login_id)
+            ::where("value->{$sso_user->mapping_user_column}", $sso_user->login_id)
             ->first();
         if (!isset($exment_user)) {
             return false;

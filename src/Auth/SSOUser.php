@@ -9,6 +9,7 @@ class SSOUser
 {
     public $login_setting;
     public $login_id;
+    public $mapping_user_column;
 
     public $provider_name;
     public $id;
@@ -40,8 +41,8 @@ class SSOUser
         $user->expiresIn = isset($provider_user->expiresIn) ? $provider_user->expiresIn : null;
 
         // find key name for search value
-        $mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
-        $user->login_id = $user->{$mapping_user_column};
+        $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
+        $user->login_id = $user->{$user->mapping_user_column};
         $user->dummy_password = $provider_user->id;
 
         return $user;
@@ -57,9 +58,9 @@ class SSOUser
         static::setSamlAttributeValue($user, $samlUser);
 
         // find key name for search value
-        $mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
-        $user->login_id = $user->{$mapping_user_column};
-        $user->dummy_password = $samlUser->getUserId();
+        $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
+        $user->login_id = $user->{$user->mapping_user_column};
+        $user->dummy_password = $provider_user->id;
 
         return $user;
     }
