@@ -923,6 +923,11 @@ class PatchDataCommand extends Command
                     'login_button_background_color_hover' => array_get($config, 'background_color_hover'),
                     'login_button_font_color' => array_get($config, 'font_color'),
                     'login_button_font_color_hover' => array_get($config, 'font_color_hover'),
+
+                    'mapping_user_column' => 'email',
+                    'sso_jit' => false,
+                    'jit_rolegroups' => [],
+                    'update_user_info' => true,
                 ]
             ]);
 
