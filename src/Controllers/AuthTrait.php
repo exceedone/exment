@@ -112,7 +112,7 @@ trait AuthTrait
         
         if ($this->guard()->attempt(
             [
-                'username' => $sso_user->user_code,
+                'username' => $sso_user->login_id,
                 'login_provider' => $sso_user->provider_name,
                 'login_type' => $sso_user->login_type,
                 'password' => $sso_user->dummy_password,
@@ -138,10 +138,8 @@ trait AuthTrait
      */
     protected function getExmentUser(SSOUser $sso_user)
     {
-        // find key name for search value
-        $mapping_user_column = $sso_user->login_setting->getOption('mapping_user_column') ?? 'email';
         $exment_user = getModelName(SystemTableName::USER)
-            ::where("value->$mapping_user_column", $sso_user->{$mapping_user_column})
+            ::where("value->$mapping_user_column", $sso_user->login_id)
             ->first();
         if (!isset($exment_user)) {
             return false;

@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\LoginSetting;
 class SSOUser
 {
     public $login_setting;
+    public $login_id;
 
     public $provider_name;
     public $id;
@@ -32,12 +33,16 @@ class SSOUser
         $user->email = $provider_user->email;
         $user->user_code = $provider_user->id;
         $user->user_name = $provider_user->name ?: $provider_user->email;
-        $user->dummy_password = $provider_user->id;
 
         $user->avatar = isset($provider_user->avatar) ? $provider_user->avatar : null;
         $user->token = isset($provider_user->token) ? $provider_user->token : null;
         $user->refreshToken = isset($provider_user->refreshToken) ? $provider_user->refreshToken : null;
         $user->expiresIn = isset($provider_user->expiresIn) ? $provider_user->expiresIn : null;
+
+        // find key name for search value
+        $mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
+        $user->login_id = $user->{$mapping_user_column};
+        $user->dummy_password = $provider_user->id;
 
         return $user;
     }
@@ -51,6 +56,9 @@ class SSOUser
 
         static::setSamlAttributeValue($user, $samlUser);
 
+        // find key name for search value
+        $mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
+        $user->login_id = $user->{$mapping_user_column};
         $user->dummy_password = $samlUser->getUserId();
 
         return $user;
