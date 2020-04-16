@@ -379,7 +379,7 @@ class LoginSettingController extends AdminControllerBase
             ->max(20)
             ->help(exmtrans("system.help.password_history_cnt"));
     
-        if (!is_nullorempty(config('exment.login_providers'))) {
+        if (!is_nullorempty(LoginSetting::getAllSettings())) {
             $form->exmheader(exmtrans('login.sso_setting'))->hr();
 
             $form->switchbool('show_default_login_provider', exmtrans("login.show_default_login_provider"))
