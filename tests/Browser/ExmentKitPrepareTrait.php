@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Tests;
+namespace Exceedone\Exment\Tests\Browser;
 
 use Exceedone\Exment\Model\CustomTable;
 
