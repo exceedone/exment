@@ -23,17 +23,29 @@ class AdminControllerTableBase extends Controller
         $this->custom_table = $custom_table;
         
         if (!isset($this->custom_table)) {
-            if(!app()->runningInConsole()){
-                abort(404);
-            }else{
-                return;
-            }
+            return;
         }
 
         $this->custom_table->load('custom_columns');
         $this->custom_columns = $this->custom_table->custom_columns;
 
         getModelName($this->custom_table);
+    }
+
+    /**
+     * Execute an action on the controller.
+     *
+     * @param  string  $method
+     * @param  array   $parameters
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function callAction($method, $parameters)
+    {
+        if(!$this->custom_table){
+            abort(404);
+        }
+        
+        return call_user_func_array([$this, $method], $parameters);
     }
 
     /**

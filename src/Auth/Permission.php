@@ -168,6 +168,7 @@ class Permission
             case "api":
             case "webapi":
             case "search":
+            case "plugins":
             case "auth-2factor":
             case "auth/login":
             case "auth/logout":

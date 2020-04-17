@@ -51,9 +51,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         parent::__construct($custom_table, $request);
 
-        if(!$this->custom_table && !app()->runningInConsole()){
-            abort(404);
-        }else{
+        if(!$this->custom_table){
             return;
         }
 
