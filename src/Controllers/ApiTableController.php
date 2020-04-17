@@ -499,6 +499,16 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
+     * get column data by id
+     * @param mixed $id
+     * @return mixed
+     */
+    public function tableColumn(Request $request, $tableKey, $column_name)
+    {
+        return $this->responseColumn($request, CustomColumn::getEloquent($column_name, $tableKey));
+    }
+
+    /**
      * get table columns data
      */
     public function columnData(Request $request, $tableKey, $column_name)
