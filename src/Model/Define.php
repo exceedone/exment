@@ -303,6 +303,17 @@ class Define
         '7.4.0',
     ];
 
+    public const CUSTOM_TABLE_ENDPOINTS = [
+        'column',
+        'copy',
+        'form',
+        'formpriority',
+        'operation',
+        'relation',
+        'view',
+        'data',
+    ];
+
     public static function FILE_OPTION()
     {
         // get max size

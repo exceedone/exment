@@ -176,14 +176,13 @@ trait HasPermissions
      */
     public function visible($item, $target_tables = []) : bool
     {
-        if (empty($item)) {
-            return false;
-        }
-
         if (is_string($item)) {
             $item = [
                 'uri' => $item
             ];
+        }
+        elseif (empty($item)) {
+            return false;
         }
 
         // if organization and not use org setting, return false
@@ -216,7 +215,7 @@ trait HasPermissions
         $permissons = $this->allPermissions();
 
         if (!$permissons->first(function ($permission) use ($item) {
-            return $permission->shouldPass(array_get($item, 'uri'), $item);
+            return $permission->shouldPassEndpoint(array_get($item, 'uri'), $item);
         })) {
             return false;
         }
