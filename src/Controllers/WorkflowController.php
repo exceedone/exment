@@ -81,7 +81,7 @@ class WorkflowController extends AdminControllerBase
         });
         
         $grid->disableExport();
-        if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
+        if (!\Exment::user()->hasPermission(Permission::WORKFLOW)) {
             $grid->disableCreateButton();
         }
 
