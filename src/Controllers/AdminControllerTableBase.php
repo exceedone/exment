@@ -23,7 +23,11 @@ class AdminControllerTableBase extends Controller
         $this->custom_table = $custom_table;
         
         if (!isset($this->custom_table)) {
-            abort(404);
+            if(!app()->runningInConsole()){
+                abort(404);
+            }else{
+                return;
+            }
         }
 
         $this->custom_table->load('custom_columns');
