@@ -38,7 +38,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function callAction($method, $parameters)
     {
-        if(!$this->custom_table){
+        if (!$this->custom_table) {
             return abortJson(404);
         }
         

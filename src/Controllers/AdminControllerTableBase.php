@@ -41,7 +41,7 @@ class AdminControllerTableBase extends Controller
      */
     public function callAction($method, $parameters)
     {
-        if(!$this->custom_table){
+        if (!$this->custom_table) {
             abort(404);
         }
         

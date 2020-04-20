@@ -158,7 +158,7 @@ class Permission
 
     protected function hasPermissionByEndpoint(bool $systemRole, string $endpoint, ?string $target = null, bool $recursive = false) : bool
     {
-        if(!isset($target)){
+        if (!isset($target)) {
             $target = $endpoint;
         }
         switch ($target) {
@@ -265,7 +265,7 @@ class Permission
                 return $this->validateCustomValuePermission($systemRole, $endpoint);
         }
         
-        if ($recursive){
+        if ($recursive) {
             return false;
         }
 
@@ -364,16 +364,18 @@ class Permission
      *
      * @return boolean
      */
-    protected function isNotAdminUrl(?string $endpoint){
+    protected function isNotAdminUrl(?string $endpoint)
+    {
         $parse_url = parse_url($endpoint);
         if ($parse_url && array_has($parse_url, 'host') && strpos($endpoint, admin_url()) === false) {
             return true;
         }
     }
 
-    protected function removeAfterQuery($url){
-        if(mb_strpos($url,'?') !== false){
-            return mb_substr($url, 0, (mb_strpos($url,'?')));
+    protected function removeAfterQuery($url)
+    {
+        if (mb_strpos($url, '?') !== false) {
+            return mb_substr($url, 0, (mb_strpos($url, '?')));
         }
 
         return $url;

@@ -51,7 +51,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         parent::__construct($custom_table, $request);
 
-        if(!$this->custom_table){
+        if (!$this->custom_table) {
             return;
         }
 

@@ -180,8 +180,7 @@ trait HasPermissions
             $item = [
                 'uri' => $item
             ];
-        }
-        elseif (empty($item)) {
+        } elseif (empty($item)) {
             return false;
         }
 
