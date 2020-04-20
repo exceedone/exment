@@ -51,6 +51,10 @@ class CustomValueController extends AdminControllerTableBase
     {
         parent::__construct($custom_table, $request);
 
+        if(!$this->custom_table){
+            return;
+        }
+
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
 
         //Get all plugin satisfied
