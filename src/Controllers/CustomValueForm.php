@@ -106,6 +106,10 @@ trait CustomValueForm
             else {
                 list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                 $target_table = $custom_form_block->target_table;
+                // if user doesn't have edit permission, hide child block
+                if ($target_table->enableEdit() !== true) {
+                    continue;
+                }
                 // 1:n
                 if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
                     // get form columns count
