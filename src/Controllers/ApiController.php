@@ -194,16 +194,7 @@ class ApiController extends AdminControllerBase
      */
     public function column($id, Request $request)
     {
-        $column = CustomColumn::getEloquent($id);
-        if (!isset($column)) {
-            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
-        }
-
-        if (!$column->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return abortJson(403, ErrorCode::PERMISSION_DENY());
-        }
-
-        return $column;
+        return $this->responseColumn($request, CustomColumn::find($id));
     }
 
     /**

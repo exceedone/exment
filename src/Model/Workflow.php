@@ -7,8 +7,12 @@ use Exceedone\Exment\Enums\WorkflowType;
 class Workflow extends ModelBase
 {
     use Traits\AutoSUuidTrait;
+    use Traits\DatabaseJsonTrait;
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
+
+    protected $appends = ['workflow_edit_flg'];
+    protected $casts = ['options' => 'json'];
 
     public function workflow_tables()
     {
@@ -70,6 +74,25 @@ class Workflow extends ModelBase
         }
 
         $this->workflow_actions()->forceDelete();
+    }
+
+    public function getWorkflowEditFlgAttribute()
+    {
+        return $this->getOption('workflow_edit_flg');
+    }
+    public function setWorkflowEditFlgAttribute($workflow_edit_flg)
+    {
+        $this->setOption('workflow_edit_flg', $workflow_edit_flg);
+        return $this;
+    }
+
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
+    }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
     }
 
     /**
