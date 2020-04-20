@@ -292,7 +292,12 @@ class WorkflowController extends AdminControllerBase
             $form->display('custom_table_id', exmtrans('custom_table.table'))
                 ->default($custom_table->table_view_name ?? null);
         }
-        
+
+        $form->switchbool('workflow_edit_flg', exmtrans("workflow.workflow_edit_flg"))
+            ->help(exmtrans("workflow.help.workflow_edit_flg"))
+            ->default("0")
+        ;
+
         $field = $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function ($form) use ($id, $workflow) {
             $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
                 ->config('allowClear', false)
