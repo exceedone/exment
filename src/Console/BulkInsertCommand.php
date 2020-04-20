@@ -61,7 +61,7 @@ class BulkInsertCommand extends Command
             }
 
             // get directory full path
-            $this->directory = storage_path(path_join('app\bulkinsert', $dir));
+            $this->directory = storage_path(path_join('app', 'bulkinsert', $dir));
 
             // get all csv file names in target directory
             $files = $this->getFiles('csv');
