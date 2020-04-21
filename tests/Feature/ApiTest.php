@@ -424,6 +424,56 @@ class ApiTest extends ApiTestBase
             ->assertStatus(403);
     }
 
+
+    public function testGetColumnByName(){
+        $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'table', 'information', 'column', 'title'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'column_name' => 'title',
+                'column_view_name' => 'タイトル',
+                'column_type' => 'text',
+            ]);
+    }
+
+    public function testNotFoundGetColumnByName(){
+        $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+            ])->get(admin_urls('api', 'table', 'information', 'column', 'foobar'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+            ]);
+    }
+
+    public function testWrongScopeGetColumnByName(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'table', 'information', 'column', 'title'))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::WRONG_SCOPE
+            ]);
+    }
+
+    public function testDenyGetColumnByName(){
+        $token = $this->getUser2AccessToken([ApiScope::TABLE_READ]);
+        
+        // get no_permission table's column.
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'table', 'no_permission', 'column', 'text'))
+            ->assertStatus(403);
+    }
+
+
     public function testGetValues(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
@@ -464,7 +514,7 @@ class ApiTest extends ApiTestBase
         $json = json_decode($response->baseResponse->getContent(), true);
         $data = array_get($json, 'data');
         $value = array_get($data[0], 'value');
-        $this->assertTrue(array_get($value, 'user') == '9');
+        $this->assertMatch(array_get($value, 'user'), '9');
     }
 
     public function testGetValuesByMultiId(){
@@ -657,7 +707,7 @@ class ApiTest extends ApiTestBase
         ])->post(admin_urls('api', 'data', 'custom_value_edit'), ['value' => $values])
             ->assertStatus(200);
         $count = CustomTable::getEloquent('custom_value_edit')->getValueModel()->count();
-        $this->assertTrue(($pre_count + 3) == $count);
+        $this->assertMatch(($pre_count + 3), $count);
     }
 
     public function testCreateMultipleValueWithParent(){
@@ -678,7 +728,7 @@ class ApiTest extends ApiTestBase
             ->assertStatus(200);
         $count = getModelName('parent_table')::find(4)
             ->getChildrenValues('child_table')->count();
-        $this->assertTrue(($pre_count + 3) == $count);
+        $this->assertMatch(($pre_count + 3), $count);
     }
 
     public function testCreateMultipleValueWrongParent(){
@@ -725,7 +775,7 @@ class ApiTest extends ApiTestBase
         $count = $parents->sum(function($parent) {
             return $parent->getChildrenValues('child_table')->count();
         });
-        $this->assertTrue(($pre_count + 3) == $count);
+        $this->assertMatch(($pre_count + 3), $count);
     }
 
     public function testCreateValueWithFindkey(){
@@ -1358,7 +1408,7 @@ class ApiTest extends ApiTestBase
         $this->assertTrue(array_has($json, 'url'));
         $this->assertTrue(array_has($json, 'created_at'));
         $this->assertTrue(array_has($json, 'created_user_id'));
-        $this->assertTrue(array_get($json, 'name') == 'test1.txt');
+        $this->assertMatch(array_get($json, 'name'), 'test1.txt');
     }
 
     public function testGetDocument(){
@@ -1375,11 +1425,11 @@ class ApiTest extends ApiTestBase
         $json = json_decode($response->baseResponse->getContent(), true);
         $data = collect(array_get($json, 'data'))->first();
         
-        $this->assertTrue(array_get($data, 'url') == $document->url);
-        $this->assertTrue(array_get($data, 'api_url') == $document->api_url);
-        $this->assertTrue(array_get($data, 'name') == $document->label);
-        $this->assertTrue(array_get($data, 'created_at') == $document->created_at->__toString());
-        $this->assertTrue(array_get($data, 'created_user_id') == $document->created_user_id);
+        $this->assertMatch(array_get($data, 'url'), $document->url);
+        $this->assertMatch(array_get($data, 'api_url'), $document->api_url);
+        $this->assertMatch(array_get($data, 'name'), $document->label);
+        $this->assertMatch(array_get($data, 'created_at'), $document->created_at->__toString());
+        $this->assertMatch(array_get($data, 'created_user_id'), $document->created_user_id);
     }
 
     public function testDownloadFile(){
@@ -1395,7 +1445,7 @@ class ApiTest extends ApiTestBase
 
         $file = $response->baseResponse->getContent();
 
-        $this->assertTrue($file == 'test');
+        $this->assertMatch($file, 'test');
     }
 
     public function testDownloadFileJson(){
@@ -1411,8 +1461,8 @@ class ApiTest extends ApiTestBase
         
         $json = json_decode($response->baseResponse->getContent(), true);
 
-        $this->assertTrue(array_get($json, 'name') == $document->label);
-        $this->assertTrue(array_get($json, 'base64') == base64_encode('test'));
+        $this->assertMatch(array_get($json, 'name'), $document->label);
+        $this->assertMatch(array_get($json, 'base64'), base64_encode('test'));
     }
 
     public function testNoPermissionCreateDocument(){
@@ -2432,32 +2482,6 @@ class ApiTest extends ApiTestBase
             ]);
     }
     
-    /**
-     * Json inner fragment
-     *
-     * @return void
-     */
-    protected function assertJsonTrue($response, $arrays){
-        $json = json_decode($response->baseResponse->getContent(), true);
-        $this->assertJsonTrueFunc([], $arrays, $json);
-    }
-
-    protected function assertJsonTrueFunc($keys, $arrays, $json){
-        foreach($arrays as $k => $v){
-            $copykeys = $keys;
-            $copykeys[] = $k;
-            if(is_array($v)){
-                $this->assertJsonTrueFunc($copykeys, $v, $json);
-            }
-            else{
-                $checkKey = implode('.', $copykeys);
-                $checkValue = array_get($json, $checkKey);
-                $jsonString = json_encode($json);
-                $this->assertTrue($checkValue == $v, "key $checkKey is $checkValue, but value is $v".PHP_EOL.PHP_EOL.$jsonString);
-            }
-        }
-    }
-
     protected function assertFileUrl($token, $response){
         $json = json_decode($response->baseResponse->getContent(), true);
         $id = array_get($json, 'id');
@@ -2477,7 +2501,7 @@ class ApiTest extends ApiTestBase
 
         $file = $response->baseResponse->getContent();
 
-        $this->assertTrue($file == 'test');
+        $this->assertMatch($file, 'test');
 
 
         // get file url as tableKey and filename
@@ -2495,6 +2519,6 @@ class ApiTest extends ApiTestBase
 
         $file = $response->baseResponse->getContent();
 
-        $this->assertTrue($file == 'test');
+        $this->assertMatch($file, 'test');
     }
 }

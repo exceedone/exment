@@ -4,7 +4,8 @@ namespace Exceedone\Exment\Database\Seeder;
 
 trait TestDataTrait
 {
-    public function getUsersAndOrgs(){
+    public function getUsersAndOrgs()
+    {
         // set users
         $values = [
             'user' => [
@@ -40,7 +41,7 @@ trait TestDataTrait
                     'value' => [
                         'user_name' => 'user3',
                         'user_code' => 'user3',
-                        'email' => 'user2@user.foobar.test',
+                        'email' => 'user3@user.foobar.test',
                     ],
                     'password' => 'user3user3',
                 ],
