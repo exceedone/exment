@@ -20,7 +20,7 @@ trait ExmentKitPrepareTrait
         ];
         // Create custom relation
         $this->visit("/admin/relation/$parent_table/create")
-                ->submitForm('送信', $data)
+                ->submitForm('admin-submit', $data)
                 ->seePageIs('/admin/relation/' . $parent_table)
                 ->seeInElement('td', array_get($row, 'table_view_name'));
     }
@@ -44,9 +44,8 @@ trait ExmentKitPrepareTrait
         ];
         // Create custom table
         $this->visit('/admin/table/create')
-                ->submitForm('送信', $data)
-                ->seePageIs('/admin/table')
-                ->seeInElement('td', $view_name);
+                ->submitForm('admin-submit', $data)
+                ->seePageIs("/admin/column/$table_name");
     }
 
     /**
@@ -147,7 +146,7 @@ trait ExmentKitPrepareTrait
             'column_name' => 'selectfromtable',
             'column_view_name' => 'Select From Table',
             'column_type' => 'select_table',
-            'options[select_target_table]' => 3,
+            'options[select_target_table]' => 6,
             'options[multiple_enabled]' => 1,
         ];
         $col_data[] = [
@@ -185,7 +184,7 @@ trait ExmentKitPrepareTrait
                 $this->visit("/admin/column/$table_name")
                         ->seePageIs("/admin/column/$table_name")
                         ->visit("/admin/column/$table_name/create")
-                        ->submitForm('送信', $data)
+                        ->submitForm('admin-submit', $data)
                         ->seePageIs("/admin/column/$table_name")
                         ->seeInElement('td', array_get($data, 'column_view_name'));
             }

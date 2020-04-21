@@ -6,6 +6,9 @@ class A01InstallScreenTest extends ExmentKitTestCase
 {
     //AutoTest_Install_01 : only setting
     //AutoTest_Install_02
+    /**
+     * @requires function XXXXXXXXXXXXXXXX
+     */
     public function testRedirect()
     {
         // $this->browse(function ($browser) {
@@ -18,6 +21,9 @@ class A01InstallScreenTest extends ExmentKitTestCase
     }
 
     //AutoTest_Install_03
+    /**
+     * @requires function XXXXXXXXXXXXXXXX
+     */
     public function testDisplayInstallScreen()
     {
         // $this->browse(function ($browser) {
@@ -30,6 +36,9 @@ class A01InstallScreenTest extends ExmentKitTestCase
     }
 
     //AutoTest_Install_04
+    /**
+     * @requires function XXXXXXXXXXXXXXXX
+     */
     public function testInitUser()
     {
         // $this->browse(function ($browser) {

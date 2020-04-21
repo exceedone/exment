@@ -1221,7 +1221,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $form = [
             'column_view_name' => 'Organization Column Update',
             'options[required]' => 1,
-            'options[index_enabled]' => 1,
+            'options[select_load_ajax]' => 1,
             'options[unique]' => 1,
             'options[multiple_enabled]' => 1,
         ];
@@ -1236,7 +1236,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->see('organization_col')
             ->seeInField('column_view_name', 'Organization Column Update')
             ->seeInField('options[required]', 1)
-            ->seeInField('options[index_enabled]', 1)
+            ->seeInField('options[select_load_ajax]', 1)
             ->seeInField('options[unique]', 1)
             ->seeInField('options[multiple_enabled]', 1)
         ;
