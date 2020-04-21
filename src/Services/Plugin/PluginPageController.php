@@ -12,7 +12,7 @@ class PluginPageController extends Controller
     protected $pluginPage;
     protected $plugin;
     
-    public function __construct(PluginPublicBase $pluginPage)
+    public function __construct(?PluginPublicBase $pluginPage)
     {
         $this->pluginPage = $pluginPage;
         $this->plugin = isset($pluginPage) ? $pluginPage->_plugin() : null ;
