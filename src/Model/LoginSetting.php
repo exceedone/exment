@@ -109,6 +109,11 @@ class LoginSetting extends ModelBase
      * @return void
      */
     public static function getAllSettings(){
+        // if sso_disabled is true, return empty collect
+        if(boolval(config('exment.sso_disabled', false))){
+            return collect();
+        }
+
         return static::allRecords(function($record){
             return $record->active_flg;
         });

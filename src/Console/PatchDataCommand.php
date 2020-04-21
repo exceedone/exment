@@ -881,7 +881,12 @@ class PatchDataCommand extends Command
      */
     protected function setLoginTypeSso()
     {
+        // patch login provider already logined.
         \DB::table('login_users')->whereNotNull('login_provider')->where('login_type', LoginType::PURE)->update(['login_type' => LoginType::OAUTH]);
+
+        
+        // update system value
+        System::show_default_login_provider(config('exment.show_default_login_provider', true));
 
 
         // move to config to database
