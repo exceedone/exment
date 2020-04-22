@@ -52,6 +52,8 @@ class DCustomDataTest extends ExmentKitTestCase
                     ->submitForm('admin-submit', $data)
                     ->seePageIs('/admin/data/user')
             ;
+        } else {
+            $this->assertTrue(true);
         }
     }
 
@@ -81,6 +83,8 @@ class DCustomDataTest extends ExmentKitTestCase
                     ->submitForm('admin-submit', $data)
                     ->seePageIs('/admin/data/organization')
             ;
+        } else {
+            $this->assertTrue(true);
         }
     }
 

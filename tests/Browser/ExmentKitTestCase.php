@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\System;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\BrowserKitTesting\TestCase as BaseTestCase;
 //use Tests\CreatesApplication;
@@ -13,6 +14,15 @@ abstract class ExmentKitTestCase extends BaseTestCase
 //    use DatabaseMigrations;
 
     public $baseUrl = 'http://localhost';
+
+    /**
+     * pre-excecute process before test.
+     */
+    protected function setUp()
+    {
+        parent::setUp();
+        System::clearCache();
+    }
 
     // ...
     protected function login($id = null)
