@@ -39,6 +39,19 @@ class PluginType extends EnumBase
     }
 
     /**
+     * Use plugin
+     *
+     * @return void
+     */
+    public static function PLUGIN_TYPE_AVAILABLE()
+    {
+        return [
+            static::PAGE,
+            static::TRIGGER,
+        ];
+    }
+
+    /**
      * Get plugin class using plugin type
      *
      * @param [type] $plugin

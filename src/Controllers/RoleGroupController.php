@@ -12,10 +12,12 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemRoleType;
 use Exceedone\Exment\Enums\RoleGroupType;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\Permission;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Grid\Linker;
@@ -181,7 +183,6 @@ class RoleGroupController extends AdminControllerBase
         $form->hidden("system_permission[system][id]")
             ->default(SystemRoleType::SYSTEM);
 
-
         
         // Role --------------------------------------------------------
         $values = $model->role_group_permissions->first(function ($role_group_permission) {
@@ -203,6 +204,45 @@ class RoleGroupController extends AdminControllerBase
 
         $form->hidden("system_permission[role_groups][id]")
             ->default(SystemRoleType::ROLE_GROUP);
+
+
+
+        // Plugin --------------------------------------------------------
+        $plugins = Plugin::allRecords();
+        if(!is_nullorempty($plugins)){
+            $form->exmheader(exmtrans('role_group.role_type_options.plugin') . exmtrans('role_group.permission_setting'))->hr();
+
+            $items = [];
+            foreach ($plugins as $plugin) {
+                $values = $model->role_group_permissions->first(function ($role_group_permission) use ($plugin) {
+                    return $role_group_permission->role_group_permission_type == RoleType::PLUGIN && $role_group_permission->role_group_target_id == $plugin->id;
+                })->permissions ?? [];
+
+                // check disabled
+                $enabledPluginAccess = collect($plugin->plugin_types)->contains(function($plugin_type){
+                    return in_array($plugin_type, PluginType::PLUGIN_TYPE_AVAILABLE());
+                });
+                $items[] = [
+                    'label' => $plugin->plugin_view_name,
+                    'values' => $values,
+                    'name' => "plugin_permission[$plugin->plugin_name][permissions]",
+                    'disables' => !$enabledPluginAccess ? [PERMISSION::PLUGIN_ACCESS] : [],
+                ];
+
+                $form->hidden("plugin_permission[$plugin->plugin_name][id]")
+                    ->default($plugin->id);
+            }
+            
+            $form->checkboxTable("plugin_permission_permissions", "")
+                ->options(RoleGroupType::PLUGIN()->getRoleGroupOptions())
+                ->disable(!$enable)
+                ->checkWidth(150)
+                ->headerHelp(RoleGroupType::PLUGIN()->getRoleGroupHelps())
+                ->items($items);
+
+
+        }
+
 
 
         // Master --------------------------------------------------------
@@ -233,6 +273,8 @@ class RoleGroupController extends AdminControllerBase
             ->checkWidth(100)
             ->headerHelp(RoleGroupType::MASTER()->getRoleGroupHelps())
             ->items($items);
+
+
 
 
         // Table --------------------------------------------------------
@@ -371,6 +413,7 @@ class RoleGroupController extends AdminControllerBase
 
             $items = [
                 ['name' => 'system_permission', 'role_group_permission_type' => RoleType::SYSTEM],
+                ['name' => 'plugin_permission', 'role_group_permission_type' => RoleType::PLUGIN],
                 ['name' => 'master_permission', 'role_group_permission_type' => RoleType::TABLE],
                 ['name' => 'table_permission', 'role_group_permission_type' => RoleType::TABLE],
             ];

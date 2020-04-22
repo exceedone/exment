@@ -42,6 +42,45 @@ class Plugin extends ModelBase
     }
 
     /**
+     * Whether has permission, permission level
+     * $role_key * if set array, check whether either items.
+     * @param array|string $role_key
+     */
+    public function hasPermission($role_key)
+    {
+        //TODO:check permission
+        // // if system doesn't use role, return true
+        // if (!System::permission_available()) {
+        //     return true;
+        // }
+
+        // if ($role_key == Permission::SYSTEM) {
+        //     return $this->isAdministrator();
+        // }
+
+        // if (!is_array($role_key)) {
+        //     $role_key = [$role_key];
+        // }
+
+        // $permissions = $this->allPermissions();
+        // foreach ($permissions as $permission) {
+        //     // check system permission
+        //     if (RoleType::SYSTEM == $permission->getRoleType()
+        //         && array_key_exists('system', $permission->getPermissionDetails())) {
+        //         return true;
+        //     }
+
+        //     // if role type is system, and has key
+        //     if (RoleType::SYSTEM == $permission->getRoleType()
+        //         && array_keys_exists($role_key, $permission->getPermissionDetails())) {
+        //         return true;
+        //     }
+        // }
+        
+        return true;
+    }
+
+    /**
      * Patch plugin type using enum PluginType
      *
      * @return void

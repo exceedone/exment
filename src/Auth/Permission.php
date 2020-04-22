@@ -148,15 +148,14 @@ class Permission
         }
 
         // if system user, return true
-        $systemRole = RoleType::SYSTEM == $this->role_type;
-        if ($systemRole && array_key_exists('system', $this->permission_details)) {
+        if ($this->role_type == RoleType::SYSTEM && array_key_exists('system', $this->permission_details)) {
             return true;
         }
 
-        return $this->hasPermissionByEndpoint($systemRole, $endpoint);
+        return $this->hasPermissionByEndpoint($endpoint);
     }
 
-    protected function hasPermissionByEndpoint(bool $systemRole, string $endpoint, ?string $target = null, bool $recursive = false) : bool
+    protected function hasPermissionByEndpoint(string $endpoint, ?string $target = null, bool $recursive = false) : bool
     {
         if (!isset($target)) {
             $target = $endpoint;
@@ -187,46 +186,53 @@ class Permission
             ///// only system permission
             case "system":
             case "backup":
-            case "plugin":
             case "database":
             case "auth/menu":
             case "auth/logs":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('system', $this->permission_details);
                 }
                 return false;
             ///// each permissions
+            case "plugin":
+                if ($this->role_type == RoleType::SYSTEM) {
+                    return array_keys_exists(['system', PermissionEnum::PLUGIN_ALL], $this->permission_details);
+                }
+                elseif ($this->role_type == RoleType::PLUGIN) {
+                    // if contains PermissionEnum::PLUGIN_SETTING, return true. Check at controller again.
+                    return array_key_exists(PermissionEnum::PLUGIN_SETTING, $this->permission_details);
+                }
             case "notify":
                 $user = \Exment::user();
                 return $user ? $user->hasPermissionContainsTable(PermissionEnum::CUSTOM_TABLE) : false;
             case "loginuser":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists(PermissionEnum::LOGIN_USER, $this->permission_details);
                 }
                 return false;
             case "api_setting":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists(PermissionEnum::AVAILABLE_API, $this->permission_details);
                 }
                 return false;
             case "workflow":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists(PermissionEnum::WORKFLOW, $this->permission_details);
                 }
                 return false;
             case "role":
             case "role_group":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists(PermissionEnum::AVAILABLE_ACCESS_ROLE_GROUP, $this->permission_details);
                 }
                 return false;
             case "table":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_table', $this->permission_details);
                 }
                 return array_key_exists('custom_table', $this->permission_details);
             case "column":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
@@ -235,7 +241,7 @@ class Permission
                 }
                 return array_key_exists('custom_table', $this->permission_details);
             case "relation":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
@@ -244,7 +250,7 @@ class Permission
                 }
                 return array_key_exists('custom_table', $this->permission_details);
             case "form":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_form', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
@@ -253,7 +259,7 @@ class Permission
                 }
                 return array_key_exists('custom_form', $this->permission_details);
             case "view":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
@@ -262,7 +268,7 @@ class Permission
                 }
                 return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
             case "data":
-                return $this->validateCustomValuePermission($systemRole, $endpoint);
+                return $this->validateCustomValuePermission($endpoint);
         }
         
         if ($recursive) {
@@ -272,7 +278,7 @@ class Permission
         // if find endpoint "data/", check as data
         
         if (preg_match('/^(' . implode('|', Define::CUSTOM_TABLE_ENDPOINTS)  . ')\/(.+)$/u', $endpoint, $matched)) {
-            return $this->hasPermissionByEndpoint($systemRole, $matched[2], $matched[1], true);
+            return $this->hasPermissionByEndpoint($matched[2], $matched[1], true);
         }
 
 
@@ -340,8 +346,12 @@ class Permission
      *
      * @return void
      */
-    protected function validateCustomValuePermission($systemRole, $endpoint)
+    protected function validateCustomValuePermission($endpoint)
     {
+        if ($this->role_type == RoleType::PLUGIN) {
+            return false;
+        }
+
         // if request has id, permission contains CUSTOM_VALUE_ACCESS
         if (!is_null($id = request()->id) && request()->is(trim(admin_base_path("data/$endpoint/*"), '/'))) {
             $permissions = PermissionEnum::AVAILABLE_ACCESS_CUSTOM_VALUE;
@@ -349,7 +359,7 @@ class Permission
             $permissions = PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE;
         }
 
-        if ($systemRole) {
+        if ($this->role_type == RoleType::SYSTEM) {
             return array_keys_exists($permissions, $this->permission_details);
         }
         // check endpoint name and checking table_name.

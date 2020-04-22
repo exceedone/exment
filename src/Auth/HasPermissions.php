@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
@@ -26,7 +27,7 @@ trait HasPermissions
     }
 
     /**
-     * whethere has permission, permission level
+     * Whether has permission, permission level
      * $role_key * if set array, check whether either items.
      * @param array|string $role_key
      */
@@ -267,6 +268,7 @@ trait HasPermissions
             return [
                 RoleType::SYSTEM => $this->getSystemPermissions(),
                 RoleType::TABLE => $this->getCustomTablePermissions(),
+                RoleType::PLUGIN => $this->getPluginPermissions(),
             ];
         });
         return $authority;
@@ -319,6 +321,44 @@ trait HasPermissions
             }
             if (boolval($table->getOption('all_user_accessable_flg'))) {
                 $permissions[$table_name][Permission::CUSTOM_VALUE_ACCESS_ALL] = "1";
+            }
+        }
+
+        return $permissions;
+    }
+
+    /**
+     * get Plugin permissons.
+     */
+    protected function getPluginPermissions()
+    {
+        // get all permissons for system. --------------------------------------------------
+        $roles = $this->getPermissionItems();
+
+        // get permission_details for all tables. --------------------------------------------------
+        $permission_details = [];
+        $permissions = [];
+       
+        foreach ($roles as $role) {
+            foreach ($role->role_group_permissions as $role_group_permission) {
+                if (!isset($role_group_permission->permissions)) {
+                    continue;
+                }
+                if ($role_group_permission->role_group_permission_type != RoleType::PLUGIN) {
+                    continue;
+                }
+
+                $plugin = Plugin::getEloquent($role_group_permission->role_group_target_id);
+                if (!isset($plugin)) {
+                    continue;
+                }
+
+                $role_details = $role_group_permission->permissions;
+                foreach ($role_details as $value) {
+                    if (!array_key_exists($value, $permissions)) {
+                        $permissions[$plugin->plugin_name][$value] = 1;
+                    }
+                }
             }
         }
 

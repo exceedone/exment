@@ -16,6 +16,7 @@ class Permission extends EnumBase
     const CUSTOM_VALUE_ACCESS = 'custom_value_access';
     const CUSTOM_VALUE_SHARE = 'custom_value_share';
     const CUSTOM_VALUE_VIEW_TRASHED = 'custom_value_view_trashed';
+    const PLUGIN_ALL = 'plugin_all';
     const PLUGIN_ACCESS = 'plugin_access';
     const PLUGIN_SETTING = 'plugin_setting';
     const LOGIN_USER = 'login_user';
@@ -42,12 +43,18 @@ class Permission extends EnumBase
         self::WORKFLOW,
         self::API_ALL,
         self::API,
+        self::PLUGIN_ALL,
     ];
 
     public const ROLE_GROUP_ROLE_PERMISSION = [
         self::ROLE_GROUP_ALL,
         self::ROLE_GROUP_PERMISSION,
         self::ROLE_GROUP_USER_ORGANIZATION
+    ];
+    
+    public const ROLE_GROUP_PLUGIN_PERMISSION = [
+        self::PLUGIN_SETTING,
+        self::PLUGIN_ACCESS,
     ];
     
     public const MASTER_ROLE_PERMISSION = [
