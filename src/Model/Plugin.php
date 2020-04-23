@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Storage\Disk\PluginDiskService;
 use Carbon\Carbon;
 
@@ -42,42 +44,78 @@ class Plugin extends ModelBase
     }
 
     /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        $user = \Exment::user();
+        return isset($user) ? !$user->hasPermission(Permission::PLUGIN_ALL) : true;
+    }
+
+    /**
      * Whether has permission, permission level
      * $role_key * if set array, check whether either items.
      * @param array|string $role_key
      */
     public function hasPermission($role_key)
     {
-        //TODO:check permission
-        // // if system doesn't use role, return true
-        // if (!System::permission_available()) {
-        //     return true;
-        // }
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
+            return true;
+        }
 
-        // if ($role_key == Permission::SYSTEM) {
-        //     return $this->isAdministrator();
-        // }
+        if ($role_key == Permission::SYSTEM) {
+            return $this->isAdministrator();
+        }
 
-        // if (!is_array($role_key)) {
-        //     $role_key = [$role_key];
-        // }
+        if (!is_array($role_key)) {
+            $role_key = [$role_key];
+        }
 
-        // $permissions = $this->allPermissions();
-        // foreach ($permissions as $permission) {
-        //     // check system permission
-        //     if (RoleType::SYSTEM == $permission->getRoleType()
-        //         && array_key_exists('system', $permission->getPermissionDetails())) {
-        //         return true;
-        //     }
+        $permissions = \Exment::user()->allPermissions();
+        foreach ($permissions as $permission) {
+            // check system permission
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_key_exists('system', $permission->getPermissionDetails())) {
+                return true;
+            }
 
-        //     // if role type is system, and has key
-        //     if (RoleType::SYSTEM == $permission->getRoleType()
-        //         && array_keys_exists($role_key, $permission->getPermissionDetails())) {
-        //         return true;
-        //     }
-        // }
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_key_exists(Permission::PLUGIN_ALL, $permission->getPermissionDetails())) {
+                return true;
+            }
+
+            // if role type is plugin, and has key
+            if (RoleType::PLUGIN == $permission->getRoleType()
+                && $permission->getPluginId() == $this->id
+                && array_keys_exists($role_key, $permission->getPermissionDetails())) {
+                return true;
+            }
+        }
         
-        return true;
+        return false;
+    }
+
+    /**
+     * Get All plugin ids, user has setting permission
+     *
+     * @return void
+     */
+    public static function getIdsHasSettingPermission()
+    {
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_ALL_SETTING_IDS, function(){
+            if(\Exment::user()->hasPermission(Permission::PLUGIN_ALL)){
+                return static::allRecords()->pluck('id');
+            }
+    
+            $permissions = \Exment::user()->allPermissions()->filter(function($permission){
+                return RoleType::PLUGIN == $permission->getRoleType() && array_key_exists(Permission::PLUGIN_SETTING, $permission->getPermissionDetails());
+            });
+    
+            return $permissions->map(function($permission){return $permission->getPluginId();})->toArray();
+        });
     }
 
     /**

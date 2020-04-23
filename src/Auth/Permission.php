@@ -23,6 +23,12 @@ class Permission
     protected $table_name;
 
     /**
+     * Summary of $plugin_id
+     * @var string
+     */
+    protected $plugin_id;
+
+    /**
      * Summary of $permission_details
      * @var array
      */
@@ -43,6 +49,7 @@ class Permission
     {
         $this->role_type = array_get($attributes, 'role_type');
         $this->table_name = array_get($attributes, 'table_name');
+        $this->plugin_id = array_get($attributes, 'plugin_id');
         $this->permission_details = array_get($attributes, 'permission_details', []);
     }
 
@@ -54,6 +61,11 @@ class Permission
     public function getTableName()
     {
         return $this->table_name;
+    }
+
+    public function getPluginId()
+    {
+        return $this->plugin_id;
     }
 
     public function getPermissionDetails()

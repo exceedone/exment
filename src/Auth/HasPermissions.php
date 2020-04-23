@@ -135,12 +135,24 @@ trait HasPermissions
                 ]);
                 continue;
             }
-            foreach ($role as $k => $v) {
-                $permissions[] =  new AuthPermission([
-                    'role_type' =>$key,
-                    'table_name' =>$k,
-                    'permission_details' =>$v,
-                ]);
+            elseif(RoleType::TABLE == $key){
+                foreach ($role as $k => $v) {
+                    $permissions[] =  new AuthPermission([
+                        'role_type' =>$key,
+                        'table_name' =>$k,
+                        'permission_details' =>$v,
+                    ]);
+                }
+            }
+            elseif(RoleType::PLUGIN == $key){
+                foreach ($role as $k => $v) {
+                    $permissions[] =  new AuthPermission([
+                        'role_type' => $key,
+                        'table_name' => null,
+                        'plugin_id' => $k,
+                        'permission_details' =>$v,
+                    ]);
+                }
             }
         }
 
@@ -356,7 +368,7 @@ trait HasPermissions
                 $role_details = $role_group_permission->permissions;
                 foreach ($role_details as $value) {
                     if (!array_key_exists($value, $permissions)) {
-                        $permissions[$plugin->plugin_name][$value] = 1;
+                        $permissions[$plugin->id][$value] = 1;
                     }
                 }
             }
