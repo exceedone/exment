@@ -48,6 +48,20 @@ class PluginType extends EnumBase
         return [
             static::PAGE,
             static::TRIGGER,
+            static::DOCUMENT,
+        ];
+    }
+
+    /**
+     * Use plugin with button
+     *
+     * @return void
+     */
+    public static function PLUGIN_TYPE_BUTTON()
+    {
+        return [
+            static::TRIGGER,
+            static::DOCUMENT,
         ];
     }
 

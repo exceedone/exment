@@ -362,29 +362,34 @@ class Plugin extends ModelBase
 
         $buttonList = [];
         foreach ($plugins as $plugin) {
-            // get plugin_types
             $plugin_types = array_get($plugin, 'plugin_types');
-            foreach ($plugin_types as $plugin_type) {
-                switch ($plugin_type) {
-                    case PluginType::DOCUMENT:
-                        $event_triggers_button = ['form_menubutton_show'];
-                        if (in_array($event, $event_triggers_button)) {
-                            $buttonList[] = [
-                                'plugin_type' => $plugin_type,
-                                'plugin' => $plugin,
-                            ];
-                        }
-                        break;
-                    case PluginType::TRIGGER:
-                        $event_triggers = $plugin->options['event_triggers'];
-                        $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
-                        if (in_array($event, (array)$event_triggers) && in_array($event, $event_triggers_button)) {
-                            $buttonList[] = [
-                                'plugin_type' => $plugin_type,
-                                'plugin' => $plugin,
-                            ];
-                        }
-                        break;
+            $all_user_enabled = $plugin->getOption('all_user_enabled');
+            if (!array_intersect($plugin_types, PluginType::PLUGIN_TYPE_BUTTON())){
+                continue;
+            }
+            if(boolval($all_user_enabled) || \Exment::user()->hasPermissionPlugin(array_get($plugin, 'id'), Permission::PLUGIN_ACCESS)){
+                foreach ($plugin_types as $plugin_type) {
+                    switch ($plugin_type) {
+                        case PluginType::DOCUMENT:
+                            $event_triggers_button = ['form_menubutton_show'];
+                            if (in_array($event, $event_triggers_button)) {
+                                $buttonList[] = [
+                                    'plugin_type' => $plugin_type,
+                                    'plugin' => $plugin,
+                                ];
+                            }
+                            break;
+                        case PluginType::TRIGGER:
+                            $event_triggers = $plugin->options['event_triggers'];
+                            $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
+                            if (in_array($event, (array)$event_triggers) && in_array($event, $event_triggers_button)) {
+                                $buttonList[] = [
+                                    'plugin_type' => $plugin_type,
+                                    'plugin' => $plugin,
+                                ];
+                            }
+                            break;
+                    }
                 }
             }
         }

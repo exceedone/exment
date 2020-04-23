@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission as PermissionEnum;
 
@@ -179,7 +180,6 @@ class Permission
             case "api":
             case "webapi":
             case "search":
-            case "plugins":
             case "auth-2factor":
             case "auth/login":
             case "auth/logout":
@@ -214,6 +214,8 @@ class Permission
                     // if contains PermissionEnum::PLUGIN_SETTING, return true. Check at controller again.
                     return array_key_exists(PermissionEnum::PLUGIN_SETTING, $this->permission_details);
                 }
+            case "plugins":
+                return $this->validatePluginPermission($endpoint);
             case "notify":
                 $user = \Exment::user();
                 return $user ? $user->hasPermissionContainsTable(PermissionEnum::CUSTOM_TABLE) : false;
@@ -288,8 +290,8 @@ class Permission
         }
 
         // if find endpoint "data/", check as data
-        
-        if (preg_match('/^(' . implode('|', Define::CUSTOM_TABLE_ENDPOINTS)  . ')\/(.+)$/u', $endpoint, $matched)) {
+        $list = implode('|', array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['plugins']));
+        if (preg_match('/^(' . $list  . ')\/(.+)$/u', $endpoint, $matched)) {
             return $this->hasPermissionByEndpoint($matched[2], $matched[1], true);
         }
 
@@ -323,7 +325,7 @@ class Permission
             }
 
             // if $uri is "auth", get next uri.
-            if (in_array($uri, array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['auth']))) {
+            if (in_array($uri, array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['auth', 'plugins']))) {
                 // but url is last item, return $uri.
                 if (count($uris) <= $k+1) {
                     return $uri;
@@ -351,6 +353,35 @@ class Permission
         }
         // check endpoint name and checking table_name.
         return $this->table_name == $table->table_name;
+    }
+
+    /**
+     * Check plugin's permission
+     *
+     * @return void
+     */
+    protected function validatePluginPermission($endpoint)
+    {
+        // Get plugin data by Endpoint
+        $plugin = Plugin::where('options->uri', $endpoint)->first();
+        if (!isset($plugin)) {
+            return false;
+        }
+        // check if all user permitted
+        if (boolval($plugin->getOption('all_user_enabled'))) {
+            return true;
+        }
+        if ($this->role_type == RoleType::SYSTEM) {
+            return array_keys_exists(['system', PermissionEnum::PLUGIN_ALL], $this->permission_details);
+        }
+        elseif ($this->role_type == RoleType::PLUGIN) {
+            // check endpoint name and checking plugin name.
+            if ($this->plugin_id == $plugin->id) {
+                // if contains PermissionEnum::PLUGIN_ACCESS, return true. Check at controller again.
+                return array_key_exists(PermissionEnum::PLUGIN_ACCESS, $this->permission_details);
+            }
+        }
+        return false;
     }
 
     /**

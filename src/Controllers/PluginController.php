@@ -182,7 +182,7 @@ class PluginController extends AdminControllerBase
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin) {
             if ($plugin->matchPluginType([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT, PluginType::VALIDATOR])) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
-                    $options = CustomTable::filterList()->pluck('table_view_name', 'table_name')->toArray();
+                    $options = CustomTable::filterList(null, ['checkPermission' => false])->pluck('table_view_name', 'table_name')->toArray();
                     return $options;
                 })->help(exmtrans("plugin.help.target_tables"));
                 // only trigger
@@ -208,6 +208,9 @@ class PluginController extends AdminControllerBase
                     ->rules('max:100');
             }
 
+            if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_AVAILABLE())) {
+                $form->switchbool('all_user_enabled', exmtrans("plugin.options.all_user_enabled"))->help(exmtrans("plugin.help.all_user_enabled"));
+            }
             if ($plugin->matchPluginType([PluginType::TRIGGER, PluginType::DOCUMENT])) {
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));

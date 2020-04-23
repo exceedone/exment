@@ -95,6 +95,50 @@ trait HasPermissions
     }
 
     /**
+     * whethere has permission, permission level
+     * $role_key * if set array, check whether either items.
+     * Checking target plugin.
+     * @param string $id
+     * @param array|string $role_key
+     */
+    public function hasPermissionPlugin($id, $role_key)
+    {
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
+            return true;
+        }
+
+        if ($role_key == Permission::SYSTEM) {
+            return $this->isAdministrator();
+        }
+
+        if (!is_array($role_key)) {
+            $role_key = [$role_key];
+        }
+
+        $permissions = $this->allPermissions();
+        foreach ($permissions as $permission) {
+            // check system permission
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_key_exists('system', $permission->getPermissionDetails())) {
+                return true;
+            }
+
+            // if role type is system, and has plugin all
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_keys_exists(Permission::PLUGIN_ALL, $permission->getPermissionDetails())) {
+                return true;
+            }
+            // if target plugin, and has key
+            if ($permission->getPluginId() == $id 
+                && array_keys_exists($role_key, $permission->getPermissionDetails())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * whether user has no permission
      * if no permission, show message on dashboard
      */
