@@ -226,7 +226,6 @@ class LoginSettingController extends AdminControllerBase
                 ));
             }
         });
-
         
         return $form;
     }
@@ -376,6 +375,9 @@ class LoginSettingController extends AdminControllerBase
         $form->textarea('saml_idp_x509', exmtrans('login.saml_idp_x509'))
         ->help(exmtrans('login.help.saml_idp_x509'))
         ->rows(4)
+        ->customFormat(function($value){
+            return trydecrypt($value);
+        })
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
 
@@ -390,11 +392,17 @@ class LoginSettingController extends AdminControllerBase
         
         $form->text('saml_sp_entityid', exmtrans('login.saml_sp_entityid'))
         ->help(exmtrans('login.help.saml_sp_entityid'))
+        ->customFormat(function($value){
+            return trydecrypt($value);
+        })
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
         $form->textarea('saml_sp_x509', exmtrans('login.saml_sp_x509'))
         ->help(exmtrans('login.help.saml_sp_x509'))
         ->rows(4)
+        ->customFormat(function($value){
+            return trydecrypt($value);
+        })
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
         $form->textarea('saml_sp_privatekey', exmtrans('login.saml_sp_privatekey'))

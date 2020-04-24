@@ -19,6 +19,10 @@ class LoginSetting extends ModelBase
     {
         return $this->getJson('options', $key, $default);
     }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
+    }
 
     public function getLoginTypeTextAttribute()
     {
@@ -326,7 +330,7 @@ class LoginSetting extends ModelBase
             'debug' => config('app.debug', false),
 
             'idp' => [
-                'x509cert' => $provider->getOption('saml_idp_x509'),
+                'x509cert' => trydecrypt($provider->getOption('saml_idp_x509')),
                 'entityId' => $provider->getOption('saml_idp_entityid'),
                 'singleSignOnService' => [
                     'url' => $provider->getOption('saml_idp_sso_url'),
@@ -338,8 +342,8 @@ class LoginSetting extends ModelBase
 
             'sp' => [
                 'NameIDFormat' => $sp_name_id_format ?? 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
-                'x509cert' => $provider->getOption('saml_sp_x509'),
-                'privateKey' => $provider->getOption('saml_sp_privatekey'),
+                'x509cert' => trydecrypt($provider->getOption('saml_sp_x509')),
+                'privateKey' => trydecrypt($provider->getOption('saml_sp_privatekey')),
                 'entityId' => $provider->getOption('saml_sp_entityid'),
                 'assertionConsumerService' => [
                     'url' => $isTest ? $provider->exment_callback_url_test : $provider->exment_callback_url,
@@ -378,12 +382,43 @@ class LoginSetting extends ModelBase
         }
     }
 
+    /**
+     * Set Bcrypt Cert or private key
+     *
+     * @return void
+     */
+    protected function setBcrypt()
+    {
+        $keys = ['saml_sp_x509', 'saml_sp_privatekey', 'saml_idp_x509'];
+        $original = jsonToArray($this->getOriginal('options'));
+
+        foreach($keys as $key){
+            $value = $this->getOption($key);
+            $original = array_get($original, $key);
+    
+            if (!isset($value)) {
+                continue;
+            }
+            
+            if ($value == $original) {
+                continue;
+            }
+            
+            if (isset($original) && \Hash::check($value, $original)) {
+            } else {
+                $this->setOption($key, encrypt($value));
+            }
+        }
+    }
+
     protected static function boot()
     {
         parent::boot();
         
         static::saving(function ($model) {
             $model->prepareJson('options');
+
+            $model->setBcrypt();
         });
     }
 }

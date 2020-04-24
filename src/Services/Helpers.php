@@ -217,6 +217,19 @@ if (!function_exists('rmcomma')) {
         return str_replace(",", "", $value);
     }
 }
+if (!function_exists('trydecrypt')) {
+    /**
+     * decrypt if can, caanot return null
+     */
+    function trydecrypt($value)
+    {
+        try{
+            return isset($value) ? decrypt($value) : null;
+        }catch(\Exception $ex){
+            return null;
+        }
+    }
+}
 
 // File, path  --------------------------------------------------
 if (!function_exists('exment_app_path')) {
