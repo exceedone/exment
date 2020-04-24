@@ -7,8 +7,9 @@ class LoginType extends EnumBase
     public const PURE = 'pure';
     public const OAUTH = 'oauth';
     public const SAML = 'saml';
+    public const LDAP = 'ldap';
 
-    public static function SSO(){
-        return [LoginType::OAUTH(), LoginType::SAML()];
+    public static function SETTING(){
+        return [LoginType::OAUTH(), LoginType::SAML(), LoginType::LDAP()];
     }
 }

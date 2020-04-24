@@ -14,7 +14,7 @@ use Exceedone\Exment\Model\PasswordHistory;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Auth\SSOUser;
+use Exceedone\Exment\Auth\OAuthUser;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Validator as ExmentValidator;
@@ -79,9 +79,9 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
 
         // get sso user
         $error_url = admin_url('auth/login');
-        $sso_user = null;
+        $custom_login_user = null;
         try {
-            $sso_user = SSOUser::withOAuth($login_provider, $socialiteProvider->user());
+            $custom_login_user = OAuthUser::with($login_provider, $socialiteProvider->user());
         } catch (\Exception $ex) {
             \Log::error($ex);
             return redirect($error_url)->withInput()->withErrors(
@@ -89,9 +89,9 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
             );
         }
 
-        return $this->executeLogin($request, $sso_user, $socialiteProvider, function($sso_user){
+        return $this->executeLogin($request, $custom_login_user, $socialiteProvider, function($custom_login_user){
             // set session access key
-            LoginService::setToken($sso_user);
+            LoginService::setToken($custom_login_user);
         });
     }
 }

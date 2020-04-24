@@ -164,6 +164,26 @@ class LoginSetting extends ModelBase
     }
     
     /**
+     * Get Ldap login's all settings
+     *
+     * @return void
+     */
+    public static function getLdapSettings(){
+        return static::getAllSettings()->filter(function($record){
+            return $record->login_type == LoginType::LDAP;
+        });
+    }
+    
+    /**
+     * Get Ldap login's setting
+     *
+     * @return void
+     */
+    public static function getLdapSetting(){
+        return static::getLdapSettings()->first();
+    }
+    
+    /**
      * Whether redirect sso page force.
      * System setting "sso_redirect_force" is true and show_default_login_provider is false and active_flg count is 1
      *

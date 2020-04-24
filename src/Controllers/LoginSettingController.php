@@ -82,14 +82,14 @@ class LoginSettingController extends AdminControllerBase
         $form = new Form(new LoginSetting);
         $login_setting = LoginSetting::find($id);
 
-        $errors = $this->checkOauthLibraries();
+        $errors = $this->checkLibraries();
 
         $form->description(exmtrans('common.help.more_help'));
 
         $form->text('name', exmtrans('login.login_setting_name'))->required();
 
         if (!isset($id)) {
-            $form->radio('login_type', exmtrans('login.login_type'))->options(LoginType::transArrayFilter('login.login_type_options', LoginType::SSO()))
+            $form->radio('login_type', exmtrans('login.login_type'))->options(LoginType::transArrayFilter('login.login_type_options', LoginType::SETTING()))
             ->required()
             ->attribute(['data-filtertrigger' =>true])
             ->help(exmtrans('common.help.init_flg'));
@@ -108,6 +108,9 @@ class LoginSettingController extends AdminControllerBase
             }
             if (!isset($login_setting) || $login_setting->login_type == LoginType::SAML) {
                 $this->setSamlForm($form, $login_setting, $errors);
+            }
+            if (!isset($login_setting) || $login_setting->login_type == LoginType::LDAP) {
+                $this->setLdapForm($form, $login_setting, $errors);
             }
             
 
@@ -136,53 +139,59 @@ class LoginSettingController extends AdminControllerBase
             ->help(exmtrans("login.help.update_user_info"))
             ->default(true);
 
-            if (!isset($login_setting) || $login_setting->login_type == LoginType::SAML) {
+            if (!isset($login_setting) || in_array($login_setting->login_type, [LoginType::SAML, LoginType::LDAP])) {
                 $form->description(exmtrans("login.help.mapping_description"))
-                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
 
                 $form->text('mapping_user_code', exmtrans("user.user_code"))
                 ->required()
-                ->default('user_code')
-                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
 
                 $form->text('mapping_user_name', exmtrans("user.user_name"))
                 ->required()
-                ->default('user_name')
-                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
 
                 $form->text('mapping_email', exmtrans("user.email"))
                 ->required()
-                ->default('email')
-                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
             }
 
 
-            $form->exmheader(exmtrans('login.login_button'))->hr();
             
-            $form->text('login_button_label', exmtrans('login.login_button_label'))
-            ->default(null)
-            ->help(exmtrans('login.help.login_button_label'));
+            if (!isset($login_setting) || in_array($login_setting->login_type, [LoginType::SAML, LoginType::OAUTH])) {
+                $form->exmheader(exmtrans('login.login_button'))->hr()
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::OAUTH]])]);
             
-            $form->icon('login_button_icon', exmtrans('login.login_button_icon'))
-            ->default(null)
-            ->help(exmtrans('login.help.login_button_icon'));
+                $form->text('login_button_label', exmtrans('login.login_button_label'))
+                ->default(null)
+                ->help(exmtrans('login.help.login_button_label'))
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::OAUTH]])]);
+                
+                $form->icon('login_button_icon', exmtrans('login.login_button_icon'))
+                ->default(null)
+                ->help(exmtrans('login.help.login_button_icon'))
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::OAUTH]])]);
 
-            $form->color('login_button_background_color', exmtrans('login.login_button_background_color'))
-            ->default(null)
-            ->help(exmtrans('login.help.login_button_background_color'));
+                $form->color('login_button_background_color', exmtrans('login.login_button_background_color'))
+                ->default(null)
+                ->help(exmtrans('login.help.login_button_background_color'))
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::OAUTH]])]);
 
-            $form->color('login_button_background_color_hover', exmtrans('login.login_button_background_color_hover'))
-            ->default(null)
-            ->help(exmtrans('login.help.login_button_background_color_hover'));
+                $form->color('login_button_background_color_hover', exmtrans('login.login_button_background_color_hover'))
+                ->default(null)
+                ->help(exmtrans('login.help.login_button_background_color_hover'))
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::OAUTH]])]);
 
-            $form->color('login_button_font_color', exmtrans('login.login_button_font_color'))
-            ->default(null)
-            ->help(exmtrans('login.help.login_button_font_color'));
+                $form->color('login_button_font_color', exmtrans('login.login_button_font_color'))
+                ->default(null)
+                ->help(exmtrans('login.help.login_button_font_color'))
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::OAUTH]])]);
 
-            $form->color('login_button_font_color_hover', exmtrans('login.login_button_font_color_hover'))
-            ->default(null)
-            ->help(exmtrans('login.help.login_button_font_color_hover'));
-            
+                $form->color('login_button_font_color_hover', exmtrans('login.login_button_font_color_hover'))
+                ->default(null)
+                ->help(exmtrans('login.help.login_button_font_color_hover'))
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::OAUTH]])]);
+            }
         })->disableHeader();
 
         $form->disableReset();
@@ -231,6 +240,57 @@ class LoginSettingController extends AdminControllerBase
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
         }
     }
+
+
+    protected function setLdapForm($form, $login_setting, $errors){
+        if(array_has($errors, LoginType::LDAP)){
+            $form->description($errors[LoginType::LDAP])
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+            return;
+        }
+
+        
+        if(!isset($login_setting)){
+            $form->text('ldap_name', exmtrans('login.ldap_name'))
+            ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'))
+            ->required()
+            ->rules(["max:30", "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/", new \Exceedone\Exment\Validator\SamlNameUniqueRule])
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);    
+        }
+        else{
+            $form->display('ldap_name_text', exmtrans('login.ldap_name'))->default(function() use($login_setting){
+                return $login_setting->getOption('ldap_name');
+            });
+            $form->hidden('ldap_name');
+        }
+
+        $form->text('ldap_hosts', exmtrans('login.ldap_hosts'))
+        ->help(exmtrans('login.help.ldap_hosts'))
+        ->required()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        
+        $form->text('ldap_port', exmtrans('login.ldap_port'))
+        ->help(exmtrans('login.help.ldap_port'))
+        ->required()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        
+        $form->text('ldap_base_dn', exmtrans('login.ldap_base_dn'))
+        ->help(exmtrans('login.help.ldap_base_dn'))
+        ->default('dc=example,dc=co,dc=jp')
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        
+        $form->text('ldap_search_key', exmtrans('login.ldap_search_key'))
+        ->help(exmtrans('login.help.ldap_search_key'))
+        ->required()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        
+        $form->switchbool('use_ssl', exmtrans('login.use_ssl'))
+        ->default(false);
+
+        $form->switchbool('use_tls', exmtrans('login.use_tls'))
+        ->default(false);
+    }
+
 
     protected function setSamlForm($form, $login_setting, $errors){
         if(array_has($errors, LoginType::SAML)){
@@ -323,16 +383,16 @@ class LoginSettingController extends AdminControllerBase
         ->help(exmtrans("custom_column.help.saml_option_logout_response_signed"))
         ->default("0")
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
-
-
     }
 
+
+
     /**
-     * Checking OAuth library
+     * Checking library
      *
      * @return void
      */
-    protected function checkOauthLibraries(){
+    protected function checkLibraries(){
         $errors = [];
         if(!class_exists('\\Laravel\\Socialite\\SocialiteServiceProvider')){
             $errors[] = LoginType::OAUTH();

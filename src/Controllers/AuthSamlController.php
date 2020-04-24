@@ -16,7 +16,7 @@ use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
-use Exceedone\Exment\Auth\SSOUser;
+use Exceedone\Exment\Auth\SamlUser;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
@@ -100,8 +100,8 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
             return redirect($error_url);
         }
 
-        $sso_user = SSOUser::withSaml($provider_name, $saml2Auth->getSaml2User());
-        return $this->executeLogin($request, $sso_user, null, function() use($saml2Auth){
+        $custom_login_user = SamlUser::with($provider_name, $saml2Auth->getSaml2User());
+        return $this->executeLogin($request, $custom_login_user, null, function() use($saml2Auth){
             session([Define::SYSTEM_KEY_SESSION_SAML_SESSION => [
                 'sessionIndex' => $saml2Auth->getSaml2User()->getSessionIndex(),
                 'nameId' => $saml2Auth->getSaml2User()->getNameId(),
