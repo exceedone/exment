@@ -7,21 +7,15 @@ use Encore\Admin\Grid;
 use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Form\Widgets\Modal as WidgetModal;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\LoginProviderType;
-use Exceedone\Exment\Services\Login\Ldap\LdapService;
-use Exceedone\Exment\Services\Login\Ldap\LdapUser;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
-use Laravel\Passport\Client;
 use Encore\Admin\Layout\Content;
 
 class LoginSettingController extends AdminControllerBase
@@ -55,7 +49,7 @@ class LoginSettingController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new LoginSetting);
-        $grid->column('login_type', exmtrans('login.login_type'))->displayEscape(function($v){
+        $grid->column('login_type', exmtrans('login.login_type'))->displayEscape(function ($v) {
             return LoginType::getEnum($v)->transKey('login.login_type_options');
         });
         $grid->column('name', exmtrans('login.login_setting_name'));
@@ -105,7 +99,7 @@ class LoginSettingController extends AdminControllerBase
         $form->switchbool('active_flg', exmtrans("plugin.active_flg"))->default(false);
 
         $form->embeds('options', exmtrans("login.options"), function (Form\EmbeddedForm $form) use ($login_setting, $errors) {
-            ///// toggle 
+            ///// toggle
             // if create or oauth
             if (!isset($login_setting) || $login_setting->login_type == LoginType::OAUTH) {
                 $this->setOAuthForm($form, $login_setting, $errors);
@@ -201,8 +195,8 @@ class LoginSettingController extends AdminControllerBase
         $form->disableReset();
 
 
-        $form->tools(function (Form\Tools $tools) use($login_setting){
-            if(isset($login_setting)){
+        $form->tools(function (Form\Tools $tools) use ($login_setting) {
+            if (isset($login_setting)) {
                 $tools->append(new Tools\ModalMenuButton(
                     route('exment.logintest_modal', ['id' => $login_setting->id]),
                     [
@@ -218,8 +212,9 @@ class LoginSettingController extends AdminControllerBase
         return $form;
     }
 
-    protected function setOAuthForm($form, $login_setting, $errors){
-        if(array_has($errors, LoginType::OAUTH)){
+    protected function setOAuthForm($form, $login_setting, $errors)
+    {
+        if (array_has($errors, LoginType::OAUTH)) {
             $form->description($errors[LoginType::OAUTH])
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
 
@@ -258,29 +253,29 @@ class LoginSettingController extends AdminControllerBase
             $form->url('oauth_redirect_url', exmtrans('login.redirect_url'))
             ->help(exmtrans('login.help.redirect_url'))
             ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
-        }elseif(isset($login_setting)){
+        } elseif (isset($login_setting)) {
             $form->display('oauth_redirect_url')->default($login_setting->exment_callback_url);
         }
     }
 
 
-    protected function setLdapForm($form, $login_setting, $errors){
-        if(array_has($errors, LoginType::LDAP)){
+    protected function setLdapForm($form, $login_setting, $errors)
+    {
+        if (array_has($errors, LoginType::LDAP)) {
             $form->description($errors[LoginType::LDAP])
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
             return;
         }
 
         
-        if(!isset($login_setting)){
+        if (!isset($login_setting)) {
             $form->text('ldap_name', exmtrans('login.ldap_name'))
             ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'))
             ->required()
             ->rules(["max:30", "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/", new \Exceedone\Exment\Validator\SamlNameUniqueRule])
-            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);    
-        }
-        else{
-            $form->display('ldap_name_text', exmtrans('login.ldap_name'))->default(function() use($login_setting){
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        } else {
+            $form->display('ldap_name_text', exmtrans('login.ldap_name'))->default(function () use ($login_setting) {
                 return $login_setting->getOption('ldap_name');
             });
             $form->hidden('ldap_name');
@@ -320,23 +315,23 @@ class LoginSettingController extends AdminControllerBase
     }
 
 
-    protected function setSamlForm($form, $login_setting, $errors){
-        if(array_has($errors, LoginType::SAML)){
+    protected function setSamlForm($form, $login_setting, $errors)
+    {
+        if (array_has($errors, LoginType::SAML)) {
             $form->description($errors[LoginType::SAML])
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
 
             return;
         }
         
-        if(!isset($login_setting)){
+        if (!isset($login_setting)) {
             $form->text('saml_name', exmtrans('login.saml_name'))
             ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'))
             ->required()
             ->rules(["max:30", "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/", new \Exceedone\Exment\Validator\SamlNameUniqueRule])
-            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);    
-        }
-        else{
-            $form->display('saml_name_text', exmtrans('login.saml_name'))->default(function() use($login_setting){
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+        } else {
+            $form->display('saml_name_text', exmtrans('login.saml_name'))->default(function () use ($login_setting) {
                 return $login_setting->getOption('saml_name');
             });
             $form->hidden('saml_name');
@@ -420,21 +415,22 @@ class LoginSettingController extends AdminControllerBase
      *
      * @return void
      */
-    protected function checkLibraries(){
+    protected function checkLibraries()
+    {
         $errors = [];
-        if(!class_exists('\\Laravel\\Socialite\\SocialiteServiceProvider')){
+        if (!class_exists('\\Laravel\\Socialite\\SocialiteServiceProvider')) {
             $errors[] = LoginType::OAUTH();
         }
 
-        if(!class_exists('\\Aacotroneo\\Saml2\\Saml2Auth')){
+        if (!class_exists('\\Aacotroneo\\Saml2\\Saml2Auth')) {
             $errors[] = LoginType::SAML();
         }
 
-        if(!class_exists('\\Adldap\\Adldap')){
+        if (!class_exists('\\Adldap\\Adldap')) {
             $errors[] = LoginType::LAMP();
         }
 
-        return collect($errors)->mapWithKeys(function($error){
+        return collect($errors)->mapWithKeys(function ($error) {
             return [$error->getValue() => '<span class="red">' . exmtrans('login.message.not_install_library', [
                 'name' => $error->transKey('login.login_type_options'),
                 'url' => getManualUrl('sso'),
@@ -525,7 +521,8 @@ class LoginSettingController extends AdminControllerBase
      * @param [type] $id
      * @return void
      */
-    public function loginTestModal(Request $request, $id){
+    public function loginTestModal(Request $request, $id)
+    {
         $login_setting = LoginSetting::find($id);
 
         $form = $login_setting->getLoginServiceClassName()::getTestForm($login_setting);
@@ -545,7 +542,8 @@ class LoginSettingController extends AdminControllerBase
      * @param [type] $id
      * @return void
      */
-    public function loginTestForm(Request $request, $id){
+    public function loginTestForm(Request $request, $id)
+    {
         $login_setting = LoginSetting::find($id);
         
         return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
@@ -558,7 +556,8 @@ class LoginSettingController extends AdminControllerBase
      * @param [type] $id
      * @return void
      */
-    public function loginTestSso(Request $request, $id){
+    public function loginTestSso(Request $request, $id)
+    {
         $login_setting = LoginSetting::find($id);
         
         return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
@@ -570,7 +569,8 @@ class LoginSettingController extends AdminControllerBase
      * @param [type] $id
      * @return void
      */
-    public function loginTestCallback(Request $request, Content $content, $id){
+    public function loginTestCallback(Request $request, Content $content, $id)
+    {
         $login_setting = LoginSetting::find($id);
         
         $message = $login_setting->getLoginServiceClassName()::loginTestCallback($request, $login_setting);

@@ -2,9 +2,6 @@
 
 namespace Exceedone\Exment\Services\Login;
 
-use Exceedone\Exment\Enums\LoginType;
-use Exceedone\Exment\Model\LoginSetting;
-
 /**
  * Custom Login User.
  * For OAuth, Saml, Plugin login.
@@ -34,7 +31,8 @@ abstract class CustomLoginUserBase
      *
      * @return void
      */
-    public function getValidateArray(){
+    public function getValidateArray()
+    {
         return [
             'id' => $this->id,
             'user_code' => $this->user_code,

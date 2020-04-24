@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Services\Login\Ldap;
 
 use Exceedone\Exment\Services\Login\CustomLoginUserBase;
 use Exceedone\Exment\Enums\LoginType;
-use Exceedone\Exment\Model\LoginSetting;
 
 /**
  * LdapUser.
@@ -13,7 +12,8 @@ use Exceedone\Exment\Model\LoginSetting;
  */
 class LdapUser extends CustomLoginUserBase
 {
-    public static function with($login_setting, array $pluginUser){
+    public static function with($login_setting, array $pluginUser)
+    {
         $user = new LdapUser;
         $user->provider_name = $login_setting->getOption('ldap_name');
         $user->login_type = LoginType::LDAP;
@@ -31,5 +31,4 @@ class LdapUser extends CustomLoginUserBase
 
         return $user;
     }
-
 }

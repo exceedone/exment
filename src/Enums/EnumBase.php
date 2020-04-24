@@ -36,7 +36,7 @@ class EnumBase extends Enum
      */
     public static function transArrayFilter($base_key, $targetEnums, $isExment = true)
     {
-        $arrays = collect(static::arrays())->filter(function($arr) use($targetEnums){
+        $arrays = collect(static::arrays())->filter(function ($arr) use ($targetEnums) {
             return in_array($arr, $targetEnums);
         })->toArray();
         return getTransArray($arrays, $base_key, $isExment);

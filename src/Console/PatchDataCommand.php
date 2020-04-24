@@ -891,9 +891,9 @@ class PatchDataCommand extends Command
 
         // move to config to database
         $providers = stringToArray(config('exment.login_providers', ''));
-        foreach($providers as $provider){
+        foreach ($providers as $provider) {
             $config = config("services.$provider");
-            if(is_nullorempty($config)){
+            if (is_nullorempty($config)) {
                 continue;
             }
 
@@ -902,10 +902,10 @@ class PatchDataCommand extends Command
             $oauth_provider_type = isset($oauth_provider_type) ? $oauth_provider_type->getValue() : Enums\LoginProviderType::OTHER;
             
             // check has already executed
-            if(Model\LoginSetting::where('login_type', Enums\LoginType::OAUTH)
+            if (Model\LoginSetting::where('login_type', Enums\LoginType::OAUTH)
             ->where('options->oauth_provider_type', $oauth_provider_type)
             ->where('options->oauth_provider_name', $oauth_provider_name)
-            ->count() > 0){
+            ->count() > 0) {
                 continue;
             }
 

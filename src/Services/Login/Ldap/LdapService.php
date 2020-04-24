@@ -1,44 +1,20 @@
 <?php
 namespace Exceedone\Exment\Services\Login\Ldap;
 
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\LoginType;
-use Exceedone\Exment\Auth\CustomLoginUser;
 use Exceedone\Exment\Services\Login\LoginService;
-use Exceedone\Exment\Services\Login\Ldap\LdapService;
-use Exceedone\Exment\Services\Login\Ldap\LdapUser;
-use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\LoginSetting;
-use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Model\PasswordHistory;
-use Exceedone\Exment\Enums\UserSetting;
-use Exceedone\Exment\Enums\Login2FactorProviderType;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Auth\ProviderAvatar;
-use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
-use Exceedone\Exment\Validator as ExmentValidator;
-use Exceedone\Exment\Providers\CustomUserProvider;
 use Exceedone\Exment\Form\Widgets\ModalForm;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Form;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Facades\Request as Req;
-use Symfony\Component\HttpFoundation\Response;
-use Carbon\Carbon;
 
 /**
  * LoginService
  */
 class LdapService implements LoginServiceInterface
 {
-    
-    public static function getLdapConfig(LoginSetting $login_setting){
+    public static function getLdapConfig(LoginSetting $login_setting)
+    {
         return [
             'exment' => [
                 'schema' => \Adldap\Schemas\ActiveDirectory::class,
@@ -65,8 +41,8 @@ class LdapService implements LoginServiceInterface
         $prefix = $login_setting->getOption('ldap_account_prefix');
         $suffix = $login_setting->getOption('ldap_account_suffix');
 
-        return ((isset($prefix) && strpos($username, $prefix) !== 0) ? $prefix : '' ).
-        $username . 
+        return ((isset($prefix) && strpos($username, $prefix) !== 0) ? $prefix : '').
+        $username .
         ((isset($suffix) && strripos($username, $suffix) !== (mb_strlen($username) - mb_strlen($suffix))) ? $suffix : '');
     }
 
@@ -74,7 +50,7 @@ class LdapService implements LoginServiceInterface
     {
         $ldapuser = $provider->search()->findBy($login_setting->getOption('ldap_search_key'), $username);
 
-        if(!isset($ldapuser)){
+        if (!isset($ldapuser)) {
             return false;
         }
 
@@ -84,10 +60,10 @@ class LdapService implements LoginServiceInterface
             'mapping_email' => 'email',
         ];
         $attrs = [];
-        foreach($keys as $option_keyname => $local_attr){
+        foreach ($keys as $option_keyname => $local_attr) {
             $ldap_attrs = $login_setting->getOption($option_keyname);
 
-            foreach(stringToArray($ldap_attrs) as $ldap_attr){
+            foreach (stringToArray($ldap_attrs) as $ldap_attr) {
                 $method = 'get' . $ldap_attr;
                 if (method_exists($ldapuser, $method)) {
                     $attrs[$local_attr] = $ldapuser->$method();
@@ -159,7 +135,8 @@ class LdapService implements LoginServiceInterface
      * @param Request $request
      * @return void
      */
-    public static function loginTest(Request $request, $login_setting){
+    public static function loginTest(Request $request, $login_setting)
+    {
         $message = null;
         $result = false;
         $credentials = $request->only(['username', 'password']);
@@ -172,19 +149,17 @@ class LdapService implements LoginServiceInterface
             $provider = $ad->getDefaultProvider();
             
             $provider->connect();
-            if(!$provider->auth()->attempt($username, $credentials['password'], true)){
+            if (!$provider->auth()->attempt($username, $credentials['password'], true)) {
                 $message = static::getLoginTestResult(false, [exmtrans('error.login_failed')]);
-            }
-            else{
+            } else {
                 $ldapUserArray = static::syncLdapUserArray($provider, $login_setting, $username);
 
                 $custom_login_user = LdapUser::with($login_setting, $ldapUserArray);
                     
                 $validator = LoginService::validateCustomLoginSync($custom_login_user->getValidateArray());
-                if($validator->fails()){
+                if ($validator->fails()) {
                     $message = LoginService::getLoginTestResult(false, $validator->errors());
-                }
-                else{
+                } else {
                     $message = LoginService::getLoginTestResult(true, [], $custom_login_user);
                     $result = true;
                 }
@@ -194,7 +169,6 @@ class LdapService implements LoginServiceInterface
         } catch (\Adldap\Auth\BindException $ex) {
             \Log::error($ex);
             $message = LoginService::getLoginTestResult(false, [exmtrans('login.sso_provider_error')]);
-
         } catch (\Exception $ex) {
             \Log::error($ex);
             $message = LoginService::getLoginTestResult(false, [$ex]);
@@ -212,5 +186,4 @@ class LdapService implements LoginServiceInterface
             ],
         ]);
     }
-
 }

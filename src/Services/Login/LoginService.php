@@ -3,34 +3,9 @@ namespace Exceedone\Exment\Services\Login;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\LoginType;
-use Exceedone\Exment\Auth\CustomLoginUser;
 use Exceedone\Exment\Form\Widgets\ModalForm;
-use Exceedone\Exment\Services\Login\LoginService;
-use Exceedone\Exment\Services\Login\Ldap\LdapService;
-use Exceedone\Exment\Services\Login\Ldap\LdapUser;
-use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\LoginSetting;
-use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Model\PasswordHistory;
-use Exceedone\Exment\Enums\UserSetting;
-use Exceedone\Exment\Enums\Login2FactorProviderType;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Auth\ProviderAvatar;
-use Exceedone\Exment\Auth\ThrottlesLogins;
-use Exceedone\Exment\Services\Login\LoginServiceInterface;
-use Exceedone\Exment\Validator as ExmentValidator;
-use Exceedone\Exment\Providers\CustomUserProvider;
-use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Form;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Facades\Request as Req;
-use Symfony\Component\HttpFoundation\Response;
-use Carbon\Carbon;
 
 /**
  * LoginService
@@ -39,7 +14,7 @@ class LoginService
 {
     public static function setToken(CustomLoginUserBase $custom_login_user)
     {
-        if($custom_login_user != LoginType::OAUTH){
+        if ($custom_login_user != LoginType::OAUTH) {
             return;
         }
 
@@ -93,8 +68,9 @@ class LoginService
      * @param array $array
      * @return void
      */
-    public static function validateCustomLoginSync(array $data){
-       return \Validator::make($data, [
+    public static function validateCustomLoginSync(array $data)
+    {
+        return \Validator::make($data, [
             'user_code' => 'required',
             'user_name' => 'required',
             'email' => 'required|email',
@@ -103,21 +79,21 @@ class LoginService
     }
     
 
-    public static function getLoginTestResult(bool $success, $messages, $custom_login_user = null){
+    public static function getLoginTestResult(bool $success, $messages, $custom_login_user = null)
+    {
         $message = [];
 
         $message[] = $success ? exmtrans('common.message.success_execute') : exmtrans('common.message.error_execute');
 
-        if(is_array($messages)){
+        if (is_array($messages)) {
             $message = array_merge($message, $messages);
-        }
-        elseif($messages instanceof \Illuminate\Support\MessageBag){
-            $message = array_merge($message, collect($messages->messages())->map(function($m){
+        } elseif ($messages instanceof \Illuminate\Support\MessageBag) {
+            $message = array_merge($message, collect($messages->messages())->map(function ($m) {
                 return implode(" ", $m);
             })->toArray());
         }
 
-        if($custom_login_user){
+        if ($custom_login_user) {
             $keys = [
                 'user_code',
                 'user_name',
@@ -125,7 +101,7 @@ class LoginService
                 'id',
             ];
     
-            foreach($keys as $key){
+            foreach ($keys as $key) {
                 $message[] = exmtrans("user.$key") . ' : ' . $custom_login_user->{$key};
             }
         }
@@ -171,5 +147,4 @@ class LoginService
 
         return $form;
     }
-    
 }

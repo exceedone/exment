@@ -30,7 +30,8 @@ class OAuthUser extends CustomLoginUserBase
     public $refreshToken;
     public $expiresIn;
 
-    public static function with($provider_name, $provider_user){
+    public static function with($provider_name, $provider_user)
+    {
         $user = new OAuthUser;
         $user->provider_name = $provider_name;
         $user->login_type = LoginType::OAUTH;

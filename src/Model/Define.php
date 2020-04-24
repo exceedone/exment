@@ -373,14 +373,14 @@ class Define
     public const CHARTITEM_LABEL = 'chartitem_label';
 
     public const SAML_NAME_ID_FORMATS = [
-        'NAMEID_EMAIL_ADDRESS' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', 
-        'NAMEID_X509_SUBJECT_NAME' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName', 
-        'NAMEID_WINDOWS_DOMAIN_QUALIFIED_NAME' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName', 
-        'NAMEID_UNSPECIFIED' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified', 
-        'NAMEID_KERBEROS  ' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos', 
-        'NAMEID_ENTITY    ' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:entity', 
-        'NAMEID_TRANSIENT ' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient', 
-        'NAMEID_PERSISTENT' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent', 
+        'NAMEID_EMAIL_ADDRESS' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+        'NAMEID_X509_SUBJECT_NAME' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName',
+        'NAMEID_WINDOWS_DOMAIN_QUALIFIED_NAME' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName',
+        'NAMEID_UNSPECIFIED' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+        'NAMEID_KERBEROS  ' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos',
+        'NAMEID_ENTITY    ' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:entity',
+        'NAMEID_TRANSIENT ' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+        'NAMEID_PERSISTENT' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
         'NAMEID_ENCRYPTED' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:encrypted',
     ];
 

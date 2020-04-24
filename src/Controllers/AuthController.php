@@ -8,7 +8,6 @@ use Exceedone\Exment\Services\Login\Ldap\LdapUser;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\File as ExmentFile;
@@ -17,16 +16,13 @@ use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Validator as ExmentValidator;
-use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request as Req;
-use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 
 /**
@@ -90,7 +86,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      * @param Request $request
      * @return void
      */
-    protected function loginDefault(Request $request, array $credentials){
+    protected function loginDefault(Request $request, array $credentials)
+    {
         $remember = boolval($request->get('remember', false));
         $credentials['login_type'] = LoginType::PURE;
 
@@ -119,7 +116,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      * @param Request $request
      * @return void
      */
-    protected function loginLdap(Request $request, array $credentials){
+    protected function loginLdap(Request $request, array $credentials)
+    {
         $login_setting = LoginSetting::getLdapSetting();
         $error_url = admin_url('auth/login');
         $error_redirect = redirect($error_url)->withInput()->withErrors(
@@ -135,20 +133,20 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             
             $provider->connect();
 
-            if(!$provider->auth()->attempt($username, $credentials['password'], true)){
+            if (!$provider->auth()->attempt($username, $credentials['password'], true)) {
                 //TODO
                 return $error_redirect;
             }
 
             $ldapUserArray = LdapService::syncLdapUserArray($provider, $login_setting, $username);
-            if(!$ldapUserArray){
+            if (!$ldapUserArray) {
                 return $error_redirect;
             }
             
             $custom_login_user = LdapUser::with($login_setting, $ldapUserArray);
 
             $validator = LoginService::validateCustomLoginSync($custom_login_user->getValidateArray());
-            if($validator->fails()){
+            if ($validator->fails()) {
                 return redirect($error_url)->withInput()->withErrors(
                     [$this->username() => $validator->errors()]
                 );
@@ -209,7 +207,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         $request->session()->invalidate();
 
-        if(isset($login_user) && $login_user->login_type != LoginType::PURE){
+        if (isset($login_user) && $login_user->login_type != LoginType::PURE) {
             return $this->logoutSso($request, $login_user, $options);
         }
 

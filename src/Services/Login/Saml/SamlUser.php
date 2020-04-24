@@ -13,7 +13,8 @@ use Exceedone\Exment\Model\LoginSetting;
  */
 class SamlUser extends CustomLoginUserBase
 {
-    public static function with($provider_name, $samlUser){
+    public static function with($provider_name, $samlUser)
+    {
         $user = new SamlUser;
         $user->provider_name = $provider_name;
         $user->login_type = LoginType::SAML;
@@ -30,7 +31,8 @@ class SamlUser extends CustomLoginUserBase
         return $user;
     }
 
-    protected static function setSamlAttributeValue(CustomLoginUser $user, $samlUser){
+    protected static function setSamlAttributeValue(CustomLoginUser $user, $samlUser)
+    {
         $errors = [];
 
         // get attributes
@@ -38,28 +40,27 @@ class SamlUser extends CustomLoginUserBase
         $keys = ['user_code', 'user_name', 'email'];
 
         // set values
-        foreach($keys as $key){
+        foreach ($keys as $key) {
             $samlMappingKey = $user->login_setting->getOption("mapping_$key");
             
             // if has ${XXXXX}format, replace get items
             $replaceMaps = [];
             preg_match_all('/\${(?<key>.+?)}/', $samlMappingKey, $output_array);
-            if(count(array_get($output_array, 'key')) > 0){
-                foreach(array_get($output_array, 'key') as $regexIndex => $regexKey){
+            if (count(array_get($output_array, 'key')) > 0) {
+                foreach (array_get($output_array, 'key') as $regexIndex => $regexKey) {
                     $replaceMaps[$regexKey] = $output_array[0][$regexIndex];
                 }
-            }
-            else{
+            } else {
                 $replaceMaps[$samlMappingKey] = $samlMappingKey;
             }
 
-            foreach($replaceMaps as $replaceKey => $replaceValue){
-                if(!array_has($samlAttibutes, $replaceKey)){
+            foreach ($replaceMaps as $replaceKey => $replaceValue) {
+                if (!array_has($samlAttibutes, $replaceKey)) {
                     //TODO: not found key
                 }
     
                 $value = array_get($samlAttibutes, $replaceKey);
-                if(is_array($value) && count($value) > 0){
+                if (is_array($value) && count($value) > 0) {
                     $value = $value[0];
                 }
 
