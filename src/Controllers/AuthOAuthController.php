@@ -2,7 +2,8 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Exceedone\Exment\Services\LoginService;
+use Exceedone\Exment\Services\Login\LoginService;
+use Exceedone\Exment\Service\Login\OAuth\OAuthUser;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -14,7 +15,6 @@ use Exceedone\Exment\Model\PasswordHistory;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Auth\OAuthUser;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Validator as ExmentValidator;

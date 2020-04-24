@@ -2,7 +2,9 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Exceedone\Exment\Services\LoginService;
+use Exceedone\Exment\Services\Login\LoginService;
+use Exceedone\Exment\Services\Login\Ldap\LdapService;
+use Exceedone\Exment\Services\Login\Ldap\LdapUser;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -16,7 +18,6 @@ use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
-use Exceedone\Exment\Auth\LdapUser;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Providers\CustomUserProvider;
@@ -119,29 +120,40 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      * @return void
      */
     protected function loginLdap(Request $request, array $credentials){
-        $ldap_setting = LoginSetting::getLdapSetting();
+        $login_setting = LoginSetting::getLdapSetting();
         $error_url = admin_url('auth/login');
         $error_redirect = redirect($error_url)->withInput()->withErrors(
             [$this->username() => $this->getFailedLoginMessage()]
         );
         
+        $username = LdapService::getLdapUserName($credentials['username'], $login_setting);
+
         $custom_login_user = null;
         try {
-            $ad = new \Adldap\Adldap($this->getLdapConfig($ldap_setting));
+            $ad = new \Adldap\Adldap(LdapService::getLdapConfig($login_setting));
             $provider = $ad->getDefaultProvider();
             
-            if(!$provider->auth()->attempt($credentials['username'], $credentials['password'], true)){
+            $provider->connect();
+
+            if(!$provider->auth()->attempt($username, $credentials['password'], true)){
                 //TODO
                 return $error_redirect;
             }
 
-            $ldapUserArray = $this->syncLdapUserArray($provider, $ldap_setting, $credentials['username']);
+            $ldapUserArray = LdapService::syncLdapUserArray($provider, $login_setting, $username);
             if(!$ldapUserArray){
                 return $error_redirect;
             }
             
-            $custom_login_user = LdapUser::with($ldap_setting, $ldapUserArray);
+            $custom_login_user = LdapUser::with($login_setting, $ldapUserArray);
 
+            $validator = LoginService::validateCustomLoginSync($custom_login_user->getValidateArray());
+            if($validator->fails()){
+                return redirect($error_url)->withInput()->withErrors(
+                    [$this->username() => $validator->errors()]
+                );
+            }
+            
             return $this->executeLogin($request, $custom_login_user);
         } catch (\Exception $ex) {
             \Log::error($ex);
@@ -149,101 +161,6 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 [$this->username() => exmtrans('login.sso_provider_error')]
             );
         }
-    }
-
-    protected function getLdapConfig(LoginSetting $ldap_setting){
-        return [
-            'exment' => [
-                'schema' => \Adldap\Schemas\ActiveDirectory::class,
-                // 'account_prefix' => env('LDAP_ACCOUNT_PREFIX', ''),
-                // 'account_suffix' => env('LDAP_ACCOUNT_SUFFIX', ''),
-                'hosts' => stringToArray($ldap_setting->getOption('ldap_hosts')),
-                'port' => $ldap_setting->getOption('ldap_port') ?? 389,
-                'timeout' => 10,
-                'base_dn' => $ldap_setting->getOption('ldap_base_dn'),
-                'follow_referrals' => false,
-                'use_ssl' => boolval($ldap_setting->getOption('ldap_use_ssl')),
-                'use_tls' => boolval($ldap_setting->getOption('ldap_use_tls')),
-    
-            ]
-            // 'exment' => [
-            //     'auto_connect' => true,
-            //     'connection' => \Adldap\Connections\Ldap::class,
-            //     'settings' => [
-            //         'schema' => \Adldap\Schemas\ActiveDirectory::class,
-            //         // 'account_prefix' => env('LDAP_ACCOUNT_PREFIX', ''),
-            //         // 'account_suffix' => env('LDAP_ACCOUNT_SUFFIX', ''),
-            //         'hosts' => $ldap_setting->getOption('ldap_hosts'),
-            //         'port' => $ldap_setting->getOption('ldap_port') ?? 389,
-            //         'timeout' => 5,
-            //         'base_dn' => $ldap_setting->getOption('ldap_base_on'),
-            //         'follow_referrals' => false,
-            //         'use_ssl' => boolval($ldap_setting->getOption('ldap_use_ssl')),
-            //         'use_tls' => boolval($ldap_setting->getOption('ldap_use_tls')),
-            //     ],
-            // ],
-        ];
-    }
-
-    protected function syncLdapUserArray($provider, $ldap_setting, $username)
-    {
-        $ldapuser = $provider->search()->findBy($ldap_setting->getOption('ldap_search_key'), $username);
-
-        if(!isset($ldapuser)){
-            return false;
-        }
-
-        $keys = [
-            'mapping_user_code' => 'user_code',
-            'mapping_user_name' => 'user_name',
-            'mapping_email' => 'email',
-        ];
-        $attrs = [];
-        foreach($keys as $option_keyname => $local_attr){
-            $ldap_attrs = $ldap_setting->getOption($option_keyname);
-
-            foreach(stringToArray($ldap_attrs) as $ldap_attr){
-                $method = 'get' . $ldap_attr;
-                if (method_exists($ldapuser, $method)) {
-                    $attrs[$local_attr] = $ldapuser->$method();
-                    break;
-                }
-    
-                if (!isset($ldapuser_attrs)) {
-                    $ldapuser_attrs = self::accessProtected($ldapuser, 'attributes');
-                }
-    
-                if (!isset($ldapuser_attrs[$ldap_attr])) {
-                    // an exception could be thrown
-                    continue;
-                }
-    
-                if (!is_array($ldapuser_attrs[$ldap_attr])) {
-                    $attrs[$local_attr] = $ldapuser_attrs[$ldap_attr];
-                    break;
-                }
-    
-                if (count($ldapuser_attrs[$ldap_attr]) == 0) {
-                    // an exception could be thrown
-                    continue;
-                }
-    
-                // now it returns the first item, but it could return
-                // a comma-separated string or any other thing that suits you better
-                $attrs[$local_attr] = $ldapuser_attrs[$ldap_attr][0];
-                break;
-            }
-        }
-
-        return $attrs;
-    }
-    
-    protected static function accessProtected ($obj, $prop)
-    {
-        $reflection = new \ReflectionClass($obj);
-        $property = $reflection->getProperty($prop);
-        $property->setAccessible(true);
-        return $property->getValue($obj);
     }
 
     protected function checkPasswordLimit()

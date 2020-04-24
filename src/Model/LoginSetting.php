@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Services\Login as LoginServiceRoot;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\LoginProviderType;
 
@@ -66,6 +67,40 @@ class LoginSetting extends ModelBase
     }
 
     /**
+     * get exment callback default url
+     * oauth: admin/auth/login/{providername}/callback
+     * saml: admin/saml/login/{providername}/acs
+     *
+     * @return string
+     */
+    public function getExmentCallbackUrlAttribute() : string
+    {
+        if($this->login_type == LoginType::OAUTH){
+            return $this->getConfigOption('redirect', 'oauth_redirect_url', $this->exment_callback_url_default);
+        }
+        elseif($this->login_type == LoginType::SAML){
+            return $this->exment_callback_url_default;
+        }
+    }
+
+    /**
+     * get exment callback url(Default)
+     * oauth: admin/auth/login/{providername}/callback
+     * saml: admin/saml/login/{providername}/acs
+     *
+     * @return string
+     */
+    public function getExmentCallbackUrlDefaultAttribute() : string
+    {
+        if($this->login_type == LoginType::OAUTH){
+            return route('exment.oauth_callback', ['provider' => $this->provider_name]);
+        }
+        elseif($this->login_type == LoginType::SAML){
+            return route('exment.saml_acs', ['provider' => $this->provider_name]);
+        }
+    }
+
+    /**
      * Get login button
      *
      * @return void
@@ -99,7 +134,7 @@ class LoginSetting extends ModelBase
      * @return void
      */
     public function getConfigOption($configKeyName, $optionKeyName, $default = null){
-        $val = config("services.$this->provider_name.$configKeyName", $this->getOption($optionKeyName));
+        $val = $this->getOption($optionKeyName) ?? config("services.$this->provider_name.$configKeyName");
         return $val ?? $default;
     }
     
@@ -220,7 +255,7 @@ class LoginSetting extends ModelBase
         $config = [
             'client_id' => $provider->getOption('oauth_client_id'),
             'client_secret' => $provider->getOption('oauth_client_secret'),
-            'redirect' => $provider->getConfigOption('redirect', 'oauth_redirect_url', \URL::route('oauth_callback', ['provider' => $login_provider])),
+            'redirect' => $provider->exment_callback_url,
         ];
         config(["services.$login_provider" => array_merge(config("services.$login_provider", []), $config)]);
 
@@ -287,6 +322,23 @@ class LoginSetting extends ModelBase
 
         $saml2Auth = new \Aacotroneo\Saml2\Saml2Auth(new \OneLogin\Saml2\Auth($config));
         return $saml2Auth;
+    }
+
+    /**
+     * Get Login Service Class Name
+     *
+     * @return string
+     */
+    public function getLoginServiceClassName() : string
+    {
+        switch($this->login_type){
+            case LoginType::OAUTH:
+                return LoginServiceRoot\OAuth\OAuthService::class;
+            case LoginType::SAML:
+            return LoginServiceRoot\Saml\SamlService::class;
+            case LoginType::LDAP:
+                return LoginServiceRoot\Ldap\LdapService::class;
+        }
     }
 
     protected static function boot()

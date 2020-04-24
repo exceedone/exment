@@ -14,6 +14,7 @@ return [
         'default' => '既定',
         'basic_setting' => '基本設定',
         'detail_setting' => '詳細設定',
+        'execute_result' => '実行結果',
         'no_setting' => '未設定',
         'input' => '入力',
         'available_true' => '有効',
@@ -511,6 +512,7 @@ return [
         'user_name' => 'ユーザー名',
         'email' => 'メールアドレス',
         'password' => 'パスワード',
+        'id' => 'ID',
         'password_confirmation' => 'パスワード(再入力)',
         'current_password' => '現在のパスワード',
         'new_password' => '新しいパスワード',
@@ -597,6 +599,16 @@ return [
         'saml_option_logout_request_signed' => 'Sign LogoutRequest',
         'saml_option_logout_response_signed' => 'Sign LogoutResponse',
         
+        'ldap_name' => 'LDAP名(英数字)',
+        'ldap_hosts' => 'ホスト名',
+        'ldap_port' => 'ポート番号',
+        'ldap_base_dn' => '基本DN(識別名)',
+        'ldap_search_key' => 'ユーザー検索属性',
+        'ldap_account_prefix' => 'ログインコード接頭辞',
+        'ldap_account_suffix' => 'ログインコード接尾辞',
+        'ldap_use_ssl' => 'SSL使用',
+        'ldap_use_tls' => 'TLS使用',
+
         'redirect_url' => 'リダイレクトURL',
 
         'login_button' => 'ログインボタン設定',
@@ -607,6 +619,8 @@ return [
         'login_button_font_color' => '文字色',
         'login_button_font_color_hover' => '文字色(オンマウス)',
         
+        'login_test' => 'ログインテスト',
+
         'help' => [
             'login_provider_type' => 'ログインのプロバイダの種類を選択してください。',
             'login_provider_name' => 'ログインのプロバイダのSocialite名を、英数字で入力してください。',
@@ -625,17 +639,24 @@ return [
             'mapping_user_column' => 'SSOで取得したアカウントから、どの列を使用し、Exmentのアカウントを検索するかどうかを設定します。',
             'sso_accept_mail_domain' => 'ログインを許可するドメインを指定する場合は記入してください。複数ある場合は改行区切りで記入してください。',
             'jit_rolegroups' => '新規ユーザー作成時に、既定の役割グループを割り振りたい場合は記入してください。',
-            'mapping_description' => 'プロバイダから返却されるフィールド名と、Exmentのユーザーフィールド名を合致させる必要があります。プロバイダから返却されるフィールド名を入力してください。',
+            'mapping_description' => 'プロバイダから返却されるフィールド名と、Exmentのユーザーフィールド名を合致させる必要があります。プロバイダから返却されるフィールド名を入力してください。<br/>カンマ区切りで複数入力した場合、値の存在するフィールドを、先頭から優先して取得します。',
+                
+            'ldap_base_dn' => '認証に使用する基本DN(識別名)を入力してください。',
+            'ldap_search_key' => '認証時に使用する、ログインコードの属性を入力してください。',
+            'ldap_account_prefix' => '認証時、ユーザーが入力したログインコードに自動的に付与する接頭辞があれば、入力してください。(例：COMPNAME\\)',
+            'ldap_account_suffix' => '認証時、ユーザーが入力したログインコードに自動的に付与する接尾辞があれば、入力してください。(例：@example.co.jp)',
         ],
 
         'message' => [
             'not_install_library' => '※:nameを実行するためのライブラリが設定されていません。 <a href=":url" target="_blank">こちら<i class="fa fa-external-link"></i></a> の手順でインストールを行ってください。',
             'login_provider_caution' => '※はじめに、OAuthのログインを行うための追加設定が必要です。 <a href=":url" target="_blank">こちら<i class="fa fa-external-link"></i></a> の手順でインストールを行ってください。',
+            'login_test_description' => '設定したログイン情報で、ログインのテストを行います。<br />ログイン設定を有効化する前に、ログインテストを実施することをおすすめします。<br>※設定値を変更していた場合、先に保存を行ってから、テストを行ってください。',
         ],
 
         'login_type_options' => [
             'oauth' => 'OAuth認証',
             'saml' => 'SAML認証',
+            'ldap' => 'LDAP認証',
         ],
 
         'oauth_provider_type_options' => [

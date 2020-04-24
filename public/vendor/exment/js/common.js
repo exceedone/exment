@@ -125,7 +125,9 @@ var Exment;
                 else if (hasValue(res.swal)) {
                     swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'success');
                 }
-                $('.modal').modal('hide');
+                if (!hasValue(res.keepModal) || !res.keepModal) {
+                    $('.modal').modal('hide');
+                }
             }
             else {
                 // show toastr

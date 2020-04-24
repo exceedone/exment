@@ -131,7 +131,7 @@ namespace Exment {
             // remove error message
             $('.modal').find('.has-error').removeClass('has-error');
             $('.modal').find('.error-label').remove();
-            $('.modal').find('.error-input-area').val('');
+            $('.modal').find('.modal-input-area').val('');
     
             // POST Ajax
             if(method == 'GET'){
@@ -163,6 +163,9 @@ namespace Exment {
                     Exment.ModalEvent.enableSubmit(button);
                     Exment.CommonEvent.CallbackExmentAjax(res);    
                 }
+                if(hasValue(res.messages)){
+                    ModalEvent.setMessagesOrErrors(res.messages, false);
+                }
             }).fail(function( res, textStatus, errorThrown ) {
                 // reomve class and prop
                 Exment.ModalEvent.enableSubmit(button);
@@ -179,37 +182,48 @@ namespace Exment {
                 }
                 // show error message
                 if(hasValue(res.responseJSON.errors)){
-                    for(let key in res.responseJSON.errors){
-                        var error = res.responseJSON.errors[key];
-                        var target = $('.' + key);
-                        var parent = target.closest('.form-group').addClass('has-error');
-                        // add message
-                        if(error.type == 'input'){
-                            let message = error.message;
-                            // set value
-                            var base_message = (target.val().length > 0 ? target.val() + "\\r\\n" : '');
-                            target.val(base_message + message).addClass('error-input-area');
-                        }else{
-                            let message = error;
-                            parent.children('div').prepend($('<label/>', {
-                                'class': 'control-label error-label',
-                                'for': 'inputError',
-                                'html':[
-                                    $('<i/>', {
-                                        'class': 'fa fa-times-circle-o'
-                                    }),
-                                    $('<span/>', {
-                                        'text': ' ' + message
-                                    }),
-                                ]
-                            }));
-                        }
-                    }
+                    ModalEvent.setMessagesOrErrors(res.responseJSON.errors, true);
+                }
+                if(hasValue(res.responseJSON.messages)){
+                    ModalEvent.setMessagesOrErrors(res.responseJSON.messages, false);
                 }
             }).always(function(res){
             });
 
             return false;
+        }
+
+        private static setMessagesOrErrors(messages, isError:boolean){
+            for(let key in messages){
+                var message = messages[key];
+                var target = $('.modal .' + key);
+                var parent = target.closest('.form-group');
+                if(isError){
+                    parent.addClass('has-error');
+                }
+
+                // add message
+                if(message.type == 'input'){
+                    let m = message.message;
+                    // set value
+                    var base_message = ((target.val() as string).length > 0 ? target.val() + "\\r\\n" : '');
+                    target.val(base_message + m).addClass('modal-input-area');
+                }else{
+                    let m = message;
+                    parent.children('div').prepend($('<label/>', {
+                        'class': 'control-label error-label',
+                        'for': 'inputError',
+                        'html':[
+                            $('<i/>', {
+                                'class': 'fa fa-times-circle-o'
+                            }),
+                            $('<span/>', {
+                                'text': ' ' + m
+                            }),
+                        ]
+                    }));
+                }
+            }
         }
 
         private static setBodyHtml(res, button, original_title){

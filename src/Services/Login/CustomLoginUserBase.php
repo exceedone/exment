@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Auth;
+namespace Exceedone\Exment\Services\Login;
 
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Model\LoginSetting;
@@ -28,4 +28,18 @@ abstract class CustomLoginUserBase
      * @var string
      */
     public $dummy_password;
+
+    /**
+     * Get for validation array
+     *
+     * @return void
+     */
+    public function getValidateArray(){
+        return [
+            'id' => $this->id,
+            'user_code' => $this->user_code,
+            'user_name' => $this->user_name,
+            'email' => $this->email,
+        ];
+    }
 }

@@ -1,7 +1,8 @@
 <?php
 
-namespace Exceedone\Exment\Auth;
+namespace Exceedone\Exment\Services\Login\OAuth;
 
+use Exceedone\Exment\Services\Login\CustomLoginUserBase;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Model\LoginSetting;
 

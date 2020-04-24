@@ -91,6 +91,10 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->resource('login_setting', 'LoginSettingController', ['except' => ['show']]);
             $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal');
+            $router->get('login_setting/{id}/loginTestModal', 'LoginSettingController@loginTestModal');
+            $router->post('login_setting/{id}/loginTestForm', 'LoginSettingController@loginTestForm')->name('exment.logintest_form');
+            $router->get('login_setting/{id}/loginTestSso', 'LoginSettingController@loginTestSso');
+
             $router->resource('api_setting', 'ApiSettingController', ['except' => ['show']]);
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
@@ -198,8 +202,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('initialize', 'InitializeController@index');
             $router->post('initialize', 'InitializeController@post');
             $router->put('initialize/filedelete', 'InitializeController@filedelete');
-            $router->get('auth/login', 'AuthController@getLoginExment')->name('exment_login');
-            $router->get('auth/logout', 'AuthController@getLogout')->name('exment_logout');
+            $router->get('auth/login', 'AuthController@getLoginExment')->name('exment.login');
+            $router->get('auth/logout', 'AuthController@getLogout')->name('exment.logout');
             $router->post('auth/login', 'AuthController@postLogin');
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
@@ -212,15 +216,15 @@ class RouteServiceProvider extends ServiceProvider
             // get config about login provider
             if (canConnection() && hasTable(SystemTableName::LOGIN_SETTINGS)) {
                 if (LoginSetting::getOAuthSettings()->count() > 0) {
-                    $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider')->name('oauth_login');
-                    $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callback')->name('oauth_callback');
+                    $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider')->name('exment.oauth_login');
+                    $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callback')->name('exment.oauth_callback');
                 }
                 // get config about login provider
                 if (LoginSetting::getSamlSettings()->count() > 0) {
-                    $router->get('saml/logout', 'AuthSamlController@sls')->name('saml_sls');
-                    $router->get('saml/login/{provider}', 'AuthSamlController@login')->name('saml_login');
+                    $router->get('saml/logout', 'AuthSamlController@sls')->name('exment.saml_sls');
+                    $router->get('saml/login/{provider}', 'AuthSamlController@login')->name('exment.saml_login');
                     $router->get('saml/login/{provider}/metadata', 'AuthSamlController@metadata');
-                    $router->post('saml/login/{provider}/acs', 'AuthSamlController@acs')->name('saml_acs');
+                    $router->post('saml/login/{provider}/acs', 'AuthSamlController@acs')->name('exment.saml_acs');
                 }
             }
         });
