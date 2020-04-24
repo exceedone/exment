@@ -207,7 +207,7 @@ class LdapService implements LoginServiceInterface
             'messages' => [
                 'resultarea' => [
                     'type' => 'input',
-                    'message' => implode("\r\n", $message),
+                    'message' => $message,
                 ],
             ],
         ]);

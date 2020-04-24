@@ -922,6 +922,17 @@ if (!function_exists('explodeBreak')) {
     }
 }
 
+if (!function_exists('getYesNo')) {
+    /**
+     * get yes no label
+     * @return string
+     */
+    function getYesNo($value) : string
+    {
+        return boolval($value) ? 'YES' : 'NO';
+    }
+}
+
 // Laravel, laravel-admin --------------------------------------------------
 if (!function_exists('getModelName')) {
     /**
