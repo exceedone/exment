@@ -49,8 +49,9 @@ class LoginSettingController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new LoginSetting);
-        $grid->column('login_type', exmtrans('login.login_type'))->displayEscape(function ($v) {
-            return LoginType::getEnum($v)->transKey('login.login_type_options');
+        $grid->column('login_type', exmtrans('login.login_type'))->displayEscape(function($v){
+            $enum = LoginType::getEnum($v);
+            return $enum ? $enum->transKey('login.login_type_options') : null;
         });
         $grid->column('name', exmtrans('login.login_setting_name'));
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->displayEscape(function ($active_flg) {
@@ -363,7 +364,7 @@ class LoginSettingController extends AdminControllerBase
         $form->exmheader(exmtrans('login.saml_sp'))->hr()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
 
-        $form->multipleSelect('saml_sp_name_id_format', exmtrans('login.saml_sp_name_id_format'))
+        $form->select('saml_sp_name_id_format', exmtrans('login.saml_sp_name_id_format'))
         ->help(exmtrans('login.help.saml_sp_name_id_format'))
         ->required()
         ->options(Define::SAML_NAME_ID_FORMATS)
@@ -388,22 +389,22 @@ class LoginSettingController extends AdminControllerBase
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
         $form->switchbool('saml_option_name_id_encrypted', exmtrans("login.saml_option_name_id_encrypted"))
-        ->help(exmtrans("custom_column.help.saml_option_name_id_encrypted"))
+        ->help(exmtrans("login.help.saml_option_name_id_encrypted"))
         ->default("0")
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
         $form->switchbool('saml_option_authn_request_signed', exmtrans("login.saml_option_authn_request_signed"))
-        ->help(exmtrans("custom_column.help.saml_option_authn_request_signed"))
+        ->help(exmtrans("login.help.saml_option_authn_request_signed"))
         ->default("0")
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
 
         $form->switchbool('saml_option_logout_request_signed', exmtrans("login.saml_option_logout_request_signed"))
-        ->help(exmtrans("custom_column.help.saml_option_logout_request_signed"))
+        ->help(exmtrans("login.help.saml_option_logout_request_signed"))
         ->default("0")
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
 
         $form->switchbool('saml_option_logout_response_signed', exmtrans("login.saml_option_logout_response_signed"))
-        ->help(exmtrans("custom_column.help.saml_option_logout_response_signed"))
+        ->help(exmtrans("login.help.saml_option_logout_response_signed"))
         ->default("0")
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
     }

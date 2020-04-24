@@ -641,13 +641,25 @@ return [
             'sso_accept_mail_domain' => 'ログインを許可するドメインを指定する場合は記入してください。複数ある場合は改行区切りで記入してください。',
             'jit_rolegroups' => '新規ユーザー作成時に、既定の役割グループを割り振りたい場合は記入してください。',
             'mapping_description' => 'プロバイダから返却されるフィールド名と、Exmentのユーザーフィールド名を合致させる必要があります。プロバイダから返却されるフィールド名を入力してください。<br/>カンマ区切りで複数入力した場合、値の存在するフィールドを、先頭から優先して取得します。',
+            'login_test_sso' => 'テスト用のOAuthリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダのOAuth設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
                 
             'ldap_base_dn' => '認証に使用する基本DN(識別名)を入力してください。',
             'ldap_search_key' => '認証時に使用する、ログインコードの属性を入力してください。',
             'ldap_account_prefix' => '認証時、ユーザーが入力したログインコードに自動的に付与する接頭辞があれば、入力してください。(例：COMPNAME\\)',
             'ldap_account_suffix' => '認証時、ユーザーが入力したログインコードに自動的に付与する接尾辞があれば、入力してください。(例：@example.co.jp)',
 
-            'login_test_sso' => 'テスト用のOAuthリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダのOAuth設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
+            'saml_idp_entityid' => 'IdPのEntityIDを入力してください。',
+            'saml_idp_sso_url' => 'IdPのログイン時のエンドポイントURLを入力してください。Exmentログイン時にリダイレクトされます。',
+            'saml_idp_ssout_url' => 'Exmentのログアウト時に、IdPからもログアウトを行いたい場合に、IdPのログアウト時のエンドポイントURLを入力してください。Exmentのログアウト時にリダイレクトされます。',
+            'saml_idp_x509' => 'IdPの公開x509証明書を入力してください。',
+            'saml_sp_name_id_format' => 'IdPのアカウントとSPのアカウントを紐付ける識別子を選択してください。',
+            'saml_sp_entityid' => 'SPのEntityIDを入力してください。',
+            'saml_sp_x509' => 'SPの公開x509証明書を入力してください。',
+            'saml_privatekey' => 'SPの秘密鍵を入力してください。',
+            'saml_option_name_id_encrypted' => 'SPによって送信するNameIDを暗号化する場合は、YESにしてください。',
+            'saml_option_authn_request_signed' => 'SPによって送信する認証リクエストを署名する場合は、YESにしてください。',
+            'saml_option_logout_request_signed' => 'SPによって送信するログアウトリクエストを署名する場合は、YESにしてください。',
+            'saml_option_logout_response_signed' => 'SPによって送信するログアウトレスポンスを署名する場合は、YESにしてください。',
         ],
 
         'message' => [
