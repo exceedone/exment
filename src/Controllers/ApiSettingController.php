@@ -10,11 +10,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\ApiClient;
 use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Enums\ApiClientType;
+use Exceedone\Exment\Form\Tools\SystemChangePageMenu;
 use Laravel\Passport\Client;
 
 class ApiSettingController extends AdminControllerBase
 {
-    use HasResourceActions, SystemSettingTrait;
+    use HasResourceActions;
 
     public function __construct(Request $request)
     {
@@ -43,9 +44,7 @@ class ApiSettingController extends AdminControllerBase
             $actions->disableView();
         });
         $grid->tools(function (Grid\Tools $tools) {
-            $this->setBaseSettingButton($tools);
-            $this->setAdvancedSettingButton($tools);
-            $this->setLoginSettingButton($tools);
+            $tools->prepend(new SystemChangePageMenu('api_setting'));
         });
         return $grid;
     }

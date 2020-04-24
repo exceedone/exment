@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Exment;
+use Exceedone\Exment\Form\Tools\SystemChangePageMenu;
 use Exceedone\Exment\Form\Widgets\InfoBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
@@ -24,7 +25,7 @@ use Validator;
 
 class SystemController extends AdminControllerBase
 {
-    use InitializeFormTrait, SystemSettingTrait;
+    use InitializeFormTrait;
     
     public function __construct(Request $request)
     {
@@ -68,9 +69,8 @@ class SystemController extends AdminControllerBase
             })->default($admin_users);
 
         $box = new Box(trans('admin.edit'), $form);
-        $this->setApiSettingButton($box);
-        $this->setLoginSettingButton($box);
-        $this->setAdvancedSettingButton($box);
+        
+        $box->tools(new SystemChangePageMenu('basic_setting'));
 
         $content->row($box);
 
@@ -192,9 +192,8 @@ class SystemController extends AdminControllerBase
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
 
         $box = new Box(exmtrans('common.detail_setting'), $form);
-        $this->setApiSettingButton($box);
-        $this->setLoginSettingButton($box);
-        $this->setBaseSettingButton($box);
+
+        $box->tools(new SystemChangePageMenu('detail_setting'));
 
         $content->row($box);
 

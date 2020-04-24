@@ -212,7 +212,7 @@ class CustomTableController extends AdminControllerBase
                     'icon' => 'fa-cogs',
                 ]));
 
-                $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
+                $tools->append(new Tools\GridChangePageMenu('table', $model, false));
             }
         });
         
@@ -376,7 +376,7 @@ HTML;
                     'icon' => 'fa-table',
                 ]));
 
-                $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
+                $tools->append(new Tools\GridChangePageMenu('table', $model, false));
             }
         });
         

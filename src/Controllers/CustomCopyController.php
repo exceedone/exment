@@ -209,7 +209,7 @@ class CustomCopyController extends AdminControllerTableBase
         ->description(exmtrans("custom_copy.input_column_description"));
 
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->add((new Tools\GridChangePageMenu('copy', $custom_table, false))->render());
+            $tools->add(new Tools\GridChangePageMenu('copy', $custom_table, false));
         });
 
         // validate before saving

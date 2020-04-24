@@ -26,7 +26,7 @@ use Exceedone\Exment\Exment;
 
 class LoginSettingController extends AdminControllerBase
 {
-    use HasResourceActions, InitializeFormTrait, SystemSettingTrait;
+    use HasResourceActions, InitializeFormTrait;
 
     public function __construct(Request $request)
     {
@@ -77,9 +77,7 @@ class LoginSettingController extends AdminControllerBase
             $actions->disableView();
         });
         $grid->tools(function (Grid\Tools $tools) {
-            $this->setBaseSettingButton($tools);
-            $this->setAdvancedSettingButton($tools);
-            $this->setApiSettingButton($tools);
+            $tools->prepend(new Tools\SystemChangePageMenu('login_setting'));
         });
         return $grid;
     }
@@ -215,6 +213,8 @@ class LoginSettingController extends AdminControllerBase
         }
 
         $form->tools(function (Form\Tools $tools) use ($login_setting) {
+            $tools->append(new Tools\SystemChangePageMenu('login_setting'));
+            
             if (isset($login_setting)) {
                 $tools->append(new Tools\ModalMenuButton(
                     route('exment.logintest_modal', ['id' => $login_setting->id]),

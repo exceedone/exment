@@ -404,7 +404,7 @@ EOT;
 
             PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             
-            $tools->add((new Tools\GridChangePageMenu('data', $custom_table, false))->render());
+            $tools->add(new Tools\GridChangePageMenu('data', $custom_table, false));
         });
     }
     

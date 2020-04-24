@@ -156,7 +156,7 @@ class CustomRelationController extends AdminControllerTableBase
         
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->add((new Tools\GridChangePageMenu('relation', $custom_table, false))->render());
+            $tools->add(new Tools\GridChangePageMenu('relation', $custom_table, false));
         });
         return $form;
     }

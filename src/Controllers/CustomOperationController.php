@@ -183,7 +183,7 @@ class CustomOperationController extends AdminControllerTableBase
         $custom_table = $this->custom_table;
 
         $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table) {
-            $tools->add((new Tools\GridChangePageMenu('operation', $custom_table, false))->render());
+            $tools->add(new Tools\GridChangePageMenu('operation', $custom_table, false));
         });
         
         return $form;

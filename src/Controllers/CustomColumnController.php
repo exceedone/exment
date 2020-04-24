@@ -530,7 +530,7 @@ class CustomColumnController extends AdminControllerTableBase
             if (isset($id) && boolval(CustomColumn::getEloquent($id)->disabled_delete)) {
                 $tools->disableDelete();
             }
-            $tools->add((new Tools\GridChangePageMenu('column', $custom_table, false))->render());
+            $tools->add(new Tools\GridChangePageMenu('column', $custom_table, false));
         });
         return $form;
     }

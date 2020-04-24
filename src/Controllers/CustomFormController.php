@@ -271,7 +271,7 @@ class CustomFormController extends AdminControllerTableBase
             'editmode' => isset($id),
             'form_view_name' => $form->form_view_name,
             'default_flg' => $form->default_flg?? '0',
-            'change_page_menu' => (new Tools\GridChangePageMenu('form', $this->custom_table, false))->render()
+            'change_page_menu' => (new Tools\GridChangePageMenu('form', $this->custom_table, false))
         ]));
     }
 

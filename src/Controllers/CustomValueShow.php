@@ -161,7 +161,7 @@ trait CustomValueShow
                     $tools->disableList();
                 } elseif (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
-                    $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
+                    $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
 
                     $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_show');
                     $copyButtons = $this->custom_table->from_custom_copies;
@@ -395,7 +395,7 @@ trait CustomValueShow
 
         $trashed = boolval(request()->get('trashed'));
         $prms = [
-            'change_page_menu' => (new Tools\GridChangePageMenu('data', $this->custom_table, false))->render(),
+            'change_page_menu' => new Tools\GridChangePageMenu('data', $this->custom_table, false),
             'revisions' => $revisions,
             'custom_value' => $custom_value,
             'table_columns' => $table_columns,

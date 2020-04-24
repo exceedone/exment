@@ -100,6 +100,13 @@ EOT;
 
         Admin::script($this->script());
 
-        return view('exment::tools.menu-button', ['menulist' => $menulist]);
+        return view('exment::tools.menu-button', [
+            'menulist' => $menulist,
+            'button_label' => exmtrans("change_page_menu.change_page_label"),
+        ])->render();
+    }
+
+    public function __toString(){
+        return $this->render();
     }
 }
