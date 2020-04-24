@@ -93,7 +93,7 @@ var Exment;
          */
         static copyScriptEvent(ev) {
             let input = $(ev.target).closest('input');
-            if (input.prop('type') != 'text') {
+            if (input.prop('type') == 'password') {
                 return;
             }
             input.select();

@@ -620,6 +620,7 @@ return [
         'login_button_font_color_hover' => '文字色(オンマウス)',
         
         'login_test' => 'ログインテスト',
+        'login_test_redirect' => 'テスト用リダイレクトURL',
 
         'help' => [
             'login_provider_type' => 'ログインのプロバイダの種類を選択してください。',
@@ -645,6 +646,8 @@ return [
             'ldap_search_key' => '認証時に使用する、ログインコードの属性を入力してください。',
             'ldap_account_prefix' => '認証時、ユーザーが入力したログインコードに自動的に付与する接頭辞があれば、入力してください。(例：COMPNAME\\)',
             'ldap_account_suffix' => '認証時、ユーザーが入力したログインコードに自動的に付与する接尾辞があれば、入力してください。(例：@example.co.jp)',
+
+            'login_test_sso' => 'テスト用のOAuthリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダのOAuth設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
         ],
 
         'message' => [

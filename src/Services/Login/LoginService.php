@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Login;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Auth\CustomLoginUser;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 
 /**
  * LoginService
@@ -74,4 +75,75 @@ class LoginService
             'id' => 'required',
         ]);
     }
+    
+
+    public static function getLoginTestResult(bool $success, $messages, $custom_login_user = null){
+        $message = [];
+
+        $message[] = $success ? exmtrans('common.message.success_execute') : exmtrans('common.message.error_execute');
+
+        if(is_array($messages)){
+            $message = array_merge($message, $messages);
+        }
+        elseif($messages instanceof \Illuminate\Support\MessageBag){
+            $message = array_merge($message, collect($messages->messages())->map(function($m){
+                return implode(" ", $m);
+            })->toArray());
+        }
+
+        if($custom_login_user){
+            $keys = [
+                'user_code',
+                'user_name',
+                'email',
+                'id',
+            ];
+    
+            foreach($keys as $key){
+                $message[] = exmtrans("user.$key") . ' : ' . $custom_login_user->{$key};
+            }
+        }
+
+        return implode("\r\n", $message);
+    }
+
+    /**
+     * Get test form for sso
+     *
+     * @param LoginSetting $login_setting
+     * @return void
+     */
+    public static function getTestFormSso(LoginSetting $login_setting)
+    {
+        $form = new ModalForm();
+        $form->action(route('exment.logintest_form', ['id' => $login_setting->id]));
+        $form->disableReset();
+        $form->disableSubmit();
+
+        $form->description(exmtrans('login.message.login_test_description'));
+
+        $form->url('login_test_redirect', exmtrans('login.login_test_redirect'))
+        ->readonly()
+        ->setElementClass(['copyScript'])
+        ->default($login_setting->exment_callback_url_test)
+        ->help(exmtrans('login.help.login_test_sso'));
+
+
+        // get message from session
+        $message = session()->pull(Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE);
+        $form->textarea('resultarea', exmtrans('common.execute_result'))
+            ->attribute(['readonly' => true])
+            ->default($message)
+            ->rows(4)
+        ;
+
+        $url = route('exment.logintest_sso', ['id' => $login_setting->id]);
+        $form->html("<a href='{$url}' data-nopjax data-modalclose='false' class='btn btn-primary'>" . trans('admin.login') . "</a>");
+
+        $form->setWidth(10, 2);
+
+
+        return $form;
+    }
+    
 }

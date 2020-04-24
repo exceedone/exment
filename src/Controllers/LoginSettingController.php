@@ -204,7 +204,7 @@ class LoginSettingController extends AdminControllerBase
         $form->tools(function (Form\Tools $tools) use($login_setting){
             if(isset($login_setting)){
                 $tools->append(new Tools\ModalMenuButton(
-                    admin_urls('login_setting', $login_setting->id, 'loginTestModal'),
+                    route('exment.logintest_modal', ['id' => $login_setting->id]),
                     [
                         'label' => exmtrans('login.login_test'),
                         'button_class' => 'btn-success',
@@ -534,7 +534,7 @@ class LoginSettingController extends AdminControllerBase
             'script' => $form->getScript(),
             'title' => exmtrans('login.login_test'),
             'showReset' => false,
-            'showSubmit' => true,
+            'showSubmit' => $login_setting->login_type == LoginType::LDAP,
         ]);
     }
 
@@ -546,6 +546,38 @@ class LoginSettingController extends AdminControllerBase
      * @return void
      */
     public function loginTestForm(Request $request, $id){
-        return LdapService::loginTest($request, $id);
+        $login_setting = LoginSetting::find($id);
+        
+        return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
+    }
+
+    /**
+     * execute login test for SSO
+     *
+     * @param Request $request
+     * @param [type] $id
+     * @return void
+     */
+    public function loginTestSso(Request $request, $id){
+        $login_setting = LoginSetting::find($id);
+        
+        return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
+    }
+    /**
+     * execute login test for callback
+     *
+     * @param Request $request
+     * @param [type] $id
+     * @return void
+     */
+    public function loginTestCallback(Request $request, Content $content, $id){
+        $login_setting = LoginSetting::find($id);
+        
+        $message = $login_setting->getLoginServiceClassName()::loginTestCallback($request, $login_setting);
+        session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $message]);
+        
+        $content = $this->edit($request, $content, $id);
+
+        return $content->row('<input type="hidden" data-widgetmodal_autoload="' . route('exment.logintest_modal', ['id' => $id]) .'"/>');
     }
 }

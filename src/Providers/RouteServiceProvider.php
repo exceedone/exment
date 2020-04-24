@@ -91,9 +91,10 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->resource('login_setting', 'LoginSettingController', ['except' => ['show']]);
             $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal');
-            $router->get('login_setting/{id}/loginTestModal', 'LoginSettingController@loginTestModal');
-            $router->post('login_setting/{id}/loginTestForm', 'LoginSettingController@loginTestForm')->name('exment.logintest_form');
-            $router->get('login_setting/{id}/loginTestSso', 'LoginSettingController@loginTestSso');
+            $router->get('login_setting/{id}/testModal', 'LoginSettingController@loginTestModal')->name('exment.logintest_modal');
+            $router->post('login_setting/{id}/testForm', 'LoginSettingController@loginTestForm')->name('exment.logintest_form');
+            $router->get('login_setting/{id}/testSso', 'LoginSettingController@loginTestSso')->name('exment.logintest_sso');
+            $router->get('login_setting/{id}/testcallback', 'LoginSettingController@loginTestCallback')->name('exment.logintest_callback');;
 
             $router->resource('api_setting', 'ApiSettingController', ['except' => ['show']]);
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);

@@ -8,6 +8,7 @@ var Exment;
             $(document).off('click', '[data-widgetmodal_url]').on('click', '[data-widgetmodal_url]', {}, Exment.ModalEvent.setModalEvent);
             $(document).off('click', '#modal-showmodal .modal-body a').on('click', '#modal-showmodal .modal-body a', {}, Exment.ModalEvent.setLinkClickEvent);
             $(document).off('click', '#modal-showmodal .modal-submit').on('click', '#modal-showmodal .modal-submit', {}, Exment.ModalEvent.setSubmitEvent);
+            Exment.ModalEvent.autoloadModalEvent();
             $('#modal-showmodal').on('hidden.bs.modal', function (e) {
                 $('#modal-showmodal .modal-body').html('');
             });
@@ -58,6 +59,17 @@ var Exment;
             }).fail(function (res, textStatus, errorThrown) {
             }).always(function (res) {
             });
+        }
+        /**
+         * Open modal automatic
+         */
+        static autoloadModalEvent() {
+            const target = $('[data-widgetmodal_autoload]');
+            const url = target.data('widgetmodal_autoload');
+            if (!hasValue(url)) {
+                return;
+            }
+            Exment.ModalEvent.ShowModal(target, url);
         }
         static setMessagesOrErrors(messages, isError) {
             for (let key in messages) {

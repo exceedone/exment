@@ -9,6 +9,8 @@ namespace Exment {
             $(document).off('click', '#modal-showmodal .modal-body a').on('click', '#modal-showmodal .modal-body a', {}, Exment.ModalEvent.setLinkClickEvent);
             $(document).off('click', '#modal-showmodal .modal-submit').on('click', '#modal-showmodal .modal-submit', {}, Exment.ModalEvent.setSubmitEvent);
 
+            Exment.ModalEvent.autoloadModalEvent();
+
             $('#modal-showmodal').on('hidden.bs.modal', function (e) {
                 $('#modal-showmodal .modal-body').html('');
             });
@@ -82,6 +84,20 @@ namespace Exment {
         private static setModalEvent = (ev) =>{
             const target = $(ev.target).closest('[data-widgetmodal_url]');
             const url = target.data('widgetmodal_url');
+
+            if(!hasValue(url)){
+                return;
+            }
+
+            Exment.ModalEvent.ShowModal(target, url);
+        }
+
+        /**
+         * Open modal automatic
+         */
+        private static autoloadModalEvent(){
+            const target = $('[data-widgetmodal_autoload]');
+            const url = target.data('widgetmodal_autoload');
 
             if(!hasValue(url)){
                 return;

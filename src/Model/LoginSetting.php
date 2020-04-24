@@ -101,6 +101,17 @@ class LoginSetting extends ModelBase
     }
 
     /**
+     * get exment callback url(for test)
+     * admin/login_setting/{id}/testcallback
+     *
+     * @return string
+     */
+    public function getExmentCallbackUrlTestAttribute() : string
+    {
+        return route('exment.logintest_callback', ['id' => $this->id]);
+    }
+
+    /**
      * Get login button
      *
      * @return void
@@ -244,23 +255,29 @@ class LoginSetting extends ModelBase
     /**
      * get Socialite Provider
      */
-    public static function getSocialiteProvider(string $login_provider)
+    public static function getSocialiteProvider($login_provider, $isTest = false)
     {
-        $provider = static::getOAuthSetting($login_provider);
-        if(!isset($provider)){
-            return null;
+        if(is_string($login_provider)){
+            $provider_name = $login_provider;
+            $provider = static::getOAuthSetting($login_provider);
+            if(!isset($provider)){
+                return null;
+            }
+        }else{
+            $provider = $login_provider;
+            $provider_name = $provider->provider_name;
         }
 
         //create config
         $config = [
             'client_id' => $provider->getOption('oauth_client_id'),
             'client_secret' => $provider->getOption('oauth_client_secret'),
-            'redirect' => $provider->exment_callback_url,
+            'redirect' => $isTest ? $provider->exment_callback_url_test : $provider->exment_callback_url,
         ];
-        config(["services.$login_provider" => array_merge(config("services.$login_provider", []), $config)]);
+        config(["services.$provider_name" => array_merge(config("services.$provider_name", []), $config)]);
 
         $scope = $provider->getOption('scope', []);
-        return \Socialite::with($login_provider)
+        return \Socialite::with($provider_name)
             ->scopes($scope)
             ;
     }
@@ -268,11 +285,21 @@ class LoginSetting extends ModelBase
     /**
      * get Socialite Provider
      */
-    public static function getSamlAuth(string $provider_name)
+    public static function getSamlAuth($login_provider, bool $isTest = false)
     {
         if(!class_exists('\\Aacotroneo\\Saml2\\Saml2Auth')){
             //TODO:exception
             throw new \Exception;
+        }
+
+        if(is_string($login_provider)){
+            $provider_name = $login_provider;
+            $provider = static::getSamlSetting($provider_name);
+        }
+        else{
+            $provider_name = $login_provider->provider_name;
+            $provider = $login_provider;
+
         }
 
         $provider = static::getSamlSetting($provider_name);
@@ -305,7 +332,7 @@ class LoginSetting extends ModelBase
                 'privateKey' => $provider->getOption('saml_sp_privatekey'),
                 'entityId' => $provider->getOption('saml_sp_entityid'),
                 'assertionConsumerService' => [
-                    'url' => \URL::route('saml_acs', ['provider' => $provider_name]),
+                    'url' => $isTest ? $provider->exment_callback_url_test : $provider->exment_callback_url,
                 ],
                 'singleLogoutService' => [
                     'url' => \URL::route('saml_sls'),

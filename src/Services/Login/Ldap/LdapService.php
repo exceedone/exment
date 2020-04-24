@@ -159,9 +159,9 @@ class LdapService implements LoginServiceInterface
      * @param Request $request
      * @return void
      */
-    public static function loginTest(Request $request, $id){
-        $login_setting = LoginSetting::find($id);
-
+    public static function loginTest(Request $request, $login_setting){
+        $message = null;
+        $result = false;
         $credentials = $request->only(['username', 'password']);
 
         $username = static::getLdapUserName($credentials['username'], $login_setting);
@@ -173,99 +173,44 @@ class LdapService implements LoginServiceInterface
             
             $provider->connect();
             if(!$provider->auth()->attempt($username, $credentials['password'], true)){
-                return getAjaxResponse([
-                    'result' => false,
-                    'reload' => false,
-                    'keepModal' => true,
-                    'messages' => [
-                        'resultarea' => static::getLoginTestResult(false, [exmtrans('error.login_failed')]),
-                    ],
-                ]);
+                $message = static::getLoginTestResult(false, [exmtrans('error.login_failed')]);
             }
+            else{
+                $ldapUserArray = static::syncLdapUserArray($provider, $login_setting, $username);
 
-            $ldapUserArray = static::syncLdapUserArray($provider, $login_setting, $username);
-            if(!$ldapUserArray){
-                return $error_redirect;
-            }
-
-            $custom_login_user = LdapUser::with($login_setting, $ldapUserArray);
-            
-            $validator = LoginService::validateCustomLoginSync($custom_login_user->getValidateArray());
-            if($validator->fails()){
-                return getAjaxResponse([
-                    'result' => false,
-                    'reload' => false,
-                    'keepModal' => true,
-                    'messages' => [
-                        'resultarea' => static::getLoginTestResult(false, $validator->errors()),
-                    ],
-                ]);
+                $custom_login_user = LdapUser::with($login_setting, $ldapUserArray);
+                    
+                $validator = LoginService::validateCustomLoginSync($custom_login_user->getValidateArray());
+                if($validator->fails()){
+                    $message = LoginService::getLoginTestResult(false, $validator->errors());
+                }
+                else{
+                    $message = LoginService::getLoginTestResult(true, [], $custom_login_user);
+                    $result = true;
+                }
             }
             
-            return getAjaxResponse([
-                'result' => true,
-                'reload' => false,
-                'keepModal' => true,
-                'messages' => [
-                    'resultarea' => static::getLoginTestResult(true, [], $custom_login_user),
-                ],
-            ]);
-
             //return $this->executeLogin($request, $custom_login_user);
         } catch (\Adldap\Auth\BindException $ex) {
             \Log::error($ex);
-            return getAjaxResponse([
-                'result' => false,
-                'reload' => false,
-                'keepModal' => true,
-                'messages' => [
-                    'resultarea' => static::getLoginTestResult(false, [exmtrans('login.sso_provider_error')]),
-                ],
-            ]);
+            $message = LoginService::getLoginTestResult(false, [exmtrans('login.sso_provider_error')]);
+
         } catch (\Exception $ex) {
             \Log::error($ex);
-            return getAjaxResponse([
-                'result' => false,
-                'reload' => false,
-                'keepModal' => true,
-                'messages' => [
-                    'resultarea' => static::getLoginTestResult(false, [$ex]),
+            $message = LoginService::getLoginTestResult(false, [$ex]);
+        }
+        
+        return getAjaxResponse([
+            'result' => $result,
+            'reload' => false,
+            'keepModal' => true,
+            'messages' => [
+                'resultarea' => [
+                    'type' => 'input',
+                    'message' => implode("\r\n", $message),
                 ],
-            ]);
-        }
-    }
-
-    public static function getLoginTestResult(bool $success, $messages, $custom_login_user = null){
-        $message = [];
-
-        $message[] = $success ? exmtrans('common.message.success_execute') : exmtrans('common.message.error_execute');
-
-        if(is_array($messages)){
-            $message = array_merge($message, $messages);
-        }
-        elseif($messages instanceof \Illuminate\Support\MessageBag){
-            $message = array_merge($message, collect($messages->messages())->map(function($m){
-                return implode(" ", $m);
-            })->toArray());
-        }
-
-        if($custom_login_user){
-            $keys = [
-                'user_code',
-                'user_name',
-                'email',
-                'id',
-            ];
-    
-            foreach($keys as $key){
-                $message[] = exmtrans("user.$key") . ' : ' . $custom_login_user->{$key};
-            }
-        }
-
-        return [
-            'type' => 'input',
-            'message' => implode("\r\n", $message),
-        ];
+            ],
+        ]);
     }
 
 }
