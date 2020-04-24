@@ -272,6 +272,26 @@ if (!function_exists('admin_base_paths')) {
     }
 }
 
+if (!function_exists('admin_urls_query')) {
+    /**
+     * Join admin url paths and query. Please set last arg
+     */
+    function admin_urls_query(...$pass_array)
+    {
+        // get last arg
+        $args = func_get_args();
+        $count = count($args);
+        if(count($args) <= 1){
+            return admin_urls($args);
+        }
+
+        $args = collect($args);
+        $query = $args->last();
+
+        $url = admin_urls(...$args->slice(0, $count - 1)->toArray());
+        return $url . '?' . http_build_query($query);
+    }
+}
 if (!function_exists('namespace_join')) {
     /**
      * Join NameSpace.

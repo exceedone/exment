@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Auth\ThrottlesLogins;
-use Exceedone\Exment\Auth\SamlUser;
+use Exceedone\Exment\Services\Login\Saml\SamlUser;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -83,7 +83,9 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         }
 
         $custom_login_user = SamlUser::with($provider_name, $saml2Auth->getSaml2User());
-        return $this->executeLogin($request, $custom_login_user, null, function () use ($saml2Auth) {
+        return $this->executeLogin($request, $custom_login_user, null, function () use ($saml2Auth) {            // set session for 2factor
+            session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+            
             session([Define::SYSTEM_KEY_SESSION_SAML_SESSION => [
                 'sessionIndex' => $saml2Auth->getSaml2User()->getSessionIndex(),
                 'nameId' => $saml2Auth->getSaml2User()->getNameId(),
@@ -105,6 +107,6 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         $this->guard()->logout();
         $request->session()->invalidate();
 
-        return redirect(\URL::route('exment_login')); //may be set a configurable default
+        return redirect(\URL::route('exment.login')); //may be set a configurable default
     }
 }

@@ -66,8 +66,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system/update', 'SystemController@updatePackage');
             $router->put('system/filedelete', 'SystemController@filedelete');
             $router->get('system/version', 'SystemController@version');
-            $router->post('system/2factor-verify', 'SystemController@auth_2factor_verify');
-            $router->post('system/2factor', 'SystemController@post2factor');
             $router->post('system/send_testmail', 'SystemController@sendTestMail');
             
             $router->get('template', 'TemplateController@index');
@@ -95,7 +93,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('login_setting/{id}/testForm', 'LoginSettingController@loginTestForm')->name('exment.logintest_form');
             $router->get('login_setting/{id}/testSso', 'LoginSettingController@loginTestSso')->name('exment.logintest_sso');
             $router->get('login_setting/{id}/testcallback', 'LoginSettingController@loginTestCallback')->name('exment.logintest_callback');
-            ;
+            $router->post('login_setting/{id}/testcallback', 'LoginSettingController@loginTestCallback')->name('exment.logintest_acs');
+            $router->post('login_setting/2factor-verify', 'LoginSettingController@auth_2factor_verify')->name('exment.2factor_verify');
+            $router->post('login_setting/2factor', 'LoginSettingController@post2factor')->name('exment.post2factor');
 
             $router->resource('api_setting', 'ApiSettingController', ['except' => ['show']]);
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);

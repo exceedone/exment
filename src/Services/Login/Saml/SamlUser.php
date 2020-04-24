@@ -21,53 +21,49 @@ class SamlUser extends CustomLoginUserBase
         $user->login_setting = LoginSetting::getSamlSetting($provider_name);
         $user->id = $samlUser->getUserId();
 
-        static::setSamlAttributeValue($user, $samlUser);
+        static::setMappingValue($user, $samlUser);
 
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
         $user->login_id = $user->{$user->mapping_user_column};
-        $user->dummy_password = $provider_user->id;
+        $user->dummy_password = $user->id;
 
         return $user;
     }
 
-    protected static function setSamlAttributeValue(CustomLoginUser $user, $samlUser)
+    /**
+     * Mapping saml user value
+     *
+     * @param [type] $samlUser
+     * @return void
+     */
+    protected static function getMappingItemValue($samlUser, $mappingKey, $replaceMaps)
     {
-        $errors = [];
-
         // get attributes
         $samlAttibutes = $samlUser->getAttributes();
-        $keys = ['user_code', 'user_name', 'email'];
 
-        // set values
-        foreach ($keys as $key) {
-            $samlMappingKey = $user->login_setting->getOption("mapping_$key");
-            
-            // if has ${XXXXX}format, replace get items
-            $replaceMaps = [];
-            preg_match_all('/\${(?<key>.+?)}/', $samlMappingKey, $output_array);
-            if (count(array_get($output_array, 'key')) > 0) {
-                foreach (array_get($output_array, 'key') as $regexIndex => $regexKey) {
-                    $replaceMaps[$regexKey] = $output_array[0][$regexIndex];
-                }
-            } else {
-                $replaceMaps[$samlMappingKey] = $samlMappingKey;
+        $hasValue = false;
+        foreach ($replaceMaps as $replaceKey => $replaceValue) {
+            if (!array_has($samlAttibutes, $replaceKey)) {
+                $mappingKey = str_replace($replaceValue, null, $mappingKey);
+                continue;
             }
 
-            foreach ($replaceMaps as $replaceKey => $replaceValue) {
-                if (!array_has($samlAttibutes, $replaceKey)) {
-                    //TODO: not found key
-                }
-    
-                $value = array_get($samlAttibutes, $replaceKey);
-                if (is_array($value) && count($value) > 0) {
-                    $value = $value[0];
-                }
-
-                $samlMappingKey = \str_replace($replaceValue, $value, $samlMappingKey);
+            $value = array_get($samlAttibutes, $replaceKey);
+            if (is_array($value) && count($value) > 0) {
+                $value = $value[0];
             }
 
-            $user->{$key} = $samlMappingKey;
+            $mappingKey = str_replace($replaceValue, $value, $mappingKey);
+
+            $hasValue = true;
         }
+
+        // if not match all key, return null
+        if(!$hasValue){
+            return null;
+        }
+
+        return $mappingKey;
     }
 }

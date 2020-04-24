@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Service\Login\OAuth\OAuthUser;
 use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Illuminate\Http\Request;
 
@@ -71,6 +72,8 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
         }
 
         return $this->executeLogin($request, $custom_login_user, $socialiteProvider, function ($custom_login_user) {
+            session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+
             // set session access key
             LoginService::setToken($custom_login_user);
         });

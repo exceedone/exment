@@ -48,63 +48,7 @@ class LdapService implements LoginServiceInterface
 
     public static function syncLdapUserArray($provider, LoginSetting $login_setting, $username)
     {
-        $ldapuser = $provider->search()->findBy($login_setting->getOption('ldap_search_key'), $username);
-
-        if (!isset($ldapuser)) {
-            return false;
-        }
-
-        $keys = [
-            'mapping_user_code' => 'user_code',
-            'mapping_user_name' => 'user_name',
-            'mapping_email' => 'email',
-        ];
-        $attrs = [];
-        foreach ($keys as $option_keyname => $local_attr) {
-            $ldap_attrs = $login_setting->getOption($option_keyname);
-
-            foreach (stringToArray($ldap_attrs) as $ldap_attr) {
-                $method = 'get' . $ldap_attr;
-                if (method_exists($ldapuser, $method)) {
-                    $attrs[$local_attr] = $ldapuser->$method();
-                    break;
-                }
-    
-                if (!isset($ldapuser_attrs)) {
-                    $ldapuser_attrs = self::accessProtected($ldapuser, 'attributes');
-                }
-    
-                if (!isset($ldapuser_attrs[$ldap_attr])) {
-                    // an exception could be thrown
-                    continue;
-                }
-    
-                if (!is_array($ldapuser_attrs[$ldap_attr])) {
-                    $attrs[$local_attr] = $ldapuser_attrs[$ldap_attr];
-                    break;
-                }
-    
-                if (count($ldapuser_attrs[$ldap_attr]) == 0) {
-                    // an exception could be thrown
-                    continue;
-                }
-    
-                // now it returns the first item, but it could return
-                // a comma-separated string or any other thing that suits you better
-                $attrs[$local_attr] = $ldapuser_attrs[$ldap_attr][0];
-                break;
-            }
-        }
-
-        return $attrs;
-    }
-    
-    protected static function accessProtected($obj, $prop)
-    {
-        $reflection = new \ReflectionClass($obj);
-        $property = $reflection->getProperty($prop);
-        $property->setAccessible(true);
-        return $property->getValue($obj);
+        return $provider->search()->findBy($login_setting->getOption('ldap_search_key'), $username);
     }
 
     public static function getTestForm(LoginSetting $login_setting)
@@ -152,16 +96,21 @@ class LdapService implements LoginServiceInterface
             if (!$provider->auth()->attempt($username, $credentials['password'], true)) {
                 $message = static::getLoginTestResult(false, [exmtrans('error.login_failed')]);
             } else {
-                $ldapUserArray = static::syncLdapUserArray($provider, $login_setting, $username);
+                $ldapUser = static::syncLdapUserArray($provider, $login_setting, $username);
 
-                $custom_login_user = LdapUser::with($login_setting, $ldapUserArray);
-                    
-                $validator = LoginService::validateCustomLoginSync($custom_login_user->getValidateArray());
-                if ($validator->fails()) {
-                    $message = LoginService::getLoginTestResult(false, $validator->errors());
-                } else {
-                    $message = LoginService::getLoginTestResult(true, [], $custom_login_user);
-                    $result = true;
+                $custom_login_user = LdapUser::with($login_setting, $ldapUser);
+                
+                if(!is_nullorempty($custom_login_user->mapping_errors)){
+                    $message = LoginService::getLoginTestResult(false, $custom_login_user->mapping_errors);
+                }
+                else{
+                    $validator = LoginService::validateCustomLoginSync($custom_login_user->getValidateArray());
+                    if ($validator->fails()) {
+                        $message = LoginService::getLoginTestResult(false, $validator->errors());
+                    } else {
+                        $message = LoginService::getLoginTestResult(true, [], $custom_login_user);
+                        $result = true;
+                    }
                 }
             }
             

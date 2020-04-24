@@ -106,7 +106,11 @@ class LoginSetting extends ModelBase
      */
     public function getExmentCallbackUrlTestAttribute() : string
     {
-        return route('exment.logintest_callback', ['id' => $this->id]);
+        if ($this->login_type == LoginType::OAUTH) {
+            return route('exment.logintest_callback', ['id' => $this->id]);
+        } elseif ($this->login_type == LoginType::SAML) {
+            return route('exment.logintest_acs', ['id' => $this->id]);
+        }
     }
 
     /**
@@ -341,7 +345,7 @@ class LoginSetting extends ModelBase
                     'url' => $isTest ? $provider->exment_callback_url_test : $provider->exment_callback_url,
                 ],
                 'singleLogoutService' => [
-                    'url' => \URL::route('saml_sls'),
+                    'url' => route('exment.saml_sls'),
                 ],
             ],
 

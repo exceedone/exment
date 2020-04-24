@@ -12,17 +12,15 @@ use Exceedone\Exment\Enums\LoginType;
  */
 class LdapUser extends CustomLoginUserBase
 {
-    public static function with($login_setting, array $pluginUser)
+    public static function with($login_setting, $ldapUser)
     {
         $user = new LdapUser;
         $user->provider_name = $login_setting->getOption('ldap_name');
         $user->login_type = LoginType::LDAP;
         $user->login_setting = $login_setting;
-        $user->id = array_get($pluginUser, 'id') ?: array_get($pluginUser, 'user_code');
+        $user->id = array_get($ldapUser, 'id') ?: array_get($ldapUser, 'user_code');
 
-        $user->email = array_get($pluginUser, 'email');
-        $user->user_code = array_get($pluginUser, 'user_code');
-        $user->user_name = array_get($pluginUser, 'user_name');
+        static::setMappingValue($user, $ldapUser);
 
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
@@ -31,4 +29,64 @@ class LdapUser extends CustomLoginUserBase
 
         return $user;
     }
+    
+    /**
+     * Mapping saml user value
+     *
+     * @param [type] $samlUser
+     * @return void
+     */
+    protected static function getMappingItemValue($samlUser, $mappingKey, $replaceMaps)
+    {
+        $hasValue = false;
+        foreach ($replaceMaps as $replaceKey => $replaceValue) {
+            $method = 'get' . $ldap_attr;
+            if (method_exists($ldapuser, $method)) {
+                $mappingKey = str_replace($replaceValue, $ldapuser->$method(), $mappingKey);
+                $hasValue = true;
+                continue;
+            }
+    
+            if (!isset($ldapuser_attrs)) {
+                $ldapuser_attrs = self::accessProtected($ldapuser, 'attributes');
+            }
+    
+            if (!isset($ldapuser_attrs[$ldap_attr])) {
+                $mappingKey = str_replace($replaceValue, null, $mappingKey);
+                continue;
+            }
+
+            if (!is_array($ldapuser_attrs[$ldap_attr])) {
+                $mappingKey = str_replace($replaceValue, $ldapuser_attrs[$ldap_attr], $mappingKey);
+                $hasValue = true;
+                continue;
+            }
+    
+            if (count($ldapuser_attrs[$ldap_attr]) == 0) {
+                $mappingKey = str_replace($replaceValue, null, $mappingKey);
+                continue;
+            }
+    
+            // now it returns the first item, but it could return
+            // a comma-separated string or any other thing that suits you better
+            $mappingKey = str_replace($replaceValue, $ldapuser_attrs[$ldap_attr][0], $mappingKey);
+            $hasValue = true;
+        }
+
+        // if not match all key, return null
+        if(!$hasValue){
+            return null;
+        }
+
+        return $mappingKey;
+    }
+
+    protected static function accessProtected($obj, $prop)
+    {
+        $reflection = new \ReflectionClass($obj);
+        $property = $reflection->getProperty($prop);
+        $property->setAccessible(true);
+        return $property->getValue($obj);
+    }
+
 }

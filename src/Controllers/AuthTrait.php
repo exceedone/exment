@@ -6,7 +6,8 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\LoginType;
-use Exceedone\Exment\Auth\CustomLoginUserBase;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Services\Login\CustomLoginUserBase;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
@@ -45,7 +46,7 @@ trait AuthTrait
             return $this->logoutSaml($request, $login_user->login_provider, $options);
         }
 
-        return redirect(\URL::route('exment_login'));
+        return redirect(\URL::route('exment.login'));
     }
 
     /**
@@ -58,12 +59,12 @@ trait AuthTrait
         
         // if not set ssout_url, return login
         if (is_nullorempty($login_setting->getOption('saml_idp_ssout_url'))) {
-            return redirect(\URL::route('exment_login'));
+            return redirect(\URL::route('exment.login'));
         }
 
         $saml2Auth = LoginSetting::getSamlAuth($provider_name);
         
-        $returnTo = \URL::route('saml_sls');
+        $returnTo = route('exment.saml_sls');
         $sessionIndex = array_get($options, Define::SYSTEM_KEY_SESSION_SAML_SESSION . '.sessionIndex');
         $nameId = array_get($options, Define::SYSTEM_KEY_SESSION_SAML_SESSION . '.nameId');
         $saml2Auth->logout($returnTo, $nameId, $sessionIndex, $login_setting->name_id_format_string); //will actually end up in the sls endpoint
@@ -104,9 +105,6 @@ trait AuthTrait
                 'password' => $custom_login_user->dummy_password,
             ]
         )) {
-            // set session for 2factor
-            session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
-            
             if ($successCallback) {
                 $successCallback($custom_login_user);
             }

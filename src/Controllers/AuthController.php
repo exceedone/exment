@@ -76,8 +76,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         $credentials = $request->only([$this->username(), 'password']);
 
-        //return $this->loginDefault($request, $credentials);
-        return $this->loginLdap($request, $credentials);
+        return $this->loginDefault($request, $credentials);
+        //return $this->loginLdap($request, $credentials);
     }
 
     /**
@@ -211,7 +211,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             return $this->logoutSso($request, $login_user, $options);
         }
 
-        return redirect(\URL::route('exment_login'));
+        return redirect(\URL::route('exment.login'));
     }
 
     protected function postVerifyEmail()
