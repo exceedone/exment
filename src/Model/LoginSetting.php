@@ -42,10 +42,12 @@ class LoginSetting extends ModelBase
     public function getNameIdFormatStringAttribute()
     {
         // create config(copied from setting file)
-        $sp_name_id_format = collect($this->getOption('saml_sp_name_id_format', []) ?? [])->map(function($key){
-            return Define::SAML_NAME_ID_FORMATS[$key];
-        })->implode(' ');
-        return $sp_name_id_format;
+        $sp_name_id_format_key = $this->getOption('saml_sp_name_id_format');
+        if(!isset($sp_name_id_format_key)){
+            return '';
+        }
+
+        return array_get(Define::SAML_NAME_ID_FORMATS, $sp_name_id_format_key);
     }
 
     /**

@@ -626,6 +626,19 @@ return [
             'sso_accept_mail_domain' => 'ログインを許可するドメインを指定する場合は記入してください。複数ある場合は改行区切りで記入してください。',
             'jit_rolegroups' => '新規ユーザー作成時に、既定の役割グループを割り振りたい場合は記入してください。',
             'mapping_description' => 'IdPから返却されるフィールド名と、Exmentのユーザーフィールド名を合致させる必要があります。IdPから返却されるフィールド名を入力してください。',
+
+            'saml_idp_entityid' => 'IdPのEntityIDを入力してください。',
+            'saml_idp_sso_url' => 'IdPのログイン時のエンドポイントURLを入力してください。Exmentログイン時にリダイレクトされます。',
+            'saml_idp_ssout_url' => 'Exmentのログアウト時に、IdPからもログアウトを行いたい場合に、IdPのログアウト時のエンドポイントURLを入力してください。Exmentのログアウト時にリダイレクトされます。',
+            'saml_idp_x509' => 'IdPの公開x509証明書を入力してください。',
+            'saml_sp_name_id_format' => 'IdPのアカウントとSPのアカウントを紐付ける識別子を選択してください。',
+            'saml_sp_entityid' => 'SPのEntityIDを入力してください。',
+            'saml_sp_x509' => 'SPの公開x509証明書を入力してください。',
+            'saml_privatekey' => 'SPの秘密鍵を入力してください。',
+            'saml_option_name_id_encrypted' => 'SPによって送信するNameIDを暗号化する場合は、YESにしてください。',
+            'saml_option_authn_request_signed' => 'SPによって送信する認証リクエストを署名する場合は、YESにしてください。',
+            'saml_option_logout_request_signed' => 'SPによって送信するログアウトリクエストを署名する場合は、YESにしてください。',
+            'saml_option_logout_response_signed' => 'SPによって送信するログアウトレスポンスを署名する場合は、YESにしてください。',
         ],
 
         'message' => [
