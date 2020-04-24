@@ -562,7 +562,7 @@ return [
         'login_button_format' => ':display_nameでログイン',
 
         'header' => 'ログイン設定',
-        'description' => 'SSO認証など、Exmentのログインの設定を行います。',
+        'description' => 'SSO認証や2段階認証など、Exmentのログインの設定を行います。',
         'login_setting_name' => 'ログイン設定表示名',
         'login_type' => 'ログイン種類',
         'oauth_provider_type' => 'プロバイダ種類',
@@ -641,7 +641,7 @@ return [
             'sso_accept_mail_domain' => 'ログインを許可するドメインを指定する場合は記入してください。複数ある場合は改行区切りで記入してください。',
             'jit_rolegroups' => '新規ユーザー作成時に、既定の役割グループを割り振りたい場合は記入してください。',
             'mapping_description' => 'プロバイダから返却されるフィールド名と、Exmentのユーザーフィールド名を合致させる必要があります。プロバイダから返却されるフィールド名を入力してください。<br/>カンマ区切りで複数入力した場合、値の存在するフィールドを、先頭から優先して取得します。<br />また、複数のフィールドを結合したい場合、"${フィールド名}"と入力してください。(例：${last_name} ${first_name})',
-            'login_test_sso' => 'テスト用のOAuthリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダのOAuth設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
+            'login_test_sso' => 'テスト用の:login_typeリダイレクトURLです。<span class="red">※テスト実施時には、プロバイダの:login_type設定のコールバックURLに、上記のURLを、一時的に追加もしくは変更してください。</span>',
                 
             'ldap_base_dn' => '認証に使用する基本DN(識別名)を入力してください。',
             'ldap_search_key' => '認証時に使用する、ログインコードの属性を入力してください。',
@@ -1444,6 +1444,7 @@ return [
             'mail' => 'メール送信履歴',
             'operation_log' => '操作ログ',
             'api_setting' => 'APIアプリ設定',
+            'login_setting' => 'ログイン設定',
         ],
     ],
 

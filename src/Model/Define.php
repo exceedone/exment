@@ -233,6 +233,10 @@ class Define
             'uri' => 'api_setting',
             'icon' => 'fa-code-fork',
         ],
+        'login_setting' => [
+            'uri' => 'login_setting',
+            'icon' => 'fa-sign-in',
+        ],
     ];
 
     public const CUSTOM_COLUMN_AVAILABLE_CHARACTERS_OPTIONS = [
