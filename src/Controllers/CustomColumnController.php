@@ -259,7 +259,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXTAREA, ColumnType::EDITOR]])]);
 
             $form->checkbox('available_characters', exmtrans("custom_column.options.available_characters"))
-                ->options(getTransArray(Define::CUSTOM_COLUMN_AVAILABLE_CHARACTERS_OPTIONS, 'custom_column.available_characters'))
+                ->options(CustomColumn::getAvailableCharacters()->pluck('label', 'key'))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
                 ->help(exmtrans("custom_column.help.available_characters"))
                 ;

@@ -227,8 +227,31 @@ class Define
         ],
     ];
 
-    public const CUSTOM_COLUMN_AVAILABLE_CHARACTERS_OPTIONS = [
-        'lower','upper','number','hyphen_underscore','symbol'
+    public const CUSTOM_COLUMN_AVAILABLE_CHARACTERS = [
+        [
+            'key' => 'lower',
+            'regex' => 'a-z'
+        ],
+        [
+            'key' => 'upper',
+            'regex' => 'A-Z'
+        ],
+        [
+            'key' => 'number',
+            'regex' => '0-9'
+        ],
+        [
+            'key' => 'hyphen_underscore',
+            'regex' => '_\-'
+        ],
+        [
+            'key' => 'dot',
+            'regex' => '\.'
+        ],
+        [
+            'key' => 'symbol',
+            'regex' => '!"#$%&\'()\*\+\-\.,\/:;<=>?@\[\]^_`{}~'
+        ],
     ];
 
     public const CUSTOM_VALUE_IMPORT_KEY = [
