@@ -69,7 +69,7 @@
         @endforeach
 
         @foreach($login_providers as $login_provider_name => $login_provider)
-        <a href="{{ $login_provider['login_url'] }}" class="btn btn-block btn-social btn-flat {{ $login_provider['btn_name'] ?? '' }}">
+        <a href="{{ $login_provider['login_url'] }}" class="btn btn-block btn-social btn-flat click_disabled {{ $login_provider['btn_name'] ?? '' }}">
             <i class="fa {{ $login_provider['font_owesome'] ?? '' }}"></i> {{ $login_provider['display_name'] }}
         </a>
         @endforeach

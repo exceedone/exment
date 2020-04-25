@@ -87,7 +87,13 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
-            $router->resource('login_setting', 'LoginSettingController', ['except' => ['show']]);
+            $this->setResouce($router, 'login_setting', 'LoginSettingController');
+            $this->setResouce($router, 'api_setting', 'ApiSettingController');
+            $this->setResouce($router, 'plugin', 'PluginController');
+            $this->setResouce($router, 'role_group', 'RoleGroupController');
+            $this->setResouce($router, 'table', 'CustomTableController');
+            $this->setResouce($router, 'workflow', 'WorkflowController');
+
             $router->post('login_setting/{id}/activate', 'LoginSettingController@activate')->name('exment.login_activate');
             $router->post('login_setting/{id}/deactivate', 'LoginSettingController@deactivate')->name('exment.login_deactivate');
             $router->get('login_setting/{id}/testModal', 'LoginSettingController@loginTestModal')->name('exment.logintest_modal');
@@ -98,12 +104,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('login_setting/2factor-verify', 'LoginSettingController@auth_2factor_verify')->name('exment.2factor_verify');
             $router->post('login_setting/2factor', 'LoginSettingController@post2factor')->name('exment.post2factor');
 
-            $router->resource('api_setting', 'ApiSettingController', ['except' => ['show']]);
-            $router->resource('plugin', 'PluginController', ['except' => ['show']]);
-            $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
-            $router->resource('table', 'CustomTableController', ['except' => ['show']]);
-            
-            $router->resource('workflow', 'WorkflowController', ['except' => ['show']]);
             $router->get("workflow/beginning", 'WorkflowController@beginningForm');
             $router->post("workflow/beginning", 'WorkflowController@beginningPost');
             $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
@@ -356,16 +356,37 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function setTableResouce($router, $endpointName, $controllerName, $isShow = false)
     {
-        $router->get("{$endpointName}/{tableKey}", "$controllerName@index");
-        $router->get("{$endpointName}/{tableKey}/create", "$controllerName@create");
-        $router->post("{$endpointName}/{tableKey}", "$controllerName@store");
-        $router->get("{$endpointName}/{tableKey}/{id}/edit", "$controllerName@edit");
-        $router->put("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
+        $router->get("{$endpointName}/{tableKey}", "$controllerName@index")->name("exment.$endpointName.index");
+        $router->get("{$endpointName}/{tableKey}/create", "$controllerName@create")->name("exment.$endpointName.create");
+        $router->post("{$endpointName}/{tableKey}", "$controllerName@store")->name("exment.$endpointName.store");
+        $router->get("{$endpointName}/{tableKey}/{id}/edit", "$controllerName@edit")->name("exment.$endpointName.edit");
+        $router->put("{$endpointName}/{tableKey}/{id}", "$controllerName@update")->name("exment.$endpointName.update");
         $router->patch("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
-        $router->delete("{$endpointName}/{tableKey}/{id}", "$controllerName@destroy");
+        $router->delete("{$endpointName}/{tableKey}/{id}", "$controllerName@destroy")->name("exment.$endpointName.destroy");
 
         if ($isShow) {
-            $router->get("{$endpointName}/{tableKey}/{id}", "$controllerName@show");
+            $router->get("{$endpointName}/{tableKey}/{id}", "$controllerName@show")->name("exment.$endpointName.show");
         }
+    }
+
+    /**
+     * set resource.
+     * (Set names simply)
+     */
+    protected function setResouce($router, $endpointName, $controllerName, $isShow = false)
+    {
+        $names = [
+            'index' => "exment.$endpointName.index",
+            'create' => "exment.$endpointName.create",
+            'store' => "exment.$endpointName.store",
+            'edit' => "exment.$endpointName.edit",
+            'update' => "exment.$endpointName.update",
+            'delete' => "exment.$endpointName.delete",
+        ];
+        if($isShow){
+            $names['show'] = "exment.$endpointName.show";
+        }
+
+        $router->resource($endpointName, $controllerName, ['except' => $isShow ? [] : ['show']])->names($names);
     }
 }

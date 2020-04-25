@@ -25,14 +25,8 @@ class SamlService implements LoginServiceInterface
      */
     public static function loginTest(Request $request, $login_setting)
     {
-        // provider check
-        try{
-            $saml2Auth = LoginSetting::getSamlAuth($login_setting, true);
-            $saml2Auth->login();    
-        }
-        catch(\Exception $ex){
-            // if error, redirect edit page
-        }
+        $saml2Auth = LoginSetting::getSamlAuth($login_setting, true);
+        $saml2Auth->login();    
     }
 
     
@@ -48,7 +42,7 @@ class SamlService implements LoginServiceInterface
 
         $errors = $saml2Auth->acs();
         if (!empty($errors)) {
-            return LoginService::getLoginTestResult(false, $errors);
+            return LoginService::getLoginTestResult(false, array_get($errors, 'last_error_reason', array_get($errors, 'error')));
         }
 
         $custom_login_user = SamlUser::with($login_setting->provider_name, $saml2Auth->getSaml2User());

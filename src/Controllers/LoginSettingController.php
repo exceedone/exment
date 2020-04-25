@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\Login\LoginService;
 use Encore\Admin\Layout\Content;
 use Carbon\Carbon;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
@@ -209,7 +210,7 @@ class LoginSettingController extends AdminControllerBase
 
         $form->disableReset();
 
-        if(request()->has('test_callback')){
+        if(request()->has('test_callback') && session()->has(Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE)){
             $form->hidden('logintest_modal')
             ->attribute(['data-widgetmodal_autoload' => route('exment.logintest_modal', ['id' => $id])]);
             $form->ignore('logintest_modal');
@@ -232,6 +233,11 @@ class LoginSettingController extends AdminControllerBase
             }
         });
         
+        $form->saved(function (Form $form) {
+            return redirect($this->getEditUrl($form->model()->id));
+        });
+
+
         return $form;
     }
 
@@ -397,9 +403,6 @@ class LoginSettingController extends AdminControllerBase
         
         $form->text('saml_sp_entityid', exmtrans('login.saml_sp_entityid'))
         ->help(exmtrans('login.help.saml_sp_entityid'))
-        ->customFormat(function($value){
-            return trydecrypt($value);
-        })
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
         $form->textarea('saml_sp_x509', exmtrans('login.saml_sp_x509'))
@@ -413,6 +416,9 @@ class LoginSettingController extends AdminControllerBase
         $form->textarea('saml_sp_privatekey', exmtrans('login.saml_sp_privatekey'))
         ->help(exmtrans('login.help.saml_privatekey'))
         ->rows(4)
+        ->customFormat(function($value){
+            return trydecrypt($value);
+        })
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
 
@@ -539,7 +545,7 @@ class LoginSettingController extends AdminControllerBase
 
             admin_toastr(trans('admin.save_succeeded'));
 
-            return redirect(admin_url('login_setting'));
+            return redirect(route('exment.login_setting.index'));
         } catch (Exception $exception) {
             //TODO:error handling
             DB::rollback();
@@ -591,9 +597,22 @@ class LoginSettingController extends AdminControllerBase
      */
     public function loginTestSso(Request $request, $id)
     {
-        $login_setting = LoginSetting::getEloquent($id);
+        try{
+            $login_setting = LoginSetting::getEloquent($id);
         
-        return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
+            return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
+        }
+        catch(\Exception $ex){
+            \Log::error($ex);
+
+            $message = LoginService::getLoginTestResult(false, [$ex]);
+            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $message]);
+
+            return redirect($this->getEditUrl($id, true));
+            
+            // if error, redirect edit page
+        }
+
     }
 
     /**
@@ -605,16 +624,32 @@ class LoginSettingController extends AdminControllerBase
      */
     public function loginTestCallback(Request $request, Content $content, $id)
     {
-        $login_setting = LoginSetting::getEloquent($id);
-        
-        $message = $login_setting->getLoginServiceClassName()::loginTestCallback($request, $login_setting);
-        session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $message]);
+        try{
+            $login_setting = LoginSetting::getEloquent($id);
+            
+            $message = $login_setting->getLoginServiceClassName()::loginTestCallback($request, $login_setting);
+            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $message]);
+    
+            return redirect($this->getEditUrl($id, true));
+        }
+        catch(\Exception $ex){
+            \Log::error($ex);
 
-        return redirect(admin_urls_query('login_setting', $id, 'edit', ['test_callback' => 1]));
-        
-        // $content = $this->edit($request, $content, $id);
+            $message = LoginService::getLoginTestResult(false, [$ex]);
+            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $message]);
 
-        // return $content->row('<input type="hidden" data-widgetmodal_autoload="' . route('exment.logintest_modal', ['id' => $id]) .'"/>');
+            return redirect($this->getEditUrl($id, true));
+        }
+    }
+
+
+    protected function getEditUrl($id, $testCallback = false){
+        $uri = route('exment.login_setting.edit', ['id' => $id]);
+        if(!$testCallback){
+            admin_toastr(trans('admin.save_succeeded'));
+            return $uri;
+        }
+        return  $uri . '?' . http_build_query(['test_callback' => 1]);
     }
 
     /**

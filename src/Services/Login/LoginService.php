@@ -85,7 +85,10 @@ class LoginService
 
         $message[] = $success ? exmtrans('common.message.success_execute') : exmtrans('common.message.error_execute');
 
-        if (is_array($messages)) {
+        if(is_string($messages)){
+            $message = array_merge($message, (array)$messages);
+        }
+        elseif (is_array($messages)) {
             $message = array_merge($message, $messages);
         } elseif ($messages instanceof \Illuminate\Support\MessageBag) {
             $message = array_merge($message, collect($messages->messages())->map(function ($m) {
@@ -98,7 +101,6 @@ class LoginService
                 'user_code',
                 'user_name',
                 'email',
-                'id',
             ];
     
             foreach ($keys as $key) {
