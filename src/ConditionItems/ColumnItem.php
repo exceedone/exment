@@ -141,7 +141,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
                     ->where($authorityTableName . '.related_type', ConditionTypeDetail::COLUMN()->lowerkey());
                     
                 if ($custom_column->column_type == ColumnType::USER) {
-                    $query->where($tableName . '.' . $indexName, \Exment::user()->base_user_id);
+                    $query->where($tableName . '.' . $indexName, \Exment::user()->getUserId());
                 } else {
                     $query->whereIn($tableName . '.' . $indexName, $ids);
                 }

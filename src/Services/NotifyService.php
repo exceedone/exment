@@ -341,7 +341,7 @@ class NotifyService
 
                 case NotifyAction::SHOW_PAGE:
                     if ($user instanceof CustomValue) {
-                        $id = $user->id;
+                        $id = $user->getUserId();
                     } elseif ($user instanceof NotifyTarget) {
                         $id = $user->id();
                     }
@@ -367,7 +367,7 @@ class NotifyService
                     $notify_navbar->notify_subject = $mail_subject;
                     $notify_navbar->notify_body = $mail_body;
                     $notify_navbar->target_user_id = $id;
-                    $notify_navbar->trigger_user_id = $login_user->base_user_id ?? null;
+                    $notify_navbar->trigger_user_id = $login_user->getUserId() ?? null;
                     $notify_navbar->save();
 
                     break;

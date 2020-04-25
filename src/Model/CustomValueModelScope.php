@@ -53,7 +53,7 @@ class CustomValueModelScope implements Scope
             $builder
                 ->where(function ($builder) use ($user) {
                     $builder->whereHas('value_authoritable_users', function ($q) use ($user) {
-                        $q->where('authoritable_target_id', $user->base_user_id);
+                        $q->where('authoritable_target_id', $user->getUserId());
                     })->orWhereHas('value_authoritable_organizations', function ($q) use ($user) {
                         $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                         $q->whereIn('authoritable_target_id', $user->getOrganizationIds($enum));

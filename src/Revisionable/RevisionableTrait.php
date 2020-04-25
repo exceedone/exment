@@ -358,7 +358,7 @@ trait RevisionableTrait
             if (class_exists($class = '\Exceedone\Exment\Facades\ExmentFacade')
             ) {
                 $user = $class::user();
-                return isset($user) ? $user->base_user_id : null;
+                return isset($user) ? $user->getUserId() : null;
             } elseif (\Auth::check()) {
                 return \Auth::user()->getAuthIdentifier();
             }

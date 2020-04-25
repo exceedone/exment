@@ -32,16 +32,16 @@ class RefreshDataService
         ];
 
         // get user and org table info
-        $user = CustomTable::getEloquent(SystemTableName::USER);
-        $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
+        $userTable = CustomTable::getEloquent(SystemTableName::USER);
+        $orgTable = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
         $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE);
 
         // pivot custom value's
         $tables = array_merge(CustomRelation::where('relation_type', RelationType::MANY_TO_MANY)
             ->get()
-            ->filter(function ($relation) use ($user, $org) {
+            ->filter(function ($relation) use ($userTable, $orgTable) {
                 // if org-user data, return false;
-                if ($relation->parent_custom_table_id == $org->id && $relation->child_custom_table_id == $user->id) {
+                if ($relation->parent_custom_table_id == $orgTable->id && $relation->child_custom_table_id == $userTable->id) {
                     return false;
                 }
 
@@ -56,7 +56,7 @@ class RefreshDataService
 
         // exm__ tables (ignore org)
         $custom_tables = CustomTable
-            ::whereNotIn('id', [$user->id, $org->id, $mail_template->id])
+            ::whereNotIn('id', [$userTable->id, $orgTable->id, $mail_template->id])
             ->get()
             ->filter(function ($table) {
                 return hasTable(getDBTableName($table));

@@ -179,7 +179,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $query->where('view_type', $this->view_type);
 
         if ($this->view_type == ViewType::USER) {
-            $query->where('created_user_id', \Exment::user()->base_user_id);
+            $query->where('created_user_id', \Exment::user()->getUserId());
         }
     }
 
@@ -454,7 +454,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $query->where('view_type', ViewType::SYSTEM);
             })->orWhere(function ($query) {
                 $query->where('view_type', ViewType::USER)
-                        ->where('created_user_id', \Exment::user()->base_user_id ?? null);
+                        ->where('created_user_id', \Exment::user()->getUserId() ?? null);
             });
         });
     }
@@ -1023,7 +1023,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         if ($this->view_type == ViewType::SYSTEM) {
             return false;
-        } elseif ($this->created_user_id != \Exment::user()->base_user_id) {
+        } elseif ($this->created_user_id != \Exment::user()->getUserId()) {
             return false;
         }
 

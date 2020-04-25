@@ -22,7 +22,7 @@ class LogOperation extends BaseLogOperation
         if ($this->shouldLogOperation($request)) {
             $user = \Exment::user();
             $log = [
-                'user_id' => ($user ? $user->id : 0),
+                'user_id' => ($user ? $user->getUserId() : 0),
                 'path'    => substr($request->path(), 0, 255),
                 'method'  => $request->method(),
                 'ip'      => $request->getClientIp(),
