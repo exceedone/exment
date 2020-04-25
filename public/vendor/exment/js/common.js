@@ -172,7 +172,8 @@ var Exment;
                 method: 'POST',
                 data: [],
                 redirect: null,
-                preConfirmValidate: null
+                preConfirmValidate: null,
+                showCancelButton: true,
             }, options);
             let data = $.extend({
                 _pjax: true,
@@ -185,13 +186,16 @@ var Exment;
             let swalOptions = {
                 title: options.title,
                 type: options.type,
-                showCancelButton: true,
+                showCancelButton: options.showCancelButton,
                 confirmButtonColor: "#DD6B55",
                 confirmButtonText: options.confirm,
                 showLoaderOnConfirm: true,
                 allowOutsideClick: false,
                 cancelButtonText: options.cancel,
                 preConfirm: function (input) {
+                    if (!hasValue(url)) {
+                        return;
+                    }
                     $('.swal2-cancel').hide();
                     if (hasValue(options.preConfirmValidate)) {
                         var result = options.preConfirmValidate(input);

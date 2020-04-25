@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Form\Tools;
 use Illuminate\Http\Request;
 
 /**
@@ -134,5 +135,36 @@ class LdapService implements LoginServiceInterface
                 ],
             ],
         ]);
+    }
+    
+    public static function appendActivateSwalButton($tools, LoginSetting $login_setting){
+        if (!$login_setting->active_flg) {
+            // Show an error if other LDAP services are enabled.
+            $ldap_setting = LoginSetting::getLdapSetting();
+            if($ldap_setting && $ldap_setting->id != $login_setting->id){
+                $tools->append(new Tools\SwalInputButton([
+                    'label' => exmtrans('common.activate'),
+                    'type' => 'error',
+                    'icon' => 'fa-check-circle',
+                    'btn_class' => 'btn-success',
+                    'showCancelButton' => false,
+                    'title' => exmtrans('common.activate'),
+                    'text' => exmtrans('login.help.activate_ldap_error'),
+                ]));
+                return;
+            }
+            $tools->append(new Tools\SwalInputButton([
+                'url' => route('exment.login_activate', ['id' => $login_setting->id]),
+                'label' => exmtrans('common.activate'),
+                'icon' => 'fa-check-circle',
+                'btn_class' => 'btn-success',
+                'title' => exmtrans('common.activate'),
+                'text' => exmtrans('login.help.activate'),
+                'method' => 'post',
+                'redirectUrl' => admin_urls("login_setting", $login_setting->id, "edit"),
+            ]));
+        } else {
+            return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
+        }
     }
 }

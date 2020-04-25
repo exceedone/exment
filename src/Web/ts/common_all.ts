@@ -11,6 +11,11 @@ namespace Exment {
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
+
+            $(document).off('click', '.click_disabled').on('click', '.click_disabled', {}, function(ev){
+                // not working ".prop('disabled', true)" ... why??
+                $(ev.target).closest('.click_disabled').attr('disabled', 'true');
+            });
         }
         
         public static AddEvent() {
@@ -18,7 +23,7 @@ namespace Exment {
                 $(ev.target).find('.submit_disabled').prop('disabled', true);
 
                 return true;
-            })
+            });
         }
     }
 }

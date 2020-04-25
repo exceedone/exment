@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\Permission;
 use Encore\Admin\Facades\Admin;
@@ -61,7 +62,7 @@ class SystemChangePageMenu extends AbstractTool
                 'href' => admin_url('api_setting'),
                 'exmtrans' => 'api.header',
                 'icon' => 'fa-code-fork',
-                'permission' => \Exment::user()->hasPermission(Permission::AVAILABLE_API),
+                'permission' => System::api_available() && \Exment::user()->hasPermission(Permission::AVAILABLE_API),
             ], 
             [
                 'key' => 'login_setting',

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Login;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\LoginSetting;
 use Encore\Admin\Form;
 
@@ -74,7 +75,6 @@ class LoginService
             'user_code' => 'required',
             'user_name' => 'required',
             'email' => 'required|email',
-            'id' => 'required',
         ]);
     }
     
@@ -140,11 +140,37 @@ class LoginService
         ;
 
         $url = route('exment.logintest_sso', ['id' => $login_setting->id]);
-        $form->html("<a href='{$url}' data-nopjax data-modalclose='false' class='btn btn-primary'>" . trans('admin.login') . "</a>");
+        $form->html("<a href='{$url}' data-nopjax data-modalclose='false' class='btn btn-primary click_disabled'>" . trans('admin.login') . "</a>");
 
         $form->setWidth(10, 2);
 
 
         return $form;
+    }
+    
+    public static function appendActivateSwalButtonSso($tools, LoginSetting $login_setting){
+        if (!$login_setting->active_flg) {
+            $tools->append(new Tools\SwalInputButton([
+                'url' => route('exment.login_activate', ['id' => $login_setting->id]),
+                'label' => exmtrans('common.activate'),
+                'icon' => 'fa-check-circle',
+                'btn_class' => 'btn-success',
+                'title' => exmtrans('common.activate'),
+                'text' => exmtrans('login.help.activate'),
+                'method' => 'post',
+                'redirectUrl' => admin_urls("login_setting", $login_setting->id, "edit"),
+            ]));
+        } else {
+            $tools->append(new Tools\SwalInputButton([
+                'url' => route('exment.login_deactivate', ['id' => $login_setting->id]),
+                'label' => exmtrans('common.deactivate'),
+                'icon' => 'fa-check-circle',
+                'btn_class' => 'btn-default',
+                'title' => exmtrans('common.deactivate'),
+                'text' => exmtrans('login.help.deactivate'),
+                'method' => 'post',
+                'redirectUrl' => admin_urls("login_setting", $login_setting->id, "edit"),
+            ]));
+        }
     }
 }

@@ -9,20 +9,12 @@ use Exceedone\Exment\Enums\LoginProviderType;
 class LoginSetting extends ModelBase
 {
     use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     use Traits\UseRequestSessionTrait;
 
     protected $guarded = ['id'];
     protected $appends = ['login_type_text'];
     protected $casts = ['options' => 'json', 'active_flg' => 'boolean'];
-    
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
 
     public function getLoginTypeTextAttribute()
     {
@@ -118,6 +110,15 @@ class LoginSetting extends ModelBase
     }
 
     /**
+     * get eloquent using request settion.
+     * now only support only id.
+     */
+    public static function getEloquent($id, $withs = [])
+    {
+        return static::getEloquentDefault($id, $withs);
+    }
+    
+    /**
      * Get login button
      *
      * @return void
@@ -164,11 +165,6 @@ class LoginSetting extends ModelBase
      */
     public static function getAllSettings()
     {
-        // if sso_disabled is true, return empty collect
-        if (boolval(config('exment.sso_disabled', false))) {
-            return collect();
-        }
-
         return static::allRecords(function ($record) {
             return $record->active_flg;
         });

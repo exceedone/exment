@@ -219,13 +219,13 @@ return [
     
     /*
     |--------------------------------------------------------------------------
-    | Disabled sso
+    | Disabled custom login
     |--------------------------------------------------------------------------
     |
-    | Disabled sso force
+    | Disabled custom login force
     |
     */
-    'sso_disabled' => env('EXMENT_DISABLE_SSO', false),
+    'custom_login_disabled' => env('EXMENT_CUSTOM_LOGIN_DISABLED', false),
     
     /*
     |--------------------------------------------------------------------------

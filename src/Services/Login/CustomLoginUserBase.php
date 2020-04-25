@@ -14,17 +14,10 @@ abstract class CustomLoginUserBase
     public $mapping_user_column;
 
     public $provider_name;
-    public $id;
     public $email;
     public $user_code;
     public $user_name;
     public $login_type;
-    /**
-     * Dummy password.
-     *
-     * @var string
-     */
-    public $dummy_password;
 
     /**
      * mappng error.
@@ -41,7 +34,6 @@ abstract class CustomLoginUserBase
     public function getValidateArray()
     {
         return [
-            'id' => $this->id,
             'user_code' => $this->user_code,
             'user_name' => $this->user_name,
             'email' => $this->email,

@@ -76,8 +76,11 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         $credentials = $request->only([$this->username(), 'password']);
 
+        if (!boolval(config('exment.custom_login_disabled', false)) && !is_nullorempty(LoginSetting::getLdapSetting())) {
+            return $this->loginLdap($request, $credentials);
+        }
+
         return $this->loginDefault($request, $credentials);
-        //return $this->loginLdap($request, $credentials);
     }
 
     /**
@@ -134,7 +137,6 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             $provider->connect();
 
             if (!$provider->auth()->attempt($username, $credentials['password'], true)) {
-                //TODO
                 return $error_redirect;
             }
 
@@ -148,7 +150,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             $validator = LoginService::validateCustomLoginSync($custom_login_user->getValidateArray());
             if ($validator->fails()) {
                 return redirect($error_url)->withInput()->withErrors(
-                    [$this->username() => $validator->errors()]
+                    [$this->username() => $validator->errors()->messages()]
                 );
             }
             

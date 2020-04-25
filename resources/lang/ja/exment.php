@@ -19,6 +19,8 @@ return [
         'input' => '入力',
         'available_true' => '有効',
         'available_false' => '無効',
+        'activate' => '有効化する',
+        'deactivate' => '無効化する',
         'help_code' => '保存後、変更はできません。半角英数字、"-"または"_"で記入してください。他のデータと同じ値は登録できません。',
         'id' => 'ID',
         'suuid' => '内部ID(20桁)',
@@ -660,6 +662,10 @@ return [
             'saml_option_authn_request_signed' => 'SPによって送信する認証リクエストを署名する場合は、YESにしてください。',
             'saml_option_logout_request_signed' => 'SPによって送信するログアウトリクエストを署名する場合は、YESにしてください。',
             'saml_option_logout_response_signed' => 'SPによって送信するログアウトレスポンスを署名する場合は、YESにしてください。',
+
+            'activate' => 'このログインを有効化します。事前に「ログインテスト」を実施し、ログインが正常に実行できることの確認をおすすめします。有効化しますか？',
+            'activate_ldap_error' => '他のLDAP認証が有効になっています。この認証を有効にする場合、先に該当のLDAP認証を無効にしてください。',
+            'deactivate' => 'このログインを無効化します。よろしいでしょうか？',
         ],
 
         'message' => [

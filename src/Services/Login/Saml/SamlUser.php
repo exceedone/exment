@@ -19,14 +19,12 @@ class SamlUser extends CustomLoginUserBase
         $user->provider_name = $provider_name;
         $user->login_type = LoginType::SAML;
         $user->login_setting = LoginSetting::getSamlSetting($provider_name);
-        $user->id = $samlUser->getUserId();
 
         static::setMappingValue($user, $samlUser);
 
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
         $user->login_id = $user->{$user->mapping_user_column};
-        $user->dummy_password = $user->id;
 
         return $user;
     }

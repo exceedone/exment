@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Login\Saml;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
+use Exceedone\Exment\Form\Tools;
 use Illuminate\Http\Request;
 
 /**
@@ -25,8 +26,13 @@ class SamlService implements LoginServiceInterface
     public static function loginTest(Request $request, $login_setting)
     {
         // provider check
-        $saml2Auth = LoginSetting::getSamlAuth($login_setting, true);
-        $saml2Auth->login();
+        try{
+            $saml2Auth = LoginSetting::getSamlAuth($login_setting, true);
+            $saml2Auth->login();    
+        }
+        catch(\Exception $ex){
+            // if error, redirect edit page
+        }
     }
 
     
@@ -57,5 +63,9 @@ class SamlService implements LoginServiceInterface
         }
         
         return LoginService::getLoginTestResult(true, [], $custom_login_user);
+    }
+
+    public static function appendActivateSwalButton($tools, LoginSetting $login_setting){
+        return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
     }
 }

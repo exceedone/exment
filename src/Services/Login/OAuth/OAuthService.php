@@ -57,4 +57,8 @@ class OAuthService implements LoginServiceInterface
             return LoginService::getLoginTestResult(false, [$ex]);
         }
     }
+    
+    public static function appendActivateSwalButton($tools, LoginSetting $login_setting){
+        return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
+    }
 }

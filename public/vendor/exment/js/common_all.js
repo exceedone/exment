@@ -11,6 +11,10 @@ var Exment;
             $(document).on('pjax:complete', function (event) {
                 Exment.CommonEvent.AddEvent();
             });
+            $(document).off('click', '.click_disabled').on('click', '.click_disabled', {}, function (ev) {
+                // not working ".prop('disabled', true)" ... why??
+                $(ev.target).closest('.click_disabled').attr('disabled', 'true');
+            });
         }
         static AddEvent() {
             $('form').submit(function (ev) {

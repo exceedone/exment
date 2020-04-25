@@ -2,9 +2,11 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Providers\CustomUserProvider;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\Login\CustomLoginUserBase;
@@ -19,21 +21,27 @@ trait AuthTrait
     {
         $array['site_name'] = System::site_name();
 
-        // get login settings
-        $login_settings = LoginSetting::getOAuthSettings()->merge(LoginSetting::getSamlSettings());
-
-        if (!is_nullorempty($login_settings)) {
-            // create login provider items for login page
-            $login_provider_items = [];
-            foreach ($login_settings as $login_setting) {
-                $login_provider_items[$login_setting->provider_name] =  $login_setting->getLoginButton();
-            }
-
-            $array['login_providers'] = $login_provider_items;
-            $array['show_default_login_provider']= config('exment.show_default_login_provider', false) || boolval(System::show_default_login_provider() ?? false);
-        } else {
+        // if sso_disabled is true
+        if (boolval(config('exment.custom_login_disabled', false))) {
             $array['login_providers'] = [];
-            $array['show_default_login_provider']= true;
+            $array['show_default_login_provider'] = true;
+        }else{
+            // get login settings
+            $login_settings = LoginSetting::getOAuthSettings()->merge(LoginSetting::getSamlSettings());
+
+            if (!is_nullorempty($login_settings)) {
+                // create login provider items for login page
+                $login_provider_items = [];
+                foreach ($login_settings as $login_setting) {
+                    $login_provider_items[$login_setting->provider_name] =  $login_setting->getLoginButton();
+                }
+
+                $array['login_providers'] = $login_provider_items;
+                $array['show_default_login_provider'] = boolval(System::show_default_login_provider() ?? false);
+            } else {
+                $array['login_providers'] = [];
+                $array['show_default_login_provider'] = true;
+            }
         }
 
         return $array;
@@ -97,24 +105,12 @@ trait AuthTrait
 
         $login_user = $this->getLoginUser($custom_login_user, $exment_user, $socialiteProvider);
         
-        if ($this->guard()->attempt(
-            [
-                'username' => $custom_login_user->login_id,
-                'login_provider' => $custom_login_user->provider_name,
-                'login_type' => $custom_login_user->login_type,
-                'password' => $custom_login_user->dummy_password,
-            ]
-        )) {
-            if ($successCallback) {
-                $successCallback($custom_login_user);
-            }
-
-            return $this->sendLoginResponse($request);
+        $this->guard()->login($login_user);
+        if ($successCallback) {
+            $successCallback($custom_login_user);
         }
 
-        $this->incrementLoginAttempts($request);
-
-        return redirect($error_url)->withInput()->withErrors(['sso_error' => $this->getFailedLoginMessage()]);
+        return $this->sendLoginResponse($request);
     }
 
     
@@ -211,14 +207,14 @@ trait AuthTrait
                 'login_type' => $custom_login_user->login_type,
             ]
         );
-        if (isset($login_user)) {
-            // check password
-            if (CustomUserProvider::ValidateCredential($login_user, [
-                'password' => $custom_login_user->dummy_password
-            ])) {
-                $hasLoginUser = true;
-            }
-        }
+        // if (isset($login_user)) {
+        //     // check password
+        //     if (CustomUserProvider::ValidateCredential($login_user, [
+        //         'password' => $custom_login_user->dummy_password
+        //     ])) {
+        //         $hasLoginUser = true;
+        //     }
+        // }
 
         // if don't has, create loginuser or match email
         if (!$hasLoginUser) {
@@ -229,7 +225,7 @@ trait AuthTrait
             ]);
             $login_user->base_user_id = $exment_user->id;
             $login_user->login_provider = $custom_login_user->provider_name;
-            $login_user->password = $custom_login_user->dummy_password;
+            $login_user->password = make_password(32);
         }
 
         // get avatar

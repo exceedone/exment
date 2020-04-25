@@ -88,7 +88,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
             $router->resource('login_setting', 'LoginSettingController', ['except' => ['show']]);
-            $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal');
+            $router->post('login_setting/{id}/activate', 'LoginSettingController@activate')->name('exment.login_activate');
+            $router->post('login_setting/{id}/deactivate', 'LoginSettingController@deactivate')->name('exment.login_deactivate');
             $router->get('login_setting/{id}/testModal', 'LoginSettingController@loginTestModal')->name('exment.logintest_modal');
             $router->post('login_setting/{id}/testForm', 'LoginSettingController@loginTestForm')->name('exment.logintest_form');
             $router->get('login_setting/{id}/testSso', 'LoginSettingController@loginTestSso')->name('exment.logintest_sso');

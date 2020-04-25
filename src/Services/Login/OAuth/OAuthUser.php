@@ -37,7 +37,6 @@ class OAuthUser extends CustomLoginUserBase
         $user->login_type = LoginType::OAUTH;
         $user->login_setting = LoginSetting::getOAuthSetting($provider_name);
 
-        $user->id = $provider_user->id;
         $user->email = $provider_user->email;
         $user->user_code = $provider_user->id;
         $user->user_name = $provider_user->name ?: $provider_user->email;
@@ -50,8 +49,7 @@ class OAuthUser extends CustomLoginUserBase
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
         $user->login_id = $user->{$user->mapping_user_column};
-        $user->dummy_password = $provider_user->id;
-
+        
         return $user;
     }
 }

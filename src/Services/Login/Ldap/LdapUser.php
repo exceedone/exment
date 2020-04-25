@@ -18,14 +18,12 @@ class LdapUser extends CustomLoginUserBase
         $user->provider_name = $login_setting->getOption('ldap_name');
         $user->login_type = LoginType::LDAP;
         $user->login_setting = $login_setting;
-        $user->id = array_get($ldapUser, 'id') ?: array_get($ldapUser, 'user_code');
 
         static::setMappingValue($user, $ldapUser);
 
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
         $user->login_id = $user->{$user->mapping_user_column};
-        $user->dummy_password = $user->id;
 
         return $user;
     }
@@ -33,13 +31,14 @@ class LdapUser extends CustomLoginUserBase
     /**
      * Mapping saml user value
      *
-     * @param [type] $samlUser
+     * @param [type] $ldapuser
      * @return void
      */
-    protected static function getMappingItemValue($samlUser, $mappingKey, $replaceMaps)
+    protected static function getMappingItemValue($ldapuser, $mappingKey, $replaceMaps)
     {
         $hasValue = false;
         foreach ($replaceMaps as $replaceKey => $replaceValue) {
+            $ldap_attr = $replaceKey;
             $method = 'get' . $ldap_attr;
             if (method_exists($ldapuser, $method)) {
                 $mappingKey = str_replace($replaceValue, $ldapuser->$method(), $mappingKey);

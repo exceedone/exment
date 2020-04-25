@@ -90,7 +90,7 @@ class LoginSettingController extends AdminControllerBase
     protected function form($id = null)
     {
         $form = new Form(new LoginSetting);
-        $login_setting = LoginSetting::find($id);
+        $login_setting = LoginSetting::getEloquent($id);
 
         $errors = $this->checkLibraries();
 
@@ -106,9 +106,12 @@ class LoginSettingController extends AdminControllerBase
         } else {
             $form->display('login_type_text', exmtrans('login.login_type'));
             $form->hidden('login_type');
+                
+            $form->display('active_flg', exmtrans("plugin.active_flg"))
+            ->customFormat(function($value){
+                return getYesNo($value);
+            });
         }
-        
-        $form->switchbool('active_flg', exmtrans("plugin.active_flg"))->default(false);
 
         $form->embeds('options', exmtrans("login.options"), function (Form\EmbeddedForm $form) use ($login_setting, $errors) {
             ///// toggle
@@ -224,6 +227,8 @@ class LoginSettingController extends AdminControllerBase
                         'icon' => 'fa-check-circle',
                     ]
                 ));
+
+                $login_setting->getLoginServiceClassName()::appendActivateSwalButton($tools, $login_setting);
             }
         });
         
@@ -551,7 +556,7 @@ class LoginSettingController extends AdminControllerBase
      */
     public function loginTestModal(Request $request, $id)
     {
-        $login_setting = LoginSetting::find($id);
+        $login_setting = LoginSetting::getEloquent($id);
 
         $form = $login_setting->getLoginServiceClassName()::getTestForm($login_setting);
         return getAjaxResponse([
@@ -572,7 +577,7 @@ class LoginSettingController extends AdminControllerBase
      */
     public function loginTestForm(Request $request, $id)
     {
-        $login_setting = LoginSetting::find($id);
+        $login_setting = LoginSetting::getEloquent($id);
         
         return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
     }
@@ -586,10 +591,11 @@ class LoginSettingController extends AdminControllerBase
      */
     public function loginTestSso(Request $request, $id)
     {
-        $login_setting = LoginSetting::find($id);
+        $login_setting = LoginSetting::getEloquent($id);
         
         return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
     }
+
     /**
      * execute login test for callback
      *
@@ -599,7 +605,7 @@ class LoginSettingController extends AdminControllerBase
      */
     public function loginTestCallback(Request $request, Content $content, $id)
     {
-        $login_setting = LoginSetting::find($id);
+        $login_setting = LoginSetting::getEloquent($id);
         
         $message = $login_setting->getLoginServiceClassName()::loginTestCallback($request, $login_setting);
         session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $message]);
@@ -611,7 +617,44 @@ class LoginSettingController extends AdminControllerBase
         // return $content->row('<input type="hidden" data-widgetmodal_autoload="' . route('exment.logintest_modal', ['id' => $id]) .'"/>');
     }
 
+    /**
+     * Active login setting
+     *
+     * @param Request $request
+     * @param [type] $id
+     * @return void
+     */
+    public function activate(Request $request, $id)
+    {
+        $login_setting = LoginSetting::getEloquent($id);
+        $login_setting->active_flg = true;
+        $login_setting->save();
+        
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
+    }
 
+    /**
+     * Deactive login setting
+     *
+     * @param Request $request
+     * @param [type] $id
+     * @return void
+     */
+    public function deactivate(Request $request, $id)
+    {
+        $login_setting = LoginSetting::getEloquent($id);
+        $login_setting->active_flg = false;
+        $login_setting->save();
+        
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+    
 
     
     /**
