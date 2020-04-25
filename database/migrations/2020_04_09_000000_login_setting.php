@@ -23,7 +23,7 @@ class LoginSetting extends Migration
         if(!Schema::hasTable('login_settings')){
             $schema->create('login_settings', function (Blueprint $table) {
                 $table->increments('id');
-                $table->string('name');
+                $table->string('login_view_name');
                 $table->string('login_type');
                 $table->boolean('active_flg')->default(false);
                 $table->json('options')->nullable();

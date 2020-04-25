@@ -565,7 +565,7 @@ return [
 
         'header' => 'ログイン設定',
         'description' => 'SSO認証や2段階認証など、Exmentのログインの設定を行います。',
-        'login_setting_name' => 'ログイン設定表示名',
+        'login_view_name' => 'ログイン設定表示名',
         'login_type' => 'ログイン種類',
         'oauth_provider_type' => 'プロバイダ種類',
         'oauth_provider_name' => 'プロバイダ種類(英数字)',
@@ -575,6 +575,7 @@ return [
         
         'user_setting' => 'ユーザー設定',
         'mapping_user_column' => 'アカウント検索列',
+        'mapping_setting' => 'マッピング設定',
         'update_user_info' => 'ユーザー情報を更新する',
         'show_default_login_provider' => '既定のログインを表示する',
         'sso_redirect_force' => 'SSOログインにリダイレクト',

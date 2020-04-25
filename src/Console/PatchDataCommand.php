@@ -912,7 +912,7 @@ class PatchDataCommand extends Command
             $name = array_get($config, 'display_name') ?? pascalize($provider);
 
             $login_setting = new Model\LoginSetting([
-                'name' => $name,
+                'login_view_name' => $name,
                 'login_type' => Enums\LoginType::OAUTH,
                 'active_flg' => true,
                 'options' => [
@@ -922,7 +922,7 @@ class PatchDataCommand extends Command
                     'oauth_client_secret' => array_get($config, 'client_secret'),
                     'oauth_redirect_url' => array_get($config, 'redirect'),
                     'oauth_scope' => array_get($config, 'scope'),
-                    'login_button_label' => array_get($config, 'display_name'),
+                    'login_button_label' => exmtrans('login.login_button_format', ['display_name' => $name]),
                     'login_button_icon' => array_get($config, 'font_owesome'),
                     'login_button_background_color' => array_get($config, 'background_color'),
                     'login_button_background_color_hover' => array_get($config, 'background_color_hover'),

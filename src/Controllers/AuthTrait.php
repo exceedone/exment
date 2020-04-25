@@ -25,27 +25,41 @@ trait AuthTrait
         // if sso_disabled is true
         if (boolval(config('exment.custom_login_disabled', false))) {
             $array['login_providers'] = [];
-            $array['show_default_login_provider'] = true;
+            $array['ldap'] = false;
         }else{
             // get login settings
-            $login_settings = LoginSetting::getOAuthSettings()->merge(LoginSetting::getSamlSettings());
-
-            if (!is_nullorempty($login_settings)) {
-                // create login provider items for login page
-                $login_provider_items = [];
-                foreach ($login_settings as $login_setting) {
-                    $login_provider_items[$login_setting->provider_name] =  $login_setting->getLoginButton();
-                }
-
-                $array['login_providers'] = $login_provider_items;
-                $array['show_default_login_provider'] = boolval(System::show_default_login_provider() ?? false);
-            } else {
-                $array['login_providers'] = [];
-                $array['show_default_login_provider'] = true;
-            }
+            $array['login_providers'] = LoginSetting::getSSOSettings()->mapWithKeys(function($login_setting){
+                return [$login_setting->provider_name => $login_setting->getLoginButton()];
+            })->toArray();
+     
+            // checking ldap
+            $array['ldap'] = !is_nullorempty(LoginSetting::getLdapSetting());
         }
 
+        $array['show_default_login_provider'] = $this->isShowLoginForm();
+
         return $array;
+    }
+
+    /**
+     * Whether showing default login form
+     *
+     * @return boolean
+     */
+    protected function isShowLoginForm(){
+        if (boolval(config('exment.custom_login_disabled', false))) {
+            return true;
+        }
+
+        if(!is_nullorempty(LoginSetting::getLdapSetting())){
+            return true;
+        }
+
+        if(count(LoginSetting::getSSOSettings()) == 0){
+            return true;
+        }
+
+        return false;
     }
 
 

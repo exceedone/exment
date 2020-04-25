@@ -72,7 +72,7 @@ class LoginSetting extends ModelBase
     public function getExmentCallbackUrlAttribute() : string
     {
         if ($this->login_type == LoginType::OAUTH) {
-            return $this->getConfigOption('redirect', 'oauth_redirect_url', $this->exment_callback_url_default);
+            return $this->getOption('oauth_redirect_url') ?? $this->exment_callback_url_default;
         } elseif ($this->login_type == LoginType::SAML) {
             return $this->exment_callback_url_default;
         }
@@ -129,35 +129,20 @@ class LoginSetting extends ModelBase
 
         // get font owesome
         $hasDefault = in_array($provider_name, LoginProviderType::arrays());
-        $display_name = $this->getConfigOption('display_name', 'login_button_label', pascalize($provider_name));
+        $display_name = $this->getOption('login_button_label') ?? exmtrans('login.login_button_format', ['display_name' => $this->login_view_name]);
 
         return [
             'btn_name' => 'btn-'.$provider_name,
             'login_url' => $this->exment_login_url,
-            'font_owesome' => $this->getConfigOption('font_owesome', 'login_button_icon', !$hasDefault ? 'fa-sign-in' : "fa-$provider_name"),
-            'display_name' => exmtrans('login.login_button_format', ['display_name' => $display_name]),
-            'background_color' => $this->getConfigOption('background_color', 'login_button_background_color', !$hasDefault ? '#3c8dbc' : null),
-            'font_color' => $this->getConfigOption('font_color', 'login_button_font_color', !$hasDefault ? '#ffffff' : null),
-            'background_color_hover' => $this->getConfigOption('background_color_hover', 'login_button_background_color_hover', !$hasDefault ? '#367fa9' : null),
-            'font_color_hover' => $this->getConfigOption('font_color_hover', 'login_button_font_color_hover', !$hasDefault ? '#ffffff' : null),
+            'font_owesome' => $this->getOption('login_button_icon') ?? (!$hasDefault ? 'fa-sign-in' : "fa-$provider_name"),
+            'display_name' => $display_name,
+            'background_color' => $this->getOption('login_button_background_color') ?? (!$hasDefault ? '#3c8dbc' : null),
+            'font_color' => $this->getOption('login_button_font_color') ?? (!$hasDefault ? '#ffffff' : null),
+            'background_color_hover' => $this->getOption('login_button_background_color_hover') ?? (!$hasDefault ? '#367fa9' : null),
+            'font_color_hover' => $this->getOption('login_button_font_color_hover') ?? (!$hasDefault ? '#ffffff' : null),
         ];
     }
 
-    /**
-     * Get Login Button Option
-     *
-     * @param [type] $provider_name
-     * @param [type] $configKeyName
-     * @param [type] $optionKeyName
-     * @param [type] $default
-     * @return void
-     */
-    public function getConfigOption($configKeyName, $optionKeyName, $default = null)
-    {
-        $val = $this->getOption($optionKeyName) ?? config("services.$this->provider_name.$configKeyName");
-        return $val ?? $default;
-    }
-    
     /**
      * Get SSO all settings
      *
@@ -168,6 +153,16 @@ class LoginSetting extends ModelBase
         return static::allRecords(function ($record) {
             return $record->active_flg;
         });
+    }
+
+    /**
+     * Get SSO (OAuth and SAML) all settings
+     *
+     * @return void
+     */
+    public static function getSSOSettings()
+    {
+        return static::getOAuthSettings()->merge(static::getSamlSettings());
     }
 
     /**

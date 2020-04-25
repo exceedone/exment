@@ -67,7 +67,7 @@ class LoginSettingController extends AdminControllerBase
             $enum = LoginType::getEnum($v);
             return $enum ? $enum->transKey('login.login_type_options') : null;
         });
-        $grid->column('name', exmtrans('login.login_setting_name'));
+        $grid->column('login_view_name', exmtrans('login.login_view_name'));
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->displayEscape(function ($active_flg) {
             return boolval($active_flg) ? exmtrans("common.available_true") : exmtrans("common.available_false");
         });
@@ -97,7 +97,7 @@ class LoginSettingController extends AdminControllerBase
 
         $form->description(exmtrans('common.help.more_help'));
 
-        $form->text('name', exmtrans('login.login_setting_name'))->required();
+        $form->text('login_view_name', exmtrans('login.login_view_name'))->required();
 
         if (!isset($id)) {
             $form->radio('login_type', exmtrans('login.login_type'))->options(LoginType::transArrayFilter('login.login_type_options', LoginType::SETTING()))
@@ -130,6 +130,7 @@ class LoginSettingController extends AdminControllerBase
 
             $form->exmheader(exmtrans('login.user_setting'))->hr();
 
+            // showing "user"'s Custom column and unique
             $form->select('mapping_user_column', exmtrans("login.mapping_user_column"))
             ->required()
             ->config('allowClear', false)
@@ -154,6 +155,10 @@ class LoginSettingController extends AdminControllerBase
             ->default(true);
 
             if (!isset($login_setting) || in_array($login_setting->login_type, [LoginType::SAML, LoginType::LDAP])) {
+                
+                $form->exmheader(exmtrans('login.mapping_setting'))->hr()
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
+
                 $form->description(exmtrans("login.help.mapping_description"))
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
 
@@ -178,6 +183,7 @@ class LoginSettingController extends AdminControllerBase
             
                 $form->text('login_button_label', exmtrans('login.login_button_label'))
                 ->default(null)
+                ->rules('max:30')
                 ->help(exmtrans('login.help.login_button_label'))
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::OAUTH]])]);
                 
@@ -316,6 +322,7 @@ class LoginSettingController extends AdminControllerBase
         
         $form->text('ldap_port', exmtrans('login.ldap_port'))
         ->required()
+        ->rules('numeric|nullable')
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
         
         $form->text('ldap_base_dn', exmtrans('login.ldap_base_dn'))
