@@ -294,6 +294,7 @@ class RouteServiceProvider extends ServiceProvider
                 $router->get("table/filterviews", 'ApiController@filterviews')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 $router->get("table/{tableKey}", 'ApiController@table')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 $router->get("table/{tableKey}/columns", 'ApiTableController@tableColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
+                $router->get("table/{tableKey}/column/{columnKey}", 'ApiTableController@tableColumn')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 $router->get("column/{id}", 'ApiController@column')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 $router->get("target_table/columns/{id}", 'ApiController@targetBelongsColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 

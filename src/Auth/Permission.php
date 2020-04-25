@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Auth;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission as PermissionEnum;
 
@@ -42,7 +43,7 @@ class Permission
     {
         $this->role_type = array_get($attributes, 'role_type');
         $this->table_name = array_get($attributes, 'table_name');
-        $this->permission_details = array_get($attributes, 'permission_details');
+        $this->permission_details = array_get($attributes, 'permission_details', []);
     }
 
     public function getRoleType()
@@ -92,7 +93,22 @@ class Permission
     public function shouldPassThrough(Request $request) : bool
     {
         // get target endpoint
-        $endpoint = $this->getEndPoint($request);
+        $endpoint = $this->getEndPoint($request->url());
+
+        return $this->shouldPass($endpoint);
+    }
+
+    /**
+     * If endpoint should pass through the current permission.
+     *
+     * @param string $endpoint
+     *
+     * @return bool
+     */
+    public function shouldPassEndpoint(?string $endpoint) : bool
+    {
+        // get target endpoint
+        $endpoint = $this->getEndPoint($endpoint);
 
         return $this->shouldPass($endpoint);
     }
@@ -100,11 +116,11 @@ class Permission
     /**
      * If request should pass through the current permission.
      *
-     * @param string|null $endpoint
+     * @param string|null $endpoint processed endpoint
      *
      * @return bool
      */
-    public function shouldPass($endpoint) : bool
+    protected function shouldPass($endpoint) : bool
     {
         // checking booting function
         $result = $this->fireShouldPasses($endpoint);
@@ -127,8 +143,7 @@ class Permission
         }
 
         // not admin page's (for custom url), return true
-        $parse_url = parse_url($endpoint);
-        if ($parse_url && array_has($parse_url, 'host') && strpos($endpoint, admin_url()) === false) {
+        if ($this->isNotAdminUrl($endpoint)) {
             return true;
         }
 
@@ -138,27 +153,42 @@ class Permission
             return true;
         }
 
-        switch ($endpoint) {
+        return $this->hasPermissionByEndpoint($systemRole, $endpoint);
+    }
+
+    protected function hasPermissionByEndpoint(bool $systemRole, string $endpoint, ?string $target = null, bool $recursive = false) : bool
+    {
+        if (!isset($target)) {
+            $target = $endpoint;
+        }
+        switch ($target) {
             case "":
             case "/":
             case "index":
             case "api":
+            case "webapi":
             case "search":
+            case "plugins":
             case "auth-2factor":
             case "auth/login":
             case "auth/logout":
             case "saml/login":
             case "saml/logout":
             case "auth/setting":
+            case "auth/reset":
             case "auth/change":
+            case "auth/forget":
             case "dashboard":
             case "dashboardbox":
+            case "initialize":
+            case "install":
             case "oauth":
             case "files":
             case "notify_navbar":
                 return true;
             ///// only system permission
             case "system":
+            case "backup":
             case "plugin":
             case "login_setting":
             case "database":
@@ -170,7 +200,8 @@ class Permission
                 return false;
             ///// each permissions
             case "notify":
-                return \Exment::user()->hasPermissionContainsTable(PermissionEnum::CUSTOM_TABLE);
+                $user = \Exment::user();
+                return $user ? $user->hasPermissionContainsTable(PermissionEnum::CUSTOM_TABLE) : false;
             case "loginuser":
                 if ($systemRole) {
                     return array_key_exists(PermissionEnum::LOGIN_USER, $this->permission_details);
@@ -202,7 +233,7 @@ class Permission
                     return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
-                if (!$this->matchEndPointTable(null)) {
+                if (!$this->matchEndPointTable($endpoint)) {
                     return false;
                 }
                 return array_key_exists('custom_table', $this->permission_details);
@@ -211,7 +242,7 @@ class Permission
                     return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
-                if (!$this->matchEndPointTable(null)) {
+                if (!$this->matchEndPointTable($endpoint)) {
                     return false;
                 }
                 return array_key_exists('custom_table', $this->permission_details);
@@ -220,7 +251,7 @@ class Permission
                     return array_key_exists('custom_form', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
-                if (!$this->matchEndPointTable(null)) {
+                if (!$this->matchEndPointTable($endpoint)) {
                     return false;
                 }
                 return array_key_exists('custom_form', $this->permission_details);
@@ -229,31 +260,46 @@ class Permission
                     return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
-                if (!$this->matchEndPointTable(null)) {
+                if (!$this->matchEndPointTable($endpoint)) {
                     return false;
                 }
                 return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
             case "data":
                 return $this->validateCustomValuePermission($systemRole, $endpoint);
         }
-        // if find endpoint "data/", check as data
-        if (strpos($endpoint, 'data/') !== false) {
-            return $this->validateCustomValuePermission($systemRole, preg_replace('/^data\//', '', $endpoint));
+        
+        if ($recursive) {
+            return false;
         }
+
+        // if find endpoint "data/", check as data
+        
+        if (preg_match('/^(' . implode('|', Define::CUSTOM_TABLE_ENDPOINTS)  . ')\/(.+)$/u', $endpoint, $matched)) {
+            return $this->hasPermissionByEndpoint($systemRole, $matched[2], $matched[1], true);
+        }
+
 
         return false;
     }
 
     /**
      * Get Endpoint
-     * @param Request $request
+     * @param ?string $endpoint
      * @return mixed
      */
-    protected function getEndPoint(Request $request)
+    protected function getEndPoint(?string $endpoint) : ?string
     {
+        // not admin page's (for custom url), return $endpoint
+        if ($this->isNotAdminUrl($endpoint)) {
+            return $endpoint;
+        }
+
         // remove admin url from request url.
-        $url = str_replace(admin_url(), '', $request->url());
+        $url = str_replace(admin_url(), '', $endpoint);
         
+        // remove after query
+        $url = $this->removeAfterQuery($url);
+
         ///// get last url.
         $uris = explode("/", $url);
         foreach ($uris as $k => $uri) {
@@ -262,7 +308,7 @@ class Permission
             }
 
             // if $uri is "auth", get next uri.
-            if (in_array($uri, ['data', 'auth', 'saml'])) {
+            if (in_array($uri, array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['auth', 'saml']))) {
                 // but url is last item, return $uri.
                 if (count($uris) <= $k+1) {
                     return $uri;
@@ -314,5 +360,27 @@ class Permission
             return false;
         }
         return array_keys_exists($permissions, $this->permission_details);
+    }
+
+    /**
+     * not admin page's (for custom url), return true
+     *
+     * @return boolean
+     */
+    protected function isNotAdminUrl(?string $endpoint)
+    {
+        $parse_url = parse_url($endpoint);
+        if ($parse_url && array_has($parse_url, 'host') && strpos($endpoint, admin_url()) === false) {
+            return true;
+        }
+    }
+
+    protected function removeAfterQuery($url)
+    {
+        if (mb_strpos($url, '?') !== false) {
+            return mb_substr($url, 0, (mb_strpos($url, '?')));
+        }
+
+        return $url;
     }
 }

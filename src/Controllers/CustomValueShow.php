@@ -269,6 +269,10 @@ trait CustomValueShow
                 if (!isset($target_table)) {
                     return;
                 }
+                // if user doesn't have permission, hide child block
+                if ($target_table->enableView() !== true) {
+                    continue;
+                }
 
                 $classname = getModelName($target_table);
                 $grid = new Grid(new $classname);

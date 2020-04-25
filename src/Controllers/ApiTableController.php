@@ -29,6 +29,22 @@ class ApiTableController extends AdminControllerTableBase
 
     protected $custom_table;
 
+    /**
+     * Execute an action on the controller.
+     *
+     * @param  string  $method
+     * @param  array   $parameters
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function callAction($method, $parameters)
+    {
+        if (!$this->custom_table) {
+            return abortJson(404);
+        }
+        
+        return call_user_func_array([$this, $method], $parameters);
+    }
+
     // custom_value --------------------------------------------------
     
     /**
@@ -496,6 +512,16 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         return $this->custom_columns;
+    }
+
+    /**
+     * get column data by id
+     * @param mixed $id
+     * @return mixed
+     */
+    public function tableColumn(Request $request, $tableKey, $column_name)
+    {
+        return $this->responseColumn($request, CustomColumn::getEloquent($column_name, $tableKey));
     }
 
     /**

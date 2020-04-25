@@ -666,6 +666,19 @@ if (!function_exists('array_dot_only')) {
     }
 }
 
+if (!function_exists('array_remove')) {
+    /**
+     * array remove as "array_forget"
+     * @return array|string $keys
+     */
+    function array_remove(array $array, $keys)
+    {
+        $result = array_diff($array, toArray($keys));
+        //move index
+        return array_values($result);
+    }
+}
+
 if (!function_exists('jsonToArray')) {
     /**
      * json to array

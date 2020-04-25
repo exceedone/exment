@@ -424,6 +424,56 @@ class ApiTest extends ApiTestBase
             ->assertStatus(403);
     }
 
+
+    public function testGetColumnByName(){
+        $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'table', 'information', 'column', 'title'))
+            ->assertStatus(200)
+            ->assertJsonFragment([
+                'column_name' => 'title',
+                'column_view_name' => 'タイトル',
+                'column_type' => 'text',
+            ]);
+    }
+
+    public function testNotFoundGetColumnByName(){
+        $token = $this->getAdminAccessToken([ApiScope::TABLE_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+            ])->get(admin_urls('api', 'table', 'information', 'column', 'foobar'))
+            ->assertStatus(400)
+            ->assertJsonFragment([
+                'code' => ErrorCode::DATA_NOT_FOUND
+            ]);
+    }
+
+    public function testWrongScopeGetColumnByName(){
+        $token = $this->getAdminAccessToken([ApiScope::WORKFLOW_READ]);
+
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'table', 'information', 'column', 'title'))
+            ->assertStatus(403)
+            ->assertJsonFragment([
+                'code' => ErrorCode::WRONG_SCOPE
+            ]);
+    }
+
+    public function testDenyGetColumnByName(){
+        $token = $this->getUser2AccessToken([ApiScope::TABLE_READ]);
+        
+        // get no_permission table's column.
+        $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'table', 'no_permission', 'column', 'text'))
+            ->assertStatus(403);
+    }
+
+
     public function testGetValues(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
