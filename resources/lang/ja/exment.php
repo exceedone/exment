@@ -1055,6 +1055,7 @@ return [
             'upper' => '英大文字', 
             'number' => '数字', 
             'hyphen_underscore' => '"-"または"_"',
+            'dot' => '"."(ドット)',
             'symbol' => '記号',
         ],
         
