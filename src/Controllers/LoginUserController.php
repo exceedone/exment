@@ -116,8 +116,7 @@ class LoginUserController extends AdminControllerBase
 
         LoginUserItem::getItem()->setAdminFormOptions($form, $id);
 
-        $showLoginInfo = LoginSetting::getAllSettings()->count() && !boolval(config('exment.show_default_login_provider', true));
-        if ($showLoginInfo) {
+        if(!LoginSetting::isUseDefaultLoginForm()){
             $form->disableSubmit();
         }
         $form->disableReset();

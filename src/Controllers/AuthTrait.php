@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 trait AuthTrait
 {
+
     public function getLoginPageData($array = [])
     {
         $array['site_name'] = System::site_name();
@@ -25,43 +26,24 @@ trait AuthTrait
         // if sso_disabled is true
         if (boolval(config('exment.custom_login_disabled', false))) {
             $array['login_providers'] = [];
-            $array['ldap'] = false;
+            $array['form_providers'] = [];
+            $array['show_default_login_provider'] = true;
         }else{
             // get login settings
             $array['login_providers'] = LoginSetting::getSSOSettings()->mapWithKeys(function($login_setting){
                 return [$login_setting->provider_name => $login_setting->getLoginButton()];
             })->toArray();
-     
-            // checking ldap
-            $array['ldap'] = !is_nullorempty(LoginSetting::getLdapSetting());
+            $array['form_providers'] = LoginSetting::getLdapSettings()->mapWithKeys(function($login_setting){
+                return [$login_setting->provider_name => $login_setting->getLoginButton()];
+            })->toArray();
+
+            $array['show_default_login_provider'] = LoginSetting::isUseDefaultLoginForm();
         }
 
-        $array['show_default_login_provider'] = $this->isShowLoginForm();
+        $array['show_default_form'] = $array['show_default_login_provider'] || count($array['form_providers']) > 0;
 
         return $array;
     }
-
-    /**
-     * Whether showing default login form
-     *
-     * @return boolean
-     */
-    protected function isShowLoginForm(){
-        if (boolval(config('exment.custom_login_disabled', false))) {
-            return true;
-        }
-
-        if(!is_nullorempty(LoginSetting::getLdapSetting())){
-            return true;
-        }
-
-        if(count(LoginSetting::getSSOSettings()) == 0){
-            return true;
-        }
-
-        return false;
-    }
-
 
     protected function logoutSso(Request $request, $login_user, $options = [])
     {
@@ -143,9 +125,16 @@ trait AuthTrait
 
         // update user info
         if (boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
-            $exment_user->setValue([
-                'user_name' => $custom_login_user->user_name
-            ]);
+            // update only init_flg is false
+            $update_user_columns = $this->getUserColumns()->filter(function($column){
+                return !boolval($column->getOption('init_flg'));
+            });
+
+            $values = $update_user_columns->mapWithKeys(function($column) use($custom_login_user){
+                return [$column->column_name => array_get($custom_login_user->mapping_values, $column->column_name)];
+            });
+
+            $exment_user->setValue($values);
             $exment_user->save();
         }
 
@@ -165,7 +154,7 @@ trait AuthTrait
 
         if (!is_nullorempty($sso_accept_mail_domains = System::sso_accept_mail_domain())) {
             // check domain
-            $email_domain = explode("@", $custom_login_user->email)[1];
+            $email_domain = explode("@", $custom_login_user->email())[1];
             $domain_result = false;
             foreach (explodeBreak($sso_accept_mail_domains) as $sso_accept_mail_domain) {
                 if ($email_domain == $sso_accept_mail_domain) {
@@ -184,11 +173,13 @@ trait AuthTrait
         $exment_user = null;
         \DB::transaction(function () use ($custom_login_user, &$exment_user) {
             $exment_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
-            $exment_user->setValue([
-                'user_name' => $custom_login_user->user_name,
-                'user_code' => $custom_login_user->user_code,
-                'email' => $custom_login_user->email,
-            ]);
+
+            $update_user_columns = $this->getUserColumns();
+            $values = $update_user_columns->mapWithKeys(function($column) use($custom_login_user){
+                return [$column->column_name => array_get($custom_login_user->mapping_values, $column->column_name)];
+            });
+
+            $exment_user->setValue($values);
             $exment_user->save();
     
             // Set roles
@@ -217,20 +208,13 @@ trait AuthTrait
         // get login_user
         $login_user = CustomUserProvider::RetrieveByCredential(
             [
-                'username' => $custom_login_user->email,
+                'target_column' => $custom_login_user->mapping_user_column,
+                'username' => $custom_login_user->login_id,
                 'login_provider' => $custom_login_user->provider_name,
                 'login_type' => $custom_login_user->login_type,
             ]
         );
-        // if (isset($login_user)) {
-        //     // check password
-        //     if (CustomUserProvider::ValidateCredential($login_user, [
-        //         'password' => $custom_login_user->dummy_password
-        //     ])) {
-        //         $hasLoginUser = true;
-        //     }
-        // }
-
+        
         // if don't has, create loginuser or match email
         if (!$hasLoginUser) {
             $login_user = LoginUser::firstOrNew([
@@ -289,5 +273,9 @@ trait AuthTrait
             return exmtrans('error.login_failed');
         }
         return parent::getFailedLoginMessage();
+    }
+
+    protected function getUserColumns(){
+        return CustomTable::getEloquent(SystemTableName::USER)->custom_columns_cache;
     }
 }

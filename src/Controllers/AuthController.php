@@ -76,8 +76,10 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         $credentials = $request->only([$this->username(), 'password']);
 
-        if (!boolval(config('exment.custom_login_disabled', false)) && !is_nullorempty(LoginSetting::getLdapSetting())) {
-            return $this->loginLdap($request, $credentials);
+        foreach(LoginSetting::getLdapSettings() as $login_setting){
+            if($request->has("login_setting_{$login_setting->provider_name}")){
+                return $this->loginLdap($request, $credentials, $login_setting);
+            }
         }
 
         return $this->loginDefault($request, $credentials);
@@ -119,9 +121,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      * @param Request $request
      * @return void
      */
-    protected function loginLdap(Request $request, array $credentials)
+    protected function loginLdap(Request $request, array $credentials, LoginSetting $login_setting)
     {
-        $login_setting = LoginSetting::getLdapSetting();
         $error_url = admin_url('auth/login');
         $error_redirect = redirect($error_url)->withInput()->withErrors(
             [$this->username() => $this->getFailedLoginMessage()]
@@ -147,7 +148,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             
             $custom_login_user = LdapUser::with($login_setting, $ldapUserArray);
 
-            $validator = LoginService::validateCustomLoginSync($custom_login_user->getValidateArray());
+            $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
             if ($validator->fails()) {
                 return redirect($error_url)->withInput()->withErrors(
                     [$this->username() => $validator->errors()->messages()]

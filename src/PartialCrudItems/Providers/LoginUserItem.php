@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\LoginType;
 
 /**
  * Login User item
@@ -22,64 +23,64 @@ class LoginUserItem extends ProviderBase
             return;
         }
 
+        if(!LoginSetting::isUseDefaultLoginForm()){
+            return;
+        }
+
         $classname = getModelName(SystemTableName::USER);
         $login_user = $this->getLoginUser($id);
         $has_loginuser = !is_null($login_user);
-        $showLoginInfo = LoginSetting::getAllSettings()->count() > 0 && !boolval(config('exment.show_default_login_provider', true));
 
-        if (!$showLoginInfo) {
-            $form->exmheader(exmtrans('user.login'))->hr();
-            $form->switchbool('use_loginuser', exmtrans('user.use_loginuser'))
-                    ->help(exmtrans('user.help.use_loginuser'))
-                    ->default($has_loginuser ? '1' : '0')
-                    ->attribute(['data-filtertrigger' => true]);
+        $form->exmheader(exmtrans('user.login'))->hr();
+        $form->switchbool('use_loginuser', exmtrans('user.use_loginuser'))
+                ->help(exmtrans('user.help.use_loginuser'))
+                ->default($has_loginuser ? '1' : '0')
+                ->attribute(['data-filtertrigger' => true]);
 
-            if ($has_loginuser) {
-                $form->switchbool('reset_password', exmtrans('user.reset_password'))
-                            ->default(!$has_loginuser)
-                            ->help(exmtrans('user.help.reset_password'))
-                            ->attribute(['data-filter' => json_encode(['key' => 'use_loginuser', 'value' => '1'])]);
-            } else {
-                $form->hidden('reset_password')->default("1");
-            }
+        if ($has_loginuser) {
+            $form->switchbool('reset_password', exmtrans('user.reset_password'))
+                        ->default(!$has_loginuser)
+                        ->help(exmtrans('user.help.reset_password'))
+                        ->attribute(['data-filter' => json_encode(['key' => 'use_loginuser', 'value' => '1'])]);
+        } else {
+            $form->hidden('reset_password')->default("1");
+        }
 
-            $form->switchbool('create_password_auto', exmtrans('user.create_password_auto'))
-                ->default('1')
-                ->help(exmtrans('user.help.create_password_auto'))
-                ->attribute(['data-filter' => json_encode([
-                    ['key' => 'use_loginuser', 'value' => '1']
-                    , ['key' => 'reset_password', 'value' => "1"]
-                    ])]);
+        $form->switchbool('create_password_auto', exmtrans('user.create_password_auto'))
+            ->default('1')
+            ->help(exmtrans('user.help.create_password_auto'))
+            ->attribute(['data-filter' => json_encode([
+                ['key' => 'use_loginuser', 'value' => '1']
+                , ['key' => 'reset_password', 'value' => "1"]
+                ])]);
 
-            $form->password('password', exmtrans('user.password'))->default('')
-                    ->help(exmtrans('user.help.password'))
-                    ->attribute(['data-filter' => json_encode([
-                        ['key' => 'use_loginuser', 'value' => '1']
-                        , ['key' => 'reset_password', 'value' => "1"]
-                        , ['key' => 'create_password_auto', 'value' => '0']
-                        ])]);
-
-            $form->password('password_confirmation', exmtrans('user.password_confirmation'))->default('')
+        $form->password('password', exmtrans('user.password'))->default('')
+                ->help(exmtrans('user.help.password'))
                 ->attribute(['data-filter' => json_encode([
                     ['key' => 'use_loginuser', 'value' => '1']
                     , ['key' => 'reset_password', 'value' => "1"]
                     , ['key' => 'create_password_auto', 'value' => '0']
                     ])]);
 
-            // "send_password"'s data-filter is whether $id is null or hasvalue
-            $send_password_filter = [
-                ['key' => 'use_loginuser', 'value' => '1'],
-                ['key' => 'create_password_auto', 'value' => '0'],
-            ];
-            if (isset($id)) {
-                $send_password_filter[] = ['key' => 'reset_password', 'value' => "1"];
-            }
-            $form->switchbool('send_password', exmtrans('user.send_password'))
-                ->default(1)
-                ->help(exmtrans('user.help.send_password'))
-                ->attribute(['data-filter' => json_encode($send_password_filter)]);
-        } else {
+        $form->password('password_confirmation', exmtrans('user.password_confirmation'))->default('')
+            ->attribute(['data-filter' => json_encode([
+                ['key' => 'use_loginuser', 'value' => '1']
+                , ['key' => 'reset_password', 'value' => "1"]
+                , ['key' => 'create_password_auto', 'value' => '0']
+                ])]);
+
+        // "send_password"'s data-filter is whether $id is null or hasvalue
+        $send_password_filter = [
+            ['key' => 'use_loginuser', 'value' => '1'],
+            ['key' => 'create_password_auto', 'value' => '0'],
+        ];
+        if (isset($id)) {
+            $send_password_filter[] = ['key' => 'reset_password', 'value' => "1"];
         }
+        $form->switchbool('send_password', exmtrans('user.send_password'))
+            ->default(1)
+            ->help(exmtrans('user.help.send_password'))
+            ->attribute(['data-filter' => json_encode($send_password_filter)]);
 
         $form->ignore(['use_loginuser', 'reset_password', 'create_password_auto', 'password', 'password_confirmation', 'send_password']);
     }
@@ -93,6 +94,10 @@ class LoginUserItem extends ProviderBase
             return;
         }
         
+        if(!LoginSetting::isUseDefaultLoginForm()){
+            return;
+        }
+
         $data = request()->all();
         $user = getModelName(SystemTableName::USER)::findOrFail($id);
 
@@ -215,7 +220,7 @@ class LoginUserItem extends ProviderBase
             return null;
         }
 
-        $login_user = LoginUser::where('base_user_id', $base_user_id)->whereNull('login_provider')->first();
+        $login_user = LoginUser::where('base_user_id', $base_user_id)->whereNull('login_provider')->where('login_type', LoginType::PURE)->first();
         return $login_user;
     }
 }

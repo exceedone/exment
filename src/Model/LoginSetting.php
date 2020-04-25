@@ -32,6 +32,8 @@ class LoginSetting extends ModelBase
             return $this->getOption('oauth_provider_type');
         } elseif ($this->login_type == LoginType::SAML) {
             return $this->getOption('saml_name');
+        } elseif ($this->login_type == LoginType::LDAP) {
+            return $this->getOption('ldap_name');
         }
     }
 
@@ -53,13 +55,15 @@ class LoginSetting extends ModelBase
      *
      * @return string
      */
-    public function getExmentLoginUrlAttribute() : string
+    public function getExmentLoginUrlAttribute() : ?string
     {
         if ($this->login_type == LoginType::OAUTH) {
             return admin_urls('auth', 'login', $this->provider_name);
         } elseif ($this->login_type == LoginType::SAML) {
             return admin_urls('saml', 'login', $this->provider_name);
         }
+
+        return null;
     }
 
     /**
@@ -354,6 +358,27 @@ class LoginSetting extends ModelBase
 
         $saml2Auth = new \Aacotroneo\Saml2\Saml2Auth(new \OneLogin\Saml2\Auth($config));
         return $saml2Auth;
+    }
+
+    /**
+     * Whether use default login form. (Not contain LDAP)
+     *
+     * @return boolean
+     */
+    public static function isUseDefaultLoginForm(){
+        if (boolval(config('exment.custom_login_disabled', false))) {
+            return true;
+        }
+
+        if(System::show_default_login_provider()){
+            return true;
+        }
+
+        if(count(LoginSetting::getAllSettings()) == 0){
+            return true;
+        }
+
+        return false;
     }
 
     /**

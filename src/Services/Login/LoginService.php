@@ -2,7 +2,9 @@
 namespace Exceedone\Exment\Services\Login;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\LoginSetting;
@@ -71,11 +73,15 @@ class LoginService
      */
     public static function validateCustomLoginSync(array $data)
     {
-        return \Validator::make($data, [
-            'user_code' => 'required',
-            'user_name' => 'required',
-            'email' => 'required|email',
-        ]);
+        $rules = CustomTable::getEloquent(SystemTableName::USER)->getValidateRules($data);
+
+        // remove "unique" rule
+        foreach($rules as $key => $rule){
+            $rules[$key] = array_filter($rule, function($r){
+                return strpos($r, 'unique') !== 0;
+            });
+        }
+        return \Validator::make($data, $rules);
     }
     
 
@@ -104,7 +110,7 @@ class LoginService
             ];
     
             foreach ($keys as $key) {
-                $message[] = exmtrans("user.$key") . ' : ' . $custom_login_user->{$key};
+                $message[] = exmtrans("user.$key") . ' : ' . $custom_login_user->mapping_values[$key];
             }
         }
 

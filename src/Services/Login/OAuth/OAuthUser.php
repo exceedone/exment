@@ -37,9 +37,9 @@ class OAuthUser extends CustomLoginUserBase
         $user->login_type = LoginType::OAUTH;
         $user->login_setting = LoginSetting::getOAuthSetting($provider_name);
 
-        $user->email = $provider_user->email;
-        $user->user_code = $provider_user->id;
-        $user->user_name = $provider_user->name ?: $provider_user->email;
+        $user->mapping_values['email'] = $provider_user->email;
+        $user->mapping_values['user_code'] = $provider_user->id;
+        $user->mapping_values['user_name'] = $provider_user->name ?: $provider_user->email;
 
         $user->avatar = isset($provider_user->avatar) ? $provider_user->avatar : null;
         $user->token = isset($provider_user->token) ? $provider_user->token : null;

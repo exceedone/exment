@@ -636,7 +636,7 @@ return [
             'login_button_background_color_hover' => 'ログインボタンの背景色(オンマウス時)を入力してください。',
             'login_button_font_color' => 'ログインボタンの文字色を入力してください。',
             'login_button_font_color_hover' => 'ログインボタンの文字色(オンマウス時)を入力してください。',
-            'show_default_login_provider' => 'YESの場合、ExmentのID・パスワードを使用したログインフォームも表示します。',
+            'show_default_login_provider' => 'YESの場合、ExmentのID・パスワードを使用したログインフォームを表示します。',
             'sso_redirect_force' => 'YESの場合、Exmentのログインページを表示せず、SSOのログインページに直接リダイレクトします。※SSOのプロバイダが1件のみの場合に有効になります。',
             'sso_jit' => 'YESの場合、ログインしたユーザーがExmentに存在しなかった場合、ログイン情報を使用し、Exmentユーザーを新規作成します。NOの場合は、事前にExmentにユーザーを作成する必要があります。',
             'update_user_info' => 'YESの場合、ログイン時に、Exmentのユーザー情報を更新します。',

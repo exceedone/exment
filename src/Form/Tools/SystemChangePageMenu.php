@@ -2,11 +2,8 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\Permission;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Tools\AbstractTool;
 
 class SystemChangePageMenu extends AbstractTool

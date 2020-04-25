@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Services\Login;
 
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums\SystemTableName;
+
 /**
  * Custom Login User.
  * For OAuth, Saml, Plugin login.
@@ -14,43 +17,51 @@ abstract class CustomLoginUserBase
     public $mapping_user_column;
 
     public $provider_name;
-    public $email;
-    public $user_code;
-    public $user_name;
+    // public $email;
+    // public $user_code;
+    // public $user_name;
     public $login_type;
 
     /**
-     * mappng error.
+     * mapping error.
      *
      * @var array
      */
     public $mapping_errors = [];
 
     /**
-     * Get for validation array
+     * mapped value.
      *
-     * @return void
+     * @var array
      */
-    public function getValidateArray()
-    {
-        return [
-            'user_code' => $this->user_code,
-            'user_name' => $this->user_name,
-            'email' => $this->email,
-        ];
+    public $mapping_values = [];
+
+
+    public function user_code(){
+        return array_get($mapping_values, 'user_code');
+    }
+    
+    public function user_name(){
+        return array_get($mapping_values, 'user_name');
     }
 
+    public function email(){
+        return array_get($mapping_values, 'email');
+    }
+    
     /**
      * Mapping Exment and provider user value
      *
      * @return void
      */
     protected static function setMappingValue(CustomLoginUserBase $user, $providerUser){
-        $keys = ['user_code', 'user_name', 'email'];
+        $user_custom_columns = static::getUserColumns();
 
         // set values
-        foreach ($keys as $key) {
-            $mappingKeys = $user->login_setting->getOption("mapping_$key");
+        foreach ($user_custom_columns as $user_custom_column) {
+            $key = $user_custom_column->column_name;
+
+            $mappingKeys = $user->login_setting->getOption("mapping_column_$key");
             
             $mappingValue = null;
             foreach(stringToArray($mappingKeys) as $mappingKey){
@@ -72,15 +83,18 @@ abstract class CustomLoginUserBase
             }
 
             // if cannot mapping, append error
-            if(is_nullorempty($mappingValue)){
+            if(is_nullorempty($mappingValue) && $user_custom_column->required){
                 $user->mapping_errors[$key] = exmtrans('login.message.not_match_mapping', [
                     'key' => $key,
                     'mappingKey' => $mappingKeys,
                 ]);
             }
             else{
-                $user->{$key} = $mappingValue;
+                $user->mapping_values[$key] = $mappingValue;
             }
         }
+    }
+    protected static function getUserColumns(){
+        return CustomTable::getEloquent(SystemTableName::USER)->custom_columns_cache;
     }
 }

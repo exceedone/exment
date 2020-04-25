@@ -52,6 +52,11 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
     {
         $login_user = null;
         foreach (['email', 'user_code'] as $key) {
+            // if user select filtering column, and not mutch, continue
+            if(array_has($credentials, 'target_column') && $credentials['target_column'] != $key){
+                continue;
+            }
+
             $query = LoginUser::whereHas('base_user', function ($query) use ($key, $credentials) {
                 $user = CustomTable::getEloquent(SystemTableName::USER);
                 $query->where($user->getIndexColumnName($key), array_get($credentials, 'username'));

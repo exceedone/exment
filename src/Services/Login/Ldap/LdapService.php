@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Services\Login\Ldap;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Form\Tools;
@@ -47,9 +49,9 @@ class LdapService implements LoginServiceInterface
         ((isset($suffix) && strripos($username, $suffix) !== (mb_strlen($username) - mb_strlen($suffix))) ? $suffix : '');
     }
 
-    public static function syncLdapUserArray($provider, LoginSetting $login_setting, $username)
+    public static function syncLdapUser($provider, LoginSetting $login_setting, $username)
     {
-        return $provider->search()->findBy($login_setting->getOption('ldap_search_key'), $username);
+        return $provider->search()->users()->findBy($login_setting->getOption('ldap_search_key'), $username);
     }
 
     public static function getTestForm(LoginSetting $login_setting)
@@ -73,6 +75,66 @@ class LdapService implements LoginServiceInterface
 
         return $form;
     }
+
+    
+
+    public static function setLdapForm($form, $login_setting, $errors)
+    {
+        if (array_has($errors, LoginType::LDAP)) {
+            $form->description($errors[LoginType::LDAP])
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+            return;
+        }
+
+        
+        if (!isset($login_setting)) {
+            $form->text('ldap_name', exmtrans('login.ldap_name'))
+            ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'))
+            ->required()
+            ->rules(["max:30", "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/", new \Exceedone\Exment\Validator\SamlNameUniqueRule])
+            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        } else {
+            $form->display('ldap_name_text', exmtrans('login.ldap_name'))->default(function () use ($login_setting) {
+                return $login_setting->getOption('ldap_name');
+            });
+            $form->hidden('ldap_name');
+        }
+
+        $form->text('ldap_hosts', exmtrans('login.ldap_hosts'))
+        ->required()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        
+        $form->text('ldap_port', exmtrans('login.ldap_port'))
+        ->required()
+        ->rules('numeric|nullable')
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        
+        $form->text('ldap_base_dn', exmtrans('login.ldap_base_dn'))
+        ->help(exmtrans('login.help.ldap_base_dn'))
+        ->default('dc=example,dc=co,dc=jp')
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        
+        $form->text('ldap_search_key', exmtrans('login.ldap_search_key'))
+        ->help(exmtrans('login.help.ldap_search_key'))
+        ->required()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        
+        $form->text('ldap_account_prefix', exmtrans('login.ldap_account_prefix'))
+        ->help(exmtrans('login.help.ldap_account_prefix'))
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        
+        $form->text('ldap_account_suffix', exmtrans('login.ldap_account_suffix'))
+        ->help(exmtrans('login.help.ldap_account_suffix'))
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+        
+        $form->switchbool('ldap_use_ssl', exmtrans('login.ldap_use_ssl'))
+        ->default(false);
+
+        $form->switchbool('ldap_use_tls', exmtrans('login.ldap_use_tls'))
+        ->default(false);
+    }
+
+
     
     /**
      * Execute login test
@@ -82,47 +144,7 @@ class LdapService implements LoginServiceInterface
      */
     public static function loginTest(Request $request, $login_setting)
     {
-        $message = null;
-        $result = false;
-        $credentials = $request->only(['username', 'password']);
-
-        $username = static::getLdapUserName($credentials['username'], $login_setting);
-
-        $custom_login_user = null;
-        try {
-            $ad = new \Adldap\Adldap(static::getLdapConfig($login_setting));
-            $provider = $ad->getDefaultProvider();
-            
-            $provider->connect();
-            if (!$provider->auth()->attempt($username, $credentials['password'], true)) {
-                $message = static::getLoginTestResult(false, [exmtrans('error.login_failed')]);
-            } else {
-                $ldapUser = static::syncLdapUserArray($provider, $login_setting, $username);
-
-                $custom_login_user = LdapUser::with($login_setting, $ldapUser);
-                
-                if(!is_nullorempty($custom_login_user->mapping_errors)){
-                    $message = LoginService::getLoginTestResult(false, $custom_login_user->mapping_errors);
-                }
-                else{
-                    $validator = LoginService::validateCustomLoginSync($custom_login_user->getValidateArray());
-                    if ($validator->fails()) {
-                        $message = LoginService::getLoginTestResult(false, $validator->errors());
-                    } else {
-                        $message = LoginService::getLoginTestResult(true, [], $custom_login_user);
-                        $result = true;
-                    }
-                }
-            }
-            
-            //return $this->executeLogin($request, $custom_login_user);
-        } catch (\Adldap\Auth\BindException $ex) {
-            \Log::error($ex);
-            $message = LoginService::getLoginTestResult(false, [exmtrans('login.sso_provider_error')]);
-        } catch (\Exception $ex) {
-            \Log::error($ex);
-            $message = LoginService::getLoginTestResult(false, [$ex]);
-        }
+        list($result, $message) = static::getLoginResultAndMessage($request, $login_setting);
         
         return getAjaxResponse([
             'result' => $result,
@@ -136,35 +158,80 @@ class LdapService implements LoginServiceInterface
             ],
         ]);
     }
+
+    protected static function getLoginResultAndMessage(Request $request, $login_setting){
+        $credentials = $request->only(['username', 'password']);
+
+        $username = static::getLdapUserName($credentials['username'], $login_setting);
+
+        $custom_login_user = null;
+        try {
+            $ad = new \Adldap\Adldap(static::getLdapConfig($login_setting));
+            $provider = $ad->getDefaultProvider();
+            
+            $provider->connect();
+            if (!$provider->auth()->attempt($username, $credentials['password'], true)) {
+                return [false, LoginService::getLoginTestResult(false, [exmtrans('error.login_failed')])];
+            }
+
+            $ldapUser = static::syncLdapUser($provider, $login_setting, $username);
+
+            if(!$ldapUser){
+                return [false, LoginService::getLoginTestResult(false, [exmtrans('error.login_failed')])];
+            }
+
+            $custom_login_user = LdapUser::with($login_setting, $ldapUser);
+            
+            if(!is_nullorempty($custom_login_user->mapping_errors)){
+                return [false, LoginService::getLoginTestResult(false, $custom_login_user->mapping_errors)];
+            }
+            
+            $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
+            if ($validator->fails()) {
+                return [false, LoginService::getLoginTestResult(false, $validator->errors())];
+            }
+
+            return [true, LoginService::getLoginTestResult(true, [], $custom_login_user)];
+        } catch (\Adldap\Auth\BindException $ex) {
+            \Log::error($ex);
+
+            return [false, LoginService::getLoginTestResult(false, [exmtrans('login.sso_provider_error')])];
+        } catch (\Exception $ex) {
+            \Log::error($ex);
+
+            return [false, LoginService::getLoginTestResult(false, [$ex])];
+        }
+    }
     
     public static function appendActivateSwalButton($tools, LoginSetting $login_setting){
-        if (!$login_setting->active_flg) {
-            // Show an error if other LDAP services are enabled.
-            $ldap_setting = LoginSetting::getLdapSetting();
-            if($ldap_setting && $ldap_setting->id != $login_setting->id){
-                $tools->append(new Tools\SwalInputButton([
-                    'label' => exmtrans('common.activate'),
-                    'type' => 'error',
-                    'icon' => 'fa-check-circle',
-                    'btn_class' => 'btn-success',
-                    'showCancelButton' => false,
-                    'title' => exmtrans('common.activate'),
-                    'text' => exmtrans('login.help.activate_ldap_error'),
-                ]));
-                return;
-            }
-            $tools->append(new Tools\SwalInputButton([
-                'url' => route('exment.login_activate', ['id' => $login_setting->id]),
-                'label' => exmtrans('common.activate'),
-                'icon' => 'fa-check-circle',
-                'btn_class' => 'btn-success',
-                'title' => exmtrans('common.activate'),
-                'text' => exmtrans('login.help.activate'),
-                'method' => 'post',
-                'redirectUrl' => admin_urls("login_setting", $login_setting->id, "edit"),
-            ]));
-        } else {
-            return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
-        }
+        return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
+        // if (!$login_setting->active_flg) {
+        //     // Show an error if other LDAP services are enabled.
+        //     $ldap_setting = LoginSetting::getLdapSetting();
+        //     if($ldap_setting && $ldap_setting->id != $login_setting->id){
+        //         $tools->append(new Tools\SwalInputButton([
+        //             'label' => exmtrans('common.activate'),
+        //             'type' => 'error',
+        //             'icon' => 'fa-check-circle',
+        //             'btn_class' => 'btn-success',
+        //             'showCancelButton' => false,
+        //             'title' => exmtrans('common.activate'),
+        //             'text' => exmtrans('login.help.activate_ldap_error'),
+        //         ]));
+        //         return;
+        //     }
+        //     $tools->append(new Tools\SwalInputButton([
+        //         'url' => route('exment.login_activate', ['id' => $login_setting->id]),
+        //         'label' => exmtrans('common.activate'),
+        //         'icon' => 'fa-check-circle',
+        //         'btn_class' => 'btn-success',
+        //         'title' => exmtrans('common.activate'),
+        //         'text' => exmtrans('login.help.activate'),
+        //         'method' => 'post',
+        //         'redirectUrl' => admin_urls("login_setting", $login_setting->id, "edit"),
+        //     ]));
+        // } else {
+        //     return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
+        // }
     }
 }
