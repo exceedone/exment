@@ -20,9 +20,11 @@ class LogOperation extends BaseLogOperation
     public function handle(Request $request, \Closure $next)
     {
         if ($this->shouldLogOperation($request)) {
-            $user = \Exment::user();
+            $login_user = \Exment::user();
+
+            // this "user_id" is login_user_id OK. because OperationLogModel relations to LoginUser modal.
             $log = [
-                'user_id' => ($user ? $user->getUserId() : 0),
+                'user_id' => ($login_user ? $login_user->id : 0),
                 'path'    => substr($request->path(), 0, 255),
                 'method'  => $request->method(),
                 'ip'      => $request->getClientIp(),
