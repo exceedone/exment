@@ -97,12 +97,13 @@ class LoginService
         elseif (is_array($messages)) {
             $message = array_merge($message, $messages);
         } elseif ($messages instanceof \Illuminate\Support\MessageBag) {
-            $message = array_merge($message, collect($messages->messages())->map(function ($m) {
-                return implode(" ", $m);
+            $message = array_merge($message, collect($messages->messages())->map(function ($m, $key) use($custom_login_user) {
+                $inputValue = array_get($custom_login_user->mapping_values, $key);
+                return implode(" ", $m) . (isset($inputValue) ? " : $inputValue" : '');
             })->toArray());
         }
 
-        if ($custom_login_user) {
+        if ($success && $custom_login_user) {
             $keys = [
                 'user_code',
                 'user_name',

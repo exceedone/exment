@@ -16,6 +16,7 @@ class SamlUser extends CustomLoginUserBase
     public static function with($provider_name, $samlUser)
     {
         $user = new SamlUser;
+        $user->id = $samlUser->getUserId();
         $user->provider_name = $provider_name;
         $user->login_type = LoginType::SAML;
         $user->login_setting = LoginSetting::getSamlSetting($provider_name);
@@ -25,7 +26,7 @@ class SamlUser extends CustomLoginUserBase
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
         $user->login_id = array_get($user->mapping_values, $user->mapping_user_column);
-
+        
         return $user;
     }
 

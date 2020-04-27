@@ -24,6 +24,7 @@ class LdapUser extends CustomLoginUserBase
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
         $user->login_id = array_get($user->mapping_values, $user->mapping_user_column);
+        $user->id = $ldapUser->getAuthIdentifier();
 
         return $user;
     }
@@ -49,6 +50,8 @@ class LdapUser extends CustomLoginUserBase
             if (!isset($ldapuser_attrs)) {
                 $ldapuser_attrs = self::accessProtected($ldapuser, 'attributes');
             }
+
+            $ldap_attr = strtolower($ldap_attr);
     
             if (!isset($ldapuser_attrs[$ldap_attr])) {
                 $mappingKey = str_replace($replaceValue, null, $mappingKey);

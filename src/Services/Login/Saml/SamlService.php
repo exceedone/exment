@@ -159,7 +159,7 @@ class SamlService implements LoginServiceInterface
 
         $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
         if ($validator->fails()) {
-            return LoginService::getLoginTestResult(false, $validator->errors());
+            return LoginService::getLoginTestResult(false, $validator->errors(), $custom_login_user);
         }
         
         return LoginService::getLoginTestResult(true, [], $custom_login_user);

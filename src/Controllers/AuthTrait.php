@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Providers\CustomUserProvider;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
@@ -255,8 +256,8 @@ trait AuthTrait
                 $stream = $response->getBody()->getContents();
             }
             // file upload.
-            if (isset($stream)) {
-                $file = ExmentFile::put(path_join("avatar", $custom_login_user->id), $stream, true);
+            if (isset($stream) && isset($user->id)) {
+                $file = ExmentFile::put(path_join("avatar", $user->id), $stream, true);
                 return $file->path;
             }
         } finally {

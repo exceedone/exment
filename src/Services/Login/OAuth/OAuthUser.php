@@ -46,6 +46,8 @@ class OAuthUser extends CustomLoginUserBase
         $user->refreshToken = isset($provider_user->refreshToken) ? $provider_user->refreshToken : null;
         $user->expiresIn = isset($provider_user->expiresIn) ? $provider_user->expiresIn : null;
 
+        $user->id = $provider_user->id;
+
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
         $user->login_id = array_get($user->mapping_values, $user->mapping_user_column);

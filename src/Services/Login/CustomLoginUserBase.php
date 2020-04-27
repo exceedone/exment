@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\SystemTableName;
  */
 abstract class CustomLoginUserBase
 {
+    public $id;
     public $login_setting;
     public $login_id;
     public $mapping_user_column;

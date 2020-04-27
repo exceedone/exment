@@ -188,7 +188,7 @@ class LdapService implements LoginServiceInterface
             
             $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
             if ($validator->fails()) {
-                return [false, LoginService::getLoginTestResult(false, $validator->errors())];
+                return [false, LoginService::getLoginTestResult(false, $validator->errors(), $custom_login_user)];
             }
 
             return [true, LoginService::getLoginTestResult(true, [], $custom_login_user)];
