@@ -6,7 +6,7 @@ use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Database\ExtendedBlueprint;
 use Exceedone\Exment\Enums\LoginType;
 
-class LoginSetting extends Migration
+class LoginSettingAndType extends Migration
 {
     /**
      * Run the migrations.
