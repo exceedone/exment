@@ -24,7 +24,7 @@ class SamlUser extends CustomLoginUserBase
 
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';
-        $user->login_id = $user->{$user->mapping_user_column};
+        $user->login_id = array_get($user->mapping_values, $user->mapping_user_column);
 
         return $user;
     }
