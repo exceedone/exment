@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Services\Login\LoginService;
-use Exceedone\Exment\Service\Login\OAuth\OAuthUser;
+use Exceedone\Exment\Services\Login\OAuth\OAuthUser;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Auth\ThrottlesLogins;

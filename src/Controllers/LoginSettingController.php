@@ -260,7 +260,7 @@ class LoginSettingController extends AdminControllerBase
         }
 
         if (!class_exists('\\Adldap\\Adldap')) {
-            $errors[] = LoginType::LAMP();
+            $errors[] = LoginType::LDAP();
         }
 
         return collect($errors)->mapWithKeys(function ($error) {
