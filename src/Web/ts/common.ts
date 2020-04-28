@@ -185,6 +185,7 @@ namespace Exment {
                     html: null,
                     type: "warning",
                     input: null,
+                    inputKey: null,
                     confirm: 'OK',
                     cancel: 'Cancel',
                     method: 'POST',
@@ -224,6 +225,10 @@ namespace Exment {
                         if(result !== true){
                             return result;
                         }
+                    }
+                    
+                    if(hasValue(options.inputKey)){
+                        data[options.inputKey] = input;
                     }
 
                     return new Promise(function (resolve) {

@@ -37,8 +37,10 @@ class BackupController extends AdminControllerBase
         $disk = $this->disk();
 
         // get all archive files
-        $files = array_filter($disk->files('list'), function ($file) {
-            return preg_match('/list\/\d+\.zip$/i', $file);
+        $files = collect($disk->files('list'))->filter(function ($file) use($disk) {
+            return preg_match('/list\/' . Define::RULES_REGEX_BACKUP_FILENAME . '\.zip$/i', $file);
+        })->sortByDesc(function($file) use($disk){
+            return $disk->lastModified($file);
         });
         // edit table row data
         $rows = [];
@@ -57,6 +59,7 @@ class BackupController extends AdminControllerBase
                 'files' => $rows,
                 'restore_keyword' => Define::RESTORE_CONFIRM_KEYWORD,
                 'restore_text' => exmtrans('common.message.execution_takes_time') . exmtrans('backup.message.restore_confirm_text') . exmtrans('common.message.input_keyword', Define::RESTORE_CONFIRM_KEYWORD),
+                'editname_text' => exmtrans('backup.message.edit_filename_text'),
             ]
         ));
 
@@ -207,8 +210,9 @@ class BackupController extends AdminControllerBase
     {
         $ymdhms = urldecode($arg);
 
+        // validate "\", "/", "."
         $validator = Validator::make(['ymdhms' => $ymdhms], [
-            'ymdhms' => 'required|numeric'
+            'ymdhms' => ['required', 'regex:/' . Define::RULES_REGEX_BACKUP_FILENAME . '/']
         ]);
 
         if (!$validator->passes()) {
@@ -365,5 +369,60 @@ class BackupController extends AdminControllerBase
                 'toastr' => exmtrans("backup.message.restore_error"),
             ]);
         }
+    }
+    
+    /**
+     * edit file name 
+     *
+     * @return Content
+     */
+    public function editname(Request $request)
+    {
+        $data = $request->all();
+
+        // validate "\", "/", "."
+        $validator = Validator::make($data, [
+            'file' => ['required'],
+            'filename' => ['required', 'max:30', 'regex:/^' . Define::RULES_REGEX_BACKUP_FILENAME . '$/'],
+        ]);
+
+        if ($validator->fails()) {
+            return getAjaxResponse([
+                'result'  => false,
+                'swal' => exmtrans('common.error'),
+                'swaltext' => array_first(array_flatten($validator->getMessages())),
+            ]);
+        }
+
+        $this->initBackupRestore();
+        $disk = $this->disk();
+
+        $oldfile = path_join('list', $data['file'] . '.zip');
+        $newfile = path_join('list', $data['filename'] . '.zip');
+
+        // check same file name
+        if($disk->exists($newfile)){
+            return getAjaxResponse([
+                'result'  => false,
+                'swal' => exmtrans('common.error'),
+                'swaltext' => exmtrans('backup.message.same_filename'),
+            ]);
+        }
+
+        if(!$disk->exists($oldfile)){
+            return getAjaxResponse([
+                'result'  => false,
+                'swal' => exmtrans('common.error'),
+                'swaltext' => exmtrans('backup.message.notfound_file'),
+            ]);
+        }
+
+        // get all archive files
+        $disk->move($oldfile, $newfile);
+
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
     }
 }
