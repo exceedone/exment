@@ -6,8 +6,11 @@
          stopOnFailure="false">
     <testsuites>
         <testsuite name="Browser">
+            <file>A02LoginOutTest.php</file>
             <file>BCustomTableTest.php</file>
             <file>CCustomColumnTest.php</file>
+            <file>CCustomRelationTest.php</file>
+            <file>DCustomDataTest.php</file>
         </testsuite>
     </testsuites>
     <php>

@@ -615,7 +615,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return [];
         }
 
-        if (!isset($custom_value)) {
+        if (is_nullorempty($custom_value)) {
             return [];
         }
 

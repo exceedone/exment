@@ -169,6 +169,9 @@ class File extends CustomItem
             if(!is_nullorempty($value)){
                 return $value;
             }
+            if(!isset($custom_value)){
+                return $value;
+            }
             return array_get($custom_value->value, $custom_column->column_name);
         });
 

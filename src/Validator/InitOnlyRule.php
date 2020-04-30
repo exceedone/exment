@@ -30,7 +30,7 @@ class InitOnlyRule implements Rule
     */
     public function passes($attribute, $value)
     {
-        if (is_null($this->custom_value)) {
+        if (is_null($this->custom_value) || !$this->custom_value->exists) {
             return true;
         }
         

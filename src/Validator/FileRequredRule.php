@@ -35,10 +35,10 @@ class FileRequredRule implements Rule
         }
 
         // if has custom_value, checking value
-        if(isset($this->custom_value)){
+        if(isset($this->custom_value) && $this->custom_value->exists){
             $v = array_get($this->custom_value->value, $this->custom_column->column_name);
 
-            return is_nullorempty($v);
+            return !is_nullorempty($v);
         }
 
         return false;

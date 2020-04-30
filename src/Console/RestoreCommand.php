@@ -251,7 +251,7 @@ __EOT__;
      */
     protected function restoreDatabase()
     {
-        // get all table list about "pivot_"
+        // // get all table list about "pivot_"
         // collect(\Schema::getTableListing())->filter(function ($table) {
         //     return stripos($table, 'pivot_') === 0;
         // })->each(function ($table) {

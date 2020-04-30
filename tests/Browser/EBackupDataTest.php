@@ -176,7 +176,7 @@ class EBackupDataTest extends ExmentKitTestCase
             // Restore data
             $this->call('POST', '/admin/backup/restore', ['file' => $file])
             ;
-            $this->assertRedirectedTo('/admin/auth/logout')
+            $this->seeJson(['result' => true])
             ;
         }
     }
