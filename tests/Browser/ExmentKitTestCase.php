@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Tests;
+namespace Exceedone\Exment\Tests\Browser;
 
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\BrowserKitTesting\TestCase as BaseTestCase;
@@ -9,10 +9,7 @@ use Laravel\BrowserKitTesting\TestCase as BaseTestCase;
 abstract class ExmentKitTestCase extends BaseTestCase
 {
     use \Tests\CreatesApplication;
-    use DatabaseMigrations;
-    use ExmentKitTestTrait {
-        ExmentKitTestTrait::runDatabaseMigrations insteadof DatabaseMigrations;
-    }
+//    use DatabaseMigrations;
 
     public $baseUrl = 'http://localhost';
 
@@ -22,8 +19,8 @@ abstract class ExmentKitTestCase extends BaseTestCase
         // precondition : login success
         $this->visit('/admin/auth/logout')
                 ->visit('/admin/auth/login')
-                ->type('testuser', 'username')
-                ->type('test123456', 'password')
+                ->type('admin', 'username')
+                ->type('adminadmin', 'password')
                 ->press('ログイン')
                 ->seePageIs('/admin');
     }

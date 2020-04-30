@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Tests\ExmentKitTestCase;
-use Exceedone\Exment\Tests\ExmentKitPrepareTrait;
 use Exceedone\Exment\Model\CustomForm;
 
 class CCustomFormTest extends ExmentKitTestCase

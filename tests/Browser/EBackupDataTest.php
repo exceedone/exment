@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Illuminate\Support\Facades\Storage;
-use Exceedone\Exment\Tests\ExmentKitTestCase;
 
 class EBackupDataTest extends ExmentKitTestCase
 {

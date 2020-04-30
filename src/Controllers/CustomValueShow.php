@@ -585,7 +585,7 @@ EOT;
                 $html[] = "<p>" . view('exment::form.field.commentline', [
                     'comment' => $comment,
                     'table_name' => $this->custom_table->table_name,
-                    'isAbleRemove' => ($comment->created_user_id == \Exment::user()->base_user_id),
+                    'isAbleRemove' => ($comment->created_user_id == \Exment::user()->getUserId()),
                 ])->render() . "</p>";
             }
             // loop and add as link

@@ -354,7 +354,7 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleting(function ($model) {
-            $model->deleted_user_id = \Exment::user()->base_user_id;
+            $model->deleted_user_id = \Exment::user()->getUserId();
 
             // saved_notify(as update) disable
             $saved_notify = $model->saved_notify;
@@ -668,7 +668,7 @@ abstract class CustomValue extends ModelBase
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
-            ->where('authoritable_target_id', \Exment::user()->base_user_id);
+            ->where('authoritable_target_id', \Exment::user()->getUserId());
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
             $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
             $query = $this
