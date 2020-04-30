@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\DataShareAuthoritable;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\GroupCondition;
@@ -451,9 +452,13 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
 
-        $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table, $view_type) {
             $tools->add((new Tools\GridChangePageMenu('view', $custom_table, false))->render());
 
+            if ($view_type == Enums\ViewType::USER) {
+                $tools->append(new Tools\ShareButton($custom_table, $id, true));
+            }
+    
             if (isset($suuid)) {
                 $tools->append(view('exment::tools.button', [
                     'href' => $custom_table->getGridUrl(true, ['view' => $suuid]),
@@ -633,5 +638,32 @@ class CustomViewController extends AdminControllerTableBase
         $item->filterKind(Enums\FilterKind::VIEW);
 
         return $item;
+    }
+
+    /**
+     * create share form
+     */
+    public function shareClick(Request $request, $tableKey, $id)
+    {
+        // get custom view
+        $custom_view = CustomView::getEloquent($id);
+
+        $form = DataShareAuthoritable::getShareDialogForm($custom_view, $tableKey);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.shared')
+        ]);
+    }
+
+    /**
+     * set share users organizations
+     */
+    public function sendShares(Request $request, $tableKey, $id)
+    {
+        // get custom view
+        $custom_view = CustomView::getEloquent($id);
+        return DataShareAuthoritable::saveShareDialogForm($custom_view);
     }
 }

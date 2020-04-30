@@ -11,11 +11,13 @@ class ShareButton
 {
     protected $custom_table;
     protected $id;
+    protected $is_view;
     
-    public function __construct($custom_table, $id)
+    public function __construct($custom_table, $id, $is_view = false)
     {
         $this->custom_table = $custom_table;
         $this->id = $id;
+        $this->is_view = $is_view;
     }
 
     protected function script($suuid, $label)
@@ -50,7 +52,7 @@ EOT;
         // get uuid
         $suuid = short_uuid();
         $table_name = array_get($this->custom_table, 'table_name');
-        $url = admin_urls("data", $table_name, $this->id, "shareClick");
+        $url = admin_urls($this->is_view?'view':'data', $table_name, $this->id, "shareClick");
         //Admin::script($this->script($suuid, $label));
 
         return view('exment::tools.modal-button', [

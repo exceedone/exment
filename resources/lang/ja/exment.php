@@ -1151,6 +1151,7 @@ return [
         'users_count' => 'ユーザー数',
         'organizations_count' => '組織数',
         'share_description' => 'このデータを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、このデータにアクセスすることができるようになります。',
+        'custom_view_share_description' => 'このビューを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、このビューにアクセスすることができるようになります。',
 
         'description_form' => [
             'system' => 'システム全体を対象に、権限を付与するユーザー・組織を選択します。',
@@ -1216,6 +1217,8 @@ return [
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => '編集可能', 'help' => 'このデータを編集できるようになります。'],
             'custom_value_view' => ['label' => '閲覧可能', 'help' => 'このデータを閲覧できるようになります。'],
+            'custom_view_edit' => ['label' => '編集可能', 'help' => 'このビューを編集できるようになります。'],
+            'custom_view_view' => ['label' => '閲覧可能', 'help' => 'このビューを閲覧できるようになります。'],
         ], 
         'role_type_option_plugin' => [
             'plugin_access' => ['label' => '利用', 'help' => 'このプラグインを利用できます。'],

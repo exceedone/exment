@@ -152,6 +152,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
+            $router->get("view/{tableKey}/{id}/shareClick", 'CustomViewController@shareClick');
+            $router->post("view/{tableKey}/{id}/sendShares", 'CustomViewController@sendShares');
 
             $router->post("column/{tableKey}/calcModal", 'CustomColumnController@calcModal');
             $router->post("column/{tableKey}/{id}/calcModal", 'CustomColumnController@calcModal');
