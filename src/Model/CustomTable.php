@@ -416,9 +416,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * *If use this function, Please check customMessages.
      *
      * @param array $value input value
+     * @param ?CustomValue $custom_value matched custom_value
      * @return mixed
      */
-    public function validateValue($value, $custom_value_id = null, array $options = [])
+    public function validateValue($value, $custom_value = null, array $options = [])
     {
         extract(
             array_merge([
@@ -440,11 +441,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
 
         foreach ($this->custom_columns as $custom_column) {
-            $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value_id, null, $column_name_prefix, true, true);
+            $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value, null, $column_name_prefix, true, true);
 
             // if not contains $value[$custom_column->column_name], set as null.
             // if not set, we cannot validate null check because $field->getValidator returns false.
-            if (is_null($custom_value_id) && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
+            if (is_null($custom_value) && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
                 array_set($value, $column_name_prefix.$custom_column->column_name, null);
             }
         }
@@ -492,10 +493,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // execute validation
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
-        $errors = $this->validatorMultiUniques($value, $custom_value_id, $options);
+        $errors = $this->validatorMultiUniques($value, $custom_value, $options);
         if ($validateLock) {
             $errors = array_merge(
-                $this->validatorLock($value, $custom_value_id, $asApi),
+                $this->validatorLock($value, $custom_value, $asApi),
                 $errors
             );
         }
@@ -537,7 +538,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $customAttributes;
     }
     
-    public function validatorMultiUniques($input, $custom_value_id = null, array $options = [])
+    public function validatorMultiUniques($input, $custom_value = null, array $options = [])
     {
         extract(
             array_merge([
@@ -586,8 +587,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 continue;
             }
 
-            if (isset($custom_value_id)) {
-                $query->where('id', '<>', $custom_value_id);
+            if (isset($custom_value)) {
+                $query->where('id', '<>', $custom_value->id);
             }
 
             if ($query->count() > 0) {
@@ -608,16 +609,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $errors;
     }
     
-    public function validatorLock($input, $custom_value_id = null, bool $asApi = false)
+    public function validatorLock($input, $custom_value = null, bool $asApi = false)
     {
         if (!array_key_value_exists('updated_at', $input)) {
+            return [];
+        }
+
+        if (!isset($custom_value)) {
             return [];
         }
 
         $errors = [];
 
         // re-get updated_at value
-        $updated_at = $this->getValueModel()->query()->select(['updated_at'])->find($custom_value_id)->updated_at ?? null;
+        $updated_at = $this->getValueModel()->query()->select(['updated_at'])->find($custom_value->id)->updated_at ?? null;
 
         if (!isset($updated_at)) {
             return [];

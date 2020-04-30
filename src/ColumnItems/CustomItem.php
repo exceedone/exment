@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
+use Exceedone\Exment\Validator;
 
 abstract class CustomItem implements ItemInterface
 {
@@ -520,6 +521,12 @@ abstract class CustomItem implements ItemInterface
             // add rules
             $validates[] = $rules;
         }
+
+        // init_flg(for validation)
+        if($this->initonly()){
+            $validates[] = new Validator\InitOnlyRule($this->custom_column, $this->custom_value);
+        }
+
 
         // // regex rules
         $help_regexes = [];
