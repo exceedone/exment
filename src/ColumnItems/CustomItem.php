@@ -307,7 +307,7 @@ abstract class CustomItem implements ItemInterface
 
         // set validates
         $validate_options = [];
-        $validates = $this->getColumnValidates($validate_options);
+        $validates = $this->getColumnValidates($validate_options, $form_column_options);
         // set validates
         if (count($validates)) {
             $field->rules($validates);
@@ -454,7 +454,7 @@ abstract class CustomItem implements ItemInterface
     {
     }
     
-    protected function setValidates(&$validates)
+    protected function setValidates(&$validates, $form_column_options)
     {
     }
 
@@ -492,12 +492,11 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * Get column validate array.
-     * @param string|CustomTable|array $table_obj table object
-     * @param string column_name target column name
-     * @param array result_options Ex help string, ....
-     * @return string
+     * @param array $result_options
+     * @param mixed $form_column_options
+     * @return array
      */
-    public function getColumnValidates(&$result_options)
+    protected function getColumnValidates(&$result_options, $form_column_options)
     {
         $options = array_get($this->custom_column, 'options');
 
@@ -568,7 +567,7 @@ abstract class CustomItem implements ItemInterface
         }
 
         // set column's validates
-        $this->setValidates($validates);
+        $this->setValidates($validates, $form_column_options);
 
         return $validates;
     }
