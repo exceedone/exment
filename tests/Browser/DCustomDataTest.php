@@ -3,8 +3,6 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Illuminate\Support\Facades\Storage;
-use Exceedone\Exment\Tests\ExmentKitTestCase;
-use Exceedone\Exment\Tests\ExmentKitPrepareTrait;
 use Exceedone\Exment\Model\CustomTable;
 
 class DCustomDataTest extends ExmentKitTestCase

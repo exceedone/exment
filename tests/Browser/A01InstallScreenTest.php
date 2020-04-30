@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Tests\ExmentKitTestCase;
-
 class A01InstallScreenTest extends ExmentKitTestCase
 {
     //AutoTest_Install_01 : only setting
