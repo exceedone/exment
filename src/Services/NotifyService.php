@@ -367,7 +367,7 @@ class NotifyService
                     $notify_navbar->notify_subject = $mail_subject;
                     $notify_navbar->notify_body = $mail_body;
                     $notify_navbar->target_user_id = $id;
-                    $notify_navbar->trigger_user_id = $login_user->getUserId() ?? null;
+                    $notify_navbar->trigger_user_id = isset($login_user) ? $login_user->getUserId() : null;
                     $notify_navbar->save();
 
                     break;
