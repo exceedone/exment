@@ -453,8 +453,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $query->where(function ($query) {
                 $query->where('view_type', ViewType::SYSTEM);
             })->orWhere(function ($query) {
+                $login_user = \Exment::user();
                 $query->where('view_type', ViewType::USER)
-                        ->where('created_user_id', \Exment::user()->getUserId() ?? null);
+                        ->where('created_user_id', isset($login_user) ? $login_user->getUserId() : null);
             });
         });
     }
