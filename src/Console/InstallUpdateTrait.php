@@ -61,6 +61,6 @@ trait InstallUpdateTrait
            return; 
         }
 
-        $this->laravel['files']->makeExmentDirectory($dirpath, 0755, true, true);
+        $this->laravel['files']->makeDirectory($dirpath, 0755, true, true);
     }
 }
