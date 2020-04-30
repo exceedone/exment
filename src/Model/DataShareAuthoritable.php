@@ -13,6 +13,29 @@ class DataShareAuthoritable extends ModelBase
     use Traits\DataShareTrait;
 
     /**
+     * Set Custom Value Authoritable after custom value save
+     *
+     * @return void
+     */
+    public static function setValueAuthoritable($target_data)
+    {
+        list($target_type, $target_key) = static::getParentType($target_data);
+
+        $user = \Exment::user();
+        if (!isset($user)) {
+            return;
+        }
+
+        self::firstOrCreate([
+            'parent_id' => $target_data->id,
+            'parent_type' => $target_key,
+            'authoritable_type' => Permission::DATA_SHARE_EDIT,
+            'authoritable_user_org_type' => SystemTableName::USER,
+            'authoritable_target_id' => $user->base_user_id,
+        ]);
+    }
+
+    /**
      * Delete Custom Value Authoritable after custom value save
      *
      * @return void
@@ -66,18 +89,18 @@ class DataShareAuthoritable extends ModelBase
         $form->description(exmtrans("role_group.{$target_type}_share_description"))->setWidth(9, 2);
 
         // select target users
-        $default = static::getUserOrgSelectDefault($target_key, $id, '_edit');
-        list($options, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, true, $default);
-        $form->multipleSelect("{$target_type}_edit", exmtrans("role_group.role_type_option_value.{$target_type}_edit.label"))
+        $default = static::getUserOrgSelectDefault($target_key, $id, Permission::DATA_SHARE_EDIT);
+        list($options, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, false, $default);
+        $form->multipleSelect(Permission::DATA_SHARE_EDIT, exmtrans("role_group.role_type_option_value.{$target_type}_edit.label"))
             ->options($options)
             ->ajax($ajax)
             ->default($default)
             ->help(exmtrans("role_group.role_type_option_value.{$target_type}_edit.help"))
             ->setWidth(9, 2);
 
-        $default = static::getUserOrgSelectDefault($target_key, $id, '_view');
-        list($options, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, true, $default);
-        $form->multipleSelect("{$target_type}_view", exmtrans("role_group.role_type_option_value.{$target_type}_view.label"))
+        $default = static::getUserOrgSelectDefault($target_key, $id, Permission::DATA_SHARE_VIEW);
+        list($options, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, false, $default);
+        $form->multipleSelect(Permission::DATA_SHARE_VIEW, exmtrans("role_group.role_type_option_value.{$target_type}_view.label"))
             ->options($options)
             ->ajax($ajax)
             ->default($default)
@@ -99,7 +122,7 @@ class DataShareAuthoritable extends ModelBase
         $items = static::query()
             ->where('parent_id', $id)
             ->where('parent_type', $target_key)
-            ->where('authoritable_type', $table_name.$permission)
+            ->where('authoritable_type', $permission)
             ->get();
         
         $defaults = $items->map(function ($item, $key) {
@@ -135,8 +158,8 @@ class DataShareAuthoritable extends ModelBase
         try {
             // get user and org
             $items = [
-                ['name' => "{$target_type}_edit"],
-                ['name' => "{$target_type}_view"],
+                ['name' => Permission::DATA_SHARE_EDIT],
+                ['name' => Permission::DATA_SHARE_VIEW],
             ];
 
             $shares = [];
@@ -175,6 +198,8 @@ class DataShareAuthoritable extends ModelBase
                 ]));
             }
             \DB::commit();
+
+            System::clearCache();
 
             // // send notify
             // $shares = collect($shares)->map(function ($share) {

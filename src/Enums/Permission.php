@@ -25,6 +25,8 @@ class Permission extends EnumBase
     const WORKFLOW = 'workflow';
     const API_ALL = 'api_all';
     const API = 'api';
+    const DATA_SHARE_EDIT = 'data_share_edit';
+    const DATA_SHARE_VIEW = 'data_share_view';
 
 
     public const AVAILABLE_ACCESS_CUSTOM_VALUE = [self::CUSTOM_TABLE, self::CUSTOM_VALUE_EDIT_ALL, self::CUSTOM_VALUE_VIEW_ALL, self::CUSTOM_VALUE_ACCESS_ALL, self::CUSTOM_VALUE_EDIT, self::CUSTOM_VALUE_VIEW];

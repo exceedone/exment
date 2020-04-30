@@ -170,6 +170,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $model->deletingChildren();
         });
         
+        static::created(function ($model) {
+            // save Authoritable
+            DataShareAuthoritable::setValueAuthoritable($model);
+        });
+
         // add global scope
         static::addGlobalScope('showableViews', function (Builder $builder) {
             return static::showableViews($builder);
@@ -1040,12 +1045,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function hasEditPermission()
     {
-        if ($this->custom_table->hasSystemViewPermission()) {
-            return true;
-        }
-
         if ($this->view_type == ViewType::SYSTEM) {
-            return false;
+            return $this->custom_table->hasSystemViewPermission();
         } elseif ($this->created_user_id == \Exment::user()->base_user_id) {
             return true;
         };
