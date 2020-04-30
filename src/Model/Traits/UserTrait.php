@@ -11,6 +11,8 @@ use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 trait UserTrait
 {
+    use ClearCacheTrait;
+
     /**
      * get login users.
      * Why "hasMany" not "hasOne" is It can be logged in by multiple providers.
