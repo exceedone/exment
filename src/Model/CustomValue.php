@@ -441,11 +441,15 @@ abstract class CustomValue extends ModelBase
      */
     public function validatorSaving($input, bool $asApi = false)
     {
-        // validate multiple column set is unique
-        $errors = $this->custom_table->validatorMultiUniques($input, $this, [
+        $options = [
             'asApi' => $asApi,
             'appendErrorAllColumn' => true,
-        ]);
+        ];
+
+        // validate multiple column set is unique
+        $errors = $this->custom_table->validatorMultiUniques($input, $this, $options);
+
+        $errors = array_merge($this->custom_table->validatorCompareColumns($input, $this, $options), $errors);
 
         $errors = array_merge($this->custom_table->validatorLock($input, $this, $asApi), $errors);
 

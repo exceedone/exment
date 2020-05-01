@@ -173,6 +173,10 @@ return [
         'empty' => ':attributeの値は空欄のみ指定できます。',
         'max_table_index' => '1つのテーブルに設定できる検索インデックスは:count件までです。',
         'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
+        
+        'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
+        'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
+        
     ],
 
     'system' => [
@@ -767,8 +771,8 @@ return [
             'unique3' => '列3',
 
             'compare_columns' => '2つの列を比較',
-            'compare_column_1' => '検証列(A)',
-            'compare_column_2' => '比較列(B)',
+            'compare_column1_id' => '検証列(A)',
+            'compare_column2_id' => '比較列(B)',
             'compare_type' => '条件',
 
             'table_labels' => '見出し表示列設定',

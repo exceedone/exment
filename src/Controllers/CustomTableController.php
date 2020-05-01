@@ -344,7 +344,7 @@ HTML;
         
 
         $form->hasManyTable('compare_columns', exmtrans("custom_table.custom_column_multi.compare_columns"), function ($form) use ($custom_table) {
-            $form->select('compare_column_1', exmtrans("custom_table.custom_column_multi.compare_column_1"))->required()
+            $form->select('compare_column1_id', exmtrans("custom_table.custom_column_multi.compare_column1_id"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                 ]));
@@ -355,7 +355,7 @@ HTML;
                         return ['id' => $option['id'], 'label' => exmtrans("custom_table.custom_column_multi.filter_condition_compare_options.{$option['name']}")];
                     })->pluck('label', 'id');
                 });
-            $form->select('compare_column_2', exmtrans("custom_table.custom_column_multi.compare_column_2"))->required()
+            $form->select('compare_column2_id', exmtrans("custom_table.custom_column_multi.compare_column2_id"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                 ]));

@@ -329,6 +329,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return true;
             }
 
+            if($val->multisetting_type != MultisettingType::MULTI_UNIQUES){
+                return false;
+            }
+
             $targetid = CustomColumn::getEloquent($custom_column, $this)->id;
             foreach ([1,2,3] as $key) {
                 if ($val->{'unique' . $key} == $targetid) {
@@ -341,7 +345,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getCompareColumns()
     {
-        return CustomColumnMulti::allRecords(function ($val) use ($custom_column) {
+        return CustomColumnMulti::allRecords(function ($val) {
             if (array_get($val, 'custom_table_id') != $this->id) {
                 return false;
             }
@@ -663,6 +667,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             if($compareResult === true){
                 continue;
             }
+
+            $errors["value.{$compare_column->compare_column1->column_name}"][] = $compareResult;
         }
         return $errors;
     }
