@@ -91,6 +91,8 @@ class LogOperation extends BaseLogOperation
             'current_password',
             '_token',
             'verify_code',
+            'access_token',
+            'refresh_token',
         ];
     }
 }
