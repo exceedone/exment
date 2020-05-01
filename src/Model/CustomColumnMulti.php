@@ -268,11 +268,11 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                     return true;
                 }
 
-                return $column1->column_item->compareTwoValues($this->compare_type, $column2, $value1, $value2);
+                return $column1->column_item->compareTwoValues($this, $value1, $value2);
         }
     }
 
-    protected function getCompareErrorMessage($transKey, $column1, $column2){
+    public function getCompareErrorMessage($transKey, $column1, $column2){
         return exmtrans($transKey, [
             'attribute1' => $column1->column_view_name,
             'attribute2' => $column2->column_view_name,

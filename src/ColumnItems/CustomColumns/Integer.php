@@ -10,6 +10,8 @@ use Exceedone\Exment\Enums\DatabaseDataType;
 
 class Integer extends CustomItem
 {
+    use NumberTrait;
+
     public function text()
     {
         if (is_null($this->value())) {
@@ -82,14 +84,5 @@ class Integer extends CustomItem
     {
         $grammar = \DB::getQueryGrammar();
         return $grammar->getCastString(DatabaseDataType::TYPE_INTEGER, true);
-    }
-
-    /**
-     * whether column is Numeric
-     *
-     */
-    public function isNumeric()
-    {
-        return true;
     }
 }

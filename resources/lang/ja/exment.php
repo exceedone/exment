@@ -176,7 +176,15 @@ return [
         
         'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
         'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
-        
+        'not_gt' => ':attribute1の値は、:attribute2より大きい値である必要があります。',
+        'not_gte' => ':attribute1の値は、:attribute2の値以上である必要があります。',
+        'not_lt' => ':attribute1の値は、:attribute2の値未満である必要があります。',
+        'not_lte' => ':attribute1の値は、:attribute2の値以下である必要があります。',
+
+        'not_gt_date' => ':attribute1は、:attribute2より後である必要があります。',
+        'not_gte_date' => ':attribute1は、:attribute2と同じ、またはそれ以降である必要があります。',
+        'not_lt_date' => ':attribute1は、:attribute2より前である必要があります。',
+        'not_lte_date' => ':attribute1は、:attribute2と同じ、またはそれ以前である必要があります。',
     ],
 
     'system' => [

@@ -10,6 +10,7 @@ use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -569,7 +570,7 @@ abstract class CustomItem implements ItemInterface
     /**
      * Compare two values.
      */
-    public function compareTwoValues($compare_type, $target_column, $this_value, $target_value)
+    public function compareTwoValues(CustomColumnMulti $compare_column, $this_value, $target_value)
     {
         return true;
     }
