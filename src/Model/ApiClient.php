@@ -81,7 +81,7 @@ class ApiClient extends Client
                 return;
             }
 
-            $builder->where('user_id', $user->base_user_id);
+            $builder->where('user_id', $user->getUserId());
         });
     }
 }

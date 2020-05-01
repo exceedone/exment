@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Tests\ExmentKitTestCase;
-use Exceedone\Exment\Tests\ExmentKitPrepareTrait;
 use Exceedone\Exment\Model\CustomForm;
 
 class CCustomFormTest extends ExmentKitTestCase
@@ -33,6 +31,13 @@ class CCustomFormTest extends ExmentKitTestCase
     public function testPrepareTestColumn() {
         $targets = ['integer', 'text', 'datetime', 'select', 'boolean', 'yesno', 'image'];
         $this->createCustomColumns('ntq_form', $targets);
+    }
+
+    /**
+     * prepare test columns and relation.
+     */
+    public function testPrepareTestColumnAndRelation() {
+        $targets = ['integer', 'text', 'datetime', 'select', 'boolean', 'yesno', 'image'];
         $this->createCustomColumns('ntq_form_relation', $targets);
         $this->createCustomRelation('ntq_form', 'ntq_form_relation');
     }
@@ -62,22 +67,22 @@ class CCustomFormTest extends ExmentKitTestCase
                 ->seeInElement('h5', 'フォーム項目 列2')
                 ->seeInElement('h5', 'フォーム項目 候補一覧')
                 ->seeInElement('h5', 'フォーム項目 候補一覧')
-                ->seeInElement('span[class=item-label]', 'ID')
-                ->seeInElement('span[class=item-label]', '内部ID(20桁)')
-                ->seeInElement('span[class=item-label]', 'Integer')
-                ->seeInElement('span[class=item-label]', 'One Line Text')
-                ->seeInElement('span[class=item-label]', 'Date and Time')
-                ->seeInElement('span[class=item-label]', 'Select From Static Value')
-                ->seeInElement('span[class=item-label]', 'Select 2 value')
-                ->seeInElement('span[class=item-label]', 'Yes No')
-                ->seeInElement('span[class=item-label]', 'Image')
-                ->seeInElement('span[class=item-label]', '作成日時')
-                ->seeInElement('span[class=item-label]', '更新日時')
-                ->seeInElement('span[class=item-label]', '作成ユーザー')
-                ->seeInElement('span[class=item-label]', '更新ユーザー')
-                ->seeInElement('span[class=item-label]', '見出し')
-                ->seeInElement('span[class=item-label]', '説明文')
-                ->seeInElement('span[class=item-label]', 'HTML')
+                // ->seeInElement('span[class=item-label]', 'ID')
+                // ->seeInElement('span[class=item-label]', '内部ID(20桁)')
+                ->seeInElement('span', 'Integer')
+                ->seeInElement('span', 'One Line Text')
+                ->seeInElement('span', 'Date and Time')
+                ->seeInElement('span', 'Select From Static Value')
+                ->seeInElement('span', 'Select 2 value')
+                ->seeInElement('span', 'Yes No')
+                ->seeInElement('span', 'Image')
+                // ->seeInElement('span[class=item-label]', '作成日時')
+                // ->seeInElement('span[class=item-label]', '更新日時')
+                // ->seeInElement('span[class=item-label]', '作成ユーザー')
+                // ->seeInElement('span[class=item-label]', '更新ユーザー')
+                ->seeInElement('span', '見出し')
+                ->seeInElement('span', '説明文')
+                ->seeInElement('span', 'HTML')
             ;
     }
 
@@ -91,7 +96,7 @@ class CCustomFormTest extends ExmentKitTestCase
         // Create custom form
         $this->visit('/admin/form/ntq_form/create')
                 ->type('新しいフォーム', 'form_view_name')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/form/ntq_form')
                 ->seeInElement('td', '新しいフォーム')
                 ->assertEquals($pre_cnt + 1, CustomForm::count())
@@ -104,7 +109,7 @@ class CCustomFormTest extends ExmentKitTestCase
         $this->visit('/admin/form/ntq_form/'. $id . '/edit')
                 ->seeInField('form_view_name', '新しいフォーム')
                 ->type('更新したフォーム', 'form_view_name')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/form/ntq_form')
                 ->seeInElement('td', '更新したフォーム');
     }

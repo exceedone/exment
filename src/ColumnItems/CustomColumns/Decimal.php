@@ -84,7 +84,7 @@ class Decimal extends CustomItem
         $field->attribute('style', 'max-width: 200px');
     }
     
-    protected function setValidates(&$validates)
+    protected function setValidates(&$validates, $form_column_options)
     {
         $options = $this->custom_column->options;
         

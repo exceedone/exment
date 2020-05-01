@@ -1081,6 +1081,26 @@ class ApiTest extends ApiTestBase
             ]);
     }
 
+    public function testUpdateValueInitOnly(){
+        $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
+            ->where('updated_user_id', '<>', '1')->first();
+        $init_text = array_get($data->value, 'init_text');
+
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis') . '_update';
+
+        $response =$this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', 'custom_value_edit', $data->id), [
+            'value' => [
+                'init_text' => $text,
+            ]
+        ])->assertStatus(400);
+    }
+
+
+
     public function testDeleteValue(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
 

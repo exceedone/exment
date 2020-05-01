@@ -28,7 +28,9 @@ class UpdateCustomViewSummary extends Migration
     public function down()
     {
         Schema::table('custom_view_summaries', function($table) {
-            $table->dropColumn('options');
+            if (Schema::hasColumn('custom_view_summaries', 'options')) {
+                $table->dropColumn('options');
+            }
         });
     }
 }

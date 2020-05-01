@@ -55,7 +55,7 @@ class Integer extends CustomItem
         }
     }
 
-    protected function setValidates(&$validates)
+    protected function setValidates(&$validates, $form_column_options)
     {
         $options = $this->custom_column->options;
         

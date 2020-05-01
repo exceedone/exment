@@ -95,7 +95,7 @@ class AuthUserOrgHelper
 
                         foreach ($relatedOrgs as $related_organization) {
                             foreach ($related_organization->users as $user) {
-                                $target_ids[] = $user->id;
+                                $target_ids[] = $user->getUserId();
                             }
                         }
                     }
@@ -258,7 +258,7 @@ class AuthUserOrgHelper
         $orgsArray = static::getOrganizationTreeArray();
                 
         if (!isset($targetUserId)) {
-            $targetUserId = \Exment::user()->base_user_id;
+            $targetUserId = \Exment::user()->getUserId();
         }
 
         $results = [];

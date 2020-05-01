@@ -113,7 +113,7 @@ class LoginUserItem extends ProviderBase
             if (is_null($login_user) && boolval(array_get($data, 'use_loginuser'))) {
                 $login_user = new LoginUser;
                 $is_newuser = true;
-                $login_user->base_user_id = $user->id;
+                $login_user->base_user_id = $user->getUserId();
                 $has_change = true;
             }
 
@@ -203,7 +203,7 @@ class LoginUserItem extends ProviderBase
             $tools->disableEdit();
         }
         // cannnot delete myself
-        if (\Exment::user()->base_user_id == $custom_value->id) {
+        if (\Exment::user()->getUserId() == $custom_value->id) {
             $tools->disableDelete();
         }
     }
