@@ -438,6 +438,10 @@ class WorkflowController extends AdminControllerBase
         if (is_null($results = old('workflow_tables'))) {
             $workflowTables = WorkflowTable::with(['workflow', 'custom_table'])->get()
             ->filter(function ($workflowTable) {
+                if(!isset($workflowTable->workflow)){
+                    return false;
+                }
+                
                 if (!boolval($workflowTable->workflow->setting_completed_flg)) {
                     return false;
                 }
