@@ -37,7 +37,7 @@ class InitOnlyRule implements Rule
         // if has custom_value, checking value
         $v = $this->getOriginalValue();
 
-        if($v != $value){
+        if ($v != $value) {
             return false;
         }
 
@@ -56,7 +56,8 @@ class InitOnlyRule implements Rule
         ]);
     }
 
-    protected function getOriginalValue(){
+    protected function getOriginalValue()
+    {
         return array_get($this->custom_value->value, $this->custom_column->column_name);
     }
 }

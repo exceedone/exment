@@ -20,10 +20,9 @@ class FormHelper
         }
 
         $column_item = isset($form_column) ? $form_column->column_item : $column->column_item;
-        if($custom_value_or_id instanceof CustomValue && method_exists($column_item, 'setCustomValue')){
+        if ($custom_value_or_id instanceof CustomValue && method_exists($column_item, 'setCustomValue')) {
             $column_item->setCustomValue($custom_value_or_id);
-        }
-        else{
+        } else {
             $column_item->id($custom_value_or_id);
         }
         return $column_item->options($options)->getAdminField($form_column, $column_name_prefix);

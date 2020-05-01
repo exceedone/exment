@@ -884,21 +884,21 @@ class PatchDataCommand extends Command
         }
 
         $columns = \Exceedone\Exment\Middleware\LogOperation::getHideColumns();
-        \Encore\Admin\Auth\Database\OperationLog::query()->chunk(1000, function($logs) use($columns){
-            foreach($logs as $log){
+        \Encore\Admin\Auth\Database\OperationLog::query()->chunk(1000, function ($logs) use ($columns) {
+            foreach ($logs as $log) {
                 $input = $log->input;
-                if(is_nullorempty($input)){
+                if (is_nullorempty($input)) {
                     continue;
                 }
 
                 $isUpdate = false;
                 $json = json_decode($input, true);
-                foreach($json as $key => &$value){
-                    if(!in_array($key, $columns)){
+                foreach ($json as $key => &$value) {
+                    if (!in_array($key, $columns)) {
                         continue;
                     }
 
-                    if($value == '***'){
+                    if ($value == '***') {
                         continue;
                     }
                     
@@ -906,7 +906,7 @@ class PatchDataCommand extends Command
                     $isUpdate = true;
                 }
 
-                if(!$isUpdate){
+                if (!$isUpdate) {
                     continue;
                 }
 

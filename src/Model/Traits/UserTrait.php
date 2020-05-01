@@ -121,8 +121,8 @@ trait UserTrait
      *
      * @return string|int
      */
-    public function getUserId(){
+    public function getUserId()
+    {
         return $this->id;
     }
-
 }

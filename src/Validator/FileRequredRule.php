@@ -30,12 +30,12 @@ class FileRequredRule implements Rule
     */
     public function passes($attribute, $value)
     {
-        if(!is_null($value)){
+        if (!is_null($value)) {
             return true;
         }
 
         // if has custom_value, checking value
-        if(isset($this->custom_value) && $this->custom_value->exists){
+        if (isset($this->custom_value) && $this->custom_value->exists) {
             $v = array_get($this->custom_value->value, $this->custom_column->column_name);
 
             return !is_nullorempty($v);
