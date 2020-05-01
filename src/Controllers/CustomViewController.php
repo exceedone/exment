@@ -173,7 +173,7 @@ class CustomViewController extends AdminControllerTableBase
                 'label' => trans('admin.new'),
                 'menu' => $lists
             ]));
-            $tools->append(new Tools\GridChangePageMenu('view', $this->custom_table, false));
+            $tools->append(new Tools\CustomTableMenuButton('view', $this->custom_table));
         });
         return $grid;
     }
@@ -452,7 +452,7 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table) {
-            $tools->add((new Tools\GridChangePageMenu('view', $custom_table, false))->render());
+            $tools->add((new Tools\CustomTableMenuButton('view', $custom_table, false))->render());
 
             if (isset($suuid)) {
                 $tools->append(view('exment::tools.button', [

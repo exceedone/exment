@@ -51,7 +51,7 @@ class CustomTableController extends AdminControllerBase
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();
-            $tools->append(new Tools\GridChangePageMenu('table', null, true));
+            $tools->append(new Tools\CustomTableMenuButton('table', null));
         });
 
         $grid->disableExport();
@@ -205,14 +205,7 @@ class CustomTableController extends AdminControllerBase
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::getEloquent($id);
-                
-                $tools->append(view('exment::tools.button', [
-                    'href' => admin_urls('table', $id, 'edit?columnmulti=1'),
-                    'label' => exmtrans('custom_table.expand_setting'),
-                    'icon' => 'fa-cogs',
-                ]));
-
-                $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
+                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'default_setting'))->render());
             }
         });
         
@@ -369,14 +362,7 @@ HTML;
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::getEloquent($id);
-                
-                $tools->append(view('exment::tools.button', [
-                    'href' => admin_urls('table', $id, 'edit'),
-                    'label' => exmtrans('custom_table.default_setting'),
-                    'icon' => 'fa-table',
-                ]));
-
-                $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
+                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting'))->render());
             }
         });
         

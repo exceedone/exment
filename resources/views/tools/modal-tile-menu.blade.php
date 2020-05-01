@@ -1,7 +1,9 @@
 <div class="modal-tile container-fluid">
     @foreach($groups as $group)
     <div class="row">
+        @if(!is_null(array_get($group, 'header')))
         <h4>{{ array_get($group, 'header') }}</h4>
+        @endif
 
         @foreach(array_get($group, 'items', []) as $item)
         <div class="col-sm-6 modal-tile-item">
@@ -21,7 +23,7 @@
                 </div>
                 <div class="sub-buttons">
                     @foreach(array_get($item, 'buttons', []) as $button)
-                    <a href="{{array_get($button, 'href')}}" {{boolval(array_get($button, 'is_blank')) ? 'target=_blank' : ''}} class="btn btn-default btn-sm" {{ !is_null(array_get($button, 'widgetmodal_url')) ? 'data-widgetmodal_url=' . array_get($button, 'widgetmodal_url')  : ''  }}>
+                    <a href="{{array_get($button, 'href')}}" target="{{boolval(array_get($button, 'is_blank')) ? 'blank' : ''}}" class="btn btn-default btn-sm" {!! array_get($button, 'attributes') !!}>
                         <i class="fa {{array_get($button, 'icon')}}" aria-hidden="true"></i>&nbsp;{{array_get($button, 'label')}}
                     </a>
                     @endforeach
@@ -50,6 +52,7 @@
 .modal-tile-item-icon button{
     width:50px;
     height:50px;
+    padding: 10px 15px;
 }
 .modal-tile-item-icon .fa{
     font-size: 40px;
@@ -58,7 +61,6 @@
     font-size: 20px;
 }
 .modal-tile-item-header{
-    margin-top:1.5em;
     font-size:16px;
 }
 .modal-tile-item-description{

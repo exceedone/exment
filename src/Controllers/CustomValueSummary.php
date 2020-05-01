@@ -81,7 +81,7 @@ trait CustomValueSummary
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
             }
             
-            $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
+            $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
         });
 

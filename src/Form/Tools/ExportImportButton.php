@@ -173,21 +173,14 @@ class ExportImportButton extends ModalTileMenuButton
                                 'label' => exmtrans('common.import'),
                                 'icon' => 'fa-upload',
                                 'url' => '#',
-                                'widgetmodal_url' => url_join($this->endpoint, 'importModal')
+                                'attributes' => $this->formatAttributes([
+                                    'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
+                                ]),
                             ]
                         ],
                     ],
                 ]
             ];
-            ///// import
-            // $menulist[] = [
-            //     'action' => 'import',
-            //     'label' => exmtrans('common.import'),
-            //     'items' =>[
-            //         ['href' => $import_template, 'text' => $import_template_trans, 'target' => '_blank'],
-            //         ['href' => 'javascript:void(0);', 'text' => $import,  'data-widgetmodal_url' => url_join($this->endpoint, 'importModal'), 'format_query' => false],
-            //     ]
-            // ];
         }
 
         $this->groups = $groups;
@@ -208,4 +201,5 @@ class ExportImportButton extends ModalTileMenuButton
 
         return false;
     }
+    
 }

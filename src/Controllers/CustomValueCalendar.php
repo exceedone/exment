@@ -13,7 +13,7 @@ trait CustomValueCalendar
         \Exment::user()->filterModel($model, $this->custom_view);
 
         $tools = [];
-        $tools[] = new Tools\GridChangePageMenu('data', $this->custom_table, false);
+        $tools[] = new Tools\CustomTableMenuButton('data', $this->custom_table);
         $tools[] = new Tools\GridChangeView($this->custom_table, $this->custom_view);
 
         return view('exment::widgets.calendar', [

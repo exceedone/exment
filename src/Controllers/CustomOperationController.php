@@ -113,7 +113,7 @@ class CustomOperationController extends AdminControllerTableBase
         });
 
         $grid->tools(function (Grid\Tools $tools) {
-            $tools->append(new Tools\GridChangePageMenu('operation', $this->custom_table, false));
+            $tools->append(new Tools\CustomTableMenuButton('operation', $this->custom_table));
         });
         return $grid;
     }
@@ -183,7 +183,7 @@ class CustomOperationController extends AdminControllerTableBase
         $custom_table = $this->custom_table;
 
         $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table) {
-            $tools->add((new Tools\GridChangePageMenu('operation', $custom_table, false))->render());
+            $tools->add((new Tools\CustomTableMenuButton('operation', $custom_table, false))->render());
         });
         
         return $form;
