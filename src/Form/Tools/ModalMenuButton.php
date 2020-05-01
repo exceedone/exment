@@ -2,16 +2,20 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
+use Illuminate\Contracts\Support\Renderable;
+
 /**
  * Modal menu button.
  */
-class ModalMenuButton
+class ModalMenuButton implements Renderable
 {
     protected $url;
     protected $label;
     protected $expand;
     protected $button_class;
     protected $icon;
+    protected $html;
+    protected $modal_title;
     
     public function __construct($url, $options = [])
     {
@@ -26,19 +30,15 @@ class ModalMenuButton
     public function render()
     {
         return view('exment::tools.modal-menu-button', [
+            'uuid' => make_uuid(),
             'ajax' => $this->url,
             'expand' => collect($this->expand)->toJson(),
             'button_class' => $this->button_class,
             'label' => $this->label ?? null,
             'icon' => $this->icon,
-        ]);
-    }
-    
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return $this->render()->render() ?? '';
+            'html' => $this->html,
+            'modal_title' => $this->modal_title,
+            
+        ])->render();
     }
 }

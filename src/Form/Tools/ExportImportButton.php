@@ -7,20 +7,62 @@ use Encore\Admin\Grid;
 /**
  * Data export and import button
  */
-class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
+class ExportImportButton extends ModalTileMenuButton
 {
+    protected $grid;
     protected $endpoint;
+    protected $total_export_flg;
     protected $export_flg;
     protected $import_flg;
     protected $view_flg;
 
     public function __construct($endpoint, Grid $grid, $view_flg = false, $export_flg = true, $import_flg = true)
     {
+        $this->grid = $grid;
         $this->endpoint = $endpoint;
         $this->export_flg = !boolval(config('exment.export_disabled', false)) && $export_flg;
         $this->import_flg = !boolval(config('exment.import_disabled', false)) && $import_flg;
         $this->view_flg = !boolval(config('exment.export_view_disabled', false)) && $view_flg;
-        parent::__construct($grid);
+        
+        // switch label
+        $this->total_export_flg = $this->export_flg || $this->view_flg;
+
+        if ($this->total_export_flg && $this->import_flg) {
+            $label = exmtrans('custom_value.import_export');
+        } elseif ($this->total_export_flg) {
+            $label = exmtrans('custom_value.export');
+        } elseif ($this->import_flg) {
+            $label = exmtrans('custom_value.import_label');
+        } else {
+            $label = '';
+        }
+
+        parent::__construct([
+            'label' => $label,
+            'icon' => 'fa-download',
+        ]);
+    }
+    
+    /**
+     * Set parent grid.
+     *
+     * @param Grid $grid
+     *
+     * @return $this
+     */
+    public function setGrid(Grid $grid)
+    {
+        $this->grid = $grid;
+
+        return $this;
+    }
+
+    /**
+     * @return Grid
+     */
+    public function getGrid()
+    {
+        return $this->grid;
     }
 
     /**
@@ -30,105 +72,128 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
      */
     public function render()
     {
-        // if (!$this->grid->allowExport()) {
-        //     return '';
-        // }
-
         if ($this->disabledButton()) {
             return;
         }
 
-        $this->setUpScripts();
+        $page = request('page', 1);
 
         $export = trans('admin.export');
         $all = trans('admin.all');
         $currentPage = trans('admin.current_page');
-        $selectedRows = trans('admin.selected_rows');
-        
-        // import
-        $import = exmtrans('common.import');
-        $import_template = $this->endpoint.'?_export_=all&temp=1'; // laravel-admin 1.6.1
-        $import_template_trans = exmtrans('custom_value.template');
 
-        // switch label
-        $export_flg = $this->export_flg || $this->view_flg;
+        $groups = [];
 
-        if ($export_flg && $this->import_flg) {
-            $label = exmtrans('custom_value.import_export');
-        } elseif ($export_flg) {
-            $label = exmtrans('custom_value.export');
-        } elseif ($this->import_flg) {
-            $label = exmtrans('custom_value.import_label');
-        } else {
-            $label = '';
-        }
-
-        $page = request('page', 1);
-
-        // get format and list array
-        $buttons = [];
-        
         // output formats
         $formats = [];
         // check config value
         if (!boolval(config('exment.export_import_export_disabled_csv', false))) {
-            $formats['csv'] = 'CSV';
+            $formats['csv'] = [
+                'label' => 'CSV',
+                'icon' => 'fa-file-o',
+                'is_blank' => true,
+            ];
         }
         if (!boolval(config('exment.export_import_export_disabled_excel', false))) {
-            $formats['excel'] = 'Excel';
-        }
-
-        foreach ($formats as $format => $format_text) {
-            $items = [
-                ['href' => $this->grid->getExportUrl('all'), 'text' => $all, 'target' => '_blank'],
-                ['href' => $this->grid->getExportUrl('page', $page), 'text' => $currentPage, 'target' => '_blank'],
-            ];
-            if (!$this->grid->disableRowSelector()) {
-                $items[] = ['href' => $this->grid->getExportUrl('selected', '__rows__'), 'text' => $selectedRows, 'class' => $this->grid->getExportSelectedName(), 'target' => '_blank'];
-            }
-
-            $menulist = [];
-            if ($export_flg) {
-                if ($this->export_flg) {
-                    ///// export
-                    $menulist[] = [
-                        'action' => 'export',
-                        'label' => trans('admin.export'),
-                        'items' => $items
-                    ];
-                }
-                if ($this->view_flg) {
-                    ///// view export
-                    $menulist[] = [
-                        'action' => 'view_export',
-                        'label' => exmtrans('custom_value.view_export'),
-                        'items' => $items
-                    ];
-                }
-            }
-
-            if ($this->import_flg) {
-                ///// import
-                $menulist[] = [
-                    'action' => 'import',
-                    'label' => exmtrans('common.import'),
-                    'items' =>[
-                        ['href' => $import_template, 'text' => $import_template_trans, 'target' => '_blank'],
-                        ['href' => 'javascript:void(0);', 'text' => $import,  'data-widgetmodal_url' => url_join($this->endpoint, 'importModal'), 'format_query' => false],
-                    ]
-                ];
-            }
-
-            $buttons[$format] = [
-                'format_text' => $format_text,
-                'menulist' => $menulist
+            $formats['excel'] = [
+                'label' => 'Excel',
+                'icon' => 'fa-file-excel-o',
+                'is_blank' => true,
             ];
         }
 
-        return view('exment::tools.exportimport-button', [
-            'buttons' => $buttons,
-            'button_caption' => $label,
-        ]);
+        ///// Append default output
+        if($this->export_flg){
+            $groups[] = [
+                'header' => exmtrans('custom_value.export'),
+                'items' => [
+                    [
+                        'icon' => 'fa-table',
+                        'header' => $all,
+                        'description' => exmtrans('custom_value.help.export_all'),
+                        'buttons' => collect($formats)->map(function($format, $key){
+                            return array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=export&format=$key"], $format);
+                        })->toArray(),
+                    ],
+                    [
+                        'icon' => 'fa-table',
+                        'header' => $currentPage,
+                        'description' => exmtrans('custom_value.help.export_page'),
+                        'buttons' => collect($formats)->map(function($format, $key) use($page){
+                            return array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=export&format=$key"], $format);
+                        })->toArray(),
+                    ],
+                ]
+            ];
+        }
+
+        ///// Append view output
+        if($this->view_flg){
+            $groups[] = [
+                'header' => exmtrans('custom_value.view_export'),
+                'items' => [
+                    [
+                        'icon' => 'fa-th-list',
+                        'header' => $all,
+                        'description' => exmtrans('custom_value.help.view_export_all'),
+                        'buttons' => collect($formats)->map(function($format, $key){
+                            return array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=view_export&format=$key"], $format);
+                        })->toArray(),
+                    ],
+                    [
+                        'icon' => 'fa-th-list',
+                        'header' => $currentPage,
+                        'description' => exmtrans('custom_value.help.view_export_page'),
+                        'buttons' => collect($formats)->map(function($format, $key) use($page){
+                            return array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=view_export&format=$key"], $format);
+                        })->toArray(),
+                    ],
+                ]
+            ];
+        }
+
+        if ($this->import_flg) {
+            $groups[] = [
+                'header' => exmtrans('common.import'),
+                'items' => [
+                    [
+                        'icon' => 'fa-download',
+                        'header' => exmtrans('custom_value.template'),
+                        'description' => exmtrans('custom_value.help.template'),
+                        'buttons' => collect($formats)->map(function($format, $key){
+                            return array_merge(['href'=> $this->endpoint."?_export_=all&temp=1&format=$key"], $format);
+                        })->toArray(),
+                    ],
+                    [
+                        'icon' => 'fa-upload',
+                        'header' => exmtrans('common.import'),
+                        'description' => exmtrans('custom_value.help.import'),
+                        'buttons' => [
+                            [
+                                'label' => exmtrans('common.import'),
+                                'icon' => 'fa-upload',
+                                'url' => '#',
+                                'widgetmodal_url' => url_join($this->endpoint, 'importModal')
+                            ]
+                        ],
+                    ],
+                ]
+            ];
+            ///// import
+            // $menulist[] = [
+            //     'action' => 'import',
+            //     'label' => exmtrans('common.import'),
+            //     'items' =>[
+            //         ['href' => $import_template, 'text' => $import_template_trans, 'target' => '_blank'],
+            //         ['href' => 'javascript:void(0);', 'text' => $import,  'data-widgetmodal_url' => url_join($this->endpoint, 'importModal'), 'format_query' => false],
+            //     ]
+            // ];
+        }
+
+        $this->groups = $groups;
+        $this->modal_title = $this->label;
+
+        return parent::render();
     }
 
     protected function disabledButton()

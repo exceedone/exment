@@ -59,6 +59,19 @@ var Exment;
             }).always(function (res) {
             });
         }
+        /**
+         * Showing static html
+         */
+        static ShowModalHtml($target, $html, title) {
+            let original_title = $target.data('original-title');
+            $('#modal-showmodal button.modal-submit').removeClass('d-none');
+            // change html
+            Exment.ModalEvent.setBodyHtml({ body: $html.html(), title: title, showSubmit: false }, null, original_title);
+            if (!$('#modal-showmodal').hasClass('in')) {
+                $('#modal-showmodal').modal('show');
+                Exment.CommonEvent.AddEvent();
+            }
+        }
         static setBodyHtml(res, button, original_title) {
             // change html
             if (res.body) {
@@ -132,6 +145,17 @@ var Exment;
     ModalEvent.setModalEvent = (ev) => {
         const target = $(ev.target).closest('[data-widgetmodal_url]');
         const url = target.data('widgetmodal_url');
+        const isHtml = target.data('widgetmodal_html');
+        if (isHtml) {
+            // get target html
+            let uuid = target.data('widgetmodal_uuid');
+            let html = $('.widgetmodal_html[data-widgetmodal_html_target="' + uuid + '"]');
+            if (!hasValue(html)) {
+                return;
+            }
+            Exment.ModalEvent.ShowModalHtml(target, html, html.data('widgetmodal_title'));
+            return;
+        }
         if (!hasValue(url)) {
             return;
         }

@@ -1362,7 +1362,7 @@ return [
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
         'export' => 'エクスポート',
-        'view_export' => 'ビュー出力',
+        'view_export' => 'エクスポート(ビュー形式)',
         'import_label' => 'インポート',
         'view_summary_detail' => '集計データの明細を表示する',
         'soft_deleted_data' => '削除済データ',
@@ -1378,6 +1378,7 @@ return [
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
             'target_column_name' => '置換対象列名(英数字)',
+
             'help' => [
                 'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'custom_table_file' => 'テンプレート出力した%sファイルを選択してください。',
@@ -1396,8 +1397,8 @@ return [
             ],
             'message' => [
                 'select_table_not_found' => ':column_view_nameが:valueとなるデータが、:target_table_nameに存在しませんでした。',
-                'select_item_not_found' => ':column_view_nameの形式が不正です。:value_optionsのいずれかを入力してください。'
-            ]
+                'select_item_not_found' => ':column_view_nameの形式が不正です。:value_optionsのいずれかを入力してください。',
+            ],
         ],
         'sendmail' => [
             'title' => 'メール送信',
@@ -1426,7 +1427,13 @@ return [
             'lock_error' => '対象のデータは別のユーザーによって更新されました。画面の更新後、再度入力を行ってください。',
             'lock_error_api' => '対象のデータは別のユーザーによって更新されました。',
             'init_flg' => '保存後、変更はできません。',
-        ],
+            'export_all' => 'すべてのデータ、すべての列をエクスポートします。',
+            'export_page' => '現在のページのデータを。すべての列でエクスポートします。',
+            'view_export_all' => '現在表示しているビューの形式で、すべてのデータをエクスポートします。 ※このファイルを使用し、インポートを行うことはできません。',
+            'view_export_page' => '現在表示しているビューの形式で、現在のページのデータをエクスポートします。 ※このファイルを使用し、インポートを行うことはできません。',
+            'template' => 'インポートに使用する、テンプレートファイルをダウンロードします。',
+            'import' => 'インポート実行のためのダイアログを表示します。',
+    ],
         'message' => [
             'operation_notfound' => '更新対象のデータが見つかりませんでした。',
             'operation_succeeded' => '一括更新を実行しました！',
