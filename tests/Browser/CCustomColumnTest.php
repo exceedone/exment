@@ -2,8 +2,8 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Tests\ExmentKitTestCase;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomTable;
 
 class CCustomColumnTest extends ExmentKitTestCase
 {
@@ -24,7 +24,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Check custom column form
         $this->visit('/admin/column/test')
                 ->seePageIs('/admin/column/test')
-                ->see('カスタム列詳細設定')
+                ->see('カスタム列設定')
                 ->seeInElement('th', 'テーブル')
                 ->seeInElement('th', '列名(英数字)')
                 ->seeInElement('th', '列表示名')
@@ -40,7 +40,6 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '初期値')
                 ->seeInElement('label', 'プレースホルダー')
                 ->seeInElement('label', 'ヘルプ')
-                ->seeInElement('label', 'ラベルで使用する')
                 ->seeInElement('label', '既定のフォームに追加する')
                 ->seeInElement('label', '既定のビューに追加する');
     }
@@ -57,7 +56,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '最大文字数')
                 ->seeInElement('label', '使用可能文字')
                 ->type('256', 'options[string_length]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'onelinetext')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -72,7 +71,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'text')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 0)
             ->seeInField('options[string_length]', 256)
 ;
         $form = [
@@ -81,13 +79,12 @@ class CCustomColumnTest extends ExmentKitTestCase
             'options[index_enabled]' => 1,
             'options[unique]' => 1,
             'options[default]' => 'あああ',
-            'options[use_label_flg]' => 1,
             'options[string_length]' => 128,
             'options[available_characters]' => ['lower','upper','number','hyphen_underscore','symbol'],
         ];
         // Update custom column --one line--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'One Line Text Update');
 
@@ -99,7 +96,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
             ->seeInField('options[default]', 'あああ')
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[string_length]', 128)
             ->seeInField('options[available_characters][]', 'lower')
 ;
@@ -117,7 +113,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->select('textarea', 'column_type')
                 ->seeInElement('label', '最大文字数')
                 ->type('512', 'options[string_length]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'multilinetext')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -132,7 +128,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'textarea')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 0)
             ->seeInField('options[string_length]', 512)
 ;
         $form = [
@@ -141,12 +136,11 @@ class CCustomColumnTest extends ExmentKitTestCase
             'options[index_enabled]' => 1,
             'options[unique]' => 1,
             'options[default]' => 'あああ',
-            'options[use_label_flg]' => 1,
             'options[string_length]' => 256,
         ];
         // Update custom column --Multi line--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Multi Line Text Update');
 
@@ -158,7 +152,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[index_enabled]', 1)
             ->seeInField('options[unique]', 1)
             ->seeInField('options[default]', 'あああ')
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[string_length]', 256)
 ;
     }
@@ -174,8 +167,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('Editor Column', 'column_view_name')
                 ->select('editor', 'column_type')
                 ->type('テキストエディタのヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'editor_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -190,7 +182,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'editor')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', 'テキストエディタのヘルプ')
 ;
         $form = [
@@ -201,7 +192,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --Editor--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Editor Column Update');
 
@@ -226,8 +217,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('URL Column', 'column_view_name')
                 ->select('url', 'column_type')
                 ->type('URLのヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'url_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -242,7 +232,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'url')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', 'URLのヘルプ')
 ;
         $form = [
@@ -253,7 +242,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --URL--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'URL Column Update');
 
@@ -278,8 +267,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('Email Column', 'column_view_name')
                 ->select('email', 'column_type')
                 ->type('Emailのヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'email_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -294,7 +282,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'email')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', 'Emailのヘルプ')
 ;
         $form = [
@@ -305,7 +292,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --Email--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Email Column Update');
 
@@ -336,10 +323,9 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '計算式')
                 ->type(1, 'options[default]')
                 ->type('整数のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type(-12345, 'options[number_min]')
                 ->type(12345, 'options[number_max]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'integer_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -354,7 +340,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'textarea')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[default]', 1)
             ->seeInField('options[help]', '整数のヘルプ')
             ->seeInField('options[number_min]', -12345)
@@ -377,7 +362,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --Integer--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Integer Column Update');
 
@@ -413,11 +398,10 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '小数点以下の桁数')
                 ->type(1, 'options[default]')
                 ->type('小数のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type(-12345.67, 'options[number_min]')
                 ->type(12345.67, 'options[number_max]')
                 ->type(3, 'options[decimal_digit]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'decimal_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -432,7 +416,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'textarea')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[default]', 1)
             ->seeInField('options[help]', '小数のヘルプ')
             ->seeInField('options[number_min]', -12345.67)
@@ -451,7 +434,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --Decimal--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Decimal Column Update');
 
@@ -487,11 +470,10 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '計算式')
                 ->type(1, 'options[default]')
                 ->type('通貨のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type(-12345.67, 'options[number_min]')
                 ->type(12345.67, 'options[number_max]')
                 ->type(3, 'options[decimal_digit]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'currency_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -506,7 +488,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'currency')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[default]', 1)
             ->seeInField('options[help]', '通貨のヘルプ')
             ->seeInField('options[number_min]', -12345.67)
@@ -524,12 +505,12 @@ class CCustomColumnTest extends ExmentKitTestCase
             'options[number_min]' => 0,
             'options[number_max]' => 999999,
             'options[decimal_digit]' => 0,
-            'options[currency_symbol]' => '$',
+            'options[currency_symbol]' => 'USD',
             'options[calc_formula]' => '[{"type":"symbol","val":"times"},{"type":"fixed","val":100}]',
         ];
         // Update custom column --Currency--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Currency Column Update');
 
@@ -544,7 +525,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeInField('options[number_min]', 0)
             ->seeInField('options[number_max]', 999999)
             ->seeInField('options[decimal_digit]', 0)
-            ->seeIsSelected('options[currency_symbol]', '$')
+            ->seeIsSelected('options[currency_symbol]', 'USD')
             ->seeInField('options[calc_formula]', '[{"type":"symbol","val":"times"},{"type":"fixed","val":100}]')
 ;
     }
@@ -560,9 +541,8 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('Date Column', 'column_view_name')
                 ->select('date', 'column_type')
                 ->type('日付のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type('2019/02/19', 'options[default]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'date_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -577,7 +557,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'date')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', '日付のヘルプ')
             ->seeInField('options[default]', '2019/02/19')
 ;
@@ -589,7 +568,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --Date--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Date Column Update');
 
@@ -614,9 +593,8 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('Time Column', 'column_view_name')
                 ->select('time', 'column_type')
                 ->type('時間のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type('12:34:56', 'options[default]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'time_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -631,7 +609,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'time')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', '時間のヘルプ')
             ->seeInField('options[default]', '12:34:56')
 ;
@@ -643,7 +620,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Uptime custom column --Time--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Time Column Uptime');
 
@@ -668,9 +645,8 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('DateTime Column', 'column_view_name')
                 ->select('datetime', 'column_type')
                 ->type('日付と時間のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type('2019/02/19 11:22:33', 'options[default]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'datetime_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -685,7 +661,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'datetime')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', '日付と時間のヘルプ')
             ->seeInField('options[default]', '2019/02/19 11:22:33')
 ;
@@ -697,7 +672,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Updatetime custom column --DateTime--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'DateTime Column Updatetime');
 
@@ -724,10 +699,9 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '選択肢')
                 ->seeInElement('label', '複数選択を許可する')
                 ->type('選択肢のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type(0, 'options[default]')
                 ->type('選択1'."\n".'選択2'."\n".'選択3', 'options[select_item]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'select_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -742,7 +716,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'select')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', '選択肢のヘルプ')
             ->seeInField('options[default]', 0)
             ->seeInField('options[select_item]', '選択1'."\n".'選択2'."\n".'選択3')
@@ -755,7 +728,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --Select line--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Select Column Update');
 
@@ -782,10 +755,9 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '選択肢')
                 ->seeInElement('label', '複数選択を許可する')
                 ->type('選択肢（値と見出し）のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type(0, 'options[default]')
                 ->type('0,低い'."\n".'1,通常'."\n".'2,高い', 'options[select_item_valtext]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'select_valtext_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -800,7 +772,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'select_valtext')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', '選択肢（値と見出し）のヘルプ')
             ->seeInField('options[default]', 0)
             ->seeInField('options[multiple_enabled]', 0)
@@ -815,7 +786,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --Select Value Text--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Select Value Text Column Update');
 
@@ -834,6 +805,8 @@ class CCustomColumnTest extends ExmentKitTestCase
     public function testAddSelectTableColumnSuccess()
     {
         $pre_cnt = CustomColumn::count();
+        $table = CustomTable::where('table_name', 'custom_value_edit_all')->first();
+        $table_id = array_get($table, 'id');
 
         // Create custom column --Select Table--
         $this->visit('/admin/column/test/create')
@@ -843,10 +816,9 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '対象テーブル')
                 ->seeInElement('label', '複数選択を許可する')
                 ->type('選択肢（テーブル）のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type(0, 'options[default]')
-                ->select('4', 'options[select_target_table]')
-                ->press('送信')
+                ->select($table_id, 'options[select_target_table]')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'select_table_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -861,11 +833,10 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'select_table')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', '選択肢（テーブル）のヘルプ')
             ->seeInField('options[default]', 0)
             ->seeInField('options[multiple_enabled]', 0)
-            ->seeIsSelected('options[select_target_table]', '4')
+            ->seeIsSelected('options[select_target_table]', $table_id)
 ;
         $form = [
             'column_view_name' => 'Select Table Column Update',
@@ -876,7 +847,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --Select Table--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Select Table Column Update');
 
@@ -902,9 +873,8 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('YesNo Column', 'column_view_name')
                 ->select('yesno', 'column_type')
                 ->type('YES・Noのヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type(0, 'options[default]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'yesno_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -919,7 +889,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'yesno')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', 'YES・Noのヘルプ')
             ->seeInField('options[default]', 0)
 ;
@@ -931,7 +900,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --YesNo--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'YesNo Column Update');
 
@@ -960,13 +929,12 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('Boolean Column', 'column_view_name')
                 ->select('boolean', 'column_type')
                 ->type('2値の選択のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type(0, 'options[default]')
                 ->type(1, 'options[true_value]')
                 ->type('１番', 'options[true_label]')
                 ->type(2, 'options[false_value]')
                 ->type('２番', 'options[false_label]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'boolean_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -981,7 +949,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'boolean')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', '2値の選択のヘルプ')
             ->seeInField('options[default]', 0)
             ->seeInField('options[true_value]', 1)
@@ -997,7 +964,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --Boolean--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Boolean Column Update');
 
@@ -1023,10 +990,9 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('AutoNumber Column', 'column_view_name')
                 ->select('auto_number', 'column_type')
                 ->type('採番種類のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->type(0, 'options[default]')
                 ->select('random25', 'options[auto_number_type]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'auto_number_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -1041,7 +1007,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'auto_number')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', '採番種類のヘルプ')
             ->seeInField('options[default]', 0)
             ->seeIsSelected('options[auto_number_type]', 'random25')
@@ -1054,7 +1019,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --AutoNumber--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'AutoNumber Column Update');
 
@@ -1079,8 +1044,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('Image Column', 'column_view_name')
                 ->select('image', 'column_type')
                 ->type('画像のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'image_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -1095,7 +1059,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'image')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', '画像のヘルプ')
 ;
         $form = [
@@ -1106,7 +1069,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --Image--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'Image Column Update');
 
@@ -1131,8 +1094,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('File Column', 'column_view_name')
                 ->select('file', 'column_type')
                 ->type('ファイルのヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'file_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -1147,7 +1109,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'file')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', 'ファイルのヘルプ')
 ;
         $form = [
@@ -1158,7 +1119,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --File--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'File Column Update');
 
@@ -1183,9 +1144,8 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('User Column', 'column_view_name')
                 ->select('user', 'column_type')
                 ->type('ユーザーのヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->seeInElement('label', '複数選択を許可する')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'user_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -1200,7 +1160,6 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'user')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', 'ユーザーのヘルプ')
             ->seeInField('options[multiple_enabled]', 0)
 ;
@@ -1213,7 +1172,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         ];
         // Update custom column --User--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ->seeInElement('td', 'User Column Update');
 
@@ -1239,9 +1198,8 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('Organization Column', 'column_view_name')
                 ->select('organization', 'column_type')
                 ->type('組織のヘルプ', 'options[help]')
-                ->type(1, 'options[use_label_flg]')
                 ->seeInElement('label', '複数選択を許可する')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test')
                 ->visit('/admin/column/test?page=1&per_page=50')
                 ->seeInElement('td', 'organization_col')
@@ -1257,20 +1215,19 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->seeIsSelected('column_type', 'organization')
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
-            ->seeInField('options[use_label_flg]', 1)
             ->seeInField('options[help]', '組織のヘルプ')
             ->seeInField('options[multiple_enabled]', 0)
 ;
         $form = [
             'column_view_name' => 'Organization Column Update',
             'options[required]' => 1,
-            'options[index_enabled]' => 1,
+            'options[select_load_ajax]' => 1,
             'options[unique]' => 1,
             'options[multiple_enabled]' => 1,
         ];
         // Update custom column --Organization--
         $this->visit('/admin/column/test/'. $id . '/edit')
-                ->submitForm('送信', $form)
+                ->submitForm('admin-submit', $form)
                 ->seePageIs('/admin/column/test')
                 ;
 
@@ -1279,7 +1236,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             ->see('organization_col')
             ->seeInField('column_view_name', 'Organization Column Update')
             ->seeInField('options[required]', 1)
-            ->seeInField('options[index_enabled]', 1)
+            ->seeInField('options[select_load_ajax]', 1)
             ->seeInField('options[unique]', 1)
             ->seeInField('options[multiple_enabled]', 1)
         ;
@@ -1290,7 +1247,7 @@ class CCustomColumnTest extends ExmentKitTestCase
     {
         $this->visit('/admin/column/test/create')
                 ->seeInElement('h3[class=box-title]', '作成')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test/create')
         ;
     }
@@ -1303,7 +1260,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('onelinetext', 'column_name')
                 ->type('One Line Text Duplicate', 'column_view_name')
                 ->select('text', 'column_type')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/column/test/create')
         ;
     }

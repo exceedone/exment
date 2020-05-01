@@ -7,6 +7,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Validator;
 
 class File extends CustomItem
 {
@@ -138,5 +139,42 @@ class File extends CustomItem
         }
 
         return $this->value;
+    }
+
+    protected function setValidates(&$validates, $form_column_options)
+    {
+        $options = $this->custom_column->options;
+
+        if ((boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required', [])))){
+            $validates[] = new Validator\FileRequredRule($this->custom_column, $this->custom_value);
+        }
+    }
+    
+    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
+    {
+        $field = parent::getCustomField($classname, $form_column_options, $column_name_prefix);
+
+        $options = $this->custom_column->options;
+
+        // required
+        if ((boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required')))){
+            $field->removeRule('required');
+        }
+
+        // if not has value "old", and $custom_value has file path value, set again
+        // Because if validation error, file column's value is always null.
+        $custom_value = $this->custom_value;
+        $custom_column = $this->custom_column;
+        $field->callbackValue(function($value) use($custom_value, $custom_column){
+            if(!is_nullorempty($value)){
+                return $value;
+            }
+            if(!isset($custom_value)){
+                return $value;
+            }
+            return array_get($custom_value->value, $custom_column->column_name);
+        });
+
+        return $field;
     }
 }

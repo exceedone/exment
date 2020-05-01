@@ -156,7 +156,8 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         $query->where('dashboard_type', $this->dashboard_type);
 
         if ($this->dashboard_type == DashboardType::USER) {
-            $query->where('created_user_id', \Exment::user()->base_user_id ?? null);
+            $login_user = \Exment::user();
+            $query->where('created_user_id', isset($login_user) ? $login_user->getUserId() : null);
         }
     }
 
@@ -180,8 +181,9 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             $query->where(function ($query) {
                 $query->where('dashboard_type', DashboardType::SYSTEM);
             })->orWhere(function ($query) {
+                $login_user = \Exment::user();
                 $query->where('dashboard_type', DashboardType::USER)
-                    ->where('created_user_id', \Exment::user()->base_user_id ?? null);
+                    ->where('created_user_id', isset($login_user) ? $login_user->getUserId() : null);
             });
         });
     }
@@ -198,10 +200,10 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         if (!static::hasSystemPermission()) {
             if ($this->dashboard_type == DashboardType::SYSTEM) {
                 return false;
-            } elseif ($this->created_user_id != \Exment::user()->base_user_id) {
+            } elseif ($this->created_user_id != \Exment::user()->getUserId()) {
                 return false;
             }
-        } elseif ($this->dashboard_type == DashboardType::USER && $this->created_user_id != \Exment::user()->base_user_id) {
+        } elseif ($this->dashboard_type == DashboardType::USER && $this->created_user_id != \Exment::user()->getUserId()) {
             return false;
         }
 

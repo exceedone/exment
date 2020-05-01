@@ -170,6 +170,7 @@ return [
         'password_history' => 'The password is the same as the password registered in the past. Please enter another password.',
         'complex_password' => 'The password must be at least 12 characters long and must contain three types of characters (uppercase letters, lowercase letters, numbers, symbols).',
         'not_has_custom_value' => 'Input value :value in column :attribute does not exist in table ":table_view_name". Please check the data.',
+        'init_only' => 'The value in column :attribute cannot be changed from :original_value.',
         'empty' => 'Only a blank value can be specified for the value of :attribute.',
         'max_table_index' => 'Up to :count search indexes can be set in one table.',
         'using_index_column' => 'Search index cannot be released because it is in use by a view.',

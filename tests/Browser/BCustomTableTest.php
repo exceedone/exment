@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Tests\ExmentKitTestCase;
 use Exceedone\Exment\Model\CustomTable;
 
 class BCustomTableTest extends ExmentKitTestCase
@@ -47,7 +46,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 ->seeInElement('label', 'テーブル名(英数字)')
                 ->seeInElement('label', 'テーブル表示名')
                 ->seeInElement('label', '説明')
-                ->seeInElement('h4[class=pull-right]', '詳細設定')
+                ->seeInElement('h4[class=field-header]', '詳細設定')
                 ->seeInElement('label', '色')
                 ->seeInElement('label', 'アイコン')
                 ->seeInElement('label', '検索可能')
@@ -55,9 +54,9 @@ class BCustomTableTest extends ExmentKitTestCase
                 ->seeInElement('label', '添付ファイル使用')
                 ->seeInElement('label', 'データ変更履歴使用')
                 ->seeInElement('label', '変更履歴バージョン数')
-                ->seeInElement('label', 'すべてのユーザーが編集可能')
-                ->seeInElement('label', 'すべてのユーザーが閲覧可能')
-                ->seeInElement('label', 'すべてのユーザーが参照可能')
+                ->seeInElement('label', '全ユーザーが編集可能')
+                ->seeInElement('label', '全ユーザーが閲覧可能')
+                ->seeInElement('label', '全ユーザーが参照可能')
                 ->seeInElement('label', 'メニューに追加する')
         ;
     }
@@ -79,10 +78,8 @@ class BCustomTableTest extends ExmentKitTestCase
                 ->type('#ff0000', 'options[color]')
                 ->type('fa-automobile', 'options[icon]')
                 ->type(50, 'options[revision_count]')
-                ->press('送信')
-                ->seePageIs('/admin/table')
-                ->seeInElement('td', 'test')
-                ->seeInElement('td', 'test table')
+                ->press('admin-submit')
+                ->seePageIs('/admin/column/test')
                 ->assertEquals($pre_cnt + 1, CustomTable::count())
         ;
     }
@@ -103,7 +100,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 ->type('test table update', 'table_view_name')
                 ->type('test description update', 'description')
                 ->type('#00ff00', 'options[color]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/table')
                 ->seeInElement('td', 'test table update')
         ;
@@ -121,7 +118,7 @@ class BCustomTableTest extends ExmentKitTestCase
         ];
         // Update custom table
         $this->visit('/admin/table/'. $id . '/edit')
-                ->submitForm('送信', $data)
+                ->submitForm('admin-submit', $data)
                 ->seePageIs('/admin/table')
         ;
     
