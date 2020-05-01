@@ -893,6 +893,9 @@ class PatchDataCommand extends Command
 
                 $isUpdate = false;
                 $json = json_decode($input, true);
+                if (is_nullorempty($json)) {
+                    continue;
+                }
                 foreach ($json as $key => &$value) {
                     if (!in_array($key, $columns)) {
                         continue;

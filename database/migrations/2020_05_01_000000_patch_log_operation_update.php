@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 
-class PatchLogOperation extends Migration
+class PatchLogOperationUpdate extends Migration
 {
     /**
      * Run the migrations.
