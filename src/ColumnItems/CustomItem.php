@@ -560,6 +560,14 @@ abstract class CustomItem implements ItemInterface
         return $validates;
     }
 
+    /**
+     * Compare two values.
+     */
+    public function compareTwoValues($compare_type, $target_column, $this_value, $target_value)
+    {
+        return true;
+    }
+
     protected function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));

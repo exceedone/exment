@@ -170,4 +170,20 @@ class Date extends CustomItem
     {
         return true;
     }
+    
+    /**
+     * Compare two values.
+     */
+    public function compareTwoValues($compare_type, $target_column, $this_value, $target_value)
+    {
+        try{
+            $this_date = new \Carbon\Carbon($this_value);
+            $target_date = new \Carbon\Carbon($target_date);
+        }
+        // if throw, return true. (Maybe validates as format other logic.)
+        catch(\Exception $ex){
+            return true;
+        }
+    }
+
 }
