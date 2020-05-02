@@ -12,16 +12,24 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Console\BackupRestoreTrait;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Services\BackupRestore;
 use Validator;
 use DB;
 
 class BackupController extends AdminControllerBase
 {
-    use BackupRestoreTrait;
+    protected $backup;
+    protected $restore;
 
     public function __construct(Request $request)
     {
         $this->setPageInfo(exmtrans("backup.header"), exmtrans("backup.header"), exmtrans("backup.description"), 'fa-database');
+
+        $this->backup = new BackupRestore\Backup;
+        $this->backup->initBackupRestore();
+
+        $this->restore = new BackupRestore\Restore;
+        $this->restore->initBackupRestore();
     }
     
     /**
@@ -33,8 +41,13 @@ class BackupController extends AdminControllerBase
     {
         $this->AdminContent($content);
         
-        $this->initBackupRestore();
-        $disk = $this->disk();
+        $checkBackup = $this->backup->check();
+
+        if(!$checkBackup){
+            //TODO:エラーメッセージ
+        }
+
+        $disk = $this->backup->disk();
 
         // get all archive files
         $files = array_filter($disk->files('list'), function ($file) {
@@ -185,7 +198,8 @@ class BackupController extends AdminControllerBase
         $data = $request->all();
 
         $target = System::backup_target();
-        $result = \Artisan::call('exment:backup', ['--target' => $target]);
+
+        $result = $this->backup->execute($target);
 
         if (isset($result) && $result === 0) {
             return response()->json([
@@ -215,15 +229,16 @@ class BackupController extends AdminControllerBase
             abort(404);
         }
 
-        $this->initBackupRestore($ymdhms);
-
-        $path = $this->diskService->diskItem()->filePath();
-        $exists = $this->disk()->exists($path);
+        $this->backup->initBackupRestore($ymdhms);
+        $disk = $this->backup->disk();
+        
+        $path = $this->backup->diskService()->diskItem()->filePath();
+        $exists = $disk->exists($path);
         if (!$exists) {
             abort(404);
         }
 
-        return downloadFile($path, $this->disk());
+        return downloadFile($path, $disk);
     }
 
     /**
@@ -300,10 +315,8 @@ class BackupController extends AdminControllerBase
             // store uploaded file
             $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
             try {
-                \Artisan::call('down');
-                $result = \Artisan::call('exment:restore', ['file' => $filename, '--tmp' => 1]);
+                $result = $this->restore->execute($filename, true);
             } finally {
-                \Artisan::call('up');
             }
         }
         
@@ -342,10 +355,8 @@ class BackupController extends AdminControllerBase
 
         if ($validator->passes()) {
             try {
-                \Artisan::call('down');
-                $result = \Artisan::call('exment:restore', ['file' => $data['file']]);
+                $result = $this->restore->execute($data['file']);
             } finally {
-                \Artisan::call('up');
             }
         }
 

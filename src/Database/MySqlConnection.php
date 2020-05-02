@@ -72,7 +72,7 @@ class MySqlConnection extends BaseConnection
         $database = config('database.connections.mysql.database', '');
         $dbport = config('database.connections.mysql.port', '');
 
-        $mysqldump = config('exment.backup_info.mysql_dir', '') . 'mysqldump';
+        $mysqldump = $this->getMysqlDumpPath();
         $command = sprintf(
             '%s -h %s -u %s --password=%s -P %s',
             $mysqldump,
@@ -92,6 +92,23 @@ class MySqlConnection extends BaseConnection
 
         exec($command);
     }
+
+    /**
+     * Check execute backup database
+     *
+     * @return bool
+     */
+    public function checkBackup() : bool
+    {
+        $mysqldump = $this->getMysqlDumpPath();
+
+        exec("$mysqldump --version", $output);
+
+        if(is_nullorempty($output)){
+            return false;
+        }
+        return true;
+    }   
 
     public function backupDatabase($tempDir)
     {
@@ -148,5 +165,10 @@ class MySqlConnection extends BaseConnection
                 $file->fputcsv($row);
             }
         });
+    }
+
+    protected function getMysqlDumpPath()
+    {
+        return config('exment.backup_info.mysql_dir', '') . 'mysqldump';   
     }
 }
