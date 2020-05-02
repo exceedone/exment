@@ -354,7 +354,7 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleting(function ($model) {
-            $model->deleted_user_id = \Exment::user()->base_user_id;
+            $model->deleted_user_id = \Exment::user()->getUserId();
 
             // saved_notify(as update) disable
             $saved_notify = $model->saved_notify;
@@ -442,12 +442,12 @@ abstract class CustomValue extends ModelBase
     public function validatorSaving($input, bool $asApi = false)
     {
         // validate multiple column set is unique
-        $errors = $this->custom_table->validatorMultiUniques($input, $this->id, [
+        $errors = $this->custom_table->validatorMultiUniques($input, $this, [
             'asApi' => $asApi,
             'appendErrorAllColumn' => true,
         ]);
 
-        $errors = array_merge($this->custom_table->validatorLock($input, $this->id, $asApi), $errors);
+        $errors = array_merge($this->custom_table->validatorLock($input, $this, $asApi), $errors);
 
         // call plugin validator
         $errors = array_merge_recursive($errors, Plugin::pluginValidator(Plugin::getPluginsByTable($this->custom_table), [
@@ -668,7 +668,7 @@ abstract class CustomValue extends ModelBase
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
-            ->where('authoritable_target_id', \Exment::user()->base_user_id);
+            ->where('authoritable_target_id', \Exment::user()->getUserId());
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
             $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
             $query = $this

@@ -158,11 +158,12 @@ GitHub brunch is operated as follows.
 
 | GitHub Brunch Name | Derived from | Explain |
 | ------------------ | -------------| ------------- |
-| `master` | - | The current stable version. Manage source code at the time of release. / 現在の安定版です。リリースした時点でのソースコードを管理します。 |
-| `hotfix` | master | This branch is for emergency response when there is a fatal defect in the released source code. After push, merge into develop and master. / リリースしたソースコードで、致命的な不具合があったときに緊急対応を行うためのブランチです。push後、developとmasterにマージします。 |
-| `develop` | master | This branch develops the next functions. / 次期機能などの開発を行うブランチです。 |
-| `feature` | develop | A branch for each function to be implemented. When development is complete, merge into develop. Example: feature/XXX, feature/YYY / 実装する機能ごとのブランチです。 開発が完了したら、developにマージを行います。 例：feature/XXX, feature/YYY |
-| `release` | develop | This is a version for fine-tuning at the time of release after development is completed. Check the operation in this branch, and when completed, merge to master. / developでの開発完了後、リリース時の微調整を行うためのバージョンです。こちらのブランチで動作確認を行い、完了したら、masterにマージを行います。 |
+| `master` | - | The current stable version. Manage source code at the time of release. <br/> 現在の安定版です。リリースした時点でのソースコードを管理します。 |
+| `hotfix` | master | This branch is for emergency response when there is a fatal defect in the released source code. After push, merge into develop and master. <br/> リリースしたソースコードで、致命的な不具合があったときに緊急対応を行うためのブランチです。push後、developとmasterにマージします。 |
+| `hotfixfeature` | hotfix | When a large number of corrections occur due to emergency response when there is a fatal defect, we will create a branch from hotfix and respond. After the fix is ​​complete, merge it into the hotfix. <br/> 致命的な不具合があったときの緊急対応で、多数の修正が発生する場合に、hotfixよりブランチを作成し、対応を行います。修正が完了後、hotfixにマージします。 |
+| `develop` | master | This branch develops the next functions. <br/> 次期機能などの開発を行うブランチです。 |
+| `feature` | develop | A branch for each function to be implemented. When development is complete, merge into develop. Example: feature/XXX, feature/YYY <br/> 実装する機能ごとのブランチです。 開発が完了したら、developにマージを行います。 例：feature/XXX, feature/YYY |
+| `release` | develop | This is a version for fine-tuning at the time of release after development is completed. Check the operation in this branch, and when completed, merge to master. <br/> developでの開発完了後、リリース時の微調整を行うためのバージョンです。こちらのブランチで動作確認を行い、完了したら、masterにマージを行います。 |
 
 ### Before Commit - php-cs-fixer
 Before pushing to GitHub, execute php-cs-fixer and format the source code.  

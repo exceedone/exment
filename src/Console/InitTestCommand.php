@@ -15,7 +15,7 @@ class InitTestCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:inittest';
+    protected $signature = 'exment:inittest {--yes}';
 
     /**
      * The console command description.
@@ -43,7 +43,7 @@ class InitTestCommand extends Command
      */
     public function handle()
     {
-        if (!$this->confirm('Really initialize environment? All reset this environment.')) {
+        if (!boolval($this->option('yes')) && !$this->confirm('Really initialize environment? All reset this environment.')) {
             return;
         }
 

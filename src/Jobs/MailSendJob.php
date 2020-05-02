@@ -212,9 +212,9 @@ class MailSendJob implements ShouldQueue
     protected function getUserId($user)
     {
         if ($user instanceof CustomValue) {
-            return $user->id;
+            return $user->getUserId();
         } elseif ($user instanceof LoginUser) {
-            return $user->base_user_id;
+            return $user->getUserId();
         } elseif ($user instanceof NotifyTarget) {
             return $user->id();
         }
