@@ -131,7 +131,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function compare_columns()
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
-            ->where('multisetting_type', MultisettingType::VALIDATION_COLUMNS);
+            ->where('multisetting_type', MultisettingType::COMPARE_COLUMNS);
     }
 
     /**
@@ -350,7 +350,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return false;
             }
 
-            if($val->multisetting_type != MultisettingType::VALIDATION_COLUMNS){
+            if($val->multisetting_type != MultisettingType::COMPARE_COLUMNS){
                 return false;
             }
 

@@ -359,7 +359,7 @@ HTML;
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                 ]));
-            $form->hidden('multisetting_type')->default(MultisettingType::VALIDATION_COLUMNS);
+            $form->hidden('multisetting_type')->default(MultisettingType::COMPARE_COLUMNS);
         })->setTableColumnWidth(4, 3, 4, 1)
         ->description(exmtrans("custom_table.custom_column_multi.help.compare_columns"));
         
