@@ -23,6 +23,33 @@ class Restore
     }
 
     /**
+     * Get restore target list
+     *
+     * @return array
+     */
+    public function list() : array
+    {
+        $disk = $this->disk();
+
+        // get all archive files
+        $files = array_filter($disk->files('list'), function ($file) {
+            return preg_match('/list\/\d+\.zip$/i', $file);
+        });
+        // edit table row data
+        $rows = [];
+        foreach ($files as $file) {
+            $rows[] = [
+                'file_key' => pathinfo($file, PATHINFO_FILENAME),
+                'file_name' => mb_basename($file),
+                'file_size' => bytesToHuman($disk->size($file)),
+                'created' => date("Y/m/d H:i:s", $disk->lastModified($file))
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
      * Execute restore.
      *
      * @param string $file target file
@@ -237,11 +264,11 @@ __EOT__;
     protected function restoreDatabase()
     {
         // get all table list about "pivot_"
-        collect(\Schema::getTableListing())->filter(function ($table) {
-            return stripos($table, 'pivot_') === 0;
-        })->each(function ($table) {
-            \Schema::dropIfExists($table);
-        });
+        // collect(\Schema::getTableListing())->filter(function ($table) {
+        //     return stripos($table, 'pivot_') === 0;
+        // })->each(function ($table) {
+        //     \Schema::dropIfExists($table);
+        // });
 
         // get table connect info
         $host = config('database.connections.mysql.host', '');

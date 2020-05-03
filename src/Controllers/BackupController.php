@@ -47,22 +47,7 @@ class BackupController extends AdminControllerBase
             //TODO:エラーメッセージ
         }
 
-        $disk = $this->backup->disk();
-
-        // get all archive files
-        $files = array_filter($disk->files('list'), function ($file) {
-            return preg_match('/list\/\d+\.zip$/i', $file);
-        });
-        // edit table row data
-        $rows = [];
-        foreach ($files as $file) {
-            $rows[] = [
-                'file_key' => pathinfo($file, PATHINFO_FILENAME),
-                'file_name' => mb_basename($file),
-                'file_size' => bytesToHuman($disk->size($file)),
-                'created' => date("Y/m/d H:i:s", $disk->lastModified($file))
-            ];
-        }
+        $rows = $this->restore->list();
 
         $content->row(view(
             'exment::backup.index',
