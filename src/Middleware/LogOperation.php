@@ -28,7 +28,7 @@ class LogOperation extends BaseLogOperation
                 'path'    => substr($request->path(), 0, 255),
                 'method'  => $request->method(),
                 'ip'      => $request->getClientIp(),
-                'input'   => json_encode($request->input()),
+                'input'   => $this->hidePasswords(json_encode($request->input())),
             ];
 
             try {
@@ -68,5 +68,31 @@ class LogOperation extends BaseLogOperation
         }
 
         return parent::inExceptArray($request);
+    }
+    
+    /**
+     * Replace passwords with stars in operation log
+     * @see https://github.com/z-song/laravel-admin/issues/625
+     *
+     * @param string $stringToLog
+     * @return string
+     */
+    protected function hidePasswords($stringToLog)
+    {
+        $columns = implode("|", static::getHideColumns());
+        return preg_replace('#("(' . $columns . ')"\s*:\s*")([^"]*)"#', '\1***"', $stringToLog);
+    }
+
+    public static function getHideColumns() : array
+    {
+        return [
+            'password',
+            'password_confirmation',
+            'current_password',
+            '_token',
+            'verify_code',
+            'access_token',
+            'refresh_token',
+        ];
     }
 }

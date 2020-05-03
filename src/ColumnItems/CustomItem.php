@@ -523,7 +523,7 @@ abstract class CustomItem implements ItemInterface
         }
 
         // init_flg(for validation)
-        if($this->initonly()){
+        if ($this->initonly()) {
             $validates[] = new Validator\InitOnlyRule($this->custom_column, $this->custom_value);
         }
 

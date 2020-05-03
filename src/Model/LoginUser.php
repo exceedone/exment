@@ -115,10 +115,11 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     /**
      * Get User Model's ID
      * "This function name defines Custom value's user and login user. But this function always return Custom value's user
-     * 
+     *
      * @return string|int
      */
-    public function getUserId(){
+    public function getUserId()
+    {
         return $this->base_user_id;
     }
 
