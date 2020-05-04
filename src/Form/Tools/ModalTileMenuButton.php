@@ -34,11 +34,22 @@ class ModalTileMenuButton extends ModalMenuButton
         $this->groups = $groups;
     }
 
-    public function render()
+    /**
+     * Get tile html
+     *
+     * @return void
+     */
+    public function html()
     {
-        $this->html = view('exment::tools.modal-tile-menu', [
+        return view('exment::tools.modal-tile-menu', [
             'groups' => $this->groups
         ])->render();
+    }
+
+    public function render()
+    {
+        $this->html = $this->html();
+
         return parent::render();
     }
     

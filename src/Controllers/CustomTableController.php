@@ -5,8 +5,8 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
-// use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Layout\Row;
 use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
@@ -38,6 +38,21 @@ class CustomTableController extends AdminControllerBase
     }
 
     /**
+     * Index interface.
+     *
+     * @return Content
+     */
+    public function index(Request $request, Content $content)
+    {
+        $content = $this->AdminContent($content);
+
+        $row = new Row($this->grid());
+        $row->class(['block_custom_table']);
+
+        return $content->row($row);
+    }
+
+    /**
      * Make a grid builder.
      *
      * @return Grid
@@ -51,7 +66,7 @@ class CustomTableController extends AdminControllerBase
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();
-            $tools->append(new Tools\CustomTableMenuButton('table', null));
+            $tools->append(new Tools\CustomTableMenuAjaxButton());
         });
 
         $grid->disableExport();
@@ -509,5 +524,18 @@ HTML;
                 'message' => exmtrans('custom_value.help.reference_error'),
             ];
         }
+    }
+    /**
+     * Showing menu modal
+     */
+    public function menuModal(Request $request, $id)
+    {
+        $tool = new Tools\CustomTableMenuAjaxButton();
+        $tool->id($id);
+
+        return getAjaxResponse([
+            'body'  => $tool->ajaxHtml(),
+            'title' => exmtrans("change_page_menu.change_page_label"),
+        ]);
     }
 }

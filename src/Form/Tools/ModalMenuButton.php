@@ -16,6 +16,7 @@ class ModalMenuButton implements Renderable
     protected $icon;
     protected $html;
     protected $modal_title;
+    protected $uuid;
     
     public function __construct($url, $options = [])
     {
@@ -25,12 +26,14 @@ class ModalMenuButton implements Renderable
         $this->button_class = array_get($options, 'button_class', 'btn-primary');
         $this->icon = array_get($options, 'icon', 'fa-check-square');
         $this->expand = array_get($options, 'expand', []);
+
+        $this->uuid = make_uuid();
     }
 
     public function render()
     {
         return view('exment::tools.modal-menu-button', [
-            'uuid' => make_uuid(),
+            'uuid' => $this->uuid,
             'ajax' => $this->url,
             'expand' => collect($this->expand)->toJson(),
             'button_class' => $this->button_class,

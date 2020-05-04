@@ -1,8 +1,8 @@
 <div class="modal-tile container-fluid">
     @foreach($groups as $group)
-    <div class="row">
+    <div class="row" style="margin-bottom: 1em;">
         @if(!is_null(array_get($group, 'header')))
-        <h4>{{ array_get($group, 'header') }}</h4>
+        <h4 class="col-sm-12">{{ array_get($group, 'header') }}</h4>
         @endif
 
         @foreach(array_get($group, 'items', []) as $item)

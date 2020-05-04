@@ -92,6 +92,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
+            $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
             
             $router->resource('workflow', 'WorkflowController', ['except' => ['show']]);
             $router->get("workflow/beginning", 'WorkflowController@beginningForm');

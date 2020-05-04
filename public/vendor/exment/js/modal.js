@@ -25,8 +25,11 @@ var Exment;
                 }
             }
             // set uuid
-            const uuid = getUuid();
-            $target.attr('data-widgetmodal_uuid', uuid);
+            let uuid = $target.attr('data-widgetmodal_uuid');
+            if (!hasValue(uuid)) {
+                uuid = getUuid();
+                $target.attr('data-widgetmodal_uuid', uuid);
+            }
             data['widgetmodal_uuid'] = uuid;
             // get expand data
             let expand = $target.data('widgetmodal_expand');
