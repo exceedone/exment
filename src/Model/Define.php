@@ -155,21 +155,6 @@ class Define
     public const SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE = "import_key_value_%s_%s_%s";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_TREE = "organization_tree";
 
-    public const PLUGIN_EVENT_TRIGGER = [
-        'saving',
-        'saved',
-        'loading',
-        'loaded',
-        'grid_menubutton',
-        'form_menubutton_show',
-        'form_menubutton_create',
-        'form_menubutton_edit',
-        'workflow_action_executing',
-        'workflow_action_executed',
-        'notify_executing',
-        'notify_executed',
-    ];
-
     /**
      * MENU SYSTEM DIFINITION
      */
@@ -228,8 +213,31 @@ class Define
         ],
     ];
 
-    public const CUSTOM_COLUMN_AVAILABLE_CHARACTERS_OPTIONS = [
-        'lower','upper','number','hyphen_underscore','symbol'
+    public const CUSTOM_COLUMN_AVAILABLE_CHARACTERS = [
+        [
+            'key' => 'lower',
+            'regex' => 'a-z'
+        ],
+        [
+            'key' => 'upper',
+            'regex' => 'A-Z'
+        ],
+        [
+            'key' => 'number',
+            'regex' => '0-9'
+        ],
+        [
+            'key' => 'hyphen_underscore',
+            'regex' => '_\-'
+        ],
+        [
+            'key' => 'dot',
+            'regex' => '\.'
+        ],
+        [
+            'key' => 'symbol',
+            'regex' => '!"#$%&\'()\*\+\-\.,\/:;<=>?@\[\]^_`{}~'
+        ],
     ];
 
     public const CUSTOM_VALUE_IMPORT_KEY = [
@@ -242,14 +250,27 @@ class Define
     ];
 
     public const GRID_CHANGE_PAGE_MENULIST = [
-        ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table'],
-        ['url' => 'column', 'icon' => 'fa-list', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
-        ['url' => 'relation', 'icon' => 'fa-compress', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
-        ['url' => 'form', 'icon' => 'fa-keyboard-o', 'roles' => [Permission::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
-        ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_view'],
-        ['url' => 'copy', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
-        ['url' => 'operation', 'icon' => 'fa-reply-all', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_operation'],
-        ['url' => 'data', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
+        ['name' => 'table', 'href' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table', 'description' => 'custom_table.description', 'buttons' => [
+            [
+                'name' => 'default_setting', 
+                'href' => 'table/:id/edit',
+                'exmtrans' => 'custom_table.default_setting',
+                'icon' => 'fa-table',
+            ],
+            [
+                'name' => 'expand_setting', 
+                'href' => 'table/:id/edit?columnmulti=1',
+                'exmtrans' => 'custom_table.expand_setting',
+                'icon' => 'fa-cogs',
+            ],
+        ]],
+        ['name' => 'column', 'href' => 'column/:table_name', 'icon' => 'fa-list', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column', 'description' => 'custom_column.description'],
+        ['name' => 'relation', 'href' => 'relation/:table_name', 'icon' => 'fa-compress', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation', 'description' => 'custom_relation.description'],
+        ['name' => 'form', 'href' => 'form/:table_name', 'icon' => 'fa-keyboard-o', 'roles' => [Permission::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form', 'description' => 'custom_form.description'],
+        ['name' => 'view', 'href' => 'view/:table_name', 'icon' => 'fa-th-list', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_view', 'description' => 'custom_view.description'],
+        ['name' => 'copy', 'href' => 'copy/:table_name', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy', 'description' => 'custom_copy.description'],
+        ['name' => 'operation', 'href' => 'operation/:table_name', 'icon' => 'fa-reply-all', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_operation', 'description' => 'custom_operation.description'],
+        ['name' => 'data', 'href' => 'data/:table_name', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value', 'description' => 'custom_value.description'],
     ];
 
     public const CUSTOM_VALUE_TRAITS = [

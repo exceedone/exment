@@ -281,7 +281,7 @@
                         "index_enabled": "1",
                         "init_only": "1",
                         "unique": "1",
-                        "available_characters": ["lower","upper","number","hyphen_underscore"]
+                        "available_characters": ["lower","upper","number", "dot", "hyphen_underscore"]
                     }
                 },
                 {
@@ -335,7 +335,7 @@
                         "index_enabled": "1",
                         "unique": "1",
                         "init_only": "1",
-                        "available_characters": ["lower","upper","number","hyphen_underscore"]
+                        "available_characters": ["lower","upper","number","dot","hyphen_underscore"]
                     }
                 },
                 {

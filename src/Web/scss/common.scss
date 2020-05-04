@@ -411,6 +411,67 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     overflow-x: hidden;
 }
 
+.modal-tile {
+    .groupheader{
+        font-size: 17px;
+    }
+
+    .row{
+        margin-bottom: 1em;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .row:last-child{
+        margin-bottom: -1.5em;
+    }
+
+    .modal-tile-col{
+        margin-bottom: 1em;
+    }
+
+    .modal-tile-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100px;
+        .sub-buttons {
+            margin-top: 0.5em;
+            
+            .btn{
+                margin-top:0.2em;
+            }
+        }
+    }
+    .modal-tile-item-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        a.btn {
+            width: 70px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            .fa {
+                //font-size: 40px;
+            }
+        }
+        .fa {
+            font-size: 40px;
+        }
+    }
+    .modal-tile-item-header {
+        font-size: 15px;
+    }
+    .modal-tile-item-description {
+        font-size: 12px;
+    }
+    
+    
+}
+
+
+
 .has-error {
     .btn-valuemodal, .text-valuemodal, .checkbox, .checkbox-inline, .control-label, .help-block, .radio, .radio-inline{
         color:#dd4b39 !important;

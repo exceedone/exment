@@ -175,7 +175,7 @@ namespace Exment {
         }
 
         /**
-         * Show Modal Event
+         * Show Swal Event
          */
         public static ShowSwal(url: string, options?: any) {
             options = $.extend(

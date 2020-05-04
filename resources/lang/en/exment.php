@@ -923,6 +923,7 @@ return [
             'upper' => 'Upper Letters', 
             'number' => 'Numbers', 
             'hyphen_underscore' => '"-" or "_"',
+            'dot' => '"."(Dot)',
             'symbol' => 'Symbol',
         ],
         

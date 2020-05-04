@@ -10,6 +10,7 @@ use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -533,35 +534,22 @@ abstract class CustomItem implements ItemInterface
             $regex_validate = array_get($options, 'regex_validate');
             $validates[] = 'regex:/'.$regex_validate.'/u';
         } elseif (array_key_value_exists('available_characters', $options)) {
-            $available_characters = array_get($options, 'available_characters') ?? [];
-            if (is_string($available_characters)) {
-                $available_characters = explode(",", $available_characters);
-            }
+            $difinitions = CustomColumn::getAvailableCharacters();
+
+            $available_characters = stringToArray(array_get($options, 'available_characters') ?? []);
             $regexes = [];
             // add regexes using loop
             foreach ($available_characters as $available_character) {
-                switch ($available_character) {
-                    case 'lower':
-                        $regexes[] = 'a-z';
-                        $help_regexes[] = exmtrans('custom_column.available_characters.lower');
-                        break;
-                    case 'upper':
-                        $regexes[] = 'A-Z';
-                        $help_regexes[] = exmtrans('custom_column.available_characters.upper');
-                        break;
-                    case 'number':
-                        $regexes[] = '0-9';
-                        $help_regexes[] = exmtrans('custom_column.available_characters.number');
-                        break;
-                    case 'hyphen_underscore':
-                        $regexes[] = '_\-';
-                        $help_regexes[] = exmtrans('custom_column.available_characters.hyphen_underscore');
-                        break;
-                    case 'symbol':
-                        $regexes[] = '!"#$%&\'()\*\+\-\.,\/:;<=>?@\[\]^_`{}~';
-                        $help_regexes[] = exmtrans('custom_column.available_characters.symbol');
-                    break;
+                // get available_character define
+                $define = collect($difinitions)->first(function($d) use($available_character){
+                    return array_get($d, 'key') == $available_character;
+                });
+                if(!isset($define)){
+                    continue;
                 }
+
+                $regexes[] = array_get($define, 'regex');
+                $help_regexes[] = array_get($define, 'label');
             }
             if (count($regexes) > 0) {
                 $validates[] = 'regex:/^['.implode("", $regexes).']*$/u';
@@ -577,6 +565,14 @@ abstract class CustomItem implements ItemInterface
         $this->setValidates($validates, $form_column_options);
 
         return $validates;
+    }
+
+    /**
+     * Compare two values.
+     */
+    public function compareTwoValues(CustomColumnMulti $compare_column, $this_value, $target_value)
+    {
+        return true;
     }
 
     protected function initonly()

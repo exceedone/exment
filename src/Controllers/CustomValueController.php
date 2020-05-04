@@ -26,6 +26,7 @@ use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\FormHelper;
@@ -58,7 +59,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
 
         //Get all plugin satisfied
-        $this->plugins = Plugin::getPluginsByTable($this->custom_table->table_name);
+        $this->plugins = Plugin::getPluginsByTable($this->custom_table);
     }
 
     /**
@@ -156,13 +157,13 @@ class CustomValueController extends AdminControllerTableBase
 
         $this->AdminContent($content);
         
-        Plugin::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADING);
 
         $row = new Row($this->form(null));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $content->row($row);
         
-        Plugin::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADED);
         return $content;
     }
 
@@ -185,13 +186,13 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->AdminContent($content);
-        Plugin::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADING);
 
         $row = new Row($this->form($id)->edit($id));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $content->row($row);
 
-        Plugin::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADED);
         return $content;
     }
     

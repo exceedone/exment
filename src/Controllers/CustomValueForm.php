@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 
 trait CustomValueForm
@@ -370,12 +371,12 @@ EOT;
             // create
             if (!isset($id)) {
                 $isButtonCreate = true;
-                $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_create');
+                $listButtons = Plugin::pluginPreparingButton($this->plugins, PluginEventTrigger::FORM_MENUBUTTON_CREATE);
             }
             // edit
             else {
                 $isButtonCreate = false;
-                $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
+                $listButtons = Plugin::pluginPreparingButton($this->plugins, PluginEventTrigger::FORM_MENUBUTTON_EDIT);
             }
 
             $custom_value = $custom_table->getValueModel($id);
@@ -408,7 +409,7 @@ EOT;
 
             PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             
-            $tools->add((new Tools\GridChangePageMenu('data', $custom_table, false))->render());
+            $tools->add((new Tools\CustomTableMenuButton('data', $custom_table))->render());
         });
     }
     

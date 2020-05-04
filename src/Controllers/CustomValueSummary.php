@@ -12,6 +12,7 @@ use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 
 trait CustomValueSummary
 {
@@ -19,7 +20,7 @@ trait CustomValueSummary
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADING);
 
         $this->setSummaryGrid($grid);
 
@@ -73,7 +74,8 @@ trait CustomValueSummary
             // have edit flg
             $edit_flg = $this->custom_table->enableEdit(true) === true;
             if ($edit_flg && $this->custom_table->enableExport() === true) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false));
+                $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false);
+                $tools->append($button->setCustomTable($this->custom_table));
             }
             
             // if user have edit permission, add button
@@ -81,11 +83,11 @@ trait CustomValueSummary
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
             }
             
-            $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
-            $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
+            $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
+            $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
         });
 
-        Plugin::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADED);
         return $grid;
     }
 

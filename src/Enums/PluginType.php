@@ -17,6 +17,7 @@ class PluginType extends EnumBase
     public const SCRIPT = '7';
     public const STYLE = '8';
     public const VALIDATOR = '9';
+    public const EXPORT = '10';
     
     public static function PLUGIN_TYPE_PUBLIC_CLASS()
     {
@@ -35,6 +36,18 @@ class PluginType extends EnumBase
             static::PAGE,
             static::DASHBOARD,
             static::API,
+        ];
+    }
+
+
+    public static function PLUGIN_TYPE_CUSTOM_TABLE()
+    {
+        return [
+            static::TRIGGER, 
+            static::DOCUMENT, 
+            static::IMPORT, 
+            static::EXPORT, 
+            static::VALIDATOR,
         ];
     }
 
@@ -119,6 +132,8 @@ class PluginType extends EnumBase
                     return new $classname($plugin, array_get($options, 'dashboard_box'));
                 case PluginType::IMPORT:
                     return new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
+                case PluginType::EXPORT:
+                    return new $classname($plugin, array_get($options, 'custom_table'));
                 case PluginType::VALIDATOR:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
                     return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, array_get($options, 'input_value'));
