@@ -14,7 +14,7 @@ trait CustomValueCalendar
 
         $tools = [];
         $tools[] = new Tools\CustomTableMenuButton('data', $this->custom_table);
-        $tools[] = new Tools\GridChangeView($this->custom_table, $this->custom_view);
+        $tools[] = new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view);
 
         return view('exment::widgets.calendar', [
             'view_id' => $this->custom_view->suuid,

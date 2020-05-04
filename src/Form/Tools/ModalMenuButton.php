@@ -18,6 +18,13 @@ class ModalMenuButton implements Renderable
     protected $modal_title;
     protected $uuid;
     
+    /**
+     * Menu Button list
+     *
+     * @var array
+     */
+    protected $menulist = [];
+
     public function __construct($url, $options = [])
     {
         $this->url = $url;
@@ -41,6 +48,7 @@ class ModalMenuButton implements Renderable
             'icon' => $this->icon,
             'html' => $this->html,
             'modal_title' => $this->modal_title,
+            'menulist' => $this->menulist,
             
         ])->render();
     }
@@ -55,7 +63,7 @@ class ModalMenuButton implements Renderable
         $html = [];
 
         foreach ($attributes as $name => $value) {
-            $html[] = $name.'="'.e($value).'"';
+            $html[] = $name.'="'.esc_html($value).'"';
         }
 
         return implode(' ', $html);

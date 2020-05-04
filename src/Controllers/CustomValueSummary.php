@@ -82,7 +82,7 @@ trait CustomValueSummary
             }
             
             $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
-            $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
+            $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
         });
 
         Plugin::pluginPreparing($this->plugins, 'loaded');
