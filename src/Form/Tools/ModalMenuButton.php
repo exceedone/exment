@@ -17,6 +17,7 @@ class ModalMenuButton implements Renderable
     protected $html;
     protected $modal_title;
     protected $uuid;
+    protected $attributes = [];
     
     /**
      * Menu Button list
@@ -39,6 +40,12 @@ class ModalMenuButton implements Renderable
 
     public function render()
     {
+        if(!is_nullorempty($this->menulist)){
+            $this->attributes['data-toggle'] = 'dropdown';
+            $this->attributes['aria-haspopup'] = true;
+            $this->attributes['aria-expanded'] = false;
+        }
+
         return view('exment::tools.modal-menu-button', [
             'uuid' => $this->uuid,
             'ajax' => $this->url,
@@ -49,6 +56,7 @@ class ModalMenuButton implements Renderable
             'html' => $this->html,
             'modal_title' => $this->modal_title,
             'menulist' => $this->menulist,
+            'attributes' => formatAttributes($this->attributes)
             
         ])->render();
     }

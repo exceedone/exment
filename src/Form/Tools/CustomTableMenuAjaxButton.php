@@ -43,7 +43,7 @@ class CustomTableMenuAjaxButton extends ModalTileAjaxMenuButton
             $('[data-widgetmodal_uuid="$uuid"]').attr('disabled', rows.length !== 1);
         });
 
-        $('[data-widgetmodal_uuid="$uuid"]').attr('disabled', true).off('click').on('click', function(ev){
+        $('[data-widgetmodal_uuid="$uuid"]').off('click').on('click', function(ev){
             var rows = selectedRows();
             if(rows.length !== 1){
                 return;
@@ -74,6 +74,8 @@ EOT;
     public function render()
     {
         \Admin::script($this->script());
+
+        $this->attributes['disabled'] = true;
 
         return get_parent_class(get_parent_class(get_parent_class($this)))::render();
     }

@@ -187,28 +187,28 @@ class ExportImportButton extends ModalTileMenuButton
                 $button = [
                     'label' => exmtrans('custom_value.export'),
                     'icon' => 'fa-file-o',
-                    'attributes' => $this->formatAttributes([
+                    'attributes' => formatAttributes([
                         'target' => '_blank',
                     ]),
                 ];
 
                 $items = [];
                 // export_types
-                $export_types = stringToArray($plugin->getOption('export_types', ['all', 'page']));
+                $export_types = stringToArray($plugin->getOption('export_types', ['all', 'current_page']));
 
                 if(in_array('all', $export_types)){
                     $items[] = [
                         'icon' => $plugin->getOption('icon') ?? 'fa-th-list',
                         'header' => $all,
-                        'description' => $plugin->getOption('description'),
+                        'description' => $plugin->getOption('export_description'),
                         'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=plugin_export&plugin_id={$plugin->id}"], $button)],
                     ];
                 }
-                if(in_array('page', $export_types)){
+                if(in_array('current_page', $export_types)){
                     $items[] = [
                         'icon' => $plugin->getOption('icon') ?? 'fa-th-list',
                         'header' => $currentPage,
-                        'description' => $plugin->getOption('description'),
+                        'description' => $plugin->getOption('export_description'),
                         'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=plugin_export&plugin_id={$plugin->id}"], $button)],
                     ];
                 }

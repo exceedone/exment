@@ -23,7 +23,7 @@ abstract class PluginExportExcel extends PluginExportBase
             $reader = IOFactory::createReader('Xlsx');
 
             $filePath = $this->plugin->getFullPath($templateFileName);
-            if (!File::exists($filePath)) {
+            if (!\File::exists($filePath)) {
                 //TODO:template file not found
                 throw new \Exception;
             }

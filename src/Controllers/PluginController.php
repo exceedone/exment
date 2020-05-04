@@ -212,7 +212,7 @@ class PluginController extends AdminControllerBase
                 ->default(['all', 'current_page'])
                 ->help(exmtrans("plugin.help.export_types"));
                 $form->text('label', exmtrans("plugin.options.label"));
-                $form->textarea('description', exmtrans("plugin.options.export_description"))->help(exmtrans("plugin.help.export_description"))->rows(3);
+                $form->textarea('export_description', exmtrans("plugin.options.export_description"))->help(exmtrans("plugin.help.export_description"))->rows(3);
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
             }
 

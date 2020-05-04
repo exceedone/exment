@@ -6,7 +6,7 @@
     data-widgetmodal_expand='{{$expand}}'
     data-widgetmodal_uuid='{{$uuid}}'
     data-widgetmodal_html='{{isset($html) && is_nullorempty($menulist)}}'
-    {{!is_nullorempty($menulist) ? 'data-toggle=dropdown aria-haspopup=true aria-expanded=false' : ''}}
+    {!! $attributes !!}
 >
     <i class="fa {{$icon}}"></i>
     <span class="hidden-xs">&nbsp;{{$label}}</span>
