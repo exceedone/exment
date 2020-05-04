@@ -46,8 +46,8 @@ abstract class PluginExportExcel extends PluginExportBase
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->setIncludeCharts(true);
         //$writer->setPreCalculateFormulas(true);
-        $writer->save($this->getFullPathTmp());
+        $writer->save($this->getTmpFullPath());
 
-        return $this->getFullPathTmp();
+        return $this->getTmpFullPath();
     }
 }

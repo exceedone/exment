@@ -77,6 +77,13 @@ abstract class PluginExportBase
         return $this->combineData($this->view_provider->data());
     }
 
+    
+    /**
+     * Combine data
+     *
+     * @param array $data
+     * @return array
+     */
     protected function combineData($data){
         $headers = $data[0];
 
@@ -92,7 +99,7 @@ abstract class PluginExportBase
      * get Directory full path from root
      * @return string File path
      */
-    public function getFullPathTmp()
+    public function getTmpFullPath()
     {
         if(isset($this->tmpFullPath)){
             return $this->tmpFullPath;
