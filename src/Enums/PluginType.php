@@ -52,7 +52,7 @@ class PluginType extends EnumBase
     }
 
     /**
-     * Use plugin
+     * Use plugin permission
      *
      * @return void
      */
@@ -62,6 +62,10 @@ class PluginType extends EnumBase
             static::PAGE,
             static::TRIGGER,
             static::DOCUMENT,
+            static::API,
+            static::DASHBOARD,
+            static::EXPORT,
+            static::IMPORT,
         ];
     }
 

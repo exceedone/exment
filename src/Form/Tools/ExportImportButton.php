@@ -6,6 +6,7 @@ use Encore\Admin\Grid;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\Permission;
 
 /**
  * Data export and import button
@@ -275,8 +276,17 @@ class ExportImportButton extends ModalTileMenuButton
             return collect();
         }
 
-        return Plugin::getPluginsByTable($this->custom_table)->filter(function($plugin){
-            return $plugin->matchPluginType(PluginType::EXPORT);
-        });
+        return Plugin::getPluginsByTable($this->custom_table)
+            ->filter(function($plugin){
+                if(!$plugin->matchPluginType(PluginType::EXPORT)){
+                    return false;
+                }
+
+                if(!\Exment::user()->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)){
+                    return false;
+                }
+
+                return true;
+            });
     }
 }

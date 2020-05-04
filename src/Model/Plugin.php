@@ -61,41 +61,7 @@ class Plugin extends ModelBase
      */
     public function hasPermission($role_key)
     {
-        // if system doesn't use role, return true
-        if (!System::permission_available()) {
-            return true;
-        }
-
-        if ($role_key == Permission::SYSTEM) {
-            return $this->isAdministrator();
-        }
-
-        if (!is_array($role_key)) {
-            $role_key = [$role_key];
-        }
-
-        $permissions = \Exment::user()->allPermissions();
-        foreach ($permissions as $permission) {
-            // check system permission
-            if (RoleType::SYSTEM == $permission->getRoleType()
-                && array_key_exists('system', $permission->getPermissionDetails())) {
-                return true;
-            }
-
-            if (RoleType::SYSTEM == $permission->getRoleType()
-                && array_key_exists(Permission::PLUGIN_ALL, $permission->getPermissionDetails())) {
-                return true;
-            }
-
-            // if role type is plugin, and has key
-            if (RoleType::PLUGIN == $permission->getRoleType()
-                && $permission->getPluginId() == $this->id
-                && array_keys_exists($role_key, $permission->getPermissionDetails())) {
-                return true;
-            }
-        }
-        
-        return false;
+        return \Exment::user()->hasPermissionPlugin($this->id, $role_key);
     }
 
     /**
@@ -157,6 +123,7 @@ class Plugin extends ModelBase
 
     //Get plugin by custom_table name
     //Where active_flg = 1 and target_tables contains custom_table id
+    // *Filtering only accessible.
     /**
      * @param $id
      * @return mixed
@@ -167,7 +134,7 @@ class Plugin extends ModelBase
             return [];
         }
 
-        return static::getByPluginTypes(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())->filter(function ($plugin) use ($custom_table) {
+        return static::getAccessableByPluginTypes(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())->filter(function ($plugin) use ($custom_table) {
             $target_tables = array_get($plugin, 'options.target_tables', []);
             if (is_nullorempty($target_tables)) {
                 return false;
@@ -363,33 +330,31 @@ class Plugin extends ModelBase
         $buttonList = [];
         foreach ($plugins as $plugin) {
             $plugin_types = array_get($plugin, 'plugin_types');
-            $all_user_enabled = $plugin->getOption('all_user_enabled');
             if (!array_intersect($plugin_types, PluginType::PLUGIN_TYPE_BUTTON())){
                 continue;
             }
-            if(boolval($all_user_enabled) || \Exment::user()->hasPermissionPlugin(array_get($plugin, 'id'), Permission::PLUGIN_ACCESS)){
-                foreach ($plugin_types as $plugin_type) {
-                    switch ($plugin_type) {
-                        case PluginType::DOCUMENT:
-                            $event_triggers_button = ['form_menubutton_show'];
-                            if (in_array($event, $event_triggers_button)) {
-                                $buttonList[] = [
-                                    'plugin_type' => $plugin_type,
-                                    'plugin' => $plugin,
-                                ];
-                            }
-                            break;
-                        case PluginType::TRIGGER:
-                            $event_triggers = $plugin->options['event_triggers'];
-                            $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
-                            if (in_array($event, (array)$event_triggers) && in_array($event, $event_triggers_button)) {
-                                $buttonList[] = [
-                                    'plugin_type' => $plugin_type,
-                                    'plugin' => $plugin,
-                                ];
-                            }
-                            break;
-                    }
+            
+            foreach ($plugin_types as $plugin_type) {
+                switch ($plugin_type) {
+                    case PluginType::DOCUMENT:
+                        $event_triggers_button = ['form_menubutton_show'];
+                        if (in_array($event, $event_triggers_button)) {
+                            $buttonList[] = [
+                                'plugin_type' => $plugin_type,
+                                'plugin' => $plugin,
+                            ];
+                        }
+                        break;
+                    case PluginType::TRIGGER:
+                        $event_triggers = $plugin->options['event_triggers'];
+                        $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
+                        if (in_array($event, (array)$event_triggers) && in_array($event, $event_triggers_button)) {
+                            $buttonList[] = [
+                                'plugin_type' => $plugin_type,
+                                'plugin' => $plugin,
+                            ];
+                        }
+                        break;
                 }
             }
         }
@@ -444,7 +409,21 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get plugin pages by selecting plugin_type
+     * Get plugins filtering accessable by selecting plugin_type
+     */
+    public static function getAccessableByPluginTypes($plugin_types, $getAsClass = false)
+    {
+        return static::getByPluginTypes($plugin_types, $getAsClass)
+            ->filter(function($plugin){
+                if (!\Exment::hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
+                    return false;
+                }
+                return true;
+            });
+    }
+
+    /**
+     * Get plugins by selecting plugin_type
      */
     public static function getByPluginTypes($plugin_types, $getAsClass = false)
     {

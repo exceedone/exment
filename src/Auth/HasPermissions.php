@@ -101,19 +101,28 @@ trait HasPermissions
      * @param string $id
      * @param array|string $role_key
      */
-    public function hasPermissionPlugin($id, $role_key)
+    public function hasPermissionPlugin($plugin, $role_key)
     {
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
         }
 
-        if ($role_key == Permission::SYSTEM) {
-            return $this->isAdministrator();
-        }
+        $plugin = Plugin::getEloquent($plugin);
 
-        if (!is_array($role_key)) {
-            $role_key = [$role_key];
+        $role_key = stringToArray($role_key);
+
+        // check all access
+        if(in_array(Permission::PLUGIN_ACCESS, $role_key)){
+            if(boolval($plugin->getOption('all_user_enabled'))){
+                return true;
+            }
+         
+            // if not check permission for access, return true
+            $plugin_types = array_get($plugin, 'plugin_types');
+            if (!array_intersect($plugin_types, PluginType::PLUGIN_TYPE_AVAILABLE())){
+                return true;
+            }
         }
 
         $permissions = $this->allPermissions();
@@ -129,6 +138,7 @@ trait HasPermissions
                 && array_keys_exists(Permission::PLUGIN_ALL, $permission->getPermissionDetails())) {
                 return true;
             }
+
             // if target plugin, and has key
             if ($permission->getPluginId() == $id 
                 && array_keys_exists($role_key, $permission->getPermissionDetails())) {

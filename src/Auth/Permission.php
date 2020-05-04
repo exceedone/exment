@@ -208,7 +208,7 @@ class Permission
             ///// each permissions
             case "plugin":
                 if ($this->role_type == RoleType::SYSTEM) {
-                    return array_keys_exists(['system', PermissionEnum::PLUGIN_ALL], $this->permission_details);
+                    return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::PLUGIN_ALL], $this->permission_details);
                 }
                 elseif ($this->role_type == RoleType::PLUGIN) {
                     // if contains PermissionEnum::PLUGIN_SETTING, return true. Check at controller again.
@@ -372,7 +372,7 @@ class Permission
             return true;
         }
         if ($this->role_type == RoleType::SYSTEM) {
-            return array_keys_exists(['system', PermissionEnum::PLUGIN_ALL], $this->permission_details);
+            return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::PLUGIN_ALL], $this->permission_details);
         }
         elseif ($this->role_type == RoleType::PLUGIN) {
             // check endpoint name and checking plugin name.
