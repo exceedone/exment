@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Illuminate\Support\Facades\Storage;
-use Exceedone\Exment\Tests\ExmentKitTestCase;
 
 class EBackupDataTest extends ExmentKitTestCase
 {
@@ -177,7 +176,7 @@ class EBackupDataTest extends ExmentKitTestCase
             // Restore data
             $this->call('POST', '/admin/backup/restore', ['file' => $file])
             ;
-            $this->assertRedirectedTo('/admin/auth/logout')
+            $this->seeJson(['result' => true])
             ;
         }
     }

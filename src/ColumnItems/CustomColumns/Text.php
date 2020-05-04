@@ -12,7 +12,7 @@ class Text extends CustomItem
         return Field\Text::class;
     }
     
-    protected function setValidates(&$validates)
+    protected function setValidates(&$validates, $form_column_options)
     {
         $options = $this->custom_column->options;
         

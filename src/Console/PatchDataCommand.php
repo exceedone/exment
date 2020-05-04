@@ -132,6 +132,9 @@ class PatchDataCommand extends Command
             case 'remove_stored_revision':
                 $this->removeStoredRevision();
                 return;
+            case 'patch_log_opelation':
+                $this->patchLogOpelation();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -867,6 +870,52 @@ class PatchDataCommand extends Command
                     }
                 }
             });
+        });
+    }
+    /**
+     * removeStoredRevision
+     *
+     * @return void
+     */
+    protected function patchLogOpelation()
+    {
+        if (!canConnection() || !hasTable('admin_operation_log')) {
+            return;
+        }
+
+        $columns = \Exceedone\Exment\Middleware\LogOperation::getHideColumns();
+        \Encore\Admin\Auth\Database\OperationLog::query()->chunk(1000, function ($logs) use ($columns) {
+            foreach ($logs as $log) {
+                $input = $log->input;
+                if (is_nullorempty($input)) {
+                    continue;
+                }
+
+                $isUpdate = false;
+                $json = json_decode($input, true);
+                if (is_nullorempty($json)) {
+                    continue;
+                }
+                foreach ($json as $key => &$value) {
+                    if (!in_array($key, $columns)) {
+                        continue;
+                    }
+
+                    if ($value == '***') {
+                        continue;
+                    }
+                    
+                    $value = '***';
+                    $isUpdate = true;
+                }
+
+                if (!$isUpdate) {
+                    continue;
+                }
+
+                $log->input = json_encode($json);
+                $log->save();
+            }
         });
     }
 }

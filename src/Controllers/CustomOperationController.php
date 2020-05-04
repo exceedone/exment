@@ -56,7 +56,7 @@ class CustomOperationController extends AdminControllerTableBase
         if (!$this->hasSystemPermission()) {
             $operation = CustomOperation::getEloquent($id);
 
-            if ($operation->created_user_id != \Exment::user()->base_user_id) {
+            if ($operation->created_user_id != \Exment::user()->getUserId()) {
                 Checker::error();
                 return false;
             }

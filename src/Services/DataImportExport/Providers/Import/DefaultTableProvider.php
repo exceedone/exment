@@ -160,7 +160,7 @@ class DefaultTableProvider extends ProviderBase
         }
 
         // execute validation
-        $validator = $this->custom_table->validateValue(array_dot_reverse($data), array_get($model, 'id'), [
+        $validator = $this->custom_table->validateValue(array_dot_reverse($data), $model, [
             'systemColumn' => true,
             'column_name_prefix' => 'value.',
             'appendKeyName' => true,

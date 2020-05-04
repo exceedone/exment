@@ -3,8 +3,6 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Illuminate\Support\Facades\Storage;
-use Exceedone\Exment\Tests\ExmentKitTestCase;
-use Exceedone\Exment\Tests\ExmentKitPrepareTrait;
 use Exceedone\Exment\Model\CustomTable;
 
 class DCustomDataTest extends ExmentKitTestCase
@@ -51,9 +49,11 @@ class DCustomDataTest extends ExmentKitTestCase
                 'value[email]' => 'test2@test.com',
             ];
             $this->visit('/admin/data/user/create')
-                    ->submitForm('送信', $data)
+                    ->submitForm('admin-submit', $data)
                     ->seePageIs('/admin/data/user')
             ;
+        } else {
+            $this->assertTrue(true);
         }
     }
 
@@ -72,7 +72,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 'value[organization_name]' => 'EX_NAME1',
             ];
             $this->visit('/admin/data/organization/create')
-                    ->submitForm('送信', $data)
+                    ->submitForm('admin-submit', $data)
                     ->seePageIs('/admin/data/organization')
             ;
             $data = [
@@ -80,9 +80,11 @@ class DCustomDataTest extends ExmentKitTestCase
                 'value[organization_name]' => 'EX_NAME2',
             ];
             $this->visit('/admin/data/organization/create')
-                    ->submitForm('送信', $data)
+                    ->submitForm('admin-submit', $data)
                     ->seePageIs('/admin/data/organization')
             ;
+        } else {
+            $this->assertTrue(true);
         }
     }
 
@@ -91,8 +93,8 @@ class DCustomDataTest extends ExmentKitTestCase
      */
     public function testAddRecordSuccess()
     {
-        $row = CustomTable::where('table_name', 'ntq_data')->first();
-        $table_name = 'exm__' . array_get($row, 'suuid');
+        $row = CustomTable::getEloquent('ntq_data');
+        $table_name = \getDBTableName($row);
 
         $pre_cnt = \DB::table($table_name)->whereNull('deleted_at')->count();
 
@@ -115,7 +117,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 ->attach('C:\upload\file.txt', 'value[file]')
                 ->select(['1'], 'value[user][]')
                 ->select(['1'], 'value[organization][]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/data/ntq_data')
                 ->assertEquals($pre_cnt + 1, \DB::table($table_name)->whereNull('deleted_at')->count())
         ;
@@ -148,23 +150,23 @@ class DCustomDataTest extends ExmentKitTestCase
      */
     public function testEditRecord1()
     {
-        $row = CustomTable::where('table_name', 'ntq_data')->first();
-        $table_name = 'exm__' . array_get($row, 'suuid');
+        $row = CustomTable::getEloquent('ntq_data');
+        $table_name = \getDBTableName($row);
 
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('created_at', 'desc')->first();
 
         // Update custom data(checkbox field)
         $data = [
-            'value[select2value]' => 'on',
+            'value[select2value]' => 'value1',
             'value[yesno]' => 1,
         ];
         $this->visit('/admin/data/ntq_data/'. $row->id . '/edit')
-                ->submitForm('送信', $data)
+                ->submitForm('admin-submit', $data)
                 ->seePageIs('/admin/data/ntq_data')
         ;
         // Check custom data
         $this->visit('/admin/data/ntq_data/'. $row->id . '/edit')
-                ->seeInField('value[select2value]', 'on')
+                ->seeInField('value[select2value]', 'value1')
                 ->seeInField('value[yesno]', 1)
         ;
     }
@@ -174,8 +176,8 @@ class DCustomDataTest extends ExmentKitTestCase
      */
     public function testEditRecord2()
     {
-        $row = CustomTable::where('table_name', 'ntq_data')->first();
-        $table_name = 'exm__' . array_get($row, 'suuid');
+        $row = CustomTable::getEloquent('ntq_data');
+        $table_name = \getDBTableName($row);
 
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('created_at', 'desc')->first();
 
@@ -195,7 +197,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 ->select(['2'], 'value[user][]')
                 ->select(['2'], 'value[organization][]')
                 ->select(['2'], 'value[selectfromtable][]')
-                ->press('送信')
+                ->press('admin-submit')
                 ->seePageIs('/admin/data/ntq_data')
         ;
 

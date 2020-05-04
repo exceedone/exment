@@ -592,7 +592,7 @@ class ApiTableController extends AdminControllerTableBase
             $validateValue['value'] = $value;
 
             // // get fields for validation
-            $validator = $this->custom_table->validateValue($validateValue, isset($custom_value) ? $custom_value->id : null, [
+            $validator = $this->custom_table->validateValue($validateValue, $custom_value, [
                 'systemColumn' => true,
                 'column_name_prefix' => 'value.',
                 'appendKeyName' => false,

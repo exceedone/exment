@@ -169,9 +169,22 @@ return [
         'password_history' => '過去に登録したパスワードと同一のパスワードとなっています。他のパスワードを入力してください。',
         'complex_password' => 'パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
         'not_has_custom_value' => '列:attributeに入力の値:valueが、テーブル「:table_view_name」に存在しません。データをご確認ください。',
+        'init_only' => '列:attributeの値は、:original_valueから変更できません。',
         'empty' => ':attributeの値は空欄のみ指定できます。',
         'max_table_index' => '1つのテーブルに設定できる検索インデックスは:count件までです。',
         'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
+        
+        'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
+        'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
+        'not_gt' => ':attribute1の値は、:attribute2より大きい値である必要があります。',
+        'not_gte' => ':attribute1の値は、:attribute2の値以上である必要があります。',
+        'not_lt' => ':attribute1の値は、:attribute2の値未満である必要があります。',
+        'not_lte' => ':attribute1の値は、:attribute2の値以下である必要があります。',
+
+        'not_gt_date' => ':attribute1は、:attribute2より後である必要があります。',
+        'not_gte_date' => ':attribute1は、:attribute2と同じ、またはそれ以降である必要があります。',
+        'not_lt_date' => ':attribute1は、:attribute2より前である必要があります。',
+        'not_lte_date' => ':attribute1は、:attribute2と同じ、またはそれ以前である必要があります。',
     ],
 
     'system' => [
@@ -764,6 +777,12 @@ return [
             'unique1' => '列1',
             'unique2' => '列2',
             'unique3' => '列3',
+
+            'compare_columns' => '2つの列を比較',
+            'compare_column1_id' => '検証列(A)',
+            'compare_column2_id' => '比較列(B)',
+            'compare_type' => '条件',
+
             'table_labels' => '見出し表示列設定',
             'column_target' => '対象列',
             'priority' => '優先順位',
@@ -774,7 +793,8 @@ return [
 
             'help' => [
                 'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。上から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
-                'uniques' => '複合ユニークキーを設定します。これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
+                'uniques' => '複合ユニークキーを設定します。データ保存時、これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
+                'compare_columns' => 'データ保存時、2つの列を比較します。列の値が、設定した条件と一致した場合のみ、保存ができます。',
                 'table_label_format' => '（上級者向け）見出しに表示するフォーマットを柔軟に設定できます。値を表示するためのパラメータは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。※この項目に値を設定した場合、上記の「見出し表示列設定」は無効になります。',
                 'form_action_disable_flg' => 'チェックした操作は、画面から実行することができなくなります。APIやダッシュボードからのみ、データの管理を行いたい場合はチェックしてください。',
             ],
@@ -785,6 +805,16 @@ return [
                 'import' => 'インポート',
                 'export' => 'エクスポート',
             ],
+                
+            'filter_condition_compare_options' => [
+                'eq' => 'AとBで合致する', 
+                'ne' => 'AとBで合致しない', 
+                'gt' => 'AはBより大きい', 
+                'lt' => 'AはBより小さい', 
+                'gte' => 'AはB以上である', 
+                'lte' => 'AはB以下である', 
+            ],
+            
         ],
     ],
     

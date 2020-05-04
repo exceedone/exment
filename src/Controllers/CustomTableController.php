@@ -17,6 +17,8 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\FilterType;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
@@ -25,6 +27,7 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Enums\MultisettingType;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -343,10 +346,32 @@ HTML;
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                 ]));
-            $form->hidden('multisetting_type')->default(1);
+            $form->hidden('multisetting_type')->default(MultisettingType::MULTI_UNIQUES);
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(exmtrans("custom_table.custom_column_multi.help.uniques"));
         
+
+        $form->hasManyTable('compare_columns', exmtrans("custom_table.custom_column_multi.compare_columns"), function ($form) use ($custom_table) {
+            $form->select('compare_column1_id', exmtrans("custom_table.custom_column_multi.compare_column1_id"))->required()
+                ->options($custom_table->getColumnsSelectOptions([
+                    'include_system' => false,
+                ]));
+            $form->select('compare_type', exmtrans("custom_table.custom_column_multi.compare_type"))->required()
+                ->options(function(){
+                    $options = FilterOption::FILTER_OPTIONS()[FilterType::COMPARE];
+                    return collect($options)->map(function($option){
+                        return ['id' => $option['id'], 'label' => exmtrans("custom_table.custom_column_multi.filter_condition_compare_options.{$option['name']}")];
+                    })->pluck('label', 'id');
+                });
+            $form->select('compare_column2_id', exmtrans("custom_table.custom_column_multi.compare_column2_id"))->required()
+                ->options($custom_table->getColumnsSelectOptions([
+                    'include_system' => false,
+                ]));
+            $form->hidden('multisetting_type')->default(MultisettingType::COMPARE_COLUMNS);
+        })->setTableColumnWidth(4, 3, 4, 1)
+        ->description(exmtrans("custom_table.custom_column_multi.help.compare_columns"));
+        
+
         $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
             $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
@@ -354,7 +379,7 @@ HTML;
                 ]));
             
             $form->hidden('priority')->default(1);
-            $form->hidden('multisetting_type')->default(2);
+            $form->hidden('multisetting_type')->default(MultisettingType::TABLE_LABELS);
         })->setTableColumnWidth(10, 2)
         ->rowUpDown('priority')
         ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
