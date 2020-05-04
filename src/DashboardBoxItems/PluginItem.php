@@ -67,6 +67,7 @@ class PluginItem implements ItemInterface
             'plugin_id' => isset($this->plugin) ? $this->plugin->id : null,
             'plugin_uuid' => isset($this->plugin) ? $this->plugin->uuid : null,
             'plugin_name' => isset($this->plugin) ? $this->plugin->plugin_name : null,
+            'plugin_view_name' => isset($this->plugin) ? $this->plugin->plugin_view_name : null,
         ];
     }
 
