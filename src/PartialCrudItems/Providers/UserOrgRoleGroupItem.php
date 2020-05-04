@@ -82,5 +82,7 @@ class UserOrgRoleGroupItem extends ProviderBase
                 return array_get((array)$dbValue, 'role_group_id') == array_get($value, 'role_group_id');
             },
         ]);
+
+        System::clearCache();
     }
 }

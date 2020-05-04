@@ -114,9 +114,9 @@ class ModelBase extends Model
         if (!isset($user)) {
             return;
         }
-        $base_user_id = $user->base_user_id;
+        $user_id = $user->getUserId();
         foreach ($columns as $column) {
-            $model->{$column} = $base_user_id;
+            $model->{$column} = $user_id;
         }
     }
 

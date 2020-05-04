@@ -28,7 +28,7 @@ class Time extends Date
         return config('admin.time_format');
     }
     
-    protected function setValidates(&$validates)
+    protected function setValidates(&$validates, $form_column_options)
     {
         $validates[] = new Validator\TimeRule();
     }

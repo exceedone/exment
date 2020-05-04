@@ -105,7 +105,7 @@ class Date extends CustomItem
         }
     }
     
-    protected function setValidates(&$validates)
+    protected function setValidates(&$validates, $form_column_options)
     {
         $validates[] = 'date';
     }

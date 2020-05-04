@@ -23,7 +23,7 @@ trait HasPermissions
 
     public function isAdministrator()
     {
-        return collect(System::system_admin_users())->contains($this->base_user_id);
+        return collect(System::system_admin_users())->contains($this->getUserId());
     }
 
     /**
@@ -451,7 +451,7 @@ trait HasPermissions
 
         // set system setting
         if (!array_has($permissions, 'system') && collect(System::system_admin_users())->first(function ($system_admin_user) {
-            return $system_admin_user == $this->base_user_id;
+            return $system_admin_user == $this->getUserId();
         })) {
             $permissions['system'] = "1";
         }
@@ -465,6 +465,6 @@ trait HasPermissions
         $organization_ids = $this->getOrganizationIds($enum);
         
         // get all permissons for system. --------------------------------------------------
-        return RoleGroup::getHasPermissionRoleGroup($this->base_user_id, $organization_ids);
+        return RoleGroup::getHasPermissionRoleGroup($this->getUserId(), $organization_ids);
     }
 }

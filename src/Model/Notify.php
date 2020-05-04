@@ -246,7 +246,7 @@ class Notify extends ModelBase
 
         $loginuser = \Exment::user();
         $users = $users->unique()->filter(function ($user) use ($loginuser) {
-            return is_nullorempty($loginuser) || $loginuser->base_user_id != $user->id;
+            return is_nullorempty($loginuser) || $loginuser->getUserId() != $user->getUserId();
         });
 
         // convert as NotifyTarget

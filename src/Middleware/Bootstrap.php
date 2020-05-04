@@ -117,7 +117,7 @@ class Bootstrap
             }
         }
 
-        Ad::js(asset('vendor/exment/js/customscript.js?ver='.$ver));
+        Ad::jslast(asset('vendor/exment/js/customscript.js?ver='.$ver));
 
         // delete object
         $delete_confirm = trans('admin.delete_confirm');
