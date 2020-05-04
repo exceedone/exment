@@ -29,7 +29,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     public static $templateItems = [
         'excepts' => [
             'export' => [
-                'unique1', 'unique2', 'unique3', 'options.unique1_id', 'options.unique2_id', 'options.unique3_id', 'options.table_label_id'
+                'unique1', 'unique2', 'unique3', 'compare_type', 'options.unique1_id', 'options.unique2_id', 'options.unique3_id', 'options.compare_column1_id', 'options.compare_column2_id', 'options.table_label_id'
             ],
             'import' => [
                 'custom_table_id', 'column_name'
@@ -102,8 +102,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                 'replaceNames' => [
                     [
                         'replacedName' => [
-                            'table_name' => 'options.compare_column_2_table_name',
-                            'column_name' => 'options.compare_column_2_column_name',
+                            'table_name' => 'options.compare_column2_table_name',
+                            'column_name' => 'options.compare_column2_column_name',
                         ]
                     ]
                 ],
@@ -294,8 +294,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         static::importReplaceJsonTableColumn('unique1', $json);
         static::importReplaceJsonTableColumn('unique2', $json);
         static::importReplaceJsonTableColumn('unique3', $json);
-        static::importReplaceJsonTableColumn('compare_column1_id', $json);
-        static::importReplaceJsonTableColumn('compare_column2_id', $json);
+        static::importReplaceJsonTableColumn('compare_column1', $json);
+        static::importReplaceJsonTableColumn('compare_column2', $json);
         static::importReplaceJsonTableColumn('table_label', $json);
     }
 
