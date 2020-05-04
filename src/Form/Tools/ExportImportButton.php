@@ -92,7 +92,7 @@ class ExportImportButton extends ModalTileMenuButton
             $formats['csv'] = [
                 'label' => 'CSV',
                 'icon' => 'fa-file-o',
-                'attributes' => $this->formatAttributes([
+                'attributes' => formatAttributes([
                     'target' => '_blank',
                 ]),
             ];
@@ -101,7 +101,7 @@ class ExportImportButton extends ModalTileMenuButton
             $formats['excel'] = [
                 'label' => 'Excel',
                 'icon' => 'fa-file-excel-o',
-                'attributes' => $this->formatAttributes([
+                'attributes' => formatAttributes([
                     'target' => '_blank',
                 ]),
             ];
@@ -178,7 +178,7 @@ class ExportImportButton extends ModalTileMenuButton
                                 'label' => exmtrans('common.import'),
                                 'icon' => 'fa-upload',
                                 'url' => '#',
-                                'attributes' => $this->formatAttributes([
+                                'attributes' => formatAttributes([
                                     'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
                                 ]),
                             ]

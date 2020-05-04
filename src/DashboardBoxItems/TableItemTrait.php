@@ -46,4 +46,20 @@ trait TableItemTrait
             'list_url' => $list_url,
         ])->render();
     }
+
+    /**
+     * get dashboard attributes for display html
+     *
+     * @return void
+     */
+    public function attributes()
+    {
+        return [
+            'pager_count' => $this->dashboard_box->getOption('pager_count'),
+            'target_table_id' => isset($this->custom_table) ? $this->custom_table->id : null,
+            'target_table_name' => isset($this->custom_table) ? $this->custom_table->table_name : null,
+            'target_view_nane' => isset($this->custom_view) ? $this->custom_view->view_view_name : null,
+        ];
+    }
+
 }

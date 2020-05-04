@@ -53,20 +53,5 @@ class ModalMenuButton implements Renderable
         ])->render();
     }
     
-    /**
-     * Format the field attributes.
-     *
-     * @return string
-     */
-    protected function formatAttributes($attributes)
-    {
-        $html = [];
-
-        foreach ($attributes as $name => $value) {
-            $html[] = $name.'="'.esc_html($value).'"';
-        }
-
-        return implode(' ', $html);
-    }
 
 }
