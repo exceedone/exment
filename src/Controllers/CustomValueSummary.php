@@ -12,6 +12,7 @@ use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 
 trait CustomValueSummary
 {
@@ -19,7 +20,7 @@ trait CustomValueSummary
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADING);
 
         $this->setSummaryGrid($grid);
 
@@ -85,7 +86,7 @@ trait CustomValueSummary
             $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
         });
 
-        Plugin::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADED);
         return $grid;
     }
 

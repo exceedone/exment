@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Enums\WorkflowNextType;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
@@ -260,7 +261,7 @@ class WorkflowAction extends ModelBase
 
         //execute plugin
         $plugins = Plugin::getPluginsByTable($custom_table->table_name);
-        Plugin::pluginPreparing($plugins, 'workflow_action_executing', [
+        Plugin::pluginPreparing($plugins,  PluginEventTrigger::WORKFLOW_ACTION_EXECUTING, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,
             'workflow_action' => $this,
@@ -344,7 +345,7 @@ class WorkflowAction extends ModelBase
         }
 
         // execute plugin
-        Plugin::pluginPreparing($plugins, 'workflow_action_executed', [
+        Plugin::pluginPreparing($plugins, PluginEventTrigger::WORKFLOW_ACTION_EXECUTED, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,
             'workflow_action' => $this,

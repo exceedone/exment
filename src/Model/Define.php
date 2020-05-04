@@ -154,21 +154,6 @@ class Define
     public const SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE = "import_key_value_%s_%s_%s";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_TREE = "organization_tree";
 
-    public const PLUGIN_EVENT_TRIGGER = [
-        'saving',
-        'saved',
-        'loading',
-        'loaded',
-        'grid_menubutton',
-        'form_menubutton_show',
-        'form_menubutton_create',
-        'form_menubutton_edit',
-        'workflow_action_executing',
-        'workflow_action_executed',
-        'notify_executing',
-        'notify_executed',
-    ];
-
     /**
      * MENU SYSTEM DIFINITION
      */

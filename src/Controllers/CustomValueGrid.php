@@ -18,6 +18,7 @@ use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
 
@@ -32,7 +33,7 @@ trait CustomValueGrid
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADING);
         
         // get search_enabled_columns and loop
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
@@ -50,7 +51,7 @@ trait CustomValueGrid
         // manage tool button
         $this->manageMenuToolButton($grid);
 
-        Plugin::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADED);
         return $grid;
     }
 
@@ -201,7 +202,7 @@ trait CustomValueGrid
         $grid->exporter($service);
         
         $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
-            $listButtons = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
+            $listButtons = Plugin::pluginPreparingButton($this->plugins, PluginEventTrigger::GRID_MENUBUTTON);
             
             // validate export and import
             $import = $this->custom_table->enableImport();
