@@ -663,7 +663,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         foreach ($compare_columns as $compare_column) {
             // get two values
-            $compareResult = $compare_column->compareValue($input);
+            $compareResult = $compare_column->compareValue($input, $custom_value);
             if($compareResult === true){
                 continue;
             }

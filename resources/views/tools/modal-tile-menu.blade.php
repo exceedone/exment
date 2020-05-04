@@ -9,7 +9,7 @@
         @endif
 
         @foreach(array_get($group, 'items', []) as $item)
-        <div class="col-sm-6 modal-tile-item">
+        <div class="col-sm-12 col-md-6 modal-tile-item">
             <div class="col-sm-3 modal-tile-item-icon">
                 @if(!is_nullorempty(array_get($item, 'href')))
                     <a href="{{array_get($item, 'href')}}" class="btn btn-default">

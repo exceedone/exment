@@ -431,7 +431,11 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
 	margin-bottom: 1.5em;
 	height: 100px;
 	.sub-buttons {
-		margin-top: 0.5em;
+        margin-top: 0.5em;
+        
+        .btn{
+            margin-top:0.2em;
+        }
     }
 }
 .modal-tile-item-icon {
@@ -682,6 +686,10 @@ table img.image_html{
 
     .nprogress-custom-parent{
         overflow: visible;
+    }
+
+    .modal-tile-item{
+        height: auto;
     }
 }
 

@@ -224,7 +224,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
      * @param [type] $value
      * @return bool
      */
-    public function compareValue($value){
+    public function compareValue($input, $custom_value = null){
         $column1 = $this->compare_column1;
         $column2 = $this->compare_column2;
 
@@ -232,20 +232,39 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
             return true;
         }
 
-        $value1 = array_get($value, 'value.' . $column1->column_name);
-        $value2 = array_get($value, 'value.' . $column2->column_name);
+        // get value function
+        $getValueFunc = function($input, $column, $custom_value){
+            // if key has value in input 
+            if(array_has($input, 'value.' . $column->column_name)){
+                return array_get($input, 'value.' . $column->column_name);
+            }
+
+            // if not has, get from custom value
+            if(!isset($custom_value) || !$custom_value->exists){
+                return null;
+            }
+
+            return array_get($custom_value, 'value.' . $column->column_name);
+        };
+
+        $value1 = $getValueFunc($input, $column1, $custom_value);
+        $value2 = $getValueFunc($input, $column2, $custom_value);
 
         switch($this->compare_type){
             case FilterOption::EQ:
                 if(empty($value1)){
-                    return empty($value2);
+                    if(empty($value2)){
+                        return true;
+                    }
                 }
                 elseif(empty($value2)){
-                    return empty($value1);
-                }
-
-                if($value1 == $value2){
-                    return true;
+                    if(empty($value1)){
+                        return true;
+                    }
+                }else{
+                    if($value1 == $value2){
+                        return true;
+                    }
                 }
 
                 return $this->getCompareErrorMessage('validation.not_match', $column1, $column2);

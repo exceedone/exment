@@ -3737,6 +3737,10 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   margin-top: 0.5em;
 }
 
+.modal-tile-item .sub-buttons .btn {
+  margin-top: 0.2em;
+}
+
 .modal-tile-item-icon {
   display: flex;
   align-items: center;
@@ -3962,6 +3966,9 @@ table img.image_html:hover {
   }
   .nprogress-custom-parent {
     overflow: visible;
+  }
+  .modal-tile-item {
+    height: auto;
   }
 }
 
