@@ -92,14 +92,18 @@ class ExportImportButton extends ModalTileMenuButton
             $formats['csv'] = [
                 'label' => 'CSV',
                 'icon' => 'fa-file-o',
-                'is_blank' => true,
+                'attributes' => $this->formatAttributes([
+                    'target' => '_blank',
+                ]),
             ];
         }
         if (!boolval(config('exment.export_import_export_disabled_excel', false))) {
             $formats['excel'] = [
                 'label' => 'Excel',
                 'icon' => 'fa-file-excel-o',
-                'is_blank' => true,
+                'attributes' => $this->formatAttributes([
+                    'target' => '_blank',
+                ]),
             ];
         }
 

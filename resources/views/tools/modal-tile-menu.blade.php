@@ -1,8 +1,11 @@
 <div class="modal-tile container-fluid">
     @foreach($groups as $group)
-    <div class="row" style="margin-bottom: 1em;">
+    <div class="row">
         @if(!is_null(array_get($group, 'header')))
-        <h4 class="col-sm-12">{{ array_get($group, 'header') }}</h4>
+        <h4 class="col-sm-12 groupheader">
+            <i class="fa fa-check" aria-hidden="true"></i>
+            {{ array_get($group, 'header') }}
+            </h4>
         @endif
 
         @foreach(array_get($group, 'items', []) as $item)
@@ -23,7 +26,7 @@
                 </div>
                 <div class="sub-buttons">
                     @foreach(array_get($item, 'buttons', []) as $button)
-                    <a href="{{array_get($button, 'href')}}" target="{{boolval(array_get($button, 'is_blank')) ? 'blank' : ''}}" class="btn btn-default btn-sm" {!! array_get($button, 'attributes') !!}>
+                    <a href="{{array_get($button, 'href')}}" class="btn btn-default btn-sm" {!! array_get($button, 'attributes') !!}>
                         <i class="fa {{array_get($button, 'icon')}}" aria-hidden="true"></i>&nbsp;{{array_get($button, 'label')}}
                     </a>
                     @endforeach
@@ -35,38 +38,3 @@
     @endforeach
 </div>
 
-
-<style>
-.modal-tile-item{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.5em;
-    height:100px;
-}
-.modal-tile-item-icon{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.modal-tile-item-icon button{
-    width:50px;
-    height:50px;
-    padding: 10px 15px;
-}
-.modal-tile-item-icon .fa{
-    font-size: 40px;
-}
-.modal-tile-item-icon button .fa{
-    font-size: 20px;
-}
-.modal-tile-item-header{
-    font-size:16px;
-}
-.modal-tile-item-description{
-    font-size:12px;
-}
-.modal-tile-item .sub-buttons{
-    margin-top:0.5em;
-}
-</style>
