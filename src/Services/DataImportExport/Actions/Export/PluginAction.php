@@ -76,14 +76,14 @@ class PluginAction extends CustomTableAction
             'grid' => $this->grid
         ]));
 
-        $fileFullPath = null;
+        $file = null;
         try{
-            $fileFullPath = $pluginClass->execute();
+            $file = $pluginClass->execute();
 
-            $response = response()->download($fileFullPath, $pluginClass->getFileName());
+            $response = response()->download($file, $pluginClass->getFileName());
             
             // if string(tmp file), set deleteFileAfterSend
-            if(is_string($fileFullPath)){
+            if(is_string($file)){
                 $response->deleteFileAfterSend(true);
             }
     
@@ -92,8 +92,8 @@ class PluginAction extends CustomTableAction
         }
         // Delete if exception
         finally{
-            if(isset($fileFullPath) && \File::exists($fileFullPath)){
-                \File::delete($fileFullPath);
+            if(isset($file) && is_string($file) && \File::exists($file)){
+                \File::delete($file);
             }
         }
 

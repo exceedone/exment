@@ -96,6 +96,16 @@ abstract class PluginExportBase
     
 
     /**
+     * Get CustomValue's records.
+     *
+     * @return void
+     */
+    protected function getRecords(){
+        return $this->default_provider->getRecords();
+    }
+
+
+    /**
      * get Directory full path from root
      * @return string File path
      */
