@@ -131,6 +131,26 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         return static::getEloquentDefault($id, $withs);
     }
 
+    /**
+     * Get box html arrtibute. For 
+     *
+     * @return void
+     */
+    public function getBoxHtmlAttr() : array
+    {
+        $attributes = [
+            'row_no' => $this->row_no,
+            'column_no' => $this->column_no,
+            'dashboard_box_view_name' => $this->dashboard_box_view_name,
+            'dashboard_box_type' => $this->dashboard_box_type,
+        ];
+        $attributes = array_merge($this->dashboard_box_item->attributes(), $attributes);
+
+        return collect($attributes)->mapWithKeys(function($attr, $key){
+            return ["data-$key" => $attr];
+        })->toArray();
+    }
+
     protected function getUniqueKeyValues($key)
     {
         if (is_array($key) && count($key) > 0) {

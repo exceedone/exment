@@ -1,4 +1,4 @@
-<div class="box box-dashboard {{isset($suuid) ? 'box-success' : ''}}" data-suuid="{{$suuid}}">
+<div class="box box-dashboard {{isset($suuid) ? 'box-success' : ''}}" data-suuid="{{$suuid}}" {!! $attributes !!}>
     <div class="box-header with-border">
         <h3 class="box-title">
             @if(isset($title))

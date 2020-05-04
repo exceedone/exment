@@ -138,6 +138,24 @@ if (!function_exists('esc_sqlTable')) {
     }
 }
 
+if (!function_exists('formatAttributes')) {
+    /**
+     * Format the field attributes.
+     *
+     * @return string
+     */
+    function formatAttributes($attributes)
+    {
+        $html = [];
+
+        foreach ($attributes as $name => $value) {
+            $html[] = $name.'="'.esc_html($value).'"';
+        }
+
+        return implode(' ', $html);
+    }
+}
+
 if (!function_exists('is_nullorempty')) {
     /**
      * validate string. null is true, "" is true, 0 and "0" is false.
