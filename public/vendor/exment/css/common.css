@@ -3714,7 +3714,6 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 
 .modal-tile .groupheader {
   font-size: 17px;
-  margin-bottom: 1em;
 }
 
 .modal-tile .row {
@@ -3729,8 +3728,8 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1.5em;
-  height: 100px;
+  margin-bottom: 1em;
+  min-height: 100px;
 }
 
 .modal-tile-item .sub-buttons {
@@ -3966,9 +3965,6 @@ table img.image_html:hover {
   }
   .nprogress-custom-parent {
     overflow: visible;
-  }
-  .modal-tile-item {
-    height: auto;
   }
 }
 

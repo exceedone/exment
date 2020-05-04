@@ -208,7 +208,8 @@ trait CustomValueGrid
             $import = $this->custom_table->enableImport();
             $export = $this->custom_table->enableExport();
             if ($import === true || $export === true) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true, $export === true, $import === true));
+                $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true, $export === true, $import === true);
+                $tools->append($button->setCustomTable($this->custom_table));
             }
             
             if ($this->custom_table->enableCreate(true) === true) {
@@ -370,6 +371,12 @@ trait CustomValueGrid
                     'grid' => $grid,
                 ]
             ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
+                [
+                    'custom_table' => $this->custom_table,
+                    'custom_view' => $this->custom_view,
+                    'grid' => $grid,
+                ]
+            ))->pluginExportAction(new DataImportExport\Actions\Export\PluginAction(
                 [
                     'custom_table' => $this->custom_table,
                     'custom_view' => $this->custom_view,

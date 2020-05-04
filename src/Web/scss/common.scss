@@ -414,7 +414,6 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
 .modal-tile {
     .groupheader{
         font-size: 17px;
-        margin-bottom: 1em;
     }
 
     .row{
@@ -428,8 +427,8 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-bottom: 1.5em;
-	height: 100px;
+	margin-bottom: 1em;
+	min-height: 100px;
 	.sub-buttons {
         margin-top: 0.5em;
         
@@ -686,10 +685,6 @@ table img.image_html{
 
     .nprogress-custom-parent{
         overflow: visible;
-    }
-
-    .modal-tile-item{
-        height: auto;
     }
 }
 

@@ -105,6 +105,8 @@ class PluginType extends EnumBase
                     return new $classname($plugin, array_get($options, 'dashboard_box'));
                 case PluginType::IMPORT:
                     return new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
+                case PluginType::EXPORT:
+                    return new $classname($plugin, array_get($options, 'custom_table'));
                 case PluginType::VALIDATOR:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
                     return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, array_get($options, 'input_value'));

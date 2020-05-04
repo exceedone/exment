@@ -74,7 +74,8 @@ trait CustomValueSummary
             // have edit flg
             $edit_flg = $this->custom_table->enableEdit(true) === true;
             if ($edit_flg && $this->custom_table->enableExport() === true) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false));
+                $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false);
+                $tools->append($button->setCustomTable($this->custom_table));
             }
             
             // if user have edit permission, add button

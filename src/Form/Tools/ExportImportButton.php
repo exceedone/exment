@@ -3,6 +3,9 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Encore\Admin\Grid;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\PluginType;
 
 /**
  * Data export and import button
@@ -15,6 +18,13 @@ class ExportImportButton extends ModalTileMenuButton
     protected $export_flg;
     protected $import_flg;
     protected $view_flg;
+
+    /**
+     * custom table if from custom value
+     *
+     * @var CustomTable
+     */
+    protected $custom_table;
 
     public function __construct($endpoint, Grid $grid, $view_flg = false, $export_flg = true, $import_flg = true)
     {
@@ -54,6 +64,20 @@ class ExportImportButton extends ModalTileMenuButton
     public function setGrid(Grid $grid)
     {
         $this->grid = $grid;
+
+        return $this;
+    }
+
+    /**
+     * Set custom table.
+     *
+     * @param Grid $grid
+     *
+     * @return $this
+     */
+    public function setCustomTable(CustomTable $custom_table)
+    {
+        $this->custom_table = $custom_table;
 
         return $this;
     }
@@ -110,7 +134,7 @@ class ExportImportButton extends ModalTileMenuButton
         ///// Append default output
         if($this->export_flg){
             $groups[] = [
-                'header' => exmtrans('custom_value.export'),
+                'header' => exmtrans('custom_value.default_export'),
                 'items' => [
                     [
                         'icon' => 'fa-table',
@@ -155,6 +179,45 @@ class ExportImportButton extends ModalTileMenuButton
                     ],
                 ]
             ];
+        }
+
+        $plugins = $this->getPluginExports();
+        if(!is_nullorempty($plugins)){
+            foreach($plugins as $plugin){
+                $button = [
+                    'label' => exmtrans('custom_value.export'),
+                    'icon' => 'fa-file-o',
+                    'attributes' => $this->formatAttributes([
+                        'target' => '_blank',
+                    ]),
+                ];
+
+                $items = [];
+                // export_types
+                $export_types = stringToArray($plugin->getOption('export_types', ['all', 'page']));
+
+                if(in_array('all', $export_types)){
+                    $items[] = [
+                        'icon' => $plugin->getOption('icon') ?? 'fa-th-list',
+                        'header' => $all,
+                        'description' => $plugin->getOption('description'),
+                        'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=plugin_export&plugin_id={$plugin->id}"], $button)],
+                    ];
+                }
+                if(in_array('page', $export_types)){
+                    $items[] = [
+                        'icon' => $plugin->getOption('icon') ?? 'fa-th-list',
+                        'header' => $currentPage,
+                        'description' => $plugin->getOption('description'),
+                        'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=plugin_export&plugin_id={$plugin->id}"], $button)],
+                    ];
+                }
+
+                $groups[] = [
+                    'header' => $plugin->getOption('label') ?? $plugin->plugin_view_name,
+                    'items' => $items,
+                ];
+            }
         }
 
         if ($this->import_flg) {
@@ -206,5 +269,14 @@ class ExportImportButton extends ModalTileMenuButton
 
         return false;
     }
-    
+
+    protected function getPluginExports(){
+        if(!isset($this->custom_table)){
+            return collect();
+        }
+
+        return Plugin::getPluginsByTable($this->custom_table)->filter(function($plugin){
+            return $plugin->matchPluginType(PluginType::EXPORT);
+        });
+    }
 }
