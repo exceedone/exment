@@ -271,14 +271,18 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
 
             case FilterOption::NE:
                 if(empty($value1)){
-                    return !empty($value2);
+                    if(!empty($value2)){
+                        return true;
+                    }
                 }
                 elseif(empty($value2)){
-                    return !empty($value1);
-                }
-
-                if($value1 != $value2){
-                    return true;
+                    if(!empty($value1)){
+                        return true;
+                    }
+                }else{
+                    if($value1 != $value2){
+                        return true;
+                    }
                 }
 
                 return $this->getCompareErrorMessage('validation.not_notmatch', $column1, $column2);
