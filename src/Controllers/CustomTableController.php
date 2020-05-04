@@ -536,6 +536,7 @@ HTML;
         return getAjaxResponse([
             'body'  => $tool->ajaxHtml(),
             'title' => exmtrans("change_page_menu.change_page_label"),
+            'showSubmit' => false,
         ]);
     }
 }
