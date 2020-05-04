@@ -18,6 +18,8 @@ class PluginType extends EnumBase
     public const STYLE = '8';
     public const VALIDATOR = '9';
     public const EXPORT = '10';
+    public const BUTTON = '11';
+    public const EVENT = '12';
     
     public static function PLUGIN_TYPE_PUBLIC_CLASS()
     {
@@ -48,6 +50,8 @@ class PluginType extends EnumBase
             static::IMPORT, 
             static::EXPORT, 
             static::VALIDATOR,
+            static::EVENT,
+            static::BUTTON,
         ];
     }
 
@@ -66,6 +70,7 @@ class PluginType extends EnumBase
             static::DASHBOARD,
             static::EXPORT,
             static::IMPORT,
+            static::BUTTON,
         ];
     }
 
@@ -79,6 +84,7 @@ class PluginType extends EnumBase
         return [
             static::TRIGGER,
             static::DOCUMENT,
+            static::BUTTON,
         ];
     }
 
@@ -118,6 +124,8 @@ class PluginType extends EnumBase
             switch ($plugin_type) {
                 case PluginType::DOCUMENT:
                 case PluginType::TRIGGER:
+                case PluginType::BUTTON:
+                case PluginType::EVENT:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
                     return new $classname(
                         $plugin,

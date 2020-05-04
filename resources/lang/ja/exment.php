@@ -475,6 +475,8 @@ return [
             'dashboard' => 'ダッシュボード',
             'validator' => 'バリデーション',
             'api' => 'API',
+            'event' => 'イベント',
+            'button' => 'ボタン',
         ],
     ],
 

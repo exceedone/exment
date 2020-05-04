@@ -13,6 +13,8 @@ use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginEventTrigger;
+use Exceedone\Exment\Enums\PluginEventType;
+use Exceedone\Exment\Enums\PluginButtonType;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use File;
@@ -188,9 +190,20 @@ class PluginController extends AdminControllerBase
                 })->help(exmtrans("plugin.help.target_tables"));
 
                 // only trigger
-                if ($plugin->matchPluginType(PluginType::TRIGGER)) {
+                $enumClass = null;
+                if ($plugin->matchPluginType(PluginType::BUTTON)) {
+                    $enumClass = PluginButtonType::class;
+                }
+                elseif ($plugin->matchPluginType(PluginType::EVENT)) {
+                    $enumClass = PluginEventType::class;
+                }
+                elseif ($plugin->matchPluginType(PluginType::TRIGGER)) {
+                    $enumClass = PluginEventTrigger::class;
+                }
+                
+                if(isset($enumClass)){
                     $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))
-                    ->options(PluginEventTrigger::transArray("plugin.options.event_trigger_options"))
+                    ->options($enumClass::transArray("plugin.options.event_trigger_options"))
                     ->help(exmtrans("plugin.help.event_triggers"));
                 }
             } 
@@ -219,7 +232,7 @@ class PluginController extends AdminControllerBase
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_AVAILABLE())) {
                 $form->switchbool('all_user_enabled', exmtrans("plugin.options.all_user_enabled"))->help(exmtrans("plugin.help.all_user_enabled"));
             }
-            if ($plugin->matchPluginType([PluginType::TRIGGER, PluginType::DOCUMENT])) {
+            if ($plugin->matchPluginType([PluginType::BUTTON, PluginType::TRIGGER, PluginType::DOCUMENT])) {
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
                 $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));

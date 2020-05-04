@@ -57,9 +57,21 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
+    }
 
+    /**
+     * Execute an action on the controller.
+     *
+     * @param  string  $method
+     * @param  array   $parameters
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function callAction($method, $parameters)
+    {
         //Get all plugin satisfied
         $this->plugins = Plugin::getPluginsByTable($this->custom_table);
+
+        return parent::callAction($method, $parameters);
     }
 
     /**
@@ -157,13 +169,13 @@ class CustomValueController extends AdminControllerTableBase
 
         $this->AdminContent($content);
         
-        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADING);
+        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADING);
 
         $row = new Row($this->form(null));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $content->row($row);
         
-        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADED);
+        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADED);
         return $content;
     }
 
@@ -186,13 +198,13 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->AdminContent($content);
-        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADING);
+        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADING);
 
         $row = new Row($this->form($id)->edit($id));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $content->row($row);
 
-        Plugin::pluginPreparing($this->plugins, PluginEventTrigger::LOADED);
+        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADED);
         return $content;
     }
     

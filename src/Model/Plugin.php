@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\PluginEventType;
+use Exceedone\Exment\Enums\PluginButtonType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Storage\Disk\PluginDiskService;
@@ -85,16 +87,13 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Patch plugin type using enum PluginType
+     * Match(contain) plugin type using enum PluginType
      *
      * @return void
      */
     public function matchPluginType($plugin_types)
     {
-        if (!is_array($plugin_types)) {
-            $plugin_types = [$plugin_types];
-        }
-
+        $plugin_types = toArray($plugin_types);
         foreach ($this->plugin_types as $this_plugin_type) {
             if (in_array($this_plugin_type, $plugin_types)) {
                 return true;
@@ -292,7 +291,7 @@ class Plugin extends ModelBase
     /**
      * @param null $event
      */
-    public static function pluginPreparing($plugins, $event = null, $options = [])
+    public static function pluginExecuteEvent($plugins, $event = null, $options = [])
     {
         $pluginCalled = false;
         if (count($plugins) > 0) {
@@ -302,14 +301,15 @@ class Plugin extends ModelBase
                     continue;
                 }
                 $event_triggers = array_get($plugin, 'options.event_triggers', []);
-                $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
+                $enum = PluginEventType::getEnum($event);
                 
-                $class = $plugin->getClass(PluginType::TRIGGER, $options);
-                if (in_array($event, (array)$event_triggers) && !in_array($event, (array)$event_triggers_button)) {
+                if (in_array($event, (array)$event_triggers) && isset($enum)) 
+                    
+                    // call PluginType::EVENT as throw_ex is false
+                    $class = $plugin->getClass(PluginType::EVENT, array_merge(['throw_ex' => false], $options));
+                    
+                    $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);{
                     $pluginCalled = $class->execute();
-                    if ($pluginCalled) {
-                        admin_toastr('Plugin called: '.$event);
-                    }
                 }
             }
         }
@@ -329,16 +329,16 @@ class Plugin extends ModelBase
 
         $buttonList = [];
         foreach ($plugins as $plugin) {
-            $plugin_types = array_get($plugin, 'plugin_types');
-            if (!array_intersect($plugin_types, PluginType::PLUGIN_TYPE_BUTTON())){
+            if(!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_BUTTON())){
                 continue;
             }
+
+            $plugin_types = toArray(array_get($plugin, 'plugin_types'));
             
             foreach ($plugin_types as $plugin_type) {
                 switch ($plugin_type) {
                     case PluginType::DOCUMENT:
-                        $event_triggers_button = ['form_menubutton_show'];
-                        if (in_array($event, $event_triggers_button)) {
+                        if (in_array($event, [PluginButtonType::FORM_MENUBUTTON_SHOW])) {
                             $buttonList[] = [
                                 'plugin_type' => $plugin_type,
                                 'plugin' => $plugin,
@@ -346,9 +346,9 @@ class Plugin extends ModelBase
                         }
                         break;
                     case PluginType::TRIGGER:
-                        $event_triggers = $plugin->options['event_triggers'];
-                        $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
-                        if (in_array($event, (array)$event_triggers) && in_array($event, $event_triggers_button)) {
+                    case PluginType::BUTTON:
+                        $event_triggers = toArray($plugin->options['event_triggers']);
+                        if (in_array($event, $event_triggers) && !is_null(PluginButtonType::getEnum($event))) {
                             $buttonList[] = [
                                 'plugin_type' => $plugin_type,
                                 'plugin' => $plugin,
@@ -415,7 +415,8 @@ class Plugin extends ModelBase
     {
         return static::getByPluginTypes($plugin_types, $getAsClass)
             ->filter(function($plugin){
-                if (!\Exment::hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
+                $login_user = \Exment::user();
+                if (!$login_user || !$login_user->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
                     return false;
                 }
                 return true;

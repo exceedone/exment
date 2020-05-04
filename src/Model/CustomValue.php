@@ -339,7 +339,7 @@ abstract class CustomValue extends ModelBase
             $model->prepareValue();
 
             // call saving trigger plugins
-            Plugin::pluginPreparing(Plugin::getPluginsByTable($model), PluginEventTrigger::SAVING, [
+            Plugin::pluginExecuteEvent(Plugin::getPluginsByTable($model), PluginEventTrigger::SAVING, [
                 'custom_table' => $model->custom_table,
                 'custom_value' => $model,
             ]);
@@ -408,7 +408,7 @@ abstract class CustomValue extends ModelBase
         $this->setFileValue();
 
         // call plugins
-        Plugin::pluginPreparing(Plugin::getPluginsByTable($this), PluginEventTrigger::SAVED, [
+        Plugin::pluginExecuteEvent(Plugin::getPluginsByTable($this), PluginEventTrigger::SAVED, [
             'custom_table' => $this->custom_table,
             'custom_value' => $this,
         ]);

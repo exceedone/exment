@@ -4,11 +4,11 @@ namespace Exceedone\Exment\Services\Plugin;
 use Exceedone\Exment\Model\CustomValue;
 
 /**
- * Plugin (Trigger) base class
+ * Plugin (Button) base class
  */
-class PluginTriggerBase
+class PluginButtonBase
 {
-    use PluginBase, PluginEventTrait, PluginButtonTrait;
+    use PluginBase, PluginButtonTrait;
     
     public $custom_table;
     public $custom_value;
@@ -17,7 +17,6 @@ class PluginTriggerBase
     public function __construct($plugin, $custom_table, $custom_value, $options = [])
     {
         $this->_initButton($plugin, $custom_table, $custom_value, $options);
-        $this->_initEvent($plugin, $custom_table, $custom_value, $options);
     }
 
     public function execute()

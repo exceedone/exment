@@ -15,6 +15,7 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\PluginType;
 
 trait HasPermissions
 {
