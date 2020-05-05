@@ -17,6 +17,9 @@ class PluginType extends EnumBase
     public const SCRIPT = '7';
     public const STYLE = '8';
     public const VALIDATOR = '9';
+    public const EXPORT = '10';
+    public const BUTTON = '11';
+    public const EVENT = '12';
     
     public static function PLUGIN_TYPE_PUBLIC_CLASS()
     {
@@ -35,6 +38,66 @@ class PluginType extends EnumBase
             static::PAGE,
             static::DASHBOARD,
             static::API,
+        ];
+    }
+
+
+    public static function PLUGIN_TYPE_CUSTOM_TABLE()
+    {
+        return [
+            static::TRIGGER, 
+            static::DOCUMENT, 
+            static::IMPORT, 
+            static::EXPORT, 
+            static::VALIDATOR,
+            static::EVENT,
+            static::BUTTON,
+        ];
+    }
+
+    /**
+     * Use plugin permission
+     *
+     * @return void
+     */
+    public static function PLUGIN_TYPE_AVAILABLE()
+    {
+        return [
+            static::PAGE,
+            static::TRIGGER,
+            static::DOCUMENT,
+            static::API,
+            static::DASHBOARD,
+            static::EXPORT,
+            static::IMPORT,
+            static::BUTTON,
+        ];
+    }
+
+    /**
+     * Use plugin with button
+     *
+     * @return void
+     */
+    public static function PLUGIN_TYPE_BUTTON()
+    {
+        return [
+            static::TRIGGER,
+            static::DOCUMENT,
+            static::BUTTON,
+        ];
+    }
+
+    /**
+     * Use plugin with event
+     *
+     * @return void
+     */
+    public static function PLUGIN_TYPE_EVENT()
+    {
+        return [
+            static::TRIGGER,
+            static::EVENT,
         ];
     }
 
@@ -74,6 +137,8 @@ class PluginType extends EnumBase
             switch ($plugin_type) {
                 case PluginType::DOCUMENT:
                 case PluginType::TRIGGER:
+                case PluginType::BUTTON:
+                case PluginType::EVENT:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
                     return new $classname(
                         $plugin,
@@ -92,6 +157,8 @@ class PluginType extends EnumBase
                     return new $classname($plugin, array_get($options, 'dashboard_box'));
                 case PluginType::IMPORT:
                     return new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
+                case PluginType::EXPORT:
+                    return new $classname($plugin, array_get($options, 'custom_table'));
                 case PluginType::VALIDATOR:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
                     return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, array_get($options, 'input_value'));

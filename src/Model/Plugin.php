@@ -4,6 +4,10 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\PluginEventType;
+use Exceedone\Exment\Enums\PluginButtonType;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Storage\Disk\PluginDiskService;
 use Carbon\Carbon;
 
@@ -42,16 +46,54 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Patch plugin type using enum PluginType
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        $user = \Exment::user();
+        return isset($user) ? !$user->hasPermission(Permission::PLUGIN_ALL) : true;
+    }
+
+    /**
+     * Whether has permission, permission level
+     * $role_key * if set array, check whether either items.
+     * @param array|string $role_key
+     */
+    public function hasPermission($role_key)
+    {
+        return \Exment::user()->hasPermissionPlugin($this->id, $role_key);
+    }
+
+    /**
+     * Get All plugin ids, user has setting permission
+     *
+     * @return void
+     */
+    public static function getIdsHasSettingPermission()
+    {
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_ALL_SETTING_IDS, function(){
+            if(\Exment::user()->hasPermission(Permission::PLUGIN_ALL)){
+                return static::allRecords()->pluck('id');
+            }
+    
+            $permissions = \Exment::user()->allPermissions()->filter(function($permission){
+                return RoleType::PLUGIN == $permission->getRoleType() && array_key_exists(Permission::PLUGIN_SETTING, $permission->getPermissionDetails());
+            });
+    
+            return $permissions->map(function($permission){return $permission->getPluginId();})->toArray();
+        });
+    }
+
+    /**
+     * Match(contain) plugin type using enum PluginType
      *
      * @return void
      */
     public function matchPluginType($plugin_types)
     {
-        if (!is_array($plugin_types)) {
-            $plugin_types = [$plugin_types];
-        }
-
+        $plugin_types = toArray($plugin_types);
         foreach ($this->plugin_types as $this_plugin_type) {
             if (in_array($this_plugin_type, $plugin_types)) {
                 return true;
@@ -80,6 +122,7 @@ class Plugin extends ModelBase
 
     //Get plugin by custom_table name
     //Where active_flg = 1 and target_tables contains custom_table id
+    // *Filtering only accessible.
     /**
      * @param $id
      * @return mixed
@@ -90,7 +133,7 @@ class Plugin extends ModelBase
             return [];
         }
 
-        return static::getByPluginTypes([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT, PluginType::VALIDATOR])->filter(function ($plugin) use ($custom_table) {
+        return static::getAccessableByPluginTypes(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())->filter(function ($plugin) use ($custom_table) {
             $target_tables = array_get($plugin, 'options.target_tables', []);
             if (is_nullorempty($target_tables)) {
                 return false;
@@ -248,23 +291,34 @@ class Plugin extends ModelBase
     /**
      * @param null $event
      */
-    public static function pluginPreparing($plugins, $event = null, $options = [])
+    public static function pluginExecuteEvent($plugins, $event = null, $options = [])
     {
         $pluginCalled = false;
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
                 // if $plugin_types is not trigger, continue
-                if (!$plugin->matchPluginType(PluginType::TRIGGER)) {
+                if(!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_EVENT())){
                     continue;
                 }
+
                 $event_triggers = array_get($plugin, 'options.event_triggers', []);
-                $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
+                $enum = PluginEventType::getEnum($event);
                 
-                $class = $plugin->getClass(PluginType::TRIGGER, $options);
-                if (in_array($event, (array)$event_triggers) && !in_array($event, (array)$event_triggers_button)) {
-                    $pluginCalled = $class->execute();
-                    if ($pluginCalled) {
-                        admin_toastr('Plugin called: '.$event);
+                $options['throw_ex'] = false;
+
+                if (in_array($event, (array)$event_triggers) && isset($enum)){
+                    // call PluginType::EVENT as throw_ex is false
+                    $class = $plugin->getClass(PluginType::EVENT, $options);
+                    
+                    $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
+
+                    // if isset $class, call
+                    if(isset($class)){
+                        $pluginCalled = $class->execute();
+                    }
+                    // if cannot call class, set error
+                    else{
+                        admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
                     }
                 }
             }
@@ -285,13 +339,16 @@ class Plugin extends ModelBase
 
         $buttonList = [];
         foreach ($plugins as $plugin) {
-            // get plugin_types
-            $plugin_types = array_get($plugin, 'plugin_types');
+            if(!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_BUTTON())){
+                continue;
+            }
+
+            $plugin_types = toArray(array_get($plugin, 'plugin_types'));
+            
             foreach ($plugin_types as $plugin_type) {
                 switch ($plugin_type) {
                     case PluginType::DOCUMENT:
-                        $event_triggers_button = ['form_menubutton_show'];
-                        if (in_array($event, $event_triggers_button)) {
+                        if (in_array($event, [PluginButtonType::FORM_MENUBUTTON_SHOW])) {
                             $buttonList[] = [
                                 'plugin_type' => $plugin_type,
                                 'plugin' => $plugin,
@@ -299,14 +356,25 @@ class Plugin extends ModelBase
                         }
                         break;
                     case PluginType::TRIGGER:
-                        $event_triggers = $plugin->options['event_triggers'];
-                        $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
-                        if (in_array($event, (array)$event_triggers) && in_array($event, $event_triggers_button)) {
-                            $buttonList[] = [
-                                'plugin_type' => $plugin_type,
-                                'plugin' => $plugin,
-                            ];
+                    case PluginType::BUTTON:
+                        $event_triggers = toArray($plugin->options['event_triggers']);
+                        if (!in_array($event, $event_triggers) || is_null(PluginButtonType::getEnum($event))) {
+                            break;
                         }
+                        
+                        // call PluginType::BUTTON as throw_ex is false
+                        $options = ['throw_ex' => false];
+                        $class = $plugin->getClass(PluginType::BUTTON, $options);
+                        $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
+                        if(!isset($class)){
+                            admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                            break;
+                        }
+
+                        $buttonList[] = [
+                            'plugin_type' => $plugin_type,
+                            'plugin' => $plugin,
+                        ];
                         break;
                 }
             }
@@ -362,7 +430,22 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get plugin pages by selecting plugin_type
+     * Get plugins filtering accessable by selecting plugin_type
+     */
+    public static function getAccessableByPluginTypes($plugin_types, $getAsClass = false)
+    {
+        return static::getByPluginTypes($plugin_types, $getAsClass)
+            ->filter(function($plugin){
+                $login_user = \Exment::user();
+                if (!$login_user || !$login_user->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
+                    return false;
+                }
+                return true;
+            });
+    }
+
+    /**
+     * Get plugins by selecting plugin_type
      */
     public static function getByPluginTypes($plugin_types, $getAsClass = false)
     {
@@ -505,6 +588,12 @@ class Plugin extends ModelBase
         return snake_case($uri);
     }
 
+    public function getCannotReadMessage(){
+        return exmtrans('plugin.error.cannot_read', [
+            'plugin_view_name' => $this->plugin_view_name
+        ]);
+    }
+
     /**
      * get eloquent using request settion.
      */
@@ -552,7 +641,11 @@ class Plugin extends ModelBase
     {
         return $this->getJson('options', $key, $default);
     }
-    
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
+    }
+        
     public function getCustomOption($key, $default = null)
     {
         return $this->getJson('custom_options', $key, $default);

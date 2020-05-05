@@ -3714,40 +3714,44 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 
 .modal-tile .groupheader {
   font-size: 17px;
-  margin-bottom: 1em;
 }
 
 .modal-tile .row {
   margin-bottom: 1em;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .modal-tile .row:last-child {
   margin-bottom: -1.5em;
 }
 
-.modal-tile-item {
+.modal-tile .modal-tile-col {
+  margin-bottom: 1em;
+}
+
+.modal-tile .modal-tile-item {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1.5em;
-  height: 100px;
+  min-height: 100px;
 }
 
-.modal-tile-item .sub-buttons {
+.modal-tile .modal-tile-item .sub-buttons {
   margin-top: 0.5em;
 }
 
-.modal-tile-item .sub-buttons .btn {
+.modal-tile .modal-tile-item .sub-buttons .btn {
   margin-top: 0.2em;
 }
 
-.modal-tile-item-icon {
+.modal-tile .modal-tile-item-icon {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.modal-tile-item-icon a.btn {
+.modal-tile .modal-tile-item-icon a.btn {
   width: 70px;
   height: 60px;
   display: flex;
@@ -3755,15 +3759,15 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   align-items: center;
 }
 
-.modal-tile-item-icon .fa {
+.modal-tile .modal-tile-item-icon .fa {
   font-size: 40px;
 }
 
-.modal-tile-item-header {
+.modal-tile .modal-tile-item-header {
   font-size: 15px;
 }
 
-.modal-tile-item-description {
+.modal-tile .modal-tile-item-description {
   font-size: 12px;
 }
 
@@ -3966,9 +3970,6 @@ table img.image_html:hover {
   }
   .nprogress-custom-parent {
     overflow: visible;
-  }
-  .modal-tile-item {
-    height: auto;
   }
 }
 

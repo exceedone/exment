@@ -17,7 +17,7 @@
         <div class="box-body">
             <div class="fields-group">
                 <div class="form-group">
-                    <input class="" type="file" name="fileUpload" accept='.zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed'/><br/>
+                    <input class="" required type="file" name="fileUpload" accept='.zip,application/octet-stream,application/zip,application/x-zip,application/x-zip-compressed'/><br/>
                     <span class="help-block">
                         <i class="fa fa-info-circle"></i>&nbsp;{{ exmtrans('plugin.extension') }}
                     </span>
@@ -32,7 +32,7 @@
 
         <div class="box-footer">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-info btn-upload" data-loading-text="<i class='fa fa-spinner fa-spin '></i> {{trans('admin.upload')}}">{{trans('admin.upload')}}</button>
+            <button type="submit" class="btn btn-info btn-upload submit_disabled" data-loading-text="<i class='fa fa-spinner fa-spin '></i> {{trans('admin.upload')}}">{{trans('admin.upload')}}</button>
         </div>
 
     </form>

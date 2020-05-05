@@ -7,6 +7,7 @@ class RoleGroupType extends EnumBase
     const SYSTEM = "system";
     const TABLE = "table";
     const MASTER = "master";
+    const PLUGIN = "plugin";
     const ROLE_GROUP = "role_group";
     
     public function getRoleGroupOptions()
@@ -36,6 +37,8 @@ class RoleGroupType extends EnumBase
                 return Permission::MASTER_ROLE_PERMISSION;
             case self::ROLE_GROUP()->lowerKey():
                 return Permission::ROLE_GROUP_ROLE_PERMISSION;
+            case self::PLUGIN()->lowerKey():
+                return Permission::ROLE_GROUP_PLUGIN_PERMISSION;
         }
     }
 }

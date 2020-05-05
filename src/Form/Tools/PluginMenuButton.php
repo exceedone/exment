@@ -64,8 +64,9 @@ EOT;
         // get label
         $pluginClass = $this->plugin->getClass($this->plugin_type, [
             'custom_table' => $this->custom_table,
-            'id' => $this->id
+            'id' => $this->id,
         ]);
+
         if (method_exists($pluginClass, 'getButtonLabel')) {
             $label = $pluginClass->getButtonLabel();
         } else {

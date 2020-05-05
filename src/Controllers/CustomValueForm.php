@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 
 trait CustomValueForm
@@ -366,16 +367,17 @@ EOT;
         $form->disableCreatingCheck(false);
         $form->disableViewCheck(false);
         
-        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form) {
+        $plugins = $this->plugins;
+        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $plugins) {
             // create
             if (!isset($id)) {
                 $isButtonCreate = true;
-                $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_create');
+                $listButtons = Plugin::pluginPreparingButton($plugins, PluginEventTrigger::FORM_MENUBUTTON_CREATE);
             }
             // edit
             else {
                 $isButtonCreate = false;
-                $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
+                $listButtons = Plugin::pluginPreparingButton($plugins, PluginEventTrigger::FORM_MENUBUTTON_EDIT);
             }
 
             $custom_value = $custom_table->getValueModel($id);
@@ -402,7 +404,7 @@ EOT;
             // add plugin button
             if ($listButtons !== null && count($listButtons) > 0) {
                 foreach ($listButtons as $listButton) {
-                    $tools->append(new Tools\PluginMenuButton($listButton, $this->custom_table));
+                    $tools->append(new Tools\PluginMenuButton($listButton, $custom_table, $id));
                 }
             }
 
