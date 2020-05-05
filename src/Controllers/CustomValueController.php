@@ -37,6 +37,13 @@ class CustomValueController extends AdminControllerTableBase
 {
     use HasResourceTableActions, CustomValueGrid, CustomValueForm;
     use CustomValueShow, CustomValueSummary, CustomValueCalendar;
+
+    /**
+     * this custom table's plugin list.
+     * * Filtering only user accessible. *
+     *
+     * @var array
+     */
     protected $plugins = [];
 
     const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
