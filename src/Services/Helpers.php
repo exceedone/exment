@@ -1354,6 +1354,8 @@ if (!function_exists('getExmentVersion')) {
                 $client = new \GuzzleHttp\Client();
                 $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
                     'http_errors' => false,
+                    'timeout' => 3, // Response timeout
+                    'connect_timeout' => 3, // Connection timeout
                 ]);
 
                 session([Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE => true]);
