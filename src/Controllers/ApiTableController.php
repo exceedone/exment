@@ -977,7 +977,6 @@ class ApiTableController extends AdminControllerTableBase
 
     /**
      * Check whether use label
-     * *Until 2020/04/30, default is true, but after this date, default is false*
      *
      * @return bool if use, return true
      */
@@ -987,7 +986,7 @@ class ApiTableController extends AdminControllerTableBase
             return boolval($request->get('label', false));
         }
 
-        if (boolval(config('exment.api_append_label_default', true))) {
+        if (boolval(config('exment.api_append_label', false))) {
             return true;
         }
 
