@@ -370,7 +370,10 @@ trait HasPermissions
 
                 $role_details = $role_group_permission->permissions;
                 foreach ($role_details as $value) {
-                    if (!array_key_exists($value, $permissions)) {
+                    if(!isset($permissions[$custom_table->table_name])){
+                        $permissions[$custom_table->table_name] = [];
+                    }
+                    if (!array_key_exists($value, $permissions[$custom_table->table_name])) {
                         $permissions[$custom_table->table_name][$value] = 1;
                     }
                 }
@@ -423,6 +426,9 @@ trait HasPermissions
 
                 $role_details = $role_group_permission->permissions;
                 foreach ($role_details as $value) {
+                    if(!isset($permissions[$plugin->id])){
+                        $permissions[$plugin->id] = [];
+                    }
                     if (!array_key_exists($value, $permissions)) {
                         $permissions[$plugin->id][$value] = 1;
                     }
