@@ -97,7 +97,7 @@ class CustomCopyController extends AdminControllerTableBase
                 'url' => admin_urls('copy', $this->custom_table->table_name, 'newModal')
             ]));
             //$tools->append($this->createNewModal());
-            $tools->append(new Tools\GridChangePageMenu('copy', $this->custom_table, false));
+            $tools->append(new Tools\CustomTableMenuButton('copy', $this->custom_table));
         });
         
         $grid->disableExport();
@@ -209,7 +209,7 @@ class CustomCopyController extends AdminControllerTableBase
         ->description(exmtrans("custom_copy.input_column_description"));
 
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->add((new Tools\GridChangePageMenu('copy', $custom_table, false))->render());
+            $tools->add((new Tools\CustomTableMenuButton('copy', $custom_table))->render());
         });
 
         // validate before saving

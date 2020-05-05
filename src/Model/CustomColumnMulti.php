@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\FilterOption;
+
 /**
  * Custom column multiple settings
  */
@@ -13,7 +15,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     use Traits\TemplateTrait;
     use Traits\UniqueKeyCustomColumnTrait;
 
-    protected $appends = ['unique1', 'unique2', 'unique3', 'table_label_id'];
+    protected $appends = ['unique1', 'unique2', 'unique3', 'compare_column1_id', 'compare_column2_id', 'compare_type', 'table_label_id'];
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
     protected $table = 'custom_column_multisettings';
@@ -26,7 +28,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     public static $templateItems = [
         'excepts' => [
             'export' => [
-                'unique1', 'unique2', 'unique3', 'options.unique1_id', 'options.unique2_id', 'options.unique3_id', 'options.table_label_id'
+                'unique1', 'unique2', 'unique3', 'compare_type', 'options.unique1_id', 'options.unique2_id', 'options.unique3_id', 'options.compare_column1_id', 'options.compare_column2_id', 'options.table_label_id'
             ],
             'import' => [
                 'custom_table_id', 'column_name'
@@ -82,6 +84,32 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
                 'uniqueKeyFunctionArgs' => ['unique3'],
             ],
+            
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.compare_column1_table_name',
+                            'column_name' => 'options.compare_column1_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['compare_column1_id'],
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.compare_column2_table_name',
+                            'column_name' => 'options.compare_column2_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['compare_column2_id'],
+            ],
+
             [
                 'replaceNames' => [
                     [
@@ -136,6 +164,48 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         return $this;
     }
     
+
+    public function getCompareColumn1IdAttribute()
+    {
+        return $this->getOption('compare_column1_id');
+    }
+    public function setCompareColumn1IdAttribute($compare_column)
+    {
+        $this->setOption('compare_column1_id', $compare_column);
+        return $this;
+    }
+
+    public function getCompareColumn2IdAttribute()
+    {
+        return $this->getOption('compare_column2_id');
+    }
+    public function setCompareColumn2IdAttribute($compare_column)
+    {
+        $this->setOption('compare_column2_id', $compare_column);
+        return $this;
+    }
+    
+    public function getCompareColumn1Attribute()
+    {
+        return CustomColumn::getEloquent($this->compare_column1_id);
+    }
+
+    public function getCompareColumn2Attribute()
+    {
+        return CustomColumn::getEloquent($this->compare_column2_id);
+    }
+
+    public function getCompareTypeAttribute()
+    {
+        return $this->getOption('compare_type');
+    }
+    public function setCompareTypeAttribute($unique1)
+    {
+        $this->setOption('compare_type', $unique1);
+        return $this;
+    }
+
+
     public function getTableLabelIdAttribute()
     {
         return $this->getOption('table_label_id');
@@ -145,6 +215,92 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         $this->setOption('table_label_id', $value);
         return $this;
     }
+
+
+    /**
+     * Compare two value.
+     *
+     * @param [type] $value
+     * @return bool
+     */
+    public function compareValue($input, $custom_value = null)
+    {
+        $column1 = $this->compare_column1;
+        $column2 = $this->compare_column2;
+
+        if (!isset($column1) || !isset($column2)) {
+            return true;
+        }
+
+        // get value function
+        $getValueFunc = function ($input, $column, $custom_value) {
+            // if key has value in input
+            if (array_has($input, 'value.' . $column->column_name)) {
+                return array_get($input, 'value.' . $column->column_name);
+            }
+
+            // if not has, get from custom value
+            if (!isset($custom_value) || !$custom_value->exists) {
+                return null;
+            }
+
+            return array_get($custom_value, 'value.' . $column->column_name);
+        };
+
+        $value1 = $getValueFunc($input, $column1, $custom_value);
+        $value2 = $getValueFunc($input, $column2, $custom_value);
+
+        switch ($this->compare_type) {
+            case FilterOption::EQ:
+                if (empty($value1)) {
+                    if (empty($value2)) {
+                        return true;
+                    }
+                } elseif (empty($value2)) {
+                    if (empty($value1)) {
+                        return true;
+                    }
+                } else {
+                    if ($value1 == $value2) {
+                        return true;
+                    }
+                }
+
+                return $this->getCompareErrorMessage('validation.not_match', $column1, $column2);
+
+            case FilterOption::NE:
+                if (empty($value1)) {
+                    if (!empty($value2)) {
+                        return true;
+                    }
+                } elseif (empty($value2)) {
+                    if (!empty($value1)) {
+                        return true;
+                    }
+                } else {
+                    if ($value1 != $value2) {
+                        return true;
+                    }
+                }
+
+                return $this->getCompareErrorMessage('validation.not_notmatch', $column1, $column2);
+            default:
+                if (empty($value1) || empty($value2)) {
+                    return true;
+                }
+
+                return $column1->column_item->compareTwoValues($this, $value1, $value2);
+        }
+    }
+
+    public function getCompareErrorMessage($transKey, $column1, $column2)
+    {
+        return exmtrans($transKey, [
+            'attribute1' => $column1->column_view_name,
+            'attribute2' => $column2->column_view_name,
+        ]);
+    }
+
 
     // Template Output ----------------------------------------
     
@@ -160,6 +316,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         static::importReplaceJsonTableColumn('unique1', $json);
         static::importReplaceJsonTableColumn('unique2', $json);
         static::importReplaceJsonTableColumn('unique3', $json);
+        static::importReplaceJsonTableColumn('compare_column1', $json);
+        static::importReplaceJsonTableColumn('compare_column2', $json);
         static::importReplaceJsonTableColumn('table_label', $json);
     }
 

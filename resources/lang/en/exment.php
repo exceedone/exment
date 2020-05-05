@@ -4,6 +4,7 @@ return [
     'label' => 'English',
     'common' => [
         'home' => 'HOME',
+        'success' => 'Success',
         'error' => 'Error',
         'import' => 'Import',
         'plugin' => 'Plugin',
@@ -62,6 +63,8 @@ return [
         'available' => 'Available',
         'history' => 'History',
         'create_only_setting' => 'Setting when creating data',
+        'join_and' => 'And',
+        'join_or' => 'Or',
         'download' => 'Download',
 
         'message' => [
@@ -174,6 +177,19 @@ return [
         'empty' => 'Only a blank value can be specified for the value of :attribute.',
         'max_table_index' => 'Up to :count search indexes can be set in one table.',
         'using_index_column' => 'Search index cannot be released because it is in use by a view.',
+
+        'not_match' => 'The value of :attribute1 and the value of :attribute1 are different.',
+        'not_notmatch' => ':attribute1 and :attribute2 must have different values.',
+        'not_gt' => 'The value for :attribute1 must be greater than the value for :attribute2.',
+        'not_gte' => 'The value for :attribute1 must be greater than or equal to the value for :attribute2.',
+        'not_lt' => 'The value for :attribute1 must be less than the value for :attribute2.',
+        'not_lte' => 'The value for :attribute1 must be less than or equal to the value for :attribute2.',
+
+        'not_gt_date' => ':attribute1 must come after :attribute2.',
+        'not_gte_date' => ':attribute1 must be the same as or later than :attribute2.',
+        'not_lt_date' => ':attribute1 must be before :attribute2.',
+        'not_lte_date' => ':attribute1 must be the same as or earlier than :attribute2.',
+
     ],
 
     'system' => [
@@ -379,6 +395,7 @@ return [
         'message' => [
             'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
             'not_exists_table' => 'The table or view has been deleted.',
+            'not_exists_plugin' => 'The plugin has been deleted.',
         ],
 
         'help' => [
@@ -414,6 +431,11 @@ return [
             'batch_cron' => 'Batch execution cron',
             'icon' => "Button's Icon",
             'uri' => 'URL',
+            'endpoint_page' => 'Endpoint(Page)',
+            'endpoint_api' => 'Endpoint(API)',
+            'all_user_enabled' => 'All user can use',
+            'export_types' => 'Export Type',
+            'export_description' => 'Description',
 
             'event_trigger_options' => [
                 'saving' => 'Before Saving',
@@ -439,11 +461,16 @@ return [
             'errorMess' => 'Select a plugin file.',
             'batch_hour' => 'Batch start time. ex)If input 3, start batch at 3:00.<br />* Batch will be executed every day at this time.',
             'batch_cron' => '(For advanced users) Define a cron to execute the batch.<br />* If this item has a value, the setting of "Batch execution time" above will be disabled.',
+            'all_user_enabled' => 'If set to YES, it will be available to all users, regardless of the permissions of the role group.',
+            'export_types' => 'Select the type of export that can be selected on the list screen.',
+            'export_description' => 'This is the explanation displayed on the menu screen of data import / export.',
+            'endpoint' => 'The endpoint for accessing this plugin.',
         ],
 
         'error' => [
             'samename_plugin' => 'There is a plug-in with the same name. Please check and try once.',
             'wrongname_plugin' => 'UUID exists, but the plug-in name is incorrect. Please check and try again.',
+            'cannot_read' => 'The plugin :plugin_view_name could not be loaded successfully. Please check the plug-in file itself or contact your system administrator.',
         ],
     
         'plugin_type_options' => [
@@ -451,12 +478,15 @@ return [
             'trigger' => 'Trigger',
             'document' => 'Document',
             'batch' => 'Batch',
+            'export' => 'Export',
             'import' => 'Import Template',
             'script' => 'Script',
             'style' => 'Style',
             'dashboard' => 'Dashboard',
             'validator' => 'Validation',
             'api' => 'API',
+            'event' => 'Event',
+            'button' => 'Button',
         ],
     ],
 
@@ -775,9 +805,15 @@ return [
             'table_label_format_string' => 'Headline format string',
             'form_action_disable_flg' => 'Cannot changed from display',
 
+            'compare_columns' => 'Compare 2 columns',
+            'compare_column1_id' => 'Validation column(A)',
+            'compare_column2_id' => 'Compare column(B)',
+            'compare_type' => 'Condition',
+
             'help' => [
                 'table_labels' => 'When selecting data, set the wording column to be displayed on the screen. Display as heading items in order from the top.<br/>Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
                 'uniques' => 'Set a composite unique key. If all the values ​​in these columns match the registered values, an error will occur when saving the data.',
+                'compare_columns' => 'Compares two columns when saving data. You can save only when the column value matches the set conditions.',
                 'table_label_format' => '(For advanced users) You can flexibly set the format to be displayed in the heading. Please refer to&nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp;for the parameter to display the value.* If you set a value to this item, "header display column setting" above will be disabled.',
                 'form_action_disable_flg' => 'The checked operation cannot be executed from the screen. Check this if you want to manage data only from the API or dashboard.',
             ],
@@ -788,6 +824,16 @@ return [
                 'import' => 'Import',
                 'export' => 'Export',
             ],
+            
+            'filter_condition_compare_options' => [
+                'eq' => 'Match at A and B', 
+                'ne' => 'Not Match at A and B', 
+                'gt' => 'A is greater than B', 
+                'lt' => 'A is less than B', 
+                'gte' => 'A is greater than or equal to B', 
+                'lte' => 'A is less than or equal to B', 
+            ],
+            
         ],
     ],
     
@@ -923,6 +969,7 @@ return [
             'upper' => 'Upper Letters', 
             'number' => 'Numbers', 
             'hyphen_underscore' => '"-" or "_"',
+            'dot' => '"."(Dot)',
             'symbol' => 'Symbol',
         ],
         
@@ -1055,6 +1102,7 @@ return [
         'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
 
         'help' => [
+            'custom_view_type' => 'System view: A view available to all users of this table. User view: This view is available only to the created user.',
             'sort_type' => 'Specifies whether to sort in ascending order or in descending order.',
             'sort_order_summaries' => 'Sort the data to be acquired.<br />Performs sorting in ascending order of numbers from "group column" and "summary column".',
         ],
@@ -1115,12 +1163,22 @@ return [
         ],
         
         'custom_view_menulist' => [
+            'setting' => 'Open Setting',
             'current_view_edit' => 'Edit Current View Setting',
             'current_view_replicate' => 'Duplicate current view',
             'create' => 'Create View',
             'create_sum' => 'Create Summary View',
             'create_calendar' => 'Calendar view new creation',
             'create_filter' => 'Create condition view new',
+            
+            'help' => [
+                'current_view_edit' => 'Change the settings of the currently displayed view.',
+                'current_view_replicate' => 'Duplicate the current view settings and create a new view.',
+                'create' => 'Create a new normal view that lists the data.',
+                'create_sum' => 'Create a new aggregation view that groups data items and aggregates and displays the total and maximum values.',
+                'create_calendar' => 'Create a new calendar view that displays the date of data in calendar format.',
+                'create_filter' => 'Create a new condition view that sets the conditions for notification and the conditions to be displayed in the form options.',
+            ],
         ],
         'message' => [
             'over_filters_max' => 'Cannot set 6 or more display filters.',
@@ -1189,6 +1247,7 @@ return [
             'custom_value_edit_all' => ['label' => 'All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
             'api_all' => ['label' => 'Manage API Application', 'help' => 'Users can add, edit, delete all API applications.'],
             'api' => ['label' => 'API Application', 'help' => 'Users can add, edit, delete API applications only user created.'],
+            'plugin_all' => ['label' => 'Manage Plugin', 'help' => 'Users can add, edit, delete all plugins. And use all plugins.'],
         ],
         'role_type_option_role_group' => [
             'role_group_all' => ['label' => 'Manage the entire role group', 'help' => 'You can change the settings for the entire role group.<br/>You can add, change and delete groups, change permission settings for groups, and change user and organization settings.'],
@@ -1361,10 +1420,12 @@ return [
     ],
 
     'custom_value' => [
+        'description' => 'Display the data list of this table.',
         'template' => 'Export Template',
         'import_export' => 'Import/Export',
         'export' => 'Export',
-        'view_export' => 'View Export',
+        'default_export' => 'Export(All System/Custom Columns)',
+        'view_export' => 'Export(as View)',
         'import_label' => 'Import',
         'view_summary_detail' => 'Display the items of aggregated data',
         'soft_deleted_data' => 'Deleted Data',
@@ -1428,6 +1489,12 @@ return [
             'lock_error' => 'The data in question has been updated by another user. After updating the screen, enter again.',
             'lock_error_api' => 'The data in question has been updated by another user.',
             'init_flg' => 'Cannot edit after save.',
+            'export_all' => 'Export all data for all system and custom columns.',
+            'export_page' => 'Exports the current page data for all system and custom columns.',
+            'view_export_all' => 'Exports all data in the format of the currently displayed view.',
+            'view_export_page' => 'Exports the data for the current page in the format of the currently displayed view.',
+            'template' => 'Download the template file to use for the import.',
+            'import' => 'Displays a dialog for executing import. *For the data to be imported, use the data output by "Export Template" or "Export(All System/Custom Columns)".',
         ],
         'message' => [
             'operation_notfound' => 'The data to be updated was not found.',
@@ -1614,6 +1681,7 @@ return [
             'invalid_organization' => 'Organization with ID:%s does not exist.',
             'disapproval_ip' => 'Unauthorized IP address.',
             'already_deleted' => 'Already deleted this data.',
+            'plugin_not_found' => 'Plugin not found.',
         ],
 
         'help' =>[
@@ -1650,6 +1718,7 @@ return [
         'condition_target' => 'Condition Item',
         'condition_key' => 'Search Condition',
         'condition_value' => 'Condtion Value',
+        'condition_join' => 'Condtion Join',
         'condition_type_options' => [
             'user' => 'User',
             'organization' => 'Organization',
@@ -1666,6 +1735,11 @@ return [
             'number_lte' => 'Less Than or Equal',
             'day_on_or_after' => 'After',
             'day_on_or_before' => 'Before',
+        ],
+
+        'condition_join_options' => [
+            'and' => 'Match All Condition',
+            'or' => 'Match Any Condition',
         ],
     ],
 ];

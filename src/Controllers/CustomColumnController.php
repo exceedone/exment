@@ -124,7 +124,7 @@ class CustomColumnController extends AdminControllerTableBase
         });
 
         $grid->tools(function (Grid\Tools $tools) {
-            $tools->append(new Tools\GridChangePageMenu('column', $this->custom_table, false));
+            $tools->append(new Tools\CustomTableMenuButton('column', $this->custom_table));
         });
 
         // filter
@@ -259,7 +259,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXTAREA, ColumnType::EDITOR]])]);
 
             $form->checkbox('available_characters', exmtrans("custom_column.options.available_characters"))
-                ->options(getTransArray(Define::CUSTOM_COLUMN_AVAILABLE_CHARACTERS_OPTIONS, 'custom_column.available_characters'))
+                ->options(CustomColumn::getAvailableCharacters()->pluck('label', 'key'))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
                 ->help(exmtrans("custom_column.help.available_characters"))
                 ;
@@ -530,7 +530,7 @@ class CustomColumnController extends AdminControllerTableBase
             if (isset($id) && boolval(CustomColumn::getEloquent($id)->disabled_delete)) {
                 $tools->disableDelete();
             }
-            $tools->add((new Tools\GridChangePageMenu('column', $custom_table, false))->render());
+            $tools->add((new Tools\CustomTableMenuButton('column', $custom_table, false))->render());
         });
         return $form;
     }

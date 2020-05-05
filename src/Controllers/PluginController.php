@@ -5,12 +5,16 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-//use Encore\Admin\Controllers\HasResourceActions;
+use Encore\Admin\Auth\Permission as Checker;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\PluginEventTrigger;
+use Exceedone\Exment\Enums\PluginEventType;
+use Exceedone\Exment\Enums\PluginButtonType;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use File;
@@ -37,7 +41,11 @@ class PluginController extends AdminControllerBase
     public function index(Request $request, Content $content)
     {
         $this->AdminContent($content);
-        $content->row(view('exment::plugin.upload'));
+        
+        if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
+            $content->row(view('exment::plugin.upload'));
+        }
+        
         $content->body($this->grid());
         return $content;
     }
@@ -74,7 +82,16 @@ class PluginController extends AdminControllerBase
         
         $grid->actions(function ($actions) {
             $actions->disableView();
+
+            if ($actions->row->disabled_delete) {
+                $actions->disableDelete();
+            }
         });
+
+        if (!\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
+            $grid->model()->whereIn('id', Plugin::getIdsHasSettingPermission());
+        }
+
         return $grid;
     }
 
@@ -146,9 +163,15 @@ class PluginController extends AdminControllerBase
     protected function form($id = null, $isDelete = false)
     {
         $plugin = Plugin::getEloquent($id);
+        if (!$plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+            Checker::error();
+            return false;
+        }
 
         // create form
         $form = new Form(new Plugin);
+        $form->exmheader(exmtrans("common.basic_setting"))->hr();
+
         $form->display('uuid', exmtrans("plugin.uuid"));
         $form->display('plugin_name', exmtrans("plugin.plugin_name"));
         $form->display('plugin_view_name', exmtrans("plugin.plugin_view_name"));
@@ -161,25 +184,46 @@ class PluginController extends AdminControllerBase
         $form->display('author', exmtrans("plugin.author"));
         $form->display('version', exmtrans("plugin.version"));
         $form->switch('active_flg', exmtrans("plugin.active_flg"));
+        
+        $form->exmheader(exmtrans("common.detail_setting"))->hr();
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin) {
-            if ($plugin->matchPluginType([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT, PluginType::VALIDATOR])) {
+            if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
-                    $options = CustomTable::filterList()->pluck('table_view_name', 'table_name')->toArray();
+                    $options = CustomTable::filterList(null, ['checkPermission' => false])->pluck('table_view_name', 'table_name')->toArray();
                     return $options;
                 })->help(exmtrans("plugin.help.target_tables"));
+
                 // only trigger
-                if ($plugin->matchPluginType(PluginType::TRIGGER)) {
-                    $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))->options(function ($value) {
-                        return getTransArray(Define::PLUGIN_EVENT_TRIGGER, "plugin.options.event_trigger_options");
-                    })->help(exmtrans("plugin.help.event_triggers"));
+                $enumClass = null;
+                if ($plugin->matchPluginType(PluginType::BUTTON)) {
+                    $enumClass = PluginButtonType::class;
+                } elseif ($plugin->matchPluginType(PluginType::EVENT)) {
+                    $enumClass = PluginEventType::class;
+                } elseif ($plugin->matchPluginType(PluginType::TRIGGER)) {
+                    $enumClass = PluginEventTrigger::class;
                 }
-            } elseif ($plugin->matchPluginType(PluginType::API)) {
-                // Plugin_type = 'api'
-                $form->text('uri', exmtrans("plugin.options.uri"))->required();
-            } elseif ($plugin->matchPluginType(PluginType::PAGE)) {
+                
+                if (isset($enumClass)) {
+                    $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))
+                    ->options($enumClass::transArray("plugin.options.event_trigger_options"))
+                    ->help(exmtrans("plugin.help.event_triggers"));
+                }
+            }
+            
+            if ($plugin->matchPluginType(PluginType::PAGE)) {
                 // Plugin_type = 'page'
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
+            }
+                        
+            if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL())) {
                 $form->text('uri', exmtrans("plugin.options.uri"))->required();
+
+                if ($plugin->matchPluginType(PluginType::PAGE)) {
+                    $form->display('endpoint_page', exmtrans("plugin.options.endpoint_page"))->default($plugin->getRootUrl(PluginType::PAGE))->help(exmtrans("plugin.help.endpoint"));
+                }
+                if ($plugin->matchPluginType(PluginType::API)) {
+                    $form->display('endpoint_api', exmtrans("plugin.options.endpoint_api"))->default($plugin->getRootUrl(PluginType::API))->help(exmtrans("plugin.help.endpoint"));
+                }
             } elseif ($plugin->matchPluginType(PluginType::BATCH)) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
                     ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
@@ -190,10 +234,25 @@ class PluginController extends AdminControllerBase
                     ->rules('max:100');
             }
 
-            if ($plugin->matchPluginType([PluginType::TRIGGER, PluginType::DOCUMENT])) {
+            if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
+                $form->switchbool('all_user_enabled', exmtrans("plugin.options.all_user_enabled"))->help(exmtrans("plugin.help.all_user_enabled"));
+            }
+            if ($plugin->matchPluginType([PluginType::BUTTON, PluginType::TRIGGER, PluginType::DOCUMENT])) {
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
                 $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
+            }
+
+            if ($plugin->matchPluginType([PluginType::EXPORT])) {
+                $form->multipleSelect('export_types', exmtrans("plugin.options.export_types"))->options([
+                    'all' => trans('admin.all'),
+                    'current_page' => trans('admin.current_page'),
+                ])->required()
+                ->default(['all', 'current_page'])
+                ->help(exmtrans("plugin.help.export_types"));
+                $form->text('label', exmtrans("plugin.options.label"));
+                $form->textarea('export_description', exmtrans("plugin.options.export_description"))->help(exmtrans("plugin.help.export_description"))->rows(3);
+                $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
             }
         })->disableHeader();
 
@@ -202,6 +261,10 @@ class PluginController extends AdminControllerBase
         }
 
         $form->tools(function (Form\Tools $tools) use ($plugin) {
+            if ($plugin->disabled_delete) {
+                $tools->disableDelete();
+            }
+
             if ($plugin->matchPluginType(PluginType::PAGE)) {
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_url($plugin->getRouteUri()),
@@ -237,8 +300,10 @@ class PluginController extends AdminControllerBase
             return;
         }
 
+        
+        $form->exmheader(exmtrans("plugin.options.custom_options_header"))->hr();
         $form->embeds('custom_options', exmtrans("plugin.options.custom_options_header"), function ($form) use ($pluginClass) {
             $pluginClass->setCustomOptionForm($form);
-        });
+        })->disableHeader();
     }
 }

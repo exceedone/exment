@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\DashboardBox;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -134,6 +135,9 @@ class PatchDataCommand extends Command
                 return;
             case 'patch_log_opelation':
                 $this->patchLogOpelation();
+                return;
+            case 'plugin_all_user_enabled':
+                $this->patchAllUserEnabled();
                 return;
         }
 
@@ -916,6 +920,27 @@ class PatchDataCommand extends Command
                 $log->input = json_encode($json);
                 $log->save();
             }
+        });
+    }
+    
+    /**
+     * removeStoredRevision
+     *
+     * @return void
+     */
+    protected function patchAllUserEnabled()
+    {
+        if (!canConnection() || !hasTable('plugins')) {
+            return;
+        }
+
+        Plugin::all()->each(function ($plugin) {
+            if (!$plugin->matchPluginType(Enums\PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
+                return;
+            }
+
+            $plugin->setOption('all_user_enabled', "1");
+            $plugin->save();
         });
     }
 }

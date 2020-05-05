@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 
 class PublishCommand extends Command
 {
-    use CommandTrait;
+    use CommandTrait, InstallUpdateTrait;
 
     /**
      * The console command name.
@@ -49,5 +49,7 @@ class PublishCommand extends Command
     public function handle()
     {
         $this->publishStaticFiles();
+
+        $this->createExmentBootstrapFile();
     }
 }

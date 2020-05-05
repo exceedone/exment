@@ -25,6 +25,7 @@ class CheckboxTable extends Checkbox
      *     'label' => label name,
      *     'values' => selected values,
      *     'name' => checkbox name,
+     *     'disables' => disable items. set value name.
      * ]
      *
      * @param [type] $items

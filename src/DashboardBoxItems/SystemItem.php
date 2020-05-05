@@ -50,6 +50,22 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * get dashboard attributes for display html
+     *
+     * @return void
+     */
+    public function attributes()
+    {
+        $target_system_id = $this->dashboard_box->getOption('target_system_id');
+        $enum = isset($target_system_id) ? DashboardBoxSystemPage::getEnum($target_system_id) : null;
+        $target_system_name = isset($enum) ? $enum->option()['name'] : null;
+
+        return [
+            'target_system_name' => $target_system_name
+        ];
+    }
+
+    /**
      * set laravel admin embeds option
      */
     public static function setAdminOptions(&$form, $dashboard)

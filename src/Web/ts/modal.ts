@@ -1,3 +1,4 @@
+
 namespace Exment {
     export class ModalEvent {
 
@@ -31,8 +32,11 @@ namespace Exment {
             }
 
             // set uuid
-            const uuid = getUuid();
-            $target.attr('data-widgetmodal_uuid', uuid);
+            let uuid = $target.attr('data-widgetmodal_uuid');
+            if(!hasValue(uuid)){
+                uuid = getUuid();
+                $target.attr('data-widgetmodal_uuid', uuid);
+            }
             data['widgetmodal_uuid'] = uuid;
 
             // get expand data
@@ -79,9 +83,39 @@ namespace Exment {
 
         }
 
+        /**
+         * Showing static html
+         */
+        public static ShowModalHtml($target, $html, title){
+            let original_title = $target.data('original-title');
+
+            $('#modal-showmodal button.modal-submit').removeClass('d-none');
+            // change html
+            Exment.ModalEvent.setBodyHtml({body: $html.html(), title: title, showSubmit:false}, null, original_title);
+
+            if(!$('#modal-showmodal').hasClass('in')){
+                $('#modal-showmodal').modal('show');
+
+                Exment.CommonEvent.AddEvent();
+            }
+        }
+
         private static setModalEvent = (ev) =>{
             const target = $(ev.target).closest('[data-widgetmodal_url]');
             const url = target.data('widgetmodal_url');
+            const isHtml = target.data('widgetmodal_html');
+
+            if(isHtml){
+                // get target html
+                let uuid = target.data('widgetmodal_uuid');
+                let html = $('.widgetmodal_html[data-widgetmodal_html_target="' + uuid + '"]');
+                if(!hasValue(html)){
+                    return;
+                }
+
+                Exment.ModalEvent.ShowModalHtml(target, html, html.data('widgetmodal_title'));
+                return;   
+            }
 
             if(!hasValue(url)){
                 return;
@@ -169,7 +203,7 @@ namespace Exment {
                 
                 // if not have responseJSON, undefined error
                 if(!hasValue(res.responseJSON)){
-                    toastr.error('Undefined Error');
+                    Exment.CommonEvent.UndefinedError();
                     return;
                 }
                 

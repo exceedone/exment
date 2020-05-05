@@ -12,6 +12,7 @@ use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 
 trait CustomValueSummary
 {
@@ -19,7 +20,7 @@ trait CustomValueSummary
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
 
         $this->setSummaryGrid($grid);
 
@@ -73,7 +74,8 @@ trait CustomValueSummary
             // have edit flg
             $edit_flg = $this->custom_table->enableEdit(true) === true;
             if ($edit_flg && $this->custom_table->enableExport() === true) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false));
+                $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, false, true, false);
+                $tools->append($button->setCustomTable($this->custom_table));
             }
             
             // if user have edit permission, add button
@@ -81,11 +83,11 @@ trait CustomValueSummary
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
             }
             
-            $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
-            $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
+            $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
+            $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
         });
 
-        Plugin::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
         return $grid;
     }
 
@@ -108,10 +110,13 @@ trait CustomValueSummary
             $filters[] = $custom_view_filter;
         }
         $filter_func = function ($model) use ($filters, $custom_view) {
-            foreach ($filters as $filter) {
-                $model = $filter->setValueFilter($model);
-            }
-            $custom_view->setValueFilters($model);
+            $model->where(function ($query) use ($filters) {
+                foreach ($filters as $filter) {
+                    $query = $filter->setValueFilter($query);
+                }
+            })->where(function ($query) use ($custom_view) {
+                $custom_view->setValueFilters($query);
+            });
             return $model;
         };
         return $filter_func;
@@ -131,6 +136,10 @@ trait CustomValueSummary
     {
         return !$this->custom_view->custom_view_columns->contains(function ($custom_view_column) {
             return $this->custom_table->id != $custom_view_column->view_column_table_id;
+        }) && !$this->custom_view->custom_view_summaries->contains(function ($custom_view_summary) {
+            return $this->custom_table->id != $custom_view_summary->view_column_table_id;
+        }) && !$this->custom_view->custom_view_filters->contains(function ($custom_view_filter) {
+            return $this->custom_table->id != $custom_view_filter->view_column_table_id;
         });
     }
 }

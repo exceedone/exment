@@ -18,6 +18,7 @@ use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
 
@@ -32,7 +33,7 @@ trait CustomValueGrid
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
         
         // get search_enabled_columns and loop
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
@@ -50,7 +51,7 @@ trait CustomValueGrid
         // manage tool button
         $this->manageMenuToolButton($grid);
 
-        Plugin::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
         return $grid;
     }
 
@@ -201,13 +202,14 @@ trait CustomValueGrid
         $grid->exporter($service);
         
         $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
-            $listButtons = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
+            $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::GRID_MENUBUTTON, $this->custom_table);
             
             // validate export and import
             $import = $this->custom_table->enableImport();
             $export = $this->custom_table->enableExport();
             if ($import === true || $export === true) {
-                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true, $export === true, $import === true));
+                $button = new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, $export === true, $export === true, $import === true);
+                $tools->append($button->setCustomTable($this->custom_table));
             }
             
             if ($this->custom_table->enableCreate(true) === true) {
@@ -215,8 +217,8 @@ trait CustomValueGrid
             }
 
             // add page change button(contains view seting)
-            $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
-            $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
+            $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
+            $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
             
             // add plugin button
             if ($listButtons !== null && count($listButtons) > 0) {
@@ -369,6 +371,12 @@ trait CustomValueGrid
                     'grid' => $grid,
                 ]
             ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
+                [
+                    'custom_table' => $this->custom_table,
+                    'custom_view' => $this->custom_view,
+                    'grid' => $grid,
+                ]
+            ))->pluginExportAction(new DataImportExport\Actions\Export\PluginAction(
                 [
                     'custom_table' => $this->custom_table,
                     'custom_view' => $this->custom_view,

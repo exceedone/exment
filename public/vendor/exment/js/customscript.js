@@ -1,5 +1,6 @@
 var Exment;
 (function (Exment) {
+    const EVENT_LOADED = 'exment:loaded';
     const EVENT_FORM_LOADED = 'exment:form_loaded';
     const EVENT_LIST_LOADED = 'exment:list_loaded';
     const EVENT_SHOW_LOADED = 'exment:show_loaded';
@@ -8,6 +9,7 @@ var Exment;
     */
     class CustomScriptEvent {
         static AddEvent() {
+            CustomScriptEvent.fireEvent();
             CustomScriptEvent.fireListEvent();
             CustomScriptEvent.fireFormEvent();
             CustomScriptEvent.fireShowEvent();
@@ -16,6 +18,9 @@ var Exment;
             $(document).on('pjax:complete', function (event) {
                 CustomScriptEvent.AddEvent();
             });
+        }
+        static fireEvent() {
+            $(window).trigger(EVENT_LOADED);
         }
         static fireFormEvent() {
             if (!hasValue($('.block_custom_value_form'))) {

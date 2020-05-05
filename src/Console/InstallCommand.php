@@ -7,7 +7,7 @@ use Encore\Admin\Console\InstallCommand as AdminInstallCommand;
 
 class InstallCommand extends AdminInstallCommand
 {
-    use CommandTrait;
+    use CommandTrait, InstallUpdateTrait;
 
     /**
      * The console command name.
@@ -50,6 +50,8 @@ class InstallCommand extends AdminInstallCommand
     public function handle()
     {
         $this->publishStaticFiles();
+
+        $this->createExmentBootstrapFile();
 
         $this->initDatabase();
         

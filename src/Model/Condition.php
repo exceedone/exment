@@ -151,8 +151,11 @@ class Condition extends ModelBase
         }
 
         // re-loop and replace work_condition_filter
-        foreach ($new_work_conditions as &$new_work_condition) {
+        foreach ($new_work_conditions as $key => &$new_work_condition) {
             if (!array_has($new_work_condition, 'workflow_conditions')) {
+                if (empty($new_work_condition)) {
+                    unset($new_work_conditions[$key]);
+                }
                 continue;
             }
 

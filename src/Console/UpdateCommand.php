@@ -7,7 +7,7 @@ use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 
 class UpdateCommand extends Command
 {
-    use CommandTrait;
+    use CommandTrait, InstallUpdateTrait;
 
     /**
      * The console command name.
@@ -50,6 +50,9 @@ class UpdateCommand extends Command
     public function handle()
     {
         $this->publishStaticFiles();
+        
+        $this->createExmentBootstrapFile();
+        
         $this->initDatabase();
     }
 

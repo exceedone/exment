@@ -23,6 +23,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected $guarded = ['id', 'suuid'];
     // protected $with = ['custom_table'];
 
+    /**
+     * $custom available_characters
+     * @var \Closure[]
+     */
+    protected static $customAvailableCharacters = [];
+
 
     public static $templateItems = [
         'excepts' => ['suuid', 'required', 'index_enabled', 'unique', 'custom_table'],
@@ -372,7 +378,45 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $this->index_enabled ? $this->getIndexColumnName() : 'value->' . $this->column_name;
     }
 
-    
+    /**
+     * Set customAvailableCharacters
+     * @param callable $callback
+     */
+    public static function customAvailableCharacters(array $array)
+    {
+        static::$customAvailableCharacters = array_merge($array, static::$customAvailableCharacters);
+    }
+
+    /**
+     * Get AvailableCharacters Definitions.
+     * Default and Append custom.
+     *
+     * @return void
+     */
+    public static function getAvailableCharacters()
+    {
+        ///// get system definitions
+        $results = collect(Define::CUSTOM_COLUMN_AVAILABLE_CHARACTERS)->map(function ($val) {
+            return [
+                'key' => $val['key'],
+                'regex' => $val['regex'],
+                'label' => exmtrans("custom_column.available_characters.{$val['key']}"),
+            ];
+        });
+
+        ///// add user definitions
+        $results = $results->merge(
+            collect(static::$customAvailableCharacters)->map(function ($val) {
+                return [
+                    'key' => $val['key'],
+                    'regex' => $val['regex'],
+                    'label' => $val['label'],
+                ];
+            })
+        );
+        return $results;
+    }
+
     /**
      * Get select table relation name.
      * @param CustomColumn|array $obj

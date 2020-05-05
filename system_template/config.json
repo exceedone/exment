@@ -281,7 +281,7 @@
                         "index_enabled": "1",
                         "init_only": "1",
                         "unique": "1",
-                        "available_characters": ["lower","upper","number","hyphen_underscore"]
+                        "available_characters": ["lower","upper","number", "dot", "hyphen_underscore"]
                     }
                 },
                 {
@@ -335,7 +335,7 @@
                         "index_enabled": "1",
                         "unique": "1",
                         "init_only": "1",
-                        "available_characters": ["lower","upper","number","hyphen_underscore"]
+                        "available_characters": ["lower","upper","number","dot","hyphen_underscore"]
                     }
                 },
                 {
@@ -353,11 +353,10 @@
                 {
                     "column_name": "parent_organization",
                     "column_view_name": "Parent Organization",
-                    "column_type": "select_table",
+                    "column_type": "organization",
                     "description": null,
                     "system_flg": "1",
                     "options": {
-                        "select_target_table_name": "organization",
                         "index_enabled": "1"
                     }
                 }
