@@ -20,7 +20,7 @@ trait CustomValueSummary
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADING);
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
 
         $this->setSummaryGrid($grid);
 
@@ -87,7 +87,7 @@ trait CustomValueSummary
             $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
         });
 
-        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADED);
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
         return $grid;
     }
 

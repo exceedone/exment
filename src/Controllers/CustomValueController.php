@@ -38,14 +38,6 @@ class CustomValueController extends AdminControllerTableBase
     use HasResourceTableActions, CustomValueGrid, CustomValueForm;
     use CustomValueShow, CustomValueSummary, CustomValueCalendar;
 
-    /**
-     * this custom table's plugin list.
-     * * Filtering only user accessible. *
-     *
-     * @var array
-     */
-    protected $plugins = [];
-
     const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
     const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
     const CLASSNAME_CUSTOM_VALUE_FORM = 'block_custom_value_form';
@@ -64,21 +56,6 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
-    }
-
-    /**
-     * Execute an action on the controller.
-     *
-     * @param  string  $method
-     * @param  array   $parameters
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function callAction($method, $parameters)
-    {
-        //Get all plugin satisfied
-        $this->plugins = Plugin::getPluginsByTable($this->custom_table);
-
-        return parent::callAction($method, $parameters);
     }
 
     /**
@@ -176,13 +153,13 @@ class CustomValueController extends AdminControllerTableBase
 
         $this->AdminContent($content);
         
-        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADING);
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
 
         $row = new Row($this->form(null));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $content->row($row);
         
-        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADED);
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
         return $content;
     }
 
@@ -205,13 +182,13 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->AdminContent($content);
-        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADING);
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
 
         $row = new Row($this->form($id)->edit($id));
         $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $content->row($row);
 
-        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADED);
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
         return $content;
     }
     
@@ -358,7 +335,7 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $service = $this->getImportExportService();
-        $importlist = Plugin::pluginPreparingImport($this->plugins);
+        $importlist = Plugin::pluginPreparingImport($this->custom_table);
         return $service->getImportModal($importlist);
     }
     
@@ -388,6 +365,12 @@ class CustomValueController extends AdminControllerTableBase
         
         if ($response === false) {
             return getAjaxResponse(false);
+        } elseif ($response instanceof \Illuminate\Http\RedirectResponse) {
+            return getAjaxResponse([
+                'result' => true,
+                'toastr' => exmtrans('common.message.success_execute'),
+                'redirect' => $response->getTargetUrl(),
+            ]);
         } elseif ($response instanceof Response) {
             return $response;
         } elseif (is_array($response)) {

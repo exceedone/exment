@@ -118,7 +118,7 @@ namespace Exment {
         /**
          * 
          */
-        public static CallbackExmentAjax(res) {
+        public static CallbackExmentAjax(res, resolve = null) {
             if(hasValue(res.responseJSON)){
                 res = res.responseJSON;
             }
@@ -143,6 +143,10 @@ namespace Exment {
                     swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'success');
                 }
                 $('.modal').modal('hide');
+
+                if(hasValue(resolve) && !hasValue(res.swal)){
+                    resolve(res);
+                }
             }
             else {
                 // show toastr
@@ -157,7 +161,8 @@ namespace Exment {
                 else if(hasValue(res.message)){
                 }
                 else {
-                    toastr.error('Undeifned Error');
+                    Exment.CommonEvent.UndefinedError();
+                    return;
                 }
             }
         }
@@ -168,10 +173,29 @@ namespace Exment {
             }
 
             if (hasValue(res.redirect)) {
-                $.pjax({ container: '#pjax-container', url: res.redirect });
+                // whether other site redirect
+                if(trimAny(res.redirect, '/').indexOf(trimAny(admin_url(''), '/')) === -1){
+                    window.location.href = res.redirect;
+                }
+                else{
+                    $.pjax({ container: '#pjax-container', url: res.redirect });
+                }
             } else {
                 $.pjax.reload('#pjax-container');
             }
+        }
+
+        public static UndefinedError(){
+            let undefined_error = $('#exment_undefined_error').val();
+                    if(!hasValue(undefined_error)){
+                        undefined_error = 'Undefined Error';
+                    }
+                    toastr.error(undefined_error);
+
+                    if(swal.isVisible()){
+                        swal.close();
+                    }
+                    return;
         }
 
         /**
@@ -236,8 +260,8 @@ namespace Exment {
                                 if(hasValue(options.redirect)){
                                     repsonse.redirect = options.redirect;
                                 }
-                                Exment.CommonEvent.CallbackExmentAjax(repsonse);
-                                resolve(repsonse);
+                                Exment.CommonEvent.CallbackExmentAjax(repsonse, resolve);
+                                //resolve(repsonse);
                             },
                             error: function (repsonse) {
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);

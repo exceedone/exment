@@ -220,7 +220,7 @@ class RoleGroupController extends AdminControllerBase
 
                 // check disabled
                 $enabledPluginAccess = collect($plugin->plugin_types)->contains(function ($plugin_type) {
-                    return in_array($plugin_type, PluginType::PLUGIN_TYPE_AVAILABLE());
+                    return in_array($plugin_type, PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE());
                 });
                 $items[] = [
                     'label' => $plugin->plugin_view_name,

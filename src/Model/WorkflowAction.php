@@ -260,8 +260,7 @@ class WorkflowAction extends ModelBase
         $custom_table = $custom_value->custom_table;
 
         //execute plugin
-        $plugins = Plugin::getPluginsByTable($custom_table->table_name);
-        Plugin::pluginExecuteEvent($plugins, PluginEventTrigger::WORKFLOW_ACTION_EXECUTING, [
+        Plugin::pluginExecuteEvent(PluginEventTrigger::WORKFLOW_ACTION_EXECUTING, $custom_table, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,
             'workflow_action' => $this,
@@ -345,7 +344,7 @@ class WorkflowAction extends ModelBase
         }
 
         // execute plugin
-        Plugin::pluginExecuteEvent($plugins, PluginEventTrigger::WORKFLOW_ACTION_EXECUTED, [
+        Plugin::pluginExecuteEvent(PluginEventTrigger::WORKFLOW_ACTION_EXECUTED, $custom_table, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,
             'workflow_action' => $this,

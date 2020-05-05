@@ -103,7 +103,7 @@ var Exment;
         /**
          *
          */
-        static CallbackExmentAjax(res) {
+        static CallbackExmentAjax(res, resolve = null) {
             if (hasValue(res.responseJSON)) {
                 res = res.responseJSON;
             }
@@ -126,6 +126,9 @@ var Exment;
                     swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'success');
                 }
                 $('.modal').modal('hide');
+                if (hasValue(resolve) && !hasValue(res.swal)) {
+                    resolve(res);
+                }
             }
             else {
                 // show toastr
@@ -140,7 +143,8 @@ var Exment;
                 else if (hasValue(res.message)) {
                 }
                 else {
-                    toastr.error('Undeifned Error');
+                    Exment.CommonEvent.UndefinedError();
+                    return;
                 }
             }
         }
@@ -149,11 +153,28 @@ var Exment;
                 return;
             }
             if (hasValue(res.redirect)) {
-                $.pjax({ container: '#pjax-container', url: res.redirect });
+                // whether other site redirect
+                if (trimAny(res.redirect, '/').indexOf(trimAny(admin_url(''), '/')) === -1) {
+                    window.location.href = res.redirect;
+                }
+                else {
+                    $.pjax({ container: '#pjax-container', url: res.redirect });
+                }
             }
             else {
                 $.pjax.reload('#pjax-container');
             }
+        }
+        static UndefinedError() {
+            let undefined_error = $('#exment_undefined_error').val();
+            if (!hasValue(undefined_error)) {
+                undefined_error = 'Undefined Error';
+            }
+            toastr.error(undefined_error);
+            if (swal.isVisible()) {
+                swal.close();
+            }
+            return;
         }
         /**
          * Show Swal Event
@@ -207,8 +228,8 @@ var Exment;
                                 if (hasValue(options.redirect)) {
                                     repsonse.redirect = options.redirect;
                                 }
-                                Exment.CommonEvent.CallbackExmentAjax(repsonse);
-                                resolve(repsonse);
+                                Exment.CommonEvent.CallbackExmentAjax(repsonse, resolve);
+                                //resolve(repsonse);
                             },
                             error: function (repsonse) {
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);

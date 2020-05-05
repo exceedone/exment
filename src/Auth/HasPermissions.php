@@ -124,7 +124,7 @@ trait HasPermissions
          
             // if not check permission for access, return true
             $plugin_types = array_get($plugin, 'plugin_types');
-            if (!array_intersect($plugin_types, PluginType::PLUGIN_TYPE_AVAILABLE())) {
+            if (!array_intersect($plugin_types, PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
                 return true;
             }
         }

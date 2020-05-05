@@ -129,13 +129,14 @@ class Plugin extends ModelBase
      * @param $id
      * @return mixed
      */
-    public static function getPluginsByTable($custom_table)
+    public static function getPluginsByTable($custom_table, $filterAccessible = true)
     {
         if (!isset($custom_table)) {
             return [];
         }
 
-        return static::getAccessableByPluginTypes(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())->filter(function ($plugin) use ($custom_table) {
+        $func = $filterAccessible ? 'getAccessableByPluginTypes' : 'getByPluginTypes';
+        return static::{$func}(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())->filter(function ($plugin) use ($custom_table) {
             $target_tables = array_get($plugin, 'options.target_tables', []);
             if (is_nullorempty($target_tables)) {
                 return false;
@@ -293,9 +294,10 @@ class Plugin extends ModelBase
     /**
      * @param null $event
      */
-    public static function pluginExecuteEvent($plugins, $event = null, $options = [])
+    public static function pluginExecuteEvent($event = null, $custom_table = null, $options = [])
     {
-        $pluginCalled = false;
+        $plugins = static::getPluginsByTable($custom_table, false);
+
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
                 // if $plugin_types is not trigger, continue
@@ -333,8 +335,10 @@ class Plugin extends ModelBase
      * @param null $event
      * @return array
      */
-    public static function pluginPreparingButton($plugins, $event = null)
+    public static function pluginPreparingButton($event = null, $custom_table = null)
     {
+        $plugins = static::getPluginsByTable($custom_table, true);
+
         if (empty($plugins)) {
             return [];
         }
@@ -389,8 +393,10 @@ class Plugin extends ModelBase
      * @param $plugins
      * @return array
      */
-    public static function pluginPreparingImport($plugins)
+    public static function pluginPreparingImport($custom_table)
     {
+        $plugins = static::getPluginsByTable($custom_table, true);
+        
         $itemlist = [];
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
@@ -411,8 +417,9 @@ class Plugin extends ModelBase
     /**
      * execute custom plugin validate
      */
-    public static function pluginValidator($plugins, $options = [])
+    public static function pluginValidator($custom_table, $options = [])
     {
+        $plugins = static::getPluginsByTable($custom_table, false);
         $messages = [];
 
         if (count($plugins) > 0) {

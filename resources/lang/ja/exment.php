@@ -4,6 +4,7 @@ return [
     'label' => '日本語',
     'common' => [
         'home' => 'HOME',
+        'success' => '成功',
         'error' => 'エラー',
         'import' => 'インポート',
         'plugin' => 'プラグイン',
@@ -116,6 +117,7 @@ return [
     ],
 
     'error' => [
+        'undefined_error' => '予期せぬエラーが発生しました。',
         'header' => 'エラーが発生しました',
         'description' => 'エラーが発生しました。エラー内容をご確認ください。',
         'error_message' => 'エラーメッセージ',

@@ -33,7 +33,7 @@ trait CustomValueGrid
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADING);
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
         
         // get search_enabled_columns and loop
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
@@ -51,7 +51,7 @@ trait CustomValueGrid
         // manage tool button
         $this->manageMenuToolButton($grid);
 
-        Plugin::pluginExecuteEvent($this->plugins, PluginEventTrigger::LOADED);
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
         return $grid;
     }
 
@@ -202,7 +202,7 @@ trait CustomValueGrid
         $grid->exporter($service);
         
         $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
-            $listButtons = Plugin::pluginPreparingButton($this->plugins, PluginEventTrigger::GRID_MENUBUTTON);
+            $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::GRID_MENUBUTTON, $this->custom_table);
             
             // validate export and import
             $import = $this->custom_table->enableImport();

@@ -367,17 +367,16 @@ EOT;
         $form->disableCreatingCheck(false);
         $form->disableViewCheck(false);
         
-        $plugins = $this->plugins;
-        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $plugins) {
+        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form) {
             // create
             if (!isset($id)) {
                 $isButtonCreate = true;
-                $listButtons = Plugin::pluginPreparingButton($plugins, PluginEventTrigger::FORM_MENUBUTTON_CREATE);
+                $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_CREATE, $custom_table);
             }
             // edit
             else {
                 $isButtonCreate = false;
-                $listButtons = Plugin::pluginPreparingButton($plugins, PluginEventTrigger::FORM_MENUBUTTON_EDIT);
+                $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_EDIT, $custom_table);
             }
 
             $custom_value = $custom_table->getValueModel($id);

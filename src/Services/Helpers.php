@@ -1258,6 +1258,10 @@ if (!function_exists('getAjaxResponse')) {
             'errors' => [],
         ], $results);
 
+        if(isset($results['swaltext']) && !isset($results['swal'])){
+            $results['swal'] = $results['result'] === true ? exmtrans('common.success') : exmtrans('common.error');
+        }
+
         return response()->json($results, $results['result'] === true ? 200 : 400);
     }
 }

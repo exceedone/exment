@@ -525,6 +525,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $this->validatorCompareColumns($value, $custom_value, $options),
             $errors
         );
+        
+        $errors = array_merge(
+            $this->validatorPlugin($value, $custom_value),
+            $errors
+        );
 
         if ($validateLock) {
             $errors = array_merge(
@@ -701,6 +706,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return $errors;
+    }
+
+    /**
+     * validator using plugin
+     */
+    public function validatorPlugin($input, $custom_value = null)
+    {
+        return Plugin::pluginValidator($this, [
+            'custom_table' => $this,
+            'custom_value' => $custom_value,
+            'input_value' => array_get($input, 'value'),
+        ]);
     }
 
 

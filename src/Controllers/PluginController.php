@@ -234,7 +234,7 @@ class PluginController extends AdminControllerBase
                     ->rules('max:100');
             }
 
-            if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_AVAILABLE())) {
+            if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
                 $form->switchbool('all_user_enabled', exmtrans("plugin.options.all_user_enabled"))->help(exmtrans("plugin.help.all_user_enabled"));
             }
             if ($plugin->matchPluginType([PluginType::BUTTON, PluginType::TRIGGER, PluginType::DOCUMENT])) {

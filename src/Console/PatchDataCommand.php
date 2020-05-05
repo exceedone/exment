@@ -935,7 +935,7 @@ class PatchDataCommand extends Command
         }
 
         Plugin::all()->each(function ($plugin) {
-            if (!$plugin->matchPluginType(Enums\PluginType::PLUGIN_TYPE_AVAILABLE())) {
+            if (!$plugin->matchPluginType(Enums\PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
                 return;
             }
 

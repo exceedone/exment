@@ -310,12 +310,11 @@ class NotifyService
 
         // get notify actions
         $notify_actions = $notify->notify_actions;
-        $plugins = Plugin::getPluginsByTable($custom_value->custom_table);
         foreach ($notify_actions as $notify_action) {
             if (NotifyAction::isChatMessage($notify_action) != $is_chat) {
                 continue;
             }
-            Plugin::pluginExecuteEvent($plugins, PluginEventTrigger::NOTIFY_EXECUTING, [
+            Plugin::pluginExecuteEvent(PluginEventTrigger::NOTIFY_EXECUTING, $custom_value->custom_table, [
                 'custom_table' => $custom_value->custom_table,
                 'custom_value' => $custom_value,
                 'notify' => $notify,
@@ -389,7 +388,7 @@ class NotifyService
                     (new Notifications\MicrosoftTeamsSender($slack_subject, $slack_body))->send($notify);
                     break;
             }
-            Plugin::pluginExecuteEvent($plugins, PluginEventTrigger::NOTIFY_EXECUTED, [
+            Plugin::pluginExecuteEvent(PluginEventTrigger::NOTIFY_EXECUTED, $custom_value->custom_table, [
                 'custom_table' => $custom_value->custom_table,
                 'custom_value' => $custom_value,
                 'notify' => $notify,

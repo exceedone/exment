@@ -1,3 +1,4 @@
+
 namespace Exment {
     export class ModalEvent {
 
@@ -202,7 +203,7 @@ namespace Exment {
                 
                 // if not have responseJSON, undefined error
                 if(!hasValue(res.responseJSON)){
-                    toastr.error('Undefined Error');
+                    Exment.CommonEvent.UndefinedError();
                     return;
                 }
                 

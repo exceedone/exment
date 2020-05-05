@@ -57,10 +57,11 @@ class PluginType extends EnumBase
 
     /**
      * Use plugin permission
+     * 
      *
      * @return void
      */
-    public static function PLUGIN_TYPE_AVAILABLE()
+    public static function PLUGIN_TYPE_FILTER_ACCESSIBLE()
     {
         return [
             static::PAGE,

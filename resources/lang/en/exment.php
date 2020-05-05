@@ -4,6 +4,7 @@ return [
     'label' => 'English',
     'common' => [
         'home' => 'HOME',
+        'success' => 'Success',
         'error' => 'Error',
         'import' => 'Import',
         'plugin' => 'Plugin',

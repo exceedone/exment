@@ -41,13 +41,14 @@ class PluginMenuButton
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
 
-        $label = esc_html(sprintf(exmtrans('common.message.confirm_execute'), ($label ?? exmtrans('common.plugin'))));
+        $text = esc_html(sprintf(exmtrans('common.message.confirm_execute'), ($label ?? exmtrans('common.plugin'))));
         $plugin_type = $this->plugin_type;
         return <<<EOT
 
         $('#menu_button_$uuid').off('click').on('click', function(){
             Exment.CommonEvent.ShowSwal("$url", {
                 title: "$label",
+                text: "$text",
                 confirm:"$confirm",
                 cancel:"$cancel",
                 data: {
@@ -66,7 +67,6 @@ EOT;
             'custom_table' => $this->custom_table,
             'id' => $this->id,
         ]);
-
         if (method_exists($pluginClass, 'getButtonLabel')) {
             $label = $pluginClass->getButtonLabel();
         } else {
