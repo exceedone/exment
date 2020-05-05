@@ -417,13 +417,13 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     }
 
     .row{
-        margin-bottom: 1em;
+        //margin-bottom: 1em;
         display: flex;
         flex-wrap: wrap;
     }
-    .row:last-child{
-        margin-bottom: -1.5em;
-    }
+    // .row:last-child{
+    //     margin-bottom: -1.5em;
+    // }
 
     .modal-tile-col{
         margin-bottom: 1em;

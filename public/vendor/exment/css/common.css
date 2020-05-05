@@ -3717,13 +3717,8 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 }
 
 .modal-tile .row {
-  margin-bottom: 1em;
   display: flex;
   flex-wrap: wrap;
-}
-
-.modal-tile .row:last-child {
-  margin-bottom: -1.5em;
 }
 
 .modal-tile .modal-tile-col {

@@ -202,12 +202,11 @@ class ApiTest extends ApiTestBase
             ->assertJsonFragment([
                 'column_name' => 'parent_organization',
                 'column_view_name' => '親組織',
-                'column_type' => 'select_table',
+                'column_type' => 'organization',
                 "system_flg"=> "1",
                 "order"=> "0",
                 'options' => [
                     "index_enabled"=> "1",
-                    "select_target_table"=> 5,
                 ]
             ])
             ->assertJsonStructure([
