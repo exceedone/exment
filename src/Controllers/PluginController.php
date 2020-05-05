@@ -170,6 +170,8 @@ class PluginController extends AdminControllerBase
 
         // create form
         $form = new Form(new Plugin);
+        $form->exmheader(exmtrans("common.basic_setting"))->hr();
+
         $form->display('uuid', exmtrans("plugin.uuid"));
         $form->display('plugin_name', exmtrans("plugin.plugin_name"));
         $form->display('plugin_view_name', exmtrans("plugin.plugin_view_name"));
@@ -182,6 +184,8 @@ class PluginController extends AdminControllerBase
         $form->display('author', exmtrans("plugin.author"));
         $form->display('version', exmtrans("plugin.version"));
         $form->switch('active_flg', exmtrans("plugin.active_flg"));
+        
+        $form->exmheader(exmtrans("common.detail_setting"))->hr();
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin) {
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
@@ -208,15 +212,20 @@ class PluginController extends AdminControllerBase
                 }
             } 
             
-            elseif ($plugin->matchPluginType(PluginType::API)) {
-                // Plugin_type = 'api'
-                $form->text('uri', exmtrans("plugin.options.uri"))->required();
-            } 
-            
-            elseif ($plugin->matchPluginType(PluginType::PAGE)) {
+            if ($plugin->matchPluginType(PluginType::PAGE)) {
                 // Plugin_type = 'page'
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
+            } 
+                        
+            if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL())) {
                 $form->text('uri', exmtrans("plugin.options.uri"))->required();
+
+                if($plugin->matchPluginType(PluginType::PAGE)){
+                    $form->display('endpoint_page', exmtrans("plugin.options.endpoint_page"))->default($plugin->getRootUrl(PluginType::PAGE))->help(exmtrans("plugin.help.endpoint"));
+                }
+                if($plugin->matchPluginType(PluginType::API)){
+                    $form->display('endpoint_api', exmtrans("plugin.options.endpoint_api"))->default($plugin->getRootUrl(PluginType::API))->help(exmtrans("plugin.help.endpoint"));
+                }
             } 
             
             elseif ($plugin->matchPluginType(PluginType::BATCH)) {
@@ -296,8 +305,10 @@ class PluginController extends AdminControllerBase
             return;
         }
 
+        
+        $form->exmheader(exmtrans("plugin.options.custom_options_header"))->hr();
         $form->embeds('custom_options', exmtrans("plugin.options.custom_options_header"), function ($form) use ($pluginClass) {
             $pluginClass->setCustomOptionForm($form);
-        });
+        })->disableHeader();
     }
 }

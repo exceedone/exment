@@ -392,6 +392,7 @@ return [
         'message' => [
             'need_setting' => 'ダッシュボードの設定変更が必要です。再度、設定を行ってください。',
             'not_exists_table' => 'テーブルまたはビューが削除されました。',
+            'not_exists_plugin' => 'プラグインが削除されました。',
         ],
 
         'help' => [
@@ -426,7 +427,9 @@ return [
             'batch_hour' => 'バッチの実行時間(時)',
             'batch_cron' => 'バッチ実行cron',
             'icon' => 'ボタンのアイコン',
-            'uri' => 'URL',
+            'uri' => 'URI',
+            'endpoint_page' => 'エンドポイント(ページ)',
+            'endpoint_api' => 'エンドポイント(API)',
             'all_user_enabled' => 'すべてのユーザーが利用可能',
             'export_types' => 'エクスポートの種類',
             'export_description' => '説明文',
@@ -458,6 +461,7 @@ return [
             'all_user_enabled' => 'YESにした場合、役割グループの権限に関わらず、すべてのユーザーが利用可能です。',
             'export_types' => '一覧画面で選択できる、エクスポートの種類を選択してください。',
             'export_description' => 'データのインポート・エクスポートのメニュー画面に表示する説明文です。',
+            'endpoint' => 'このプラグインにアクセスするためのエンドポイントです。',
         ],
 
         'error' => [
@@ -1674,6 +1678,7 @@ return [
             'invalid_organization' => 'ID:%sの組織は存在しません。',
             'disapproval_ip' => '許可されていないIPアドレスです。',
             'already_deleted' => 'すでに削除されています。',
+            'plugin_not_found' => 'プラグインが見つかりませんでした。',
         ],
         
         'help' =>[

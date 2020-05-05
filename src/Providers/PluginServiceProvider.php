@@ -75,8 +75,13 @@ class PluginServiceProvider extends ServiceProvider
 
         switch ($plugin_type) {
             case PluginType::PAGE:
+                $prefix = $pluginPage->getRouteUri();
+                $defaultFunction = 'index';
+                break;
             case PluginType::API:
                 $prefix = $pluginPage->getRouteUri();
+                // set contains "api", and not contains "api"
+                $prefix = [$prefix, url_join('api', $prefix)];
                 $defaultFunction = 'index';
                 break;
             case PluginType::DASHBOARD:
@@ -86,39 +91,43 @@ class PluginServiceProvider extends ServiceProvider
         }
         $isApi = $plugin_type == PluginType::API;
 
-        Route::group([
-            'prefix'        => url_join(config('admin.route.prefix'), $prefix),
-            'namespace'     => 'Exceedone\Exment\Services\Plugin',
-            'middleware'    => $isApi ? ['api', 'adminapi'] : config('admin.route.middleware'),
-        ], function (Router $router) use ($plugin_type, $pluginPage, $isApi, $defaultFunction, $json) {
-            $routes = array_get($json, 'route', []);
-
-            // if not has index endpoint, set.
-            if (!$this->hasPluginRouteIndex($routes)) {
-                $routes[] = [
-                    'method' => 'get',
-                    'uri' => '',
-                    'function' => $defaultFunction ?? 'index'
-                ];
-            }
-
-            foreach ($routes as $route) {
-                $method = array_get($route, 'method');
-                $methods = is_string($method) ? [$method] : $method;
-                $plugin_name = $isApi ? 'PluginApiController': 'PluginPageController';
-                foreach ($methods as $method) {
-                    if ($method === "") {
-                        $method = 'get';
-                    }
-                    $method = strtolower($method);
-                    // call method in these http method
-                    if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
-                        $router = Route::{$method}(array_get($route, 'uri'), $plugin_name . '@'. array_get($route, 'function'));
-                        $router->middleware(ApiScope::getScopeString($isApi, ApiScope::PLUGIN));
+        foreach(stringToArray($prefix) as $p){
+            Route::group([
+                'prefix'        => url_join(config('admin.route.prefix'), $p),
+                'namespace'     => 'Exceedone\Exment\Services\Plugin',
+                'middleware'    => $isApi ? ['api', 'adminapi', 'pluginapi'] : config('admin.route.middleware'),
+            ], function (Router $router) use ($plugin, $plugin_type, $pluginPage, $isApi, $defaultFunction, $json) {
+                $routes = array_get($json, 'route', []);
+    
+                // if not has index endpoint, set.
+                if (!$this->hasPluginRouteIndex($routes)) {
+                    $routes[] = [
+                        'method' => 'get',
+                        'uri' => '',
+                        'function' => $defaultFunction ?? 'index'
+                    ];
+                }
+    
+                foreach ($routes as $route) {
+                    $method = array_get($route, 'method');
+                    $methods = is_string($method) ? [$method] : $method;
+                    $plugin_name = $isApi ? 'PluginApiController': 'PluginPageController';
+                    foreach ($methods as $method) {
+                        if ($method === "") {
+                            $method = 'get';
+                        }
+                        $method = strtolower($method);
+                        // call method in these http method
+                        if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
+                            $func = array_get($route, 'function');
+                            $router = Route::{$method}(array_get($route, 'uri'), $plugin_name . '@'. $func);
+                            $router->middleware(ApiScope::getScopeString($isApi, ApiScope::PLUGIN));
+                            $router->name("exment.plugins.{$plugin->id}.{$method}.{$func}");
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
         $this->pluginScriptStyleRoute($pluginPage);
     }

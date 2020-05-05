@@ -564,6 +564,20 @@ class Plugin extends ModelBase
     }
 
     /**
+     * Get Root url
+     *
+     * @return string
+     */
+    public function getRootUrl($plugin_type)
+    {
+        if($plugin_type == PluginType::PAGE){
+            return admin_urls($this->getRouteUri());
+        }elseif($plugin_type == PluginType::API){
+            return admin_urls('api', $this->getRouteUri());
+        }
+    }
+
+    /**
      * Get route uri for page
      *
      * @return void

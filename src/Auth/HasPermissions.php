@@ -110,6 +110,9 @@ trait HasPermissions
         }
 
         $plugin = Plugin::getEloquent($plugin);
+        if(!isset($plugin)){
+            return false;
+        }
 
         $role_key = stringToArray($role_key);
 
@@ -141,7 +144,7 @@ trait HasPermissions
             }
 
             // if target plugin, and has key
-            if ($permission->getPluginId() == $id 
+            if ($permission->getPluginId() == $plugin->id 
                 && array_keys_exists($role_key, $permission->getPermissionDetails())) {
                 return true;
             }
