@@ -429,7 +429,7 @@ trait HasPermissions
                     if(!isset($permissions[$plugin->id])){
                         $permissions[$plugin->id] = [];
                     }
-                    if (!array_key_exists($value, $permissions)) {
+                    if (!array_key_exists($value, $permissions[$plugin->id])) {
                         $permissions[$plugin->id][$value] = 1;
                     }
                 }
