@@ -183,7 +183,7 @@ class ExportImportButton extends ModalTileMenuButton
         }
 
         $plugins = $this->getPluginExports();
-        if (!is_nullorempty($plugins)) {
+        if ($this->total_export_flg && !is_nullorempty($plugins)) {
             foreach ($plugins as $plugin) {
                 $button = [
                     'label' => exmtrans('custom_value.export'),
