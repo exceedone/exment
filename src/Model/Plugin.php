@@ -297,19 +297,29 @@ class Plugin extends ModelBase
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
                 // if $plugin_types is not trigger, continue
-                if (!$plugin->matchPluginType(PluginType::TRIGGER)) {
+                if(!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_EVENT())){
                     continue;
                 }
+
                 $event_triggers = array_get($plugin, 'options.event_triggers', []);
                 $enum = PluginEventType::getEnum($event);
                 
-                if (in_array($event, (array)$event_triggers) && isset($enum)) 
-                    
+                $options['throw_ex'] = false;
+
+                if (in_array($event, (array)$event_triggers) && isset($enum)){
                     // call PluginType::EVENT as throw_ex is false
-                    $class = $plugin->getClass(PluginType::EVENT, array_merge(['throw_ex' => false], $options));
+                    $class = $plugin->getClass(PluginType::EVENT, $options);
                     
-                    $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);{
-                    $pluginCalled = $class->execute();
+                    $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
+
+                    // if isset $class, call
+                    if(isset($class)){
+                        $pluginCalled = $class->execute();
+                    }
+                    // if cannot call class, set error
+                    else{
+                        admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                    }
                 }
             }
         }
@@ -348,12 +358,23 @@ class Plugin extends ModelBase
                     case PluginType::TRIGGER:
                     case PluginType::BUTTON:
                         $event_triggers = toArray($plugin->options['event_triggers']);
-                        if (in_array($event, $event_triggers) && !is_null(PluginButtonType::getEnum($event))) {
-                            $buttonList[] = [
-                                'plugin_type' => $plugin_type,
-                                'plugin' => $plugin,
-                            ];
+                        if (!in_array($event, $event_triggers) || is_null(PluginButtonType::getEnum($event))) {
+                            break;
                         }
+                        
+                        // call PluginType::BUTTON as throw_ex is false
+                        $options = ['throw_ex' => false];
+                        $class = $plugin->getClass(PluginType::BUTTON, $options);
+                        $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
+                        if(!isset($class)){
+                            admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                            break;
+                        }
+
+                        $buttonList[] = [
+                            'plugin_type' => $plugin_type,
+                            'plugin' => $plugin,
+                        ];
                         break;
                 }
             }
@@ -565,6 +586,12 @@ class Plugin extends ModelBase
             $uri = array_get($this, 'plugin_name');
         }
         return snake_case($uri);
+    }
+
+    public function getCannotReadMessage(){
+        return exmtrans('plugin.error.cannot_read', [
+            'plugin_view_name' => $this->plugin_view_name
+        ]);
     }
 
     /**

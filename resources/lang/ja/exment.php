@@ -461,6 +461,7 @@ return [
         'error' => [
             'samename_plugin' => '同名プラグインが存在します。確認してから一度お試してください。',
             'wrongname_plugin' => 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。',
+            'cannot_read' => 'プラグイン :plugin_view_name が正常に読み込めませんでした。プラグインファイル本体を一度ご確認いただくか、システム管理者にお問い合わせください。',
         ],
     
         'plugin_type_options' => [

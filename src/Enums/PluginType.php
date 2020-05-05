@@ -89,6 +89,19 @@ class PluginType extends EnumBase
     }
 
     /**
+     * Use plugin with event
+     *
+     * @return void
+     */
+    public static function PLUGIN_TYPE_EVENT()
+    {
+        return [
+            static::TRIGGER,
+            static::EVENT,
+        ];
+    }
+
+    /**
      * Get plugin class using plugin type
      *
      * @param [type] $plugin
