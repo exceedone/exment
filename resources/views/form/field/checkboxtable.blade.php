@@ -30,7 +30,9 @@
         @foreach($options as $option => $label)
             <span class="icheck" style="width:{{$checkWidth}}px; display:inline-block; text-align:center;">
                 <label class="checkbox-inline">
-                    <input type="checkbox" name="{{$item['name']}}[]" value="{{$option}}" class="{{$class}}" {{ in_array($option, (array)old($column, $item['values'])) || ($item['values'] === null && in_array($label, $checked)) ?'checked':'' }} {!! $attributes !!} />
+                    <input type="checkbox" name="{{$item['name']}}[]" value="{{$option}}" class="{{$class}}" {{ in_array($option, (array)old($column, $item['values'])) || ($item['values'] === null && in_array($label, $checked)) ?'checked':'' }} 
+                        {{ in_array($option, array_get($item, 'disables', [])) ? ' disabled' : '' }}  {!! $attributes !!} 
+                    />
                 </label>
             </span>
         @endforeach

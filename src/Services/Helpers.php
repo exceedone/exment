@@ -138,6 +138,24 @@ if (!function_exists('esc_sqlTable')) {
     }
 }
 
+if (!function_exists('formatAttributes')) {
+    /**
+     * Format the field attributes.
+     *
+     * @return string
+     */
+    function formatAttributes($attributes)
+    {
+        $html = [];
+
+        foreach ($attributes as $name => $value) {
+            $html[] = $name.'="'.esc_html($value).'"';
+        }
+
+        return implode(' ', $html);
+    }
+}
+
 if (!function_exists('is_nullorempty')) {
     /**
      * validate string. null is true, "" is true, 0 and "0" is false.
@@ -1286,6 +1304,10 @@ if (!function_exists('getAjaxResponse')) {
             'errors' => [],
         ], $results);
 
+        if(isset($results['swaltext']) && !isset($results['swal'])){
+            $results['swal'] = $results['result'] === true ? exmtrans('common.success') : exmtrans('common.error');
+        }
+
         return response()->json($results, $results['result'] === true ? 200 : 400);
     }
 }
@@ -1378,6 +1400,8 @@ if (!function_exists('getExmentVersion')) {
                 $client = new \GuzzleHttp\Client();
                 $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
                     'http_errors' => false,
+                    'timeout' => 3, // Response timeout
+                    'connect_timeout' => 3, // Connection timeout
                 ]);
 
                 session([Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE => true]);

@@ -47,6 +47,8 @@ class News
                 $response = $client->request('GET', Define::EXMENT_NEWS_API_URL, [
                     'http_errors' => false,
                     'query' => $this->getQuery(),
+                    'timeout' => 3, // Response timeout
+                    'connect_timeout' => 3, // Connection timeout
                 ]);
         
                 $contents = $response->getBody()->getContents();

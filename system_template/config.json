@@ -353,11 +353,10 @@
                 {
                     "column_name": "parent_organization",
                     "column_view_name": "Parent Organization",
-                    "column_type": "select_table",
+                    "column_type": "organization",
                     "description": null,
                     "system_flg": "1",
                     "options": {
-                        "select_target_table_name": "organization",
                         "index_enabled": "1"
                     }
                 }

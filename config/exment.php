@@ -630,25 +630,15 @@ return [
     */
     'api_max_delete_count' => env('EXMENT_API_MAX_DELETE_COUNT', 100),
     
-    // /*
-    // |--------------------------------------------------------------------------
-    // | API append label 
-    // |--------------------------------------------------------------------------
-    // |
-    // | Whether appending label column
-    // |
-    // */
-    // 'api_append_label' => env('EXMENT_API_APPEND_LABEL', false),
-    
     /*
     |--------------------------------------------------------------------------
-    | API append label (default, until 2020/04/30)
+    | API append label 
     |--------------------------------------------------------------------------
     |
     | Whether appending label column
     |
     */
-    'api_append_label_default' => env('EXMENT_API_APPEND_LABEL', true),
+    'api_append_label' => env('EXMENT_API_APPEND_LABEL', false),
     
     /*
     |--------------------------------------------------------------------------

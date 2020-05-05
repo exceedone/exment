@@ -72,7 +72,7 @@ class Select extends CustomItem
         $field->options($this->custom_column->createSelectOptions());
     }
     
-    protected function setValidates(&$validates)
+    protected function setValidates(&$validates, $form_column_options)
     {
         $select_options = $this->custom_column->createSelectOptions();
         $validates[] = new SelectRule(array_keys($select_options));

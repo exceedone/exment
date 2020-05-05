@@ -10,6 +10,7 @@ use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -17,6 +18,7 @@ use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
+use Exceedone\Exment\Validator;
 
 abstract class CustomItem implements ItemInterface
 {
@@ -277,7 +279,7 @@ abstract class CustomItem implements ItemInterface
 
         // default (login user)
         if (boolval(array_get($options, 'login_user_default'))) {
-            $field->default(\Exment::user()->base_user_id);
+            $field->default(\Exment::user()->getUserId());
         }
 
         // number_format
@@ -307,7 +309,7 @@ abstract class CustomItem implements ItemInterface
 
         // set validates
         $validate_options = [];
-        $validates = $this->getColumnValidates($validate_options);
+        $validates = $this->getColumnValidates($validate_options, $form_column_options);
         // set validates
         if (count($validates)) {
             $field->rules($validates);
@@ -454,7 +456,7 @@ abstract class CustomItem implements ItemInterface
     {
     }
     
-    protected function setValidates(&$validates)
+    protected function setValidates(&$validates, $form_column_options)
     {
     }
 
@@ -492,12 +494,11 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * Get column validate array.
-     * @param string|CustomTable|array $table_obj table object
-     * @param string column_name target column name
-     * @param array result_options Ex help string, ....
-     * @return string
+     * @param array $result_options
+     * @param mixed $form_column_options
+     * @return array
      */
-    public function getColumnValidates(&$result_options)
+    protected function getColumnValidates(&$result_options, $form_column_options)
     {
         $options = array_get($this->custom_column, 'options');
 
@@ -521,6 +522,12 @@ abstract class CustomItem implements ItemInterface
             $validates[] = $rules;
         }
 
+        // init_flg(for validation)
+        if ($this->initonly()) {
+            $validates[] = new Validator\InitOnlyRule($this->custom_column, $this->custom_value);
+        }
+
+
         // // regex rules
         $help_regexes = [];
         if (boolval(config('exment.expart_mode', false)) && array_key_value_exists('regex_validate', $options)) {
@@ -534,10 +541,10 @@ abstract class CustomItem implements ItemInterface
             // add regexes using loop
             foreach ($available_characters as $available_character) {
                 // get available_character define
-                $define = collect($difinitions)->first(function($d) use($available_character){
+                $define = collect($difinitions)->first(function ($d) use ($available_character) {
                     return array_get($d, 'key') == $available_character;
                 });
-                if(!isset($define)){
+                if (!isset($define)) {
                     continue;
                 }
 
@@ -555,9 +562,17 @@ abstract class CustomItem implements ItemInterface
         }
 
         // set column's validates
-        $this->setValidates($validates);
+        $this->setValidates($validates, $form_column_options);
 
         return $validates;
+    }
+
+    /**
+     * Compare two values.
+     */
+    public function compareTwoValues(CustomColumnMulti $compare_column, $this_value, $target_value)
+    {
+        return true;
     }
 
     protected function initonly()

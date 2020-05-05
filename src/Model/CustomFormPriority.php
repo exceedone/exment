@@ -5,9 +5,11 @@ namespace Exceedone\Exment\Model;
 class CustomFormPriority extends ModelBase
 {
     use Traits\ClearCacheTrait;
+    use Traits\DatabaseJsonTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['form_priority_text'];
+    protected $appends = ['form_priority_text', 'condition_join'];
+    protected $casts = ['options' => 'json'];
 
     public function custom_form()
     {
@@ -24,12 +26,19 @@ class CustomFormPriority extends ModelBase
      */
     public function isMatchCondition($custom_value)
     {
+        $is_or = $this->condition_join == 'or';
         foreach ($this->custom_form_priority_conditions as $condition) {
-            if (!$condition->isMatchCondition($custom_value)) {
-                return false;
+            if ($is_or) {
+                if ($condition->isMatchCondition($custom_value)) {
+                    return true;
+                }
+            } else {
+                if (!$condition->isMatchCondition($custom_value)) {
+                    return false;
+                }
             }
         }
-        return true;
+        return !$is_or;
     }
 
     /**
@@ -42,9 +51,31 @@ class CustomFormPriority extends ModelBase
             foreach ($this->custom_form_priority_conditions as $condition) {
                 $list[] = $condition->condition_text;
             }
-            return implode(' | ', $list);
+            $glue = exmtrans('common.join_'.$this->condition_join??'and');
+            return implode($glue, $list);
         }
         return '';
+    }
+
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
+    }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
+    }
+    
+    public function getConditionJoinAttribute()
+    {
+        return $this->getOption('condition_join');
+    }
+
+    public function setConditionJoinAttribute($val)
+    {
+        $this->setOption('condition_join', $val);
+
+        return $this;
     }
     
     public function deletingChildren()

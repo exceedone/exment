@@ -92,6 +92,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->setResouce($router, 'plugin', 'PluginController');
             $this->setResouce($router, 'role_group', 'RoleGroupController');
             $this->setResouce($router, 'table', 'CustomTableController');
+            $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
             $this->setResouce($router, 'workflow', 'WorkflowController');
 
             $router->post('login_setting/{id}/activate', 'LoginSettingController@activate')->name('exment.login_activate');

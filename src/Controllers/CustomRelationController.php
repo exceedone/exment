@@ -90,7 +90,7 @@ class CustomRelationController extends AdminControllerTableBase
         }
         
         $grid->tools(function (Grid\Tools $tools) {
-            $tools->append(new Tools\GridChangePageMenu('relation', $this->custom_table, false));
+            $tools->append(new Tools\CustomTableMenuButton('relation', $this->custom_table));
         });
         
         $grid->disableExport();
@@ -156,7 +156,7 @@ class CustomRelationController extends AdminControllerTableBase
         
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->add(new Tools\GridChangePageMenu('relation', $custom_table, false));
+            $tools->add(new Tools\CustomTableMenuButton('relation', $custom_table));
         });
         return $form;
     }

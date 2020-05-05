@@ -94,6 +94,8 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.permission' => AdminMiddleware\Permission::class,
         'admin.bootstrap'  => AdminMiddleware\Bootstrap::class,
         'admin.session'    => AdminMiddleware\Session::class,
+        
+        'pluginapi.auth'       => \Exceedone\Exment\Middleware\AuthenticatePluginApi::class,
 
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
@@ -162,6 +164,10 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.log',
             // 'throttle:60,1',
             'bindings',
+        ],
+        // Exment Plugin API
+        'pluginapi' => [
+            'pluginapi.auth',
         ],
         // Exment API not login page. (Ex. get token)
         'adminapi_anonymous' => [

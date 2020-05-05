@@ -28,7 +28,9 @@ class AddOptionsToWorkflows extends Migration
     public function down()
     {
         Schema::table('workflows', function($table) {
-            $table->dropColumn('options');
+            if(Schema::hasColumn('workflows', 'options')){
+                $table->dropColumn('options');
+            }
         });
     }
 }

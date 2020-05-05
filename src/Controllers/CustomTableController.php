@@ -5,8 +5,8 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
-// use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Layout\Row;
 use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
@@ -17,6 +17,8 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\FilterType;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
@@ -25,6 +27,7 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Enums\MultisettingType;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -35,6 +38,21 @@ class CustomTableController extends AdminControllerBase
     public function __construct(Request $request)
     {
         $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.header"), exmtrans("custom_table.description"), 'fa-table');
+    }
+
+    /**
+     * Index interface.
+     *
+     * @return Content
+     */
+    public function index(Request $request, Content $content)
+    {
+        $content = $this->AdminContent($content);
+
+        $row = new Row($this->grid());
+        $row->class(['block_custom_table']);
+
+        return $content->row($row);
     }
 
     /**
@@ -51,7 +69,7 @@ class CustomTableController extends AdminControllerBase
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();
-            $tools->append(new Tools\GridChangePageMenu('table', null, true));
+            $tools->append(new Tools\CustomTableMenuAjaxButton());
         });
 
         $grid->disableExport();
@@ -205,14 +223,7 @@ class CustomTableController extends AdminControllerBase
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::getEloquent($id);
-                
-                $tools->append(view('exment::tools.button', [
-                    'href' => admin_urls('table', $id, 'edit?columnmulti=1'),
-                    'label' => exmtrans('custom_table.expand_setting'),
-                    'icon' => 'fa-cogs',
-                ]));
-
-                $tools->append(new Tools\GridChangePageMenu('table', $model, false));
+                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'default_setting')));
             }
         });
         
@@ -335,10 +346,32 @@ HTML;
                 ->options($custom_table->getColumnsSelectOptions([
                     'include_system' => false,
                 ]));
-            $form->hidden('multisetting_type')->default(1);
+            $form->hidden('multisetting_type')->default(MultisettingType::MULTI_UNIQUES);
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(exmtrans("custom_table.custom_column_multi.help.uniques"));
         
+
+        $form->hasManyTable('compare_columns', exmtrans("custom_table.custom_column_multi.compare_columns"), function ($form) use ($custom_table) {
+            $form->select('compare_column1_id', exmtrans("custom_table.custom_column_multi.compare_column1_id"))->required()
+                ->options($custom_table->getColumnsSelectOptions([
+                    'include_system' => false,
+                ]));
+            $form->select('compare_type', exmtrans("custom_table.custom_column_multi.compare_type"))->required()
+                ->options(function () {
+                    $options = FilterOption::FILTER_OPTIONS()[FilterType::COMPARE];
+                    return collect($options)->map(function ($option) {
+                        return ['id' => $option['id'], 'label' => exmtrans("custom_table.custom_column_multi.filter_condition_compare_options.{$option['name']}")];
+                    })->pluck('label', 'id');
+                });
+            $form->select('compare_column2_id', exmtrans("custom_table.custom_column_multi.compare_column2_id"))->required()
+                ->options($custom_table->getColumnsSelectOptions([
+                    'include_system' => false,
+                ]));
+            $form->hidden('multisetting_type')->default(MultisettingType::COMPARE_COLUMNS);
+        })->setTableColumnWidth(4, 3, 4, 1)
+        ->description(exmtrans("custom_table.custom_column_multi.help.compare_columns"));
+        
+
         $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
             $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
@@ -346,7 +379,7 @@ HTML;
                 ]));
             
             $form->hidden('priority')->default(1);
-            $form->hidden('multisetting_type')->default(2);
+            $form->hidden('multisetting_type')->default(MultisettingType::TABLE_LABELS);
         })->setTableColumnWidth(10, 2)
         ->rowUpDown('priority')
         ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
@@ -369,14 +402,7 @@ HTML;
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::getEloquent($id);
-                
-                $tools->append(view('exment::tools.button', [
-                    'href' => admin_urls('table', $id, 'edit'),
-                    'label' => exmtrans('custom_table.default_setting'),
-                    'icon' => 'fa-table',
-                ]));
-
-                $tools->append(new Tools\GridChangePageMenu('table', $model, false));
+                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
             }
         });
         
@@ -523,5 +549,19 @@ HTML;
                 'message' => exmtrans('custom_value.help.reference_error'),
             ];
         }
+    }
+    /**
+     * Showing menu modal
+     */
+    public function menuModal(Request $request, $id)
+    {
+        $tool = new Tools\CustomTableMenuAjaxButton();
+        $tool->id($id);
+
+        return getAjaxResponse([
+            'body'  => $tool->ajaxHtml(),
+            'title' => exmtrans("change_page_menu.change_page_label"),
+            'showSubmit' => false,
+        ]);
     }
 }

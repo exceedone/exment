@@ -202,12 +202,11 @@ class ApiTest extends ApiTestBase
             ->assertJsonFragment([
                 'column_name' => 'parent_organization',
                 'column_view_name' => '親組織',
-                'column_type' => 'select_table',
+                'column_type' => 'organization',
                 "system_flg"=> "1",
                 "order"=> "0",
                 'options' => [
                     "index_enabled"=> "1",
-                    "select_target_table"=> 5,
                 ]
             ])
             ->assertJsonStructure([
@@ -1080,6 +1079,26 @@ class ApiTest extends ApiTestBase
                 'code' => ErrorCode::PERMISSION_DENY
             ]);
     }
+
+    public function testUpdateValueInitOnly(){
+        $data = CustomTable::getEloquent('custom_value_edit')->getValueModel()
+            ->where('updated_user_id', '<>', '1')->first();
+        $init_text = array_get($data->value, 'init_text');
+
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);
+
+        $text = 'test' . date('YmdHis') . '_update';
+
+        $response =$this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->put(admin_urls('api', 'data', 'custom_value_edit', $data->id), [
+            'value' => [
+                'init_text' => $text,
+            ]
+        ])->assertStatus(400);
+    }
+
+
 
     public function testDeleteValue(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_WRITE]);

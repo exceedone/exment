@@ -219,11 +219,11 @@ trait AuthTrait
         // if don't has, create loginuser or match email
         if (!$hasLoginUser) {
             $login_user = LoginUser::firstOrNew([
-                'base_user_id' => $exment_user->id,
+                'base_user_id' => $exment_user->getUserId(),
                 'login_provider' => $custom_login_user->provider_name,
                 'login_type' => $custom_login_user->login_type,
             ]);
-            $login_user->base_user_id = $exment_user->id;
+            $login_user->base_user_id = $exment_user->getUserId();
             $login_user->login_provider = $custom_login_user->provider_name;
             $login_user->password = make_password(32);
         }

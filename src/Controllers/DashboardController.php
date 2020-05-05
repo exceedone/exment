@@ -196,8 +196,12 @@ class DashboardController extends AdminControllerBase
                     this.inner_body.css('height', '');
 
                     target.find('.overlay').hide();
-                    target.removeClass('loading');
 
+                    // fire plugin event
+                    target.trigger('exment:dashboard_loaded');
+
+                    target.removeClass('loading');
+                    
                     Exment.CommonEvent.tableHoverLink();
                 },
                 error: function () {
@@ -322,8 +326,8 @@ EOT;
                 $boxes = $this->dashboard->dashboard_row_boxes($row_no);
 
                 // get target column by database
-                $dashboard_column = $boxes->where('column_no', $i)->first();
-                $id = $dashboard_column->id ?? null;
+                $dashboard_box = $boxes->where('column_no', $i)->first();
+                $id = $dashboard_box->id ?? null;
 
                 // new dashboadbox dropdown button list
                 $dashboardboxes_newbuttons = [];
@@ -366,12 +370,13 @@ EOT;
                 ];
 
                 $row->column($grids, view('exment::dashboard.box', [
-                    'title' => $dashboard_column->dashboard_box_view_name ?? null,
+                    'title' => $dashboard_box->dashboard_box_view_name ?? null,
                     'id' => $id,
-                    'suuid' => $dashboard_column->suuid ?? null,
+                    'suuid' => $dashboard_box->suuid ?? null,
                     'dashboard_suuid' => $this->dashboard->suuid,
                     'dashboardboxes_newbuttons' => $dashboardboxes_newbuttons,
                     'icons' => $icons,
+                    'attributes' => isset($dashboard_box) ? formatAttributes($dashboard_box->getBoxHtmlAttr()) : '',
                 ]));
             }
         });

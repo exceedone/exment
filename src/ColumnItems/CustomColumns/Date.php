@@ -5,8 +5,10 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Grid\Filter;
 use Exceedone\Exment\Form\Field as ExmentField;
+use Exceedone\Exment\Model\CustomColumnMulti;
 
 class Date extends CustomItem
 {
@@ -105,7 +107,7 @@ class Date extends CustomItem
         }
     }
     
-    protected function setValidates(&$validates)
+    protected function setValidates(&$validates, $form_column_options)
     {
         $validates[] = 'date';
     }
@@ -169,5 +171,50 @@ class Date extends CustomItem
     public function isDate()
     {
         return true;
+    }
+    
+    /**
+     * Compare two values.
+     */
+    public function compareTwoValues(CustomColumnMulti $compare_column, $this_value, $target_value)
+    {
+        try {
+            $this_date = new \Carbon\Carbon($this_value);
+            $target_date = new \Carbon\Carbon($target_value);
+
+            switch ($compare_column->compare_type) {
+                case FilterOption::COMPARE_GT:
+                    if ($this_date->gt($target_date)) {
+                        return true;
+                    }
+    
+                    return $compare_column->getCompareErrorMessage('validation.not_gt_date', $compare_column->compare_column1, $compare_column->compare_column2);
+                    
+                case FilterOption::COMPARE_GTE:
+                    if ($this_date->gte($target_date)) {
+                        return true;
+                    }
+    
+                    return $compare_column->getCompareErrorMessage('validation.not_gte_date', $compare_column->compare_column1, $compare_column->compare_column2);
+                    
+                case FilterOption::COMPARE_LT:
+                    if ($this_date->lt($target_date)) {
+                        return true;
+                    }
+    
+                    return $compare_column->getCompareErrorMessage('validation.not_lt_date', $compare_column->compare_column1, $compare_column->compare_column2);
+                    
+                case FilterOption::COMPARE_LTE:
+                    if ($this_date->lte($target_date)) {
+                        return true;
+                    }
+    
+                    return $compare_column->getCompareErrorMessage('validation.not_lte_date', $compare_column->compare_column1, $compare_column->compare_column2);
+            }
+        }
+        // if throw, return true. (Maybe validates as format other logic.)
+        catch (\Exception $ex) {
+            return true;
+        }
     }
 }

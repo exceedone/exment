@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission as PermissionEnum;
 
@@ -21,6 +22,12 @@ class Permission
      * @var string
      */
     protected $table_name;
+
+    /**
+     * Summary of $plugin_id
+     * @var string
+     */
+    protected $plugin_id;
 
     /**
      * Summary of $permission_details
@@ -43,6 +50,7 @@ class Permission
     {
         $this->role_type = array_get($attributes, 'role_type');
         $this->table_name = array_get($attributes, 'table_name');
+        $this->plugin_id = array_get($attributes, 'plugin_id');
         $this->permission_details = array_get($attributes, 'permission_details', []);
     }
 
@@ -54,6 +62,11 @@ class Permission
     public function getTableName()
     {
         return $this->table_name;
+    }
+
+    public function getPluginId()
+    {
+        return $this->plugin_id;
     }
 
     public function getPermissionDetails()
@@ -148,15 +161,14 @@ class Permission
         }
 
         // if system user, return true
-        $systemRole = RoleType::SYSTEM == $this->role_type;
-        if ($systemRole && array_key_exists('system', $this->permission_details)) {
+        if ($this->role_type == RoleType::SYSTEM && array_key_exists('system', $this->permission_details)) {
             return true;
         }
 
-        return $this->hasPermissionByEndpoint($systemRole, $endpoint);
+        return $this->hasPermissionByEndpoint($endpoint);
     }
 
-    protected function hasPermissionByEndpoint(bool $systemRole, string $endpoint, ?string $target = null, bool $recursive = false) : bool
+    protected function hasPermissionByEndpoint(string $endpoint, ?string $target = null, bool $recursive = false) : bool
     {
         if (!isset($target)) {
             $target = $endpoint;
@@ -168,7 +180,6 @@ class Permission
             case "api":
             case "webapi":
             case "search":
-            case "plugins":
             case "auth-2factor":
             case "auth/login":
             case "auth/logout":
@@ -189,47 +200,56 @@ class Permission
             ///// only system permission
             case "system":
             case "backup":
-            case "plugin":
             case "login_setting":
             case "database":
             case "auth/menu":
             case "auth/logs":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('system', $this->permission_details);
                 }
                 return false;
             ///// each permissions
+            case "plugin":
+                if ($this->role_type == RoleType::SYSTEM) {
+                    return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::PLUGIN_ALL], $this->permission_details);
+                } elseif ($this->role_type == RoleType::PLUGIN) {
+                    // if contains PermissionEnum::PLUGIN_SETTING, return true. Check at controller again.
+                    return array_key_exists(PermissionEnum::PLUGIN_SETTING, $this->permission_details);
+                }
+                // no break
+            case "plugins":
+                return $this->validatePluginPermission($endpoint);
             case "notify":
                 $user = \Exment::user();
                 return $user ? $user->hasPermissionContainsTable(PermissionEnum::CUSTOM_TABLE) : false;
             case "loginuser":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists(PermissionEnum::LOGIN_USER, $this->permission_details);
                 }
                 return false;
             case "api_setting":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists(PermissionEnum::AVAILABLE_API, $this->permission_details);
                 }
                 return false;
             case "workflow":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists(PermissionEnum::WORKFLOW, $this->permission_details);
                 }
                 return false;
             case "role":
             case "role_group":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists(PermissionEnum::AVAILABLE_ACCESS_ROLE_GROUP, $this->permission_details);
                 }
                 return false;
             case "table":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_table', $this->permission_details);
                 }
                 return array_key_exists('custom_table', $this->permission_details);
             case "column":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
@@ -238,7 +258,7 @@ class Permission
                 }
                 return array_key_exists('custom_table', $this->permission_details);
             case "relation":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
@@ -247,7 +267,7 @@ class Permission
                 }
                 return array_key_exists('custom_table', $this->permission_details);
             case "form":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_form', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
@@ -256,7 +276,7 @@ class Permission
                 }
                 return array_key_exists('custom_form', $this->permission_details);
             case "view":
-                if ($systemRole) {
+                if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
@@ -265,7 +285,7 @@ class Permission
                 }
                 return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
             case "data":
-                return $this->validateCustomValuePermission($systemRole, $endpoint);
+                return $this->validateCustomValuePermission($endpoint);
         }
         
         if ($recursive) {
@@ -273,9 +293,9 @@ class Permission
         }
 
         // if find endpoint "data/", check as data
-        
-        if (preg_match('/^(' . implode('|', Define::CUSTOM_TABLE_ENDPOINTS)  . ')\/(.+)$/u', $endpoint, $matched)) {
-            return $this->hasPermissionByEndpoint($systemRole, $matched[2], $matched[1], true);
+        $list = implode('|', array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['plugins']));
+        if (preg_match('/^(' . $list  . ')\/(.+)$/u', $endpoint, $matched)) {
+            return $this->hasPermissionByEndpoint($matched[2], $matched[1], true);
         }
 
 
@@ -308,7 +328,7 @@ class Permission
             }
 
             // if $uri is "auth", get next uri.
-            if (in_array($uri, array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['auth', 'saml']))) {
+            if (in_array($uri, array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['auth', 'saml', 'plugins']))) {
                 // but url is last item, return $uri.
                 if (count($uris) <= $k+1) {
                     return $uri;
@@ -339,12 +359,44 @@ class Permission
     }
 
     /**
+     * Check plugin's permission
+     *
+     * @return void
+     */
+    protected function validatePluginPermission($endpoint)
+    {
+        // Get plugin data by Endpoint
+        $plugin = Plugin::where('options->uri', $endpoint)->first();
+        if (!isset($plugin)) {
+            return false;
+        }
+        // check if all user permitted
+        if (boolval($plugin->getOption('all_user_enabled'))) {
+            return true;
+        }
+        if ($this->role_type == RoleType::SYSTEM) {
+            return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::PLUGIN_ALL], $this->permission_details);
+        } elseif ($this->role_type == RoleType::PLUGIN) {
+            // check endpoint name and checking plugin name.
+            if ($this->plugin_id == $plugin->id) {
+                // if contains PermissionEnum::PLUGIN_ACCESS, return true. Check at controller again.
+                return array_key_exists(PermissionEnum::PLUGIN_ACCESS, $this->permission_details);
+            }
+        }
+        return false;
+    }
+
+    /**
      * Check custom value's permission
      *
      * @return void
      */
-    protected function validateCustomValuePermission($systemRole, $endpoint)
+    protected function validateCustomValuePermission($endpoint)
     {
+        if ($this->role_type == RoleType::PLUGIN) {
+            return false;
+        }
+
         // if request has id, permission contains CUSTOM_VALUE_ACCESS
         if (!is_null($id = request()->id) && request()->is(trim(admin_base_path("data/$endpoint/*"), '/'))) {
             $permissions = PermissionEnum::AVAILABLE_ACCESS_CUSTOM_VALUE;
@@ -352,7 +404,7 @@ class Permission
             $permissions = PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE;
         }
 
-        if ($systemRole) {
+        if ($this->role_type == RoleType::SYSTEM) {
             return array_keys_exists($permissions, $this->permission_details);
         }
         // check endpoint name and checking table_name.

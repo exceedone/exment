@@ -67,7 +67,7 @@ class SummaryProvider extends DefaultTableProvider
     /**
      * get target chunk records
      */
-    protected function getRecords()
+    public function getRecords()
     {
         $this->grid->applyQuickSearch();
         $records = collect($this->grid->getFilter()->execute(false));

@@ -48,6 +48,11 @@ class FilterOption extends EnumBase
     const SELECT_EXISTS = 4001;
     const SELECT_NOT_EXISTS = 4002;
 
+    const COMPARE_GT = 5001;
+    const COMPARE_LT = 5002;
+    const COMPARE_GTE = 5003;
+    const COMPARE_LTE = 5004;
+
     public static function VALUE_TYPE($filter_option)
     {
         switch ($filter_option) {
@@ -153,6 +158,14 @@ class FilterOption extends EnumBase
             FilterType::CONDITION => [
                 ['id' => static::EQ, 'name' => 'eq'],
             ],
+            FilterType::COMPARE => [
+                ['id' => static::EQ, 'name' => 'eq'],
+                ['id' => static::NE, 'name' => 'ne'],
+                ['id' => static::COMPARE_GT, 'name' => 'gt'],
+                ['id' => static::COMPARE_LT, 'name' => 'lt'],
+                ['id' => static::COMPARE_GTE, 'name' => 'gte'],
+                ['id' => static::COMPARE_LTE, 'name' => 'lte'],
+            ],
         ];
     }
     
@@ -201,6 +214,14 @@ class FilterOption extends EnumBase
             FilterType::CONDITION => [
                 ['id' => static::EQ, 'name' => 'eq'],
                 ['id' => static::NE, 'name' => 'ne'],
+            ],
+            FilterType::COMPARE => [
+                ['id' => static::EQ, 'name' => 'eq'],
+                ['id' => static::NE, 'name' => 'ne'],
+                ['id' => static::COMPARE_GT, 'name' => 'gt'],
+                ['id' => static::COMPARE_LT, 'name' => 'lt'],
+                ['id' => static::COMPARE_GTE, 'name' => 'gte'],
+                ['id' => static::COMPARE_LTE, 'name' => 'lte'],
             ],
         ];
     }
