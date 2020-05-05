@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 
-class PatchPluginAllUserEnabled extends Migration
+class SupportForV320 extends Migration
 {
     /**
      * Run the migrations.
