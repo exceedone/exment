@@ -126,9 +126,9 @@ php artisan serve
 ~~~
 
 
-# Develop
-If you'd like to help with the development of Exment, please visit this site and see how to set it up.  
-[Setup for Develop](Develop.md)
+# Other pages
+[Setup for Develop / 開発方法](Develop.md)  
+[Setup for Test / テスト実行方法](Test.md)
 
 
 # issues

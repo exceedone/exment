@@ -1,6 +1,14 @@
 # Test
 How to test.
 
+## Install for test (Only first)
+- Please execute this command.  
+
+```
+composer require symfony/css-selector=~4.2
+composer require laravel/browser-kit-testing=~4.2
+```
+
 
 ## Setup test
 - Please execute this command.  
@@ -13,6 +21,7 @@ php artisan exment:inittest
 - Please execute this command.  
 
 ```
+.\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Browser
 .\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Feature
 .\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Unit
 ```

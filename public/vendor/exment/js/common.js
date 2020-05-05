@@ -156,7 +156,7 @@ var Exment;
             }
         }
         /**
-         * Show Modal Event
+         * Show Swal Event
          */
         static ShowSwal(url, options) {
             options = $.extend({

@@ -65,7 +65,7 @@ class CustomFormPriorityController extends AdminControllerTableBase
             ->default('and');
 
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
-            $tools->add((new Tools\GridChangePageMenu('form', $custom_table, false))->render());
+            $tools->add((new Tools\CustomTableMenuButton('form', $custom_table))->render());
 
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
         });

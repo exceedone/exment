@@ -171,9 +171,22 @@ return [
         'password_history' => '過去に登録したパスワードと同一のパスワードとなっています。他のパスワードを入力してください。',
         'complex_password' => 'パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
         'not_has_custom_value' => '列:attributeに入力の値:valueが、テーブル「:table_view_name」に存在しません。データをご確認ください。',
+        'init_only' => '列:attributeの値は、:original_valueから変更できません。',
         'empty' => ':attributeの値は空欄のみ指定できます。',
         'max_table_index' => '1つのテーブルに設定できる検索インデックスは:count件までです。',
         'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
+        
+        'not_match' => ':attribute1の値と:attribute2の値が異なっています。',
+        'not_notmatch' => ':attribute1と:attribute2は、異なる値である必要があります。',
+        'not_gt' => ':attribute1の値は、:attribute2より大きい値である必要があります。',
+        'not_gte' => ':attribute1の値は、:attribute2の値以上である必要があります。',
+        'not_lt' => ':attribute1の値は、:attribute2の値未満である必要があります。',
+        'not_lte' => ':attribute1の値は、:attribute2の値以下である必要があります。',
+
+        'not_gt_date' => ':attribute1は、:attribute2より後である必要があります。',
+        'not_gte_date' => ':attribute1は、:attribute2と同じ、またはそれ以降である必要があります。',
+        'not_lt_date' => ':attribute1は、:attribute2より前である必要があります。',
+        'not_lte_date' => ':attribute1は、:attribute2と同じ、またはそれ以前である必要があります。',
     ],
 
     'system' => [
@@ -766,6 +779,12 @@ return [
             'unique1' => '列1',
             'unique2' => '列2',
             'unique3' => '列3',
+
+            'compare_columns' => '2つの列を比較',
+            'compare_column1_id' => '検証列(A)',
+            'compare_column2_id' => '比較列(B)',
+            'compare_type' => '条件',
+
             'table_labels' => '見出し表示列設定',
             'column_target' => '対象列',
             'priority' => '優先順位',
@@ -776,7 +795,8 @@ return [
 
             'help' => [
                 'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。上から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
-                'uniques' => '複合ユニークキーを設定します。これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
+                'uniques' => '複合ユニークキーを設定します。データ保存時、これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
+                'compare_columns' => 'データ保存時、2つの列を比較します。列の値が、設定した条件と一致した場合のみ、保存ができます。',
                 'table_label_format' => '（上級者向け）見出しに表示するフォーマットを柔軟に設定できます。値を表示するためのパラメータは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。※この項目に値を設定した場合、上記の「見出し表示列設定」は無効になります。',
                 'form_action_disable_flg' => 'チェックした操作は、画面から実行することができなくなります。APIやダッシュボードからのみ、データの管理を行いたい場合はチェックしてください。',
             ],
@@ -787,6 +807,16 @@ return [
                 'import' => 'インポート',
                 'export' => 'エクスポート',
             ],
+                
+            'filter_condition_compare_options' => [
+                'eq' => 'AとBで合致する', 
+                'ne' => 'AとBで合致しない', 
+                'gt' => 'AはBより大きい', 
+                'lt' => 'AはBより小さい', 
+                'gte' => 'AはB以上である', 
+                'lte' => 'AはB以下である', 
+            ],
+            
         ],
     ],
     
@@ -922,6 +952,7 @@ return [
             'upper' => '英大文字', 
             'number' => '数字', 
             'hyphen_underscore' => '"-"または"_"',
+            'dot' => '"."(ドット)',
             'symbol' => '記号',
         ],
         
@@ -1019,7 +1050,7 @@ return [
 
     'custom_view' => [
         'header' => 'カスタムビュー設定',
-        'description' => 'カスタムビューの設定を行います。',
+        'description' => 'データを一覧表示する時に使用する、カスタム列の項目や表示条件などの設定を行います。',
         'view_view_name' => 'ビュー表示名',
         'view_datalist' => 'このビューでデータ一覧表示',
         'custom_view_columns' => '表示列選択',
@@ -1054,6 +1085,7 @@ return [
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
 
         'help' => [
+            'custom_view_type' => 'システムビュー：このテーブルを使用するユーザー全員が使用できるビューです。 ユーザービュー：作成したユーザーのみが使用できるビューです。',
             'sort_type' => 'ソートを、「昇順(小さい順)」で実行するか、「降順（大きい順）」で実行するか、指定します。',
             'sort_order_summaries' => '取得するデータをソートします。<br />「グループ列」「集計列」の中から、数値の小さい順に、ソートを実行します。',
         ],
@@ -1114,12 +1146,22 @@ return [
         ],
         
         'custom_view_menulist' => [
+            'setting' => '設定を開く',
             'current_view_edit' => '現在のビュー設定変更',
             'current_view_replicate' => '現在のビューを複製',
             'create' => 'ビュー新規作成',
             'create_sum' => '集計ビュー新規作成',
             'create_calendar' => 'カレンダービュー新規作成',
             'create_filter' => '条件ビュー新規作成',
+
+            'help' => [
+                'current_view_edit' => '現在表示しているビューの設定を変更します。',
+                'current_view_replicate' => '現在のビューの設定を複製し、新規のビューを作成します。',
+                'create' => 'データを一覧表示する、通常のビューを新規作成します。',
+                'create_sum' => 'データの項目をグループ化し、合計値や最大値を集計し表示する、集計ビューを新規作成します。',
+                'create_calendar' => 'データの日付をカレンダー形式で表示する、カレンダービューを新規作成します。',
+                'create_filter' => '通知を実施する条件や、フォームの選択肢に表示するための条件を設定する、条件ビューを新規作成します。',
+            ],
         ],
         'message' => [
             'over_filters_max' => '表示条件は6件以上設定できません。',
@@ -1360,10 +1402,11 @@ return [
     ],
 
     'custom_value' => [
+        'description' => 'このテーブルのデータ一覧を表示します。',
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
         'export' => 'エクスポート',
-        'view_export' => 'ビュー出力',
+        'view_export' => 'エクスポート(ビュー形式)',
         'import_label' => 'インポート',
         'view_summary_detail' => '集計データの明細を表示する',
         'soft_deleted_data' => '削除済データ',
@@ -1379,6 +1422,7 @@ return [
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
             'target_column_name' => '置換対象列名(英数字)',
+
             'help' => [
                 'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'custom_table_file' => 'テンプレート出力した%sファイルを選択してください。',
@@ -1397,8 +1441,8 @@ return [
             ],
             'message' => [
                 'select_table_not_found' => ':column_view_nameが:valueとなるデータが、:target_table_nameに存在しませんでした。',
-                'select_item_not_found' => ':column_view_nameの形式が不正です。:value_optionsのいずれかを入力してください。'
-            ]
+                'select_item_not_found' => ':column_view_nameの形式が不正です。:value_optionsのいずれかを入力してください。',
+            ],
         ],
         'sendmail' => [
             'title' => 'メール送信',
@@ -1427,7 +1471,13 @@ return [
             'lock_error' => '対象のデータは別のユーザーによって更新されました。画面の更新後、再度入力を行ってください。',
             'lock_error_api' => '対象のデータは別のユーザーによって更新されました。',
             'init_flg' => '保存後、変更はできません。',
-        ],
+            'export_all' => 'すべてのデータを、すべての列を対象にエクスポートします。',
+            'export_page' => '現在のページのデータを、すべての列を対象にエクスポートします。',
+            'view_export_all' => '現在表示しているビューの形式で、すべてのデータをエクスポートします。 ※このファイルを使用し、インポートを行うことはできません。',
+            'view_export_page' => '現在表示しているビューの形式で、現在のページのデータをエクスポートします。 ※このファイルを使用し、インポートを行うことはできません。',
+            'template' => 'インポートに使用する、テンプレートファイルをダウンロードします。',
+            'import' => 'インポート実行のためのダイアログを表示します。',
+    ],
         'message' => [
             'operation_notfound' => '更新対象のデータが見つかりませんでした。',
             'operation_succeeded' => '一括更新を実行しました！',

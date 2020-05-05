@@ -34,7 +34,7 @@ class CustomValueAuthoritable extends ModelBase
             'parent_type' => $table_name,
             'authoritable_type' => Permission::CUSTOM_VALUE_EDIT,
             'authoritable_user_org_type' => SystemTableName::USER,
-            'authoritable_target_id' => $user->base_user_id,
+            'authoritable_target_id' => $user->getUserId(),
         ]);
 
 
@@ -266,7 +266,7 @@ class CustomValueAuthoritable extends ModelBase
             ]);
 
             if ($ignoreLoginUser && $key == SystemTableName::USER) {
-                $user_id = \Exment::user()->base_user_id;
+                $user_id = \Exment::user()->getUserId();
                 $optionItem = $optionItem->filter(function ($user, $id) use ($user_id) {
                     return $id != $user_id;
                 });

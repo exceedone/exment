@@ -212,7 +212,7 @@ class CustomFormController extends AdminControllerTableBase
         }
         
         $grid->tools(function (Grid\Tools $tools) {
-            $tools->append(new Tools\GridChangePageMenu('form', $this->custom_table, false));
+            $tools->append(new Tools\CustomTableMenuButton('form', $this->custom_table));
             
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
@@ -271,7 +271,7 @@ class CustomFormController extends AdminControllerTableBase
             'editmode' => isset($id),
             'form_view_name' => $form->form_view_name,
             'default_flg' => $form->default_flg?? '0',
-            'change_page_menu' => (new Tools\GridChangePageMenu('form', $this->custom_table, false))->render()
+            'change_page_menu' => (new Tools\CustomTableMenuButton('form', $this->custom_table))->render()
         ]));
     }
 

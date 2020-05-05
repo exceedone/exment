@@ -286,10 +286,10 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         // if don't has, create loginuser or match email
         if (!$hasLoginUser) {
             $login_user = LoginUser::firstOrNew([
-                'base_user_id' => $exment_user->id,
+                'base_user_id' => $exment_user->getUserId(),
                 'login_provider' => $login_provider,
             ]);
-            $login_user->base_user_id = $exment_user->id;
+            $login_user->base_user_id = $exment_user->getUserId();
             $login_user->login_provider = $login_provider;
             $login_user->password = $provider_user->id;
         }
