@@ -1,8 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin;
 
-use Exceedone\Exment\Model\CustomValue;
-
 /**
  * Plugin (Button) base class
  */

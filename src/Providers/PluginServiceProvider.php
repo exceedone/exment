@@ -91,7 +91,7 @@ class PluginServiceProvider extends ServiceProvider
         }
         $isApi = $plugin_type == PluginType::API;
 
-        foreach(stringToArray($prefix) as $p){
+        foreach (stringToArray($prefix) as $p) {
             Route::group([
                 'prefix'        => url_join(config('admin.route.prefix'), $p),
                 'namespace'     => 'Exceedone\Exment\Services\Plugin',

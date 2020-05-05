@@ -155,8 +155,7 @@ class DataImportExportService extends AbstractExporter
 
         if ($action == 'view_export' && isset($this->viewExportAction)) {
             $datalist = $this->viewExportAction->datalist();
-        }
-        else {
+        } else {
             $datalist = $this->exportAction->datalist();
         }
 

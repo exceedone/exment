@@ -45,10 +45,10 @@ class PluginType extends EnumBase
     public static function PLUGIN_TYPE_CUSTOM_TABLE()
     {
         return [
-            static::TRIGGER, 
-            static::DOCUMENT, 
-            static::IMPORT, 
-            static::EXPORT, 
+            static::TRIGGER,
+            static::DOCUMENT,
+            static::IMPORT,
+            static::EXPORT,
             static::VALIDATOR,
             static::EVENT,
             static::BUTTON,

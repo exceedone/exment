@@ -63,7 +63,8 @@ abstract class PluginExportBase
      *
      * @return void
      */
-    protected function getData(){
+    protected function getData()
+    {
         return $this->combineData($this->default_provider->data());
     }
 
@@ -73,7 +74,8 @@ abstract class PluginExportBase
      *
      * @return void
      */
-    protected function getViewData(){
+    protected function getViewData()
+    {
         return $this->combineData($this->view_provider->data());
     }
 
@@ -84,10 +86,11 @@ abstract class PluginExportBase
      * @param array $data
      * @return array
      */
-    protected function combineData($data){
+    protected function combineData($data)
+    {
         $headers = $data[0];
 
-        $bodies = collect(array_slice($data, 2))->map(function($d) use($headers){
+        $bodies = collect(array_slice($data, 2))->map(function ($d) use ($headers) {
             return array_combine($headers, $d);
         })->toArray();
 
@@ -100,7 +103,8 @@ abstract class PluginExportBase
      *
      * @return void
      */
-    protected function getRecords(){
+    protected function getRecords()
+    {
         return $this->default_provider->getRecords();
     }
 
@@ -111,7 +115,7 @@ abstract class PluginExportBase
      */
     public function getTmpFullPath()
     {
-        if(isset($this->tmpFullPath)){
+        if (isset($this->tmpFullPath)) {
             return $this->tmpFullPath;
         }
 
@@ -124,7 +128,7 @@ abstract class PluginExportBase
     /**
      * Execute exporting data
      *
-     * @return string|mixed 
+     * @return string|mixed
      * string: Tmp file path. if response, delete tmp file auto.
      */
     abstract public function execute();

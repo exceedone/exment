@@ -357,9 +357,9 @@ HTML;
                     'include_system' => false,
                 ]));
             $form->select('compare_type', exmtrans("custom_table.custom_column_multi.compare_type"))->required()
-                ->options(function(){
+                ->options(function () {
                     $options = FilterOption::FILTER_OPTIONS()[FilterType::COMPARE];
-                    return collect($options)->map(function($option){
+                    return collect($options)->map(function ($option) {
                         return ['id' => $option['id'], 'label' => exmtrans("custom_table.custom_column_multi.filter_condition_compare_options.{$option['name']}")];
                     })->pluck('label', 'id');
                 });

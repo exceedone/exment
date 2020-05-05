@@ -163,7 +163,7 @@ class PluginController extends AdminControllerBase
     protected function form($id = null, $isDelete = false)
     {
         $plugin = Plugin::getEloquent($id);
-        if(!$plugin->hasPermission(Permission::PLUGIN_SETTING)){
+        if (!$plugin->hasPermission(Permission::PLUGIN_SETTING)) {
             Checker::error();
             return false;
         }
@@ -197,38 +197,34 @@ class PluginController extends AdminControllerBase
                 $enumClass = null;
                 if ($plugin->matchPluginType(PluginType::BUTTON)) {
                     $enumClass = PluginButtonType::class;
-                }
-                elseif ($plugin->matchPluginType(PluginType::EVENT)) {
+                } elseif ($plugin->matchPluginType(PluginType::EVENT)) {
                     $enumClass = PluginEventType::class;
-                }
-                elseif ($plugin->matchPluginType(PluginType::TRIGGER)) {
+                } elseif ($plugin->matchPluginType(PluginType::TRIGGER)) {
                     $enumClass = PluginEventTrigger::class;
                 }
                 
-                if(isset($enumClass)){
+                if (isset($enumClass)) {
                     $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))
                     ->options($enumClass::transArray("plugin.options.event_trigger_options"))
                     ->help(exmtrans("plugin.help.event_triggers"));
                 }
-            } 
+            }
             
             if ($plugin->matchPluginType(PluginType::PAGE)) {
                 // Plugin_type = 'page'
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
-            } 
+            }
                         
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL())) {
                 $form->text('uri', exmtrans("plugin.options.uri"))->required();
 
-                if($plugin->matchPluginType(PluginType::PAGE)){
+                if ($plugin->matchPluginType(PluginType::PAGE)) {
                     $form->display('endpoint_page', exmtrans("plugin.options.endpoint_page"))->default($plugin->getRootUrl(PluginType::PAGE))->help(exmtrans("plugin.help.endpoint"));
                 }
-                if($plugin->matchPluginType(PluginType::API)){
+                if ($plugin->matchPluginType(PluginType::API)) {
                     $form->display('endpoint_api', exmtrans("plugin.options.endpoint_api"))->default($plugin->getRootUrl(PluginType::API))->help(exmtrans("plugin.help.endpoint"));
                 }
-            } 
-            
-            elseif ($plugin->matchPluginType(PluginType::BATCH)) {
+            } elseif ($plugin->matchPluginType(PluginType::BATCH)) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
                     ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
                     ->default(3);
@@ -258,7 +254,6 @@ class PluginController extends AdminControllerBase
                 $form->textarea('export_description', exmtrans("plugin.options.export_description"))->help(exmtrans("plugin.help.export_description"))->rows(3);
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
             }
-
         })->disableHeader();
 
         if (!$isDelete) {

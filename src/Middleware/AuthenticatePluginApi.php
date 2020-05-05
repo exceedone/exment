@@ -21,7 +21,7 @@ class AuthenticatePluginApi extends \Encore\Admin\Middleware\Authenticate
     {
         // get plugin id
         $plugin = $this->getPlugin($request);
-        if(!isset($plugin)){
+        if (!isset($plugin)) {
             return abortJson(500, ErrorCode::PLUGIN_NOT_FOUND());
         }
 
@@ -44,14 +44,15 @@ class AuthenticatePluginApi extends \Encore\Admin\Middleware\Authenticate
      * @param [type] $request
      * @return void
      */
-    protected function getPlugin($request){
+    protected function getPlugin($request)
+    {
         $name = $request->route()->getName();
-        if(!isset($name)){
+        if (!isset($name)) {
             return null;
         }
 
         $names = explode(".", $name);
-        if(count($names) < 3){
+        if (count($names) < 3) {
             return null;
         }
 

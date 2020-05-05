@@ -30,7 +30,7 @@ class PluginItem implements ItemInterface
      * get header
      */
     public function header()
-    {        
+    {
         if (($result = $this->hasPermission()) !== true) {
             return null;
         }
@@ -129,5 +129,4 @@ class PluginItem implements ItemInterface
 
         return true;
     }
-
 }

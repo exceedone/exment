@@ -209,7 +209,7 @@ class RoleGroupController extends AdminControllerBase
 
         // Plugin --------------------------------------------------------
         $plugins = Plugin::allRecords();
-        if(!is_nullorempty($plugins)){
+        if (!is_nullorempty($plugins)) {
             $form->exmheader(exmtrans('role_group.role_type_options.plugin') . exmtrans('role_group.permission_setting'))->hr();
 
             $items = [];
@@ -219,7 +219,7 @@ class RoleGroupController extends AdminControllerBase
                 })->permissions ?? [];
 
                 // check disabled
-                $enabledPluginAccess = collect($plugin->plugin_types)->contains(function($plugin_type){
+                $enabledPluginAccess = collect($plugin->plugin_types)->contains(function ($plugin_type) {
                     return in_array($plugin_type, PluginType::PLUGIN_TYPE_AVAILABLE());
                 });
                 $items[] = [
@@ -239,8 +239,6 @@ class RoleGroupController extends AdminControllerBase
                 ->checkWidth(150)
                 ->headerHelp(RoleGroupType::PLUGIN()->getRoleGroupHelps())
                 ->items($items);
-
-
         }
 
 

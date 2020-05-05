@@ -261,7 +261,7 @@ class WorkflowAction extends ModelBase
 
         //execute plugin
         $plugins = Plugin::getPluginsByTable($custom_table->table_name);
-        Plugin::pluginExecuteEvent($plugins,  PluginEventTrigger::WORKFLOW_ACTION_EXECUTING, [
+        Plugin::pluginExecuteEvent($plugins, PluginEventTrigger::WORKFLOW_ACTION_EXECUTING, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,
             'workflow_action' => $this,

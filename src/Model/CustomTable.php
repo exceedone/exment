@@ -329,7 +329,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return true;
             }
 
-            if($val->multisetting_type != MultisettingType::MULTI_UNIQUES){
+            if ($val->multisetting_type != MultisettingType::MULTI_UNIQUES) {
                 return false;
             }
 
@@ -350,7 +350,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return false;
             }
 
-            if($val->multisetting_type != MultisettingType::COMPARE_COLUMNS){
+            if ($val->multisetting_type != MultisettingType::COMPARE_COLUMNS) {
                 return false;
             }
 
@@ -664,7 +664,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($compare_columns as $compare_column) {
             // get two values
             $compareResult = $compare_column->compareValue($input, $custom_value);
-            if($compareResult === true){
+            if ($compareResult === true) {
                 continue;
             }
 

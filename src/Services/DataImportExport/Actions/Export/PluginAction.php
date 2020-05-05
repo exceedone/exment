@@ -24,7 +24,8 @@ class PluginAction extends CustomTableAction
         $this->grid = array_get($args, 'grid');
     }
 
-    public function plugin($plugin){
+    public function plugin($plugin)
+    {
         $this->plugin = Plugin::getEloquent($plugin);
 
         return $this;
@@ -59,7 +60,8 @@ class PluginAction extends CustomTableAction
      *
      * @return void
      */
-    public function execute(){
+    public function execute()
+    {
         $this->plugin(request()->get('plugin_id'));
 
         $pluginClass = $this->plugin->getClass(PluginType::EXPORT);
@@ -77,13 +79,13 @@ class PluginAction extends CustomTableAction
         ]));
 
         $file = null;
-        try{
+        try {
             $file = $pluginClass->execute();
 
             $response = response()->download($file, $pluginClass->getFileName());
             
             // if string(tmp file), set deleteFileAfterSend
-            if(is_string($file)){
+            if (is_string($file)) {
                 $response->deleteFileAfterSend(true);
             }
     
@@ -91,11 +93,10 @@ class PluginAction extends CustomTableAction
             exit;
         }
         // Delete if exception
-        finally{
-            if(isset($file) && is_string($file) && \File::exists($file)){
+        finally {
+            if (isset($file) && is_string($file) && \File::exists($file)) {
                 \File::delete($file);
             }
         }
-
     }
 }

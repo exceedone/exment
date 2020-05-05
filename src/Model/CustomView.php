@@ -856,7 +856,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         if (array_key_exists('filter', $custom_table)) {
             $custom_filter = $custom_table['filter'];
-            $sub_query->where(function($query) use($table_name, $custom_filter) {
+            $sub_query->where(function ($query) use ($table_name, $custom_filter) {
                 foreach ($custom_filter as $filter) {
                     $filter->setValueFilter($query, $table_name, $this->filter_is_or);
                 }

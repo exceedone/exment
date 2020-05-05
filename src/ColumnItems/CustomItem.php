@@ -541,10 +541,10 @@ abstract class CustomItem implements ItemInterface
             // add regexes using loop
             foreach ($available_characters as $available_character) {
                 // get available_character define
-                $define = collect($difinitions)->first(function($d) use($available_character){
+                $define = collect($difinitions)->first(function ($d) use ($available_character) {
                     return array_get($d, 'key') == $available_character;
                 });
-                if(!isset($define)){
+                if (!isset($define)) {
                     continue;
                 }
 

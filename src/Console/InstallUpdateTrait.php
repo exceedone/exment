@@ -1,9 +1,6 @@
 <?php
 namespace Exceedone\Exment\Console;
 
-use Exceedone\Exment\Middleware;
-use Exceedone\Exment\Enums\SystemTableName;
-
 trait InstallUpdateTrait
 {
     /**
@@ -26,8 +23,8 @@ trait InstallUpdateTrait
 
         $file = path_join($this->directory, 'bootstrap.php');
 
-        if(\File::exists($file)){
-           return; 
+        if (\File::exists($file)) {
+            return;
         }
 
         $contents = $this->getStub('bootstrap');
@@ -57,8 +54,8 @@ trait InstallUpdateTrait
     {
         $dirpath = $this->directory;
 
-        if(\File::exists($dirpath)){
-           return; 
+        if (\File::exists($dirpath)) {
+            return;
         }
 
         $this->laravel['files']->makeDirectory($dirpath, 0755, true, true);

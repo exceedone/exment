@@ -209,11 +209,11 @@ class Permission
             case "plugin":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::PLUGIN_ALL], $this->permission_details);
-                }
-                elseif ($this->role_type == RoleType::PLUGIN) {
+                } elseif ($this->role_type == RoleType::PLUGIN) {
                     // if contains PermissionEnum::PLUGIN_SETTING, return true. Check at controller again.
                     return array_key_exists(PermissionEnum::PLUGIN_SETTING, $this->permission_details);
                 }
+                // no break
             case "plugins":
                 return $this->validatePluginPermission($endpoint);
             case "notify":
@@ -373,8 +373,7 @@ class Permission
         }
         if ($this->role_type == RoleType::SYSTEM) {
             return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::PLUGIN_ALL], $this->permission_details);
-        }
-        elseif ($this->role_type == RoleType::PLUGIN) {
+        } elseif ($this->role_type == RoleType::PLUGIN) {
             // check endpoint name and checking plugin name.
             if ($this->plugin_id == $plugin->id) {
                 // if contains PermissionEnum::PLUGIN_ACCESS, return true. Check at controller again.

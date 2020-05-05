@@ -252,13 +252,13 @@ class Define
     public const GRID_CHANGE_PAGE_MENULIST = [
         ['name' => 'table', 'href' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table', 'description' => 'custom_table.description', 'buttons' => [
             [
-                'name' => 'default_setting', 
+                'name' => 'default_setting',
                 'href' => 'table/:id/edit',
                 'exmtrans' => 'custom_table.default_setting',
                 'icon' => 'fa-table',
             ],
             [
-                'name' => 'expand_setting', 
+                'name' => 'expand_setting',
                 'href' => 'table/:id/edit?columnmulti=1',
                 'exmtrans' => 'custom_table.expand_setting',
                 'icon' => 'fa-cogs',

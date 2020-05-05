@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
-use Encore\Admin\Grid\Tools\AbstractTool;
 
 class CustomViewMenuButton extends ModalTileMenuButton
 {
@@ -20,16 +19,16 @@ class CustomViewMenuButton extends ModalTileMenuButton
         $this->addMenuList = $addMenuList;
         
         // init as Custom value's menu
-        if($addMenuList){
+        if ($addMenuList) {
             parent::__construct([
                 'label' => exmtrans('custom_view.custom_view_button_label') . '&nbsp;:&nbsp;' . $current_custom_view->view_view_name,
                 'icon' => 'fa-th-list',
                 'button_class' => 'btn-default',
             ]);
-            $this->modal_title = exmtrans("custom_view.custom_view_button_label");    
+            $this->modal_title = exmtrans("custom_view.custom_view_button_label");
         }
         // init as Custom view's new list
-        else{
+        else {
             parent::__construct([
                 'label' => trans('admin.new'),
                 'icon' => 'fa-plus',
@@ -41,7 +40,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
 
     public function render()
     {
-        if($this->addMenuList){
+        if ($this->addMenuList) {
             $this->setMenu();
         }
 
@@ -53,7 +52,8 @@ class CustomViewMenuButton extends ModalTileMenuButton
      *
      * @return void
      */
-    protected function setMenu(){
+    protected function setMenu()
+    {
         $systemviews = [];
         $userviews = [];
         // get custom view
@@ -89,8 +89,8 @@ class CustomViewMenuButton extends ModalTileMenuButton
         $menulist = [];
 
         $baseUrl = admin_urls('data', $this->custom_table->table_name);
-        $setMenuFunc = function($headerLabel, $views, &$menulist) use($baseUrl){
-            if(count($views) == 0){
+        $setMenuFunc = function ($headerLabel, $views, &$menulist) use ($baseUrl) {
+            if (count($views) == 0) {
                 return;
             }
 
@@ -99,7 +99,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
                 'label' => $headerLabel,
             ];
 
-            foreach($views as $view){
+            foreach ($views as $view) {
                 $menulist[] = [
                     'label' => array_get($view, 'view_view_name'),
                     'url' => "$baseUrl?view={$view['suuid']}",
@@ -125,7 +125,8 @@ class CustomViewMenuButton extends ModalTileMenuButton
         return;
     }
 
-    public function html(){
+    public function html()
+    {
         $items = $this->getItems();
         
         // if no menu, return
@@ -147,13 +148,12 @@ class CustomViewMenuButton extends ModalTileMenuButton
 
         //role check
         if ($this->custom_table->hasViewPermission()) {
-
-            if(isset($this->current_custom_view)){
+            if (isset($this->current_custom_view)) {
                 $query_str = '?view_kind_type='.$this->current_custom_view->view_kind_type.'&from_data=1';
 
                 if ($this->current_custom_view->hasEditPermission()) {
                     $items[] = [
-                        'href' => admin_urls('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit'.$query_str), 
+                        'href' => admin_urls('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit'.$query_str),
                         'header' => exmtrans('custom_view.custom_view_menulist.current_view_edit'),
                         'description' => exmtrans('custom_view.custom_view_menulist.help.current_view_edit'),
                         'icon' => 'fa-cog',
@@ -161,7 +161,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
                 }
     
                 $items[] = [
-                    'href' => admin_urls('view', $this->custom_table->table_name, 'create?from_data=1&copy_id=' . $this->current_custom_view->id), 
+                    'href' => admin_urls('view', $this->custom_table->table_name, 'create?from_data=1&copy_id=' . $this->current_custom_view->id),
                     'header' => exmtrans('custom_view.custom_view_menulist.current_view_replicate'),
                     'description' => exmtrans('custom_view.custom_view_menulist.help.current_view_replicate'),
                     'icon' => 'fa-copy',
@@ -169,19 +169,19 @@ class CustomViewMenuButton extends ModalTileMenuButton
             }
 
             $items[] = [
-                'href' => admin_urls('view', $this->custom_table->table_name, 'create?from_data=1'), 
+                'href' => admin_urls('view', $this->custom_table->table_name, 'create?from_data=1'),
                 'header' => exmtrans('custom_view.custom_view_menulist.create'),
                 'description' => exmtrans('custom_view.custom_view_menulist.help.create'),
                 'icon' => 'fa-list',
             ];
             $items[] = [
-                'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=1&from_data=1'), 
+                'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=1&from_data=1'),
                 'header' => exmtrans('custom_view.custom_view_menulist.create_sum'),
                 'description' => exmtrans('custom_view.custom_view_menulist.help.create_sum'),
                 'icon' => 'fa-bar-chart',
             ];
             $items[] = [
-                'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=2&from_data=1'), 
+                'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=2&from_data=1'),
                 'header' => exmtrans('custom_view.custom_view_menulist.create_calendar'),
                 'description' => exmtrans('custom_view.custom_view_menulist.help.create_calendar'),
                 'icon' => 'fa-calendar',
@@ -189,7 +189,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
                 
             if ($this->custom_table->hasSystemViewPermission()) {
                 $items[] = [
-                    'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=3&from_data=1'), 
+                    'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=3&from_data=1'),
                     'header' => exmtrans('custom_view.custom_view_menulist.create_filter'),
                     'description' => exmtrans('custom_view.custom_view_menulist.help.create_filter'),
                     'icon' => 'fa-filter',

@@ -110,11 +110,11 @@ trait CustomValueSummary
             $filters[] = $custom_view_filter;
         }
         $filter_func = function ($model) use ($filters, $custom_view) {
-            $model->where(function($query) use($filters){
+            $model->where(function ($query) use ($filters) {
                 foreach ($filters as $filter) {
                     $query = $filter->setValueFilter($query);
                 }
-            })->where(function($query) use($custom_view){
+            })->where(function ($query) use ($custom_view) {
                 $custom_view->setValueFilters($query);
             });
             return $model;

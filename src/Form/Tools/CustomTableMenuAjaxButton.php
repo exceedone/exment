@@ -2,12 +2,10 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
-use Encore\Admin\Facades\Admin;
 
 /**
- * Custom Table Menu. as ajax. Only Custom table list 
+ * Custom Table Menu. as ajax. Only Custom table list
  */
 class CustomTableMenuAjaxButton extends ModalTileAjaxMenuButton
 {
@@ -24,11 +22,13 @@ class CustomTableMenuAjaxButton extends ModalTileAjaxMenuButton
             'label' => exmtrans("change_page_menu.change_page_label"),
             'icon' => 'fa-cog',
             'button_class' => 'btn-default',
-        ]);
+        ]
+        );
         $this->modal_title = exmtrans("change_page_menu.change_page_label");
     }
 
-    public function id($id){
+    public function id($id)
+    {
         $this->custom_table = CustomTable::getEloquent($id);
     }
     

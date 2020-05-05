@@ -60,5 +60,4 @@ trait TableItemTrait
             'target_view_view_name' => isset($this->custom_view) ? $this->custom_view->view_view_name : null,
         ];
     }
-
 }

@@ -16,10 +16,11 @@ abstract class PluginExportExcel extends PluginExportBase
      * @param string $templateFileName If read template file, set filename
      * @return \PhpOffice\PhpSpreadsheet\Spreadsheet
      */
-    protected function initializeExcel($templateFileName = null){
+    protected function initializeExcel($templateFileName = null)
+    {
         $reader = IOFactory::createReader('Xlsx');
 
-        if(isset($templateFileName)){
+        if (isset($templateFileName)) {
             $reader = IOFactory::createReader('Xlsx');
 
             $filePath = $this->plugin->getFullPath($templateFileName);
@@ -41,7 +42,8 @@ abstract class PluginExportExcel extends PluginExportBase
      * @param \PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet
      * @return string tmp file name.
      */
-    protected function getExcelResult($spreadsheet){
+    protected function getExcelResult($spreadsheet)
+    {
         // output excel
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->setIncludeCharts(true);

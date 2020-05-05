@@ -132,7 +132,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
     /**
-     * Get box html arrtibute. For 
+     * Get box html arrtibute. For
      *
      * @return void
      */
@@ -146,7 +146,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         ];
         $attributes = array_merge($this->dashboard_box_item->attributes(), $attributes);
 
-        return collect($attributes)->mapWithKeys(function($attr, $key){
+        return collect($attributes)->mapWithKeys(function ($attr, $key) {
             return ["data-$key" => $attr];
         })->toArray();
     }

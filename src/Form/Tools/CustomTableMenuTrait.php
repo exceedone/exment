@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomTable;
 use Encore\Admin\Facades\Admin;
 
 /**
@@ -49,7 +48,7 @@ trait CustomTableMenuTrait
                 // ->filter(function($button){
                 //     return array_get($button, 'name') != $this->page_name_sub;
                 // })
-                ->map(function($button){
+                ->map(function ($button) {
                     return [
                         'icon' => array_get($button, 'icon'),
                         'label' => exmtrans(array_get($button, 'exmtrans')),

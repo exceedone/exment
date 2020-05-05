@@ -73,16 +73,18 @@ class Plugin extends ModelBase
      */
     public static function getIdsHasSettingPermission()
     {
-        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_ALL_SETTING_IDS, function(){
-            if(\Exment::user()->hasPermission(Permission::PLUGIN_ALL)){
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_ALL_SETTING_IDS, function () {
+            if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
                 return static::allRecords()->pluck('id');
             }
     
-            $permissions = \Exment::user()->allPermissions()->filter(function($permission){
+            $permissions = \Exment::user()->allPermissions()->filter(function ($permission) {
                 return RoleType::PLUGIN == $permission->getRoleType() && array_key_exists(Permission::PLUGIN_SETTING, $permission->getPermissionDetails());
             });
     
-            return $permissions->map(function($permission){return $permission->getPluginId();})->toArray();
+            return $permissions->map(function ($permission) {
+                return $permission->getPluginId();
+            })->toArray();
         });
     }
 
@@ -297,7 +299,7 @@ class Plugin extends ModelBase
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
                 // if $plugin_types is not trigger, continue
-                if(!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_EVENT())){
+                if (!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_EVENT())) {
                     continue;
                 }
 
@@ -306,18 +308,18 @@ class Plugin extends ModelBase
                 
                 $options['throw_ex'] = false;
 
-                if (in_array($event, (array)$event_triggers) && isset($enum)){
+                if (in_array($event, (array)$event_triggers) && isset($enum)) {
                     // call PluginType::EVENT as throw_ex is false
                     $class = $plugin->getClass(PluginType::EVENT, $options);
                     
                     $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
 
                     // if isset $class, call
-                    if(isset($class)){
+                    if (isset($class)) {
                         $pluginCalled = $class->execute();
                     }
                     // if cannot call class, set error
-                    else{
+                    else {
                         admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
                     }
                 }
@@ -339,7 +341,7 @@ class Plugin extends ModelBase
 
         $buttonList = [];
         foreach ($plugins as $plugin) {
-            if(!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_BUTTON())){
+            if (!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_BUTTON())) {
                 continue;
             }
 
@@ -366,7 +368,7 @@ class Plugin extends ModelBase
                         $options = ['throw_ex' => false];
                         $class = $plugin->getClass(PluginType::BUTTON, $options);
                         $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
-                        if(!isset($class)){
+                        if (!isset($class)) {
                             admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
                             break;
                         }
@@ -435,7 +437,7 @@ class Plugin extends ModelBase
     public static function getAccessableByPluginTypes($plugin_types, $getAsClass = false)
     {
         return static::getByPluginTypes($plugin_types, $getAsClass)
-            ->filter(function($plugin){
+            ->filter(function ($plugin) {
                 $login_user = \Exment::user();
                 if (!$login_user || !$login_user->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
                     return false;
@@ -570,9 +572,9 @@ class Plugin extends ModelBase
      */
     public function getRootUrl($plugin_type)
     {
-        if($plugin_type == PluginType::PAGE){
+        if ($plugin_type == PluginType::PAGE) {
             return admin_urls($this->getRouteUri());
-        }elseif($plugin_type == PluginType::API){
+        } elseif ($plugin_type == PluginType::API) {
             return admin_urls('api', $this->getRouteUri());
         }
     }
@@ -602,7 +604,8 @@ class Plugin extends ModelBase
         return snake_case($uri);
     }
 
-    public function getCannotReadMessage(){
+    public function getCannotReadMessage()
+    {
         return exmtrans('plugin.error.cannot_read', [
             'plugin_view_name' => $this->plugin_view_name
         ]);

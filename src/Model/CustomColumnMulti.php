@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterOption;
 
 /**
@@ -224,23 +223,24 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
      * @param [type] $value
      * @return bool
      */
-    public function compareValue($input, $custom_value = null){
+    public function compareValue($input, $custom_value = null)
+    {
         $column1 = $this->compare_column1;
         $column2 = $this->compare_column2;
 
-        if(!isset($column1) || !isset($column2)){
+        if (!isset($column1) || !isset($column2)) {
             return true;
         }
 
         // get value function
-        $getValueFunc = function($input, $column, $custom_value){
-            // if key has value in input 
-            if(array_has($input, 'value.' . $column->column_name)){
+        $getValueFunc = function ($input, $column, $custom_value) {
+            // if key has value in input
+            if (array_has($input, 'value.' . $column->column_name)) {
                 return array_get($input, 'value.' . $column->column_name);
             }
 
             // if not has, get from custom value
-            if(!isset($custom_value) || !$custom_value->exists){
+            if (!isset($custom_value) || !$custom_value->exists) {
                 return null;
             }
 
@@ -250,19 +250,18 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         $value1 = $getValueFunc($input, $column1, $custom_value);
         $value2 = $getValueFunc($input, $column2, $custom_value);
 
-        switch($this->compare_type){
+        switch ($this->compare_type) {
             case FilterOption::EQ:
-                if(empty($value1)){
-                    if(empty($value2)){
+                if (empty($value1)) {
+                    if (empty($value2)) {
                         return true;
                     }
-                }
-                elseif(empty($value2)){
-                    if(empty($value1)){
+                } elseif (empty($value2)) {
+                    if (empty($value1)) {
                         return true;
                     }
-                }else{
-                    if($value1 == $value2){
+                } else {
+                    if ($value1 == $value2) {
                         return true;
                     }
                 }
@@ -270,24 +269,23 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                 return $this->getCompareErrorMessage('validation.not_match', $column1, $column2);
 
             case FilterOption::NE:
-                if(empty($value1)){
-                    if(!empty($value2)){
+                if (empty($value1)) {
+                    if (!empty($value2)) {
                         return true;
                     }
-                }
-                elseif(empty($value2)){
-                    if(!empty($value1)){
+                } elseif (empty($value2)) {
+                    if (!empty($value1)) {
                         return true;
                     }
-                }else{
-                    if($value1 != $value2){
+                } else {
+                    if ($value1 != $value2) {
                         return true;
                     }
                 }
 
                 return $this->getCompareErrorMessage('validation.not_notmatch', $column1, $column2);
             default:
-                if(empty($value1) || empty($value2)){
+                if (empty($value1) || empty($value2)) {
                     return true;
                 }
 
@@ -295,7 +293,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         }
     }
 
-    public function getCompareErrorMessage($transKey, $column1, $column2){
+    public function getCompareErrorMessage($transKey, $column1, $column2)
+    {
         return exmtrans($transKey, [
             'attribute1' => $column1->column_view_name,
             'attribute2' => $column2->column_view_name,

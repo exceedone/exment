@@ -56,11 +56,11 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      */
     public function dashboard_row_boxes($row_no)
     {
-        return DashboardBox::allRecords(function($record) use($row_no){
-            if($record->dashboard_id != $this->id){
+        return DashboardBox::allRecords(function ($record) use ($row_no) {
+            if ($record->dashboard_id != $this->id) {
                 return false;
             }
-            if($record->row_no != $row_no){
+            if ($record->row_no != $row_no) {
                 return false;
             }
             return true;

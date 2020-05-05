@@ -110,21 +110,21 @@ trait HasPermissions
         }
 
         $plugin = Plugin::getEloquent($plugin);
-        if(!isset($plugin)){
+        if (!isset($plugin)) {
             return false;
         }
 
         $role_key = stringToArray($role_key);
 
         // check all access
-        if(in_array(Permission::PLUGIN_ACCESS, $role_key)){
-            if(boolval($plugin->getOption('all_user_enabled'))){
+        if (in_array(Permission::PLUGIN_ACCESS, $role_key)) {
+            if (boolval($plugin->getOption('all_user_enabled'))) {
                 return true;
             }
          
             // if not check permission for access, return true
             $plugin_types = array_get($plugin, 'plugin_types');
-            if (!array_intersect($plugin_types, PluginType::PLUGIN_TYPE_AVAILABLE())){
+            if (!array_intersect($plugin_types, PluginType::PLUGIN_TYPE_AVAILABLE())) {
                 return true;
             }
         }
@@ -144,7 +144,7 @@ trait HasPermissions
             }
 
             // if target plugin, and has key
-            if ($permission->getPluginId() == $plugin->id 
+            if ($permission->getPluginId() == $plugin->id
                 && array_keys_exists($role_key, $permission->getPermissionDetails())) {
                 return true;
             }
@@ -192,8 +192,7 @@ trait HasPermissions
                     'permission_details' =>$role,
                 ]);
                 continue;
-            }
-            elseif(RoleType::TABLE == $key){
+            } elseif (RoleType::TABLE == $key) {
                 foreach ($role as $k => $v) {
                     $permissions[] =  new AuthPermission([
                         'role_type' =>$key,
@@ -201,8 +200,7 @@ trait HasPermissions
                         'permission_details' =>$v,
                     ]);
                 }
-            }
-            elseif(RoleType::PLUGIN == $key){
+            } elseif (RoleType::PLUGIN == $key) {
                 foreach ($role as $k => $v) {
                     $permissions[] =  new AuthPermission([
                         'role_type' => $key,

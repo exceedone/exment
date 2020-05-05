@@ -30,7 +30,8 @@ class ModalTileMenuButton extends ModalMenuButton
      * @param [type] $items
      * @return void
      */
-    public function groups($groups){
+    public function groups($groups)
+    {
         $this->groups = $groups;
     }
 
@@ -52,5 +53,4 @@ class ModalTileMenuButton extends ModalMenuButton
 
         return parent::render();
     }
-    
 }

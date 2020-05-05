@@ -133,7 +133,7 @@ class ExportImportButton extends ModalTileMenuButton
         }
 
         ///// Append default output
-        if($this->export_flg){
+        if ($this->export_flg) {
             $groups[] = [
                 'header' => exmtrans('custom_value.default_export'),
                 'items' => [
@@ -141,7 +141,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'icon' => 'fa-table',
                         'header' => $all,
                         'description' => exmtrans('custom_value.help.export_all'),
-                        'buttons' => collect($formats)->map(function($format, $key){
+                        'buttons' => collect($formats)->map(function ($format, $key) {
                             return array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=export&format=$key"], $format);
                         })->toArray(),
                     ],
@@ -149,7 +149,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'icon' => 'fa-table',
                         'header' => $currentPage,
                         'description' => exmtrans('custom_value.help.export_page'),
-                        'buttons' => collect($formats)->map(function($format, $key) use($page){
+                        'buttons' => collect($formats)->map(function ($format, $key) use ($page) {
                             return array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=export&format=$key"], $format);
                         })->toArray(),
                     ],
@@ -158,7 +158,7 @@ class ExportImportButton extends ModalTileMenuButton
         }
 
         ///// Append view output
-        if($this->view_flg){
+        if ($this->view_flg) {
             $groups[] = [
                 'header' => exmtrans('custom_value.view_export'),
                 'items' => [
@@ -166,7 +166,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'icon' => 'fa-th-list',
                         'header' => $all,
                         'description' => exmtrans('custom_value.help.view_export_all'),
-                        'buttons' => collect($formats)->map(function($format, $key){
+                        'buttons' => collect($formats)->map(function ($format, $key) {
                             return array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=view_export&format=$key"], $format);
                         })->toArray(),
                     ],
@@ -174,7 +174,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'icon' => 'fa-th-list',
                         'header' => $currentPage,
                         'description' => exmtrans('custom_value.help.view_export_page'),
-                        'buttons' => collect($formats)->map(function($format, $key) use($page){
+                        'buttons' => collect($formats)->map(function ($format, $key) use ($page) {
                             return array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=view_export&format=$key"], $format);
                         })->toArray(),
                     ],
@@ -183,8 +183,8 @@ class ExportImportButton extends ModalTileMenuButton
         }
 
         $plugins = $this->getPluginExports();
-        if(!is_nullorempty($plugins)){
-            foreach($plugins as $plugin){
+        if (!is_nullorempty($plugins)) {
+            foreach ($plugins as $plugin) {
                 $button = [
                     'label' => exmtrans('custom_value.export'),
                     'icon' => 'fa-file-o',
@@ -197,7 +197,7 @@ class ExportImportButton extends ModalTileMenuButton
                 // export_types
                 $export_types = stringToArray($plugin->getOption('export_types', ['all', 'current_page']));
 
-                if(in_array('all', $export_types)){
+                if (in_array('all', $export_types)) {
                     $items[] = [
                         'icon' => $plugin->getOption('icon') ?? 'fa-th-list',
                         'header' => $all,
@@ -205,7 +205,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=plugin_export&plugin_id={$plugin->id}"], $button)],
                     ];
                 }
-                if(in_array('current_page', $export_types)){
+                if (in_array('current_page', $export_types)) {
                     $items[] = [
                         'icon' => $plugin->getOption('icon') ?? 'fa-th-list',
                         'header' => $currentPage,
@@ -229,7 +229,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'icon' => 'fa-download',
                         'header' => exmtrans('custom_value.template'),
                         'description' => exmtrans('custom_value.help.template'),
-                        'buttons' => collect($formats)->map(function($format, $key){
+                        'buttons' => collect($formats)->map(function ($format, $key) {
                             return array_merge(['href'=> $this->endpoint."?_export_=all&temp=1&format=$key"], $format);
                         })->toArray(),
                     ],
@@ -271,18 +271,19 @@ class ExportImportButton extends ModalTileMenuButton
         return false;
     }
 
-    protected function getPluginExports(){
-        if(!isset($this->custom_table)){
+    protected function getPluginExports()
+    {
+        if (!isset($this->custom_table)) {
             return collect();
         }
 
         return Plugin::getPluginsByTable($this->custom_table)
-            ->filter(function($plugin){
-                if(!$plugin->matchPluginType(PluginType::EXPORT)){
+            ->filter(function ($plugin) {
+                if (!$plugin->matchPluginType(PluginType::EXPORT)) {
                     return false;
                 }
 
-                if(!\Exment::user()->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)){
+                if (!\Exment::user()->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
                     return false;
                 }
 

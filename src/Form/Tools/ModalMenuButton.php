@@ -40,7 +40,7 @@ class ModalMenuButton implements Renderable
 
     public function render()
     {
-        if(!is_nullorempty($this->menulist)){
+        if (!is_nullorempty($this->menulist)) {
             $this->attributes['data-toggle'] = 'dropdown';
             $this->attributes['aria-haspopup'] = true;
             $this->attributes['aria-expanded'] = false;
@@ -60,6 +60,4 @@ class ModalMenuButton implements Renderable
             
         ])->render();
     }
-    
-
 }
