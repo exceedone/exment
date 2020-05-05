@@ -51,7 +51,7 @@ class InstallCommand extends AdminInstallCommand
     {
         $this->publishStaticFiles();
 
-        $this->createBootstrapFile();
+        $this->createExmentBootstrapFile();
 
         $this->initDatabase();
         

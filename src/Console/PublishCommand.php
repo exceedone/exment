@@ -50,6 +50,6 @@ class PublishCommand extends Command
     {
         $this->publishStaticFiles();
 
-        $this->createBootstrapFile();
+        $this->createExmentBootstrapFile();
     }
 }

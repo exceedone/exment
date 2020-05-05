@@ -51,7 +51,7 @@ class UpdateCommand extends Command
     {
         $this->publishStaticFiles();
         
-        $this->createBootstrapFile();
+        $this->createExmentBootstrapFile();
         
         $this->initDatabase();
     }
