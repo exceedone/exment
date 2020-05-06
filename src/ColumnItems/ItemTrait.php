@@ -205,7 +205,7 @@ trait ItemTrait
      * @param [type] $value
      * @return ?string string:matched, null:not matched
      */
-    public function getPureValue($label)
+    public function getValFromLabel($label)
     {
         return null;
     }
@@ -216,7 +216,7 @@ trait ItemTrait
             return [$mark, $value];
         }
 
-        $pureValue = $this->getPureValue($q);
+        $pureValue = $this->getValFromLabel($q);
         if (is_null($pureValue)) {
             return [$mark, $value];
         }

@@ -352,7 +352,7 @@ class SelectTable extends CustomItem
      * @param [type] $value
      * @return ?string string:matched, null:not matched
      */
-    public function getPureValue($label)
+    public function getValFromLabel($label)
     {
         $select_table = $this->custom_column->select_target_table ?? null;
         if (!isset($select_table)) {
@@ -426,7 +426,7 @@ class SelectTable extends CustomItem
             return false;
         }
 
-        $searchValue = $column_item->getPureValue($value);
+        $searchValue = $column_item->getValFromLabel($value);
         if (!isset($searchValue)) {
             $searchValue = $value;
         }
