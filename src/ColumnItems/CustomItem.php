@@ -118,9 +118,19 @@ abstract class CustomItem implements ItemInterface
     }
     
     /**
-     * get value
+     * Get default value. Only avaiable form input.
+     *
+     * @return mixed
      */
-    public function value()
+    public function defaultForm(){
+        return $this->default();
+    }
+    
+    /**
+     * get value
+     * Don't call $this->value(). otherwise, aborting.
+     */
+    public function pureValue()
     {
         if(!is_nullorempty($this->value)){
             return $this->value;
@@ -299,13 +309,8 @@ abstract class CustomItem implements ItemInterface
         }
 
         // default
-        if (!is_null($this->default())) {
-            $field->default($this->default());
-        }
-
-        // default (login user)
-        if (boolval(array_get($options, 'login_user_default'))) {
-            $field->default(\Exment::user()->getUserId());
+        if (!is_null($this->defaultForm())) {
+            $field->default($this->defaultForm());
         }
 
         // number_format

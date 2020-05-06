@@ -10,6 +10,10 @@ class Time extends Date
 {
     protected $format = 'H:i:s';
 
+    public function value(){
+        new \Carbon\Carbon($this->pureValue());
+    }
+
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {

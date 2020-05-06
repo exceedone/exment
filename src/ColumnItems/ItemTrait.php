@@ -16,20 +16,21 @@ trait ItemTrait
     protected $options;
 
     /**
-     * get value
-     */
-    public function value()
-    {
-        return $this->value;
-    }
-
-    /**
      * get pure value. (In database value)
+     * Don't call $this->value(). otherwise, aborting.
      */
     public function pureValue()
     {
         // not $this->value();
         return $this->value;
+    }
+
+    /**
+     * get value
+     */
+    public function value()
+    {
+        return $this->pureValue();
     }
 
     /**

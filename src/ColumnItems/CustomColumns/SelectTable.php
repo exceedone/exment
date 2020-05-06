@@ -60,7 +60,7 @@ class SelectTable extends CustomItem
             $this->value = json_decode($this->pureValue());
         }
 
-        $value = toArray($isArray);
+        $value = toArray($this->pureValue());
         $result = [];
 
         // if can select table relation, set value

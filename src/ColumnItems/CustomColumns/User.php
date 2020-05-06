@@ -15,11 +15,11 @@ class User extends SelectTable
     }
     
     /**
-     * Get default value
+     * Get default value. Only avaiable form input.
      *
      * @return mixed
      */
-    public function default(){
+    public function defaultForm(){
         if(!is_null($default = parent::default())){
             return $default;
         }
