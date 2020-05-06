@@ -62,7 +62,7 @@ namespace Exment {
         }
         
         public static GetConditionSettingValText(){
-            const targetKeys = ['workflow_conditions', 'status_to', 'enabled_flg', 'id'];
+            const targetKeys = ['workflow_conditions', 'status_to', 'enabled_flg', 'condition_join', 'id'];
 
             // get col value item list
             let form = $('[data-contentname="workflow_actions_work_conditions"] form');

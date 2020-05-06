@@ -9,11 +9,13 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\PluginType;
 
 trait HasPermissions
 {
@@ -26,7 +28,7 @@ trait HasPermissions
     }
 
     /**
-     * whethere has permission, permission level
+     * Whether has permission, permission level
      * $role_key * if set array, check whether either items.
      * @param array|string $role_key
      */
@@ -94,6 +96,63 @@ trait HasPermissions
     }
 
     /**
+     * whethere has permission, permission level
+     * $role_key * if set array, check whether either items.
+     * Checking target plugin.
+     * @param string $id
+     * @param array|string $role_key
+     */
+    public function hasPermissionPlugin($plugin, $role_key)
+    {
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
+            return true;
+        }
+
+        $plugin = Plugin::getEloquent($plugin);
+        if (!isset($plugin)) {
+            return false;
+        }
+
+        $role_key = stringToArray($role_key);
+
+        // check all access
+        if (in_array(Permission::PLUGIN_ACCESS, $role_key)) {
+            if (boolval($plugin->getOption('all_user_enabled'))) {
+                return true;
+            }
+         
+            // if not check permission for access, return true
+            $plugin_types = array_get($plugin, 'plugin_types');
+            if (!array_intersect($plugin_types, PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
+                return true;
+            }
+        }
+
+        $permissions = $this->allPermissions();
+        foreach ($permissions as $permission) {
+            // check system permission
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_key_exists('system', $permission->getPermissionDetails())) {
+                return true;
+            }
+
+            // if role type is system, and has plugin all
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_keys_exists(Permission::PLUGIN_ALL, $permission->getPermissionDetails())) {
+                return true;
+            }
+
+            // if target plugin, and has key
+            if ($permission->getPluginId() == $plugin->id
+                && array_keys_exists($role_key, $permission->getPermissionDetails())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * whether user has no permission
      * if no permission, show message on dashboard
      */
@@ -133,13 +192,23 @@ trait HasPermissions
                     'permission_details' =>$role,
                 ]);
                 continue;
-            }
-            foreach ($role as $k => $v) {
-                $permissions[] =  new AuthPermission([
-                    'role_type' =>$key,
-                    'table_name' =>$k,
-                    'permission_details' =>$v,
-                ]);
+            } elseif (RoleType::TABLE == $key) {
+                foreach ($role as $k => $v) {
+                    $permissions[] =  new AuthPermission([
+                        'role_type' =>$key,
+                        'table_name' =>$k,
+                        'permission_details' =>$v,
+                    ]);
+                }
+            } elseif (RoleType::PLUGIN == $key) {
+                foreach ($role as $k => $v) {
+                    $permissions[] =  new AuthPermission([
+                        'role_type' => $key,
+                        'table_name' => null,
+                        'plugin_id' => $k,
+                        'permission_details' =>$v,
+                    ]);
+                }
             }
         }
 
@@ -267,6 +336,7 @@ trait HasPermissions
             return [
                 RoleType::SYSTEM => $this->getSystemPermissions(),
                 RoleType::TABLE => $this->getCustomTablePermissions(),
+                RoleType::PLUGIN => $this->getPluginPermissions(),
             ];
         });
         return $authority;
@@ -300,7 +370,10 @@ trait HasPermissions
 
                 $role_details = $role_group_permission->permissions;
                 foreach ($role_details as $value) {
-                    if (!array_key_exists($value, $permissions)) {
+                    if(!isset($permissions[$custom_table->table_name])){
+                        $permissions[$custom_table->table_name] = [];
+                    }
+                    if (!array_key_exists($value, $permissions[$custom_table->table_name])) {
                         $permissions[$custom_table->table_name][$value] = 1;
                     }
                 }
@@ -319,6 +392,47 @@ trait HasPermissions
             }
             if (boolval($table->getOption('all_user_accessable_flg'))) {
                 $permissions[$table_name][Permission::CUSTOM_VALUE_ACCESS_ALL] = "1";
+            }
+        }
+
+        return $permissions;
+    }
+
+    /**
+     * get Plugin permissons.
+     */
+    protected function getPluginPermissions()
+    {
+        // get all permissons for system. --------------------------------------------------
+        $roles = $this->getPermissionItems();
+
+        // get permission_details for all tables. --------------------------------------------------
+        $permission_details = [];
+        $permissions = [];
+       
+        foreach ($roles as $role) {
+            foreach ($role->role_group_permissions as $role_group_permission) {
+                if (!isset($role_group_permission->permissions)) {
+                    continue;
+                }
+                if ($role_group_permission->role_group_permission_type != RoleType::PLUGIN) {
+                    continue;
+                }
+
+                $plugin = Plugin::getEloquent($role_group_permission->role_group_target_id);
+                if (!isset($plugin)) {
+                    continue;
+                }
+
+                $role_details = $role_group_permission->permissions;
+                foreach ($role_details as $value) {
+                    if(!isset($permissions[$plugin->id])){
+                        $permissions[$plugin->id] = [];
+                    }
+                    if (!array_key_exists($value, $permissions[$plugin->id])) {
+                        $permissions[$plugin->id][$value] = 1;
+                    }
+                }
             }
         }
 

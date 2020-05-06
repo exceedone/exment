@@ -10,6 +10,7 @@ use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -540,10 +541,10 @@ abstract class CustomItem implements ItemInterface
             // add regexes using loop
             foreach ($available_characters as $available_character) {
                 // get available_character define
-                $define = collect($difinitions)->first(function($d) use($available_character){
+                $define = collect($difinitions)->first(function ($d) use ($available_character) {
                     return array_get($d, 'key') == $available_character;
                 });
-                if(!isset($define)){
+                if (!isset($define)) {
                     continue;
                 }
 
@@ -564,6 +565,14 @@ abstract class CustomItem implements ItemInterface
         $this->setValidates($validates, $form_column_options);
 
         return $validates;
+    }
+
+    /**
+     * Compare two values.
+     */
+    public function compareTwoValues(CustomColumnMulti $compare_column, $this_value, $target_value)
+    {
+        return true;
     }
 
     protected function initonly()

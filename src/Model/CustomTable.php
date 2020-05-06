@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\FormActionType;
+use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\FormHelper;
@@ -118,13 +119,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function multi_uniques()
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
-            ->where('multisetting_type', 1);
+            ->where('multisetting_type', MultisettingType::MULTI_UNIQUES);
     }
 
     public function table_labels()
     {
         return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
-            ->where('multisetting_type', 2);
+            ->where('multisetting_type', MultisettingType::TABLE_LABELS);
+    }
+
+    public function compare_columns()
+    {
+        return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
+            ->where('multisetting_type', MultisettingType::COMPARE_COLUMNS);
     }
 
     /**
@@ -322,6 +329,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return true;
             }
 
+            if ($val->multisetting_type != MultisettingType::MULTI_UNIQUES) {
+                return false;
+            }
+
             $targetid = CustomColumn::getEloquent($custom_column, $this)->id;
             foreach ([1,2,3] as $key) {
                 if ($val->{'unique' . $key} == $targetid) {
@@ -329,6 +340,21 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 }
             }
             return false;
+        }, false);
+    }
+
+    public function getCompareColumns()
+    {
+        return CustomColumnMulti::allRecords(function ($val) {
+            if (array_get($val, 'custom_table_id') != $this->id) {
+                return false;
+            }
+
+            if ($val->multisetting_type != MultisettingType::COMPARE_COLUMNS) {
+                return false;
+            }
+
+            return true;
         }, false);
     }
 
@@ -494,6 +520,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
         $errors = $this->validatorMultiUniques($value, $custom_value, $options);
+        
+        $errors = array_merge(
+            $this->validatorCompareColumns($value, $custom_value, $options),
+            $errors
+        );
+        
+        $errors = array_merge(
+            $this->validatorPlugin($value, $custom_value),
+            $errors
+        );
+
         if ($validateLock) {
             $errors = array_merge(
                 $this->validatorLock($value, $custom_value, $asApi),
@@ -609,6 +646,38 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $errors;
     }
     
+    /**
+     * Validation comparing 2 columns
+     */
+    public function validatorCompareColumns($input, $custom_value = null, array $options = [])
+    {
+        extract(
+            array_merge([
+                'asApi' => false, // calling as api
+            ], $options)
+        );
+
+        $errors = [];
+
+        // getting custom_table's custom_column_multi_uniques
+        $compare_columns = $this->getCompareColumns();
+
+        if (!isset($compare_columns) || count($compare_columns) == 0) {
+            return $errors;
+        }
+
+        foreach ($compare_columns as $compare_column) {
+            // get two values
+            $compareResult = $compare_column->compareValue($input, $custom_value);
+            if ($compareResult === true) {
+                continue;
+            }
+
+            $errors["value.{$compare_column->compare_column1->column_name}"][] = $compareResult;
+        }
+        return $errors;
+    }
+
     public function validatorLock($input, $custom_value = null, bool $asApi = false)
     {
         if (!array_key_value_exists('updated_at', $input)) {
@@ -637,6 +706,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return $errors;
+    }
+
+    /**
+     * validator using plugin
+     */
+    public function validatorPlugin($input, $custom_value = null)
+    {
+        return Plugin::pluginValidator($this, [
+            'custom_table' => $this,
+            'custom_value' => $custom_value,
+            'input_value' => array_get($input, 'value'),
+        ]);
     }
 
 

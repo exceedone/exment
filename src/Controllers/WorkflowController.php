@@ -978,6 +978,11 @@ class WorkflowController extends AdminControllerBase
                 });
 
                 $hasManyTable->render();
+
+                $form->radio("condition_join_{$index}", exmtrans("condition.condition_join"))
+                    ->options(exmtrans("condition.condition_join_options"))
+                    ->attribute(['data-filter' => json_encode(['key' => "enabled_flg_{$index}", 'value' => '1'])])
+                    ->default(array_get($work_condition, "condition_join") ?? 'and');
             }
         }
 

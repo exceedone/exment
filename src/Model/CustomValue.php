@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 
 abstract class CustomValue extends ModelBase
 {
@@ -338,7 +339,7 @@ abstract class CustomValue extends ModelBase
             $model->prepareValue();
 
             // call saving trigger plugins
-            Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saving', [
+            Plugin::pluginExecuteEvent(PluginEventTrigger::SAVING, $model->custom_table, [
                 'custom_table' => $model->custom_table,
                 'custom_value' => $model,
             ]);
@@ -407,7 +408,7 @@ abstract class CustomValue extends ModelBase
         $this->setFileValue();
 
         // call plugins
-        Plugin::pluginPreparing(Plugin::getPluginsByTable($this), 'saved', [
+        Plugin::pluginExecuteEvent(PluginEventTrigger::SAVED, $this->custom_table, [
             'custom_table' => $this->custom_table,
             'custom_value' => $this,
         ]);
@@ -441,20 +442,20 @@ abstract class CustomValue extends ModelBase
      */
     public function validatorSaving($input, bool $asApi = false)
     {
-        // validate multiple column set is unique
-        $errors = $this->custom_table->validatorMultiUniques($input, $this, [
+        $options = [
             'asApi' => $asApi,
             'appendErrorAllColumn' => true,
-        ]);
+        ];
+
+        // validate multiple column set is unique
+        $errors = $this->custom_table->validatorMultiUniques($input, $this, $options);
+
+        $errors = array_merge($this->custom_table->validatorCompareColumns($input, $this, $options), $errors);
 
         $errors = array_merge($this->custom_table->validatorLock($input, $this, $asApi), $errors);
 
         // call plugin validator
-        $errors = array_merge_recursive($errors, Plugin::pluginValidator(Plugin::getPluginsByTable($this->custom_table), [
-            'custom_table' => $this->custom_table,
-            'custom_value' => $this,
-            'input_value' => array_get($input, 'value'),
-        ]));
+        $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this));
 
         return count($errors) > 0 ? $errors : true;
     }

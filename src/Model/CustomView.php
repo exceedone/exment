@@ -24,7 +24,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\DatabaseJsonTrait;
 
     //protected $appends = ['view_calendar_target', 'pager_count'];
-    protected $appends = ['pager_count'];
+    protected $appends = ['pager_count', 'condition_join'];
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json'];
     //protected $with = ['custom_table', 'custom_view_columns'];
@@ -128,6 +128,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function getTableNameAttribute()
     {
         return $this->custom_table->table_name;
+    }
+
+    public function getFilterIsOrAttribute()
+    {
+        return $this->condition_join == 'or';
     }
 
     public function getOption($key, $default = null)
@@ -556,7 +561,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setValueFilters($model, $db_table_name = null)
     {
         foreach ($this->custom_view_filters_cache as $filter) {
-            $filter->setValueFilter($model, $db_table_name);
+            $filter->setValueFilter($model, $db_table_name, $this->filter_is_or);
         }
         return $model;
     }
@@ -581,6 +586,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 if (!isset($column_item)) {
                     break;
                 }
+                // $view_column_target is wraped
                 $view_column_target = $column_item->getSortColumn();
                 $sort_order = $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc';
                 //set order
@@ -713,7 +719,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             })) {
                 $sub_query = $this->getSubQuery($db_table_name, 'id', 'parent_id', $custom_table);
                 if (array_key_exists('select_group', $custom_table)) {
-                    $query = $query->addSelect($custom_table['select_group']);
+                    $query->addSelect($custom_table['select_group']);
                 }
                 $sub_queries[] = $sub_query;
                 continue;
@@ -729,7 +735,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $column_key = array_search($table_id, $selected_table_columns);
                 $sub_query = $this->getSubQuery($db_table_name, 'id', $column_key, $custom_table);
                 if (array_key_exists('select_group', $custom_table)) {
-                    $query = $query->addSelect($custom_table['select_group']);
+                    $query->addSelect($custom_table['select_group']);
                 }
                 $sub_queries[] = $sub_query;
                 continue;
@@ -738,21 +744,21 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // join subquery
         foreach ($sub_queries as $table_no => $sub_query) {
-            //$query = $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
+            //$query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
             $alter_name = is_string($table_no)? $table_no : 'table_'.$table_no;
             $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As $alter_name"), $db_table_name.'.id', "$alter_name.id");
-            $query = $query->addBinding($sub_query->getBindings(), 'join');
+            $query->addBinding($sub_query->getBindings(), 'join');
         }
 
         if (count($sort_columns) > 0) {
             $orders = collect($sort_columns)->sortBy('key')->all();
             foreach ($orders as $order) {
                 $sort = ViewColumnSort::getEnum(array_get($order, 'sort_type'), ViewColumnSort::ASC)->lowerKey();
-                $query = $query->orderBy(array_get($order, 'column_name'), $sort);
+                $query->orderBy(array_get($order, 'column_name'), $sort);
             }
         }
         // set sql grouping columns
-        $query = $query->groupBy($group_columns);
+        $query->groupBy($group_columns);
 
         return $query;
     }
@@ -817,15 +823,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $table_name = array_get($custom_table, 'table_name');
         if ($table_name != $table_main) {
-            $query = $query->join($table_name, "$table_main.$key_main", "$table_name.$key_sub");
-            $query = $query->whereNull("$table_name.deleted_at");
+            $query->join($table_name, "$table_main.$key_main", "$table_name.$key_sub");
+            $query->whereNull("$table_name.deleted_at");
         }
         if (array_key_exists('select', $custom_table)) {
-            $query = $query->addSelect($custom_table['select']);
+            $query->addSelect($custom_table['select']);
         }
         if (array_key_exists('filter', $custom_table)) {
             foreach ($custom_table['filter'] as $filter) {
-                $filter->setValueFilter($query, $table_name);
+                $filter->setValueFilter($query, $table_name, $this->filter_is_or);
             }
         }
     }
@@ -849,9 +855,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $sub_query->addSelect($custom_table['select']);
         }
         if (array_key_exists('filter', $custom_table)) {
-            foreach ($custom_table['filter'] as $filter) {
-                $filter->setValueFilter($sub_query, $table_name);
-            }
+            $custom_filter = $custom_table['filter'];
+            $sub_query->where(function ($query) use ($table_name, $custom_filter) {
+                foreach ($custom_filter as $filter) {
+                    $filter->setValueFilter($query, $table_name, $this->filter_is_or);
+                }
+            });
         }
         return $sub_query;
     }
@@ -999,6 +1008,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setPagerCountAttribute($val)
     {
         $this->setOption('pager_count', $val);
+
+        return $this;
+    }
+    
+    public function getConditionJoinAttribute()
+    {
+        return $this->getOption('condition_join');
+    }
+
+    public function setConditionJoinAttribute($val)
+    {
+        $this->setOption('condition_join', $val);
 
         return $this;
     }

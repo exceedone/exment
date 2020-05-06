@@ -78,7 +78,7 @@ class LoginUserProvider extends ProviderBase
     /**
      * get target chunk records
      */
-    protected function getRecords()
+    public function getRecords()
     {
         $this->grid->model()->chunk(function ($data) use (&$records) {
             if (!isset($records)) {

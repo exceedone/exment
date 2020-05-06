@@ -64,7 +64,7 @@ class DefaultTableProvider extends ProviderBase
         $lastColumns = ['created_at','updated_at','deleted_at'];
 
         // get custom columns
-        $custom_columns = $this->custom_table->custom_columns()->get();
+        $custom_columns = $this->custom_table->custom_columns_cache;
         return [$firstColumns, $custom_columns, $lastColumns];
     }
 
@@ -106,7 +106,7 @@ class DefaultTableProvider extends ProviderBase
     /**
      * get target chunk records
      */
-    protected function getRecords()
+    public function getRecords()
     {
         $this->grid->applyQuickSearch();
         $this->grid->getFilter()->chunk(function ($data) use (&$records) {

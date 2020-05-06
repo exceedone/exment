@@ -50,6 +50,11 @@ class DataImportExportService extends AbstractExporter
      */
     protected $viewExportAction;
 
+    /**
+     * plugin export action.
+     */
+    protected $pluginExportAction;
+
     public function __construct($args = [])
     {
         $this->format = static::getFormat($args);
@@ -127,6 +132,13 @@ class DataImportExportService extends AbstractExporter
         return $this;
     }
     
+    public function pluginExportAction($pluginExportAction)
+    {
+        $this->pluginExportAction = $pluginExportAction;
+
+        return $this;
+    }
+    
     /**
      * execute export
      */
@@ -136,6 +148,10 @@ class DataImportExportService extends AbstractExporter
 
         // get export action type
         $action = request()->get('action');
+
+        if ($action == 'plugin_export' && isset($this->pluginExportAction)) {
+            return $this->pluginExportAction->execute();
+        }
 
         if ($action == 'view_export' && isset($this->viewExportAction)) {
             $datalist = $this->viewExportAction->datalist();
