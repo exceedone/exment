@@ -198,7 +198,7 @@ class SystemItem implements ItemInterface
                 $custom_value = $this->custom_table->getValueModel($custom_value->parent_id);
             } else {
                 $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
-                $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
+                $pivot_id =  $custom_value->pureValue($pivot_custom_column);
                 $custom_value = $this->custom_table->getValueModel($pivot_id);
             }
         }

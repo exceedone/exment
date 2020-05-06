@@ -803,6 +803,42 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
+     * Get Pure value. Almost return from database.
+     *
+     * @param CustomColumn|string $custom_column
+     * @return mixed
+     */
+    public function pureValue($custom_column)
+    {
+        $custom_column = CustomColumn::getEloquent($custom_column, $this->custom_table);
+        if(!isset($custom_column)){
+            return null;
+        }
+        
+        // get from database
+        if(!is_nullorempty($value = array_get($this->value, $custom_column->column_name))){
+            return $value;
+        }
+
+        // get dafault
+        if(!is_nullorempty($value = $custom_column->column_item->default())){
+            return $value;
+        }
+        
+        // get pure value only "viewOnly" column
+        // if($custom_column->column_item->isViewOnly()){
+        //     // already get default value, return null. (For stop aboring).
+        //     if(isset($this->isGetPureValue) && boolval($this->isGetPureValue)){
+        //         $this->isGetPureValue = false;
+        //         return null;
+        //     }
+
+        //     $this->isGetPureValue = true;
+        //     return $custom_column->column_item->pureValue();
+        // }
+    }
+
+    /**
      * Get vustom_value's label
      * @param CustomValue $custom_value
      * @return string
@@ -1018,10 +1054,9 @@ abstract class CustomValue extends ModelBase
     public function mergeValue($value)
     {
         foreach ($this->custom_table->custom_columns as $custom_column) {
-            $column_name = $custom_column->column_name;
             // if not key in value, set default value
-            if (!array_has($value, $column_name)) {
-                $value[$column_name] = $this->getValue($column_name, ValueType::PURE_VALUE);
+            if (!array_has($value, $custom_column->column_name)) {
+                $value[$column_name] = $this->pureValue($custom_column);
             }
         }
 

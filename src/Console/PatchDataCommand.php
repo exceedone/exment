@@ -794,7 +794,7 @@ class PatchDataCommand extends Command
 
             foreach ($custom_columns as $custom_column) {
                 $func($custom_table->getValueModel()->query(), $custom_column->getQueryKey(), function ($item) use ($custom_column) {
-                    $value = array_get($item, "value.{$custom_column->column_name}");
+                    $value = $item->pureValue($custom_column);
                     $item->setValue($custom_column->column_name, str_replace('\\', '/', $value));
                     $item->disable_saved_event(true);
                 });

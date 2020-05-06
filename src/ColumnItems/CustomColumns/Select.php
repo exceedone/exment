@@ -11,10 +11,10 @@ class Select extends CustomItem
 {
     use ImportValueTrait;
     
-    public function value()
-    {
-        return $this->getResultForSelect(false);
-    }
+    // public function value()
+    // {
+    //     return $this->getResultForSelect(false);
+    // }
 
     public function text()
     {

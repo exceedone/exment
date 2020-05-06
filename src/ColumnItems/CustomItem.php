@@ -122,7 +122,7 @@ abstract class CustomItem implements ItemInterface
      */
     public function value()
     {
-        if(!is_null($this->value)){
+        if(!is_nullorempty($this->value)){
             return $this->value;
         }
 
@@ -219,12 +219,12 @@ abstract class CustomItem implements ItemInterface
                 $custom_value = $this->custom_table->getValueModel($custom_value->parent_id);
             } else {
                 $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
-                $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
+                $pivot_id =  $custom_value->pureValue($pivot_custom_column);
                 $custom_value = $this->custom_table->getValueModel($pivot_id);
             }
         }
 
-        return array_get($custom_value, 'value.'.$this->custom_column->column_name);
+        return isset($custom_value) ? $custom_value->pureValue($this->custom_column) : null;
     }
     
     public function getFilterField($value_type = null)

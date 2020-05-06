@@ -87,7 +87,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         if (!ColumnType::isUserOrganization($custom_column->column_type)) {
             return false;
         }
-        $auth_values = array_get($custom_value, 'value.' . $custom_column->column_name);
+        $auth_values = isset($custom_value) ? $custom_value->pureValue($custom_column) : null;
         if (is_null($auth_values)) {
             return false;
         }

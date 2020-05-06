@@ -83,4 +83,17 @@ class Yesno extends CustomItem
         }
         return null;
     }
+    
+    /**
+     * Get default value
+     *
+     * @return mixed
+     */
+    public function default(){
+        if(!is_null($default = parent::default())){
+            return $default;
+        }
+
+        return 0;
+    }
 }
