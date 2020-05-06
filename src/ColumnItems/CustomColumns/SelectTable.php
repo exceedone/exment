@@ -56,12 +56,12 @@ class SelectTable extends CustomItem
             return;
         }
         
-        if (!is_array($this->value) && preg_match('/\[.+\]/i', $this->value)) {
-            $this->value = json_decode($this->value);
+        if (!is_array($this->value()) && preg_match('/\[.+\]/i', $this->value())) {
+            $this->value = json_decode($this->value());
         }
 
-        $isArray = is_array($this->value);
-        $value = $isArray ? $this->value : [$this->value];
+        $isArray = is_array($this->value());
+        $value = $isArray ? $this->value() : [$this->value()];
         $result = [];
 
         // if can select table relation, set value

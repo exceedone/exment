@@ -33,6 +33,15 @@ trait ItemTrait
     }
 
     /**
+     * Get default value
+     *
+     * @return mixed
+     */
+    public function default(){
+        return null;
+    }
+
+    /**
      * get or set option for convert
      */
     public function options($options = null)

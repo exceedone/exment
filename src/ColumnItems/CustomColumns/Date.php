@@ -25,7 +25,7 @@ class Date extends CustomItem
             $format = $this->getDisplayFormat();
         }
         
-        if (!isset($this->value)) {
+        if (is_null($this->value())) {
             return null;
         }
 
@@ -55,10 +55,10 @@ class Date extends CustomItem
     {
         if ($this->autoDate()) {
             $this->value = $this->getNowString();
-            return $this->value;
+            return $this->value();
         }
 
-        if (!isset($this->value)) {
+        if (is_null($this->value())) {
             return null;
         }
 

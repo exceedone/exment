@@ -28,7 +28,7 @@ class Integer extends CustomItem
 
     public function saving()
     {
-        $rmv = rmcomma($this->value);
+        $rmv = rmcomma($this->value());
         if (!isset($rmv)) {
             return null;
         }

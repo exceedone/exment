@@ -255,7 +255,7 @@ class SystemItem implements ItemInterface
             case 'day':
             case 'datetime':
                 $field = new Date($this->name(), [$this->label()]);
-                $field->default($this->value);
+                $field->default($this->value());
                 break;
             case 'user':
                 $field = new Select($this->name(), [$this->label()]);
@@ -269,11 +269,11 @@ class SystemItem implements ItemInterface
                             ]
                         );
                 });
-                $field->default($this->value);
+                $field->default($this->value());
                 break;
             default:
                 $field = new Text($this->name(), [$this->label()]);
-                $field->default($this->value);
+                $field->default($this->value());
                 break;
         }
 
