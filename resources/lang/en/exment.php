@@ -293,6 +293,7 @@ return [
         'custom_value_save_autoshare_options' => [
             'user_only' => 'Only login user',
             'user_organization' => 'Login user and your organization',
+            'user_organizationview' => 'Login user and your organization(VIEW ONLY)',
         ],
 
         'help' =>[
