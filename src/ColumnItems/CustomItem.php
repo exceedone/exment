@@ -104,16 +104,11 @@ abstract class CustomItem implements ItemInterface
     }
 
     /**
-     * Get default value
+     * Get default value. If value is null, return this result.
      *
      * @return mixed
      */
     public function default(){
-        $default = $this->custom_column->getOption('default');
-        if(!is_null($default)){
-            return $default;
-        }
-
         return null;
     }
     
@@ -123,6 +118,12 @@ abstract class CustomItem implements ItemInterface
      * @return mixed
      */
     public function defaultForm(){
+        // custom column's option "default" is for only create. 
+        $default = $this->custom_column->getOption('default');
+        if(!is_null($default)){
+            return $default;
+        }
+
         return $this->default();
     }
     
