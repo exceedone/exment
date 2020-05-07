@@ -393,9 +393,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      *
      * @return void
      */
-    public static function getAvailableCharacters(){
+    public static function getAvailableCharacters()
+    {
         ///// get system definitions
-        $results = collect(Define::CUSTOM_COLUMN_AVAILABLE_CHARACTERS)->map(function($val){
+        $results = collect(Define::CUSTOM_COLUMN_AVAILABLE_CHARACTERS)->map(function ($val) {
             return [
                 'key' => $val['key'],
                 'regex' => $val['regex'],
@@ -405,7 +406,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         ///// add user definitions
         $results = $results->merge(
-            collect(static::$customAvailableCharacters)->map(function($val){
+            collect(static::$customAvailableCharacters)->map(function ($val) {
                 return [
                     'key' => $val['key'],
                     'regex' => $val['regex'],

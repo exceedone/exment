@@ -57,11 +57,11 @@ class InitializeForm
             $user->saveOrFail();
             // add login_user table
             $loginuser = new LoginUser;
-            $loginuser->base_user_id = $user->id;
+            $loginuser->base_user_id = $user->getUserId();
             $loginuser->password = $request->get('password');
             $loginuser->saveOrFail();
             // add system role
-            System::system_admin_users([$user->id]);
+            System::system_admin_users([$user->getUserId()]);
 
             // add system initialized flg.
             System::initialized(1);

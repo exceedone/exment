@@ -173,13 +173,8 @@ class CustomViewController extends AdminControllerTableBase
 
         $grid->disableCreateButton();
         $grid->tools(function (Grid\Tools $tools) {
-            // ctrate newbutton (list) --------------------------------------------------
-            $lists = $this->getMenuItems();
-            $tools->append(view('exment::tools.newlist-button', [
-                'label' => trans('admin.new'),
-                'menu' => $lists
-            ]));
-            $tools->append(new Tools\GridChangePageMenu('view', $this->custom_table, false));
+            $tools->append(new Tools\CustomViewMenuButton($this->custom_table, null, false));
+            $tools->append(new Tools\CustomTableMenuButton('view', $this->custom_table));
         });
         return $grid;
     }
@@ -255,6 +250,7 @@ class CustomViewController extends AdminControllerTableBase
                 $form->select('view_type', exmtrans('custom_view.view_type'))
                     ->default(Enums\ViewType::SYSTEM)
                     ->config('allowClear', false)
+                    ->help(exmtrans('custom_view.help.custom_view_type'))
                     ->options(Enums\ViewType::transKeyArray('custom_view.custom_view_type_options'));
             } else {
                 $form->hidden('view_type')->default(Enums\ViewType::USER);
@@ -458,7 +454,7 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table, $view_type) {
-            $tools->add((new Tools\GridChangePageMenu('view', $custom_table, false))->render());
+            $tools->add((new Tools\CustomTableMenuButton('view', $custom_table, false))->render());
 
             if ($view_type == Enums\ViewType::USER) {
                 $tools->append(new Tools\ShareButton($custom_table, $id, true));
@@ -509,6 +505,10 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $hasManyTable->render();
+
+        $form->radio('condition_join', exmtrans("condition.condition_join"))
+            ->options(exmtrans("condition.condition_join_options"))
+            ->default('and');
     }
 
     /**
@@ -568,30 +568,6 @@ class CustomViewController extends AdminControllerTableBase
         });
     }
 
-    protected function getMenuItems()
-    {
-        $view_kind_types = [
-            ['name' => 'create', 'uri' => 'create'],
-            ['name' => 'create_sum', 'uri' => 'create?view_kind_type=1'],
-            ['name' => 'create_calendar', 'uri' => 'create?view_kind_type=2'],
-        ];
-
-        if ($this->custom_table->hasSystemViewPermission()) {
-            $view_kind_types[] = ['name' => 'create_filter', 'uri' => 'create?view_kind_type=3'];
-        }
-
-        // loop for role types
-        $lists = [];
-        foreach ($view_kind_types as  $view_kind_type) {
-            $lists[] = [
-                'href' => admin_urls('view', $this->custom_table->table_name, $view_kind_type['uri']),
-                'label' => exmtrans("custom_view.custom_view_menulist.{$view_kind_type['name']}"),
-            ];
-        }
-
-        return $lists;
-    }
-    
     /**
      * validation table
      * @param mixed $table id or customtable

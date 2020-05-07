@@ -21,6 +21,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\CustomValuePageType;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
@@ -161,9 +162,9 @@ trait CustomValueShow
                     $tools->disableList();
                 } elseif (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
-                    $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
+                    $tools->append((new Tools\CustomTableMenuButton('data', $this->custom_table))->render());
 
-                    $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_show');
+                    $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_SHOW,  $this->custom_table);
                     $copyButtons = $this->custom_table->from_custom_copies;
                     $notifies = $this->custom_table->notifies;
      
@@ -399,7 +400,7 @@ trait CustomValueShow
 
         $trashed = boolval(request()->get('trashed'));
         $prms = [
-            'change_page_menu' => (new Tools\GridChangePageMenu('data', $this->custom_table, false))->render(),
+            'change_page_menu' => (new Tools\CustomTableMenuButton('data', $this->custom_table))->render(),
             'revisions' => $revisions,
             'custom_value' => $custom_value,
             'table_columns' => $table_columns,
@@ -585,7 +586,7 @@ EOT;
                 $html[] = "<p>" . view('exment::form.field.commentline', [
                     'comment' => $comment,
                     'table_name' => $this->custom_table->table_name,
-                    'isAbleRemove' => ($comment->created_user_id == \Exment::user()->base_user_id),
+                    'isAbleRemove' => ($comment->created_user_id == \Exment::user()->getUserId()),
                 ])->render() . "</p>";
             }
             // loop and add as link

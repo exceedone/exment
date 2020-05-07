@@ -85,7 +85,7 @@ trait UserTrait
             return true;
         }
         // cannnot delete myself
-        if (\Exment::user()->base_user_id == $this->id) {
+        if (\Exment::user()->getUserId() == $this->id) {
             return true;
         }
     }
@@ -113,5 +113,16 @@ trait UserTrait
     public function isAdministrator()
     {
         return collect(System::system_admin_users())->contains($this->id);
+    }
+    
+    /**
+     * Get User Model's ID
+     * "This function name defines Custom value's user and login user. But this function always return Custom value's user
+     *
+     * @return string|int
+     */
+    public function getUserId()
+    {
+        return $this->id;
     }
 }

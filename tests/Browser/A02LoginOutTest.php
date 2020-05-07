@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Tests\ExmentKitTestCase;
-
 class A02LoginOutTest extends ExmentKitTestCase
 {
     
@@ -54,8 +52,8 @@ class A02LoginOutTest extends ExmentKitTestCase
     public function testLoginSuccessUserCode()
     {
         $this->visit('/admin/auth/login')
-                ->type('testuser', 'username')
-                ->type('test123456', 'password')
+                ->type('user1', 'username')
+                ->type('user1user1', 'password')
                 ->press('ログイン')
                 ->seePageIs('/admin');
     }
@@ -68,8 +66,8 @@ class A02LoginOutTest extends ExmentKitTestCase
     {
         $this->visit('/admin/auth/logout')
                 ->visit('/admin/auth/login')
-                ->type('aaa@exceedone.co.jp.test', 'username')
-                ->type('test123456', 'password')
+                ->type('user2@user.foobar.test', 'username')
+                ->type('user2user2', 'password')
                 ->press('ログイン')
                 ->seePageIs('/admin');
     }

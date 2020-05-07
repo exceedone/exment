@@ -113,6 +113,17 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     }
 
     /**
+     * Get User Model's ID
+     * "This function name defines Custom value's user and login user. But this function always return Custom value's user
+     *
+     * @return string|int
+     */
+    public function getUserId()
+    {
+        return $this->base_user_id;
+    }
+
+    /**
      * send Password
      */
     protected function send($is_newuser)
@@ -141,7 +152,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         }
         // get settings from settion
         $settings = System::requestSession("user_setting", function () use ($key, $default) {
-            $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
+            $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->getUserId()]);
             $settings = $usersetting->settings ?? [];
             return $settings;
         });
@@ -163,7 +174,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             return null;
         }
         // set User Setting table
-        $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
+        $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->getUserId()]);
         $settings = $usersetting->settings;
         if (!isset($settings)) {
             $settings = [];

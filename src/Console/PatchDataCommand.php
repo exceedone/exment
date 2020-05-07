@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\DashboardBox;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -131,6 +132,12 @@ class PatchDataCommand extends Command
                 return;
             case 'remove_stored_revision':
                 $this->removeStoredRevision();
+                return;
+            case 'patch_log_opelation':
+                $this->patchLogOpelation();
+                return;
+            case 'plugin_all_user_enabled':
+                $this->patchAllUserEnabled();
                 return;
         }
 
@@ -867,6 +874,73 @@ class PatchDataCommand extends Command
                     }
                 }
             });
+        });
+    }
+    /**
+     * removeStoredRevision
+     *
+     * @return void
+     */
+    protected function patchLogOpelation()
+    {
+        if (!canConnection() || !hasTable('admin_operation_log')) {
+            return;
+        }
+
+        $columns = \Exceedone\Exment\Middleware\LogOperation::getHideColumns();
+        \Encore\Admin\Auth\Database\OperationLog::query()->chunk(1000, function ($logs) use ($columns) {
+            foreach ($logs as $log) {
+                $input = $log->input;
+                if (is_nullorempty($input)) {
+                    continue;
+                }
+
+                $isUpdate = false;
+                $json = json_decode($input, true);
+                if (is_nullorempty($json)) {
+                    continue;
+                }
+                foreach ($json as $key => &$value) {
+                    if (!in_array($key, $columns)) {
+                        continue;
+                    }
+
+                    if ($value == '***') {
+                        continue;
+                    }
+                    
+                    $value = '***';
+                    $isUpdate = true;
+                }
+
+                if (!$isUpdate) {
+                    continue;
+                }
+
+                $log->input = json_encode($json);
+                $log->save();
+            }
+        });
+    }
+    
+    /**
+     * removeStoredRevision
+     *
+     * @return void
+     */
+    protected function patchAllUserEnabled()
+    {
+        if (!canConnection() || !hasTable('plugins')) {
+            return;
+        }
+
+        Plugin::all()->each(function ($plugin) {
+            if (!$plugin->matchPluginType(Enums\PluginType::PLUGIN_TYPE_FILTER_ACCESSIBLE())) {
+                return;
+            }
+
+            $plugin->setOption('all_user_enabled', "1");
+            $plugin->save();
         });
     }
 }

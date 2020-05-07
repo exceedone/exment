@@ -3712,6 +3712,60 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   overflow-x: hidden;
 }
 
+.modal-tile .groupheader {
+  font-size: 17px;
+}
+
+.modal-tile .row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.modal-tile .modal-tile-col {
+  margin-bottom: 1em;
+}
+
+.modal-tile .modal-tile-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.modal-tile .modal-tile-item .sub-buttons {
+  margin-top: 0.5em;
+}
+
+.modal-tile .modal-tile-item .sub-buttons .btn {
+  margin-top: 0.2em;
+}
+
+.modal-tile .modal-tile-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-tile .modal-tile-item-icon a.btn {
+  width: 70px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-tile .modal-tile-item-icon .fa {
+  font-size: 40px;
+}
+
+.modal-tile .modal-tile-item-header {
+  font-size: 15px;
+}
+
+.modal-tile .modal-tile-item-description {
+  font-size: 12px;
+}
+
 .has-error .btn-valuemodal, .has-error .text-valuemodal, .has-error .checkbox, .has-error .checkbox-inline, .has-error .control-label, .has-error .help-block, .has-error .radio, .has-error .radio-inline {
   color: #dd4b39 !important;
 }

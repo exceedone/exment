@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\PluginEventTrigger;
 
 abstract class CustomValue extends ModelBase
 {
@@ -338,7 +339,7 @@ abstract class CustomValue extends ModelBase
             $model->prepareValue();
 
             // call saving trigger plugins
-            Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saving', [
+            Plugin::pluginExecuteEvent(PluginEventTrigger::SAVING, $model->custom_table, [
                 'custom_table' => $model->custom_table,
                 'custom_value' => $model,
             ]);
@@ -354,7 +355,7 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleting(function ($model) {
-            $model->deleted_user_id = \Exment::user()->base_user_id;
+            $model->deleted_user_id = \Exment::user()->getUserId();
 
             // saved_notify(as update) disable
             $saved_notify = $model->saved_notify;
@@ -407,7 +408,7 @@ abstract class CustomValue extends ModelBase
         $this->setFileValue();
 
         // call plugins
-        Plugin::pluginPreparing(Plugin::getPluginsByTable($this), 'saved', [
+        Plugin::pluginExecuteEvent(PluginEventTrigger::SAVED, $this->custom_table, [
             'custom_table' => $this->custom_table,
             'custom_value' => $this,
         ]);
@@ -441,20 +442,20 @@ abstract class CustomValue extends ModelBase
      */
     public function validatorSaving($input, bool $asApi = false)
     {
-        // validate multiple column set is unique
-        $errors = $this->custom_table->validatorMultiUniques($input, $this->id, [
+        $options = [
             'asApi' => $asApi,
             'appendErrorAllColumn' => true,
-        ]);
+        ];
 
-        $errors = array_merge($this->custom_table->validatorLock($input, $this->id, $asApi), $errors);
+        // validate multiple column set is unique
+        $errors = $this->custom_table->validatorMultiUniques($input, $this, $options);
+
+        $errors = array_merge($this->custom_table->validatorCompareColumns($input, $this, $options), $errors);
+
+        $errors = array_merge($this->custom_table->validatorLock($input, $this, $asApi), $errors);
 
         // call plugin validator
-        $errors = array_merge_recursive($errors, Plugin::pluginValidator(Plugin::getPluginsByTable($this->custom_table), [
-            'custom_table' => $this->custom_table,
-            'custom_value' => $this,
-            'input_value' => array_get($input, 'value'),
-        ]));
+        $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this));
 
         return count($errors) > 0 ? $errors : true;
     }
@@ -668,7 +669,7 @@ abstract class CustomValue extends ModelBase
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
-            ->where('authoritable_target_id', \Exment::user()->base_user_id);
+            ->where('authoritable_target_id', \Exment::user()->getUserId());
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
             $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
             $query = $this

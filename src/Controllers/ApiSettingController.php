@@ -152,7 +152,7 @@ class ApiSettingController extends AdminControllerBase
         try {
             // for create token
             if (!isset($id)) {
-                $user_id = \Exment::user()->base_user_id;
+                $user_id = \Exment::user()->getUserId();
                 $name = $request->get('name');
                 $client_type = $request->get('client_type');
 

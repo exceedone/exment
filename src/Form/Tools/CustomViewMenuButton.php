@@ -1,0 +1,202 @@
+<?php
+
+namespace Exceedone\Exment\Form\Tools;
+
+use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Enums\ViewKindType;
+
+class CustomViewMenuButton extends ModalTileMenuButton
+{
+    protected $custom_table;
+    protected $current_custom_view;
+
+    protected $addMenuList = true;
+
+    public function __construct($custom_table, $current_custom_view = null, $addMenuList = true)
+    {
+        $this->custom_table = $custom_table;
+        $this->current_custom_view = $current_custom_view;
+        $this->addMenuList = $addMenuList;
+        
+        // init as Custom value's menu
+        if ($addMenuList) {
+            parent::__construct([
+                'label' => exmtrans('custom_view.custom_view_button_label') . '&nbsp;:&nbsp;' . $current_custom_view->view_view_name,
+                'icon' => 'fa-th-list',
+                'button_class' => 'btn-default',
+            ]);
+            $this->modal_title = exmtrans("custom_view.custom_view_button_label");
+        }
+        // init as Custom view's new list
+        else {
+            parent::__construct([
+                'label' => trans('admin.new'),
+                'icon' => 'fa-plus',
+                'button_class' => 'btn-success',
+            ]);
+            $this->modal_title = trans('admin.new');
+        }
+    }
+
+    public function render()
+    {
+        if ($this->addMenuList) {
+            $this->setMenu();
+        }
+
+        return parent::render();
+    }
+
+    /**
+     * Set view menu list
+     *
+     * @return void
+     */
+    protected function setMenu()
+    {
+        $systemviews = [];
+        $userviews = [];
+        // get custom view
+        $custom_views = $this->custom_table->custom_views;
+
+        foreach ($custom_views as $v) {
+            if ($v->view_kind_type == ViewKindType::FILTER) {
+                continue;
+            }
+            if ($v->view_type == ViewType::USER) {
+                $userviews[] = $v->toArray();
+            } else {
+                $systemviews[] = $v->toArray();
+            }
+        }
+
+        $compare = function ($a, $b) {
+            $atype = array_get($a, 'view_kind_type');
+            $btype = array_get($b, 'view_kind_type');
+    
+            if ($atype == ViewKindType::ALLDATA) {
+                return -1;
+            } elseif ($btype == ViewKindType::ALLDATA) {
+                return 1;
+            } else {
+                return $atype > $btype;
+            }
+        };
+        usort($userviews, $compare);
+        usort($systemviews, $compare);
+
+
+        $menulist = [];
+
+        $baseUrl = admin_urls('data', $this->custom_table->table_name);
+        $setMenuFunc = function ($headerLabel, $views, &$menulist) use ($baseUrl) {
+            if (count($views) == 0) {
+                return;
+            }
+
+            $menulist[] = [
+                'header' => true,
+                'label' => $headerLabel,
+            ];
+
+            foreach ($views as $view) {
+                $menulist[] = [
+                    'label' => array_get($view, 'view_view_name'),
+                    'url' => "$baseUrl?view={$view['suuid']}",
+                ];
+            }
+        };
+
+        $setMenuFunc(exmtrans('custom_view.custom_view_type_options.system'), $systemviews, $menulist);
+        $setMenuFunc(exmtrans('custom_view.custom_view_type_options.user'), $userviews, $menulist);
+
+
+        $menulist[] = [
+            'header' => true,
+            'label' => trans('admin.setting'),
+        ];
+        $menulist[] = [
+            'label' => exmtrans('custom_view.custom_view_menulist.setting'),
+            'isHtml' => true,
+        ];
+
+        $this->menulist = $menulist;
+
+        return;
+    }
+
+    public function html()
+    {
+        $items = $this->getItems();
+        
+        // if no menu, return
+        if (count($items) == 0) {
+            return null;
+        }
+
+        $this->groups = [[
+            'items' => $items
+        ]];
+
+        return parent::html();
+    }
+
+
+    protected function getItems()
+    {
+        $items = [];
+
+        //role check
+        if ($this->custom_table->hasViewPermission()) {
+            if (isset($this->current_custom_view)) {
+                $query_str = '?view_kind_type='.$this->current_custom_view->view_kind_type.'&from_data=1';
+
+                if ($this->current_custom_view->hasEditPermission()) {
+                    $items[] = [
+                        'href' => admin_urls('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit'.$query_str),
+                        'header' => exmtrans('custom_view.custom_view_menulist.current_view_edit'),
+                        'description' => exmtrans('custom_view.custom_view_menulist.help.current_view_edit'),
+                        'icon' => 'fa-cog',
+                    ];
+                }
+    
+                $items[] = [
+                    'href' => admin_urls('view', $this->custom_table->table_name, 'create?from_data=1&copy_id=' . $this->current_custom_view->id),
+                    'header' => exmtrans('custom_view.custom_view_menulist.current_view_replicate'),
+                    'description' => exmtrans('custom_view.custom_view_menulist.help.current_view_replicate'),
+                    'icon' => 'fa-copy',
+                ];
+            }
+
+            $items[] = [
+                'href' => admin_urls('view', $this->custom_table->table_name, 'create?from_data=1'),
+                'header' => exmtrans('custom_view.custom_view_menulist.create'),
+                'description' => exmtrans('custom_view.custom_view_menulist.help.create'),
+                'icon' => 'fa-list',
+            ];
+            $items[] = [
+                'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=1&from_data=1'),
+                'header' => exmtrans('custom_view.custom_view_menulist.create_sum'),
+                'description' => exmtrans('custom_view.custom_view_menulist.help.create_sum'),
+                'icon' => 'fa-bar-chart',
+            ];
+            $items[] = [
+                'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=2&from_data=1'),
+                'header' => exmtrans('custom_view.custom_view_menulist.create_calendar'),
+                'description' => exmtrans('custom_view.custom_view_menulist.help.create_calendar'),
+                'icon' => 'fa-calendar',
+            ];
+                
+            if ($this->custom_table->hasSystemViewPermission()) {
+                $items[] = [
+                    'href' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=3&from_data=1'),
+                    'header' => exmtrans('custom_view.custom_view_menulist.create_filter'),
+                    'description' => exmtrans('custom_view.custom_view_menulist.help.create_filter'),
+                    'icon' => 'fa-filter',
+                ];
+            }
+        }
+
+        return $items;
+    }
+}

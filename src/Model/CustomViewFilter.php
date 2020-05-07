@@ -90,12 +90,13 @@ class CustomViewFilter extends ModelBase
     /**
      * set value filter
      */
-    public function setValueFilter($model, $db_table_name = null)
+    public function setValueFilter($model, $db_table_name = null, $or_option = false)
     {
         // get filter target column
         $view_column_target = $this->view_column_target_id;
         $condition_value_text = $this->view_filter_condition_value_text;
         $view_filter_condition = $this->view_filter_condition;
+        $method_name = $or_option ? 'orWhere': 'where';
         
         if ($this->view_column_type == ConditionType::WORKFLOW) {
             return WorkflowItem::scopeWorkflow($model, $this->view_column_target_id, $this->custom_table, $view_filter_condition, $condition_value_text);
@@ -118,6 +119,7 @@ class CustomViewFilter extends ModelBase
             $view_column_target = $db_table_name.'.'.$view_column_target;
         }
         if (isset($this->view_group_condition)) {
+            // wraped
             $view_column_target = \DB::getQueryGrammar()->getDateFormatString($this->view_group_condition, $view_column_target, false);
             $view_column_target = \DB::raw($view_column_target);
         }
@@ -128,34 +130,34 @@ class CustomViewFilter extends ModelBase
             // equal
             case FilterOption::EQ:
             case FilterOption::USER_EQ:
-                $model->where($view_column_target, $condition_value_text);
+                $model->{$method_name}($view_column_target, $condition_value_text);
                 break;
             // not equal
             case FilterOption::NE:
             case FilterOption::USER_NE:
-                $model->where($view_column_target, '<>', $condition_value_text);
+                $model->{$method_name}($view_column_target, '<>', $condition_value_text);
                 break;
             // not null
             case FilterOption::NOT_NULL:
             case FilterOption::DAY_NOT_NULL:
             case FilterOption::USER_NOT_NULL:
-                $model->whereNotNull($view_column_target);
+                $model->{$method_name.'NotNull'}($view_column_target);
                 break;
             // null
             case FilterOption::NULL:
             case FilterOption::DAY_NULL:
             case FilterOption::USER_NULL:
-                $model->whereNull($view_column_target);
+                $model->{$method_name.'Null'}($view_column_target);
                 break;
             
             // like
             case FilterOption::LIKE:
                 $condition_value_text = (System::filter_search_type() == FilterSearchType::ALL ? '%' : '') . $condition_value_text . '%';
-                $model->where($view_column_target, 'LIKE', $condition_value_text);
+                $model->{$method_name}($view_column_target, 'LIKE', $condition_value_text);
                 break;
             case FilterOption::NOT_LIKE:
                 $condition_value_text = (System::filter_search_type() == FilterSearchType::ALL ? '%' : '') . $condition_value_text . '%';
-                $model->where($view_column_target, 'NOT LIKE', $condition_value_text);
+                $model->{$method_name}($view_column_target, 'NOT LIKE', $condition_value_text);
                 break;
                 
             // for number --------------------------------------------------
@@ -172,16 +174,16 @@ class CustomViewFilter extends ModelBase
                 }
                 switch ($view_filter_condition) {
                     case FilterOption::NUMBER_GT:
-                        $model->where($view_column_target, '>', $condition_value_text);
+                        $model->{$method_name}($view_column_target, '>', $condition_value_text);
                         break;
                     case FilterOption::NUMBER_LT:
-                        $model->where($view_column_target, '<', $condition_value_text);
+                        $model->{$method_name}($view_column_target, '<', $condition_value_text);
                         break;
                     case FilterOption::NUMBER_GTE:
-                        $model->where($view_column_target, '>=', $condition_value_text);
+                        $model->{$method_name}($view_column_target, '>=', $condition_value_text);
                         break;
                     case FilterOption::NUMBER_LTE:
-                        $model->where($view_column_target, '<=', $condition_value_text);
+                        $model->{$method_name}($view_column_target, '<=', $condition_value_text);
                         break;
                 }
                 break;
@@ -207,7 +209,7 @@ class CustomViewFilter extends ModelBase
                         $value_day = Carbon::tomorrow();
                         break;
                 }
-                $model->whereDate($view_column_target, $value_day);
+                $model->{$method_name.'Date'}($view_column_target, $value_day);
                 break;
                 
             // date equal month
@@ -226,9 +228,11 @@ class CustomViewFilter extends ModelBase
                         $value_day = new Carbon('first day of next month');
                         break;
                 }
-                $model
-                    ->whereYear($view_column_target, $value_day->year)
-                    ->whereMonth($view_column_target, $value_day->month);
+                $model->{$method_name}(function ($query) use ($view_column_target, $value_day) {
+                    $query
+                        ->whereYear($view_column_target, $value_day->year)
+                        ->whereMonth($view_column_target, $value_day->month);
+                });
                 break;
                 
             // date equal year
@@ -247,7 +251,7 @@ class CustomViewFilter extends ModelBase
                         $value_day = new Carbon('first day of next year');
                         break;
                 }
-                $model->whereYear($view_column_target, $value_day->year);
+                $model->{$method_name.'Year'}($view_column_target, $value_day->year);
                 break;
                 
             // date and X days before or after
@@ -295,24 +299,24 @@ class CustomViewFilter extends ModelBase
                         $mark = "<=";
                         break;
                 }
-                $model->whereDate($view_column_target, $mark, $target_day);
+                $model->{$method_name.'Date'}($view_column_target, $mark, $target_day);
                 break;
                 
             // for select --------------------------------------------------
             case FilterOption::SELECT_EXISTS:
                 $raw = "JSON_SEARCH($view_column_target, 'one', '$condition_value_text')";
-                $model->where(function ($query) use ($view_column_target, $raw, $condition_value_text) {
-                    $query->where(function ($q) use ($view_column_target, $raw) {
-                        $q->where($view_column_target, 'LIKE', '[%]')
+                $model->{$method_name}(function ($query) use ($view_column_target, $raw, $condition_value_text) {
+                    $query->where(function ($qry) use ($view_column_target, $raw) {
+                        $qry->where($view_column_target, 'LIKE', '[%]')
                             ->whereNotNull(\DB::raw($raw));
                     })->orWhere($view_column_target, $condition_value_text);
                 });
                 break;
             case FilterOption::SELECT_NOT_EXISTS:
                 $raw = "JSON_SEARCH($view_column_target, 'one', '$condition_value_text')";
-                $model->where(function ($query) use ($view_column_target, $raw, $condition_value_text) {
-                    $query->where(function ($q) use ($view_column_target, $raw) {
-                        $q->where($view_column_target, 'LIKE', '[%]')
+                $model->{$method_name}(function ($query) use ($view_column_target, $raw, $condition_value_text) {
+                    $query->where(function ($qry) use ($view_column_target, $raw) {
+                        $qry->where($view_column_target, 'LIKE', '[%]')
                             ->whereNull(\DB::raw($raw));
                     })->orWhere($view_column_target, '<>', $condition_value_text);
                 });
@@ -320,10 +324,10 @@ class CustomViewFilter extends ModelBase
         
             // for user --------------------------------------------------
             case FilterOption::USER_EQ_USER:
-                $model->where($view_column_target, \Exment::user()->base_user->id);
+                $model->{$method_name}($view_column_target, \Exment::user()->base_user->id);
                 break;
             case FilterOption::USER_NE_USER:
-                $model->where($view_column_target, '<>', \Exment::user()->base_user->id);
+                $model->{$method_name}($view_column_target, '<>', \Exment::user()->base_user->id);
         }
 
         return $model;

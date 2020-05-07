@@ -9,6 +9,8 @@ use Exceedone\Exment\Enums\DatabaseDataType;
 
 class Decimal extends CustomItem
 {
+    use NumberTrait;
+    
     public function prepare()
     {
         if (!is_null($this->value())) {
@@ -84,7 +86,7 @@ class Decimal extends CustomItem
         $field->attribute('style', 'max-width: 200px');
     }
     
-    protected function setValidates(&$validates)
+    protected function setValidates(&$validates, $form_column_options)
     {
         $options = $this->custom_column->options;
         
@@ -117,14 +119,5 @@ class Decimal extends CustomItem
         } else {
             return $grammar->getCastString(DatabaseDataType::TYPE_DECIMAL, true);
         }
-    }
-
-    /**
-     * whether column is Numeric
-     *
-     */
-    public function isNumeric()
-    {
-        return true;
     }
 }
