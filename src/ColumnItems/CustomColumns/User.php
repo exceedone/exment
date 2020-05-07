@@ -20,7 +20,7 @@ class User extends SelectTable
      * @return mixed
      */
     public function defaultForm(){
-        if(!is_null($default = parent::default())){
+        if(!is_null($default = parent::defaultForm())){
             return $default;
         }
         if(!is_null($default = $this->custom_column->getOption('login_user_default'))){

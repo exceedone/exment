@@ -172,7 +172,7 @@ class File extends CustomItem
             if (!isset($custom_value)) {
                 return $value;
             }
-            return array_get($custom_value->value(), $custom_column->column_name);
+            return $custom_value->pureValue($custom_column);
         });
 
         return $field;
