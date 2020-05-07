@@ -14,10 +14,10 @@ class Decimal extends CustomItem
     public function prepare()
     {
         if (!is_null($this->value())) {
-            $this->value = parseFloat($this->value());
+            $this->value = parseFloat($this->value);
             if (array_has($this->custom_column, 'options.decimal_digit')) {
                 $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-                $this->value = floor($this->value() * pow(10, $digit)) / pow(10, $digit);
+                $this->value = floor($this->value * pow(10, $digit)) / pow(10, $digit);
             }
         }
         return $this;
@@ -59,7 +59,7 @@ class Decimal extends CustomItem
     }
     public function saving()
     {
-        $rmv = rmcomma($this->value());
+        $rmv = rmcomma($this->value);
         if (!isset($rmv)) {
             return null;
         }

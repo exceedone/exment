@@ -18,22 +18,21 @@ class Yesno extends CustomItem
 
     public function text()
     {
-        return boolval($this->value()) ? 'YES' : 'NO';
+        return boolval($this->value) ? 'YES' : 'NO';
     }
 
     public function saving()
     {
-        $value = $this->value();
-        if (is_null($value)) {
+        if (is_null($this->value)) {
             return 0;
         }
-        if (strtolower($value) === 'yes') {
+        if (strtolower($this->value) === 'yes') {
             return 1;
         }
-        if (strtolower($value) === 'no') {
+        if (strtolower($this->value) === 'no') {
             return 0;
         }
-        return boolval($value) ? 1 : 0;
+        return boolval($this->value) ? 1 : 0;
     }
 
     protected function getAdminFieldClass()
@@ -72,7 +71,7 @@ class Yesno extends CustomItem
      * @param [type] $value
      * @return ?string string:matched, null:not matched
      */
-    public function getValFromLabel($label)
+    public function getPureValue($label)
     {
         $option = $this->getImportValueOption();
 
@@ -82,18 +81,5 @@ class Yesno extends CustomItem
             }
         }
         return null;
-    }
-    
-    /**
-     * Get default value
-     *
-     * @return mixed
-     */
-    public function default(){
-        if(!is_null($default = parent::default())){
-            return $default;
-        }
-
-        return 0;
     }
 }

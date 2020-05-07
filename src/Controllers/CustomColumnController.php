@@ -189,10 +189,8 @@ class CustomColumnController extends AdminControllerTableBase
             ->required()
             ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
-
         $form->select('column_type', exmtrans("custom_column.column_type"))
         ->options(ColumnType::transArray("custom_column.column_type_options"))
-        ->help(exmtrans("custom_column.help.column_type"))
         ->attribute(['data-filtertrigger' =>true,
             'data-linkage' => json_encode([
                 'options_select_import_column_id' => [
@@ -218,9 +216,7 @@ class CustomColumnController extends AdminControllerTableBase
 
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id, $controller) {
-            $form->switchbool('required', exmtrans("common.required"))
-            ->help(exmtrans("custom_column.help.required"));
-
+            $form->switchbool('required', exmtrans("common.required"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
                 ->rules([
                     new Validator\CustomColumnIndexCountRule($this->custom_table, $id),
@@ -229,20 +225,13 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
-
             $form->switchbool('init_only', exmtrans("custom_column.options.init_only"))
                 ->help(exmtrans("custom_column.help.init_only"));
-            
-            $form->text('default', exmtrans("custom_column.options.default"))
-                ->help(exmtrans("custom_column.help.default"));
-
+            $form->text('default', exmtrans("custom_column.options.default"));
             $form->switchbool('login_user_default', exmtrans("custom_column.options.login_user_default"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::USER]])])
                 ->help(exmtrans("custom_column.help.login_user_default"));
-            
-            $form->text('placeholder', exmtrans("custom_column.options.placeholder"))
-                ->help(exmtrans("custom_column.help.placeholder"));
-
+            $form->text('placeholder', exmtrans("custom_column.options.placeholder"));
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
             
             $form->text('min_width', exmtrans("custom_column.options.min_width"))
@@ -260,7 +249,6 @@ class CustomColumnController extends AdminControllerTableBase
             // string length
             $form->number('string_length', exmtrans("custom_column.options.string_length"))
                 ->default(256)
-                ->help(exmtrans("custom_column.help.string_length"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT, ColumnType::TEXTAREA]])]);
 
             $form->number('rows', exmtrans("custom_column.options.rows"))
