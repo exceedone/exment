@@ -720,15 +720,14 @@ if (!function_exists('toArray')) {
      * Convert array. Such as casting array
      * string : casting array
      * Collection : $collect->toArray()
-     * null : []
      *
      * @param mixed $value
-     * @return array
+     * @return ?array
      */
-    function toArray($value) : array
+    function toArray($value) : ?array
     {
         if (is_null($value)) {
-            return [];
+            return null;
         }
 
         if (is_array($value)) {

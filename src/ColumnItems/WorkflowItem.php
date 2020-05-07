@@ -91,7 +91,7 @@ class WorkflowItem extends SystemItem
         $options = $workflow->getStatusOptions() ?? [];
 
         $field->options($options);
-        $field->default($this->value());
+        $field->default($this->value);
 
         return $field;
     }

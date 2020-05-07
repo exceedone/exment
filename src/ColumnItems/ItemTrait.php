@@ -16,30 +16,20 @@ trait ItemTrait
     protected $options;
 
     /**
-     * get pure value. (In database value)
-     * Don't call $this->value(). otherwise, aborting.
-     */
-    public function pureValue()
-    {
-        // not $this->value();
-        return $this->value;
-    }
-
-    /**
      * get value
      */
     public function value()
     {
-        return $this->pureValue();
+        return $this->value;
     }
 
     /**
-     * Get default value
-     *
-     * @return mixed
+     * get pure value. (In database value)
+     * *Don't override this function
      */
-    public function default(){
-        return null;
+    public function pureValue()
+    {
+        return $this->value;
     }
 
     /**
@@ -206,7 +196,7 @@ trait ItemTrait
      * @param [type] $value
      * @return ?string string:matched, null:not matched
      */
-    public function getValFromLabel($label)
+    public function getPureValue($label)
     {
         return null;
     }
@@ -217,7 +207,7 @@ trait ItemTrait
             return [$mark, $value];
         }
 
-        $pureValue = $this->getValFromLabel($q);
+        $pureValue = $this->getPureValue($q);
         if (is_null($pureValue)) {
             return [$mark, $value];
         }

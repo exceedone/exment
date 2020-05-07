@@ -33,7 +33,7 @@ class SelectValtext extends Select
      * @param [type] $value
      * @return ?string string:matched, null:not matched
      */
-    public function getValFromLabel($label)
+    public function getPureValue($label)
     {
         foreach ($this->custom_column->createSelectOptions() as $key => $q) {
             if ($label == $q) {

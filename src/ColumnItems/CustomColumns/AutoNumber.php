@@ -27,7 +27,7 @@ class AutoNumber extends CustomItem
     public function saved()
     {
         // already set value, break
-        if (!is_null($this->value())) {
+        if (isset($this->value)) {
             return null;
         }
         

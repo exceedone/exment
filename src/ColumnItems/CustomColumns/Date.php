@@ -14,10 +14,6 @@ class Date extends CustomItem
 {
     protected $format = 'Y-m-d';
 
-    public function value(){
-        new \Carbon\Carbon($this->pureValue());
-    }
-
     public function text()
     {
         // if not empty format, using carbon
@@ -29,7 +25,7 @@ class Date extends CustomItem
             $format = $this->getDisplayFormat();
         }
         
-        if (is_null($this->pureValue())) {
+        if (!isset($this->value)) {
             return null;
         }
 
@@ -38,7 +34,7 @@ class Date extends CustomItem
         }
 
         // else, return
-        return $this->pureValue();
+        return $this->value();
     }
 
     /**
@@ -76,11 +72,11 @@ class Date extends CustomItem
      */
     protected function getDateUseValue($format)
     {
-        if (is_array($this->pureValue())) {
-            return (new \Carbon\Carbon(array_get($this->pureValue(), 'date')))->format($format) ?? null;
+        if (is_array($this->value())) {
+            return (new \Carbon\Carbon(array_get($this->value(), 'date')))->format($format) ?? null;
         }
 
-        return (new \Carbon\Carbon($this->pureValue()))->format($format) ?? null;
+        return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
     }
 
     protected function getAdminFieldClass()

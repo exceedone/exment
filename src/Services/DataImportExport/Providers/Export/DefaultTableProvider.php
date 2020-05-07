@@ -158,19 +158,13 @@ class DefaultTableProvider extends ProviderBase
         $body_items = [];
         foreach ($columns as $column) {
             // get key.
-            if($column instanceof CustomColumn){
-                $value = $record->pureValue($column);
+            if (is_array($column) || $column instanceof CustomColumn) {
+                $key = (isset($array_header_key) ? $array_header_key : "").array_get($column, 'column_name');
+            } else {
+                $key = (isset($array_header_key) ? $array_header_key : "").$column;
             }
-            else{
-                if (is_array($column)) {
-                    $key = (isset($array_header_key) ? $array_header_key : "").array_get($column, 'column_name');
-                } else {
-                    $key = (isset($array_header_key) ? $array_header_key : "").$column;
-                }
-                
-                $value = array_get($record, $key);
-            }
-
+            
+            $value = array_get($record, $key);
             if (is_array($value)) {
                 $value = implode(",", $value);
             }

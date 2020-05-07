@@ -104,48 +104,11 @@ abstract class CustomItem implements ItemInterface
     }
 
     /**
-     * Get default value. If value is null, return this result.
-     *
-     * @return mixed
-     */
-    public function default(){
-        return null;
-    }
-    
-    /**
-     * Get default value. Only avaiable form input.
-     *
-     * @return mixed
-     */
-    public function defaultForm(){
-        // custom column's option "default" is for only create. 
-        $default = $this->custom_column->getOption('default');
-        if(!is_null($default)){
-            return $default;
-        }
-
-        return $this->default();
-    }
-    
-    /**
-     * get value
-     * Don't call $this->value(). otherwise, aborting.
-     */
-    public function pureValue()
-    {
-        if(!is_nullorempty($this->value)){
-            return $this->value;
-        }
-
-        return $this->default();
-    }
-
-    /**
      * get Text(for display)
      */
     public function text()
     {
-        return $this->value();
+        return $this->value;
     }
 
     /**
@@ -230,12 +193,12 @@ abstract class CustomItem implements ItemInterface
                 $custom_value = $this->custom_table->getValueModel($custom_value->parent_id);
             } else {
                 $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
-                $pivot_id =  $custom_value->pureValue($pivot_custom_column);
+                $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
                 $custom_value = $this->custom_table->getValueModel($pivot_id);
             }
         }
 
-        return isset($custom_value) ? $custom_value->pureValue($this->custom_column) : null;
+        return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
     
     public function getFilterField($value_type = null)
@@ -279,7 +242,7 @@ abstract class CustomItem implements ItemInterface
         // if hidden setting, add hidden field
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
-        } elseif ($this->initonly() && !is_null($this->value())) {
+        } elseif ($this->initonly() && isset($this->value)) {
             $classname = ExmentField\Display::class;
         } else {
             // get field
@@ -300,7 +263,7 @@ abstract class CustomItem implements ItemInterface
             $this->setAdminOptions($field, $form_column_options);
         }
 
-        if (!boolval(array_get($form_column_options, 'hidden')) && $this->initonly() && !is_null($this->value())) {
+        if (!boolval(array_get($form_column_options, 'hidden')) && $this->initonly() && isset($this->value)) {
             $field->displayText($this->html());
         }
 
@@ -310,8 +273,13 @@ abstract class CustomItem implements ItemInterface
         }
 
         // default
-        if (!is_null($this->defaultForm())) {
-            $field->default($this->defaultForm());
+        if (array_key_value_exists('default', $options)) {
+            $field->default(array_get($options, 'default'));
+        }
+
+        // default (login user)
+        if (boolval(array_get($options, 'login_user_default'))) {
+            $field->default(\Exment::user()->getUserId());
         }
 
         // number_format
@@ -355,11 +323,11 @@ abstract class CustomItem implements ItemInterface
         $help_regexes = array_get($validate_options, 'help_regexes');
         
         // if initonly is true and has value, not showing help
-        if ($this->initonly() && !is_null($this->value())) {
+        if ($this->initonly() && isset($this->value)) {
             $help = null;
         }
         // if initonly is true and now, showing help and cannot edit help
-        elseif ($this->initonly() && is_null($this->value())) {
+        elseif ($this->initonly() && !isset($this->value)) {
             $help .= exmtrans('common.help.init_flg');
             if (isset($help_regexes)) {
                 $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
@@ -613,7 +581,7 @@ abstract class CustomItem implements ItemInterface
         $required = boolval(array_get($this->custom_column->options, 'required'));
 
         // if init only, required, and set value, set $this->required is false
-        if ($initOnly && !is_null($this->value())) {
+        if ($initOnly && isset($this->value)) {
             $this->required = false;
         }
         return $initOnly;
@@ -623,7 +591,7 @@ abstract class CustomItem implements ItemInterface
     {
         if (boolval(array_get($form_column_options, 'hidden'))) {
             return false;
-        } elseif ($this->initonly() && !is_null($this->value())) {
+        } elseif ($this->initonly() && isset($this->value)) {
             return false;
         }
 

@@ -130,15 +130,15 @@ class File extends CustomItem
      */
     protected function fileValue()
     {
-        if (is_null($this->value())) {
+        if (is_null($this->value)) {
             return null;
         }
 
-        if (is_array($this->value())) {
-            return count($this->value()) == 0 ? null : $this->value()[0];
+        if (is_array($this->value)) {
+            return count($this->value) == 0 ? null : $this->value[0];
         }
 
-        return $this->value();
+        return $this->value;
     }
 
     protected function setValidates(&$validates, $form_column_options)
@@ -172,7 +172,7 @@ class File extends CustomItem
             if (!isset($custom_value)) {
                 return $value;
             }
-            return $custom_value->pureValue($custom_column);
+            return array_get($custom_value->value, $custom_column->column_name);
         });
 
         return $field;
