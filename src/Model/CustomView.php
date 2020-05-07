@@ -152,6 +152,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $this->custom_view_filters()->delete();
         $this->custom_view_sorts()->delete();
         $this->custom_view_summaries()->delete();
+        // delete data_share_authoritables
+        DataShareAuthoritable::deleteDataAuthoritable($this);
     }
 
     protected static function boot()
@@ -176,8 +178,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         });
         
         static::created(function ($model) {
-            // save Authoritable
-            DataShareAuthoritable::setValueAuthoritable($model);
+            if ($model->view_type == ViewType::USER) {
+                // save Authoritable
+                DataShareAuthoritable::setDataAuthoritable($model);
+            }
         });
 
         // add global scope
@@ -459,8 +463,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $view;
     }
 
-    // user value_authoritable. it's all role data. only filter morph_type
-    public function view_authoritable_users()
+    // user data_authoritable. it's all role data. only filter morph_type
+    public function data_authoritable_users()
     {
         return $this->morphToMany(getModelName(SystemTableName::USER), 'parent', 'data_share_authoritables', 'parent_id', 'authoritable_target_id')
             ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
@@ -468,8 +472,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             ;
     }
 
-    // user value_authoritable. it's all role data. only filter morph_type
-    public function view_authoritable_organizations()
+    // user data_authoritable. it's all role data. only filter morph_type
+    public function data_authoritable_organizations()
     {
         return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'parent', 'data_share_authoritables', 'parent_id', 'authoritable_target_id')
             ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
@@ -485,9 +489,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             })->orWhere(function ($query) use($login_user) {
                 $query->where('view_type', ViewType::USER)
                         ->where('created_user_id', $login_user->getUserId() ?? null);
-            })->orWhereHas('view_authoritable_users', function ($q) use($login_user) {
+            })->orWhereHas('data_authoritable_users', function ($q) use($login_user) {
                 $q->where('authoritable_target_id', $login_user->getUserId());
-            })->orWhereHas('view_authoritable_organizations', function ($q) use($login_user) {
+            })->orWhereHas('data_authoritable_organizations', function ($q) use($login_user) {
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                 $q->whereIn('authoritable_target_id', $login_user->getOrganizationIds($enum));
         });
@@ -1067,21 +1071,25 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function hasEditPermission()
     {
+        $login_user = \Exment::user();
         if ($this->view_type == ViewType::SYSTEM) {
             return $this->custom_table->hasSystemViewPermission();
-        } elseif ($this->created_user_id == \Exment::user()->getUserId()) {
+        } elseif ($this->created_user_id == $login_user->getUserId()) {
             return true;
         };
 
         // check if editable user exists
-        $hasEdit = $this->view_authoritable_users()
-            ->where('authoritable_type', 'custom_view_edit')
+        $hasEdit = $this->data_authoritable_users()
+            ->where('authoritable_type', 'data_share_edit')
+            ->where('authoritable_target_id', $login_user->getUserId())
             ->exists();
 
         if (!$hasEdit && System::organization_available()) {
+            $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
             // check if editable organization exists
-            $hasEdit = $this->view_authoritable_organizations()
-                ->where('authoritable_type', 'custom_view_edit')
+            $hasEdit = $this->data_authoritable_organizations()
+                ->where('authoritable_type', 'data_share_edit')
+                ->whereIn('authoritable_target_id', $login_user->getOrganizationIds($enum))
                 ->exists();
         }
 

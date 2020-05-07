@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\ShareTargetType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
 
@@ -13,13 +14,13 @@ class DataShareAuthoritable extends ModelBase
     use Traits\DataShareTrait;
 
     /**
-     * Set Custom Value Authoritable after custom value save
+     * Set Data Share Authoritable after custom value save
      *
      * @return void
      */
-    public static function setValueAuthoritable($target_data)
+    public static function setDataAuthoritable($target_data)
     {
-        list($target_type, $target_key) = static::getParentType($target_data);
+        $target_type = static::getTargetType($target_data);
 
         $user = \Exment::user();
         if (!isset($user)) {
@@ -28,38 +29,38 @@ class DataShareAuthoritable extends ModelBase
 
         self::firstOrCreate([
             'parent_id' => $target_data->id,
-            'parent_type' => $target_key,
+            'parent_type' => $target_type->toString(),
             'authoritable_type' => Permission::DATA_SHARE_EDIT,
             'authoritable_user_org_type' => SystemTableName::USER,
-            'authoritable_target_id' => $user->base_user_id,
+            'authoritable_target_id' => $user->getUserId(),
         ]);
     }
 
     /**
-     * Delete Custom Value Authoritable after custom value save
+     * Get share target type
      *
      * @return void
      */
-    public static function getParentType($target_data)
+    public static function getTargetType($target_data)
     {
         if ($target_data instanceof CustomView) {
-            return ['custom_view', '_custom_view'];
+            return ShareTargetType::VIEW();
         } else {
-            return ['dashboard', '_dashboard'];
+            return ShareTargetType::DASHBOARD();
         }
     }
 
     /**
-     * Delete Custom Value Authoritable after custom value save
+     * Delete Data Share Authoritable after target data save
      *
      * @return void
      */
-    public static function deleteValueAuthoritable($target_data)
+    public static function deleteDataAuthoritable($target_data)
     {
-        list(, $table_name) = static::getParentType($target_data);
+        $target_type = static::getTargetType($target_data);
         static::query()
             ->where('parent_id', $target_data->id)
-            ->where('parent_type', $table_name)
+            ->where('parent_type', $target_type->toString())
             ->delete();
     }
 
@@ -72,12 +73,14 @@ class DataShareAuthoritable extends ModelBase
     {
         $id = $target_data->id;
 
-        list($target_type, $target_key) = static::getParentType($target_data);
+        $target_type = static::getTargetType($target_data);
 
-        if ($target_data instanceof CustomView) {
-            $url = admin_urls('view', $tableKey, $id, 'sendShares');
+        $target_name = exmtrans('role_group.share_target_options.'.$target_type->lowerkey());
+
+        if (isset($tableKey)) {
+            $url = admin_urls($target_type->lowerkey(), $tableKey, $id, 'sendShares');
         } else {
-            $url = admin_urls('dashboard', $id, 'sendShares');
+            $url = admin_urls($target_type->lowerkey(), $id, 'sendShares');
         }
 
         // create form fields
@@ -86,25 +89,25 @@ class DataShareAuthoritable extends ModelBase
         $form->modalHeader(exmtrans('common.shared'));
         $form->action($url);
 
-        $form->description(exmtrans("role_group.{$target_type}_share_description"))->setWidth(9, 2);
+        $form->description(exmtrans("role_group.data_share_description", $target_name))->setWidth(9, 2);
 
         // select target users
-        $default = static::getUserOrgSelectDefault($target_key, $id, Permission::DATA_SHARE_EDIT);
+        $default = static::getUserOrgSelectDefault($target_type->toString(), $id, Permission::DATA_SHARE_EDIT);
         list($options, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, false, $default);
-        $form->multipleSelect(Permission::DATA_SHARE_EDIT, exmtrans("role_group.role_type_option_value.{$target_type}_edit.label"))
+        $form->multipleSelect(Permission::DATA_SHARE_EDIT, exmtrans("role_group.role_type_option_value.data_share_edit.label"))
             ->options($options)
             ->ajax($ajax)
             ->default($default)
-            ->help(exmtrans("role_group.role_type_option_value.{$target_type}_edit.help"))
+            ->help(exmtrans("role_group.role_type_option_value.data_share_edit.help", $target_name))
             ->setWidth(9, 2);
 
-        $default = static::getUserOrgSelectDefault($target_key, $id, Permission::DATA_SHARE_VIEW);
+        $default = static::getUserOrgSelectDefault($target_type->toString(), $id, Permission::DATA_SHARE_VIEW);
         list($options, $ajax) = static::getUserOrgSelectOptions($target_data->custom_table, null, false, $default);
-        $form->multipleSelect(Permission::DATA_SHARE_VIEW, exmtrans("role_group.role_type_option_value.{$target_type}_view.label"))
+        $form->multipleSelect(Permission::DATA_SHARE_VIEW, exmtrans("role_group.role_type_option_value.data_share_view.label"))
             ->options($options)
             ->ajax($ajax)
             ->default($default)
-            ->help(exmtrans("role_group.role_type_option_value.{$target_type}_view.help"))
+            ->help(exmtrans("role_group.role_type_option_value.data_share_view.help", $target_name))
             ->setWidth(9, 2);
 
         return $form;
@@ -113,8 +116,6 @@ class DataShareAuthoritable extends ModelBase
     /**
      * get listbox options default
      *
-     * @param [type] $custom_value
-     * @return void
      */
     protected static function getUserOrgSelectDefault($target_key, $id, $permission)
     {
@@ -151,7 +152,8 @@ class DataShareAuthoritable extends ModelBase
         //     ]);
         // }
 
-        list($target_type, $target_key) = static::getParentType($target_data);
+        $target_type = static::getTargetType($target_data);
+        $target_key = $target_type->toString();
 
         \DB::beginTransaction();
 
@@ -165,13 +167,13 @@ class DataShareAuthoritable extends ModelBase
             $shares = [];
             foreach ($items as $item) {
                 $user_organizations = $request->get($item['name'], []);
-                $user_organizations = collect($user_organizations)->filter()->map(function ($user_organization) use ($target_data, $target_type, $item) {
+                $user_organizations = collect($user_organizations)->filter()->map(function ($user_organization) use ($target_data, $target_key, $item) {
                     list($authoritable_user_org_type, $authoritable_target_id) = explode('_', $user_organization);
                     return [
                         'authoritable_type' => $item['name'],
                         'authoritable_user_org_type' => $authoritable_user_org_type,
                         'authoritable_target_id' => $authoritable_target_id,
-                        'parent_type' => "_{$target_type}",
+                        'parent_type' => $target_key,
                         'parent_id' => $target_data->id,
                         'created_at' => Carbon::now(),
                         'updated_at' => Carbon::now(),

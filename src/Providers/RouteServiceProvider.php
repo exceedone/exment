@@ -52,6 +52,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('dashboard', 'DashboardController');
             $router->get("dashboardbox/table_views/{dashboard_type}", 'DashboardBoxController@tableViews');
             $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');
+            $router->get("dashboard/{id}/shareClick", 'DashboardController@shareClick');
+            $router->post("dashboard/{id}/sendShares", 'DashboardController@sendShares');
             $router->resource('dashboardbox', 'DashboardBoxController');
         
             $router->resource('auth/logs', 'LogController', ['except' => ['create', 'edit']]);

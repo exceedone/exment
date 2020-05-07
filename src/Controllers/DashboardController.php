@@ -10,14 +10,17 @@ use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
+use Exceedone\Exment\Model\DataShareAuthoritable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
+use Exceedone\Exment\Form\Tools\ShareButton;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\UserSetting;
+use Exceedone\Exment\Enums\ShareTargetType;
 
 class DashboardController extends AdminControllerBase
 {
@@ -297,9 +300,15 @@ EOT;
             }
         })->disableHeader();
 
-        $form->tools(function (Form\Tools $tools) use ($id, $form) {
+        $form->tools(function (Form\Tools $tools) use ($id, $dashboard_type, $form) {
             $tools->disableList();
 
+            // add share button
+            if ($dashboard_type == DashboardType::USER) {
+                $tools->append(new ShareButton($id, 
+                    admin_urls(ShareTargetType::DASHBOARD()->lowerkey(), $id, "shareClick")));
+            }
+    
             // addhome button
             $tools->append('<a href="'.admin_url('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
         });
@@ -398,5 +407,31 @@ EOT;
             list($latest, $current) = getExmentVersion();
             admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'.getManualUrl('update').'" target="_blank">'.exmtrans("system.update_guide").'</a>');
         }
+    }
+
+    /**
+     * create share form
+     */
+    public function shareClick(Request $request, $id)
+    {
+        $model = Dashboard::getEloquent($id);
+
+        $form = DataShareAuthoritable::getShareDialogForm($model);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.shared')
+        ]);
+    }
+
+    /**
+     * set share users organizations
+     */
+    public function sendShares(Request $request, $id)
+    {
+        // get custom view
+        $model = Dashboard::getEloquent($id);
+        return DataShareAuthoritable::saveShareDialogForm($model);
     }
 }

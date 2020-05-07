@@ -1210,7 +1210,7 @@ return [
         'users_count' => 'ユーザー数',
         'organizations_count' => '組織数',
         'share_description' => 'このデータを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、このデータにアクセスすることができるようになります。',
-        'custom_view_share_description' => 'このビューを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、このビューにアクセスすることができるようになります。',
+        'data_share_description' => 'この%1$sを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、この%1$sにアクセスすることができるようになります。',
 
         'description_form' => [
             'system' => 'システム全体を対象に、権限を付与するユーザー・組織を選択します。',
@@ -1222,6 +1222,12 @@ return [
             'plugin' => 'このプラグインを対象に、権限を付与するユーザー・組織を選択します。',
             'plugin_disableorg' => 'このプラグインを対象に、権限を付与するユーザーを選択します。',
             'manual_link' => '<br />権限・役割についての詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。'
+        ],
+
+        'share_target_options' => [
+            'view' => 'ビュー',
+            'dashboard' => 'ダッシュボード',
+            'value' => 'データ',
         ],
 
         'role_type_options' => [
@@ -1277,8 +1283,8 @@ return [
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => '編集可能', 'help' => 'このデータを編集できるようになります。'],
             'custom_value_view' => ['label' => '閲覧可能', 'help' => 'このデータを閲覧できるようになります。'],
-            'custom_view_edit' => ['label' => '編集可能', 'help' => 'このビューを編集できるようになります。'],
-            'custom_view_view' => ['label' => '閲覧可能', 'help' => 'このビューを閲覧できるようになります。'],
+            'data_share_edit' => ['label' => '編集可能', 'help' => 'この%sを編集できるようになります。'],
+            'data_share_view' => ['label' => '閲覧可能', 'help' => 'この%sを閲覧できるようになります。'],
         ], 
         'role_type_option_plugin' => [
             'plugin_setting' => ['label' => '設定変更', 'help' => '設定変更をもつプラグインの場合、このプラグインの設定を変更できます。<br/>※プラグインの削除はできません。'],

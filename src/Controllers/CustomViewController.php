@@ -457,7 +457,8 @@ class CustomViewController extends AdminControllerTableBase
             $tools->add((new Tools\CustomTableMenuButton('view', $custom_table, false))->render());
 
             if ($view_type == Enums\ViewType::USER) {
-                $tools->append(new Tools\ShareButton($custom_table, $id, true));
+                $tools->append(new Tools\ShareButton($id, 
+                    admin_urls(Enums\ShareTargetType::VIEW()->lowerkey(), $custom_table->table_name, $id, "shareClick")));
             }
     
             if (isset($suuid)) {
