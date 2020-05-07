@@ -117,6 +117,7 @@ return [
     ],
 
     'error' => [
+        'undefined_error' => 'Undefined Error.',
         'header' => 'An error occurred',
         'description' => 'An error has occurred. Please check the content of the error.',
         'error_message' => 'Error Message',
@@ -928,11 +929,15 @@ return [
             "organization" => "Organization",
         ],
         'help' => [
+            'column_type' => 'Please select this column type. When entering data, the form changes according to the column type.',
+            'required' => 'If set to YES, this column to be mandatory when entering data.',
             'index_enabled' => 'If set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>',
             'unique' => 'If you do not want to register the same value with other data in duplicate, please set it to YES. * For data with a large number of cases, we recommend setting "Search index" to YES.',
             'init_only' => 'If set to YES, the value can be entered only once. After saving, it is displayed as read-only.',
             'default' => 'The initial value of the item at the time of new registration.',
+            'placeholder' => 'A string that is displayed semi-transparently in the field.',
             'help' => 'Help string displayed below the field.',
+            'string_length' => 'Please set the number of characters that can be entered.',
             'min_width' => 'Enter the minimum value of the column width when displaying the list as an integer (px).',
             'max_width' => 'Enter the maximum value of the column width when displaying the list as an integer (px).',
             'number_format' => 'If set to YES, the text field will be displayed as a comma value.',

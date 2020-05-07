@@ -27,7 +27,7 @@ class Boolean extends CustomItem
 
     public function saving()
     {
-        if (is_null($this->value)) {
+        if (is_null($this->value())) {
             return array_get($this->custom_column, 'options.false_value');
         }
     }
@@ -79,7 +79,7 @@ class Boolean extends CustomItem
      * @param [type] $value
      * @return ?string string:matched, null:not matched
      */
-    public function getPureValue($label)
+    public function getValFromLabel($label)
     {
         $option = $this->getImportValueOption();
 

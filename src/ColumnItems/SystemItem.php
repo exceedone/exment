@@ -198,7 +198,7 @@ class SystemItem implements ItemInterface
                 $custom_value = $this->custom_table->getValueModel($custom_value->parent_id);
             } else {
                 $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
-                $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
+                $pivot_id =  $custom_value->pureValue($pivot_custom_column);
                 $custom_value = $this->custom_table->getValueModel($pivot_id);
             }
         }
@@ -255,7 +255,7 @@ class SystemItem implements ItemInterface
             case 'day':
             case 'datetime':
                 $field = new Date($this->name(), [$this->label()]);
-                $field->default($this->value);
+                $field->default($this->value());
                 break;
             case 'user':
                 $field = new Select($this->name(), [$this->label()]);
@@ -269,11 +269,11 @@ class SystemItem implements ItemInterface
                             ]
                         );
                 });
-                $field->default($this->value);
+                $field->default($this->value());
                 break;
             default:
                 $field = new Text($this->name(), [$this->label()]);
-                $field->default($this->value);
+                $field->default($this->value());
                 break;
         }
 

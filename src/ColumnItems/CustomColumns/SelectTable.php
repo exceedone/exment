@@ -56,12 +56,11 @@ class SelectTable extends CustomItem
             return;
         }
         
-        if (!is_array($this->value) && preg_match('/\[.+\]/i', $this->value)) {
-            $this->value = json_decode($this->value);
+        if (!is_array($this->pureValue()) && preg_match('/\[.+\]/i', $this->pureValue())) {
+            $this->value = json_decode($this->pureValue());
         }
 
-        $isArray = is_array($this->value);
-        $value = $isArray ? $this->value : [$this->value];
+        $value = toArray($this->pureValue());
         $result = [];
 
         // if can select table relation, set value
@@ -167,7 +166,7 @@ class SelectTable extends CustomItem
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
         } elseif (isset($relationColumn)) {
             $parent_value = $this->custom_column->custom_table->getValueModel($this->id);
-            $parent_v = array_get($parent_value, 'value.' . $relationColumn['parent_column']->column_name);
+            $parent_v = isset($parent_value) ? $parent_value->pureValue($relationColumn['parent_column']) : null;
             $parent_target_table_id = $relationColumn['parent_column']->select_target_table->id;
             $parent_target_table_name = $relationColumn['parent_column']->select_target_table->table_name;
                 
@@ -332,7 +331,7 @@ class SelectTable extends CustomItem
         return System::requestSession($sessionkey, function () use ($datalist, $key) {
             // get key and value list
             $keyValueList = collect($datalist)->map(function ($d) {
-                return array_get($d, 'value.' . $this->custom_column->column_name);
+                return $d->pureValue($this->custom_column);
             })->flatten()->filter()->toArray();
 
             $target_custom_column = CustomColumn::getEloquent($key, $this->target_table);
@@ -352,7 +351,7 @@ class SelectTable extends CustomItem
      * @param [type] $value
      * @return ?string string:matched, null:not matched
      */
-    public function getPureValue($label)
+    public function getValFromLabel($label)
     {
         $select_table = $this->custom_column->select_target_table ?? null;
         if (!isset($select_table)) {
@@ -426,7 +425,7 @@ class SelectTable extends CustomItem
             return false;
         }
 
-        $searchValue = $column_item->getPureValue($value);
+        $searchValue = $column_item->getValFromLabel($value);
         if (!isset($searchValue)) {
             $searchValue = $value;
         }
