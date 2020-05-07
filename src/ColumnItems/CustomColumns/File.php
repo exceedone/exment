@@ -53,8 +53,26 @@ class File extends CustomItem
      */
     public function getImportValue($value, $setting = [])
     {
+        if(is_nullorempty($value)){
+            return [
+                'skip' => true,
+            ];
+        }
+
+        // Get file info by url
+        // only check by uuid
+        $uuid = pathinfo(trim($value, '/'), PATHINFO_FILENAME);
+        $file = ExmentFile::where('uuid', $uuid)->first();
+        if(!isset($file)){
+            return [
+                'skip' => true,
+            ];
+        }
+
+        // return file path
         return [
-            'skip' => true,
+            'result' => true,
+            'value' => $file->path,
         ];
     }
 
