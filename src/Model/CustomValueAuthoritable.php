@@ -39,7 +39,8 @@ class CustomValueAuthoritable extends ModelBase
 
 
         /////// share organization
-        if (System::custom_value_save_autoshare() != CustomValueAutoShare::USER_ORGANIZATION) {
+        $save_autoshare = System::custom_value_save_autoshare() ?? CustomValueAutoShare::USER_ONLY;
+        if ($save_autoshare == CustomValueAutoShare::USER_ONLY) {
             return;
         }
         
@@ -55,7 +56,7 @@ class CustomValueAuthoritable extends ModelBase
             self::firstOrCreate([
                 'parent_id' => $custom_value->id,
                 'parent_type' => $table_name,
-                'authoritable_type' => Permission::CUSTOM_VALUE_EDIT,
+                'authoritable_type' => $save_autoshare == CustomValueAutoShare::USER_ORGANIZATION ? Permission::CUSTOM_VALUE_EDIT : Permission::CUSTOM_VALUE_VIEW,
                 'authoritable_user_org_type' => SystemTableName::ORGANIZATION,
                 'authoritable_target_id' => $belong_organization->id,
             ]);

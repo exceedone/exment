@@ -7,10 +7,10 @@ namespace Exceedone\Exment\Enums;
  */
 class JoinedOrgFilterType extends EnumBase
 {
-    const ONLY_JOIN = '0';
+    const ALL = '99';
     const ONLY_UPPER = '1';
     const ONLY_DOWNER = '2';
-    const ALL = '99';
+    const ONLY_JOIN = '0';
 
     /**
      * whether getting upper line organization
