@@ -62,6 +62,12 @@ class File extends CustomItem
         // Get file info by url
         // only check by uuid
         $uuid = pathinfo(trim($value, '/'), PATHINFO_FILENAME);
+        if(is_nullorempty($uuid)){
+            return [
+                'skip' => true,
+            ];
+        }
+
         $file = ExmentFile::where('uuid', $uuid)->first();
         if(!isset($file)){
             return [
