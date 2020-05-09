@@ -60,7 +60,8 @@ class SamlService implements LoginServiceInterface
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
         $form->textarea('saml_idp_x509', exmtrans('login.saml_idp_x509'))
-        ->help(exmtrans('login.help.saml_idp_x509'))
+        ->help(exmtrans('login.help.saml_idp_x509') . 
+            (isset($login_setting) ? exmtrans('login.help.saml_key_path', static::getCerKeysPath('saml_idp_x509', $login_setting)) : null))
         ->rows(4)
         ->customFormat(function($value){
             return trydecrypt($value);
@@ -82,7 +83,8 @@ class SamlService implements LoginServiceInterface
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
         $form->textarea('saml_sp_x509', exmtrans('login.saml_sp_x509'))
-        ->help(exmtrans('login.help.saml_sp_x509'))
+        ->help(exmtrans('login.help.saml_sp_x509') . 
+            (isset($login_setting) ? exmtrans('login.help.saml_key_path', static::getCerKeysPath('saml_sp_x509', $login_setting)) : null))
         ->rows(4)
         ->customFormat(function($value){
             return trydecrypt($value);
@@ -90,13 +92,17 @@ class SamlService implements LoginServiceInterface
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
         $form->textarea('saml_sp_privatekey', exmtrans('login.saml_sp_privatekey'))
-        ->help(exmtrans('login.help.saml_privatekey'))
+        ->help(exmtrans('login.help.saml_privatekey') . 
+            (isset($login_setting) ? exmtrans('login.help.saml_key_path', static::getCerKeysPath('saml_sp_privatekey', $login_setting)) : null))
         ->rows(4)
         ->customFormat(function($value){
             return trydecrypt($value);
         })
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
         
+        if (isset($login_setting)) {
+            $form->display('saml_redirect_url', exmtrans('login.redirect_url'))->default($login_setting->exment_callback_url);
+        } 
 
         $form->exmheader(exmtrans('login.saml_option'))->hr()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
@@ -152,7 +158,7 @@ class SamlService implements LoginServiceInterface
                 return LoginService::getLoginTestResult(false, array_get($errors, 'last_error_reason', array_get($errors, 'error')));
             }
 
-            $custom_login_user = SamlUser::with($login_setting->provider_name, $saml2Auth->getSaml2User());
+            $custom_login_user = SamlUser::with($login_setting->provider_name, $saml2Auth->getSaml2User(), true);
             
             if(!is_nullorempty($custom_login_user->mapping_errors)){
                 return LoginService::getLoginTestResult(false, $custom_login_user->mapping_errors);
@@ -179,5 +185,48 @@ class SamlService implements LoginServiceInterface
 
     public static function appendActivateSwalButton($tools, LoginSetting $login_setting){
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
+    }
+
+
+    /**
+     * Get Cer file or private key file.
+     *
+     * @param string $name
+     * @param LoginSetting $login_setting
+     * @return string|null If file exists, return string in file.
+     */
+    public static function getCerKeysFromFromFile($name, LoginSetting $login_setting){
+        if($name == 'saml_sp_privatekey'){
+            $filename = $name . ".key";
+        }
+        else{
+            $filename = $name . ".crt";
+        }
+
+        $path = base_path(static::getCerKeysPath($name, $login_setting));
+        if(!\File::exists($path)){
+            return trydecrypt($login_setting->getOption($name));
+        }
+
+        return \File::get($path);
+    }
+
+    /**
+     * Get Cer file or private key relative file path.
+     *
+     * @param string $name
+     * @param LoginSetting $login_setting
+     * @return string file path.
+     */
+    public static function getCerKeysPath($name, LoginSetting $login_setting) : string
+    {
+        if($name == 'saml_sp_privatekey'){
+            $filename = $name . ".key";
+        }
+        else{
+            $filename = $name . ".crt";
+        }
+
+        return path_join('storage', 'app', 'saml', $login_setting->provider_name, $filename);
     }
 }

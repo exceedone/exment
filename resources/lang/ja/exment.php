@@ -703,6 +703,7 @@ return [
             'saml_option_authn_request_signed' => 'SPによって送信する認証リクエストを署名する場合は、YESにしてください。',
             'saml_option_logout_request_signed' => 'SPによって送信するログアウトリクエストを署名する場合は、YESにしてください。',
             'saml_option_logout_response_signed' => 'SPによって送信するログアウトレスポンスを署名する場合は、YESにしてください。',
+            'saml_key_path' => '<br />※ファイルから読み込みを行う場合、以下のパスにファイルを配置してください。<br/>%s',
 
             'activate' => 'このログインを有効化します。事前に「ログインテスト」を実施し、ログインが正常に実行できることの確認をおすすめします。有効化しますか？',
             'activate_ldap_error' => '他のLDAP認証が有効になっています。この認証を有効にする場合、先に該当のLDAP認証を無効にしてください。',

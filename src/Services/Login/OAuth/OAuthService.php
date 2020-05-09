@@ -96,7 +96,7 @@ class OAuthService implements LoginServiceInterface
         try {
             $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, true);
 
-            $custom_login_user = OAuthUser::with($login_setting->provider_name, $socialiteProvider->user());
+            $custom_login_user = OAuthUser::with($login_setting->provider_name, $socialiteProvider->user(), true);
 
             $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
             if ($validator->fails()) {

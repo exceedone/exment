@@ -13,15 +13,15 @@ use Exceedone\Exment\Model\LoginSetting;
  */
 class SamlUser extends CustomLoginUserBase
 {
-    public static function with($provider_name, $samlUser)
+    public static function with($provider_name, $samlUser, $isTest = false)
     {
         $user = new SamlUser;
         $user->id = $samlUser->getUserId();
         $user->provider_name = $provider_name;
         $user->login_type = LoginType::SAML;
-        $user->login_setting = LoginSetting::getSamlSetting($provider_name);
+        $user->login_setting = LoginSetting::getSamlSetting($provider_name, !$isTest);
 
-        static::setMappingValue($user, $samlUser);
+        static::setMappingValue($user, $samlUser, $isTest);
 
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';

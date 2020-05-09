@@ -323,7 +323,7 @@ class LoginSetting extends ModelBase
             'debug' => config('app.debug', false),
 
             'idp' => [
-                'x509cert' => trydecrypt($provider->getOption('saml_idp_x509')),
+                'x509cert' => LoginServiceRoot\Saml\SamlService::getCerKeysFromFromFile('saml_idp_x509', $provider),
                 'entityId' => $provider->getOption('saml_idp_entityid'),
                 'singleSignOnService' => [
                     'url' => $provider->getOption('saml_idp_sso_url'),
@@ -335,8 +335,8 @@ class LoginSetting extends ModelBase
 
             'sp' => [
                 'NameIDFormat' => $sp_name_id_format ?? 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
-                'x509cert' => trydecrypt($provider->getOption('saml_sp_x509')),
-                'privateKey' => trydecrypt($provider->getOption('saml_sp_privatekey')),
+                'x509cert' => LoginServiceRoot\Saml\SamlService::getCerKeysFromFromFile('saml_sp_x509', $provider),
+                'privateKey' => LoginServiceRoot\Saml\SamlService::getCerKeysFromFromFile('saml_sp_privatekey', $provider),
                 'entityId' => $provider->getOption('saml_sp_entityid'),
                 'assertionConsumerService' => [
                     'url' => $isTest ? $provider->exment_callback_url_test : $provider->exment_callback_url,
@@ -404,22 +404,24 @@ class LoginSetting extends ModelBase
     protected function setBcrypt()
     {
         $keys = ['saml_sp_x509', 'saml_sp_privatekey', 'saml_idp_x509'];
-        $original = jsonToArray($this->getOriginal('options'));
+        $originals = jsonToArray($this->getOriginal('options'));
 
         foreach($keys as $key){
             $value = $this->getOption($key);
-            $original = array_get($original, $key);
+            $original = array_get($originals, $key);
     
             if (!isset($value)) {
                 continue;
             }
             
-            if ($value == $original) {
-                continue;
-            }
+            // if ($value == $original) {
+            //     continue;
+            // }
             
-            if (isset($original) && \Hash::check($value, $original)) {
-            } else {
+            if (isset($original) && trydecrypt($original) == $value) {
+                $this->setOption($key, $original);
+            } 
+            else{
                 $this->setOption($key, encrypt($value));
             }
         }

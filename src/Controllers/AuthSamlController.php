@@ -74,12 +74,11 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         $error_url = admin_url('auth/login');
 
         if (!empty($errors)) {
-            logger()->error('Saml2 error_detail', ['error' => $saml2Auth->getLastErrorReason()]);
-            session()->flash('saml2_error_detail', [$saml2Auth->getLastErrorReason()]);
+            \Log::error($saml2Auth->getLastErrorReason());
 
-            logger()->error('Saml2 error', $errors);
-            session()->flash('saml2_error', $errors);
-            return redirect($error_url);
+            return redirect($error_url)->withInput()->withErrors(
+                ['sso_error' => $errors]
+            );
         }
 
         $custom_login_user = SamlUser::with($provider_name, $saml2Auth->getSaml2User());

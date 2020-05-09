@@ -75,9 +75,12 @@ class LoginService
     {
         $rules = CustomTable::getEloquent(SystemTableName::USER)->getValidateRules($data);
 
-        // remove "unique" rule
+        // remove "unique" rule, (If new account, alway false)
         foreach($rules as $key => $rule){
             $rules[$key] = array_filter($rule, function($r){
+                if(!is_string($r)){
+                    return false;
+                }
                 return strpos($r, 'unique') !== 0;
             });
         }
