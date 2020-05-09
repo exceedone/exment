@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Layout\Row;
 use Exceedone\Exment\Form\Show;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
@@ -17,6 +18,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -108,7 +110,7 @@ trait CustomValueShow
                             continue;
                         }
                         $field = $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
-                            ->as(function ($v) use ($form_column, $item) {
+                            ->as(function ($v) use ($item) {
                                 if (is_null($this)) {
                                     return '';
                                 }

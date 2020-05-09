@@ -163,7 +163,7 @@ class TemplateImporter
 
                 $json['template_type'] = 'user';
                 $templates[] = $json;
-            } catch (Exception $exception) {
+            } catch (\Exception $exception) {
                 //TODO:error handling
             }
         }
@@ -201,7 +201,7 @@ class TemplateImporter
                 
                 $json['template_type'] = 'local';
                 $templates[] = $json;
-            } catch (Exception $exception) {
+            } catch (\Exception $exception) {
                 //TODO:error handling
             }
         }

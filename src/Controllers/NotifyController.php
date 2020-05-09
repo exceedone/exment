@@ -6,9 +6,6 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Auth\Permission as Checker;
-//use Encore\Admin\Controllers\HasResourceActions;
-//use Encore\Admin\Widgets\Form;
-use Illuminate\Http\Request;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -25,12 +22,13 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Validator\RequiredIfExRule;
+use Illuminate\Http\Request;
 
 class NotifyController extends AdminControllerBase
 {
     use HasResourceActions;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"), 'fa-bell');
     }
@@ -70,7 +68,7 @@ class NotifyController extends AdminControllerBase
                 return $custom_table->table_view_name ?? null;
             }
             if (isset($this->workflow_id)) {
-                return Workflow::getEloquent($this->workflow_id)->workflow_view_name;
+                return Workflow::getEloquent($this->workflow_id)->workflow_view_name ?? null;
             }
 
             return null;
@@ -144,7 +142,7 @@ class NotifyController extends AdminControllerBase
 
         $form->select('custom_table_id', exmtrans("notify.custom_table_id"))
         ->required()
-        ->options(function ($custom_table_id) {
+        ->options(function ($custom_table_id, $foo) {
             return CustomTable::filterList()->pluck('table_view_name', 'id');
         })->attribute([
             'data-linkage' => json_encode([
@@ -188,7 +186,12 @@ class NotifyController extends AdminControllerBase
         $form->select('workflow_id', exmtrans("notify.workflow_id"))
         ->required()
         ->options(function ($workflow_id) {
-            return Workflow::all()->pluck('workflow_view_name', 'id');
+            return Workflow::allRecords(function ($workflow) {
+                if (!boolval($workflow->setting_completed_flg)) {
+                    return false;
+                }
+                return true;
+            })->pluck('workflow_view_name', 'id');
         })->attribute([
             'data-filter' => json_encode(['key' => 'notify_trigger', 'value' => [NotifyTrigger::WORKFLOW]]),
             'data-linkage' =>json_encode([
@@ -280,11 +283,11 @@ class NotifyController extends AdminControllerBase
                 ]);
 
             $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
-                ->options(function ($val) use ($controller) {
-                    if ($this->workflow_id) {
+                ->options(function ($val, $foo, $notify) use ($controller) {
+                    if ($notify->workflow_id) {
                         return $controller->getNotifyActionTargetWorkflowOptions(false);
                     }
-                    return $controller->getNotifyActionTargetOptions($this->custom_table_id ?? null, false);
+                    return $controller->getNotifyActionTargetOptions($notify->custom_table_id ?? null, false);
                 })
                 ->default(NotifyActionTarget::HAS_ROLES)
                 ->setLabelClass(['asterisk'])

@@ -17,7 +17,7 @@ class ApiSettingController extends AdminControllerBase
 {
     use HasResourceActions;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("api.header"), exmtrans("api.header"), exmtrans("api.description"), 'fa-code-fork');
     }
@@ -158,6 +158,7 @@ class ApiSettingController extends AdminControllerBase
         $clientRepository = new ApiClientRepository;
         DB::beginTransaction();
         try {
+            $client = null;
             // for create token
             if (!isset($id)) {
                 $user_id = \Exment::user()->getUserId();
@@ -201,7 +202,7 @@ class ApiSettingController extends AdminControllerBase
             admin_toastr(trans('admin.update_succeeded'));
             $url = admin_urls('api_setting', $client->id, 'edit');
             return redirect($url);
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             DB::rollback();
             throw $ex;
         }

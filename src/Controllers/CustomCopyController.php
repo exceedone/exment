@@ -110,7 +110,7 @@ class CustomCopyController extends AdminControllerTableBase
     /**
      * get child table copy options.
      *
-     * @return child copy options
+     * @return array child copy options
      */
     protected function getChildCopyOptions($to_table)
     {
@@ -201,7 +201,7 @@ class CustomCopyController extends AdminControllerTableBase
         ->description(exmtrans("custom_copy.column_description"));
 
         ///// get input columns
-        $form->hasManyTable('custom_copy_input_columns', exmtrans("custom_copy.custom_copy_input_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
+        $form->hasManyTable('custom_copy_input_columns', exmtrans("custom_copy.custom_copy_input_columns"), function ($form) use ($to_custom_column_options) {
             $form->select('to_column_target', exmtrans("custom_copy.input_custom_column"))
                 ->options($to_custom_column_options)->required();
             $form->hidden('copy_column_type')->default(CopyColumnType::INPUT);

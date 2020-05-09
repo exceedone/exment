@@ -132,7 +132,7 @@ trait CustomValueForm
                         $hasmany = $form->hasMany(
                             $relation_name,
                             $block_label,
-                            function ($form, $model = null) use ($custom_form_block, $id) {
+                            function ($form, $model = null) use ($custom_form_block) {
                                 $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model))
                                 ->disableHeader();
                             }
@@ -341,7 +341,7 @@ EOT;
     protected function manageFormSaved($form, $id, $select_parent = null)
     {
         // after saving
-        $form->savedInTransaction(function ($form) use ($id, $select_parent) {
+        $form->savedInTransaction(function ($form) {
             PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
         });
         
@@ -367,7 +367,7 @@ EOT;
         $form->disableCreatingCheck(false);
         $form->disableViewCheck(false);
         
-        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form) {
+        $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
             // create
             if (!isset($id)) {
                 $isButtonCreate = true;

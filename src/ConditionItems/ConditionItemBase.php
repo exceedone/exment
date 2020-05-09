@@ -104,7 +104,7 @@ abstract class ConditionItemBase
      *
      * @param CustomTable|null $custom_table
      * @param WorkflowAuthority|WorkflowValueAuthority $authority
-     * @return void
+     * @return \Exceedone\Exment\ConditionItems\ConditionItemBase
      */
     public static function getItemByAuthority(?CustomTable $custom_table, $authority)
     {

@@ -2,6 +2,12 @@
 
 namespace Exceedone\Exment\Enums;
 
+/**
+ * Workflow target Difinition.
+ *
+ * @method static WorkflowWorkTargetType ACTION_SELECT()
+ * @method static WorkflowWorkTargetType FIX()
+ */
 class WorkflowWorkTargetType extends EnumBase
 {
     const ACTION_SELECT = "action_select";

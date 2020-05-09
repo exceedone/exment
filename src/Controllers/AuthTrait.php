@@ -19,6 +19,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 trait AuthTrait
 {
+    protected $maxAttempts;
+    protected $decayMinutes;
+    protected $throttle;
 
     public function getLoginPageData($array = [])
     {

@@ -28,7 +28,7 @@ class RoleGroupController extends AdminControllerBase
 {
     use HasResourceActions;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("role_group.header"), exmtrans("role_group.header"), exmtrans("role_group.description"), 'fa-user-secret');
     }
@@ -315,7 +315,7 @@ class RoleGroupController extends AdminControllerBase
      *
      * @return Form
      */
-    protected function formUserOrganization($id)
+    protected function formUserOrganization($id = null)
     {
         if (!$this->hasPermission_UserOrganization()) {
             Checker::error();
@@ -419,6 +419,9 @@ class RoleGroupController extends AdminControllerBase
             $relations = [];
             foreach ($items as $item) {
                 $requestItems = $request->get($item['name']);
+                if(is_nullorempty($requestItems)){
+                    continue;
+                }
 
                 foreach ($requestItems as $requestItem) {
                     $relation = [
@@ -438,7 +441,7 @@ class RoleGroupController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url('role_group'));
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             \DB::rollback();
             throw $exception;
@@ -475,15 +478,15 @@ class RoleGroupController extends AdminControllerBase
             });
                 
             \Schema::insertDelete(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, $role_group, [
-                'dbValueFilter' => function (&$model) use ($id, $item) {
+                'dbValueFilter' => function (&$model) use ($id) {
                     $model->where('role_group_id', $id);
                 },
-                'dbDeleteFilter' => function (&$model, $dbValue) use ($id, $item) {
+                'dbDeleteFilter' => function (&$model, $dbValue) use ($id) {
                     $model->where('role_group_id', $id)
                         ->where('role_group_target_id', array_get((array)$dbValue, 'role_group_target_id'))
                         ->where('role_group_user_org_type', array_get((array)$dbValue, 'role_group_user_org_type'));
                 },
-                'matchFilter' => function ($dbValue, $value) use ($id, $item) {
+                'matchFilter' => function ($dbValue, $value) {
                     return array_get((array)$dbValue, 'role_group_target_id') == array_get($value, 'role_group_target_id')
                         && array_get((array)$dbValue, 'role_group_user_org_type') == array_get($value, 'role_group_user_org_type');
                 },
@@ -496,7 +499,7 @@ class RoleGroupController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url('role_group'));
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             \DB::rollback();
             throw $exception;
@@ -508,7 +511,7 @@ class RoleGroupController extends AdminControllerBase
      *
      * @param [type] $id
      * @param [type] $is_action
-     * @return void
+     * @return array
      */
     protected function getProgressInfo($isSelectTarget, $id = null)
     {

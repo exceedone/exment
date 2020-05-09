@@ -241,8 +241,11 @@ class File extends ModelBase
 
     /**
      * Get file model using path or uuid
+     *
+     * @param [type] $pathOrUuids
+     * @return ?\Exceedone\Exment\Model\File
      */
-    protected static function getData($pathOrUuids)
+    public static function getData($pathOrUuids)
     {
         if (is_nullorempty($pathOrUuids)) {
             return null;

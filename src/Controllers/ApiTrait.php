@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomValue;
 
 /**
  * Api about target table
@@ -39,7 +40,7 @@ trait ApiTrait
      *
      * @param Request $request
      * @param CustomColumn|null $custom_column
-     * @return void
+     * @return CustomColumn|\Symfony\Component\HttpFoundation\Response
      */
     protected function responseColumn(Request $request, ?CustomColumn $custom_column)
     {
@@ -58,7 +59,7 @@ trait ApiTrait
      * Get count parameter for list count
      *
      * @param [type] $request
-     * @return void
+     * @return int
      */
     protected function getCount($request)
     {
@@ -109,7 +110,7 @@ trait ApiTrait
      *
      * @param CustomTable $custom_table
      * @param [type] $id
-     * @return void
+     * @return CustomValue|\Symfony\Component\HttpFoundation\Response
      */
     protected function getCustomValue(CustomTable $custom_table, $id)
     {

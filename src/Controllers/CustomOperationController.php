@@ -96,16 +96,9 @@ class CustomOperationController extends AdminControllerTableBase
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('operation_name', exmtrans("custom_operation.operation_name"))->sortable();
         
-        if (isset($this->custom_table)) {
-            $grid->model()->where('custom_table_id', $this->custom_table->id);
-            $custom_table = $this->custom_table;
-        }
-
+        $grid->model()->where('custom_table_id', $this->custom_table->id);
         $grid->disableExport();
-        $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
-            if (isset($custom_table)) {
-                $table_name = $custom_table->table_name;
-            }
+        $grid->actions(function (Grid\Displayers\Actions $actions) {
             if (boolval($actions->row->disabled_delete)) {
                 $actions->disableDelete();
             }

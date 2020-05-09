@@ -27,7 +27,7 @@ class SystemController extends AdminControllerBase
 {
     use InitializeFormTrait;
     
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("system.header"), exmtrans("system.header"), exmtrans("system.system_description"), 'fa-cogs');
     }
@@ -54,7 +54,7 @@ class SystemController extends AdminControllerBase
     protected function formBasic(Request $request, Content $content)
     {
         $this->AdminContent($content);
-        $form = $this->getInitializeForm('system', false, true);
+        $form = $this->getInitializeForm('system', false);
         $form->action(admin_url('system'));
 
         $admin_users = System::system_admin_users();
@@ -88,7 +88,7 @@ class SystemController extends AdminControllerBase
      *
      * @param Request $request
      * @param Content $content
-     * @return void
+     * @return Content
      */
     protected function formAdvanced(Request $request, Content $content)
     {
@@ -144,14 +144,14 @@ class SystemController extends AdminControllerBase
             $manualUrl = getManualUrl('organization');
             $form->select('org_joined_type_role_group', exmtrans("system.org_joined_type_role_group"))
                 ->help(exmtrans("system.help.org_joined_type_role_group") . exmtrans("common.help.more_help_here", $manualUrl))
-                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
+                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_role_group_options'))
                 ->config('allowClear', false)
                 ->default(JoinedOrgFilterType::ALL)
                 ;
 
             $form->select('org_joined_type_custom_value', exmtrans("system.org_joined_type_custom_value"))
                 ->help(exmtrans("system.help.org_joined_type_custom_value") . exmtrans("common.help.more_help_here", $manualUrl))
-                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_options'))
+                ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_custom_value_options'))
                 ->config('allowClear', false)
                 ->default(JoinedOrgFilterType::ONLY_JOIN)
                 ;
@@ -306,7 +306,7 @@ class SystemController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url('system') . ($advanced ? '?advanced=1' : ''));
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
             throw $exception;

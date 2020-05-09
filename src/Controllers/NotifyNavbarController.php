@@ -15,7 +15,7 @@ class NotifyNavbarController extends AdminControllerBase
 {
     use HasResourceActions;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans('notify_navbar.header'), exmtrans('notify_navbar.header'), exmtrans('notify_navbar.description'), 'fa-bell');
     }
@@ -83,7 +83,7 @@ class NotifyNavbarController extends AdminControllerBase
      */
     protected function detail($id)
     {
-        $model = NotifyNavbar::findOrFail($id);
+        $model = NotifyNavbar::find($id);
 
         if (!isset($model)) {
             abort(404);
@@ -99,7 +99,7 @@ class NotifyNavbarController extends AdminControllerBase
                 ->getValueModel(array_get($model, 'parent_id'));
         }
 
-        return new Show($model, function (Show $show) use ($id, $model, $custom_value) {
+        return new Show($model, function (Show $show) use ($id, $custom_value) {
             $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) {
                 if (is_null($parent_type)) {
                     return null;
@@ -108,8 +108,8 @@ class NotifyNavbarController extends AdminControllerBase
             });
 
             if (isset($custom_value)) {
-                $show->field('target_custom_value', exmtrans('notify_navbar.target_custom_value'))->as(function ($v) use ($model, $custom_value) {
-                    return $custom_value->getValue(true);
+                $show->field('target_custom_value', exmtrans('notify_navbar.target_custom_value'))->as(function ($v) use ($custom_value) {
+                    return $custom_value->getLabel();
                 })->setEscape(false);
             }
             $show->field('notify_subject', exmtrans('notify_navbar.notify_subject'));
@@ -140,7 +140,7 @@ class NotifyNavbarController extends AdminControllerBase
      */
     public function redirectTargetData(Request $request, $id = null)
     {
-        $model = NotifyNavbar::findOrFail($id);
+        $model = NotifyNavbar::find($id);
 
         if (!isset($model)) {
             abort(404);
@@ -173,7 +173,7 @@ class NotifyNavbarController extends AdminControllerBase
         }
 
         $models = NotifyNavbar::whereIn('id', explode(',', $id))->where('read_flg', false)->get();
-        if (!isset($models) || $models->count() == 0) {
+        if (is_nullorempty($models)) {
             return getAjaxResponse([
                 'result'  => false,
                 'toastr' => exmtrans('notify_navbar.message.check_notfound'),

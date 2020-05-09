@@ -21,14 +21,19 @@ trait ColumnOptionQueryTrait
      */
     protected static function getOptionKey($column_key, $append_table = true, $table_id = null, $options = [])
     {
-        extract(array_merge(
+        $options = array_merge(
             [
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
                 'codition_type' => null,
             ],
             $options
-        ));
+        );
+
+        $view_pivot_column = $options['view_pivot_column'];
+        $view_pivot_table = $options['view_pivot_table'];
+        $codition_type = $options['codition_type'];
+        
         $query = [];
         
         if ($append_table && isset($table_id)) {
@@ -78,7 +83,7 @@ trait ColumnOptionQueryTrait
     /**
      * Get params(custom_table, column_name etc) from query
      *
-     * @return void
+     * @return array
      */
     protected static function getOptionParams($query, $defaultCustomTable)
     {

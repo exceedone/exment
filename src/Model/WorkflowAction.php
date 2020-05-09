@@ -219,7 +219,7 @@ class WorkflowAction extends ModelBase
                         ->where('related_id', array_get((array)$dbValue, 'related_id'))
                         ->where('related_type', $key);
                 },
-                'matchFilter' => function ($dbValue, $value) use ($key) {
+                'matchFilter' => function ($dbValue, $value) {
                     return array_get((array)$dbValue, 'workflow_action_id') == $value['workflow_action_id']
                         && array_get((array)$dbValue, 'related_id') == $value['related_id']
                         && array_get((array)$dbValue, 'related_type') == $value['related_type']
@@ -502,7 +502,7 @@ class WorkflowAction extends ModelBase
     /**
      * Get status_to id. Filtering value
      *
-     * @return void
+     * @return string|null
      */
     public function getStatusToId($custom_value)
     {
@@ -538,7 +538,7 @@ class WorkflowAction extends ModelBase
     /**
      * Filtering condtions. use action condtion
      *
-     * @return void
+     * @return WorkflowConditionHeader|null
      */
     public function getMatchedCondtionHeader($custom_value)
     {
@@ -709,7 +709,7 @@ class WorkflowAction extends ModelBase
     /**
      * get next action Authorities
      *
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     protected function getNextActionAuthorities($custom_value, $statusTo, $nextActions = null)
     {

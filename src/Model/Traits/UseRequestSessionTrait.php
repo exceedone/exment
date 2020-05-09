@@ -89,7 +89,7 @@ trait UseRequestSessionTrait
         $records = self::with($with)->get();
         System::{$func}($key, $records);
 
-        if (!isset($records)) {
+        if (is_nullorempty($records)) {
             return $records;
         }
 

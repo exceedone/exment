@@ -123,7 +123,7 @@ class Workflow extends ModelBase
     /**
      * Get status string
      *
-     * @return Collection
+     * @return string
      */
     public function getStatusesString()
     {
@@ -133,7 +133,7 @@ class Workflow extends ModelBase
     /**
      * Get status options. contains start and end.
      *
-     * @return Collection
+     * @return \Illuminate\Support\Collection
      */
     public function getStatusOptions($onlyStart = false)
     {
@@ -151,7 +151,7 @@ class Workflow extends ModelBase
      * Get workflow filtering active using custom table
      *
      * @param [type] $custom_table
-     * @return void
+     * @return ?Workflow
      */
     public static function getWorkflowByTable($custom_table)
     {
@@ -197,8 +197,7 @@ class Workflow extends ModelBase
      * Get custom table. Only workflow type is table
      * If workflow is common, return null
      *
-     * @param [type] $custom_table
-     * @return void
+     * @return CustomTable|null
      */
     public function getDesignatedTable()
     {

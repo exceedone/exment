@@ -5,6 +5,15 @@ namespace Exceedone\Exment\Enums;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\ConditionItems;
 
+/**
+ * Conditiion Difinition.
+ *
+ * @method static ConditionTypeDetail USER()
+ * @method static ConditionTypeDetail ORGANIZATION()
+ * @method static ConditionTypeDetail ROLE()
+ * @method static ConditionTypeDetail SYSTEM()
+ * @method static ConditionTypeDetail COLUMN()
+ */
 class ConditionTypeDetail extends EnumBase
 {
     use EnumOptionTrait;

@@ -9,6 +9,9 @@ use Exceedone\Exment\Jobs;
 
 class MicrosoftTeamsSender
 {
+    protected $subject;
+    protected $body;
+
     /**
      * Create a new notification instance.
      *

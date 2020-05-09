@@ -427,7 +427,11 @@ abstract class CustomItem implements ItemInterface
      *
      * @param mixed $value
      * @param array $options
-     * @return void
+     * @return array
+     *     result : import result is true or false.
+     *     message : If error, showing error message
+     *     skip :Iif true, skip import this column.
+     *     value : Replaced value.
      */
     public function getImportValue($value, $options = [])
     {

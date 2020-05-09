@@ -14,6 +14,7 @@ class DefaultTableProvider extends ProviderBase
 {
     protected $grid;
     protected $parent_table;
+    protected $custom_table;
 
     public function __construct($args = [])
     {
