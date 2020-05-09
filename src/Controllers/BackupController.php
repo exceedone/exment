@@ -40,11 +40,12 @@ class BackupController extends AdminControllerBase
     public function index(Request $request, Content $content)
     {
         $this->AdminContent($content);
+        $disk = $this->backup->disk();
         
         $checkBackup = $this->backup->check();
 
         // get all archive files
-        $files = collect($disk->files('list'))->filter(function ($file) use($disk) {
+        $files = collect($disk->files('list'))->filter(function ($file) {
             return preg_match('/list\/' . Define::RULES_REGEX_BACKUP_FILENAME . '\.zip$/i', $file);
         })->sortByDesc(function($file) use($disk){
             return $disk->lastModified($file);
@@ -144,7 +145,7 @@ class BackupController extends AdminControllerBase
 
             admin_toastr(trans('admin.save_succeeded'));
             return redirect(admin_url('backup'));
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
         }
@@ -157,8 +158,7 @@ class BackupController extends AdminControllerBase
      */
     public function delete(Request $request)
     {
-        $this->initBackupRestore();
-        $disk = $this->disk();
+        $disk = $this->backup->disk();
         
         $data = $request->all();
 
@@ -401,8 +401,7 @@ class BackupController extends AdminControllerBase
             ]);
         }
 
-        $this->initBackupRestore();
-        $disk = $this->disk();
+        $disk = $this->backup->disk();
 
         $oldfile = path_join('list', $data['file'] . '.zip');
         $newfile = path_join('list', $data['filename'] . '.zip');
