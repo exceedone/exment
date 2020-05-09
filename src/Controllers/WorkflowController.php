@@ -44,7 +44,7 @@ class WorkflowController extends AdminControllerBase
 
     protected $exists = false;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("workflow.header"), exmtrans("workflow.header"), exmtrans("workflow.description"), 'fa-share-alt');
     }
@@ -61,16 +61,16 @@ class WorkflowController extends AdminControllerBase
         $grid->column('workflow_type', exmtrans("workflow.workflow_type"))->displayEscape(function ($v) {
             return WorkflowType::getEnum($v)->transKey('workflow.workflow_type_options');
         });
-        $grid->column('workflow_tables', exmtrans("custom_table.table"))->displayEscape(function ($v) {
-            if (is_null($custom_table = $this->getDesignatedTable())) {
+        $grid->column('workflow_tables', exmtrans("custom_table.table"))->displayEscape(function ($v, $column, $model) {
+            if (is_null($custom_table = $model->getDesignatedTable())) {
                 return null;
             }
 
             return $custom_table->table_view_name;
         });
         $grid->column('workflow_view_name', exmtrans("workflow.workflow_view_name"))->sortable();
-        $grid->column('workflow_statuses', exmtrans("workflow.status_name"))->displayEscape(function ($value) {
-            return $this->getStatusesString();
+        $grid->column('workflow_statuses', exmtrans("workflow.status_name"))->displayEscape(function ($value, $column, $workflow) {
+            return $workflow->getStatusesString();
         });
         $grid->column('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->display(function ($value) {
             if (boolval($value)) {
@@ -132,7 +132,7 @@ class WorkflowController extends AdminControllerBase
             case 2:
                 return $this->actionForm($id);
             case 3:
-                return $this->beginningForm($id);
+                return $this->beginningForm();
             default:
                 return $this->statusForm($id);
         }
@@ -221,7 +221,7 @@ class WorkflowController extends AdminControllerBase
             $this->exists = $form->model()->exists;
         });
 
-        $form->savedInTransaction(function (Form $form) use ($id) {
+        $form->savedInTransaction(function (Form $form) {
             $model = $form->model();
 
             // get workflow_statuses and set completed fig
@@ -253,7 +253,7 @@ class WorkflowController extends AdminControllerBase
             $self->disableDelete($workflow, $tools);
         });
 
-        $form->saved(function (Form $form) use ($id) {
+        $form->saved(function (Form $form) {
             $model = $form->model();
 
             // redirect workflow action page
@@ -301,8 +301,8 @@ class WorkflowController extends AdminControllerBase
         $field = $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function ($form) use ($id, $workflow) {
             $form->workflowStatusSelects('status_from', exmtrans("workflow.status_name"))
                 ->config('allowClear', false)
-                ->options(function ($value, $field) {
-                    return $this->getStatusOptions($field->getIndex() === 0);
+                ->options(function ($value, $field, $workflow) {
+                    return $workflow->getStatusOptions($field->getIndex() === 0);
                 });
 
             $form->valueModal('work_conditions', exmtrans("workflow.work_conditions"))
@@ -843,7 +843,7 @@ class WorkflowController extends AdminControllerBase
         $index = $request->get('index');
 
         $form = AuthUserOrgHelper::getUserOrgModalForm($custom_table, $value, [
-            'prependCallback' => function ($form) use ($workflow, $value, $index) {
+            'prependCallback' => function ($form) use ($value, $index) {
                 if ($index > 0) {
                     $options = [
                         WorkflowWorkTargetType::ACTION_SELECT => WorkflowWorkTargetType::ACTION_SELECT()->transKey('workflow.work_target_type_options'),
@@ -878,7 +878,7 @@ class WorkflowController extends AdminControllerBase
         // set workflow system column
         $modal_system_default = array_get($value, SystemTableName::SYSTEM()->lowerkey());
         if (!isset($modal_system_default)) {
-            $modal_system_default = (!isset($value) && $index == 0 ? [WorkflowTargetSystem::CREATED_USER] : null);
+            $modal_system_default = (is_nullorempty($value) && $index == 0 ? [WorkflowTargetSystem::CREATED_USER] : null);
         }
         $form->multipleSelect('modal_' . ConditionTypeDetail::SYSTEM()->lowerkey(), exmtrans('common.system'))
             ->options(WorkflowTargetSystem::transKeyArray('common'))

@@ -2,6 +2,27 @@
 
 namespace Exceedone\Exment\Enums;
 
+/**
+ * Error Code Difinition.
+ *
+ * @method static ErrorCode PERMISSION_DENY()
+ * @method static ErrorCode INVALID_PARAMS()
+ * @method static ErrorCode NOT_INDEX_ENABLED()
+ * @method static ErrorCode VALIDATION_ERROR()
+ * @method static ErrorCode FORM_ACTION_DISABLED()
+ * @method static ErrorCode DELETE_DISABLED()
+ * @method static ErrorCode WRONG_SCOPE()
+ * @method static ErrorCode DATA_NOT_FOUND()
+ * @method static ErrorCode ACCESS_DENIED()
+ * @method static ErrorCode OVER_LENGTH()
+ * @method static ErrorCode ALREADY_DELETED()
+ * @method static ErrorCode PLUGIN_NOT_FOUND()
+ * @method static ErrorCode WORKFLOW_LOCK()
+ * @method static ErrorCode WORKFLOW_NOSTART()
+ * @method static ErrorCode WORKFLOW_END()
+ * @method static ErrorCode WORKFLOW_ACTION_DISABLED()
+ * @method static ErrorCode DISAPPROVAL_IP()
+ */
 class ErrorCode extends EnumBase
 {
     const PERMISSION_DENY = '101';

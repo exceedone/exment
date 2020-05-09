@@ -24,7 +24,7 @@ class DashboardController extends AdminControllerBase
     use HasResourceActions;
     protected $dashboard;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"), null, 'fa-home');
     }
@@ -297,7 +297,7 @@ EOT;
             }
         })->disableHeader();
 
-        $form->tools(function (Form\Tools $tools) use ($id, $form) {
+        $form->tools(function (Form\Tools $tools) {
             $tools->disableList();
 
             // addhome button
@@ -316,9 +316,17 @@ EOT;
         return $form;
     }
 
+    /**
+     * Set daashboard box.
+     *
+     * @param Content $content
+     * @param int $row_column_count
+     * @param int $row_no
+     * @return void
+     */
     protected function setDashboardBox($content, $row_column_count, $row_no)
     {
-        $content->row(function ($row) use ($content, $row_column_count, $row_no) {
+        $content->row(function ($row) use ($row_column_count, $row_no) {
             // check role.
             $has_role = $this->dashboard->hasEditPermission();
             for ($i = 1; $i <= $row_column_count; $i++) {

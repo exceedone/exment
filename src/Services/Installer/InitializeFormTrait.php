@@ -19,7 +19,7 @@ trait InitializeFormTrait
      *
      * @param [type] $routeName
      * @param boolean $add_template
-     * @return void
+     * @return WidgetForm
      */
     protected function getInitializeForm($routeName, $add_template = false)
     {

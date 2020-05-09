@@ -6,6 +6,10 @@ use Exceedone\Exment\Model\System;
 
 trait AuthTrait
 {
+    protected $maxAttempts;
+    protected $decayMinutes;
+    protected $throttle;
+
     public function getLoginPageData($array = [])
     {
         // whether using sso

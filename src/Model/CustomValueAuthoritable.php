@@ -117,7 +117,7 @@ class CustomValueAuthoritable extends ModelBase
     /**
      * Get share form
      *
-     * @return void
+     * @return ModalForm
      */
     public static function getShareDialogForm($custom_value)
     {
@@ -246,8 +246,8 @@ class CustomValueAuthoritable extends ModelBase
     /**
      * get listbox options contains user and org
      *
-     * @param [type] $custom_table
-     * @return void
+     * @param CustomTable $custom_table
+     * @return array
      */
     public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false, $default = null)
     {

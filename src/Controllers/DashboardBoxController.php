@@ -25,7 +25,7 @@ class DashboardBoxController extends AdminControllerBase
     protected $row_no;
     protected $column_no;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"));
     }
@@ -120,7 +120,7 @@ class DashboardBoxController extends AdminControllerBase
             $classname::setAdminOptions($form, $dashboard);
         })->disableHeader();
         
-        $form->tools(function (Form\Tools $tools) use ($id, $form) {
+        $form->tools(function (Form\Tools $tools) {
             $tools->disableList();
 
             // addhome button
@@ -167,7 +167,7 @@ class DashboardBoxController extends AdminControllerBase
         } else {
             // get dashboard_suuid from query
             $dashboard_suuid = $request->query('dashboard_suuid');
-            if (!isset($dashboard_suuid)) {
+            if (is_nullorempty($dashboard_suuid)) {
                 return [null, null, null, null];
             }
             $dashboard = Dashboard::findBySuuid($dashboard_suuid) ?? null;

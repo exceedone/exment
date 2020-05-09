@@ -28,7 +28,7 @@ class NotifyController extends AdminControllerBase
 {
     use HasResourceActions;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"), 'fa-bell');
     }
@@ -142,7 +142,7 @@ class NotifyController extends AdminControllerBase
 
         $form->select('custom_table_id', exmtrans("notify.custom_table_id"))
         ->required()
-        ->options(function ($custom_table_id) {
+        ->options(function ($custom_table_id, $foo) {
             return CustomTable::filterList()->pluck('table_view_name', 'id');
         })->attribute([
             'data-linkage' => json_encode([
@@ -283,11 +283,11 @@ class NotifyController extends AdminControllerBase
                 ]);
 
             $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
-                ->options(function ($val) use ($controller) {
-                    if ($this->workflow_id) {
+                ->options(function ($val, $foo, $notify) use ($controller) {
+                    if ($notify->workflow_id) {
                         return $controller->getNotifyActionTargetWorkflowOptions(false);
                     }
-                    return $controller->getNotifyActionTargetOptions($this->custom_table_id ?? null, false);
+                    return $controller->getNotifyActionTargetOptions($notify->custom_table_id ?? null, false);
                 })
                 ->default(NotifyActionTarget::HAS_ROLES)
                 ->setLabelClass(['asterisk'])

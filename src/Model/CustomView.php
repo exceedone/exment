@@ -351,7 +351,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * get alldata view using table
      *
      * @param mixed $tableObj table_name, object or id eic
-     * @return void
+     * @return CustomView
      */
     public static function getAllData($tableObj)
     {
@@ -393,7 +393,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * @param mixed $tableObj table_name, object or id eic
      * @param boolean $getSettingValue if true, getting from UserSetting table
      * @param boolean $is_dashboard call by dashboard
-     * @return void
+     * @return CustomView
      */
     public static function getDefault($tableObj, $getSettingValue = true, $is_dashboard = false)
     {

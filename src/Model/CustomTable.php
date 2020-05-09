@@ -1976,7 +1976,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @param null|int|string $id CustomValue's id
      * @param bool $withTrashed if true, get already trashed value.
-     * @return CustomValue CustomValue's model.
+     * @return ?CustomValue CustomValue's model.
      */
     public function getValueModel($id = null, $withTrashed = false)
     {

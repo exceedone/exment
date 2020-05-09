@@ -19,6 +19,7 @@ class ResetPasswordController extends Controller
     use \Exceedone\Exment\Controllers\AuthTrait;
 
     protected $login_user;
+    protected $redirectTo;
 
     /**
      * Create a new controller instance.
@@ -149,7 +150,7 @@ class ResetPasswordController extends Controller
     /**
      * Get email address by token
      *
-     * @return void
+     * @return string|null
      */
     protected function getEmailByToken($token)
     {

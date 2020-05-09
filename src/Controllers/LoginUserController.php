@@ -18,7 +18,7 @@ class LoginUserController extends AdminControllerBase
 {
     use HasResourceActions;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("user.header"), exmtrans("user.header"), exmtrans("user.description"), 'fa-user-plus');
     }
@@ -65,7 +65,7 @@ class LoginUserController extends AdminControllerBase
         $service = $this->getImportExportService($grid);
         $grid->exporter($service);
         
-        $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
+        $grid->tools(function (Grid\Tools $tools) use ($grid) {
             $tools->append(new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true));
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
@@ -147,7 +147,7 @@ class LoginUserController extends AdminControllerBase
             admin_error('Error', exmtrans('error.mailsend_failed'));
             DB::rollback();
             return back()->withInput();
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             DB::rollback();
             throw $ex;
         }

@@ -9,6 +9,11 @@ use Exceedone\Exment\Jobs;
 
 class SlackSender
 {
+    protected $name;
+    protected $icon;
+    protected $subject;
+    protected $body;
+    
     /**
      * Create a new notification instance.
      *

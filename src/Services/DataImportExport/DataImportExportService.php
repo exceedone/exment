@@ -406,7 +406,7 @@ class DataImportExportService extends AbstractExporter
      * @param [type] $custom_columns
      * @param [type] $data
      * @param array $options
-     * @return void
+     * @return array
      */
     public static function processCustomValue($custom_columns, $data, $options = [])
     {

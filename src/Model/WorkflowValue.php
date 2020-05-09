@@ -102,7 +102,7 @@ class WorkflowValue extends ModelBase
     /**
      * Whether already executed workflow
      *
-     * @return void
+     * @return bool
      */
     public static function isAlreadyExecuted($action_id, $custom_value, $targetUser)
     {

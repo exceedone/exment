@@ -391,7 +391,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      * Get AvailableCharacters Definitions.
      * Default and Append custom.
      *
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     public static function getAvailableCharacters()
     {

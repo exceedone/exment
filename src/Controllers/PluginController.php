@@ -23,7 +23,7 @@ class PluginController extends AdminControllerBase
 {
     use HasResourceActions;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("plugin.header"), exmtrans("plugin.header"), exmtrans("plugin.description"), 'fa-plug');
     }

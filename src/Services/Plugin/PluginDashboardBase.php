@@ -10,6 +10,7 @@ class PluginDashboardBase extends PluginPublicBase
     use PluginPageTrait;
     
     protected $dashboard;
+    protected $dashboard_box;
 
     public function __construct($plugin, $dashboard_box)
     {

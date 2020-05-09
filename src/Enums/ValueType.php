@@ -18,7 +18,7 @@ class ValueType extends EnumBase
     /**
      * Get custom value val
      *
-     * @return void
+     * @return mixed
      */
     public function getCustomValue(?CustomItem $item, ?CustomValue $custom_value)
     {
@@ -46,7 +46,7 @@ class ValueType extends EnumBase
     /**
      * Filter ApiValueType. Now Only text.
      *
-     * @return void
+     * @return boolean
      */
     public static function filterApiValueType($valueType)
     {

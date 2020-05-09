@@ -155,7 +155,7 @@ class CustomRelationController extends AdminControllerTableBase
         })->disableHeader();
         
         $custom_table = $this->custom_table;
-        $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add((new Tools\CustomTableMenuButton('relation', $custom_table))->render());
         });
         return $form;

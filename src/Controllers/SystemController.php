@@ -31,7 +31,7 @@ class SystemController extends AdminControllerBase
 {
     use InitializeFormTrait;
     
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("system.header"), exmtrans("system.header"), exmtrans("system.system_description"), 'fa-cogs');
     }
@@ -58,7 +58,7 @@ class SystemController extends AdminControllerBase
     protected function formBasic(Request $request, Content $content)
     {
         $this->AdminContent($content);
-        $form = $this->getInitializeForm('system', false, true);
+        $form = $this->getInitializeForm('system', false);
         $form->action(admin_url('system'));
 
         $admin_users = System::system_admin_users();
@@ -95,7 +95,7 @@ class SystemController extends AdminControllerBase
      *
      * @param Request $request
      * @param Content $content
-     * @return void
+     * @return Content
      */
     protected function formAdvanced(Request $request, Content $content)
     {
@@ -380,7 +380,7 @@ class SystemController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url('system') . ($advanced ? '?advanced=1' : ''));
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
             throw $exception;
@@ -422,7 +422,7 @@ class SystemController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url('system'));
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
             throw $exception;

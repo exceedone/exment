@@ -158,7 +158,9 @@ if (!function_exists('formatAttributes')) {
 
 if (!function_exists('is_nullorempty')) {
     /**
-     * validate string. null is true, "" is true, 0 and "0" is false.
+     * validate string, array, Collection and object. 
+     * 
+     * @return bool null is true, "" is true, 0 and "0" is false.
      */
     function is_nullorempty($obj)
     {
@@ -1213,7 +1215,7 @@ if (! function_exists('abortJson')) {
      * @param  \Symfony\Component\HttpFoundation\Response|int     $code
      * @param  string|array|ErrorCode  $message
      * @param  ErrorCode  $errorCode
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     function abortJson($code, $message = null, $errorCode = null)
     {
@@ -1240,7 +1242,9 @@ if (! function_exists('abortJson')) {
 if (!function_exists('getAjaxResponse')) {
     /**
      * get ajax response.
-     * using plugin, copy, data import/export
+     * using plugin, copy, data import/
+     * 
+     * @return \Symfony\Component\HttpFoundation\Response Response for ajax json
      */
     function getAjaxResponse($results)
     {
@@ -1405,7 +1409,7 @@ if (!function_exists('getExmentCurrentVersion')) {
     /**
      * getExmentCurrentVersion
      *
-     * @return string this version in server
+     * @return string|null this version in server
      */
     function getExmentCurrentVersion()
     {

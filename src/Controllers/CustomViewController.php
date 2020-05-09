@@ -122,16 +122,12 @@ class CustomViewController extends AdminControllerTableBase
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
         });
 
-        if (isset($this->custom_table)) {
-            $grid->model()->where('custom_table_id', $this->custom_table->id);
-            $custom_table = $this->custom_table;
-        }
+        $grid->model()->where('custom_table_id', $this->custom_table->id);
+        $custom_table = $this->custom_table;
 
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
-            if (isset($custom_table)) {
-                $table_name = $custom_table->table_name;
-            }
+            $table_name = $custom_table->table_name;
             if (boolval($actions->row->disabled_delete)) {
                 $actions->disableDelete();
             }
@@ -353,7 +349,7 @@ class CustomViewController extends AdminControllerTableBase
 
             case Enums\ViewKindType::CALENDAR:
                 // columns setting
-                $hasmany = $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
+                $hasmany = $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_start_date"))
                         ->required()
                         ->options($this->custom_table->getDateColumnsSelectOptions());
@@ -374,7 +370,7 @@ class CustomViewController extends AdminControllerTableBase
             default:
                 if ($view_kind_type != Enums\ViewKindType::FILTER) {
                     // columns setting
-                    $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
+                    $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) {
                         $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                             ->options($this->custom_table->getColumnsSelectOptions([
                                 'append_table' => true,
@@ -394,7 +390,7 @@ class CustomViewController extends AdminControllerTableBase
                 }
 
                 // sort setting
-                $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
+                $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                     ->options($this->custom_table->getColumnsSelectOptions([
                         'append_table' => true,
@@ -447,7 +443,7 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
 
-        $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($suuid, $custom_table) {
             $tools->add((new Tools\CustomTableMenuButton('view', $custom_table, false))->render());
 
             if (isset($suuid)) {

@@ -363,7 +363,7 @@ class AuthUserOrgHelper
     /**
      * Get User, org, role group form
      *
-     * @return void
+     * @return ModalForm
      */
     public static function getUserOrgModalForm($custom_table = null, $value = [], $options = [])
     {
