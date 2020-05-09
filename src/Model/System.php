@@ -33,7 +33,7 @@ use Cache;
 * @method static string|void default_date_format($arg = null)
 * @method static int|void grid_pager_count($arg = null)
 * @method static int|void datalist_pager_count($arg = null)
-* @method static boolean|void grid_filter_disable_flg($arg = null)
+* @method static array|void grid_filter_disable_flg($arg = null)
 * @method static boolean|void complex_password($arg = null)
 * @method static int|void password_expiration_days($arg = null)
 * @method static int|void password_history_cnt($arg = null)

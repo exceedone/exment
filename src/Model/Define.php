@@ -66,7 +66,8 @@ class Define
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'advanced'],
         'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'advanced'],
 
-        'grid_filter_disable_flg' => ['type' => 'boolean', 'default' => '', 'group' => 'advanced'] ,
+        // name is "flg", but array is OK.
+        'grid_filter_disable_flg' => ['type' => 'array', 'default' => '', 'group' => 'advanced'] ,
 
         'web_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
         'api_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
