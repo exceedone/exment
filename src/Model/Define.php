@@ -66,7 +66,8 @@ class Define
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'advanced'],
         'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'advanced'],
 
-        'grid_filter_disable_flg' => ['type' => 'boolean', 'default' => '', 'group' => 'advanced'] ,
+        // name is "flg", but array is OK.
+        'grid_filter_disable_flg' => ['type' => 'array', 'default' => '', 'group' => 'advanced'] ,
 
         'complex_password' => ['type' => 'boolean', 'group' => 'advanced', 'default' => false],
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
