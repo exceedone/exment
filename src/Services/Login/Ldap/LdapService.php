@@ -136,9 +136,11 @@ class LdapService implements LoginServiceInterface
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
         
         $form->switchbool('ldap_use_ssl', exmtrans('login.ldap_use_ssl'))
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])])
         ->default(false);
 
         $form->switchbool('ldap_use_tls', exmtrans('login.ldap_use_tls'))
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])])
         ->default(false);
     }
 

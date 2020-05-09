@@ -130,6 +130,27 @@ class LoginSettingController extends AdminControllerBase
             }
             
 
+
+            if (!isset($login_setting) || in_array($login_setting->login_type, [LoginType::SAML, LoginType::LDAP])) {
+                
+                $form->exmheader(exmtrans('login.mapping_setting'))->hr()
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
+
+                $form->description(exmtrans("login.help.mapping_description"))
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
+
+                // setting mapping list
+                foreach($user_custom_columns as $user_custom_column){
+                    $field = $form->text("mapping_column_{$user_custom_column->column_name}", $user_custom_column->column_view_name)
+                        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
+                    
+                    if($user_custom_column->required){
+                        $field->required();   
+                    }
+                }
+            }
+
+
             $form->exmheader(exmtrans('login.user_setting'))->hr();
 
             // showing "user"'s Custom column and unique
@@ -158,25 +179,6 @@ class LoginSettingController extends AdminControllerBase
             $form->switchbool('update_user_info', exmtrans("login.update_user_info"))
             ->help(exmtrans("login.help.update_user_info"))
             ->default(true);
-
-            if (!isset($login_setting) || in_array($login_setting->login_type, [LoginType::SAML, LoginType::LDAP])) {
-                
-                $form->exmheader(exmtrans('login.mapping_setting'))->hr()
-                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
-
-                $form->description(exmtrans("login.help.mapping_description"))
-                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
-
-                // setting mapping list
-                foreach($user_custom_columns as $user_custom_column){
-                    $field = $form->text("mapping_column_{$user_custom_column->column_name}", $user_custom_column->column_view_name)
-                        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
-                    
-                    if($user_custom_column->required){
-                        $field->required();   
-                    }
-                }
-            }
 
             
             $form->exmheader(exmtrans('login.login_button'))->hr();

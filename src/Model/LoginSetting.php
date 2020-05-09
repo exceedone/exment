@@ -94,7 +94,7 @@ class LoginSetting extends ModelBase
         if ($this->login_type == LoginType::OAUTH) {
             return route('exment.oauth_callback', ['provider' => $this->provider_name]);
         } elseif ($this->login_type == LoginType::SAML) {
-            return route('exment.saml_acs', ['provider' => $this->provider_name]);
+            return admin_urls("saml/login/{$this->provider_name}/acs");
         }
     }
 
@@ -270,7 +270,7 @@ class LoginSetting extends ModelBase
     {
         if (is_string($login_provider)) {
             $provider_name = $login_provider;
-            $provider = static::getOAuthSetting($login_provider);
+            $provider = static::getOAuthSetting($login_provider, $isTest);
             if (!isset($provider)) {
                 return null;
             }
