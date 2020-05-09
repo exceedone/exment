@@ -144,25 +144,37 @@ class SamlService implements LoginServiceInterface
      */
     public static function loginTestCallback(Request $request, $login_setting)
     {
-        $saml2Auth = LoginSetting::getSamlAuth($login_setting, true);
+        try {
+            $saml2Auth = LoginSetting::getSamlAuth($login_setting, true);
 
-        $errors = $saml2Auth->acs();
-        if (!empty($errors)) {
-            return LoginService::getLoginTestResult(false, array_get($errors, 'last_error_reason', array_get($errors, 'error')));
-        }
+            $errors = $saml2Auth->acs();
+            if (!empty($errors)) {
+                return LoginService::getLoginTestResult(false, array_get($errors, 'last_error_reason', array_get($errors, 'error')));
+            }
 
-        $custom_login_user = SamlUser::with($login_setting->provider_name, $saml2Auth->getSaml2User());
-        
-        if(!is_nullorempty($custom_login_user->mapping_errors)){
-            return LoginService::getLoginTestResult(false, $custom_login_user->mapping_errors);
-        }
+            $custom_login_user = SamlUser::with($login_setting->provider_name, $saml2Auth->getSaml2User());
+            
+            if(!is_nullorempty($custom_login_user->mapping_errors)){
+                return LoginService::getLoginTestResult(false, $custom_login_user->mapping_errors);
+            }
 
-        $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
-        if ($validator->fails()) {
-            return LoginService::getLoginTestResult(false, $validator->errors(), $custom_login_user);
+            $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
+            if ($validator->fails()) {
+                return LoginService::getLoginTestResult(false, $validator->errors(), $custom_login_user);
+            }
+            
+            return LoginService::getLoginTestResult(true, [], $custom_login_user);
+            
+        } catch (\Exception $ex) {
+            \Log::error($ex);
+
+            return LoginService::getLoginTestResult(false, [$ex]);
+        } 
+        catch (\Throwable $ex) {
+            \Log::error($ex);
+
+            return LoginService::getLoginTestResult(false, [$ex]);
         }
-        
-        return LoginService::getLoginTestResult(true, [], $custom_login_user);
     }
 
     public static function appendActivateSwalButton($tools, LoginSetting $login_setting){

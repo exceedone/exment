@@ -56,14 +56,16 @@ class OAuthService implements LoginServiceInterface
         ->help(exmtrans('login.help.scope'))
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
 
-        if (boolval(config('exment.expart_mode', false))) {
-            $form->url('oauth_redirect_url', exmtrans('login.redirect_url'))
+        if (isset($login_setting)) {
+            if(boolval(config('exment.expart_mode', false))){
+                $form->url('oauth_redirect_url', exmtrans('login.redirect_url'))
                 ->help(exmtrans('login.help.redirect_url') . exmtrans('login.help.redirect_url_default', ['url' => $login_setting->exment_callback_url_default]))
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
+            }
+            else {
+                $form->display('oauth_redirect_url', exmtrans('login.redirect_url'))->default($login_setting->exment_callback_url);
+            }
         } 
-        elseif (isset($login_setting)) {
-            $form->display('oauth_redirect_url', exmtrans('login.redirect_url'))->default($login_setting->exment_callback_url);
-        }
     }
 
     
@@ -89,11 +91,11 @@ class OAuthService implements LoginServiceInterface
      */
     public static function loginTestCallback(Request $request, $login_setting)
     {
-        $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, true);
-
         $custom_login_user = null;
         $message = null;
         try {
+            $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, true);
+
             $custom_login_user = OAuthUser::with($login_setting->provider_name, $socialiteProvider->user());
 
             $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
@@ -102,7 +104,13 @@ class OAuthService implements LoginServiceInterface
             } else {
                 return LoginService::getLoginTestResult(true, [], $custom_login_user);
             }
-        } catch (\Exception $ex) {
+        } 
+        catch (\Exception $ex) {
+            \Log::error($ex);
+
+            return LoginService::getLoginTestResult(false, [$ex]);
+        } 
+        catch (\Throwable $ex) {
             \Log::error($ex);
 
             return LoginService::getLoginTestResult(false, [$ex]);

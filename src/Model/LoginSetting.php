@@ -152,10 +152,10 @@ class LoginSetting extends ModelBase
      *
      * @return \Illuminate\Support\Collection
      */
-    public static function getAllSettings()
+    public static function getAllSettings($filterActive = true)
     {
-        return static::allRecords(function ($record) {
-            return $record->active_flg;
+        return static::allRecords(function ($record) use($filterActive) {
+            return !$filterActive || $record->active_flg;
         });
     }
 
@@ -164,9 +164,9 @@ class LoginSetting extends ModelBase
      *
      * @return \Illuminate\Support\Collection
      */
-    public static function getSSOSettings()
+    public static function getSSOSettings($filterActive = true)
     {
-        return static::getOAuthSettings()->merge(static::getSamlSettings());
+        return static::getOAuthSettings($filterActive)->merge(static::getSamlSettings());
     }
 
     /**
@@ -174,9 +174,9 @@ class LoginSetting extends ModelBase
      *
      * @return \Illuminate\Support\Collection
      */
-    public static function getOAuthSettings()
+    public static function getOAuthSettings($filterActive = true)
     {
-        return static::getAllSettings()->filter(function ($record) {
+        return static::getAllSettings($filterActive)->filter(function ($record) {
             return $record->login_type == LoginType::OAUTH;
         });
     }
@@ -186,7 +186,7 @@ class LoginSetting extends ModelBase
      *
      * @return ?LoginSetting
      */
-    public static function getOAuthSetting($provider_name)
+    public static function getOAuthSetting($provider_name, $filterActive = true)
     {
         return static::getOAuthSettings()->first(function ($record) use ($provider_name) {
             return $record->getOption('oauth_provider_name') == $provider_name || $record->getOption('oauth_provider_type') == $provider_name;
@@ -198,9 +198,9 @@ class LoginSetting extends ModelBase
      *
      * @return \Illuminate\Support\Collection
      */
-    public static function getSamlSettings()
+    public static function getSamlSettings($filterActive = true)
     {
-        return static::getAllSettings()->filter(function ($record) {
+        return static::getAllSettings($filterActive)->filter(function ($record) {
             return $record->login_type == LoginType::SAML;
         });
     }
@@ -210,9 +210,9 @@ class LoginSetting extends ModelBase
      *
      * @return ?LoginSetting
      */
-    public static function getSamlSetting($provider_name)
+    public static function getSamlSetting($provider_name, $filterActive = true)
     {
-        return static::getSamlSettings()->first(function ($record) use ($provider_name) {
+        return static::getSamlSettings($filterActive)->first(function ($record) use ($provider_name) {
             return $record->getOption('saml_name') == $provider_name;
         });
     }
@@ -222,9 +222,9 @@ class LoginSetting extends ModelBase
      *
      * @return \Illuminate\Support\Collection
      */
-    public static function getLdapSettings()
+    public static function getLdapSettings($filterActive = true)
     {
-        return static::getAllSettings()->filter(function ($record) {
+        return static::getAllSettings($filterActive)->filter(function ($record) {
             return $record->login_type == LoginType::LDAP;
         });
     }
@@ -234,9 +234,9 @@ class LoginSetting extends ModelBase
      *
      * @return ?LoginSetting
      */
-    public static function getLdapSetting()
+    public static function getLdapSetting($filterActive = true)
     {
-        return static::getLdapSettings()->first();
+        return static::getLdapSettings($filterActive)->first();
     }
     
     /**
@@ -255,7 +255,7 @@ class LoginSetting extends ModelBase
             return null;
         }
 
-        $settings = static::getAllSettings();
+        $settings = static::getSSOSettings();
         if (count($settings) != 1) {
             return null;
         }
@@ -305,13 +305,11 @@ class LoginSetting extends ModelBase
 
         if (is_string($login_provider)) {
             $provider_name = $login_provider;
-            $provider = static::getSamlSetting($provider_name);
+            $provider = static::getSamlSetting($provider_name, !$isTest);
         } else {
             $provider_name = $login_provider->provider_name;
             $provider = $login_provider;
         }
-
-        $provider = static::getSamlSetting($provider_name);
 
         if (!isset($provider)) {
             return null;
@@ -344,7 +342,7 @@ class LoginSetting extends ModelBase
                     'url' => $isTest ? $provider->exment_callback_url_test : $provider->exment_callback_url,
                 ],
                 'singleLogoutService' => [
-                    'url' => route('exment.saml_sls'),
+                    'url' => $isTest ? null : route('exment.saml_sls'),
                 ],
             ],
 
