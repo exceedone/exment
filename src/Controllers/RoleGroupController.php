@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\SystemRoleType;
 use Exceedone\Exment\Enums\RoleGroupType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Form\Tools;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Widgets\Box;
@@ -63,6 +64,7 @@ class RoleGroupController extends AdminControllerBase
             if (!$hasCreatePermission) {
                 $tools->disableBatchActions();
             }
+            $tools->prepend(new Tools\SystemChangePageMenu('api_setting'));
         });
 
         $grid->disableExport();
@@ -557,7 +559,7 @@ class RoleGroupController extends AdminControllerBase
      * @return void
      */
     protected function appendTools($box, $id = null, $isRolePermissionPage = true)
-    {
+    {        
         $box->tools(view('exment::tools.button', [
             'href' => admin_urls('role_group'),
             'label' => trans('admin.list'),
@@ -565,6 +567,8 @@ class RoleGroupController extends AdminControllerBase
             'btn_class' => 'btn-default',
         ]));
         
+        $box->tools(new Tools\SystemChangePageMenu());
+
         if (!isset($id)) {
             return;
         }

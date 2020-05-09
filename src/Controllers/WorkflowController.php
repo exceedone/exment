@@ -109,6 +109,7 @@ class WorkflowController extends AdminControllerBase
                     'btn_class' => 'btn-primary',
                 ]));
             }
+            $tools->prepend(new Tools\SystemChangePageMenu());
         });
 
         return $grid;
@@ -248,6 +249,7 @@ class WorkflowController extends AdminControllerBase
 
         $self = $this;
         $form->tools(function (Form\Tools $tools) use ($self, $workflow) {
+            $tools->append(new Tools\SystemChangePageMenu());
             $self->appendActivateButton($workflow, $tools);
             $self->appendTableSettingButton($workflow, $tools);
             $self->disableDelete($workflow, $tools);
@@ -402,6 +404,7 @@ class WorkflowController extends AdminControllerBase
 
         $self = $this;
         $form->tools(function (Form\Tools $tools) use ($self, $workflow) {
+            $tools->append(new Tools\SystemChangePageMenu());
             $self->appendActivateButton($workflow, $tools);
             $self->appendTableSettingButton($workflow, $tools);
             $self->disableDelete($workflow, $tools);
@@ -518,6 +521,7 @@ class WorkflowController extends AdminControllerBase
             'label' => trans('admin.list'),
             'icon' => 'fa-list',
         ])->render());
+        $box->tools(new Tools\SystemChangePageMenu());
 
         $content->row($box);
         return $content;

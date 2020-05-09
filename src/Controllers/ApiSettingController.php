@@ -44,7 +44,7 @@ class ApiSettingController extends AdminControllerBase
             $actions->disableView();
         });
         $grid->tools(function (Grid\Tools $tools) {
-            $tools->prepend(new Tools\SystemChangePageMenu('api_setting'));
+            $tools->prepend(new Tools\SystemChangePageMenu());
         });
         return $grid;
     }
@@ -103,7 +103,7 @@ class ApiSettingController extends AdminControllerBase
         }
 
         $form->tools(function (Form\Tools $tools) {
-            $tools->append(new Tools\SystemChangePageMenu('api_setting'));
+            $tools->append(new Tools\SystemChangePageMenu());
         });
 
         $form->disableReset();

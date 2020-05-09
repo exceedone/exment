@@ -21,6 +21,7 @@ use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Validator\RequiredIfExRule;
 use Illuminate\Http\Request;
 
@@ -86,6 +87,10 @@ class NotifyController extends AdminControllerBase
             $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
             $grid->model()->whereIn('custom_table_id', $custom_tables);
         }
+
+        $grid->tools(function (Grid\Tools $tools) {
+            $tools->prepend(new Tools\SystemChangePageMenu());
+        });
 
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
@@ -311,6 +316,11 @@ class NotifyController extends AdminControllerBase
             ->default($notify_mail_id)->required();
         })->disableHeader();
         
+        $form->tools(function (Form\Tools $tools) {
+            $tools->append(new Tools\SystemChangePageMenu());
+        });
+
+
         return $form;
     }
 

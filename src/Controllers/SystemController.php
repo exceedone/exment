@@ -12,7 +12,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Exment;
-use Exceedone\Exment\Form\Tools\SystemChangePageMenu;
+use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\InfoBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
@@ -29,7 +29,7 @@ class SystemController extends AdminControllerBase
     
     public function __construct()
     {
-        $this->setPageInfo(exmtrans("system.header"), exmtrans("system.header"), exmtrans("system.system_description"), 'fa-cogs');
+        $this->setPageInfo(exmtrans("system.header"), exmtrans("system.system_header"), exmtrans("system.system_description"), 'fa-cogs');
     }
 
     /**
@@ -70,7 +70,7 @@ class SystemController extends AdminControllerBase
 
         $box = new Box(trans('admin.edit'), $form);
         
-        $box->tools(new SystemChangePageMenu('basic_setting'));
+        $box->tools(new Tools\SystemChangePageMenu('basic_setting'));
 
         $content->row($box);
 
@@ -193,7 +193,7 @@ class SystemController extends AdminControllerBase
 
         $box = new Box(exmtrans('common.detail_setting'), $form);
 
-        $box->tools(new SystemChangePageMenu('detail_setting'));
+        $box->tools(new Tools\SystemChangePageMenu('detail_setting'));
 
         $content->row($box);
 
