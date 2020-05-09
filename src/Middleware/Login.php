@@ -13,10 +13,12 @@ class Login
     public function handle(Request $request, \Closure $next)
     {
         // check whether SSO url redirect
-        if ($request->is(trim(admin_base_path('auth/login'), '/'))
-            && !is_null($exment_login_url = LoginSetting::getRedirectSSOForceUrl())
-            && $request->session()->get('errors')) {
-            return redirect($exment_login_url);
+        if (isMatchRequest('auth/login')
+            && !is_null($exment_login_url = LoginSetting::getRedirectSSOForceUrl())) {
+                $errors = $request->session()->get('errors');
+                if(\is_nullorempty($errors)){
+                    return redirect($exment_login_url);
+                }
         }
 
         return $next($request);

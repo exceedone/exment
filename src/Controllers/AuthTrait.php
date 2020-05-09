@@ -19,6 +19,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 trait AuthTrait
 {
+    use ThrottlesLogins;
+
     protected $maxAttempts;
     protected $decayMinutes;
     protected $throttle;
@@ -93,6 +95,15 @@ trait AuthTrait
             return $this->sendLockoutResponse($request);
         }
 
+        // if not accept domain, return error.
+        if (!$this->isAcceptFromDomain($custom_login_user)) {
+            return redirect($error_url)->withInput()->withErrors(
+                ['sso_error' => exmtrans('login.not_accept_domain', [
+                    'domain' => $custom_login_user->domain(),
+                ])]
+            );
+        }
+
         // check exment user
         $exment_user = $this->getExmentUser($custom_login_user);
         if ($exment_user === false) {
@@ -114,6 +125,29 @@ trait AuthTrait
         return $this->sendLoginResponse($request);
     }
 
+    /**
+     * if not accept domain, return error.
+     *
+     * @param CustomLoginUserBase $custom_login_user
+     * @return boolean
+     */
+    protected function isAcceptFromDomain(CustomLoginUserBase $custom_login_user){
+        // 
+        if (is_nullorempty($sso_accept_mail_domains = System::sso_accept_mail_domain())) {
+            return true;
+        }
+
+        // check domain
+        $email_domain = $custom_login_user->domain();
+        $domain_result = false;
+        foreach (explodeBreak($sso_accept_mail_domains) as $sso_accept_mail_domain) {
+            if ($email_domain == $sso_accept_mail_domain) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     
     /**
      * get exment user from users table
@@ -154,24 +188,6 @@ trait AuthTrait
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => exmtrans('login.noexists_user')]
             );
-        }
-
-        if (!is_nullorempty($sso_accept_mail_domains = System::sso_accept_mail_domain())) {
-            // check domain
-            $email_domain = explode("@", $custom_login_user->email())[1];
-            $domain_result = false;
-            foreach (explodeBreak($sso_accept_mail_domains) as $sso_accept_mail_domain) {
-                if ($email_domain == $sso_accept_mail_domain) {
-                    $domain_result = true;
-                    break;
-                }
-            }
-                
-            if (!$domain_result) {
-                return redirect($error_url)->withInput()->withErrors(
-                    ['sso_error' => exmtrans('login.not_accept_domain')]
-                );
-            }
         }
 
         $exment_user = null;
@@ -247,7 +263,7 @@ trait AuthTrait
     {
         try {
             // if socialiteProvider implements ProviderAvatar, call getAvatar
-            if (isset($socialiteProvider) && is_subclass_of($socialiteProvider, ProviderAvatar::class)) {
+            if (isset($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderAvatar::class)) {
                 $stream = $socialiteProvider->getAvatar($custom_login_user->token);
             }
             // if user obj has avatar, download avatar.
@@ -259,13 +275,29 @@ trait AuthTrait
                 $stream = $response->getBody()->getContents();
             }
             // file upload.
-            if (isset($stream) && isset($user->id)) {
-                $file = ExmentFile::put(path_join("avatar", $user->id), $stream, true);
+            if (isset($stream) && isset($custom_login_user->id)) {
+                $file = ExmentFile::put(path_join("avatar", $custom_login_user->id), $stream, true);
                 return $file->path;
             }
         } finally {
         }
         return null;
+    }
+
+    /**
+     * Send the response after the user was authenticated.
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\Response
+     */
+    protected function sendLoginResponse(Request $request)
+    {
+        admin_toastr(trans('admin.login_successful'));
+
+        $request->session()->regenerate();
+
+        return redirect()->intended($this->redirectPath());
     }
 
     /**

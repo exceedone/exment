@@ -63,6 +63,7 @@ if (!function_exists('getManualUrl')) {
         return $manual_url_base;
     }
 }
+
 if (!function_exists('mbTrim')) {
     function mbTrim($pString)
     {
@@ -546,6 +547,32 @@ if (!function_exists('isApiEndpoint')) {
     }
 }
 
+if (!function_exists('isMatchRequest')) {
+    /**
+     * Is match uri from request
+     *
+     * @param array_string $uris
+     * @return boolean
+     */
+    function isMatchRequest($uris = null)
+    {
+        $request = app('request');
+
+        foreach(toArray($uris) as $uri){
+            $uri = admin_base_path($uri);
+            
+            if ($uri !== '/') {
+                $uri = trim($uri, '/');
+            }
+
+            if ($request->is($uri)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
 
 if (!function_exists('deleteDirectory')) {
     /**
@@ -1185,38 +1212,26 @@ if (!function_exists('replaceTextFromFormat')) {
 if (!function_exists('shouldPassThrough')) {
     function shouldPassThrough($initialize = false)
     {
-        $request = app('request');
-        
         if ($initialize) {
             $excepts = [
-                admin_base_path('initialize'),
-                admin_base_path('install'),
-                admin_base_path('template/search'),
+                'initialize',
+                'install',
+                'template/search',
             ];
         } else {
             $excepts = [
-                admin_base_path('auth/login'),
-                admin_base_path('auth/logout'),
-                admin_base_path('saml/login'),
-                admin_base_path('saml/logout'),
-                admin_base_path('auth/reset'),
-                admin_base_path('auth/forget'),
-                admin_base_path('initialize'),
-                admin_base_path('template/search'),
+                'auth/login',
+                'auth/logout',
+                'saml/login',
+                'saml/logout',
+                'auth/reset',
+                'auth/forget',
+                'initialize',
+                'template/search',
             ];
         }
 
-        foreach ($excepts as $except) {
-            if ($except !== '/') {
-                $except = trim($except, '/');
-            }
-
-            if ($request->is($except)) {
-                return true;
-            }
-        }
-
-        return false;
+        return isMatchRequest($excepts);
     }
 }
 

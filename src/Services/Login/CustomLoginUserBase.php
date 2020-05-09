@@ -39,15 +39,26 @@ abstract class CustomLoginUserBase
 
 
     public function user_code(){
-        return array_get($mapping_values, 'user_code');
+        return array_get($this->mapping_values, 'user_code');
     }
     
     public function user_name(){
-        return array_get($mapping_values, 'user_name');
+        return array_get($this->mapping_values, 'user_name');
     }
 
     public function email(){
-        return array_get($mapping_values, 'email');
+        return array_get($this->mapping_values, 'email');
+    }
+    
+    public function domain(){
+        if(is_nullorempty($email = $this->email())){
+            return null;
+        }
+        if(count($emails = explode("@", $email)) == 0){
+            return null;
+        }
+
+        return $emails[1];
     }
     
     /**

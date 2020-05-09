@@ -30,7 +30,7 @@ class LoginSettingController extends AdminControllerBase
 {
     use HasResourceActions, InitializeFormTrait;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("login.header"), exmtrans("login.header"), exmtrans("login.description"), 'fa-sign-in');
     }
@@ -246,7 +246,7 @@ class LoginSettingController extends AdminControllerBase
     /**
      * Checking library
      *
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     protected function checkLibraries()
     {
@@ -279,7 +279,7 @@ class LoginSettingController extends AdminControllerBase
     {
         $form = new WidgetForm(System::get_system_values(['login']));
         $form->disableReset();
-        $form->action(admin_url('login_setting/postglobal'));
+        $form->action(route('exment.postglobal'));
 
 
         $form->exmheader(exmtrans('system.password_policy'))->hr();
@@ -340,7 +340,7 @@ class LoginSettingController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(route('exment.login_setting.index'));
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
             throw $exception;
@@ -562,7 +562,7 @@ class LoginSettingController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             return redirect(admin_url('login_setting'));
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
             throw $exception;

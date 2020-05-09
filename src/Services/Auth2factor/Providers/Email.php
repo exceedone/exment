@@ -15,7 +15,7 @@ use Carbon\Carbon;
  */
 class Email
 {
-    use AuthTrait, ThrottlesLogins;
+    use AuthTrait;
 
     public function __construct()
     {

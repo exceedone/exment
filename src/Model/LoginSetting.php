@@ -150,7 +150,7 @@ class LoginSetting extends ModelBase
     /**
      * Get SSO all settings
      *
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     public static function getAllSettings()
     {
@@ -162,7 +162,7 @@ class LoginSetting extends ModelBase
     /**
      * Get SSO (OAuth and SAML) all settings
      *
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     public static function getSSOSettings()
     {
@@ -172,7 +172,7 @@ class LoginSetting extends ModelBase
     /**
      * Get OAuth's all settings
      *
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     public static function getOAuthSettings()
     {
@@ -184,7 +184,7 @@ class LoginSetting extends ModelBase
     /**
      * Get OAuth's setting
      *
-     * @return void
+     * @return ?LoginSetting
      */
     public static function getOAuthSetting($provider_name)
     {
@@ -196,7 +196,7 @@ class LoginSetting extends ModelBase
     /**
      * Get SAML's all settings
      *
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     public static function getSamlSettings()
     {
@@ -208,7 +208,7 @@ class LoginSetting extends ModelBase
     /**
      * Get SAML's setting
      *
-     * @return void
+     * @return ?LoginSetting
      */
     public static function getSamlSetting($provider_name)
     {
@@ -220,7 +220,7 @@ class LoginSetting extends ModelBase
     /**
      * Get Ldap login's all settings
      *
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     public static function getLdapSettings()
     {
@@ -232,7 +232,7 @@ class LoginSetting extends ModelBase
     /**
      * Get Ldap login's setting
      *
-     * @return void
+     * @return ?LoginSetting
      */
     public static function getLdapSetting()
     {

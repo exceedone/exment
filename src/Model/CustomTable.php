@@ -460,7 +460,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         );
 
         // get rules for validation
-        $rules = $this->getValidateRules($value, $custom_value_id, $options);
+        $rules = $this->getValidateRules($value, $custom_value, $options);
 
         // get custom attributes
         $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
@@ -527,7 +527,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * get validation rules
      */
-    public function getValidateRules($value, $custom_value_id = null, array $options = [])
+    public function getValidateRules($value, $custom_value = null, array $options = [])
     {
         extract(
             array_merge([

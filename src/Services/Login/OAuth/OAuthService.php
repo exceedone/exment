@@ -58,10 +58,11 @@ class OAuthService implements LoginServiceInterface
 
         if (boolval(config('exment.expart_mode', false))) {
             $form->url('oauth_redirect_url', exmtrans('login.redirect_url'))
-            ->help(exmtrans('login.help.redirect_url'))
-            ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
-        } elseif (isset($login_setting)) {
-            $form->display('oauth_redirect_url')->default($login_setting->exment_callback_url);
+                ->help(exmtrans('login.help.redirect_url') . exmtrans('login.help.redirect_url_default', ['url' => $login_setting->exment_callback_url_default]))
+                ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
+        } 
+        elseif (isset($login_setting)) {
+            $form->display('oauth_redirect_url', exmtrans('login.redirect_url'))->default($login_setting->exment_callback_url);
         }
     }
 

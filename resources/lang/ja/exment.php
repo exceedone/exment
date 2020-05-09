@@ -599,7 +599,7 @@ return [
         'sso_provider_error' => 'プロバイダからのログイン情報取得に失敗しました。何度も失敗する場合、管理者にお問い合わせください。',
         'noexists_user' => 'Exmentにユーザーが存在しませんでした。先にユーザーを追加するよう、管理者にお問い合わせください。',
         'throttle' => 'ログイン試行回数が多すぎます。%s分経過後、再度お試しください。',
-        'not_accept_domain' => 'そのドメインでのログインは許可されていません。',
+        'not_accept_domain' => 'ドメイン :domain でのログインは、許可されていません。',
         'login_button_format' => ':display_nameでログイン',
 
         'header' => 'ログイン設定',
@@ -669,6 +669,7 @@ return [
             'login_provider_name' => 'ログインのプロバイダのSocialite名を、英数字で入力してください。',
             'scope' => 'スコープを指定したい場合、カンマ区切りで入力してください。',
             'redirect_url' => '自動的に設定されるので、基本的には空欄としてください。リダイレクトURLを明示的に指定したい場合に入力してください。',
+            'redirect_url_default' => '※既定値は :url です。',
             'login_button_label' => 'ログインボタンのラベルを入力してください。',
             'login_button_icon' => 'ログインボタンのアイコンを選択してください。',
             'login_button_background_color' => 'ログインボタンの背景色を入力してください。',

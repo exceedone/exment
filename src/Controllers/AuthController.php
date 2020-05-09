@@ -16,7 +16,6 @@ use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Validator as ExmentValidator;
 use Encore\Admin\Form;
 use Illuminate\Http\Request;
@@ -30,7 +29,7 @@ use Carbon\Carbon;
  */
 class AuthController extends \Encore\Admin\Controllers\AuthController
 {
-    use AuthTrait, ThrottlesLogins;
+    use AuthTrait;
 
     public function __construct()
     {
@@ -43,7 +42,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
     /**
      * Login page.
      *
-     * @return \Illuminate\Contracts\View\Factory|Redirect|\Illuminate\View\View
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\View\View
      */
     public function getLoginExment(Request $request)
     {
@@ -69,7 +68,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         if ($this->throttle && $this->hasTooManyLoginAttempts($request)) {
             $this->fireLockoutEvent($request);
 
-            return $this->sendLockoutResponse($request);
+            $this->sendLockoutResponse($request);
+            return;
         }
 
         $this->loginValidator($request->all())->validate();
@@ -89,7 +89,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      * Login using default
      *
      * @param Request $request
-     * @return void
+     * @return \Illuminate\Http\Response
      */
     protected function loginDefault(Request $request, array $credentials)
     {
@@ -119,7 +119,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      * Login using Ldap
      *
      * @param Request $request
-     * @return void
+     * @return \Illuminate\Http\Response
      */
     protected function loginLdap(Request $request, array $credentials, LoginSetting $login_setting)
     {
@@ -141,7 +141,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 return $error_redirect;
             }
 
-            $ldapUserArray = LdapService::syncLdapUserArray($provider, $login_setting, $username);
+            $ldapUserArray = LdapService::syncLdapUser($provider, $login_setting, $username);
             if (!$ldapUserArray) {
                 return $error_redirect;
             }
@@ -277,8 +277,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 ->options($fileOption)
                 ->removable()
                 ->help(array_get($fileOption, 'maxFileSizeHelp'))
-                ->name(function ($file) {
-                    $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());
+                ->name(function ($file, $field) {
+                    $exmentfile = ExmentFile::saveFileInfo($field->getDirectory(), $file->getClientOriginalName());
                     return $exmentfile->local_filename;
                 });
 

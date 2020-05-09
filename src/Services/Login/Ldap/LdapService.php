@@ -49,6 +49,14 @@ class LdapService implements LoginServiceInterface
         ((isset($suffix) && strripos($username, $suffix) !== (mb_strlen($username) - mb_strlen($suffix))) ? $suffix : '');
     }
 
+    /**
+     * Sync user from ldap Provider
+     *
+     * @param [type] $provider
+     * @param LoginSetting $login_setting
+     * @param string $username
+     * @return mixed
+     */
     public static function syncLdapUser($provider, LoginSetting $login_setting, $username)
     {
         return $provider->search()->users()->findBy($login_setting->getOption('ldap_search_key'), $username);

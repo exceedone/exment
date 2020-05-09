@@ -2,6 +2,14 @@
 
 namespace Exceedone\Exment\Enums;
 
+/**
+ * Login Type Difinition.
+ *
+ * @method static LoginType PURE()
+ * @method static LoginType OAUTH()
+ * @method static LoginType SAML()
+ * @method static LoginType LDAP()
+ */
 class LoginType extends EnumBase
 {
     public const PURE = 'pure';

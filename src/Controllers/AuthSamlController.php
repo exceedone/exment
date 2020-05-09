@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class AuthSamlController extends \Encore\Admin\Controllers\AuthController
 {
-    use AuthTrait, ThrottlesLogins;
+    use AuthTrait;
 
     public function __construct()
     {
@@ -27,7 +27,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
     /**
      * metadata
      *
-     * @return \Illuminate\Contracts\View\Factory|Redirect|\Illuminate\View\View
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function metadata(Request $request, $provider_name)
     {
@@ -44,7 +44,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
     /**
      * Login page using provider (SSO).
      *
-     * @return \Illuminate\Contracts\View\Factory|Redirect|\Illuminate\View\View
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\View\View
      */
     public function login(Request $request, $provider_name)
     {

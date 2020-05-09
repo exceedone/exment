@@ -104,6 +104,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('login_setting/{id}/testcallback', 'LoginSettingController@loginTestCallback')->name('exment.logintest_acs');
             $router->post('login_setting/2factor-verify', 'LoginSettingController@auth_2factor_verify')->name('exment.2factor_verify');
             $router->post('login_setting/2factor', 'LoginSettingController@post2factor')->name('exment.post2factor');
+            $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal')->name('exment.postglobal');
 
             $router->get("workflow/beginning", 'WorkflowController@beginningForm');
             $router->post("workflow/beginning", 'WorkflowController@beginningPost');

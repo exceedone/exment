@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
  */
 class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
 {
-    use AuthTrait, ThrottlesLogins;
+    use AuthTrait;
 
     public function __construct()
     {
@@ -27,7 +27,7 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
     /**
      * Login page using provider (SSO).
      *
-     * @return \Illuminate\Contracts\View\Factory|Redirect|\Illuminate\View\View
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\View\View
      */
     public function getLoginProvider(Request $request, $login_provider)
     {
@@ -46,7 +46,7 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
     /**
      * callback login provider and login exment
      *
-     * @return \Illuminate\Contracts\View\Factory|Redirect|\Illuminate\View\View
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\View\View
      */
     public function callback(Request $request, $login_provider)
     {
