@@ -50,6 +50,11 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
     
     public static function RetrieveByCredential(array $credentials)
     {
+        // has login type, set LoginType::PURE
+        if (!array_has($credentials, 'login_type')) {
+            $credentials['login_type'] = LoginType::PURE;
+        }
+
         $login_user = null;
         foreach (['email', 'user_code'] as $key) {
             // if user select filtering column, and not mutch, continue
@@ -62,11 +67,11 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
                 $query->where($user->getIndexColumnName($key), array_get($credentials, 'username'));
             });
 
-            $query = $query->where('login_type', array_get($credentials, 'login_type', LoginType::PURE));
+            $query->where('login_type', array_get($credentials, 'login_type'));
 
             // has login provider
             if (array_has($credentials, 'login_provider')) {
-                $query = $query->where('login_provider', array_get($credentials, 'login_provider'));
+                $query->where('login_provider', array_get($credentials, 'login_provider'));
             }
 
             $login_user = $query->first();
