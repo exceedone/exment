@@ -242,6 +242,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ->sort($item->sortable())
                 ->cast($item->getCastName())
                 ->style($item->gridStyle())
+                ->setClasses($item->indexEnabled() ? 'column-' . $item->name() : '')
                 ->display(function ($v) use ($item) {
                     if (is_null($this)) {
                         return '';
@@ -278,6 +279,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // create headers and column_styles
         $headers = [];
         $columnStyles = [];
+        $columnClasses = [];
+        
         foreach ($view_column_items as $view_column_item) {
             $item = array_get($view_column_item, 'item');
             $headers[] = $item
@@ -286,6 +289,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ->label();
 
             $columnStyles[] = $item->column_item->gridStyle();
+            $columnClasses[] = 'column-' . esc_html($item->column_item->name()) . ($item->column_item->indexEnabled() ? ' column-' . $item->column_item->index() : '');
         }
         if ($this->view_kind_type != ViewKindType::AGGREGATE) {
             $headers[] = trans('admin.action');
@@ -351,7 +355,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         //return headers, bodies
-        return [$headers, $bodies, $columnStyles];
+        return [$headers, $bodies, $columnStyles, $columnClasses];
     }
 
     /**

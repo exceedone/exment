@@ -122,7 +122,7 @@ trait ItemTrait
         $array['word-wrap'] = 'break-word';
         $array['white-space'] = 'normal';
         return implode('; ', collect($array)->map(function ($value, $key) {
-            return "$key : $value";
+            return "$key:$value";
         })->toArray());
     }
 
