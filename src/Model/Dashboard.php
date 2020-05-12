@@ -215,18 +215,23 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      */
     protected static function showableDashboards($query)
     {
-        $login_user = \Exment::user();
-        return $query->where(function ($q) {
-            $q->where('dashboard_type', DashboardType::SYSTEM);
-        })->orWhere(function ($q) use($login_user) {
-            $q->where('dashboard_type', DashboardType::USER)
-                ->where('created_user_id', isset($login_user) ? $login_user->getUserId() : null);
-        })->orWhereHas('data_authoritable_users', function ($q) use($login_user) {
-            $q->where('authoritable_target_id', $login_user->getUserId());
-        })->orWhereHas('data_authoritable_organizations', function ($q) use($login_user) {
-            $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
-            $q->whereIn('authoritable_target_id', $login_user->getOrganizationIds($enum));
+        $query = $query->where(function ($qry) {
+            $qry->where('dashboard_type', DashboardType::SYSTEM);
         });
+        if (hasTable(getModelName(SystemTableName::USER))) {
+            $query->orWhere(function ($qry) {
+                $qry->where('dashboard_type', DashboardType::USER)
+                    ->where('created_user_id', \Exment::user()->getUserId());
+            })->orWhereHas('data_authoritable_users', function ($qry) {
+                $qry->where('authoritable_target_id', \Exment::user()->getUserId());
+            });
+        }
+        if (hasTable(getModelName(SystemTableName::ORGANIZATION))) {
+            $query->orWhereHas('data_authoritable_organizations', function ($qry) {
+                $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                $qry->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds($enum));
+            });
+        }
     }
 
     /**

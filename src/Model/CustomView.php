@@ -483,18 +483,23 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     
     protected static function showableViews($query)
     {
-        $login_user = \Exment::user();
-        return $query->where(function ($query) {
-                $query->where('view_type', ViewType::SYSTEM);
-            })->orWhere(function ($query) use($login_user) {
-                $query->where('view_type', ViewType::USER)
-                        ->where('created_user_id', $login_user->getUserId() ?? null);
-            })->orWhereHas('data_authoritable_users', function ($q) use($login_user) {
-                $q->where('authoritable_target_id', $login_user->getUserId());
-            })->orWhereHas('data_authoritable_organizations', function ($q) use($login_user) {
-                $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
-                $q->whereIn('authoritable_target_id', $login_user->getOrganizationIds($enum));
+        $query = $query->where(function ($qry) {
+            $qry->where('view_type', ViewType::SYSTEM);
         });
+        if (hasTable(getModelName(SystemTableName::USER))) {
+            $query->orWhere(function ($qry) {
+                $qry->where('view_type', ViewType::USER)
+                    ->where('created_user_id', \Exment::user()->getUserId());
+            })->orWhereHas('data_authoritable_users', function ($qry) {
+                $qry->where('authoritable_target_id', \Exment::user()->getUserId());
+            });
+        }
+        if (hasTable(getModelName(SystemTableName::ORGANIZATION))) {
+            $query->orWhereHas('data_authoritable_organizations', function ($qry) {
+                $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                $qry->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds($enum));
+            });
+        }
     }
 
     public static function createDefaultView($tableObj)
