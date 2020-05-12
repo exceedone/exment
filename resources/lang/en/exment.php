@@ -1399,15 +1399,13 @@ return [
         'template_view_name' => 'Template View Name',
         'form_description' => 'Template Description',
         'thumbnail' => 'Thumbnail',
-        'upload_template' => 'Upload(zip)',
-        'upload_template_excel' => 'Upload(Excel)',
+        'upload_template' => 'Upload',
         'export_target' => 'Export Target',
         'target_tables' => 'Target Tables',
         
         'help' => [
             'thumbnail' => 'Recommended size:256px*256px',
-            'upload_template' => 'Upload the template zip file exported on another system and import the settings into this system.',
-            'upload_template_excel' => 'Upload the configuration file created in Excel format and import the settings to the system.',
+            'upload_template' => 'The template zip file exported or created in Excel, and import the settings into this system.',
             'export_target' => 'Select export target.',
             'target_tables' => 'Select export tables. If not select, export all tables.',
         ],
