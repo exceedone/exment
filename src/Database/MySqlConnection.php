@@ -11,6 +11,8 @@ use Illuminate\Database\MySqlConnection as BaseConnection;
 class MySqlConnection extends BaseConnection
 {
     use ConnectionTrait;
+
+    protected static $isContainsColumnStatistics = null;
     
     /**
      * Get a schema builder instance for the connection.
@@ -72,10 +74,15 @@ class MySqlConnection extends BaseConnection
         $database = config('database.connections.mysql.database', '');
         $dbport = config('database.connections.mysql.port', '');
 
-        $mysqldump = config('exment.backup_info.mysql_dir', '') . 'mysqldump';
+        // mysqldump v8.0 or later, append "column-statistics=0" option
+        // https://serverfault.com/questions/912162/mysqldump-throws-unknown-table-column-statistics-in-information-schema-1109
+        $column_statistics = static::isContainsColumnStatistics() ? '--column-statistics=0' : '';
+
+        $mysqldump = static::getMysqlDumpPath();
         $command = sprintf(
-            '%s -h %s -u %s --password=%s -P %s',
+            '%s %s -h %s -u %s --password=%s -P %s',
             $mysqldump,
+            $column_statistics,
             $host,
             $username,
             $password,
@@ -92,6 +99,47 @@ class MySqlConnection extends BaseConnection
 
         exec($command);
     }
+
+    /**
+     * Is Contains "column-statistics" option
+     *
+     * @return bool
+     */
+    protected static function isContainsColumnStatistics()
+    {
+        if(!is_null(static::$isContainsColumnStatistics)){
+            return static::$isContainsColumnStatistics;
+        }
+        $mysqldump = static::getMysqlDumpPath();
+        $command = sprintf(
+            '%s --help',
+            $mysqldump
+        );   
+        exec($command, $output);
+
+        static::$isContainsColumnStatistics = collect($output)->contains(function($o){
+            return strpos($o, 'column-statistics') !== false;
+        });
+
+        return static::$isContainsColumnStatistics;
+    }
+
+    /**
+     * Check execute backup database
+     *
+     * @return bool
+     */
+    public function checkBackup() : bool
+    {
+        $mysqldump = static::getMysqlDumpPath();
+
+        exec("$mysqldump --version", $output);
+
+        if(is_nullorempty($output)){
+            return false;
+        }
+        return true;
+    }   
 
     public function backupDatabase($tempDir)
     {
@@ -148,5 +196,10 @@ class MySqlConnection extends BaseConnection
                 $file->fputcsv($row);
             }
         });
+    }
+
+    protected static function getMysqlDumpPath()
+    {
+        return config('exment.backup_info.mysql_dir', '') . 'mysqldump';   
     }
 }

@@ -54,6 +54,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         'ignoreImportChildren' => ['custom_columns', 'custom_column_multisettings'],
     ];
 
+    /**
+     * Getted custom columns. if call attributes "custom_columns_cache", already called, return this value.
+     */
+    protected $cached_custom_columns = [];
+
     public function custom_columns()
     {
         return $this->hasMany(CustomColumn::class, 'custom_table_id');
@@ -149,7 +154,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getCustomColumnsCacheAttribute()
     {
-        return $this->hasManyCache(CustomColumn::class, 'custom_table_id');
+        if(!empty($this->cached_custom_columns)){
+            return $this->cached_custom_columns;
+        }
+
+        $this->cached_custom_columns = $this->hasManyCache(CustomColumn::class, 'custom_table_id');
+        return $this->cached_custom_columns;
     }
 
     /**
@@ -170,7 +180,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getSelectTables()
     {
-        $list = $this->custom_columns->mapWithKeys(function ($item) {
+        $list = $this->custom_columns_cache->mapWithKeys(function ($item) {
             $key = $item->getIndexColumnName();
             $val = array_get($item->options, 'select_target_table');
             return [$key => (is_numeric($val)? intval($val): null)];
@@ -210,7 +220,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSelectTableColumns()
     {
-        return $this->custom_columns->filter(function ($item) {
+        return $this->custom_columns_cache->filter(function ($item) {
             return ColumnType::isSelectTable($item->column_type);
         })->mapWithKeys(function ($item) {
             $key = $item->getIndexColumnName();
@@ -501,7 +511,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $customAttributes = [];
 
-        foreach ($this->custom_columns as $custom_column) {
+        foreach ($this->custom_columns_cache as $custom_column) {
             $customAttributes[$column_name_prefix . $custom_column->column_name] = "{$custom_column->column_view_name}" . ($appendKeyName ? "({$custom_column->column_name})" : "");
 
             if ($systemColumn) {
@@ -545,7 +555,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // get custom attributes
         $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
 
-        foreach ($this->custom_columns as $custom_column) {
+        foreach ($this->custom_columns_cache as $custom_column) {
             $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value, null, $column_name_prefix, true, true);
 
             // if not contains $value[$custom_column->column_name], set as null.
@@ -754,7 +764,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         // get fields for validation
         $fields = [];
-        foreach ($this->custom_columns as $custom_column) {
+        foreach ($this->custom_columns_cache as $custom_column) {
             // get default value
             $default = $custom_column->getOption('default');
 
@@ -1653,7 +1663,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($include_column) {
             $this->setColumnOptions(
                 $options,
-                $this->custom_columns,
+                $this->custom_columns_cache,
                 $this->id,
                 [
                     'append_table' => $append_table,
@@ -1676,7 +1686,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $tablename = array_get($parent, 'table_view_name');
                 $this->setColumnOptions(
                     $options,
-                    $parent->custom_columns,
+                    $parent->custom_columns_cache,
                     $parent_id,
                     [
                         'append_table' => $append_table,
@@ -1697,7 +1707,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $tablename = array_get($select_table, 'table_view_name');
                 $this->setColumnOptions(
                     $options,
-                    $select_table->custom_columns,
+                    $select_table->custom_columns_cache,
                     $select_table->id,
                     [
                         'append_table' => $append_table,
@@ -1722,7 +1732,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $tablename = array_get($child, 'table_view_name');
                 $this->setColumnOptions(
                     $options,
-                    $child->custom_columns,
+                    $child->custom_columns_cache,
                     $child_id,
                     [
                         'append_table' => $append_table,
@@ -1741,7 +1751,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $tablename = array_get($custom_table, 'table_view_name');
                 $this->setColumnOptions(
                     $options,
-                    $custom_table->custom_columns,
+                    $custom_table->custom_columns_cache,
                     $custom_table->id,
                     [
                         'append_table' => $append_table,
@@ -1863,7 +1873,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         ///// get table columns
-        $custom_columns = $this->custom_columns;
+        $custom_columns = $this->custom_columns_cache;
         foreach ($custom_columns as $option) {
             $column_type = array_get($option, 'column_type');
             if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
@@ -1882,7 +1892,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $key = static::getOptionKey(array_get($option, 'name'), true, $tableid);
                 $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
             }
-            $child_columns = $child->custom_columns;
+            $child_columns = $child->custom_columns_cache;
             foreach ($child_columns as $option) {
                 $column_type = array_get($option, 'column_type');
                 if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
@@ -1901,7 +1911,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $key = static::getOptionKey(array_get($option, 'name'), true, $custom_table->id);
                 $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
             }
-            foreach ($custom_table->custom_columns as $option) {
+            foreach ($custom_table->custom_columns_cache as $option) {
                 $column_type = array_get($option, 'column_type');
                 if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
                     $key = static::getOptionKey(array_get($option, 'id'), true, $custom_table->id);
@@ -1922,7 +1932,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $options = [];
 
         ///// get table columns
-        $custom_columns = $this->custom_columns;
+        $custom_columns = $this->custom_columns_cache;
         foreach ($custom_columns as $option) {
             if (!$option->index_enabled) {
                 continue;

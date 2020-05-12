@@ -148,17 +148,17 @@ trait InitializeFormTrait
             ->overlay()
             ;
         $form->file('upload_template', exmtrans('template.upload_template'))
-            ->rules('mimes:zip|nullable')
-            ->attribute(['accept' => ".zip"])
+            ->rules('mimes:zip,xlsx|nullable')
+            ->attribute(['accept' => ".zip,.xlsx"])
             ->help(exmtrans('template.help.upload_template'))
             ->removable()
             ->options(Define::FILE_OPTION());
 
-        $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
-            ->rules('mimes:xlsx|nullable')
-            ->attribute(['accept' => ".xlsx"])
-            ->help(exmtrans('template.help.upload_template_excel'))
-            ->options(Define::FILE_OPTION());
+        // $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
+        //     ->rules('mimes:xlsx|nullable')
+        //     ->attribute(['accept' => ".xlsx"])
+        //     ->help(exmtrans('template.help.upload_template_excel'))
+        //     ->options(Define::FILE_OPTION());
 
         // template search url
         $template_search_url = admin_urls('api', 'template', 'search');
@@ -202,16 +202,17 @@ EOT;
         if ($request->has('upload_template')) {
             // get upload file
             $file = $request->file('upload_template');
-            $upload_template = $importer->uploadTemplate($file);
-            $importer->importTemplate($upload_template);
-        }
-        
-        // upload excel file
-        if ($request->has('upload_template_excel')) {
-            // get upload file
-            $file = $request->file('upload_template_excel');
-            $json = $importer->uploadTemplateExcel($file);
-            $importer->import($json, false, false, true);
+
+            // upload excel file
+            if($file->getClientOriginalExtension() == 'xlsx'){
+                $json = $importer->uploadTemplateExcel($file);
+                $importer->import($json, false, false, true);
+            }
+            // upload zip file
+            elseif($file->getClientOriginalExtension() == 'zip'){
+                $upload_template = $importer->uploadTemplate($file);
+                $importer->importTemplate($upload_template);
+            }
         }
     }
     

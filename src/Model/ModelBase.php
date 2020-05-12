@@ -98,11 +98,23 @@ class ModelBase extends Model
         });
         
         static::saved(function ($model) {
-            $classname = get_called_class();
-            if (\method_exists($classname, 'clearCacheTrait')) {
-                $classname::clearCacheTrait();
-            }
+            static::callClearCache();
         });
+        static::deleted(function ($model) {
+            static::callClearCache();
+        });
+    }
+
+    /**
+     * Call clear cache if definition
+     *
+     * @return void
+     */
+    protected static function callClearCache(){
+        $classname = get_called_class();
+        if (\method_exists($classname, 'clearCacheTrait')) {
+            $classname::clearCacheTrait();
+        }
     }
 
     /**

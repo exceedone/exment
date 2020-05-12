@@ -729,7 +729,7 @@ class ApiTableController extends AdminControllerTableBase
             })->toArray()];
 
         foreach ($rootValues as &$rootValue) {
-            $rootValue['value'] = DataImportExportService::processCustomValue($this->custom_columns, array_get($rootValue, 'value'), $processOptions);
+            $rootValue['value'] = DataImportExportService::processCustomValue($this->custom_columns_cache, array_get($rootValue, 'value'), $processOptions);
         }
 
         return count($errors) > 0 ? $errors : true;

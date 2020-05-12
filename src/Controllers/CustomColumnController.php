@@ -689,7 +689,7 @@ class CustomColumnController extends AdminControllerTableBase
         $options = [];
 
         // get calc options
-        $custom_table->custom_columns->filter(function ($column) use ($id) {
+        $custom_table->custom_columns_cache->filter(function ($column) use ($id) {
             if (isset($id) && $id == array_get($column, 'id')) {
                 return false;
             }
@@ -708,7 +708,7 @@ class CustomColumnController extends AdminControllerTableBase
         
         // get select table custom columns
         $select_table_custom_columns = [];
-        $custom_table->custom_columns->each(function ($column) use ($id, &$options) {
+        $custom_table->custom_columns_cache->each(function ($column) use ($id, &$options) {
             if (isset($id) && $id == array_get($column, 'id')) {
                 return;
             }
@@ -717,7 +717,7 @@ class CustomColumnController extends AdminControllerTableBase
             }
 
             // get select table's calc column
-            $column->select_target_table->custom_columns->filter(function ($select_target_column) use ($id, $column, &$options) {
+            $column->select_target_table->custom_columns_cache->filter(function ($select_target_column) use ($id, $column, &$options) {
                 if (isset($id) && $id == array_get($select_target_column, 'id')) {
                     return false;
                 }
@@ -748,7 +748,7 @@ class CustomColumnController extends AdminControllerTableBase
                     'custom_table_id' => $child_table->id
                 ];
 
-                $child_columns = $child_table->custom_columns->filter(function ($column) {
+                $child_columns = $child_table->custom_columns_cache->filter(function ($column) {
                     return in_array(array_get($column, 'column_type'), ColumnType::COLUMN_TYPE_CALC());
                 })->map(function ($column) use ($child_table_name) {
                     return [

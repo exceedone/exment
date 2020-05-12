@@ -202,7 +202,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'icon' => $plugin->getOption('icon') ?? 'fa-th-list',
                         'header' => $all,
                         'description' => $plugin->getOption('export_description'),
-                        'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=plugin_export&plugin_id={$plugin->id}"], $button)],
+                        'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('all') . "&action=plugin_export&plugin_uuid={$plugin->uuid}"], $button)],
                     ];
                 }
                 if (in_array('current_page', $export_types)) {
@@ -210,7 +210,7 @@ class ExportImportButton extends ModalTileMenuButton
                         'icon' => $plugin->getOption('icon') ?? 'fa-th-list',
                         'header' => $currentPage,
                         'description' => $plugin->getOption('export_description'),
-                        'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=plugin_export&plugin_id={$plugin->id}"], $button)],
+                        'buttons' => [array_merge(['href'=> $this->grid->getExportUrl('page', $page) . "&action=plugin_export&plugin_uuid={$plugin->uuid}"], $button)],
                     ];
                 }
 

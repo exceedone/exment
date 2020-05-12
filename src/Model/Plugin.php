@@ -112,14 +112,16 @@ class Plugin extends ModelBase
 
     public static function getPluginByUUID($uuid)
     {
-        return static::where('uuid', '=', $uuid)
-            ->first();
+        return static::getPluginsCache()->first(function ($plugin) use ($uuid) {
+            return $plugin->uuid = $uuid;
+        });
     }
 
     public static function getPluginByName($plugin_name)
     {
-        return static::where('plugin_name', '=', $plugin_name)
-            ->first();
+        return static::getPluginsCache()->first(function ($plugin) use ($plugin_name) {
+            return $plugin->plugin_name = $plugin_name;
+        });
     }
 
     //Get plugin by custom_table name
