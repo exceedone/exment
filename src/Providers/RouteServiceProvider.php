@@ -124,6 +124,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('backup/save', 'BackupController@save');
             $router->post('backup/setting', 'BackupController@postSetting');
             $router->post('backup/import', 'BackupController@import');
+            $router->post('backup/editname', 'BackupController@editname');
             $router->get('backup/importModal', 'BackupController@importModal');
             $router->get('backup/download/{ymdhms}', 'BackupController@download');
         

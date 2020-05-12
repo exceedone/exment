@@ -1,5 +1,5 @@
 <?php
-namespace Exceedone\Exment\Console;
+namespace Exceedone\Exment\Services\BackupRestore;
 
 use Exceedone\Exment\Storage\Disk\BackupDiskService;
 
@@ -7,18 +7,22 @@ trait BackupRestoreTrait
 {
     protected $diskService;
 
-    protected function disk()
+    public function disk()
     {
         return $this->diskService->diskItem()->disk();
     }
 
-    protected function tmpDisk()
+    public function tmpDisk()
     {
         return $this->diskService->tmpDiskItem()->disk();
     }
 
-    protected function initBackupRestore($basename = null)
+    public function initBackupRestore($basename = null)
     {
         $this->diskService = new BackupDiskService($basename);
+    }
+
+    public function diskService(){
+        return $this->diskService;
     }
 }
