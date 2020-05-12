@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Services\Login\Ldap\LdapService;
 use Exceedone\Exment\Services\Login\Ldap\LdapUser;
@@ -78,84 +79,54 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         foreach(LoginSetting::getLdapSettings() as $login_setting){
             if($request->has("login_setting_{$login_setting->provider_name}")){
-                return $this->loginLdap($request, $credentials, $login_setting);
+                $credentials['login_setting'] =  $login_setting;
+                $credentials['login_type'] =  $login_setting->login_type;
+                return $this->executeLogin($request, $credentials, $login_setting);
             }
         }
 
-        return $this->loginDefault($request, $credentials);
+        $credentials['login_type'] = LoginType::PURE;
+        return $this->executeLogin($request, $credentials);
     }
 
+    
     /**
-     * Login using default
+     * Execute login(for Default, LDAP)
      *
      * @param Request $request
      * @return \Illuminate\Http\Response
      */
-    protected function loginDefault(Request $request, array $credentials)
+    protected function executeLogin(Request $request, array $credentials, ?LoginSetting $login_setting = null)
     {
         $remember = boolval($request->get('remember', false));
-        $credentials['login_type'] = LoginType::PURE;
-
-        if ($this->guard()->attempt($credentials, $remember)) {
-            if (!$this->checkPasswordLimit()) {
-                session([Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT => true]);
-                return redirect(admin_url('auth/change'));
-            }
-            $this->postVerifyEmail();
-            return $this->sendLoginResponse($request);
-        }
-
-        // If the login attempt was unsuccessful we will increment the number of attempts
-        // to login and redirect the user back to the login form. Of course, when this
-        // user surpasses their maximum number of attempts they will get locked out.
-        $this->incrementLoginAttempts($request);
-
-        return back()->withInput()->withErrors([
-            $this->username() => $this->getFailedLoginMessage(),
-        ]);
-    }
-
-    /**
-     * Login using Ldap
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\Response
-     */
-    protected function loginLdap(Request $request, array $credentials, LoginSetting $login_setting)
-    {
         $error_url = admin_url('auth/login');
-        $error_redirect = redirect($error_url)->withInput()->withErrors(
-            [$this->username() => $this->getFailedLoginMessage()]
-        );
-        
-        $username = LdapService::getLdapUserName($credentials['username'], $login_setting);
 
-        $custom_login_user = null;
-        try {
-            $ad = new \Adldap\Adldap(LdapService::getLdapConfig($login_setting));
-            $provider = $ad->getDefaultProvider();
-            
-            $provider->connect();
-
-            if (!$provider->auth()->attempt($username, $credentials['password'], true)) {
-                return $error_redirect;
+        try{
+            if ($this->guard()->attempt($credentials, $remember)) {
+                if (!$this->checkPasswordLimit()) {
+                    session([Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT => true]);
+                    return redirect(admin_url('auth/change'));
+                }
+                $this->postVerifyEmail();
+                return $this->sendLoginResponse($request);
             }
+    
+            // If the login attempt was unsuccessful we will increment the number of attempts
+            // to login and redirect the user back to the login form. Of course, when this
+            // user surpasses their maximum number of attempts they will get locked out.
+            $this->incrementLoginAttempts($request);
+    
+            return back()->withInput()->withErrors([
+                $this->username() => $this->getFailedLoginMessage(),
+            ]);
 
-            $ldapUserArray = LdapService::syncLdapUser($provider, $login_setting, $username);
-            if (!$ldapUserArray) {
-                return $error_redirect;
-            }
-            
-            $custom_login_user = LdapUser::with($login_setting, $ldapUserArray);
-
-            $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
-            if ($validator->fails()) {
-                return redirect($error_url)->withInput()->withErrors(
-                    [$this->username() => $validator->errors()->messages()]
-                );
-            }
-            
-            return $this->executeLogin($request, $custom_login_user);
+        } 
+        // Sso exception
+        catch (SsoLoginErrorException $ex) {
+            \Log::error($ex);
+            return redirect($error_url)->withInput()->withErrors(
+                [$this->username() => $ex->getSsoErrorMessage()]
+            );
         } catch (\Exception $ex) {
             \Log::error($ex);
             return redirect($error_url)->withInput()->withErrors(
@@ -163,6 +134,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             );
         }
     }
+
 
     protected function checkPasswordLimit()
     {

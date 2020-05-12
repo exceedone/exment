@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\Login\LoginService;
@@ -398,11 +399,20 @@ class LoginSettingController extends AdminControllerBase
         
             return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
         }
+        catch(SsoLoginErrorException $ex){
+            \Log::error($ex);
+
+            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $ex->getSsoErrorMessage()]);
+
+            return redirect($this->getEditUrl($id, true));
+            
+            // if error, redirect edit page
+        }
         catch(\Exception $ex){
             \Log::error($ex);
 
-            $message = LoginService::getLoginTestResult(false, [$ex]);
-            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $message]);
+            list($result, $message, $adminMessage, $custom_login_user) = LoginService::getLoginResult(false, exmtrans('login.sso_provider_error'), [$ex]);
+            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $adminMessage]);
 
             return redirect($this->getEditUrl($id, true));
             
@@ -423,16 +433,16 @@ class LoginSettingController extends AdminControllerBase
         try{
             $login_setting = LoginSetting::getEloquent($id);
             
-            $message = $login_setting->getLoginServiceClassName()::loginTestCallback($request, $login_setting);
-            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $message]);
+            list($result, $message, $adminMessage, $custom_login_user) = $login_setting->getLoginServiceClassName()::loginCallback($request, $login_setting, true);
+            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $adminMessage]);
     
             return redirect($this->getEditUrl($id, true));
         }
         catch(\Exception $ex){
             \Log::error($ex);
 
-            $message = LoginService::getLoginTestResult(false, [$ex]);
-            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $message]);
+            list($result, $message, $adminMessage, $custom_login_user) = LoginService::getLoginResult(false, exmtrans('login.sso_provider_error'), [$ex]);
+            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $adminMessage]);
 
             return redirect($this->getEditUrl($id, true));
         }

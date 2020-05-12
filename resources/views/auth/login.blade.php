@@ -10,8 +10,10 @@
                     <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                     @endforeach @endif
 
-                    <input type="input" class="form-control" placeholder="{{ exmtrans('login.email_or_usercode') }}" name="username" value="{{ old('username') }}" required>
-                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                    <div style="position:relative;">
+                        <input type="input" class="form-control" placeholder="{{ exmtrans('login.email_or_usercode') }}" name="username" value="{{ old('username') }}" required>
+                        <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                    </div>
                 </div>
                 <div class="form-group has-feedback {!! !$errors->has('password') ?: 'has-error' !!}">
 
@@ -19,8 +21,10 @@
                     <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                     @endforeach @endif
 
-                    <input type="password" class="form-control" placeholder="{{ trans('admin.password') }}" name="password" required>
-                    <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                    <div style="position:relative;">
+                        <input type="password" class="form-control" placeholder="{{ trans('admin.password') }}" name="password" required>
+                        <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-xs-12 text-center">

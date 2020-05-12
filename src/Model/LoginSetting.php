@@ -234,9 +234,11 @@ class LoginSetting extends ModelBase
      *
      * @return ?LoginSetting
      */
-    public static function getLdapSetting($filterActive = true)
+    public static function getLdapSetting($provider_name, $filterActive = true)
     {
-        return static::getLdapSettings($filterActive)->first();
+        return static::getLdapSettings($filterActive)->first(function ($record) use ($provider_name) {
+            return $record->provider_name == $provider_name;
+        });
     }
     
     /**
@@ -386,14 +388,7 @@ class LoginSetting extends ModelBase
      */
     public function getLoginServiceClassName() : string
     {
-        switch ($this->login_type) {
-            case LoginType::OAUTH:
-                return LoginServiceRoot\OAuth\OAuthService::class;
-            case LoginType::SAML:
-            return LoginServiceRoot\Saml\SamlService::class;
-            case LoginType::LDAP:
-                return LoginServiceRoot\Ldap\LdapService::class;
-        }
+        return LoginType::getLoginServiceClassName($this->login_type);
     }
 
     /**

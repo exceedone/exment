@@ -20,13 +20,19 @@ namespace Exment {
         
         public static AddEvent() {
             $('form').submit(function(ev){
-                let $button = $(ev.target).find('.submit_disabled').prop('disabled', true);
+                let $button = $(ev.target).find('.submit_disabled');
+                if($button.length > 1){
+                    return true;
+                }
+
                 // create hidden 
-                $(ev.target).append($('<input>', {
+                $(ev.target).append($('<input />', {
                     'name' : $button.prop('name'),
                     'value': $button.prop('value'),
                     'type': 'hidden',
                 }));
+
+                $button.prop('disabled', true);
 
                 return true;
             });

@@ -1,11 +1,14 @@
 <?php
 namespace Exceedone\Exment\Services\Login\Saml;
 
+use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
 /**
@@ -13,6 +16,54 @@ use Illuminate\Http\Request;
  */
 class SamlService implements LoginServiceInterface
 {
+
+    /**
+     * Checking retrieveByCredential.
+     * (1) Login using LDAP
+     * (2) Get user info
+     * (3) sync from exment column name
+     * (4) Validation value
+     * (5) get login_user info. If not exists, create user (if set setting).
+     * return login_user
+     * @param array $credentials
+     * @return ?LoginUser
+     * if null, not match ldap user. Showing wrong ID or password not match.
+     * 
+     * @throws SsoLoginErrorException
+     */
+    public static function retrieveByCredential(array $credentials)
+    {
+        list($result, $message, $adminMessage, $custom_login_user) = static::loginCallback(request(), array_get($credentials, 'login_setting') ?? LoginSetting::getSamlSetting(array_get($credentials, 'provider_name')));
+
+        if($result === true){
+            return LoginService::executeLogin(request(), $custom_login_user);
+        }
+
+        // if not exists, retun null
+        if($result == SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER){
+            return null;
+        }
+
+        // else, throw exception
+        throw new SsoLoginErrorException($result, $message);
+    }
+
+
+    /**
+     * Validate Credential. Check password.
+     *
+     * @param Authenticatable $login_user
+     * @param array $credentials
+     * @return void
+     */
+    public static function validateCredential(Authenticatable $login_user, array $credentials)
+    {
+        // always true.
+        return true;
+    }
+
+
+
     public static function getTestForm(LoginSetting $login_setting)
     {
         return LoginService::getTestFormSso($login_setting);
@@ -148,38 +199,38 @@ class SamlService implements LoginServiceInterface
      * @param Request $request
      * @return void
      */
-    public static function loginTestCallback(Request $request, $login_setting)
+    public static function loginCallback(Request $request, $login_setting, $isTest = false)
     {
         try {
-            $saml2Auth = LoginSetting::getSamlAuth($login_setting, true);
+            $saml2Auth = LoginSetting::getSamlAuth($login_setting, $isTest);
 
             $errors = $saml2Auth->acs();
             if (!empty($errors)) {
-                return LoginService::getLoginTestResult(false, array_get($errors, 'last_error_reason', array_get($errors, 'error')));
+                return LoginService::getLoginResult(SsoLoginErrorType::PROVIDER_ERROR, array_get($errors, 'last_error_reason', array_get($errors, 'error')));
             }
 
             $custom_login_user = SamlUser::with($login_setting->provider_name, $saml2Auth->getSaml2User(), true);
             
             if(!is_nullorempty($custom_login_user->mapping_errors)){
-                return LoginService::getLoginTestResult(false, $custom_login_user->mapping_errors);
+                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, $custom_login_user->mapping_errors);
             }
 
             $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
             if ($validator->fails()) {
-                return LoginService::getLoginTestResult(false, $validator->errors(), $custom_login_user);
+                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_VALIDATION_ERROR, $validator->errors(), $custom_login_user);
             }
             
-            return LoginService::getLoginTestResult(true, [], $custom_login_user);
+            return LoginService::getLoginResult(true, [], [], $custom_login_user);
             
         } catch (\Exception $ex) {
             \Log::error($ex);
 
-            return LoginService::getLoginTestResult(false, [$ex]);
+            return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         } 
         catch (\Throwable $ex) {
             \Log::error($ex);
 
-            return LoginService::getLoginTestResult(false, [$ex]);
+            return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }
     }
 

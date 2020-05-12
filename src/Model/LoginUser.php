@@ -92,14 +92,14 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         return !is_nullorempty($this->login_provider);
     }
     
-    public function findForPassport($username)
+    public function findForPassport($username, ?array $credentials = [])
     {
-        return CustomUserProvider::RetrieveByCredential(['username' => $username]);
+        return CustomUserProvider::RetrieveByCredential(array_merge(['username' => $username], $credentials));
     }
 
-    public function validateForPassportPasswordGrant($password)
+    public function validateForPassportPasswordGrant($password, ?array $credentials = [])
     {
-        return CustomUserProvider::ValidateCredential($this, ['password' => $password]);
+        return CustomUserProvider::ValidateCredential($this, array_merge(['password' => $password], $credentials));
     }
 
     /**

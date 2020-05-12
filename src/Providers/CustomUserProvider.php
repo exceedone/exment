@@ -38,17 +38,47 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
     {
     }
  
+    /**
+     * retrieveByCredentials.
+     * execute login using each service.
+     *
+     * @param array $credentials
+     * @return ?Authenticatable
+     */
     public function retrieveByCredentials(array $credentials)
     {
         return static::RetrieveByCredential($credentials);
+    }
+
+    /**
+     * retrieveByCredentials.
+     * execute login using each service.
+     *
+     * @param array $credentials
+     * @return ?Authenticatable
+     */
+    public static function RetrieveByCredential(array $credentials)
+    {
+        $classname = static::getClassName($credentials);
+        if(!isset($classname)){
+            return [];
+        }
+
+        return $classname::retrieveByCredential($credentials);
     }
  
     public function validateCredentials(Authenticatable $login_user, array $credentials)
     {
         return static::ValidateCredential($login_user, $credentials);
     }
-    
-    public static function RetrieveByCredential(array $credentials)
+
+    /**
+     * findByCredentials. Only search from database.
+     *
+     * @param array $credentials
+     * @return ?Authenticatable
+     */
+    public static function findByCredential(array $credentials)
     {
         // has login type, set LoginType::PURE
         if (!array_has($credentials, 'login_type')) {
@@ -87,14 +117,27 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
         return null;
     }
     
+
     public static function ValidateCredential(Authenticatable $login_user, array $credentials)
     {
         if (is_null($login_user)) {
             return false;
         }
-        $password = $login_user->password;
-        $credential_password = array_get($credentials, 'password');
-        // Verify the user with the username password in $ credentials, return `true` or `false`
-        return !is_null($credential_password) && Hash::check($credential_password, $password);
+
+        $classname = static::getClassName($credentials);
+        if(!isset($classname)){
+            return false;
+        }
+
+        return $classname::validateCredential($login_user, $credentials);
+    }
+
+    protected static function getClassName($credentials){
+        // has login type, set LoginType::PURE
+        if (!array_key_value_exists('login_type', $credentials)) {
+            $credentials['login_type'] = LoginType::PURE;
+        }
+
+        return LoginType::getLoginServiceClassName($credentials['login_type']);
     }
 }

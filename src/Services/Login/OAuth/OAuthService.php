@@ -1,11 +1,14 @@
 <?php
 namespace Exceedone\Exment\Services\Login\OAuth;
 
+use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\LoginProviderType;
+use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
 
@@ -14,6 +17,53 @@ use Illuminate\Http\Request;
  */
 class OAuthService implements LoginServiceInterface
 {
+    /**
+     * Checking retrieveByCredential.
+     * (1) Login using LDAP
+     * (2) Get user info
+     * (3) sync from exment column name
+     * (4) Validation value
+     * (5) get login_user info. If not exists, create user (if set setting).
+     * return login_user
+     * @param array $credentials
+     * @return ?LoginUser
+     * if null, not match ldap user. Showing wrong ID or password not match.
+     * 
+     * @throws SsoLoginErrorException
+     */
+    public static function retrieveByCredential(array $credentials)
+    {
+        list($result, $message, $adminMessage, $custom_login_user) = static::loginCallback(request(), array_get($credentials, 'login_setting') ?? LoginSetting::getOAuthSetting(array_get($credentials, 'provider_name')));
+
+        if($result === true){
+            return LoginService::executeLogin(request(), $custom_login_user);
+        }
+
+        // if not exists, retun null
+        if($result == SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER){
+            return null;
+        }
+
+        // else, throw exception
+        throw new SsoLoginErrorException($result, $message);
+    }
+
+
+    /**
+     * Validate Credential. Check password.
+     *
+     * @param Authenticatable $login_user
+     * @param array $credentials
+     * @return void
+     */
+    public static function validateCredential(Authenticatable $login_user, array $credentials)
+    {
+        // always true.
+        return true;
+    }
+
+
+
     public static function getTestForm(LoginSetting $login_setting)
     {
         return LoginService::getTestFormSso($login_setting);
@@ -84,36 +134,36 @@ class OAuthService implements LoginServiceInterface
 
     
     /**
-     * Execute login test callback
+     * Execute login callback
      *
      * @param Request $request
      * @return void
      */
-    public static function loginTestCallback(Request $request, $login_setting)
+    public static function loginCallback(Request $request, $login_setting, $isTest = false)
     {
         $custom_login_user = null;
         $message = null;
         try {
-            $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, true);
+            $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting, $isTest);
 
             $custom_login_user = OAuthUser::with($login_setting->provider_name, $socialiteProvider->user(), true);
 
             $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
             if ($validator->fails()) {
-                return LoginService::getLoginTestResult(false, $validator->errors());
+                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_VALIDATION_ERROR, $validator->errors());
             } else {
-                return LoginService::getLoginTestResult(true, [], $custom_login_user);
+                return LoginService::getLoginResult(true, [], [], $custom_login_user);
             }
         } 
         catch (\Exception $ex) {
             \Log::error($ex);
 
-            return LoginService::getLoginTestResult(false, [$ex]);
+            return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         } 
         catch (\Throwable $ex) {
             \Log::error($ex);
 
-            return LoginService::getLoginTestResult(false, [$ex]);
+            return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }
     }
     

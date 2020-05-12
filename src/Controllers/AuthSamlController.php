@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Services\Login\Saml\SamlUser;
 use Illuminate\Http\Request;
@@ -68,28 +69,46 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
      */
     public function acs(Request $request, $provider_name)
     {
-        $saml2Auth = LoginSetting::getSamlAuth($provider_name);
+        if ($this->guard()->check()) {
+            return redirect($this->redirectPath());
+        }
         
-        $errors = $saml2Auth->acs();
         $error_url = admin_url('auth/login');
+        try{
+            $credentials = ['login_type' => LoginType::SAML, 'login_setting' => LoginSetting::getSamlSetting($provider_name)];
+            if ($this->guard()->attempt($credentials)) {
+                session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+            
+                session([Define::SYSTEM_KEY_SESSION_SAML_SESSION => [
+                    'sessionIndex' => $saml2Auth->getSaml2User()->getSessionIndex(),
+                    'nameId' => $saml2Auth->getSaml2User()->getNameId(),
+                ]]);
 
-        if (!empty($errors)) {
-            \Log::error($saml2Auth->getLastErrorReason());
+                return $this->sendLoginResponse($request);
+            }
+    
+            // If the login attempt was unsuccessful we will increment the number of attempts
+            // to login and redirect the user back to the login form. Of course, when this
+            // user surpasses their maximum number of attempts they will get locked out.
+            $this->incrementLoginAttempts($request);
+    
+            return back()->withInput()->withErrors([
+                'sso_error' => $this->getFailedLoginMessage(),
+            ]);
 
+        } 
+        // Sso exception
+        catch (SsoLoginErrorException $ex) {
+            \Log::error($ex);
             return redirect($error_url)->withInput()->withErrors(
-                ['sso_error' => $errors]
+                ['sso_error' => $ex->getSsoErrorMessage()]
+            );
+        } catch (\Exception $ex) {
+            \Log::error($ex);
+            return redirect($error_url)->withInput()->withErrors(
+                ['sso_error' => exmtrans('login.sso_provider_error')]
             );
         }
-
-        $custom_login_user = SamlUser::with($provider_name, $saml2Auth->getSaml2User());
-        return $this->executeLogin($request, $custom_login_user, null, function () use ($saml2Auth) {            // set session for 2factor
-            session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
-            
-            session([Define::SYSTEM_KEY_SESSION_SAML_SESSION => [
-                'sessionIndex' => $saml2Auth->getSaml2User()->getSessionIndex(),
-                'nameId' => $saml2Auth->getSaml2User()->getNameId(),
-            ]]);
-        });
     }
 
     /**

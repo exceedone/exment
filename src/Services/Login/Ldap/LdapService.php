@@ -1,14 +1,18 @@
 <?php
 namespace Exceedone\Exment\Services\Login\Ldap;
 
+use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Form\Tools;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
 /**
@@ -16,6 +20,52 @@ use Illuminate\Http\Request;
  */
 class LdapService implements LoginServiceInterface
 {
+    /**
+     * Checking retrieveByCredential.
+     * (1) Login using LDAP
+     * (2) Get user info
+     * (3) sync from exment column name
+     * (4) Validation value
+     * (5) get login_user info. If not exists, create user (if set setting).
+     * return login_user
+     * @param array $credentials
+     * @return ?LoginUser
+     * if null, not match ldap user. Showing wrong ID or password not match.
+     * 
+     * @throws SsoLoginErrorException
+     */
+    public static function retrieveByCredential(array $credentials)
+    {
+        list($result, $message, $adminMessage, $custom_login_user) = static::loginCallback(request(), array_get($credentials, 'login_setting') ?? LoginSetting::getLdapSetting(array_get($credentials, 'provider_name')));
+
+        if($result === true){
+            return LoginService::executeLogin(request(), $custom_login_user);
+        }
+
+        // if not exists, retun null
+        if($result == SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER){
+            return null;
+        }
+
+        // else, throw exception
+        throw new SsoLoginErrorException($result, $message);
+    }
+
+
+    /**
+     * Validate Credential. Check password.
+     *
+     * @param Authenticatable $login_user
+     * @param array $credentials
+     * @return void
+     */
+    public static function validateCredential(Authenticatable $login_user, array $credentials)
+    {
+        // always true.
+        return true;
+    }
+
+
     public static function getLdapConfig(LoginSetting $login_setting)
     {
         return [
@@ -154,22 +204,29 @@ class LdapService implements LoginServiceInterface
      */
     public static function loginTest(Request $request, $login_setting)
     {
-        list($result, $message) = static::getLoginResultAndMessage($request, $login_setting);
+        list($result, $message, $adminMessage, $custom_login_user) = static::loginCallback($request, $login_setting);
         
         return getAjaxResponse([
-            'result' => $result,
+            'result' => $result === true,
             'reload' => false,
             'keepModal' => true,
             'messages' => [
                 'resultarea' => [
                     'type' => 'input',
-                    'message' => $message,
+                    'message' => $adminMessage,
                 ],
             ],
         ]);
     }
 
-    protected static function getLoginResultAndMessage(Request $request, $login_setting){
+    /**
+     * Get login result and message.
+     *
+     * @param Request $request
+     * @param [type] $login_setting
+     * @return void
+     */
+    protected static function loginCallback(Request $request, $login_setting){
         $credentials = $request->only(['username', 'password']);
 
         $username = static::getLdapUserName($credentials['username'], $login_setting);
@@ -181,67 +238,39 @@ class LdapService implements LoginServiceInterface
             
             $provider->connect();
             if (!$provider->auth()->attempt($username, $credentials['password'], true)) {
-                return [false, LoginService::getLoginTestResult(false, [exmtrans('error.login_failed')])];
+                return LoginService::getLoginResult(SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER, [exmtrans('error.login_failed')]);
             }
 
             $ldapUser = static::syncLdapUser($provider, $login_setting, $username);
 
             if(!$ldapUser){
-                return [false, LoginService::getLoginTestResult(false, [exmtrans('error.login_failed')])];
+                return LoginService::getLoginResult(SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER, [exmtrans('error.login_failed')]);
             }
 
             $custom_login_user = LdapUser::with($login_setting, $ldapUser);
             
             if(!is_nullorempty($custom_login_user->mapping_errors)){
-                return [false, LoginService::getLoginTestResult(false, $custom_login_user->mapping_errors)];
+                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, $custom_login_user->mapping_errors);
             }
             
             $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
             if ($validator->fails()) {
-                return [false, LoginService::getLoginTestResult(false, $validator->errors(), $custom_login_user)];
+                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_VALIDATION_ERROR, $validator->errors(), $custom_login_user);
             }
 
-            return [true, LoginService::getLoginTestResult(true, [], $custom_login_user)];
+            return LoginService::getLoginResult(true, [], [], $custom_login_user);
         } catch (\Adldap\Auth\BindException $ex) {
             \Log::error($ex);
 
-            return [false, LoginService::getLoginTestResult(false, [exmtrans('login.sso_provider_error')])];
+            return LoginService::getLoginResult(SsoLoginErrorType::PROVIDER_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         } catch (\Exception $ex) {
             \Log::error($ex);
 
-            return [false, LoginService::getLoginTestResult(false, [$ex])];
+            return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }
     }
     
     public static function appendActivateSwalButton($tools, LoginSetting $login_setting){
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
-        // if (!$login_setting->active_flg) {
-        //     // Show an error if other LDAP services are enabled.
-        //     $ldap_setting = LoginSetting::getLdapSetting();
-        //     if($ldap_setting && $ldap_setting->id != $login_setting->id){
-        //         $tools->append(new Tools\SwalInputButton([
-        //             'label' => exmtrans('common.activate'),
-        //             'type' => 'error',
-        //             'icon' => 'fa-check-circle',
-        //             'btn_class' => 'btn-success',
-        //             'showCancelButton' => false,
-        //             'title' => exmtrans('common.activate'),
-        //             'text' => exmtrans('login.help.activate_ldap_error'),
-        //         ]));
-        //         return;
-        //     }
-        //     $tools->append(new Tools\SwalInputButton([
-        //         'url' => route('exment.login_activate', ['id' => $login_setting->id]),
-        //         'label' => exmtrans('common.activate'),
-        //         'icon' => 'fa-check-circle',
-        //         'btn_class' => 'btn-success',
-        //         'title' => exmtrans('common.activate'),
-        //         'text' => exmtrans('login.help.activate'),
-        //         'method' => 'post',
-        //         'redirectUrl' => admin_urls("login_setting", $login_setting->id, "edit"),
-        //     ]));
-        // } else {
-        //     return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
-        // }
     }
 }
