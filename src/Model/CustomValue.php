@@ -686,7 +686,7 @@ abstract class CustomValue extends ModelBase
             return $custom_column->custom_table_id == $this->custom_table->id;
         });
 
-        if (is_array($key)) {
+        if (is_list($key)) {
             $key = collect($key)->filter(function ($item, $itemkey) use ($custom_columns) {
                 return $custom_columns->contains(function ($rec) use ($itemkey) {
                     return $rec->column_name == $itemkey;
