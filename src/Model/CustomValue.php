@@ -470,7 +470,7 @@ abstract class CustomValue extends ModelBase
         $value = $this->value;
         $original = json_decode($this->getOriginal('value'), true);
         // get  columns
-        $custom_columns = $this->custom_table->custom_columns;
+        $custom_columns = $this->custom_table->custom_columns_cache;
 
         // loop columns
         $update_flg = false;
@@ -565,8 +565,7 @@ abstract class CustomValue extends ModelBase
         }
 
         $columns = $this->custom_table
-            ->custom_columns
-            ->all();
+            ->custom_columns_cache;
 
         $update_flg = false;
         // loop columns
@@ -682,9 +681,7 @@ abstract class CustomValue extends ModelBase
 
     public function setValue($key, $val = null, $forgetIfNull = false)
     {
-        $custom_columns = CustomColumn::allRecords(function ($custom_column) {
-            return $custom_column->custom_table_id == $this->custom_table->id;
-        });
+        $custom_columns = $this->custom_table->custom_columns_cache;
 
         if (is_list($key)) {
             $key = collect($key)->filter(function ($item, $itemkey) use ($custom_columns) {
@@ -713,7 +710,7 @@ abstract class CustomValue extends ModelBase
         $custom_table = $this->custom_table;
         $values = [];
 
-        foreach ($custom_table->custom_columns as $custom_column) {
+        foreach ($custom_table->custom_columns_cache as $custom_column) {
             $values[$custom_column->column_name] = $this->getValue($custom_column, $label, $options);
         }
         return $values;
@@ -830,7 +827,7 @@ abstract class CustomValue extends ModelBase
         $custom_table = $this->custom_table;
 
         if (!isset($label_columns) || count($label_columns) == 0) {
-            $columns = [$custom_table->custom_columns->first()];
+            $columns = [$custom_table->custom_columns_cache->first()];
         } else {
             $columns = $label_columns->map(function ($label_column) {
                 return CustomColumn::getEloquent($label_column->table_label_id);
@@ -1017,7 +1014,7 @@ abstract class CustomValue extends ModelBase
      */
     public function mergeValue($value)
     {
-        foreach ($this->custom_table->custom_columns as $custom_column) {
+        foreach ($this->custom_table->custom_columns_cache as $custom_column) {
             $column_name = $custom_column->column_name;
             // if not key in value, set default value
             if (!array_has($value, $column_name)) {

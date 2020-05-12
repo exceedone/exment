@@ -22,7 +22,7 @@ class DefaultTableProvider extends ProviderBase
     {
         $this->custom_table = array_get($args, 'custom_table');
 
-        $this->custom_columns = $this->custom_table->custom_columns;
+        $this->custom_columns = $this->custom_table->custom_columns_cache;
 
         $this->primary_key = array_get($args, 'primary_key', 'id');
 
