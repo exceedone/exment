@@ -405,13 +405,13 @@ class LoginSetting extends ModelBase
             $value = $this->getOption($key);
             $original = array_get($originals, $key);
     
-            if (!isset($value)) {
+            if (is_nullorempty($value)) {
                 continue;
             }
             
-            // if ($value == $original) {
-            //     continue;
-            // }
+            if ($value == $original) {
+                continue;
+            }
             
             if (isset($original) && trydecrypt($original) == $value) {
                 $this->setOption($key, $original);
