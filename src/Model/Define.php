@@ -328,10 +328,10 @@ class Define
         'sqlsrv' => 'SQLServer (β)',
     ];
 
-    public const DATABASE_MIN_VERSION = [
-        'mysql' => '5.7.8',
-        'mariadb' => '10.2.7',
-        'sqlsrv' => '13.0.0.0',
+    public const DATABASE_VERSION = [
+        'mysql' => ['min' => '5.7.8', 'max_lt' => '8.0.0'],
+        'mariadb' => ['min' => '10.2.7'],
+        'sqlsrv' => ['min' => '13.0.0.0'],
     ];
 
     public const PHP_VERSION = [

@@ -154,7 +154,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getCustomColumnsCacheAttribute()
     {
-        if(!empty($this->cached_custom_columns)){
+        if (!empty($this->cached_custom_columns)) {
             return $this->cached_custom_columns;
         }
 

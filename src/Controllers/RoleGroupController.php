@@ -421,7 +421,7 @@ class RoleGroupController extends AdminControllerBase
             $relations = [];
             foreach ($items as $item) {
                 $requestItems = $request->get($item['name']);
-                if(is_nullorempty($requestItems)){
+                if (is_nullorempty($requestItems)) {
                     continue;
                 }
 

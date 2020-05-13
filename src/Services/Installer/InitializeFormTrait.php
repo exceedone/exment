@@ -204,12 +204,12 @@ EOT;
             $file = $request->file('upload_template');
 
             // upload excel file
-            if($file->getClientOriginalExtension() == 'xlsx'){
+            if ($file->getClientOriginalExtension() == 'xlsx') {
                 $json = $importer->uploadTemplateExcel($file);
                 $importer->import($json, false, false, true);
             }
             // upload zip file
-            elseif($file->getClientOriginalExtension() == 'zip'){
+            elseif ($file->getClientOriginalExtension() == 'zip') {
                 $upload_template = $importer->uploadTemplate($file);
                 $importer->importTemplate($upload_template);
             }

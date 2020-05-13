@@ -107,17 +107,17 @@ class MySqlConnection extends BaseConnection
      */
     protected static function isContainsColumnStatistics()
     {
-        if(!is_null(static::$isContainsColumnStatistics)){
+        if (!is_null(static::$isContainsColumnStatistics)) {
             return static::$isContainsColumnStatistics;
         }
         $mysqldump = static::getMysqlDumpPath();
         $command = sprintf(
             '%s --help',
             $mysqldump
-        );   
+        );
         exec($command, $output);
 
-        static::$isContainsColumnStatistics = collect($output)->contains(function($o){
+        static::$isContainsColumnStatistics = collect($output)->contains(function ($o) {
             return strpos($o, 'column-statistics') !== false;
         });
 
@@ -135,11 +135,11 @@ class MySqlConnection extends BaseConnection
 
         exec("$mysqldump --version", $output);
 
-        if(is_nullorempty($output)){
+        if (is_nullorempty($output)) {
             return false;
         }
         return true;
-    }   
+    }
 
     public function backupDatabase($tempDir)
     {
@@ -200,6 +200,6 @@ class MySqlConnection extends BaseConnection
 
     protected static function getMysqlDumpPath()
     {
-        return config('exment.backup_info.mysql_dir', '') . 'mysqldump';   
+        return config('exment.backup_info.mysql_dir', '') . 'mysqldump';
     }
 }

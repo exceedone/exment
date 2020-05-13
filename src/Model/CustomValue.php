@@ -1297,8 +1297,13 @@ abstract class CustomValue extends ModelBase
      */
     public function enableEdit($checkFormAction = false)
     {
-        if (($code = $this->custom_table->enableEdit($checkFormAction)) !== true) {
-            return $code;
+        // Deleted to address the case where users with view authority are sharing data
+        // if (($code = $this->custom_table->enableEdit($checkFormAction)) !== true) {
+        //     return $code;
+        // }
+
+        if ($checkFormAction && $this->custom_table->formActionDisable(FormActionType::EDIT)) {
+            return ErrorCode::FORM_ACTION_DISABLED();
         }
         
         if (!$this->custom_table->hasPermissionEditData($this)) {

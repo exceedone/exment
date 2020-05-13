@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
