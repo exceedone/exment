@@ -135,12 +135,30 @@ class DatabaseForm
     {
         $version = $this->connection()->getVersion();
 
-        if (version_compare($version, Define::DATABASE_MIN_VERSION[$this->database_default]) >= 0) {
+        $database_version = Define::DATABASE_VERSION[$this->database_default];
+
+        $result = true;
+        $message_lt = false;
+        // check min
+        if (version_compare($version, $database_version['min']) < 0) {
+            $result = false;
+        }
+
+        // check max(less than)
+        if(array_has($database_version, 'max_lt')){
+            $message_lt = true;
+            if(version_compare($version, $database_version['max_lt']) >= 0){
+                $result = false;
+            }
+        }
+
+        if($result){
             return true;
         }
 
-        $errorMessage = exmtrans('install.error.not_require_database_version', [
-            'min' => Define::DATABASE_MIN_VERSION[$this->database_default],
+        $errorMessage = exmtrans('install.error.not_require_database_version_' . ($message_lt ? 'min_maxlt' : 'min'), [
+            'min' => $database_version['min'],
+            'max_lt' => ($message_lt ? $database_version['max_lt'] : null),
             'database' => Define::DATABASE_TYPE[$this->database_default],
             'current' => $version
         ]);
