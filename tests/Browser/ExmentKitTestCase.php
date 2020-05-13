@@ -13,13 +13,13 @@ abstract class ExmentKitTestCase extends BaseTestCase
     use \Tests\CreatesApplication;
 //    use DatabaseMigrations;
 
-    public $baseUrl = 'http://localhost';
-
     /**
      * pre-excecute process before test.
      */
     protected function setUp()
     {
+        // cannot call method "config", so call env function
+        $this->baseUrl = env('APP_URL');
         parent::setUp();
         System::clearCache();
     }
