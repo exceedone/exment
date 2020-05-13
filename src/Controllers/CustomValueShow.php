@@ -164,7 +164,7 @@ trait CustomValueShow
                     $tools->setListPath($this->custom_table->getGridUrl(true));
                     $tools->append((new Tools\CustomTableMenuButton('data', $this->custom_table))->render());
 
-                    $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_SHOW,  $this->custom_table);
+                    $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_SHOW, $this->custom_table);
                     $copyButtons = $this->custom_table->from_custom_copies;
                     $notifies = $this->custom_table->notifies;
      

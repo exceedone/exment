@@ -145,14 +145,14 @@ class DatabaseForm
         }
 
         // check max(less than)
-        if(array_has($database_version, 'max_lt')){
+        if (array_has($database_version, 'max_lt')) {
             $message_lt = true;
-            if(version_compare($version, $database_version['max_lt']) >= 0){
+            if (version_compare($version, $database_version['max_lt']) >= 0) {
                 $result = false;
             }
         }
 
-        if($result){
+        if ($result) {
             return true;
         }
 
