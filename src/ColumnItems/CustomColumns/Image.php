@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
-use Encore\Admin\Form\Field;
+use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\File as ExmentFile;
 
 class Image extends File
@@ -31,5 +31,10 @@ class Image extends File
         parent::setAdminOptions($field, $form_column_options);
 
         $field->attribute(['accept' => "image/*"]);
+    }
+
+    protected function setValidates(&$validates, $form_column_options)
+    {
+        $validates[] = new \Exceedone\Exment\Validator\ImageRule;
     }
 }

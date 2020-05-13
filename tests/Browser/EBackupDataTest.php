@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Illuminate\Support\Facades\Storage;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 
 class EBackupDataTest extends ExmentKitTestCase
 {
@@ -26,6 +28,16 @@ class EBackupDataTest extends ExmentKitTestCase
         ];
         // save config
         $this->post('/admin/backup/setting', $data)
+        ;
+        // check config update
+        $this->visit('/admin/backup')
+                ->seePageIs('/admin/backup')
+                ->seeInField('backup_enable_automatic', '0')
+                ->seeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=database][checked]')
+                ->seeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=plugin][checked]')
+                ->seeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=attachment][checked]')
+                ->seeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=log][checked]')
+                ->seeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=config][checked]')
         ;
     }
 
@@ -126,9 +138,10 @@ class EBackupDataTest extends ExmentKitTestCase
      */
     public function testBackupNoTarget()
     {
+        $backup_enable_automatic = System::backup_enable_automatic();
         $data = [
             'backup_target' => [],
-            'backup_enable_automatic' => '0',
+            'backup_enable_automatic' => $backup_enable_automatic ? 0 : 1,
         ];
         // save config(fail)
         $this->post('/admin/backup/setting', $data)
@@ -136,9 +149,7 @@ class EBackupDataTest extends ExmentKitTestCase
         // check config no change
         $this->visit('/admin/backup')
                 ->seePageIs('/admin/backup')
-                ->seeInField('backup_enable_automatic', '1')
-                ->seeInField('backup_automatic_hour', '20')
-                ->seeInField('backup_automatic_term', '7')
+                ->seeInField('backup_enable_automatic', $backup_enable_automatic ? 1 : 0)
                 ->dontSeeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=database][checked]')
                 ->dontSeeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=plugin][checked]')
                 ->dontSeeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=attachment][checked]')
@@ -189,7 +200,7 @@ class EBackupDataTest extends ExmentKitTestCase
         // get all archive files
         $files = array_filter(Storage::disk('backup')->files('list'), function ($file)
         {
-            return preg_match('/list\/\d+\.zip$/i', $file);
+            return preg_match('/list\/' . Define::RULES_REGEX_BACKUP_FILENAME . '\.zip$/i', $file);
         });
         return $files;
     }

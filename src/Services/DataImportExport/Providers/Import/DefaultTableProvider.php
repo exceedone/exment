@@ -22,7 +22,7 @@ class DefaultTableProvider extends ProviderBase
     {
         $this->custom_table = array_get($args, 'custom_table');
 
-        $this->custom_columns = $this->custom_table->custom_columns;
+        $this->custom_columns = $this->custom_table->custom_columns_cache;
 
         $this->primary_key = array_get($args, 'primary_key', 'id');
 
@@ -247,11 +247,8 @@ class DefaultTableProvider extends ProviderBase
                 continue;
             }
             // setvalue function if key is value
-            if ($dkey == 'value' && is_array($dvalue)) {
-                // loop dvalue
-                foreach ($dvalue as $dvalueKey => $dvalueValue) {
-                    $model->setValue($dvalueKey, $dvalueValue);
-                }
+            if ($dkey == 'value' && is_list($dvalue)) {
+                $model->setValue($dvalue);
             }
             // if timestamps
             elseif (in_array($dkey, ['created_at', 'updated_at', 'deleted_at'])) {
