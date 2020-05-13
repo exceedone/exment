@@ -175,7 +175,7 @@ class ChartItem implements ItemInterface
         }
 
         $item_x_list = collect($view_column_x_list)->map(function ($item) {
-            $summary_index = $item->view_column_type . '_' . $item->id;
+            $summary_index = ViewKindType::DEFAULT . '_' . $item->id;
             return $item->column_item->options([
                 'summary' => true,
                 'summary_index' => $summary_index
