@@ -25,7 +25,8 @@ class Backup
      *
      * @return void
      */
-    public function check(){
+    public function check()
+    {
         return \DB::checkBackup();
     }
 

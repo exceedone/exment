@@ -117,6 +117,7 @@ return [
     ],
 
     'error' => [
+        'undefined_error' => 'Undefined Error.',
         'header' => 'An error occurred',
         'description' => 'An error has occurred. Please check the content of the error.',
         'error_message' => 'Error Message',
@@ -162,9 +163,10 @@ return [
 
         'error' => [
             'database_canconnection' => 'Could not connect to the database. Please check your settings.',
-            'not_require_database_version' => ':database requires at least version :min. The version used is :current.',
             'mistake_mysql_mariadb' => 'The database you are using is :database, but you have selected :database_select. Please check the settings.',
             'not_require_php_version' => 'The PHP you are using is :current, but you have selected :min or more and less than :max. Please check the settings.',
+            'not_require_database_version_min' => ':database requires at least version :min. The version used is :current.',
+            'not_require_database_version_min_maxlt' => ':database requires at least version :min and less than :max_lt. The version used is :current.',
         ],
     ],
 
@@ -283,7 +285,14 @@ return [
             'format_local' => ['d/m/Y', 'd/m/Y H:i:s', 'H:i:s'],
         ],
         
-        'joined_org_filter_options' => [
+        'joined_org_filter_role_group_options' => [
+            'all' => 'Include parent/child hierarchies of your organization',
+            'only_upper' => 'Include parent hierarchy of your organization ',
+            'only_downer' => 'Include child hierarchy of your organization',
+            'only_join' => 'Only your organization',
+        ],
+          
+        'joined_org_filter_custom_value_options' => [
             'all' => 'Include parent/child hierarchies of your organization',
             'only_upper' => 'Include parent hierarchy of your organization ',
             'only_downer' => 'Include child hierarchy of your organization',
@@ -526,6 +535,10 @@ return [
             'restore_error' => 'Restore failed.',
             'restore_file_success' => 'Restore success. Redirect to login page.',
             'restore_file_error' => 'Restore failed. Please check upload file.',
+            'edit_filename_confirm' => 'Edit File Name',
+            'edit_filename_text' => 'Enter the file name of the backup file. Some of the characters cannot be used.',
+            'same_filename' => 'A backup file with that file name has already been created.',
+            'notfound_file' => 'Not found the file.',
         ],
         'help' =>[
             'file_name' => 'Please select the backup zip file.',

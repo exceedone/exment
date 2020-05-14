@@ -864,7 +864,7 @@ class ApiTest extends ApiTestBase
                 'user' => 'user_column'
             ]
         ])
-        ->assertStatus(500);
+        ->assertStatus(400);
     }
 
     public function testCreateValueFindkeyNotFound(){

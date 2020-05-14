@@ -10,7 +10,6 @@ use Illuminate\Validation\Rule;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums;
-use Exceedone\Exment\Console\BackupRestoreTrait;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\BackupRestore;
 use Validator;
@@ -47,7 +46,7 @@ class BackupController extends AdminControllerBase
         // get all archive files
         $files = collect($disk->files('list'))->filter(function ($file) {
             return preg_match('/list\/' . Define::RULES_REGEX_BACKUP_FILENAME . '\.zip$/i', $file);
-        })->sortByDesc(function($file) use($disk){
+        })->sortByDesc(function ($file) use ($disk) {
             return $disk->lastModified($file);
         });
         // edit table row data
@@ -379,7 +378,7 @@ class BackupController extends AdminControllerBase
     }
     
     /**
-     * edit file name 
+     * edit file name
      *
      * @return Content
      */
@@ -407,7 +406,7 @@ class BackupController extends AdminControllerBase
         $newfile = path_join('list', $data['filename'] . '.zip');
 
         // check same file name
-        if($disk->exists($newfile)){
+        if ($disk->exists($newfile)) {
             return getAjaxResponse([
                 'result'  => false,
                 'swal' => exmtrans('common.error'),
@@ -415,7 +414,7 @@ class BackupController extends AdminControllerBase
             ]);
         }
 
-        if(!$disk->exists($oldfile)){
+        if (!$disk->exists($oldfile)) {
             return getAjaxResponse([
                 'result'  => false,
                 'swal' => exmtrans('common.error'),
