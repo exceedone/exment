@@ -52,13 +52,27 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         if ($this->guard()->check()) {
             return redirect($this->redirectPath());
         }
-
-        $saml2Auth = LoginSetting::getSamlAuth($provider_name);
-        if (!isset($saml2Auth)) {
-            abort(404);
+        $error_url = admin_url('auth/login');
+        try{
+            $saml2Auth = LoginSetting::getSamlAuth($provider_name);
+            if (!isset($saml2Auth)) {
+                abort(404);
+            }
+            
+            $saml2Auth->login();
         }
-        
-        $saml2Auth->login();
+        // Sso exception
+        catch (SsoLoginErrorException $ex) {
+            \Log::error($ex);
+            return redirect($error_url)->withInput()->withErrors(
+                ['sso_error' => $ex->getSsoErrorMessage()]
+            );
+        } catch (\Exception $ex) {
+            \Log::error($ex);
+            return redirect($error_url)->withInput()->withErrors(
+                ['sso_error' => exmtrans('login.sso_provider_error')]
+            );
+        }
     }
 
     /**
