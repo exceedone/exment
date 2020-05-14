@@ -326,8 +326,8 @@ class LoginService
             $exment_user->save();
     
             // Set roles
-            if (!is_nullorempty($jit_rolegroups = System::jit_rolegroups())) {
-                $jit_rolegroups = collect(System::jit_rolegroups())->map(function ($sso_rolegroup) use ($exment_user) {
+            if (!is_nullorempty($jit_rolegroups = $custom_login_user->login_setting->getOption('jit_rolegroups'))) {
+                $jit_rolegroups = collect($jit_rolegroups)->map(function ($sso_rolegroup) use ($exment_user) {
                     return [
                         'role_group_id' => $sso_rolegroup,
                         'role_group_user_org_type' => SystemTableName::USER,
