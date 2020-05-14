@@ -45,7 +45,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'        => config('admin.route.prefix'),
             'namespace'     => $this->namespace,
-            'middleware'    => config('admin.route.middleware'),
+            'middleware'    => ['adminweb', 'admin'],
         ], function (Router $router) {
             $router->get('/', 'DashboardController@home');
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
@@ -203,7 +203,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'        => config('admin.route.prefix'),
             'namespace'     => $this->namespace,
-            'middleware'    => ['web', 'admin_anonymous'],
+            'middleware'    => ['adminweb', 'admin_anonymous'],
         ], function (Router $router) {
             $router->get('initialize', 'InitializeController@index');
             $router->post('initialize', 'InitializeController@post');
@@ -241,7 +241,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'        => config('admin.route.prefix'),
             'namespace'     => $this->namespace,
-            'middleware'    => ['web', 'admin_install'],
+            'middleware'    => ['adminweb', 'admin_install'],
         ], function (Router $router) {
             $router->get('install', 'InstallController@index');
             $router->post('install', 'InstallController@post');
@@ -252,7 +252,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         // define adminapi(for webapi), api(for web)
         $routes = [
-            ['type' => 'webapi', 'prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminwebapi'], 'addScope' => false],
+            ['type' => 'webapi', 'prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['adminweb', 'adminwebapi'], 'addScope' => false],
         ];
         
         if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
@@ -337,7 +337,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         // define adminapi(for webapi), api(for web)
         $routes = [
-            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi_anonymous']],
+            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['adminweb', 'adminapi_anonymous']],
             ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi_anonymous']],
         ];
         

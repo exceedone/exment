@@ -102,6 +102,7 @@ class ExmentServiceProvider extends ServiceProvider
         'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
         'laravel-page-speed.jscomments' => \Exceedone\Exment\Middleware\InlineJsRemoveComments::class,
         'laravel-page-speed.comments' => \RenatoMarinho\LaravelPageSpeed\Middleware\RemoveComments::class,
+
     ];
 
     /**
@@ -156,6 +157,15 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.auth-2factor',
             'admin.bootstrap2',
         ],
+        // Exment Web page. custom verify
+        'adminweb' => [
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \Exceedone\Exment\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
         // Exment API page
         'adminapi' => [
             'admin.api-ipfilter',
@@ -177,7 +187,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.log',
             'bindings',
         ],
-        // If call exment's parts. Add
+        // Extends web middleware If call exment's parts by user, please Add
         'exment_web' => [
             'admin.initialize',
             'admin.morph',
