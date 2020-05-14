@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\ResetsPasswords;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -84,8 +85,14 @@ class ResetPasswordController extends Controller
             return back()->withInput();
         }
 
+        $array = [
+            'login_type' => LoginType::PURE,
+            'target_column' => 'email',
+            'username' => $email,
+        ];
+
         // get user for password history validation
-        $this->login_user = $broker->getUser(['email' => $email]);
+        $this->login_user = $broker->getUser($array);
 
         $this->validate($request, $this->rules(), $this->validationErrorMessages());
 

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
-
+use Exceedone\Exment\Providers\LoginUserProvider;
 
 /**
  * LoginService
@@ -21,25 +21,7 @@ class PureService implements LoginServiceInterface
 {
     public static function retrieveByCredential(array $credentials)
     {
-        $login_user = null;
-        foreach (['email', 'user_code'] as $key) {
-            $query = LoginUser::whereHas('base_user', function ($query) use ($key, $credentials) {
-                $user = CustomTable::getEloquent(SystemTableName::USER);
-                $query->where($user->getIndexColumnName($key), array_get($credentials, 'username'));
-            });
-
-            $query->where('login_type', LoginType::PURE);
-            $login_user = $query->first();
-
-            if (isset($login_user)) {
-                break;
-            }
-        }
-        
-        if (isset($login_user)) {
-            return $login_user;
-        }
-        return null;
+        return LoginUserProvider::findByCredential($credentials);
     }
 
     /**

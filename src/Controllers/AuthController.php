@@ -76,6 +76,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         $this->loginValidator($request->all())->validate();
 
         $credentials = $request->only([$this->username(), 'password']);
+        $credentials['islogin_from_provider'] = true;
 
         foreach(LoginSetting::getLdapSettings() as $login_setting){
             if($request->has("login_setting_{$login_setting->provider_name}")){

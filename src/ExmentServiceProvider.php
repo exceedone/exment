@@ -345,7 +345,7 @@ class ExmentServiceProvider extends ServiceProvider
         // Extend --------------------------------------------------
         Auth::provider('exment-auth', function ($app, array $config) {
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...
-            return new Providers\CustomUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
+            return new Providers\LoginUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
         });
         
         \Validator::resolver(function ($translator, $data, $rules, $messages, $customAttributes) {

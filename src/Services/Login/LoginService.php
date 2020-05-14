@@ -3,7 +3,7 @@ namespace Exceedone\Exment\Services\Login;
 
 use Exceedone\Exment\Services\Login\CustomLoginUserBase;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
-use Exceedone\Exment\Providers\CustomUserProvider;
+use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
@@ -355,7 +355,7 @@ class LoginService
     {
         $hasLoginUser = false;
         // get login_user
-        $login_user = CustomUserProvider::findByCredential(
+        $login_user = LoginUserProvider::findByCredential(
             [
                 'target_column' => $custom_login_user->mapping_user_column,
                 'username' => $custom_login_user->login_id,

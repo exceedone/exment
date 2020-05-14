@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\LoginType;
 
-class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
+class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
 {
     /**
      * Create a new database user provider.
@@ -59,6 +59,14 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
      */
     public static function RetrieveByCredential(array $credentials)
     {
+        $credentials = static::getCredentialDefault($credentials);
+
+        // find from database
+        if(!$credentials['islogin_from_provider']){
+            return static::findByCredential($credentials);
+        }
+
+        // call from database
         $classname = static::getClassName($credentials);
         if(!isset($classname)){
             return [];
@@ -80,6 +88,8 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
      */
     public static function findByCredential(array $credentials)
     {
+        $credentials = static::getCredentialDefault($credentials);
+
         // has login type, set LoginType::PURE
         if (!array_has($credentials, 'login_type')) {
             $credentials['login_type'] = LoginType::PURE;
@@ -88,7 +98,7 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
         $login_user = null;
         foreach (['email', 'user_code'] as $key) {
             // if user select filtering column, and not mutch, continue
-            if(array_has($credentials, 'target_column') && $credentials['target_column'] != $key){
+            if(array_key_value_exists('target_column', $credentials) && $credentials['target_column'] != $key){
                 continue;
             }
 
@@ -100,20 +110,17 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
             $query->where('login_type', array_get($credentials, 'login_type'));
 
             // has login provider
-            if (array_has($credentials, 'login_provider')) {
-                $query->where('login_provider', array_get($credentials, 'login_provider'));
+            if (array_key_value_exists('provider_name', $credentials)) {
+                $query->where('login_provider', array_get($credentials, 'provider_name'));
             }
 
             $login_user = $query->first();
 
             if (isset($login_user)) {
-                break;
+                return $login_user;
             }
         }
         
-        if (isset($login_user)) {
-            return $login_user;
-        }
         return null;
     }
     
@@ -139,5 +146,20 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
         }
 
         return LoginType::getLoginServiceClassName($credentials['login_type']);
+    }
+
+    protected static function getCredentialDefault(array $credentials)
+    {
+        return array_merge(
+            [
+                'username' => null, // input value
+                'login_type' => LoginType::PURE, // login type. pure, oauth, saml...
+                'target_column' => null, // search login user target column. if null, email or user_name.
+                'provider_name' => null, // login provider name if sso login.
+                'islogin_from_provider' => false, // Whether login from sso. if false, only find from exment database.
+                'login_setting' => null, // if sso login, target login_setting model.
+            ],
+            $credentials
+        );
     }
 }

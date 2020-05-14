@@ -8,11 +8,13 @@ class SsoLoginErrorException extends \Exception
 {
     protected $sso_login_error_type;
     protected $message;
+    protected $adminMessage;
 
-    public function __construct($sso_login_error_type, $message)
+    public function __construct($sso_login_error_type, $message, $adminMessage = null)
     {
         $this->sso_login_error_type = SsoLoginErrorType::getEnum($sso_login_error_type);
         $this->message = $message;
+        $this->adminMessage = isset($adminMessage) ? $adminMessage : $message;
     }
 
 
@@ -21,6 +23,6 @@ class SsoLoginErrorException extends \Exception
     }
 
     public function getSsoAdminErrorMessage(){
-        return $this->message;
+        return $this->adminMessage;
     }
 }

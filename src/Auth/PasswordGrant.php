@@ -108,7 +108,13 @@ class PasswordGrant extends PasswordGrantBase
             throw new RuntimeException('Unable to determine authentication model from configuration.');
         }
 
-        $credentials = ['login_setting' => $login_setting, 'login_type' => $login_type];
+        $credentials = [
+            'login_setting' => $login_setting, 
+            'login_type' => $login_type,
+            'provider_name' => $login_setting->provider_name,
+            'islogin_from_provider' => true,
+        ];
+        
         if (method_exists($model, 'findForPassport')) {
             $user = (new $model)->findForPassport($username, $credentials);
         } else {

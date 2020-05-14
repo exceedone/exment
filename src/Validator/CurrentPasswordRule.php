@@ -2,7 +2,7 @@
 namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
-use Exceedone\Exment\Providers\CustomUserProvider;
+use Exceedone\Exment\Providers\LoginUserProvider;
 
 /**
  * CurrentPasswordRule
@@ -25,7 +25,7 @@ class CurrentPasswordRule implements Rule
         if (is_null($value)) {
             return true;
         }
-        return CustomUserProvider::ValidateCredential(\Exment::user(), ['password' => $value]);
+        return LoginUserProvider::ValidateCredential(\Exment::user(), ['password' => $value]);
     }
 
     /**

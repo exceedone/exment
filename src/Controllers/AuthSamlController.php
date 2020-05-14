@@ -89,7 +89,13 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         
         $error_url = admin_url('auth/login');
         try{
-            $credentials = ['login_type' => LoginType::SAML, 'login_setting' => LoginSetting::getSamlSetting($provider_name)];
+            $credentials = [
+                'login_type' => LoginType::SAML, 
+                'login_setting' => LoginSetting::getSamlSetting($provider_name),
+                'provider_name' => $provider_name,
+                'islogin_from_provider' => true,
+            ];
+
             if ($this->guard()->attempt($credentials)) {
                 session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
             

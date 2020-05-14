@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 use App\Http\Controllers\Controller;
+use Exceedone\Exment\Enums\LoginType;
 use Password;
 
 class ForgetPasswordController extends Controller
@@ -55,7 +56,9 @@ class ForgetPasswordController extends Controller
         // need to show to the user. Finally, we'll send out a proper response.
         $broker = $this->broker();
         $array = [
-            'email' => $request->input('email')
+            'login_type' => LoginType::PURE,
+            'target_column' => 'email',
+            'username' => $request->input('email'),
         ];
 
         try {

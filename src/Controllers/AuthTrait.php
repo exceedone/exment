@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Exceedone\Exment\Providers\CustomUserProvider;
+use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
