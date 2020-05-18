@@ -158,6 +158,9 @@ class LdapService implements LoginServiceInterface
             $form->hidden('ldap_name');
         }
 
+        $form->exmheader(exmtrans('login.ldap_setting'))->hr()
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
+
         $form->text('ldap_hosts', exmtrans('login.ldap_hosts'))
         ->required()
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);

@@ -646,6 +646,7 @@ return [
         'saml_option_logout_request_signed' => 'Sign LogoutRequest',
         'saml_option_logout_response_signed' => 'Sign LogoutResponse',
         
+        'ldap_setting' => 'LDAP設定',
         'ldap_name' => 'LDAP名(英数字)',
         'ldap_hosts' => 'ホスト名',
         'ldap_port' => 'ポート番号',
