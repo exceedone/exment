@@ -114,7 +114,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ->where('form_block_type', FormBlockType::DEFAULT)
                 ->first();
             // loop for index_enabled columns, and add form.
-            foreach ($tableObj->custom_columns as $index => $custom_column) {
+            foreach ($tableObj->custom_columns_cache as $index => $custom_column) {
                 $form_column = new CustomFormColumn;
                 $form_column->custom_form_block_id = $form_block->id;
                 $form_column->form_column_type = FormColumnType::COLUMN;

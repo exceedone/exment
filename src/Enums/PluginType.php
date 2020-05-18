@@ -68,6 +68,7 @@ class PluginType extends EnumBase
     }
 
     /**
+     * Use plugin permission
      *
      * @return array
      */

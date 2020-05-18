@@ -26,7 +26,7 @@ class PluginAction extends CustomTableAction
 
     public function plugin($plugin)
     {
-        $this->plugin = Plugin::getEloquent($plugin);
+        $this->plugin = Plugin::getPluginByUUID($plugin);
 
         return $this;
     }
@@ -62,7 +62,7 @@ class PluginAction extends CustomTableAction
      */
     public function execute()
     {
-        $this->plugin(request()->get('plugin_id'));
+        $this->plugin(request()->get('plugin_uuid'));
 
         $pluginClass = $this->plugin->getClass(PluginType::EXPORT);
 

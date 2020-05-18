@@ -13,6 +13,9 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 
 trait CustomValueSummary
 {
@@ -108,11 +111,17 @@ trait CustomValueSummary
             $custom_view_filter->view_filter_condition = FilterOption::EQ;
             $custom_view_filter->view_filter_condition_value_text = $value;
             $filters[] = $custom_view_filter;
+            if ($custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id']) {
+                System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
+            }
+            if ($custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id']) {
+                System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
+            }
         }
         $filter_func = function ($model) use ($filters, $custom_view) {
             $model->where(function ($query) use ($filters) {
                 foreach ($filters as $filter) {
-                    $query = $filter->setValueFilter($query);
+                    $filter->setValueFilter($query);
                 }
             })->where(function ($query) use ($custom_view) {
                 $custom_view->setValueFilters($query);
