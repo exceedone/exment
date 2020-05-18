@@ -113,14 +113,14 @@ class Plugin extends ModelBase
     public static function getPluginByUUID($uuid)
     {
         return static::getPluginsCache()->first(function ($plugin) use ($uuid) {
-            return $plugin->uuid = $uuid;
+            return strcmp($plugin->uuid, $uuid) == 0;
         });
     }
 
     public static function getPluginByName($plugin_name)
     {
         return static::getPluginsCache()->first(function ($plugin) use ($plugin_name) {
-            return $plugin->plugin_name = $plugin_name;
+            return strcmp($plugin->plugin_name, $plugin_name) == 0;
         });
     }
 
