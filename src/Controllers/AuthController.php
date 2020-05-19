@@ -104,11 +104,13 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         try{
             if ($this->guard()->attempt($credentials, $remember)) {
-                if (!$this->checkPasswordLimit()) {
+                // check password limit.
+                if (!$this->checkPasswordLimit($credentials['login_type'])) {
                     session([Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT => true]);
                     return redirect(admin_url('auth/change'));
                 }
-                $this->postVerifyEmail();
+
+                $this->postVerifyEmail2factor();
                 return $this->sendLoginResponse($request);
             }
     
@@ -137,8 +139,17 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
     }
 
 
-    protected function checkPasswordLimit()
+    /**
+     * Check password limit. 
+     *
+     * @return bool if true, check password is OK. If false, user has to change password.
+     */
+    protected function checkPasswordLimit($login_type)
     {
+        if($login_type != LoginType::PURE){
+            return true;
+        }
+
         // not use password policy and expiration days, go next
         if (empty($expiration_days = System::password_expiration_days())) {
             return true;
@@ -190,7 +201,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         return redirect(\URL::route('exment.login'));
     }
 
-    protected function postVerifyEmail()
+    protected function postVerifyEmail2factor()
     {
         if (!boolval(config('exment.login_use_2factor', false)) || !boolval(System::login_use_2factor())) {
             return;
