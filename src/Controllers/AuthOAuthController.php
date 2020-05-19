@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Illuminate\Http\Request;
 
 /**
@@ -47,7 +48,10 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
         }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
-            \Log::error($ex);
+            if($ex->hasAdminError()){
+                \Log::error($ex);
+            }
+            
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => $ex->getSsoErrorMessage()]
             );
@@ -100,7 +104,10 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
         } 
         // Sso exception
         catch (SsoLoginErrorException $ex) {
-            \Log::error($ex);
+            if($ex->hasAdminError()){
+                \Log::error($ex);
+            }
+            
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => $ex->getSsoErrorMessage()]
             );

@@ -402,7 +402,7 @@ class LoginSettingController extends AdminControllerBase
         catch(SsoLoginErrorException $ex){
             \Log::error($ex);
 
-            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $ex->getSsoErrorMessage()]);
+            session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $ex->getSsoAdminErrorMessage()]);
 
             return redirect($this->getEditUrl($id, true));
             

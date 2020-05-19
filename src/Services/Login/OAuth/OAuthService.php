@@ -45,7 +45,7 @@ class OAuthService implements LoginServiceInterface
         }
 
         // else, throw exception
-        throw new SsoLoginErrorException($result, $message);
+        throw new SsoLoginErrorException($result, exmtrans('login.sso_provider_error'), $message);
     }
 
 

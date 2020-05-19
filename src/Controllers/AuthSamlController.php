@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Services\Login\Saml\SamlUser;
 use Illuminate\Http\Request;
@@ -63,7 +64,10 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
-            \Log::error($ex);
+            if($ex->hasAdminError()){
+                \Log::error($ex);
+            }
+            
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => $ex->getSsoErrorMessage()]
             );
@@ -119,7 +123,10 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         } 
         // Sso exception
         catch (SsoLoginErrorException $ex) {
-            \Log::error($ex);
+            if($ex->hasAdminError()){
+                \Log::error($ex);
+            }
+            
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => $ex->getSsoErrorMessage()]
             );
