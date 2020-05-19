@@ -9,6 +9,7 @@ use UnexpectedValueException;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Providers\LoginUserProvider;
 
 class ExmentPasswordBroker extends PasswordBroker
 {
@@ -25,13 +26,8 @@ class ExmentPasswordBroker extends PasswordBroker
         $credentials = Arr::except($credentials, ['token']);
 
         // $user = $this->users->retrieveByCredentials($credentials);
-
-        $user = LoginUser
-            ::with('base_user')
-            ->whereHas('base_user', function ($query) use ($credentials) {
-                $query->where('value->email', array_get($credentials, 'email'));
-            })->first();
-
+        $user = LoginUserProvider::findByCredential($credentials);
+        
         if ($user && ! $user instanceof CanResetPasswordContract) {
             throw new UnexpectedValueException('User must implement CanResetPassword interface.');
         }

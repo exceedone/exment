@@ -104,7 +104,13 @@ class ResetPasswordController extends Controller
             'password_confirmation',
             'token'
         );
-        $array['email'] = $email;
+
+        $array = array_merge([
+            'login_type' => LoginType::PURE,
+            'target_column' => 'email',
+            'username' => $email,
+        ], $array);
+
         $response = $broker->reset(
             $array,
             function ($user, $password) {
