@@ -92,7 +92,7 @@ class LoginSetting extends ModelBase
     public function getExmentCallbackUrlDefaultAttribute() : string
     {
         if ($this->login_type == LoginType::OAUTH) {
-            return route('exment.oauth_callback', ['provider' => $this->provider_name]);
+            return admin_urls("auth/login/{$this->provider_name}/callback");
         } elseif ($this->login_type == LoginType::SAML) {
             return admin_urls("saml/login/{$this->provider_name}/acs");
         }
@@ -188,7 +188,7 @@ class LoginSetting extends ModelBase
      */
     public static function getOAuthSetting($provider_name, $filterActive = true)
     {
-        return static::getOAuthSettings()->first(function ($record) use ($provider_name) {
+        return static::getOAuthSettings($filterActive)->first(function ($record) use ($provider_name) {
             return $record->getOption('oauth_provider_name') == $provider_name || $record->getOption('oauth_provider_type') == $provider_name;
         });
     }

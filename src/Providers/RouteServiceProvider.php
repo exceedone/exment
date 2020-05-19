@@ -222,8 +222,8 @@ class RouteServiceProvider extends ServiceProvider
             // get config about login provider
             if (canConnection() && hasTable(SystemTableName::LOGIN_SETTINGS)) {
                 if (LoginSetting::getOAuthSettings()->count() > 0) {
-                    $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider')->name('exment.oauth_login');
-                    $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callback')->name('exment.oauth_callback');
+                    $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider');
+                    $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callback');
                 }
                 // get config about login provider
                 if (LoginSetting::getSamlSettings()->count() > 0) {

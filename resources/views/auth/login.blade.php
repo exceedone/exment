@@ -61,9 +61,11 @@
                 </div>
             </form>
             
+            @if($show_default_login_provider)
             <div style="margin:10px 0; text-align:center;">
                 <p><a href="{{admin_url('auth/forget')}}">{{ exmtrans('login.forget_password') }}</a></p>
             </div>
+            @endif
         @endif
 
         @if(count($login_providers) > 0)
