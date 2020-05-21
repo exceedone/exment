@@ -162,9 +162,10 @@ return [
 
         'error' => [
             'database_canconnection' => 'データベースに接続できませんでした。設定内容をご確認ください。',
-            'not_require_database_version' => ':databaseはバージョン:min以上が必要です。ご利用のバージョンは:currentです。',
             'mistake_mysql_mariadb' => 'お使いのデータベースは:databaseですが、:database_selectを選択しています。設定内容をご確認ください。',
             'not_require_php_version' => 'PHPはバージョン:min以上:max未満が必要です。ご利用のバージョンは:currentです。',
+            'not_require_database_version_min' => ':databaseはバージョン:min以上が必要です。ご利用のバージョンは:currentです。',
+            'not_require_database_version_min_maxlt' => ':databaseはバージョン:min以上:max_lt未満が必要です。ご利用のバージョンは:currentです。',
         ],
     ],
 
@@ -1413,20 +1414,18 @@ return [
         'header_import' => 'テンプレート - インポート',
         'description' => 'Exmentのテーブル、列、フォーム情報をインポート、またはエクスポートします。',
         'description_export' => 'システムに登録している、テーブル・列・フォーム情報をエクスポートします。このテンプレートファイルは、他のシステムでインポートすることができます。',
-        'description_import' => 'エクスポートされたExmentテンプレート情報を、このシステムにインポートし、テーブル・列・フォーム情報をインストールします。<br />以下の3つの項目から、1つを選択し、実施してください。',
+        'description_import' => 'エクスポートされたExmentテンプレート情報を、このシステムにインポートし、テーブル・列・フォーム情報をインストールします。<br />以下の2つの項目から、1つを選択し、実施してください。',
         'template_name' => 'テンプレート名(英数字)',
         'template_view_name' => 'テンプレート表示名',
         'form_description' => 'テンプレート説明文',
         'thumbnail' => 'サムネイル',
-        'upload_template' => 'アップロード(zip)',
-        'upload_template_excel' => 'アップロード(Excel)',
+        'upload_template' => 'アップロード',
         'export_target' => 'エクスポート対象',
         'target_tables' => 'エクスポート対象テーブル',
         
         'help' => [
             'thumbnail' => '推奨サイズ：256px*256px',
-            'upload_template' => '他のシステムでエクスポートした、テンプレートzipファイルをアップロードして、このシステムに設定をインポートします。',
-            'upload_template_excel' => 'Excelフォーマットで作成した、設定ファイルをアップロードして、システムに設定をインポートします。',
+            'upload_template' => 'エクスポートしたテンプレートzipファイルや、Excelフォーマットで作成した設定ファイルをアップロードして、このシステムに設定をインポートします。',
             'export_target' => 'エクスポートする対象を選択してください。',
             'target_tables' => 'エクスポートするテーブルを選択してください。未選択の場合、すべてのテーブル情報をエクスポートします。',
         ],
@@ -1464,7 +1463,7 @@ return [
 
             'help' => [
                 'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
-                'custom_table_file' => 'テンプレート出力した%sファイルを選択してください。',
+                'custom_table_file' => 'インポートする%sファイルを選択してください。',
                 'primary_key' => '更新データを絞り込む対象のフィールドを選択します。<br />このフィールド値が、すでにあるデータと合致していた場合、更新データとして取り込みを行います。<br />合致するデータが存在しなかった場合、新規データとして取り込みます。<br />※カスタム列は、「ユニーク」かつ「検索インデックス」列が表示されます。',
                 'import_plugin' => '取込ファイルを独自に処理する場合は、あらかじめプラグインをアップロードした上で選択してください。',
                 'error_flow' => 'データ不備などでエラーが発生した場合、正常データを取り込むかどうか選択します。',

@@ -80,7 +80,7 @@ class CCustomColumnTest extends ExmentKitTestCase
             'options[unique]' => 1,
             'options[default]' => 'あああ',
             'options[string_length]' => 128,
-            'options[available_characters]' => ['lower','upper','number','hyphen_underscore','symbol'],
+            'options[available_characters]' => ['lower','upper','number','hyphen_underscore','dot','symbol'],
         ];
         // Update custom column --one line--
         $this->visit('/admin/column/test/'. $id . '/edit')

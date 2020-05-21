@@ -387,12 +387,12 @@ class CustomFormController extends AdminControllerTableBase
             $select_table_columns = [];
             // get custom columns
             $form_block_target_table_id = array_get($custom_form_block, 'form_block_target_table_id');
-            $custom_columns = CustomTable::getEloquent($form_block_target_table_id)->custom_columns->toArray();
+            $custom_columns = CustomTable::getEloquent($form_block_target_table_id)->custom_columns_cache->toArray();
             
             // if form block type is 1:n or n:n, get parent tables columns too. use parent_table_id.
             if (in_array(array_get($custom_form_block, 'form_block_type'), [FormBlockType::ONE_TO_MANY, FormBlockType::MANY_TO_MANY])) {
                 $custom_columns = array_merge(
-                    CustomTable::getEloquent($parent_table_id)->custom_columns->toArray(),
+                    CustomTable::getEloquent($parent_table_id)->custom_columns_cache->toArray(),
                     $custom_columns
                 );
             }

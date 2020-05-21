@@ -110,7 +110,8 @@ class ModelBase extends Model
      *
      * @return void
      */
-    protected static function callClearCache(){
+    protected static function callClearCache()
+    {
         $classname = get_called_class();
         if (\method_exists($classname, 'clearCacheTrait')) {
             $classname::clearCacheTrait();

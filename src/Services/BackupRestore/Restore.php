@@ -99,7 +99,7 @@ class Restore
             return preg_match('/.+\.tsv$/i', $file);
         });
 
-        try{
+        try {
             \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
             // load table data from tsv file
@@ -133,11 +133,9 @@ __EOT__;
 
                 //return $cnt;
             }
-        }
-        finally{
+        } finally {
             \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
-
     }
 
     /**
@@ -279,7 +277,7 @@ __EOT__;
         //     \Schema::dropIfExists($table);
         // });
 
-        try{
+        try {
             \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
             // get table connect info
@@ -323,8 +321,7 @@ __EOT__;
 
                 exec($command);
             }
-        }
-        finally{
+        } finally {
             \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
     }

@@ -20,7 +20,7 @@ class ImageRule implements Rule
     */
     public function passes($attribute, $value)
     {
-        if(is_string($value)){
+        if (is_string($value)) {
             $ext = pathinfo($value, PATHINFO_EXTENSION);
             return in_array($ext, ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg']);
         }

@@ -3,11 +3,8 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
-use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
 use \File;
 
 class RestoreCommand extends Command
@@ -65,17 +62,18 @@ class RestoreCommand extends Command
         }
     }
 
-    protected function getFile(){
+    protected function getFile()
+    {
         $file = $this->argument("file");
             
-        if(!is_nullorempty($file)){
+        if (!is_nullorempty($file)) {
             return $file;
         }
 
         // get backup file list
         $list = $this->restore->list();
 
-        if(count($list) == 0){
+        if (count($list) == 0) {
             $this->info('Backup file not found.');
         }
 
