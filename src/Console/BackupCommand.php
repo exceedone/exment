@@ -50,7 +50,8 @@ class BackupCommand extends Command
     {
         try {
             $target = $this->option("target") ?? BackupTarget::arrays();
-
+            $schedule = boolval($this->option("schedule") ?? false);
+            
             if (is_string($target)) {
                 $target = collect(explode(",", $target))->map(function ($t) {
                     return new BackupTarget($t) ?? null;
@@ -59,7 +60,7 @@ class BackupCommand extends Command
 
             $this->backup->initBackupRestore();
 
-            return $this->backup->execute($target);
+            return $this->backup->execute($target, $schedule);
         } catch (\Exception $e) {
             throw $e;
         } finally {

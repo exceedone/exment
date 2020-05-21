@@ -35,7 +35,7 @@ class Backup
      *
      * @return mixed
      */
-    public function execute($target = null)
+    public function execute($target = null, bool $schedule = false)
     {
         try {
             $target = $target ?? BackupTarget::arrays();
@@ -61,7 +61,10 @@ class Backup
             // archive whole folder to zip
             $this->createZip();
     
-            $this->removeOldBackups();
+            // if call as batch
+            if($schedule){
+                $this->removeOldBackups();
+            }
     
             return 0;
         } catch (\Exception $e) {
@@ -178,12 +181,6 @@ class Backup
         // get history file counts
         $backup_history_files = System::backup_history_files();
         if (!isset($backup_history_files) || $backup_history_files <= 0) {
-            return;
-        }
-
-        // check whether batch
-        $schedule = boolval($this->option("schedule"));
-        if (!$schedule) {
             return;
         }
 
