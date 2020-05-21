@@ -211,7 +211,7 @@ class SelectTable extends CustomItem
             'target_id' => isset($this->custom_value) ? $this->custom_value->id : null,
         ];
 
-        $field->options(function ($value) use ($selectOption, $relationColumn) {
+        $field->options(function ($value) use ($selectOption) {
             $selectOption['selected_value'] = $value;
 
             // get DB option value
@@ -249,7 +249,7 @@ class SelectTable extends CustomItem
     
     protected function setValidates(&$validates, $form_column_options)
     {
-        $validates[] = new Validator\SelectTableNumericRule($this->target_table);
+        $validates[] = new Validator\SelectTableNumericRule();
         $validates[] = new Validator\CustomValueRule($this->target_table);
     }
     
@@ -318,8 +318,8 @@ class SelectTable extends CustomItem
     /**
      * Get Key and Id List
      *
-     * @param [type] $datalist
-     * @param [type] $key
+     * @param array $datalist
+     * @param string $key
      * @return void
      */
     public function getKeyAndIdList($datalist, $key)
@@ -350,7 +350,7 @@ class SelectTable extends CustomItem
     /**
      * Get pure value. If you want to change the search value, change it with this function.
      *
-     * @param [type] $value
+     * @param string $label
      * @return ?string string:matched, null:not matched
      */
     public function getPureValue($label)
