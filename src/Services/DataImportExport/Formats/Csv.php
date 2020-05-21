@@ -111,8 +111,8 @@ class Csv extends FormatBase
             return response()->stream(function () use ($files) {
                 $writer = $this->createWriter($files[0]['spreadsheet']);
 
-                // append bom if config 
-                if(boolval(config('exment.export_append_csv_bom', false))){
+                // append bom if config
+                if (boolval(config('exment.export_append_csv_bom', false))) {
                     $writer->setUseBOM(true);
                 }
 
@@ -144,8 +144,8 @@ class Csv extends FormatBase
                 $csv_path = path_join($csvdir, $csv_name);
                 $writer = $this->createWriter($f['spreadsheet']);
                 
-                // append bom if config 
-                if(boolval(config('exment.export_append_csv_bom', false))){
+                // append bom if config
+                if (boolval(config('exment.export_append_csv_bom', false))) {
                     $writer->setUseBOM(true);
                 }
 

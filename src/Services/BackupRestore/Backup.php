@@ -62,7 +62,7 @@ class Backup
             $this->createZip();
     
             // if call as batch
-            if($schedule){
+            if ($schedule) {
                 $this->removeOldBackups();
             }
     
