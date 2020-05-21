@@ -69,7 +69,7 @@ trait AuthTrait
         $login_setting = LoginSetting::getSamlSetting($provider_name);
         
         // if not set ssout_url, return login
-        if (is_nullorempty($login_setting->getOption('saml_idp_ssout_url'))) {
+        if (!isset($login_setting) || is_nullorempty($login_setting->getOption('saml_idp_ssout_url'))) {
             return redirect(\URL::route('exment.login'));
         }
 
