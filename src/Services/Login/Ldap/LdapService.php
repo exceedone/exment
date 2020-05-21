@@ -256,7 +256,7 @@ class LdapService implements LoginServiceInterface
                 return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, $custom_login_user->mapping_errors);
             }
             
-            $validator = LoginService::validateCustomLoginSync($custom_login_user->mapping_values);
+            $validator = LoginService::validateCustomLoginSync($custom_login_user);
             if ($validator->fails()) {
                 return LoginService::getLoginResult(SsoLoginErrorType::SYNC_VALIDATION_ERROR, $validator->errors(), $custom_login_user);
             }

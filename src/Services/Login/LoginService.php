@@ -80,9 +80,16 @@ class LoginService
      * @param array $array
      * @return void
      */
-    public static function validateCustomLoginSync(array $data)
+    public static function validateCustomLoginSync(CustomLoginUserBase $custom_login_user)
     {
-        $rules = CustomTable::getEloquent(SystemTableName::USER)->getValidateRules($data);
+        // get target user
+        $exment_user = static::getExmentUser($custom_login_user);
+        if ($exment_user === false) {
+            $exment_user = null;
+        }
+
+        $data = $custom_login_user->mapping_values;
+        $rules = CustomTable::getEloquent(SystemTableName::USER)->getValidateRules($data, $exment_user);
 
         // remove "unique" rule, (If new account, alway false)
         foreach($rules as $key => $rule){
@@ -90,7 +97,7 @@ class LoginService
                 if(!is_string($r)){
                     return false;
                 }
-                return strpos($r, 'unique') !== 0;
+                return true;
             });
         }
         return \Validator::make($data, $rules);
@@ -285,9 +292,9 @@ class LoginService
 
         // update user info
         if (boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
-            // update only init_flg is false
+            // update only init_only is false
             $update_user_columns = static::getUserColumns()->filter(function($column){
-                return !boolval($column->getOption('init_flg'));
+                return !boolval($column->getOption('init_only'));
             });
 
             $values = $update_user_columns->mapWithKeys(function($column) use($custom_login_user){
