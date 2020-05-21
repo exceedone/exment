@@ -17,7 +17,7 @@ trait ImportValueTrait
         $options = $this->getImportValueOption();
         
         // not default value
-        if (!array_has($options, $value)) {
+        if (!array_has($options, strval($value))) {
             foreach ($options as $k => $v) {
                 if ($v == $value) {
                     $value = $k;

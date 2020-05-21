@@ -110,6 +110,12 @@ class Csv extends FormatBase
         if (count($files) == 1) {
             return response()->stream(function () use ($files) {
                 $writer = $this->createWriter($files[0]['spreadsheet']);
+
+                // append bom if config 
+                if(boolval(config('exment.export_append_csv_bom', false))){
+                    $writer->setUseBOM(true);
+                }
+
                 $writer->save('php://output');
                 // close workbook and release memory
                 $files[0]['spreadsheet']->disconnectWorksheets();
@@ -137,6 +143,12 @@ class Csv extends FormatBase
                 $csv_name = $f['name'] . '.csv';
                 $csv_path = path_join($csvdir, $csv_name);
                 $writer = $this->createWriter($f['spreadsheet']);
+                
+                // append bom if config 
+                if(boolval(config('exment.export_append_csv_bom', false))){
+                    $writer->setUseBOM(true);
+                }
+
                 $writer->save($csv_path);
                 $zip->addFile($csv_path, $csv_name);
                 $csv_paths[] = $csv_path;
