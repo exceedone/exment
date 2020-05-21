@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Enums;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginPublicDefault;
 
-
 class PluginType extends EnumBase
 {
     public const TRIGGER = '0';

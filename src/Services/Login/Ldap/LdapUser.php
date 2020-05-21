@@ -76,7 +76,7 @@ class LdapUser extends CustomLoginUserBase
         }
 
         // if not match all key, return null
-        if(!$hasValue){
+        if (!$hasValue) {
             return null;
         }
 
@@ -90,5 +90,4 @@ class LdapUser extends CustomLoginUserBase
         $property->setAccessible(true);
         return $property->getValue($obj);
     }
-
 }

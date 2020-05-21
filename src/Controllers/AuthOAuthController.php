@@ -3,10 +3,8 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Services\Login\LoginService;
-use Exceedone\Exment\Services\Login\OAuth\OAuthUser;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Illuminate\Http\Request;
@@ -38,7 +36,7 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
         }
 
         $error_url = admin_url('auth/login');
-        try{
+        try {
             // provider check
             $socialiteProvider = LoginSetting::getSocialiteProvider($login_provider);
             if (!isset($socialiteProvider)) {
@@ -48,7 +46,7 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
         }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
-            if($ex->hasAdminError()){
+            if ($ex->hasAdminError()) {
                 \Log::error($ex);
             }
             
@@ -75,9 +73,9 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
         }
         
         $error_url = admin_url('auth/login');
-        try{
+        try {
             $credentials = [
-                'login_type' => LoginType::OAUTH, 
+                'login_type' => LoginType::OAUTH,
                 'login_setting' => LoginSetting::getOAuthSetting($provider_name),
                 'provider_name' => $provider_name,
                 'islogin_from_provider' => true,
@@ -100,11 +98,10 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
             return back()->withInput()->withErrors([
                 'sso_error' => $this->getFailedLoginMessage(),
             ]);
-
-        } 
+        }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
-            if($ex->hasAdminError()){
+            if ($ex->hasAdminError()) {
                 \Log::error($ex);
             }
             

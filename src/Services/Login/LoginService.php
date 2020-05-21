@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\Login;
 
-use Exceedone\Exment\Services\Login\CustomLoginUserBase;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Model\Define;
@@ -17,7 +16,6 @@ use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * LoginService
@@ -105,7 +103,7 @@ class LoginService
      */
     public static function getLoginResult($result, $messages, $adminMessages = null, ?CustomLoginUserBase $custom_login_user = null)
     {
-        if(is_nullorempty($adminMessages)){
+        if (is_nullorempty($adminMessages)) {
             $adminMessages = $messages;
         }
 
@@ -115,19 +113,18 @@ class LoginService
         return [$result, $message, $adminMessage, $custom_login_user];
     }
 
-    protected static function convertErrorMessage($result, $messages, ?CustomLoginUserBase $custom_login_user = null){
-
+    protected static function convertErrorMessage($result, $messages, ?CustomLoginUserBase $custom_login_user = null)
+    {
         $message = [];
 
         $message[] = $result === true ? exmtrans('common.message.success_execute') : exmtrans('common.message.error_execute');
 
-        if(is_string($messages)){
+        if (is_string($messages)) {
             $message = array_merge($message, (array)$messages);
-        }
-        elseif (is_array($messages)) {
+        } elseif (is_array($messages)) {
             $message = array_merge($message, $messages);
         } elseif ($messages instanceof \Illuminate\Support\MessageBag) {
-            $message = array_merge($message, collect($messages->messages())->map(function ($m, $key) use($custom_login_user) {
+            $message = array_merge($message, collect($messages->messages())->map(function ($m, $key) use ($custom_login_user) {
                 $inputValue = isset($custom_login_user) ? array_get($custom_login_user->mapping_values, $key) : null;
                 return implode(" ", $m) . (isset($inputValue) ? " : $inputValue" : '');
             })->toArray());
@@ -187,7 +184,8 @@ class LoginService
         return $form;
     }
     
-    public static function appendActivateSwalButtonSso($tools, LoginSetting $login_setting){
+    public static function appendActivateSwalButtonSso($tools, LoginSetting $login_setting)
+    {
         if (!$login_setting->active_flg) {
             $tools->append(new Tools\SwalInputButton([
                 'url' => route('exment.login_activate', ['id' => $login_setting->id]),
@@ -248,8 +246,9 @@ class LoginService
      * @param CustomLoginUserBase $custom_login_user
      * @return boolean
      */
-    public static function isAcceptFromDomain(CustomLoginUserBase $custom_login_user){
-        // 
+    public static function isAcceptFromDomain(CustomLoginUserBase $custom_login_user)
+    {
+        //
         if (is_nullorempty($sso_accept_mail_domains = System::sso_accept_mail_domain())) {
             return true;
         }
@@ -284,11 +283,11 @@ class LoginService
         // update user info
         if ($isUpdate && boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
             // update only init_only is false
-            $update_user_columns = static::getUserColumns()->filter(function($column){
+            $update_user_columns = static::getUserColumns()->filter(function ($column) {
                 return !boolval($column->getOption('init_only'));
             });
 
-            $values = $update_user_columns->mapWithKeys(function($column) use($custom_login_user){
+            $values = $update_user_columns->mapWithKeys(function ($column) use ($custom_login_user) {
                 return [$column->column_name => array_get($custom_login_user->mapping_values, $column->column_name)];
             });
 
@@ -316,7 +315,7 @@ class LoginService
             $exment_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
 
             $update_user_columns = static::getUserColumns();
-            $values = $update_user_columns->mapWithKeys(function($column) use($custom_login_user){
+            $values = $update_user_columns->mapWithKeys(function ($column) use ($custom_login_user) {
                 return [$column->column_name => array_get($custom_login_user->mapping_values, $column->column_name)];
             });
 
@@ -411,7 +410,8 @@ class LoginService
         return null;
     }
 
-    protected static function getUserColumns(){
+    protected static function getUserColumns()
+    {
         return CustomTable::getEloquent(SystemTableName::USER)->custom_columns_cache;
     }
     

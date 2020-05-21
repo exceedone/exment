@@ -23,7 +23,7 @@ class LoginUserItem extends ProviderBase
             return;
         }
 
-        if(!LoginSetting::isUseDefaultLoginForm()){
+        if (!LoginSetting::isUseDefaultLoginForm()) {
             return;
         }
 
@@ -94,7 +94,7 @@ class LoginUserItem extends ProviderBase
             return;
         }
         
-        if(!LoginSetting::isUseDefaultLoginForm()){
+        if (!LoginSetting::isUseDefaultLoginForm()) {
             return;
         }
 

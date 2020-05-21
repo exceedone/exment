@@ -3,15 +3,9 @@ namespace Exceedone\Exment\Services\Login\Pure;
 
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\LoginSetting;
-use Exceedone\Exment\Enums\LoginType;
-use Exceedone\Exment\Enums\LoginProviderType;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
-use Illuminate\Http\Request;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Hash;
-use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Providers\LoginUserProvider;
 
 /**
@@ -47,5 +41,4 @@ class PureService implements LoginServiceInterface
     {
         return null;
     }
-
 }

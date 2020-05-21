@@ -386,7 +386,7 @@ class RouteServiceProvider extends ServiceProvider
             'update' => "exment.$endpointName.update",
             'delete' => "exment.$endpointName.delete",
         ];
-        if($isShow){
+        if ($isShow) {
             $names['show'] = "exment.$endpointName.show";
         }
 

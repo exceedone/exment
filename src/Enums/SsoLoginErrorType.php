@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Enums;
 
-use Exceedone\Exment\Services\Login as LoginServiceRoot;
-
 /**
  * Sso Login Error Type Difinition.
  */

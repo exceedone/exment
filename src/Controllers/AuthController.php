@@ -3,9 +3,6 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
-use Exceedone\Exment\Services\Login\LoginService;
-use Exceedone\Exment\Services\Login\Ldap\LdapService;
-use Exceedone\Exment\Services\Login\Ldap\LdapUser;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -78,8 +75,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         $credentials = $request->only([$this->username(), 'password']);
         $credentials['islogin_from_provider'] = true;
 
-        foreach(LoginSetting::getLdapSettings() as $login_setting){
-            if($request->has("login_setting_{$login_setting->provider_name}")){
+        foreach (LoginSetting::getLdapSettings() as $login_setting) {
+            if ($request->has("login_setting_{$login_setting->provider_name}")) {
                 $credentials['login_setting'] =  $login_setting;
                 $credentials['login_type'] =  $login_setting->login_type;
                 return $this->executeLogin($request, $credentials, $login_setting);
@@ -102,7 +99,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         $remember = boolval($request->get('remember', false));
         $error_url = admin_url('auth/login');
 
-        try{
+        try {
             if ($this->guard()->attempt($credentials, $remember)) {
                 // check password limit.
                 if (!$this->checkPasswordLimit($credentials['login_type'])) {
@@ -122,8 +119,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             return back()->withInput()->withErrors([
                 $this->username() => $this->getFailedLoginMessage(),
             ]);
-
-        } 
+        }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
             \Log::error($ex);
@@ -140,13 +136,13 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
 
     /**
-     * Check password limit. 
+     * Check password limit.
      *
      * @return bool if true, check password is OK. If false, user has to change password.
      */
     protected function checkPasswordLimit($login_type)
     {
-        if($login_type != LoginType::PURE){
+        if ($login_type != LoginType::PURE) {
             return true;
         }
 

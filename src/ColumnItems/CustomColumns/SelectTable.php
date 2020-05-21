@@ -292,7 +292,7 @@ class SelectTable extends CustomItem
             } else {
                 // get target value
                 $target_custom_column = CustomColumn::getEloquent($target_column_name, $this->target_table);
-                if(isset($target_custom_column)){
+                if (isset($target_custom_column)) {
                     $target_value = $this->target_table->getValueModel()->where($target_custom_column->getQueryKey(), $v)->select(['id'])->first();
                 }
 

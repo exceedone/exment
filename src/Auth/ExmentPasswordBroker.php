@@ -8,7 +8,6 @@ use UnexpectedValueException;
 // use Illuminate\Contracts\Auth\PasswordBroker as PasswordBrokerContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Auth\Passwords\PasswordBroker;
-use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Providers\LoginUserProvider;
 
 class ExmentPasswordBroker extends PasswordBroker

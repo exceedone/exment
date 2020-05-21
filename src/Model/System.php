@@ -8,7 +8,6 @@ use Carbon\Carbon;
 use Storage;
 use Cache;
 
-
 /**
  * System definition.
  *

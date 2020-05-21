@@ -41,7 +41,7 @@ class LoginSetting extends ModelBase
     {
         // create config(copied from setting file)
         $sp_name_id_format_key = $this->getOption('saml_sp_name_id_format');
-        if(!isset($sp_name_id_format_key)){
+        if (!isset($sp_name_id_format_key)) {
             return '';
         }
 
@@ -154,7 +154,7 @@ class LoginSetting extends ModelBase
      */
     public static function getAllSettings($filterActive = true)
     {
-        return static::allRecords(function ($record) use($filterActive) {
+        return static::allRecords(function ($record) use ($filterActive) {
             return !$filterActive || $record->active_flg;
         });
     }
@@ -365,16 +365,17 @@ class LoginSetting extends ModelBase
      *
      * @return boolean
      */
-    public static function isUseDefaultLoginForm(){
+    public static function isUseDefaultLoginForm()
+    {
         if (boolval(config('exment.custom_login_disabled', false))) {
             return true;
         }
 
-        if(System::show_default_login_provider()){
+        if (System::show_default_login_provider()) {
             return true;
         }
 
-        if(count(LoginSetting::getAllSettings()) == 0){
+        if (count(LoginSetting::getAllSettings()) == 0) {
             return true;
         }
 
@@ -401,7 +402,7 @@ class LoginSetting extends ModelBase
         $keys = ['saml_sp_x509', 'saml_sp_privatekey', 'saml_idp_x509'];
         $originals = jsonToArray($this->getOriginal('options'));
 
-        foreach($keys as $key){
+        foreach ($keys as $key) {
             $value = $this->getOption($key);
             $original = array_get($originals, $key);
     
@@ -415,8 +416,7 @@ class LoginSetting extends ModelBase
             
             if (isset($original) && trydecrypt($original) == $value) {
                 $this->setOption($key, $original);
-            } 
-            else{
+            } else {
                 $this->setOption($key, encrypt($value));
             }
         }

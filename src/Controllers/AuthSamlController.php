@@ -6,8 +6,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
-use Exceedone\Exment\Auth\ThrottlesLogins;
-use Exceedone\Exment\Services\Login\Saml\SamlUser;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -54,7 +52,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
             return redirect($this->redirectPath());
         }
         $error_url = admin_url('auth/login');
-        try{
+        try {
             $saml2Auth = LoginSetting::getSamlAuth($provider_name);
             if (!isset($saml2Auth)) {
                 abort(404);
@@ -64,7 +62,7 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
-            if($ex->hasAdminError()){
+            if ($ex->hasAdminError()) {
                 \Log::error($ex);
             }
             
@@ -92,9 +90,9 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         }
         
         $error_url = admin_url('auth/login');
-        try{
+        try {
             $credentials = [
-                'login_type' => LoginType::SAML, 
+                'login_type' => LoginType::SAML,
                 'login_setting' => LoginSetting::getSamlSetting($provider_name),
                 'provider_name' => $provider_name,
                 'islogin_from_provider' => true,
@@ -119,11 +117,10 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
             return back()->withInput()->withErrors([
                 'sso_error' => $this->getFailedLoginMessage(),
             ]);
-
-        } 
+        }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
-            if($ex->hasAdminError()){
+            if ($ex->hasAdminError()) {
                 \Log::error($ex);
             }
             

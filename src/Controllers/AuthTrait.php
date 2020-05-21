@@ -2,16 +2,10 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Exceedone\Exment\Providers\LoginUserProvider;
-use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\LoginType;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Services\Login\CustomLoginUserBase;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
@@ -34,12 +28,12 @@ trait AuthTrait
             $array['login_providers'] = [];
             $array['form_providers'] = [];
             $array['show_default_login_provider'] = true;
-        }else{
+        } else {
             // get login settings
-            $array['login_providers'] = LoginSetting::getSSOSettings()->mapWithKeys(function($login_setting){
+            $array['login_providers'] = LoginSetting::getSSOSettings()->mapWithKeys(function ($login_setting) {
                 return [$login_setting->provider_name => $login_setting->getLoginButton()];
             })->toArray();
-            $array['form_providers'] = LoginSetting::getLdapSettings()->mapWithKeys(function($login_setting){
+            $array['form_providers'] = LoginSetting::getLdapSettings()->mapWithKeys(function ($login_setting) {
                 return [$login_setting->provider_name => $login_setting->getLoginButton()];
             })->toArray();
 
@@ -108,5 +102,4 @@ trait AuthTrait
         }
         return parent::getFailedLoginMessage();
     }
-
 }

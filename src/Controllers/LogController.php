@@ -6,7 +6,6 @@ use Encore\Admin\Auth\Database\OperationLog;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Form\Show;
 use Illuminate\Support\Arr;
-use Illuminate\Http\Request;
 
 class LogController extends AdminControllerBase
 {

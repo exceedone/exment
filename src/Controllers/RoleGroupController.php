@@ -559,7 +559,7 @@ class RoleGroupController extends AdminControllerBase
      * @return void
      */
     protected function appendTools($box, $id = null, $isRolePermissionPage = true)
-    {        
+    {
         $box->tools(view('exment::tools.button', [
             'href' => admin_urls('role_group'),
             'label' => trans('admin.list'),

@@ -33,7 +33,8 @@ class SystemChangePageMenu extends ModalTileMenuButton
         return parent::render();
     }
 
-    protected function getMenuItems(){
+    protected function getMenuItems()
+    {
         return collect([
             [
                 'href' => admin_url('system'),
@@ -54,55 +55,56 @@ class SystemChangePageMenu extends ModalTileMenuButton
                         'href' => admin_urls_query('system', ['advanced' => '1']),
                     ],
                 ],
-            ], 
+            ],
             [
                 'href' => admin_url('table'),
                 'icon' => 'fa-table',
                 'header' => exmtrans('custom_table.header'),
                 'description' => exmtrans('custom_table.description'),
                 'permission' => \Exment::user()->hasPermission(Permission::CUSTOM_TABLE),
-            ], 
+            ],
             [
                 'href' => admin_url('role_group'),
                 'icon' => 'fa-user-secret',
                 'header' => exmtrans("role_group.header"),
                 'description' => exmtrans('role_group.description'),
                 'permission' => \Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_ROLE_GROUP),
-            ], 
+            ],
             [
                 'href' => admin_url('workflow'),
                 'icon' => 'fa-share-alt',
                 'header' => exmtrans('workflow.header'),
                 'description' => exmtrans('workflow.description'),
                 'permission' => \Exment::user()->hasPermission(Permission::WORKFLOW),
-            ], 
+            ],
             [
                 'href' => admin_url('notify'),
                 'icon' => 'fa-bell',
                 'header' => exmtrans('notify.header'),
                 'description' => exmtrans('notify.description'),
                 'permission' => \Exment::user()->hasPermission(Permission::SYSTEM),
-            ], 
+            ],
             [
                 'href' => admin_url('api_setting'),
                 'icon' => 'fa-code-fork',
                 'header' => exmtrans('api.header'),
                 'description' => exmtrans('api.description'),
                 'permission' => System::api_available() && \Exment::user()->hasPermission(Permission::AVAILABLE_API),
-            ], 
+            ],
             [
                 'href' => admin_url('login_setting'),
                 'icon' => 'fa-sign-in',
                 'header' => exmtrans('login.header'),
                 'description' => exmtrans('login.description'),
                 'permission' => \Exment::user()->hasPermission(Permission::SYSTEM),
-            ], 
-        ])->filter(function($item){
+            ],
+        ])->filter(function ($item) {
             return $item['permission'];
         })->toArray();
     }
 
-    public function __toString(){
+    public function __toString()
+    {
         return $this->render();
     }
 }

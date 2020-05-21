@@ -65,7 +65,7 @@ class LoginSettingController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new LoginSetting);
-        $grid->column('login_type', exmtrans('login.login_type'))->displayEscape(function($v){
+        $grid->column('login_type', exmtrans('login.login_type'))->displayEscape(function ($v) {
             $enum = LoginType::getEnum($v);
             return $enum ? $enum->transKey('login.login_type_options') : null;
         });
@@ -111,7 +111,7 @@ class LoginSettingController extends AdminControllerBase
             $form->hidden('login_type');
                 
             $form->display('active_flg', exmtrans("plugin.active_flg"))
-            ->customFormat(function($value){
+            ->customFormat(function ($value) {
                 return getYesNo($value);
             });
         }
@@ -133,7 +133,6 @@ class LoginSettingController extends AdminControllerBase
 
 
             if (!isset($login_setting) || in_array($login_setting->login_type, [LoginType::SAML, LoginType::LDAP])) {
-                
                 $form->exmheader(exmtrans('login.mapping_setting'))->hr()
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
 
@@ -141,12 +140,12 @@ class LoginSettingController extends AdminControllerBase
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
 
                 // setting mapping list
-                foreach($user_custom_columns as $user_custom_column){
+                foreach ($user_custom_columns as $user_custom_column) {
                     $field = $form->text("mapping_column_{$user_custom_column->column_name}", $user_custom_column->column_view_name)
                         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
                     
-                    if($user_custom_column->required){
-                        $field->required();   
+                    if ($user_custom_column->required) {
+                        $field->required();
                     }
                 }
             }
@@ -159,10 +158,10 @@ class LoginSettingController extends AdminControllerBase
             ->required()
             ->config('allowClear', false)
             ->help(exmtrans('login.help.mapping_user_column'))
-            ->options(function($column) use($user_custom_columns){
-                return $user_custom_columns->filter(function($custom_column){
+            ->options(function ($column) use ($user_custom_columns) {
+                return $user_custom_columns->filter(function ($custom_column) {
                     return boolval($custom_column->unique);
-                })->pluck('column_view_name','column_name');
+                })->pluck('column_view_name', 'column_name');
             })->default('email');
 
             $form->switchbool('sso_jit', exmtrans("login.sso_jit"))
@@ -213,7 +212,7 @@ class LoginSettingController extends AdminControllerBase
 
         $form->disableReset();
 
-        if(request()->has('test_callback') && session()->has(Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE)){
+        if (request()->has('test_callback') && session()->has(Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE)) {
             $form->hidden('logintest_modal')
             ->attribute(['data-widgetmodal_autoload' => route('exment.logintest_modal', ['id' => $id])]);
             $form->ignore('logintest_modal');
@@ -394,12 +393,11 @@ class LoginSettingController extends AdminControllerBase
      */
     public function loginTestSso(Request $request, $id)
     {
-        try{
+        try {
             $login_setting = LoginSetting::getEloquent($id);
         
             return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
-        }
-        catch(SsoLoginErrorException $ex){
+        } catch (SsoLoginErrorException $ex) {
             \Log::error($ex);
 
             session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $ex->getSsoAdminErrorMessage()]);
@@ -407,8 +405,7 @@ class LoginSettingController extends AdminControllerBase
             return redirect($this->getEditUrl($id, true));
             
             // if error, redirect edit page
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             \Log::error($ex);
 
             list($result, $message, $adminMessage, $custom_login_user) = LoginService::getLoginResult(false, exmtrans('login.sso_provider_error'), [$ex]);
@@ -418,7 +415,6 @@ class LoginSettingController extends AdminControllerBase
             
             // if error, redirect edit page
         }
-
     }
 
     /**
@@ -430,15 +426,14 @@ class LoginSettingController extends AdminControllerBase
      */
     public function loginTestCallback(Request $request, Content $content, $id)
     {
-        try{
+        try {
             $login_setting = LoginSetting::getEloquent($id);
             
             list($result, $message, $adminMessage, $custom_login_user) = $login_setting->getLoginServiceClassName()::loginCallback($request, $login_setting, true);
             session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $adminMessage]);
     
             return redirect($this->getEditUrl($id, true));
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             \Log::error($ex);
 
             list($result, $message, $adminMessage, $custom_login_user) = LoginService::getLoginResult(false, exmtrans('login.sso_provider_error'), [$ex]);
@@ -449,9 +444,10 @@ class LoginSettingController extends AdminControllerBase
     }
 
 
-    protected function getEditUrl($id, $testCallback = false){
+    protected function getEditUrl($id, $testCallback = false)
+    {
         $uri = route('exment.login_setting.edit', ['id' => $id]);
-        if(!$testCallback){
+        if (!$testCallback) {
             admin_toastr(trans('admin.save_succeeded'));
             return $uri;
         }
@@ -633,5 +629,4 @@ class LoginSettingController extends AdminControllerBase
             'reload' => false,
         ]);
     }
-    
 }

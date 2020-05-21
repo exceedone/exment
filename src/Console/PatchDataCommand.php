@@ -136,6 +136,7 @@ class PatchDataCommand extends Command
                 return;
             case 'login_type_sso':
                 $this->setLoginTypeSso();
+                // no break
             case 'patch_log_opelation':
                 $this->patchLogOpelation();
                 return;

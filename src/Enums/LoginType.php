@@ -42,5 +42,4 @@ class LoginType extends EnumBase
                 return LoginServiceRoot\Ldap\LdapService::class;
         }
     }
-
 }

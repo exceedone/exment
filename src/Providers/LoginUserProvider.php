@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Providers;
 
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Support\Facades\Hash;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -62,13 +61,13 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
         $credentials = static::getCredentialDefault($credentials);
 
         // find from database
-        if(!$credentials['islogin_from_provider']){
+        if (!$credentials['islogin_from_provider']) {
             return static::findByCredential($credentials);
         }
 
         // call from database
         $classname = static::getClassName($credentials);
-        if(!isset($classname)){
+        if (!isset($classname)) {
             return [];
         }
 
@@ -98,7 +97,7 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
         $login_user = null;
         foreach (['email', 'user_code'] as $key) {
             // if user select filtering column, and not mutch, continue
-            if(array_key_value_exists('target_column', $credentials) && $credentials['target_column'] != $key){
+            if (array_key_value_exists('target_column', $credentials) && $credentials['target_column'] != $key) {
                 continue;
             }
 
@@ -132,14 +131,15 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
         }
 
         $classname = static::getClassName($credentials);
-        if(!isset($classname)){
+        if (!isset($classname)) {
             return false;
         }
 
         return $classname::validateCredential($login_user, $credentials);
     }
 
-    protected static function getClassName($credentials){
+    protected static function getClassName($credentials)
+    {
         // has login type, set LoginType::PURE
         if (!array_key_value_exists('login_type', $credentials)) {
             $credentials['login_type'] = LoginType::PURE;

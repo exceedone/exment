@@ -11,7 +11,6 @@ use Exceedone\Exment\Services\Login\LoginServiceInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
-
 /**
  * LoginService
  */
@@ -28,19 +27,19 @@ class OAuthService implements LoginServiceInterface
      * @param array $credentials
      * @return ?LoginUser
      * if null, not match ldap user. Showing wrong ID or password not match.
-     * 
+     *
      * @throws SsoLoginErrorException
      */
     public static function retrieveByCredential(array $credentials)
     {
         list($result, $message, $adminMessage, $custom_login_user) = static::loginCallback(request(), array_get($credentials, 'login_setting') ?? LoginSetting::getOAuthSetting(array_get($credentials, 'provider_name')));
 
-        if($result === true){
+        if ($result === true) {
             return LoginService::executeLogin(request(), $custom_login_user);
         }
 
         // if not exists, retun null
-        if($result == SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER){
+        if ($result == SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER) {
             return null;
         }
 
@@ -107,15 +106,14 @@ class OAuthService implements LoginServiceInterface
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
 
         if (isset($login_setting)) {
-            if(boolval(config('exment.expart_mode', false))){
+            if (boolval(config('exment.expart_mode', false))) {
                 $form->url('oauth_redirect_url', exmtrans('login.redirect_url'))
                 ->help(exmtrans('login.help.redirect_url') . exmtrans('login.help.redirect_url_default', ['url' => $login_setting->exment_callback_url_default]))
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
-            }
-            else {
+            } else {
                 $form->display('oauth_redirect_url', exmtrans('login.redirect_url'))->default($login_setting->exment_callback_url);
             }
-        } 
+        }
     }
 
     
@@ -154,20 +152,19 @@ class OAuthService implements LoginServiceInterface
             } else {
                 return LoginService::getLoginResult(true, [], [], $custom_login_user);
             }
-        } 
-        catch (\Exception $ex) {
+        } catch (\Exception $ex) {
             \Log::error($ex);
 
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
-        } 
-        catch (\Throwable $ex) {
+        } catch (\Throwable $ex) {
             \Log::error($ex);
 
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }
     }
     
-    public static function appendActivateSwalButton($tools, LoginSetting $login_setting){
+    public static function appendActivateSwalButton($tools, LoginSetting $login_setting)
+    {
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
     }
 }

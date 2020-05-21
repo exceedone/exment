@@ -11,15 +11,11 @@
 
 namespace Exceedone\Exment\Auth;
 
-use DateInterval;
 use League\OAuth2\Server\Grant\PasswordGrant as PasswordGrantBase;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface;
 use League\OAuth2\Server\Exception\OAuthServerException;
-use League\OAuth2\Server\Repositories\RefreshTokenRepositoryInterface;
-use League\OAuth2\Server\Repositories\UserRepositoryInterface;
 use League\OAuth2\Server\RequestEvent;
-use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Model\LoginSetting;
@@ -42,7 +38,7 @@ class PasswordGrant extends PasswordGrantBase
     protected function validateUser(ServerRequestInterface $request, ClientEntityInterface $client)
     {
         $login_type = $this->getRequestParameter('login_type', $request);
-        if(is_null($login_type)){
+        if (is_null($login_type)) {
             return parent::validateUser($request, $client);
         }
 
@@ -57,23 +53,23 @@ class PasswordGrant extends PasswordGrantBase
         }
 
         $provider_name = $this->getRequestParameter('provider_name', $request);
-        if(is_null($provider_name)){
+        if (is_null($provider_name)) {
             throw OAuthServerException::invalidRequest('provider_name');
         }
 
-        if(!in_array($login_type, [LoginType::LDAP])){
+        if (!in_array($login_type, [LoginType::LDAP])) {
             throw new OAuthServerException("login_type {$login_type} is not supported", 3, 'invalid_request', 400);
         }
 
         $login_setting = null;
-        if($login_type == LoginType::LDAP){
+        if ($login_type == LoginType::LDAP) {
             $login_setting = LoginSetting::getLdapSetting($provider_name);
-            if(!isset($login_setting)){
+            if (!isset($login_setting)) {
                 throw new OAuthServerException("provider {$provider_name} is not found", 3, 'invalid_request', 400);
             }
         }
 
-        try{
+        try {
             $user = $this->getUserEntityByUserCredentials(
                 $username,
                 $password,
@@ -89,11 +85,9 @@ class PasswordGrant extends PasswordGrantBase
             }
     
             return $user;
-        }
-        catch(SsoLoginErrorException $ex){
+        } catch (SsoLoginErrorException $ex) {
             throw new OAuthServerException($ex->getSsoErrorMessage(), 3, 'invalid_request', 400);
         }
-
     }
     
 
@@ -109,7 +103,7 @@ class PasswordGrant extends PasswordGrantBase
         }
 
         $credentials = [
-            'login_setting' => $login_setting, 
+            'login_setting' => $login_setting,
             'login_type' => $login_type,
             'provider_name' => $login_setting->provider_name,
             'islogin_from_provider' => true,

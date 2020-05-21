@@ -159,8 +159,8 @@ if (!function_exists('formatAttributes')) {
 
 if (!function_exists('is_nullorempty')) {
     /**
-     * validate string, array, Collection and object. 
-     * 
+     * validate string, array, Collection and object.
+     *
      * @return bool null is true, "" is true, 0 and "0" is false.
      */
     function is_nullorempty($obj)
@@ -244,9 +244,9 @@ if (!function_exists('trydecrypt')) {
      */
     function trydecrypt($value)
     {
-        try{
+        try {
             return isset($value) ? decrypt($value) : null;
-        }catch(\Exception $ex){
+        } catch (\Exception $ex) {
             return null;
         }
     }
@@ -315,7 +315,7 @@ if (!function_exists('admin_urls_query')) {
         // get last arg
         $args = func_get_args();
         $count = count($args);
-        if(count($args) <= 1){
+        if (count($args) <= 1) {
             return admin_urls($args);
         }
 
@@ -558,7 +558,7 @@ if (!function_exists('isMatchRequest')) {
     {
         $request = app('request');
 
-        foreach(toArray($uris) as $uri){
+        foreach (toArray($uris) as $uri) {
             $uri = admin_base_path($uri);
             
             if ($uri !== '/') {
@@ -1304,7 +1304,7 @@ if (!function_exists('getAjaxResponse')) {
     /**
      * get ajax response.
      * using plugin, copy, data import/
-     * 
+     *
      * @return \Symfony\Component\HttpFoundation\Response Response for ajax json
      */
     function getAjaxResponse($results)

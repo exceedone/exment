@@ -11,7 +11,6 @@ use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
 use Exceedone\Exment\Form\Widgets\ModalForm;
-use Exceedone\Exment\Form\Tools;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 
@@ -31,19 +30,19 @@ class LdapService implements LoginServiceInterface
      * @param array $credentials
      * @return ?LoginUser
      * if null, not match ldap user. Showing wrong ID or password not match.
-     * 
+     *
      * @throws SsoLoginErrorException
      */
     public static function retrieveByCredential(array $credentials)
     {
         list($result, $message, $adminMessage, $custom_login_user) = static::loginCallback(request(), array_get($credentials, 'login_setting') ?? LoginSetting::getLdapSetting(array_get($credentials, 'provider_name')));
 
-        if($result === true){
+        if ($result === true) {
             return LoginService::executeLogin(request(), $custom_login_user);
         }
 
         // if not exists, retun null
-        if($result == SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER){
+        if ($result == SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER) {
             return null;
         }
 
@@ -229,7 +228,8 @@ class LdapService implements LoginServiceInterface
      * @param [type] $login_setting
      * @return void
      */
-    protected static function loginCallback(Request $request, $login_setting){
+    protected static function loginCallback(Request $request, $login_setting)
+    {
         $credentials = $request->only(['username', 'password']);
 
         $username = static::getLdapUserName($credentials['username'], $login_setting);
@@ -249,14 +249,14 @@ class LdapService implements LoginServiceInterface
             // sync to exment
             $ldapUser = static::syncLdapUser($provider, $login_setting, $username);
 
-            if(!$ldapUser){
+            if (!$ldapUser) {
                 return LoginService::getLoginResult(SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER, [exmtrans('error.login_failed')]);
             }
 
             // mapping to loginuser
             $custom_login_user = LdapUser::with($login_setting, $ldapUser);
             
-            if(!is_nullorempty($custom_login_user->mapping_errors)){
+            if (!is_nullorempty($custom_login_user->mapping_errors)) {
                 return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, exmtrans('login.sso_provider_error'), $custom_login_user->mapping_errors);
             }
             
@@ -277,7 +277,8 @@ class LdapService implements LoginServiceInterface
         }
     }
     
-    public static function appendActivateSwalButton($tools, LoginSetting $login_setting){
+    public static function appendActivateSwalButton($tools, LoginSetting $login_setting)
+    {
         return LoginService::appendActivateSwalButtonSso($tools, $login_setting);
     }
 }

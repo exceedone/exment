@@ -116,7 +116,7 @@ class LoginUserController extends AdminControllerBase
 
         LoginUserItem::getItem()->setAdminFormOptions($form, $id);
 
-        if(!LoginSetting::isUseDefaultLoginForm()){
+        if (!LoginSetting::isUseDefaultLoginForm()) {
             $form->disableSubmit();
         }
         $form->disableReset();

@@ -22,11 +22,13 @@ class SsoLoginErrorException extends \Exception
         $this->message = $this->adminMessage;
     }
 
-    public function getSsoErrorMessage(){
+    public function getSsoErrorMessage()
+    {
         return $this->displayMessage;
     }
 
-    public function getSsoAdminErrorMessage(){
+    public function getSsoAdminErrorMessage()
+    {
         return $this->adminMessage;
     }
 
@@ -35,7 +37,8 @@ class SsoLoginErrorException extends \Exception
      *
      * @return boolean
      */
-    public function hasAdminError(){
+    public function hasAdminError()
+    {
         return $this->hasAdminError;
     }
 }
