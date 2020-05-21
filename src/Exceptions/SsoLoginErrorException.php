@@ -7,20 +7,23 @@ use Exceedone\Exment\Enums\SsoLoginErrorType;
 class SsoLoginErrorException extends \Exception
 {
     protected $sso_login_error_type;
-    protected $message;
+    protected $displayMessage;
     protected $adminMessage;
     protected $hasAdminError;
 
-    public function __construct($sso_login_error_type, $message, $adminMessage = null)
+    public function __construct($sso_login_error_type, $displayMessage, $adminMessage = null)
     {
         $this->sso_login_error_type = SsoLoginErrorType::getEnum($sso_login_error_type);
-        $this->message = $message;
-        $this->adminMessage = isset($adminMessage) ? $adminMessage : $message;
+        $this->displayMessage = $displayMessage;
+        $this->adminMessage = isset($adminMessage) ? $adminMessage : $displayMessage;
         $this->hasAdminError = isset($adminMessage);
+
+        // for logging message
+        $this->message = $this->adminMessage;
     }
 
     public function getSsoErrorMessage(){
-        return $this->message;
+        return $this->displayMessage;
     }
 
     public function getSsoAdminErrorMessage(){

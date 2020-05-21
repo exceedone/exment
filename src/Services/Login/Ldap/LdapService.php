@@ -48,7 +48,7 @@ class LdapService implements LoginServiceInterface
         }
 
         // else, throw exception
-        throw new SsoLoginErrorException($result, exmtrans('login.sso_provider_error'), $message);
+        throw new SsoLoginErrorException($result, $message, $adminMessage);
     }
 
 
@@ -236,6 +236,8 @@ class LdapService implements LoginServiceInterface
 
         $custom_login_user = null;
         try {
+            
+            // attempt to ldap
             $ad = new \Adldap\Adldap(static::getLdapConfig($login_setting));
             $provider = $ad->getDefaultProvider();
             
@@ -244,21 +246,23 @@ class LdapService implements LoginServiceInterface
                 return LoginService::getLoginResult(SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER, [exmtrans('error.login_failed')]);
             }
 
+            // sync to exment
             $ldapUser = static::syncLdapUser($provider, $login_setting, $username);
 
             if(!$ldapUser){
                 return LoginService::getLoginResult(SsoLoginErrorType::NOT_EXISTS_PROVIDER_USER, [exmtrans('error.login_failed')]);
             }
 
+            // mapping to loginuser
             $custom_login_user = LdapUser::with($login_setting, $ldapUser);
             
             if(!is_nullorempty($custom_login_user->mapping_errors)){
-                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, $custom_login_user->mapping_errors);
+                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_MAPPING_ERROR, exmtrans('login.sso_provider_error'), $custom_login_user->mapping_errors);
             }
             
             $validator = LoginService::validateCustomLoginSync($custom_login_user);
             if ($validator->fails()) {
-                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_VALIDATION_ERROR, $validator->errors(), $custom_login_user);
+                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_VALIDATION_ERROR, exmtrans('login.sso_provider_error'), $validator->errors(), $custom_login_user);
             }
 
             return LoginService::getLoginResult(true, [], [], $custom_login_user);

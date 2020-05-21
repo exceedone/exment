@@ -83,7 +83,7 @@ class LoginService
     public static function validateCustomLoginSync(CustomLoginUserBase $custom_login_user)
     {
         // get target user
-        $exment_user = static::getExmentUser($custom_login_user);
+        $exment_user = static::getExmentUser($custom_login_user, false);
         if ($exment_user === false) {
             $exment_user = null;
         }
@@ -91,15 +91,6 @@ class LoginService
         $data = $custom_login_user->mapping_values;
         $rules = CustomTable::getEloquent(SystemTableName::USER)->getValidateRules($data, $exment_user);
 
-        // remove "unique" rule, (If new account, alway false)
-        foreach($rules as $key => $rule){
-            $rules[$key] = array_filter($rule, function($r){
-                if(!is_string($r)){
-                    return false;
-                }
-                return true;
-            });
-        }
         return \Validator::make($data, $rules);
     }
     
@@ -137,7 +128,7 @@ class LoginService
             $message = array_merge($message, $messages);
         } elseif ($messages instanceof \Illuminate\Support\MessageBag) {
             $message = array_merge($message, collect($messages->messages())->map(function ($m, $key) use($custom_login_user) {
-                $inputValue = array_get($custom_login_user->mapping_values, $key);
+                $inputValue = isset($custom_login_user) ? array_get($custom_login_user->mapping_values, $key) : null;
                 return implode(" ", $m) . (isset($inputValue) ? " : $inputValue" : '');
             })->toArray());
         }
@@ -281,7 +272,7 @@ class LoginService
      * @param CustomLoginUserBase $custom_login_user
      * @return CustomValue|null|false if false, not found user.
      */
-    public static function getExmentUser(CustomLoginUserBase $custom_login_user)
+    public static function getExmentUser(CustomLoginUserBase $custom_login_user, bool $isUpdate = true)
     {
         $exment_user = getModelName(SystemTableName::USER)
             ::where("value->{$custom_login_user->mapping_user_column}", $custom_login_user->login_id)
@@ -291,7 +282,7 @@ class LoginService
         }
 
         // update user info
-        if (boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
+        if ($isUpdate && boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
             // update only init_only is false
             $update_user_columns = static::getUserColumns()->filter(function($column){
                 return !boolval($column->getOption('init_only'));

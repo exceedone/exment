@@ -45,7 +45,7 @@ class SamlService implements LoginServiceInterface
         }
 
         // else, throw exception
-        throw new SsoLoginErrorException($result, exmtrans('login.sso_provider_error'), $message);
+        throw new SsoLoginErrorException($result, $message, $adminMessage);
     }
 
 
@@ -217,7 +217,7 @@ class SamlService implements LoginServiceInterface
 
             $validator = LoginService::validateCustomLoginSync($custom_login_user);
             if ($validator->fails()) {
-                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_VALIDATION_ERROR, $validator->errors(), $custom_login_user);
+                return LoginService::getLoginResult(SsoLoginErrorType::SYNC_VALIDATION_ERROR, exmtrans('login.sso_provider_error'), $validator->errors(), $custom_login_user);
             }
             
             return LoginService::getLoginResult(true, [], [], $custom_login_user);
