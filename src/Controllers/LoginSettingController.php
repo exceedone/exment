@@ -268,7 +268,7 @@ class LoginSettingController extends AdminControllerBase
         return collect($errors)->mapWithKeys(function ($error) {
             return [$error->getValue() => '<span class="red">' . exmtrans('login.message.not_install_library', [
                 'name' => $error->transKey('login.login_type_options'),
-                'url' => getManualUrl('sso'),
+                'url' => getManualUrl('login_'.$error->getValue()),
             ]) . '</span>'];
         });
     }
