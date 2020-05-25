@@ -9,6 +9,7 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\JoinedPortalUserFilterType;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -161,6 +162,13 @@ class SystemController extends AdminControllerBase
                 ->options(JoinedOrgFilterType::transKeyArray('system.joined_org_filter_custom_value_options'))
                 ->config('allowClear', false)
                 ->default(JoinedOrgFilterType::ONLY_JOIN)
+                ;
+
+            $form->select('filter_joined_organization', exmtrans("system.filter_joined_organization"))
+                ->help(exmtrans("system.help.filter_joined_organization") . exmtrans("common.help.more_help_here", $manualUrl))
+                ->options(JoinedPortalUserFilterType::transKeyArray('system.filter_joined_organization_options'))
+                ->config('allowClear', false)
+                ->default(JoinedPortalUserFilterType::NOT_FILTER)
                 ;
 
             $form->select('custom_value_save_autoshare', exmtrans("system.custom_value_save_autoshare"))

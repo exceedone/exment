@@ -2128,7 +2128,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         if (is_numeric($id)) {
-            $model = getModelName($this)::find($id);
+            $model = $this->getValueModel($id);
         } else {
             $model = $id;
         }

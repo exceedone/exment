@@ -3,13 +3,16 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\JoinedPortalUserFilterType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Model\CustomValueModelScope;
 
 /**
  * Role, user , organization helper
@@ -281,7 +284,16 @@ class AuthUserOrgHelper
             $indexName = $modelname::getParentOrgIndexName();
 
             // get query
-            $orgs = $modelname::with('users')->get(['id', $indexName])->toArray();
+            $orgs = $modelname::with([
+                'users' => function ($query) {
+                        // pass aborting 
+                        return $query->withoutGlobalScope(CustomValueModelScope::class);
+                    }
+                ])
+                // pass aborting
+                ->withoutGlobalScopes([CustomValueModelScope::class])
+                ->get(['id', $indexName])->toArray();
+
             $baseOrgs = $orgs;
 
             if (is_nullorempty($orgs)) {
@@ -359,7 +371,54 @@ class AuthUserOrgHelper
             }
         }
     }
+
+    /**
+     * Filtering user. Only join. set by filter_joined_organization.
+     *
+     * @param [type] $builder
+     * @param [type] $user
+     * @param [type] $db_table_name
+     * @return void
+     */
+    public static function filterUserOnlyJoin($builder, $user, $db_table_name){
+        $setting = System::filter_joined_organization();
+        if ($setting == JoinedPortalUserFilterType::NOT_FILTER) {
+            return;
+        }
+
+        $joinedOrgFilterType = JoinedOrgFilterType::getEnum($setting);
+
+        // First, get users org joined
+        $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+        $target_users = \DB::table($db_table_name_pivot)->whereIn('parent_id', $user->getOrganizationIds($joinedOrgFilterType))
+            ->get(['child_id'])->pluck('child_id');
+
+        $target_users = $target_users->merge($user->getUserId())->unique();
+        
+        // get only login user's organization user
+        $builder->whereIn("$db_table_name.id", $target_users->toArray());
+    }
     
+    /**
+     * Filtering user. Only join. set by filter_joined_organization.
+     *
+     * @param [type] $builder
+     * @param [type] $user
+     * @param [type] $db_table_name
+     * @return void
+     */
+    public static function filterOrganizationOnlyJoin($builder, $user, $db_table_name){
+        $setting = System::filter_joined_organization();
+        if ($setting == JoinedPortalUserFilterType::NOT_FILTER) {
+            return;
+        }
+
+        $joinedOrgFilterType = JoinedOrgFilterType::getEnum($setting);
+
+        // get only login user's organization
+        $builder->whereIn("$db_table_name.id", $user->getOrganizationIds($joinedOrgFilterType));
+    }
+
     /**
      * Get User, org, role group form
      *
