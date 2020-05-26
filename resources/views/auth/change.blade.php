@@ -1,6 +1,6 @@
 @extends('exment::auth.layout') 
 @section('content')
-            <p class="login-box-msg">{{ exmtrans('user.help.password_change') }}</p>
+            <p class="login-box-msg">{{ $caption }}</p>
     
             <form action="{{ admin_url('auth/change') }}" method="post">
                     <div class="form-group has-feedback {!! !$errors->has('current_password') ?: 'has-error' !!}">

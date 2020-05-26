@@ -75,6 +75,7 @@ class Define
 
         'complex_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
+        'first_change_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
         'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
 
         'show_default_login_provider' => ['type' => 'boolean', 'default' => '1', 'group' => 'login'],
@@ -156,6 +157,7 @@ class Define
     public const SYSTEM_KEY_SESSION_PLUGINS = "plugins";
     public const SYSTEM_KEY_SESSION_PLUGIN_ALL_SETTING_IDS = "plugin_all_setting_ids";
     public const SYSTEM_KEY_SESSION_PASSWORD_LIMIT = "password_limit";
+    public const SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD = "first_change_password";
     public const SYSTEM_KEY_SESSION_HAS_WORLFLOW = "has_worlflow";
     public const SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE = "workflow_select_table_%s";
     public const SYSTEM_KEY_SESSION_WORKFLOW_DESIGNATED_TABLE = "workflow_designated_table_%s";

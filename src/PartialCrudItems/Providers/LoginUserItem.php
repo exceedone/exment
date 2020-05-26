@@ -5,6 +5,7 @@ namespace Exceedone\Exment\PartialCrudItems\Providers;
 use Exceedone\Exment\PartialCrudItems\ProviderBase;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\LoginType;
@@ -69,6 +70,18 @@ class LoginUserItem extends ProviderBase
                 , ['key' => 'create_password_auto', 'value' => '0']
                 ])]);
 
+        if (System::first_change_password()) {
+            $form->hidden('password_reset_flg')->default("1");
+        } else {
+            $form->switchbool('password_reset_flg', exmtrans('user.password_reset_flg'))
+                ->default('0')
+                ->help(exmtrans('user.help.password_reset_flg'))
+                ->attribute(['data-filter' => json_encode([
+                    ['key' => 'use_loginuser', 'value' => '1']
+                    , ['key' => 'reset_password', 'value' => "1"]
+                    ])]);
+        }
+    
         // "send_password"'s data-filter is whether $id is null or hasvalue
         $send_password_filter = [
             ['key' => 'use_loginuser', 'value' => '1'],
@@ -82,7 +95,7 @@ class LoginUserItem extends ProviderBase
             ->help(exmtrans('user.help.send_password'))
             ->attribute(['data-filter' => json_encode($send_password_filter)]);
 
-        $form->ignore(['use_loginuser', 'reset_password', 'create_password_auto', 'password', 'password_confirmation', 'send_password']);
+        $form->ignore(['use_loginuser', 'reset_password', 'create_password_auto', 'password_reset_flg', 'password', 'password_confirmation', 'send_password']);
     }
 
     /**
@@ -148,6 +161,7 @@ class LoginUserItem extends ProviderBase
             }
 
             if ($has_change) {
+                $login_user->password_reset_flg = boolval(array_get($data, 'password_reset_flg'));
                 // mailsend
                 if (boolval(array_get($data, 'send_password')) || boolval(array_get($data, 'create_password_auto'))) {
                     try {

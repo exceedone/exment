@@ -101,6 +101,12 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         try {
             if ($this->guard()->attempt($credentials, $remember)) {
+                // check change password first time.
+                if ($this->firstChangePassword($credentials['login_type'])) {
+                    session([Define::SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD => true]);
+                    return redirect(admin_url('auth/change'));
+                }
+
                 // check password limit.
                 if (!$this->checkPasswordLimit($credentials['login_type'])) {
                     session([Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT => true]);
@@ -132,6 +138,25 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 [$this->username() => exmtrans('login.sso_provider_error')]
             );
         }
+    }
+
+
+    /**
+     * Check change password first time.
+     *
+     * @return bool if true, change password for first time. If false, continue.
+     */
+    protected function firstChangePassword($login_type)
+    {
+        if ($login_type != LoginType::PURE) {
+            return false;
+        }
+
+        if (is_null($user = \Exment::user())) {
+            return false;
+        }
+
+        return boolval(array_get($user, 'password_reset_flg'));
     }
 
 
