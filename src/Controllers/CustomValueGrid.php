@@ -257,6 +257,7 @@ trait CustomValueGrid
             $custom_table = $this->custom_table;
             $relationTables = $custom_table->getRelationTables();
             $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
+                $custom_table->setGridAuthoritable($actions->grid->getOriginalCollection());
                 $enableEdit = true;
                 $enableDelete = true;
                 $enableHardDelete = false;

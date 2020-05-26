@@ -363,7 +363,9 @@ class Permission
     protected function validatePluginPermission($endpoint)
     {
         // Get plugin data by Endpoint
-        $plugin = Plugin::where('options->uri', $endpoint)->first();
+        $plugin = Plugin::firstRecord(function($plugin) use($endpoint){
+            return strcmp($plugin->getOption('uri'), $endpoint) == 0;
+        }, false);
         if (!isset($plugin)) {
             return false;
         }

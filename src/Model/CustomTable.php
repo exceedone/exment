@@ -2198,7 +2198,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         foreach ($rows as $row) {
             // check role permissions
-            $authoritable_type = array_get($row, 'pivot.authoritable_type');
+            $authoritable_type = array_get(toArray($row), 'pivot.authoritable_type') ?? array_get(toArray($row), 'authoritable_type');
             if (in_array($authoritable_type, $role_key)) {
                 return true;
             }
@@ -2216,6 +2216,25 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             || boolval($this->getOption('all_user_editable_flg'))
             || boolval($this->getOption('all_user_viewable_flg'))
             || boolval($this->getOption('all_user_accessable_flg'));
+    }
+
+    /**
+     * Set Authoritable for grid. (For performance)
+     *
+     * @return void
+     */
+    public function setGridAuthoritable(Collection $custom_values){
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_GRID_AUTHORITABLE, $this->id);
+
+        System::requestSession($key, function() use($custom_values){
+            // get custom_values_authoritable
+            $values = \DB::table('custom_value_authoritables')
+                ->where('parent_type', $this->table_name)
+                ->whereIn('parent_id', $custom_values->pluck('id')->toArray())
+                ->get(['authoritable_user_org_type', 'authoritable_target_id', 'authoritable_type', 'parent_id']);
+                    
+            return $values;
+        });
     }
 
     /**
