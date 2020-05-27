@@ -94,9 +94,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('table', 'CustomTableController');
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
             
-            $router->resource('workflow', 'WorkflowController');
             $router->get("workflow/beginning", 'WorkflowController@beginningForm');
             $router->post("workflow/beginning", 'WorkflowController@beginningPost');
+            $router->resource('workflow', 'WorkflowController');
             $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
             $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
             $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
