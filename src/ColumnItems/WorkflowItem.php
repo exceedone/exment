@@ -307,20 +307,20 @@ class WorkflowItem extends SystemItem
     /**
      * set workflow status or work user condition
      */
-    public static function scopeWorkflow($query, $view_column_target_id, $custom_table, $condition, $status)
+    public static function scopeWorkflow($query, $view_column_target_id, $custom_table, $condition, $status, $or_option = false)
     {
         $enum = SystemColumn::getEnum($view_column_target_id);
         if ($enum == SystemColumn::WORKFLOW_WORK_USERS) {
             //static::scopeWorkflowWorkUsers($query, $custom_table, $condition, $status);
         } else {
-            static::scopeWorkflowStatus($query, $custom_table, $condition, $status);
+            static::scopeWorkflowStatus($query, $custom_table, $condition, $status, $or_option);
         }
     }
 
     /**
      * set workflow status condition
      */
-    public static function scopeWorkflowStatus($query, $custom_table, $condition, $status)
+    public static function scopeWorkflowStatus($query, $custom_table, $condition, $status, $or_option = false)
     {
         ///// Introduction: When the workflow status is "start", one of the following two conditions is required.
         ///// *No value in workflow_values ​​when registering data for the first time
@@ -328,11 +328,16 @@ class WorkflowItem extends SystemItem
 
         // if $status is start
         if ($status == Define::WORKFLOW_START_KEYNAME) {
-            $func = ($condition == FilterOption::NE) ? 'whereNotNull' : 'whereNull';
+            if ($condition == FilterOption::NE) {
+                $func = $or_option ? 'orWhereNotNull': 'whereNotNull';
+            } else {
+                $func = $or_option ? 'orWhereNull': 'whereNull';
+            }
             $query->{$func}('workflow_status_to_id');
         } else {
             $mark = ($condition == FilterOption::NE) ? '<>' : '=';
-            $query->where('workflow_status_to_id', $mark, $status);
+            $func = $or_option ? 'orWhere': 'where';
+            $query->{$func}('workflow_status_to_id', $mark, $status);
         }
 
         return $query;
