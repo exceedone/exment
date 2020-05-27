@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\System;
 
 class LoginUserProvider extends ProviderBase
 {
@@ -110,13 +111,14 @@ class LoginUserProvider extends ProviderBase
         // get use_loginuser
         $use_loginuser = array_get($data, 'use_loginuser');
         // if not set $login_user and $use_loginuser is true, create
-        if ($use_loginuser === '1'  && is_null($model->login_user)) {
+        if (strcmp($use_loginuser, '1') == 0  && is_null($model->login_user)) {
             $model->login_user = new LoginUser;
             $model->login_user->base_user_id = array_get($data, 'id');
         }
         // if set $login_user and $use_loginuser is false, remove
-        elseif ($use_loginuser === '0' && !is_null($model->login_user)) {
-            $model->login_user->remove();
+        elseif (strcmp($use_loginuser, '0') == 0 && !is_null($model->login_user)) {
+            $model->login_user->delete();
+            return;
         }
         
         if (is_null($model->login_user)) {
@@ -140,6 +142,11 @@ class LoginUserProvider extends ProviderBase
         }
 
         if ($update_flg) {
+            // first password reset 
+            if (System::first_change_password() || 
+                boolval(array_get($data, 'password_reset_flg'))) {
+                $model->login_user->password_reset_flg = true;
+            }
             $model->login_user->password = $password;
             $model->login_user->save();
         }
