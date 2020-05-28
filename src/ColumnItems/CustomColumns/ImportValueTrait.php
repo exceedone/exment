@@ -17,15 +17,30 @@ trait ImportValueTrait
         $options = $this->getImportValueOption();
         
         // not default value
-        if (!array_has($options, strval($value))) {
-            foreach ($options as $k => $v) {
-                if ($v == $value) {
+        if (!array_has($options, $value)) {
+            if (!is_array($value)) {
+                $k = array_search($value, $options);
+                if ($k === false) {
+                    $result = false;
+                }  else {
                     $value = $k;
-                    break;
+                }
+            } else {
+                $list = [];
+                foreach ($value as $v) {
+                    $k = array_search($v, $options);
+                    if ($k === false) {
+                        break;
+                    }
+                    $list[] = $k;
+                }
+    
+                if (count($value) == count($list)) {
+                    $value = $list;
+                } else {
+                    $result = false;
                 }
             }
-
-            $result = false;
         }
 
         return [
