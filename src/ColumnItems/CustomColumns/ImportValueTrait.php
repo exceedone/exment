@@ -67,14 +67,15 @@ trait ImportValueTrait
         };
 
         foreach($options as $key => $option){
-            if(is_vector($options)){
-                // is vector (Ex. ['a', 'b', 'c',]), only value
-                $matchV = $findFunc($v, $option);
-            }
-            else{
-                // is not vector (Ex. ['foo' => 0, 'bar' => 1]), key and value
-                $matchV = $findFunc($v, $key, $option);
-            }
+            $matchV = $findFunc($v, $key, $option);
+            // if(is_vector($options)){
+            //     // is vector (Ex. ['a', 'b', 'c',]), only value
+            //     $matchV = $findFunc($v, $option);
+            // }
+            // else{
+            //     // is not vector (Ex. ['foo' => 0, 'bar' => 1]), key and value
+            //     $matchV = $findFunc($v, $key, $option);
+            // }
 
             if(!is_null($matchV)){
                 return $matchV;

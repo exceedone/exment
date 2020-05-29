@@ -825,15 +825,15 @@ if (!function_exists('is_vector')) {
      */
     function is_vector(array $arr)
     {
-        foreach($arr as $key => $value){
-            if($key !== $value){
-                return false;
-            }
-        }
+        // foreach($arr as $key => $value){
+        //     if($key !== $value){
+        //         return false;
+        //     }
+        // }
 
-        return true;
+        // return true;
 
-        //return array_values($arr) === $arr;
+        return array_values($arr) === $arr;
     }
 }
 
