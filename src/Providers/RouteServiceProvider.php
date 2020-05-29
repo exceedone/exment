@@ -83,20 +83,20 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
             $router->get('notify/notify_action_target_workflow', 'NotifyController@notify_action_target_workflow');
             $router->post('notify/notifytrigger_template', 'NotifyController@getNotifyTriggerTemplate');
-            $router->resource('notify', 'NotifyController', ['except' => ['show']]);
+            $router->resource('notify', 'NotifyController');
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
-            $router->resource('api_setting', 'ApiSettingController', ['except' => ['show']]);
-            $router->resource('plugin', 'PluginController', ['except' => ['show']]);
-            $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
-            $router->resource('table', 'CustomTableController', ['except' => ['show']]);
+            $router->resource('api_setting', 'ApiSettingController');
+            $router->resource('plugin', 'PluginController');
+            $router->resource('role_group', 'RoleGroupController');
+            $router->resource('table', 'CustomTableController');
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
             
-            $router->resource('workflow', 'WorkflowController', ['except' => ['show']]);
             $router->get("workflow/beginning", 'WorkflowController@beginningForm');
             $router->post("workflow/beginning", 'WorkflowController@beginningPost');
+            $router->resource('workflow', 'WorkflowController');
             $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
             $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
             $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
@@ -346,9 +346,6 @@ class RouteServiceProvider extends ServiceProvider
         $router->put("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
         $router->patch("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
         $router->delete("{$endpointName}/{tableKey}/{id}", "$controllerName@destroy");
-
-        if ($isShow) {
-            $router->get("{$endpointName}/{tableKey}/{id}", "$controllerName@show");
-        }
+        $router->get("{$endpointName}/{tableKey}/{id}", "$controllerName@show");
     }
 }
