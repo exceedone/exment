@@ -821,10 +821,19 @@ if (!function_exists('is_vector')) {
      * @return boolean
      * true: [0, 1, 2]
      * false: ['foo' => 0, 'bar' => 1]
+     * false: [0 => 'foo', 1 => 'bar']
      */
     function is_vector(array $arr)
     {
-        return array_values($arr) === $arr;
+        foreach($arr as $key => $value){
+            if($key !== $value){
+                return false;
+            }
+        }
+
+        return true;
+
+        //return array_values($arr) === $arr;
     }
 }
 

@@ -99,7 +99,7 @@ class CustomViewFilter extends ModelBase
         $method_name = $or_option ? 'orWhere': 'where';
         
         if ($this->view_column_type == ConditionType::WORKFLOW) {
-            return WorkflowItem::scopeWorkflow($model, $this->view_column_target_id, $this->custom_table, $view_filter_condition, $condition_value_text);
+            return WorkflowItem::scopeWorkflow($model, $this->view_column_target_id, $this->custom_table, $view_filter_condition, $condition_value_text, $or_option);
         }
 
         if ($this->view_column_type == ConditionType::COLUMN) {

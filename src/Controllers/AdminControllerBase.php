@@ -38,7 +38,8 @@ class AdminControllerBase extends Controller
         if (method_exists($this, 'detail')) {
             $render = $this->detail($id);
         } else {
-            $render = $this->form($id);
+            $url = url_join($request->url(), 'edit');
+            return redirect($url);
         }
         return $this->AdminContent($content)->body($render);
     }

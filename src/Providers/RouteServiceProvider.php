@@ -82,18 +82,18 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
             $router->get('notify/notify_action_target_workflow', 'NotifyController@notify_action_target_workflow');
             $router->post('notify/notifytrigger_template', 'NotifyController@getNotifyTriggerTemplate');
-            $router->resource('notify', 'NotifyController', ['except' => ['show']]);
+            $router->resource('notify', 'NotifyController');
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
-
-            $this->setResouce($router, 'login_setting', 'LoginSettingController');
-            $this->setResouce($router, 'api_setting', 'ApiSettingController');
-            $this->setResouce($router, 'plugin', 'PluginController');
-            $this->setResouce($router, 'role_group', 'RoleGroupController');
-            $this->setResouce($router, 'table', 'CustomTableController');
-            $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
-            $this->setResouce($router, 'workflow', 'WorkflowController');
+            
+            $router->get("workflow/beginning", 'WorkflowController@beginningForm');
+            $router->post("workflow/beginning", 'WorkflowController@beginningPost');
+            $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
+            $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
+            $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
+            $router->post('workflow/{id}/activate', 'WorkflowController@activate');
+            $router->get('workflow/{id}/activateModal', 'WorkflowController@activateModal');
 
             $router->post('login_setting/{id}/activate', 'LoginSettingController@activate')->name('exment.login_activate');
             $router->post('login_setting/{id}/deactivate', 'LoginSettingController@deactivate')->name('exment.login_deactivate');
@@ -105,14 +105,14 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('login_setting/2factor-verify', 'LoginSettingController@auth_2factor_verify')->name('exment.2factor_verify');
             $router->post('login_setting/2factor', 'LoginSettingController@post2factor')->name('exment.post2factor');
             $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal')->name('exment.postglobal');
+            $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
 
-            $router->get("workflow/beginning", 'WorkflowController@beginningForm');
-            $router->post("workflow/beginning", 'WorkflowController@beginningPost');
-            $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
-            $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
-            $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
-            $router->post('workflow/{id}/activate', 'WorkflowController@activate');
-            $router->get('workflow/{id}/activateModal', 'WorkflowController@activateModal');
+            $this->setResouce($router, 'login_setting', 'LoginSettingController');
+            $this->setResouce($router, 'api_setting', 'ApiSettingController');
+            $this->setResouce($router, 'plugin', 'PluginController');
+            $this->setResouce($router, 'role_group', 'RoleGroupController');
+            $this->setResouce($router, 'table', 'CustomTableController');
+            $this->setResouce($router, 'workflow', 'WorkflowController');
 
             $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');
@@ -366,12 +366,9 @@ class RouteServiceProvider extends ServiceProvider
         $router->put("{$endpointName}/{tableKey}/{id}", "$controllerName@update")->name("exment.$endpointName.update");
         $router->patch("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
         $router->delete("{$endpointName}/{tableKey}/{id}", "$controllerName@destroy")->name("exment.$endpointName.destroy");
-
-        if ($isShow) {
-            $router->get("{$endpointName}/{tableKey}/{id}", "$controllerName@show")->name("exment.$endpointName.show");
-        }
+        $router->get("{$endpointName}/{tableKey}/{id}", "$controllerName@show")->name("exment.$endpointName.show");
     }
-
+    
     /**
      * set resource.
      * (Set names simply)
@@ -385,11 +382,9 @@ class RouteServiceProvider extends ServiceProvider
             'edit' => "exment.$endpointName.edit",
             'update' => "exment.$endpointName.update",
             'delete' => "exment.$endpointName.delete",
+            'show' => "exment.$endpointName.show",
         ];
-        if ($isShow) {
-            $names['show'] = "exment.$endpointName.show";
-        }
 
-        $router->resource($endpointName, $controllerName, ['except' => $isShow ? [] : ['show']])->names($names);
+        $router->resource($endpointName, $controllerName)->names($names);
     }
 }

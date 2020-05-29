@@ -247,7 +247,7 @@ class CustomViewController extends AdminControllerTableBase
             }
         }
         
-        if ($view_kind_type == Enums\ViewKindType::DEFAULT) {
+        if (in_array($view_kind_type, [Enums\ViewKindType::DEFAULT, Enums\ViewKindType::ALLDATA])) {
             $form->select('pager_count', exmtrans("common.pager_count"))
             ->required()
             ->options(getPagerOptions(true))

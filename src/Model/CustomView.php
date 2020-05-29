@@ -241,8 +241,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         // set parpage
-        if (is_null(request()->get('per_page')) && isset($this->pager_count) && $this->pager_count > 0) {
-            $grid->paginate($this->pager_count);
+        if (is_null(request()->get('per_page')) && isset($this->pager_count) && is_numeric($this->pager_count) && $this->pager_count > 0) {
+            $grid->paginate(intval($this->pager_count));
         }
 
         // set with
