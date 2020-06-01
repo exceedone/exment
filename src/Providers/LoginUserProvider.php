@@ -29,14 +29,6 @@ class LoginUserProvider extends \Illuminate\Auth\EloquentUserProvider
         return LoginUser::find($identifier);
     }
  
-    public function retrieveByToken($identifier, $token)
-    {
-    }
- 
-    public function updateRememberToken(Authenticatable $user, $token)
-    {
-    }
- 
     /**
      * retrieveByCredentials.
      * execute login using each service.

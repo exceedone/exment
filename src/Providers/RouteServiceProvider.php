@@ -87,14 +87,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
             
-            $router->get("workflow/beginning", 'WorkflowController@beginningForm');
-            $router->post("workflow/beginning", 'WorkflowController@beginningPost');
-            $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
-            $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
-            $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
-            $router->post('workflow/{id}/activate', 'WorkflowController@activate');
-            $router->get('workflow/{id}/activateModal', 'WorkflowController@activateModal');
-
             $router->post('login_setting/{id}/activate', 'LoginSettingController@activate')->name('exment.login_activate');
             $router->post('login_setting/{id}/deactivate', 'LoginSettingController@deactivate')->name('exment.login_deactivate');
             $router->get('login_setting/{id}/testModal', 'LoginSettingController@loginTestModal')->name('exment.logintest_modal');
@@ -105,7 +97,11 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('login_setting/2factor-verify', 'LoginSettingController@auth_2factor_verify')->name('exment.2factor_verify');
             $router->post('login_setting/2factor', 'LoginSettingController@post2factor')->name('exment.post2factor');
             $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal')->name('exment.postglobal');
+
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
+
+            $router->get("workflow/beginning", 'WorkflowController@beginningForm');
+            $router->post("workflow/beginning", 'WorkflowController@beginningPost');
 
             $this->setResouce($router, 'login_setting', 'LoginSettingController');
             $this->setResouce($router, 'api_setting', 'ApiSettingController');
@@ -113,6 +109,13 @@ class RouteServiceProvider extends ServiceProvider
             $this->setResouce($router, 'role_group', 'RoleGroupController');
             $this->setResouce($router, 'table', 'CustomTableController');
             $this->setResouce($router, 'workflow', 'WorkflowController');
+
+
+            $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
+            $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
+            $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
+            $router->post('workflow/{id}/activate', 'WorkflowController@activate');
+            $router->get('workflow/{id}/activateModal', 'WorkflowController@activateModal');
 
             $router->get("loginuser/importModal", 'LoginUserController@importModal');
             $router->post("loginuser/import", 'LoginUserController@import');
