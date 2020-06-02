@@ -318,7 +318,10 @@ class CustomViewFilter extends ModelBase
                     $query->where(function ($qry) use ($view_column_target, $raw) {
                         $qry->where($view_column_target, 'LIKE', '[%]')
                             ->whereNull(\DB::raw($raw));
-                    })->orWhere($view_column_target, '<>', $condition_value_text);
+                    })->orWhere(function ($qry) use ($view_column_target, $condition_value_text) {
+                        $qry->where($view_column_target, 'NOT LIKE', '[%]')
+                            ->where($view_column_target, '<>', $condition_value_text);
+                    });
                 });
                 break;
         
