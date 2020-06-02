@@ -32,7 +32,7 @@ class Xlsx extends FormatBase
         $filename = $this->getFileName();
         return [
             'Content-Type'        => 'application/force-download',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Content-disposition' => "attachment; filename*=UTF-8''$filename",
         ];
     }
 
