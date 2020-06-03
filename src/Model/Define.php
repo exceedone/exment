@@ -80,7 +80,7 @@ class Define
         'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'advanced'],
         'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
         'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
-        'filter_joined_organization' => ['type' => 'int', 'default' => '-1', 'group' => 'advanced'],
+        'filter_multi_user' => ['type' => 'int', 'default' => '-1', 'group' => 'advanced'],
         
         // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],

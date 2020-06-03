@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
-use Exceedone\Exment\Enums\JoinedPortalUserFilterType;
+use Exceedone\Exment\Enums\JoinedMultiUserFilterType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Model\CustomValueModelScope;
@@ -373,7 +373,7 @@ class AuthUserOrgHelper
     }
 
     /**
-     * Filtering user. Only join. set by filter_joined_organization.
+     * Filtering user. Only join. set by filter_multi_user.
      *
      * @param [type] $builder
      * @param [type] $user
@@ -381,8 +381,8 @@ class AuthUserOrgHelper
      * @return void
      */
     public static function filterUserOnlyJoin($builder, $user, $db_table_name){
-        $setting = System::filter_joined_organization();
-        if ($setting == JoinedPortalUserFilterType::NOT_FILTER) {
+        $setting = System::filter_multi_user();
+        if ($setting == JoinedMultiUserFilterType::NOT_FILTER) {
             return;
         }
 
@@ -400,7 +400,7 @@ class AuthUserOrgHelper
     }
     
     /**
-     * Filtering user. Only join. set by filter_joined_organization.
+     * Filtering user. Only join. set by filter_multi_user.
      *
      * @param [type] $builder
      * @param [type] $user
@@ -408,8 +408,8 @@ class AuthUserOrgHelper
      * @return void
      */
     public static function filterOrganizationOnlyJoin($builder, $user, $db_table_name){
-        $setting = System::filter_joined_organization();
-        if ($setting == JoinedPortalUserFilterType::NOT_FILTER) {
+        $setting = System::filter_multi_user();
+        if ($setting == JoinedMultiUserFilterType::NOT_FILTER) {
             return;
         }
 

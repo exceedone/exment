@@ -9,7 +9,7 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
-use Exceedone\Exment\Enums\JoinedPortalUserFilterType;
+use Exceedone\Exment\Enums\JoinedMultiUserFilterType;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -164,13 +164,6 @@ class SystemController extends AdminControllerBase
                 ->default(JoinedOrgFilterType::ONLY_JOIN)
                 ;
 
-            $form->select('filter_joined_organization', exmtrans("system.filter_joined_organization"))
-                ->help(exmtrans("system.help.filter_joined_organization") . exmtrans("common.help.more_help_here", $manualUrl))
-                ->options(JoinedPortalUserFilterType::transKeyArray('system.filter_joined_organization_options'))
-                ->config('allowClear', false)
-                ->default(JoinedPortalUserFilterType::NOT_FILTER)
-                ;
-
             $form->select('custom_value_save_autoshare', exmtrans("system.custom_value_save_autoshare"))
                 ->help(exmtrans("system.help.custom_value_save_autoshare") . exmtrans("common.help.more_help_here", $manualUrl))
                 ->options(CustomValueAutoShare::transKeyArray('system.custom_value_save_autoshare_options'))
@@ -178,6 +171,14 @@ class SystemController extends AdminControllerBase
                 ->default(CustomValueAutoShare::USER_ONLY)
                 ;
         }
+
+        $manualUrl = getManualUrl('multiuser');
+        $form->select('filter_multi_user', exmtrans(boolval(System::organization_available()) ? "system.filter_multi_orguser" : "system.filter_multi_user"))
+            ->help(exmtrans("system.help.filter_multi_orguser") . exmtrans("common.help.more_help_here", $manualUrl))
+            ->options(JoinedMultiUserFilterType::getOptions())
+            ->config('allowClear', false)
+            ->default(JoinedMultiUserFilterType::NOT_FILTER)
+        ;
 
         // use mail setting
         if (!boolval(config('exment.mail_setting_env_force', false))) {
