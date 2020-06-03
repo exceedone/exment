@@ -99,7 +99,7 @@ class CustomViewFilter extends ModelBase
         $method_name = $or_option ? 'orWhere': 'where';
         
         if ($this->view_column_type == ConditionType::WORKFLOW) {
-            return WorkflowItem::scopeWorkflow($model, $this->view_column_target_id, $this->custom_table, $view_filter_condition, $condition_value_text);
+            return WorkflowItem::scopeWorkflow($model, $this->view_column_target_id, $this->custom_table, $view_filter_condition, $condition_value_text, $or_option);
         }
 
         if ($this->view_column_type == ConditionType::COLUMN) {
@@ -318,7 +318,10 @@ class CustomViewFilter extends ModelBase
                     $query->where(function ($qry) use ($view_column_target, $raw) {
                         $qry->where($view_column_target, 'LIKE', '[%]')
                             ->whereNull(\DB::raw($raw));
-                    })->orWhere($view_column_target, '<>', $condition_value_text);
+                    })->orWhere(function ($qry) use ($view_column_target, $condition_value_text) {
+                        $qry->where($view_column_target, 'NOT LIKE', '[%]')
+                            ->where($view_column_target, '<>', $condition_value_text);
+                    });
                 });
                 break;
         
