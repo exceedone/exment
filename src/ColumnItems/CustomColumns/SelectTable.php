@@ -75,6 +75,9 @@ class SelectTable extends CustomItem
                 
                 $model = $this->target_table->getValueModel($v);
                 if (is_null($model)) {
+                    if ($this->target_table->hasCustomValueInDB($v)) {
+                        $result[] = exmtrans('common.message.no_permission');
+                    }
                     continue;
                 }
                 
