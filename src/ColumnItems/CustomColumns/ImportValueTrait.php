@@ -77,8 +77,9 @@ trait ImportValueTrait
             //     $matchV = $findFunc($v, $key, $option);
             // }
 
+            // if find, return $option's key.
             if(!is_null($matchV)){
-                return $matchV;
+                return $key;
             }
         }
 

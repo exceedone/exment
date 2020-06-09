@@ -475,14 +475,14 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             // $isValueText is true(split comma)
             if ($isValueText) {
                 $splits = explode(',', $item);
-                if (count($splits) > 1) {
-                    $options[mbTrim($splits[0])] = mbTrim($splits[1]);
-                } else {
-                    $options[mbTrim($splits[0])] = mbTrim($splits[0]);
-                }
+                $key = strval(mbTrim($splits[0]));
+                $val = count($splits) > 1 ? mbTrim($splits[1]) : mbTrim($splits[0]);
             } else {
-                $options[mbTrim($item)] = mbTrim($item);
+                $key = mbTrim($item);
+                $val = mbTrim($item);
             }
+
+            $options[$key] = $val;
         }
     }
 
