@@ -54,11 +54,12 @@ trait ImportValueTrait
      * @param [type] $options
      * @return void
      */
-    protected function matchValue($v, $options){
+    protected function matchValue($v, $options)
+    {
         // find value function
-        $findFunc = function($v, ...$keys){
-            foreach($keys as $key){
-                if(strcmp($v, $key) == 0){
+        $findFunc = function ($v, ...$keys) {
+            foreach ($keys as $key) {
+                if (strcmp($v, $key) == 0) {
                     return $key;
                 }
             }
@@ -66,7 +67,7 @@ trait ImportValueTrait
             return null;
         };
 
-        foreach($options as $key => $option){
+        foreach ($options as $key => $option) {
             $matchV = $findFunc($v, $key, $option);
             // if(is_vector($options)){
             //     // is vector (Ex. ['a', 'b', 'c',]), only value
@@ -78,7 +79,7 @@ trait ImportValueTrait
             // }
 
             // if find, return $option's key.
-            if(!is_null($matchV)){
+            if (!is_null($matchV)) {
                 return $key;
             }
         }

@@ -17,7 +17,7 @@ class BcrPassword extends Password
     public function prepare($value)
     {
         // if don't input by user, return original
-        if(is_nullorempty($value)){
+        if (is_nullorempty($value)) {
             return $this->original;
         }
 
@@ -32,5 +32,4 @@ class BcrPassword extends Password
     {
         $this->value = null;
     }
-
 }
