@@ -3,9 +3,9 @@
 namespace Exceedone\Exment\Form\Field;
 
 /**
- * Encrypt password before save
+ * Bcrypt password before save
  */
-class EncPassword extends Password
+class BcrPassword extends Password
 {
     /**
      * Prepare for a field value before update or insert.
@@ -21,7 +21,7 @@ class EncPassword extends Password
             return $this->original;
         }
 
-        return encrypt($value);
+        return bcrypt($value);
     }
     
     /**
