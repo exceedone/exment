@@ -2376,11 +2376,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function enableViewMenuButton()
     {
-        if (boolval(config('exment.view_button_disabled', false))) {
+        if (boolval(config('exment.datalist_view_button_disabled', false))) {
             return false;
         }
 
-        if (boolval(config('exment.view_button_disabled_user', false))) {
+        if (boolval(config('exment.datalist_view_button_disabled_user', false))) {
             return $this->hasPermission([Permission::CUSTOM_TABLE]);
         }
         

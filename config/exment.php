@@ -668,7 +668,7 @@ return [
     | Disabled show datalist table button for all user
     |
     */
-    'datalist_table_button_disabled' => env('EXMENT_DATALIST_TABLE_BUTTON_DISABLED', false),
+    'datalist_table_button_disabled' => env('EXMENT_TABLE_BUTTON_DISABLED', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -678,7 +678,7 @@ return [
     | Disabled show table setting button except admin user
     |
     */
-    'datalist_table_button_disabled_user' => env('EXMENT_DATALIST_TABLE_BUTTON_DISABLED_USER', false),
+    'datalist_table_button_disabled_user' => env('EXMENT_TABLE_BUTTON_DISABLED_USER', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -688,7 +688,7 @@ return [
     | Disabled show view button for all user
     |
     */
-    'view_button_disabled' => env('EXMENT_VIEW_BUTTON_DISABLED', false),
+    'datalist_view_button_disabled' => env('EXMENT_VIEW_BUTTON_DISABLED', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -698,5 +698,5 @@ return [
     | Disabled show view button except admin user
     |
     */
-    'view_button_disabled_user' => env('EXMENT_VIEW_BUTTON_DISABLED_USER', false),
+    'datalist_view_button_disabled_user' => env('EXMENT_VIEW_BUTTON_DISABLED_USER', false),
 ];
