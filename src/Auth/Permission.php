@@ -246,15 +246,9 @@ class Permission
                 }
                 return array_key_exists('custom_table', $this->permission_details);
             case "column":
-                if ($this->role_type == RoleType::SYSTEM) {
-                    return array_key_exists('custom_table', $this->permission_details);
-                }
-                // check endpoint name and checking table_name.
-                if (!$this->matchEndPointTable($endpoint)) {
-                    return false;
-                }
-                return array_key_exists('custom_table', $this->permission_details);
             case "relation":
+            case "copy":
+            case "operation":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_table', $this->permission_details);
                 }
