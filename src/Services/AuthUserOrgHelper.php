@@ -62,9 +62,9 @@ class AuthUserOrgHelper
     }
     
     /**
-     * get users who has roles.
+     * get users who has roles for target table.
      * and get users joined parent or children organizations
-     * this function is called from custom value role
+     * this function is called from custom value display's role
      */
     // getRoleUserOrgQuery
     public static function getRoleUserQueryTable($target_table, $tablePermission = null)
@@ -93,7 +93,8 @@ class AuthUserOrgHelper
                     $organizations = static::getRoleOrganizationQuery($target_table)
                         ->get() ?? [];
                     foreach ($organizations as $organization) {
-                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                        // get JoinedOrgFilterType. this method is for org_joined_type_role_group. get users for has role groups.
+                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ONLY_JOIN);
                         $relatedOrgs = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel()->with('users')->find($organization->getOrganizationIds($enum));
 
                         foreach ($relatedOrgs as $related_organization) {
@@ -359,13 +360,13 @@ class AuthUserOrgHelper
         }
 
         $results[] = $org;
-        if (JoinedOrgFilterType::isGetDowner($filterType) && array_has($org, 'parents')) {
+        if (JoinedOrgFilterType::isGetUpper($filterType) && array_has($org, 'parents')) {
             foreach ($org['parents'] as $parent) {
                 $results[] = $parent;
             }
         }
 
-        if (JoinedOrgFilterType::isGetUpper($filterType) && array_has($org, 'children')) {
+        if (JoinedOrgFilterType::isGetDowner($filterType) && array_has($org, 'children')) {
             foreach ($org['children'] as $child) {
                 $results[] = $child;
             }
@@ -383,6 +384,11 @@ class AuthUserOrgHelper
     public static function filterUserOnlyJoin($builder, $user, $db_table_name){
         $setting = System::filter_multi_user();
         if ($setting == JoinedMultiUserFilterType::NOT_FILTER) {
+            return;
+        }
+
+        // if login user have user table permission, no filter
+        if (CustomTable::getEloquent(SystemTableName::USER)->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return;
         }
 
@@ -410,6 +416,11 @@ class AuthUserOrgHelper
     public static function filterOrganizationOnlyJoin($builder, $user, $db_table_name){
         $setting = System::filter_multi_user();
         if ($setting == JoinedMultiUserFilterType::NOT_FILTER) {
+            return;
+        }
+
+        // if login user have organization table permission, no filter
+        if (CustomTable::getEloquent(SystemTableName::ORGANIZATION)->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return;
         }
 
