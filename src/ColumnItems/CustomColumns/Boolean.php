@@ -76,7 +76,7 @@ class Boolean extends CustomItem
     /**
      * Get pure value. If you want to change the search value, change it with this function.
      *
-     * @param [type] $value
+     * @param string $label
      * @return ?string string:matched, null:not matched
      */
     public function getPureValue($label)
