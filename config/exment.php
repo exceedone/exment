@@ -679,4 +679,44 @@ return [
     |
     */
     '7zip_dir' => env('EXMENT_7ZIP_DIR', 'C:\\Program Files\\7-Zip'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled show datalist table button for all user
+    |--------------------------------------------------------------------------
+    |
+    | Disabled show datalist table button for all user
+    |
+    */
+    'datalist_table_button_disabled' => env('EXMENT_TABLE_BUTTON_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled show table setting button except admin user
+    |--------------------------------------------------------------------------
+    |
+    | Disabled show table setting button except admin user
+    |
+    */
+    'datalist_table_button_disabled_user' => env('EXMENT_TABLE_BUTTON_DISABLED_USER', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled show view button for all user
+    |--------------------------------------------------------------------------
+    |
+    | Disabled show view button for all user
+    |
+    */
+    'datalist_view_button_disabled' => env('EXMENT_VIEW_BUTTON_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled show view button except admin user
+    |--------------------------------------------------------------------------
+    |
+    | Disabled show view button except admin user
+    |
+    */
+    'datalist_view_button_disabled_user' => env('EXMENT_VIEW_BUTTON_DISABLED_USER', false),
 ];

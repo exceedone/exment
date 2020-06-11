@@ -409,7 +409,9 @@ EOT;
 
             PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             
-            $tools->add((new Tools\CustomTableMenuButton('data', $custom_table)));
+            if ($custom_table->enableTableMenuButton()) {
+                $tools->add((new Tools\CustomTableMenuButton('data', $custom_table)));
+            }
         });
     }
     

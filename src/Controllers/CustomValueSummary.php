@@ -86,8 +86,12 @@ trait CustomValueSummary
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
             }
             
-            $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
-            $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
+            if ($this->custom_table->enableTableMenuButton()) {
+                $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
+            }
+            if ($this->custom_table->enableViewMenuButton()) {
+                $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
+            }
         });
 
         Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);

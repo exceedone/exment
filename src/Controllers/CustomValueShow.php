@@ -164,7 +164,10 @@ trait CustomValueShow
                     $tools->disableList();
                 } elseif (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
-                    $tools->append((new Tools\CustomTableMenuButton('data', $this->custom_table)));
+                    
+                    if ($this->custom_table->enableTableMenuButton()) {
+                        $tools->append((new Tools\CustomTableMenuButton('data', $this->custom_table)));
+                    }
 
                     $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_SHOW, $this->custom_table);
                     $copyButtons = $this->custom_table->from_custom_copies;
@@ -401,8 +404,14 @@ trait CustomValueShow
         }
 
         $trashed = boolval(request()->get('trashed'));
+
+        $change_page_menu = null;
+        if ($this->custom_table->enableTableMenuButton()) {
+            $change_page_menu = (new Tools\CustomTableMenuButton('data', $this->custom_table));
+        }
+
         $prms = [
-            'change_page_menu' => (new Tools\CustomTableMenuButton('data', $this->custom_table)),
+            'change_page_menu' => $change_page_menu,
             'revisions' => $revisions,
             'custom_value' => $custom_value,
             'table_columns' => $table_columns,
