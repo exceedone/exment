@@ -217,8 +217,12 @@ trait CustomValueGrid
             }
 
             // add page change button(contains view seting)
-            $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
-            $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
+            if ($this->custom_table->enableTableMenuButton()) {
+                $tools->append(new Tools\CustomTableMenuButton('data', $this->custom_table));
+            }
+            if ($this->custom_table->enableViewMenuButton()) {
+                $tools->append(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
+            }
             
             // add plugin button
             if ($listButtons !== null && count($listButtons) > 0) {

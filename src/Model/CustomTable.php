@@ -1592,9 +1592,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * get columns select options.
      * 'append_table': whether appending custom table id in options value
      * 'index_enabled_only': only getting index column
-     * 'include_parent': whether getting parent table's column
+     * 'include_parent': whether getting parent table's column and select table's column
      * 'include_child': whether getting child table's column
-     * 'include_select_table': whether getting select table's column
      * 'include_system': whether getting system column
      * * 'include_system': whether getting workflow column
      * @param array $selectOptions
@@ -1609,7 +1608,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'index_enabled_only' => false,
                 'include_parent' => false,
                 'include_child' => false,
-                'include_select_table' => false,
                 'include_column' => true,
                 'include_system' => true,
                 'include_workflow' => false,
@@ -1680,6 +1678,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ///// get select table columns
             $select_table_columns = $this->getSelectTableColumns();
             foreach ($select_table_columns as $select_table_column) {
+                if ($index_enabled_only && !$select_table_column->index_enabled) {
+                    continue;
+                }
                 $select_table = $select_table_column->column_item->getSelectTable();
                 $tablename = array_get($select_table, 'table_view_name');
                 $this->setColumnOptions(
@@ -2348,6 +2349,42 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return ErrorCode::PERMISSION_DENY();
         }
 
+        return true;
+    }
+
+    /**
+     * User can view customtable menu button
+     *
+     * @return void
+     */
+    public function enableTableMenuButton()
+    {
+        if (boolval(config('exment.datalist_table_button_disabled', false))) {
+            return false;
+        }
+
+        if (boolval(config('exment.datalist_table_button_disabled_user', false))) {
+            return $this->hasPermission([Permission::CUSTOM_TABLE]);
+        }
+        
+        return true;
+    }
+
+    /**
+     * User can view customview menu button
+     *
+     * @return void
+     */
+    public function enableViewMenuButton()
+    {
+        if (boolval(config('exment.datalist_view_button_disabled', false))) {
+            return false;
+        }
+
+        if (boolval(config('exment.datalist_view_button_disabled_user', false))) {
+            return $this->hasPermission([Permission::CUSTOM_TABLE]);
+        }
+        
         return true;
     }
 
