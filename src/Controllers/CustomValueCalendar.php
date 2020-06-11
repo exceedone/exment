@@ -13,8 +13,12 @@ trait CustomValueCalendar
         \Exment::user()->filterModel($model, $this->custom_view);
 
         $tools = [];
-        $tools[] = new Tools\CustomTableMenuButton('data', $this->custom_table);
-        $tools[] = new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view);
+        if ($this->custom_table->enableTableMenuButton()) {
+            $tools[] = new Tools\CustomTableMenuButton('data', $this->custom_table);
+        }
+        if ($this->custom_table->enableViewMenuButton()) {
+            $tools[] = new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view);
+        }
 
         return view('exment::widgets.calendar', [
             'view_id' => $this->custom_view->suuid,

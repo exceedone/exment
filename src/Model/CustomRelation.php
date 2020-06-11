@@ -186,10 +186,9 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
             $sheetname = $this->parent_custom_table->table_name . '_' . $this->child_custom_table->table_name;
 
             // if length is too long, use id instead of name
-            if(mb_strlen($sheetname) > 30){
+            if (mb_strlen($sheetname) > 30) {
                 return $this->parent_custom_table_id . '_' . $this->child_custom_table_id;
-            }
-            else{
+            } else {
                 return $sheetname;
             }
         }
