@@ -1152,12 +1152,13 @@ if (!function_exists('getDBTableName')) {
     /**
      * Get database table name.
      * @param string|CustomTable|array $obj
+     * @param bool $isThrow if true and not has database, throwing
      * @return string
      */
-    function getDBTableName($obj)
+    function getDBTableName($obj, $isThrow = true)
     {
         $obj = CustomTable::getEloquent($obj);
-        if (!isset($obj)) {
+        if (!isset($obj) && $isThrow) {
             throw new Exception('table name is not found. please tell system administrator.');
         }
         return 'exm__'.array_get($obj, 'suuid');

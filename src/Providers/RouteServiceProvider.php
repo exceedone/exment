@@ -53,6 +53,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('dashboard', 'DashboardController');
             $router->get("dashboardbox/table_views/{dashboard_type}", 'DashboardBoxController@tableViews');
             $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');
+            $router->get("dashboard/{id}/shareClick", 'DashboardController@shareClick');
+            $router->post("dashboard/{id}/sendShares", 'DashboardController@sendShares');
             $router->resource('dashboardbox', 'DashboardBoxController');
         
             $router->resource('auth/logs', 'LogController', ['except' => ['create', 'edit']]);
@@ -168,6 +170,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
+            $router->get("view/{tableKey}/{id}/shareClick", 'CustomViewController@shareClick');
+            $router->post("view/{tableKey}/{id}/sendShares", 'CustomViewController@sendShares');
 
             $router->post("column/{tableKey}/calcModal", 'CustomColumnController@calcModal');
             $router->post("column/{tableKey}/{id}/calcModal", 'CustomColumnController@calcModal');

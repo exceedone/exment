@@ -14,6 +14,8 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -150,6 +152,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $this->custom_view_filters()->delete();
         $this->custom_view_sorts()->delete();
         $this->custom_view_summaries()->delete();
+        // delete data_share_authoritables
+        DataShareAuthoritable::deleteDataAuthoritable($this);
     }
 
     protected static function boot()
@@ -173,6 +177,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $model->deletingChildren();
         });
         
+        static::created(function ($model) {
+            if ($model->view_type == ViewType::USER) {
+                // save Authoritable
+                DataShareAuthoritable::setDataAuthoritable($model);
+            }
+        });
+
         // add global scope
         static::addGlobalScope('showableViews', function (Builder $builder) {
             return static::showableViews($builder);
@@ -425,6 +436,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $view = static::allRecordsCache(function ($record) use ($tableObj) {
                 return array_get($record, 'custom_table_id') == $tableObj->id
                     && array_get($record, 'default_flg') == true
+                    && array_get($record, 'view_type') == ViewType::SYSTEM
                     && array_get($record, 'view_kind_type') != ViewKindType::FILTER;
             })->first();
         }
@@ -455,18 +467,44 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         return $view;
     }
+
+    // user data_authoritable. it's all role data. only filter morph_type
+    public function data_authoritable_users()
+    {
+        return $this->morphToMany(getModelName(SystemTableName::USER), 'parent', 'data_share_authoritables', 'parent_id', 'authoritable_target_id')
+            ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
+            ->wherePivot('authoritable_user_org_type', SystemTableName::USER)
+            ;
+    }
+
+    // user data_authoritable. it's all role data. only filter morph_type
+    public function data_authoritable_organizations()
+    {
+        return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'parent', 'data_share_authoritables', 'parent_id', 'authoritable_target_id')
+            ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
+            ->wherePivot('authoritable_user_org_type', SystemTableName::ORGANIZATION)
+            ;
+    }
     
     protected static function showableViews($query)
     {
-        return $query->where(function ($query) {
-            $query->where(function ($query) {
-                $query->where('view_type', ViewType::SYSTEM);
-            })->orWhere(function ($query) {
-                $login_user = \Exment::user();
-                $query->where('view_type', ViewType::USER)
-                        ->where('created_user_id', isset($login_user) ? $login_user->getUserId() : null);
-            });
+        $query = $query->where(function ($qry) {
+            $qry->where('view_type', ViewType::SYSTEM);
         });
+        if (hasTable(getDBTableName(SystemTableName::USER, false))) {
+            $query->orWhere(function ($qry) {
+                $qry->where('view_type', ViewType::USER)
+                    ->where('created_user_id', \Exment::user()->getUserId());
+            })->orWhereHas('data_authoritable_users', function ($qry) {
+                $qry->where('authoritable_target_id', \Exment::user()->getUserId());
+            });
+        }
+        if (hasTable(getDBTableName(SystemTableName::ORGANIZATION, false))) {
+            $query->orWhereHas('data_authoritable_organizations', function ($qry) {
+                $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                $qry->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds($enum));
+            });
+        }
     }
 
     public static function createDefaultView($tableObj)
@@ -1043,16 +1081,28 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function hasEditPermission()
     {
-        if ($this->custom_table->hasSystemViewPermission()) {
-            return true;
-        }
-
+        $login_user = \Exment::user();
         if ($this->view_type == ViewType::SYSTEM) {
-            return false;
-        } elseif ($this->created_user_id != \Exment::user()->getUserId()) {
-            return false;
+            return $this->custom_table->hasSystemViewPermission();
+        } elseif ($this->created_user_id == $login_user->getUserId()) {
+            return true;
+        };
+
+        // check if editable user exists
+        $hasEdit = $this->data_authoritable_users()
+            ->where('authoritable_type', 'data_share_edit')
+            ->where('authoritable_target_id', $login_user->getUserId())
+            ->exists();
+
+        if (!$hasEdit && System::organization_available()) {
+            $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+            // check if editable organization exists
+            $hasEdit = $this->data_authoritable_organizations()
+                ->where('authoritable_type', 'data_share_edit')
+                ->whereIn('authoritable_target_id', $login_user->getOrganizationIds($enum))
+                ->exists();
         }
 
-        return true;
+        return $hasEdit;
     }
 }

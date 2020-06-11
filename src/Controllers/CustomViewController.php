@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\DataShareAuthoritable;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\GroupCondition;
@@ -128,18 +129,23 @@ class CustomViewController extends AdminControllerTableBase
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
             $table_name = $custom_table->table_name;
-            if (boolval($actions->row->disabled_delete)) {
-                $actions->disableDelete();
-            }
-            if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
-                intval($actions->row->view_kind_type) === Enums\ViewKindType::CALENDAR) {
+            if (boolval($actions->row->hasEditPermission())) {
+                if (boolval($actions->row->disabled_delete)) {
+                    $actions->disableDelete();
+                }
+                if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
+                    intval($actions->row->view_kind_type) === Enums\ViewKindType::CALENDAR) {
+                    $actions->disableEdit();
+                    
+                    $linker = (new Linker)
+                        ->url(admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type)
+                        ->icon('fa-edit')
+                        ->tooltip(trans('admin.edit'));
+                    $actions->prepend($linker);
+                }
+            } else {
                 $actions->disableEdit();
-                
-                $linker = (new Linker)
-                    ->url(admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type)
-                    ->icon('fa-edit')
-                    ->tooltip(trans('admin.edit'));
-                $actions->prepend($linker);
+                $actions->disableDelete();
             }
             // if ($actions->row->disabled_delete) {
             //     $actions->disableDelete();
@@ -443,9 +449,14 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
 
-        $form->tools(function (Form\Tools $tools) use ($suuid, $custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table, $view_type) {
             $tools->add((new Tools\CustomTableMenuButton('view', $custom_table)));
 
+            if ($view_type == Enums\ViewType::USER) {
+                $tools->append(new Tools\ShareButton($id, 
+                    admin_urls(Enums\ShareTargetType::VIEW()->lowerkey(), $custom_table->table_name, $id, "shareClick")));
+            }
+    
             if (isset($suuid)) {
                 $tools->append(view('exment::tools.button', [
                     'href' => $custom_table->getGridUrl(true, ['view' => $suuid]),
@@ -605,5 +616,32 @@ class CustomViewController extends AdminControllerTableBase
         $item->filterKind(Enums\FilterKind::VIEW);
 
         return $item;
+    }
+
+    /**
+     * create share form
+     */
+    public function shareClick(Request $request, $tableKey, $id)
+    {
+        // get custom view
+        $custom_view = CustomView::getEloquent($id);
+
+        $form = DataShareAuthoritable::getShareDialogForm($custom_view, $tableKey);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.shared')
+        ]);
+    }
+
+    /**
+     * set share users organizations
+     */
+    public function sendShares(Request $request, $tableKey, $id)
+    {
+        // get custom view
+        $custom_view = CustomView::getEloquent($id);
+        return DataShareAuthoritable::saveShareDialogForm($custom_view);
     }
 }

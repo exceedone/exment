@@ -11,6 +11,8 @@ use Carbon\Carbon;
 
 class CustomValueAuthoritable extends ModelBase
 {
+    use Traits\DataShareTrait;
+
     /**
      * Set Custom Value Authoritable after custom value save
      *

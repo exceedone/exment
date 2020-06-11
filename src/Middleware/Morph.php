@@ -56,6 +56,8 @@ class Morph
             "table" => Model\CustomTable::class,
             "custom_form_priority" => Model\CustomFormPriority::class,
             "workflow_condition_header" => Model\WorkflowConditionHeader::class,
+            "_custom_view" => Model\CustomView::class,
+            "_dashboard" => Model\Dashboard::class,
         ];
         foreach ($tables as $table) {
             // morphmap
