@@ -5,8 +5,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Database\ExtendedBlueprint;
 use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Enums\SystemTableName;
 
-class LoginSettingAndType extends Migration
+class SupportForV330 extends Migration
 {
     /**
      * Run the migrations.
@@ -46,6 +47,18 @@ class LoginSettingAndType extends Migration
                 }
             });
         }
+
+        if(!$schema->hasTable(SystemTableName::DATA_SHARE_AUTHORITABLE)){
+            $schema->create(SystemTableName::DATA_SHARE_AUTHORITABLE, function (ExtendedBlueprint $table) {
+                $table->increments('id');
+                $table->nullableMorphs('parent');
+                $table->string('authoritable_type')->index();
+                $table->string('authoritable_user_org_type')->index();
+                $table->integer('authoritable_target_id')->nullable()->index();
+                $table->timestamps();
+                $table->timeusers();
+            });
+        }
         
         \Artisan::call('exment:patchdata', ['action' => 'login_type_sso']);
     }
@@ -67,5 +80,7 @@ class LoginSettingAndType extends Migration
         if (Schema::hasTable('login_settings')) {
             Schema::dropIfExists('login_settings');
         }
+
+        Schema::dropIfExists(SystemTableName::DATA_SHARE_AUTHORITABLE);
     }
 }
