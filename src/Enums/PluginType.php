@@ -21,6 +21,10 @@ class PluginType extends EnumBase
     public const BUTTON = '11';
     public const EVENT = '12';
     
+    /**
+     *
+     * @return array
+     */
     public static function PLUGIN_TYPE_PUBLIC_CLASS()
     {
         return [
@@ -32,6 +36,10 @@ class PluginType extends EnumBase
         ];
     }
 
+    /**
+     *
+     * @return array
+     */
     public static function PLUGIN_TYPE_PLUGIN_PAGE()
     {
         return [
@@ -41,7 +49,10 @@ class PluginType extends EnumBase
         ];
     }
 
-
+    /**
+     *
+     * @return array
+     */
     public static function PLUGIN_TYPE_CUSTOM_TABLE()
     {
         return [
@@ -58,8 +69,7 @@ class PluginType extends EnumBase
     /**
      * Use plugin permission
      *
-     *
-     * @return void
+     * @return array
      */
     public static function PLUGIN_TYPE_FILTER_ACCESSIBLE()
     {
@@ -103,9 +113,9 @@ class PluginType extends EnumBase
     }
 
     /**
-     * Use plugin with event
+     * Use plugin with URL
      *
-     * @return void
+     * @return array
      */
     public static function PLUGIN_TYPE_URL()
     {
@@ -120,7 +130,7 @@ class PluginType extends EnumBase
      *
      * @param [type] $plugin
      * @param array $options
-     * @return void
+     * @return null|mixed
      */
     public static function getPluginClass($plugin_type, $plugin, $options = [])
     {

@@ -37,7 +37,7 @@ class PluginPublicBase
     /**
      * get public path
      *
-     * @return void
+     * @return array
      */
     protected function getCssJsFiles($path, $type)
     {

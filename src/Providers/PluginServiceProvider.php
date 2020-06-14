@@ -95,7 +95,7 @@ class PluginServiceProvider extends ServiceProvider
             Route::group([
                 'prefix'        => url_join(config('admin.route.prefix'), $p),
                 'namespace'     => 'Exceedone\Exment\Services\Plugin',
-                'middleware'    => $isApi ? ['api', 'adminapi', 'pluginapi'] : config('admin.route.middleware'),
+                'middleware'    => $isApi ? ['api', 'adminapi', 'pluginapi'] : ['adminweb', 'admin'],
             ], function (Router $router) use ($plugin, $plugin_type, $pluginPage, $isApi, $defaultFunction, $json) {
                 $routes = array_get($json, 'route', []);
     
@@ -185,7 +185,7 @@ class PluginServiceProvider extends ServiceProvider
         Route::group([
             'prefix'        => url_join(config('admin.route.prefix'), $pluginScriptStyle->_plugin()->getRouteUri()),
             'namespace'     => 'Exceedone\Exment\Services\Plugin',
-            'middleware'    => ['web', 'admin_plugin_public'],
+            'middleware'    => ['adminweb', 'admin_plugin_public'],
         ], function (Router $router) use ($pluginScriptStyle) {
             // for public file
             Route::get('public/{arg1?}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');

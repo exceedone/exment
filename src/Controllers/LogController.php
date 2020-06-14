@@ -6,13 +6,12 @@ use Encore\Admin\Auth\Database\OperationLog;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Form\Show;
 use Illuminate\Support\Arr;
-use Illuminate\Http\Request;
 
 class LogController extends AdminControllerBase
 {
     use HasResourceActions;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(trans('admin.operation_log'), trans('admin.operation_log'), exmtrans('operation_log.description'), 'fa-file-text');
     }
@@ -26,8 +25,8 @@ class LogController extends AdminControllerBase
 
         $grid->model()->orderBy('id', 'DESC');
 
-        $grid->column('user.user_name', exmtrans('operation_log.user_name'))->displayEscape(function ($foo) {
-            return ($this->user ? $this->user->user_name : null);
+        $grid->column('user.user_name', exmtrans('operation_log.user_name'))->displayEscape(function ($foo, $column, $model) {
+            return ($model->user ? $model->user->user_name : null);
         });
         $grid->column('method', exmtrans('operation_log.method'));
         $grid->column('path', exmtrans('operation_log.path'));
@@ -62,9 +61,9 @@ class LogController extends AdminControllerBase
     protected function detail($id)
     {
         $model = OperationLog::findOrFail($id);
-        return new Show($model, function (Show $show) use ($id, $model) {
-            $show->field('user.user_name', exmtrans('operation_log.user_name'))->as(function ($foo) {
-                return ($this->user ? $this->user->user_name : null);
+        return new Show($model, function (Show $show) {
+            $show->field('user.user_name', exmtrans('operation_log.user_name'))->as(function ($foo, $model) {
+                return ($model->user ? $model->user->user_name : null);
             });
             $show->field('method', exmtrans('operation_log.method'));
             $show->field('path', exmtrans('operation_log.path'));

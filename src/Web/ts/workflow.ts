@@ -117,8 +117,8 @@ namespace Exment {
 }
 
 $(function () {
-    Exment.ModalEvent.AddEvent();
-    Exment.ModalEvent.AddEventOnce();
+    Exment.WorkflowEvent.AddEvent();
+    Exment.WorkflowEvent.AddEventOnce();
 });
 
 

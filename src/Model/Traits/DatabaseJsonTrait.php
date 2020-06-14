@@ -26,7 +26,7 @@ trait DatabaseJsonTrait
             return $this;
         }
         // if key is array, loop key value
-        if (is_array($key)) {
+        if (is_array($key) || $key instanceof \Illuminate\Support\Collection) {
             foreach ($key as $k => $v) {
                 $this->setJson($dbcolumnname, $k, $v);
             }

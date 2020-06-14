@@ -106,7 +106,7 @@ class NotifyService
     /**
      * Get Send Form. if only one user, Replace format.
      *
-     * @return void
+     * @return ModalForm
      */
     protected function getSendForm($notifyTargets, $isFlow = false)
     {
@@ -399,9 +399,8 @@ class NotifyService
     /**
      * get Progress Info
      *
-     * @param [type] $id
-     * @param [type] $is_action
-     * @return void
+     * @param [type] $isSelectTarget
+     * @return array
      */
     protected function getProgressInfo($isSelectTarget)
     {

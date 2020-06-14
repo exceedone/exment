@@ -28,8 +28,8 @@ class WorkflowAuthority extends ModelBase
     /**
      * Get workflow authorities from value array
      *
-     * @param [type] $value
-     * @return void
+     * @param [type] $values
+     * @return array
      */
     public static function getAuhoritiesFromValue($values, $action = null)
     {

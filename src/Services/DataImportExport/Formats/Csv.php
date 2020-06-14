@@ -24,7 +24,7 @@ class Csv extends FormatBase
             $path = $file->getRealPath();
             $extension = $file->extension();
             $originalName = $file->getClientOriginalName();
-        } elseif ($request instanceof SplFileInfo) {
+        } elseif ($request instanceof \SplFileInfo) {
             $path = $request->getPathName();
             $extension = pathinfo($path)['extension'];
             $originalName = pathinfo($path, PATHINFO_BASENAME);
@@ -35,7 +35,7 @@ class Csv extends FormatBase
         }
 
         // if zip, extract
-        if ($extension == 'zip') {
+        if ($extension == 'zip' && isset($file)) {
             $tmpdir = getTmpFolderPath('data', false);
             $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), Define::DISKNAME_ADMIN_TMP, true);
             

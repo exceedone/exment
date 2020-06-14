@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\ResetsPasswords;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +20,7 @@ class ResetPasswordController extends Controller
     use \Exceedone\Exment\Controllers\AuthTrait;
 
     protected $login_user;
+    protected $redirectTo;
 
     /**
      * Create a new controller instance.
@@ -83,8 +85,14 @@ class ResetPasswordController extends Controller
             return back()->withInput();
         }
 
+        $array = [
+            'login_type' => LoginType::PURE,
+            'target_column' => 'email',
+            'username' => $email,
+        ];
+
         // get user for password history validation
-        $this->login_user = $broker->getUser(['email' => $email]);
+        $this->login_user = $broker->getUser($array);
 
         $this->validate($request, $this->rules(), $this->validationErrorMessages());
 
@@ -96,7 +104,13 @@ class ResetPasswordController extends Controller
             'password_confirmation',
             'token'
         );
-        $array['email'] = $email;
+
+        $array = array_merge([
+            'login_type' => LoginType::PURE,
+            'target_column' => 'email',
+            'username' => $email,
+        ], $array);
+
         $response = $broker->reset(
             $array,
             function ($user, $password) {
@@ -149,7 +163,7 @@ class ResetPasswordController extends Controller
     /**
      * Get email address by token
      *
-     * @return void
+     * @return string|null
      */
     protected function getEmailByToken($token)
     {

@@ -57,7 +57,7 @@ class WorkflowStatus extends ModelBase
      *
      * @param [type] $workflow_status
      * @param [type] $workflow
-     * @return void
+     * @return string|null
      */
     public static function getWorkflowStatusName($workflow_status = null, $workflow = null)
     {
@@ -78,7 +78,7 @@ class WorkflowStatus extends ModelBase
      *
      * @param [type] $workflow_status
      * @param [type] $workflow
-     * @return void
+     * @return bool
      */
     public static function getWorkflowStatusCompleted($workflow_status = null)
     {
@@ -95,7 +95,7 @@ class WorkflowStatus extends ModelBase
      *
      * @param [type] $workflow_status
      * @param [type] $workflow
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     public static function getActionsByFrom($workflow_status = null, $workflow = null, $ignoreReject = false)
     {

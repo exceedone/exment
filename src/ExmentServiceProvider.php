@@ -82,6 +82,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.password-limit'       => \Exceedone\Exment\Middleware\AuthenticatePasswordLimit::class,
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
+        'admin.login'  => \Exceedone\Exment\Middleware\Login::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
         'admin.browser'  => \Exceedone\Exment\Middleware\Browser::class,
@@ -101,6 +102,7 @@ class ExmentServiceProvider extends ServiceProvider
         'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
         'laravel-page-speed.jscomments' => \Exceedone\Exment\Middleware\InlineJsRemoveComments::class,
         'laravel-page-speed.comments' => \RenatoMarinho\LaravelPageSpeed\Middleware\RemoveComments::class,
+
     ];
 
     /**
@@ -133,6 +135,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
+            'admin.login',
             'admin.morph',
             'admin.bootstrap2',
             'admin.pjax',
@@ -153,6 +156,15 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.auth',
             'admin.auth-2factor',
             'admin.bootstrap2',
+        ],
+        // Exment Web page. custom verify
+        'adminweb' => [
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \Exceedone\Exment\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
         // Exment API page
         'adminapi' => [
@@ -175,7 +187,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.log',
             'bindings',
         ],
-        // If call exment's parts. Add
+        // Extends web middleware If call exment's parts by user, please Add
         'exment_web' => [
             'admin.initialize',
             'admin.morph',
@@ -333,7 +345,7 @@ class ExmentServiceProvider extends ServiceProvider
         // Extend --------------------------------------------------
         Auth::provider('exment-auth', function ($app, array $config) {
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...
-            return new Providers\CustomUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
+            return new Providers\LoginUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
         });
         
         \Validator::resolver(function ($translator, $data, $rules, $messages, $customAttributes) {

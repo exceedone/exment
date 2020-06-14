@@ -10,6 +10,10 @@ use Exceedone\Exment\ConditionItems\ConditionItemBase;
  */
 class ChangeFieldRule implements Rule
 {
+    protected $custom_table;
+    protected $label;
+    protected $target;
+
     public function __construct(?CustomTable $custom_table, $label, $target)
     {
         $this->custom_table = $custom_table;

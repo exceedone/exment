@@ -69,7 +69,7 @@ class Plugin extends ModelBase
     /**
      * Get All plugin ids, user has setting permission
      *
-     * @return void
+     * @return array|\Illuminate\Support\Collection
      */
     public static function getIdsHasSettingPermission()
     {
@@ -91,7 +91,7 @@ class Plugin extends ModelBase
     /**
      * Match(contain) plugin type using enum PluginType
      *
-     * @return void
+     * @return bool is match plugin type. if $plugin_types is multiple, whether contains.
      */
     public function matchPluginType($plugin_types)
     {
@@ -193,13 +193,11 @@ class Plugin extends ModelBase
      */
     public function getClass($plugin_type, $options = [])
     {
-        extract(
-            array_merge(
-                [
-                'throw_ex' => true,
-                ],
-                $options
-            )
+        $options = array_merge(
+            [
+            'throw_ex' => true,
+            ],
+            $options
         );
 
         if (is_null($plugin_type)) {
@@ -209,7 +207,7 @@ class Plugin extends ModelBase
             $class = PluginType::getPluginClass($plugin_type, $this, $options);
         }
         
-        if (!isset($class) && $throw_ex) {
+        if (!isset($class) && $options['throw_ex']) {
             throw new \Exception('plugin not found');
         }
 
@@ -591,7 +589,7 @@ class Plugin extends ModelBase
     /**
      * Get route uri for page
      *
-     * @return void
+     * @return string
      */
     public function getRouteUri($endpoint = null)
     {
@@ -602,7 +600,7 @@ class Plugin extends ModelBase
      * Get option uri.
      * set snake_case.
      *
-     * @return void
+     * @return string
      */
     public function getOptionUri()
     {

@@ -18,7 +18,7 @@ class Yesno extends CustomItem
 
     public function text()
     {
-        return boolval($this->value) ? 'YES' : 'NO';
+        return getYesNo($this->value);
     }
 
     public function saving()
@@ -60,8 +60,8 @@ class Yesno extends CustomItem
     public function getImportValueOption()
     {
         return [
-            0    => 'NO',
-            1    => 'YES',
+            0    => getYesNo(0),
+            1    => getYesNo(1),
         ];
     }
 

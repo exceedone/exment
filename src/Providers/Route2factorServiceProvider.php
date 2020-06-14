@@ -28,7 +28,7 @@ class Route2factorServiceProvider extends ServiceProvider
         Route::group([
             'prefix'        => config('admin.route.prefix'),
             'namespace'     => $this->namespace,
-            'middleware'    => config('admin.route.middleware'),
+            'middleware'    => ['adminweb', 'admin'],
         ], function (Router $router) {
             $router->get('auth-2factor', 'Auth2factorController@index');
             $router->post('auth-2factor/verify', 'Auth2factorController@verify');

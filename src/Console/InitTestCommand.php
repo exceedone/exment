@@ -47,10 +47,11 @@ class InitTestCommand extends Command
             return;
         }
 
+        $this->call('cache:clear');
+        
         $this->call('migrate:reset');
 
         System::clearCache();
-        
         $this->call('exment:install');
 
         System::clearCache();

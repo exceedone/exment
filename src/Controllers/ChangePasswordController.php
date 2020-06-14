@@ -36,9 +36,13 @@ class ChangePasswordController extends Controller
      */
     public function showChangeForm(Request $request)
     {
-        return view('exment::auth.change')->with(
-            $this->getLoginPageData()
-        );
+        $data = $this->getLoginPageData();
+        if ($request->session()->has(Define::SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD)) {
+            $data['caption'] = exmtrans('user.help.first_change_password');
+        } else {
+            $data['caption'] = exmtrans('user.help.password_change');
+        }
+        return view('exment::auth.change')->with($data);
     }
 
     /**
@@ -57,6 +61,7 @@ class ChangePasswordController extends Controller
         $this->changePassword($user, $password);
 
         $request->session()->forget(Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT);
+        $request->session()->forget(Define::SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD);
 
         admin_toastr(exmtrans('user.message.change_succeeded'));
         return redirect(admin_url('auth/login'));
@@ -73,6 +78,7 @@ class ChangePasswordController extends Controller
     {
         // password sets at LoginUser Model
         $user->password = $password;
+        $user->password_reset_flg = false;
         $user->saveOrFail();
     }
 }

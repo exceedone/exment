@@ -23,7 +23,7 @@ class ErrorController extends Controller
      */
     public function error(Request $request, $exception)
     {
-        return response(Admin::content(function (Content $content) use ($request, $exception) {
+        return response(Admin::content(function (Content $content) use ($exception) {
             $content->header(exmtrans('error.header'));
             $content->description(exmtrans('error.description'));
 

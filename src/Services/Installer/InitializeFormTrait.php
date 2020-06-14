@@ -19,7 +19,7 @@ trait InitializeFormTrait
      *
      * @param [type] $routeName
      * @param boolean $add_template
-     * @return void
+     * @return WidgetForm
      */
     protected function getInitializeForm($routeName, $add_template = false)
     {
@@ -98,7 +98,7 @@ trait InitializeFormTrait
         return $form;
     }
     
-    protected function postInitializeForm(Request $request, $group = null, $initialize = false, $advanced = false)
+    protected function postInitializeForm(Request $request, $group = null, $initialize = false, $validateUser = false)
     {
         $rules = [
             'site_name' => 'max:30',
@@ -111,7 +111,7 @@ trait InitializeFormTrait
                 'email' => 'required|email',
                 'password' => get_password_rule(true, null),
             ]);
-        } elseif (!$advanced) {
+        } elseif ($validateUser) {
             $rules = array_merge($rules, [
                 'system_admin_users' => 'required',
             ]);

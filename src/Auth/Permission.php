@@ -183,6 +183,8 @@ class Permission
             case "auth-2factor":
             case "auth/login":
             case "auth/logout":
+            case "saml/login":
+            case "saml/logout":
             case "auth/setting":
             case "auth/reset":
             case "auth/change":
@@ -198,6 +200,7 @@ class Permission
             ///// only system permission
             case "system":
             case "backup":
+            case "login_setting":
             case "database":
             case "auth/menu":
             case "auth/logs":
@@ -319,7 +322,7 @@ class Permission
             }
 
             // if $uri is "auth", get next uri.
-            if (in_array($uri, array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['auth', 'plugins']))) {
+            if (in_array($uri, array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['auth', 'saml', 'plugins']))) {
                 // but url is last item, return $uri.
                 if (count($uris) <= $k+1) {
                     return $uri;

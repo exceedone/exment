@@ -35,7 +35,7 @@ class CustomTableController extends AdminControllerBase
 
     protected $exists = false;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.header"), exmtrans("custom_table.description"), 'fa-table');
     }
@@ -142,7 +142,7 @@ class CustomTableController extends AdminControllerBase
 
         $form->exmheader(exmtrans('common.detail_setting'))->hr();
 
-        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
             $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1")
@@ -223,7 +223,7 @@ class CustomTableController extends AdminControllerBase
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::getEloquent($id);
-                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'default_setting'))->render());
+                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'default_setting')));
             }
         });
         
@@ -231,7 +231,7 @@ class CustomTableController extends AdminControllerBase
             $this->exists = $form->model()->exists;
         });
 
-        $form->savedInTransaction(function (Form $form) use ($id) {
+        $form->savedInTransaction(function (Form $form) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
             // if has value 'add_parent_menu', add menu
@@ -241,7 +241,7 @@ class CustomTableController extends AdminControllerBase
             $this->addNotifyAfterSaved($model);
         });
 
-        $form->saved(function (Form $form) use ($id) {
+        $form->saved(function (Form $form) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
             $model->createTable();
@@ -262,7 +262,7 @@ class CustomTableController extends AdminControllerBase
     /**
      * Render `delete` button.
      *
-     * @return string
+     * @return ?string
      */
     protected function confirmDeleteButton($id = null)
     {
@@ -402,7 +402,7 @@ HTML;
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::getEloquent($id);
-                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting'))->render());
+                $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
             }
         });
         

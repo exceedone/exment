@@ -49,7 +49,7 @@ class Driver extends EnumBase
      *
      * @param [type] $configKey
      * @param [type] $driver
-     * @return void
+     * @return array
      */
     public static function mergeFileConfig($baseConfigKey, $mergeConfigKey, $mergeFrom)
     {

@@ -7,7 +7,9 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Auth\ApiKeyGrant;
+use Exceedone\Exment\Auth\PasswordGrant;
 use Exceedone\Exment\Enums\SystemTableName;
+use Laravel\Passport\Bridge;
 use Laravel\Passport\Bridge\RefreshTokenRepository;
 use League\OAuth2\Server\AuthorizationServer;
 use Laravel\Passport\Passport;
@@ -163,7 +165,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
         return [
             'prefix' => url_join(config('admin.route.prefix'), 'oauth'),
             'namespace' => '\Laravel\Passport\Http\Controllers',
-            'middleware' => ['web', 'adminapioauth'],
+            'middleware' => ['adminweb', 'adminapioauth'],
         ];
     }
 
@@ -176,6 +178,11 @@ class RouteOAuthServiceProvider extends ServiceProvider
                 $this->makeApiKeyGrant(),
                 Passport::tokensExpireIn()
             );
+
+            app(AuthorizationServer::class)->enableGrantType(
+                $this->makePasswordGrant(),
+                Passport::tokensExpireIn()
+            );
         }
     }
 
@@ -183,6 +190,18 @@ class RouteOAuthServiceProvider extends ServiceProvider
     {
         $grant = new ApiKeyGrant(
             $this->app->make(RefreshTokenRepository::class)
+        );
+
+        $grant->setRefreshTokenTTL(Passport::refreshTokensExpireIn());
+
+        return $grant;
+    }
+
+    protected function makePasswordGrant()
+    {
+        $grant = new PasswordGrant(
+            $this->app->make(Bridge\UserRepository::class),
+            $this->app->make(Bridge\RefreshTokenRepository::class)
         );
 
         $grant->setRefreshTokenTTL(Passport::refreshTokensExpireIn());

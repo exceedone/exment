@@ -67,14 +67,22 @@ class Define
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'advanced'],
         'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'advanced'],
 
+        // name is "flg", but array is OK.
         'grid_filter_disable_flg' => ['type' => 'array', 'default' => '', 'group' => 'advanced'] ,
-
-        'complex_password' => ['type' => 'boolean', 'group' => 'advanced', 'default' => false],
-        'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
-        'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
 
         'web_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
         'api_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
+
+        'complex_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
+        'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
+        'first_change_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
+        'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
+
+        'show_default_login_provider' => ['type' => 'boolean', 'default' => '1', 'group' => 'login'],
+        'sso_redirect_force' => ['type' => 'boolean', 'default' => '0', 'group' => 'login'],
+        'sso_jit' => ['type' => 'boolean', 'default' => '0', 'group' => 'login'],
+        'sso_accept_mail_domain' => ['default' => '', 'group' => 'login'],
+        'jit_rolegroups' => ['type' => 'array', 'default' => '', 'group' => 'login'],
 
         // org_joined_type
         'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'advanced'],
@@ -145,9 +153,12 @@ class Define
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
     public const SYSTEM_KEY_SESSION_PROVIDER_TOKEN = "provider_token";
+    public const SYSTEM_KEY_SESSION_SAML_SESSION = "saml_session";
+    public const SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE = "sso_test_message";
     public const SYSTEM_KEY_SESSION_PLUGINS = "plugins";
     public const SYSTEM_KEY_SESSION_PLUGIN_ALL_SETTING_IDS = "plugin_all_setting_ids";
     public const SYSTEM_KEY_SESSION_PASSWORD_LIMIT = "password_limit";
+    public const SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD = "first_change_password";
     public const SYSTEM_KEY_SESSION_HAS_WORLFLOW = "has_worlflow";
     public const SYSTEM_KEY_SESSION_WORKFLOW_SELECT_TABLE = "workflow_select_table_%s";
     public const SYSTEM_KEY_SESSION_WORKFLOW_DESIGNATED_TABLE = "workflow_designated_table_%s";
@@ -213,6 +224,10 @@ class Define
         'api_setting' => [
             'uri' => 'api_setting',
             'icon' => 'fa-code-fork',
+        ],
+        'login_setting' => [
+            'uri' => 'login_setting',
+            'icon' => 'fa-sign-in',
         ],
     ];
 
@@ -378,6 +393,7 @@ class Define
         ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
         ['uri'=> 'system', 'help_uri'=> 'system_setting'],
         ['uri'=> 'workflow', 'help_uri'=> 'workflow_setting'],
+        ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
 
@@ -399,4 +415,22 @@ class Define
     public const DISKNAME_TEMPLATE_SYNC = 'template_sync';
 
     public const CHARTITEM_LABEL = 'chartitem_label';
+
+    public const SAML_NAME_ID_FORMATS = [
+        'NAMEID_EMAIL_ADDRESS' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+        'NAMEID_X509_SUBJECT_NAME' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName',
+        'NAMEID_WINDOWS_DOMAIN_QUALIFIED_NAME' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:WindowsDomainQualifiedName',
+        'NAMEID_UNSPECIFIED' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+        'NAMEID_KERBEROS  ' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:kerberos',
+        'NAMEID_ENTITY    ' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:entity',
+        'NAMEID_TRANSIENT ' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+        'NAMEID_PERSISTENT' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
+        'NAMEID_ENCRYPTED' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:encrypted',
+    ];
+
+    public const ATTRIBUTE_NAME_FORMATS = [
+        'ATTRNAME_FORMAT_UNSPECIFIED' => 'urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified',
+        'ATTRNAME_FORMAT_URI' => 'urn:oasis:names:tc:SAML:2.0:attrname-format:uri',
+        'ATTRNAME_FORMAT_BASIC' => 'urn:oasis:names:tc:SAML:2.0:attrname-format:basic',
+    ];
 }

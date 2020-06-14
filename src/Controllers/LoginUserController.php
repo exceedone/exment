@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\PartialCrudItems\Providers\LoginUserItem;
@@ -18,7 +19,7 @@ class LoginUserController extends AdminControllerBase
 {
     use HasResourceActions;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("user.header"), exmtrans("user.header"), exmtrans("user.description"), 'fa-user-plus');
     }
@@ -65,7 +66,7 @@ class LoginUserController extends AdminControllerBase
         $service = $this->getImportExportService($grid);
         $grid->exporter($service);
         
-        $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
+        $grid->tools(function (Grid\Tools $tools) use ($grid) {
             $tools->append(new Tools\ExportImportButton(admin_url('loginuser'), $grid, false, true));
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
@@ -115,8 +116,7 @@ class LoginUserController extends AdminControllerBase
 
         LoginUserItem::getItem()->setAdminFormOptions($form, $id);
 
-        $showLoginInfo = useLoginProvider() && !boolval(config('exment.show_default_login_provider', true));
-        if ($showLoginInfo) {
+        if (!LoginSetting::isUseDefaultLoginForm()) {
             $form->disableSubmit();
         }
         $form->disableReset();
@@ -147,7 +147,7 @@ class LoginUserController extends AdminControllerBase
             admin_error('Error', exmtrans('error.mailsend_failed'));
             DB::rollback();
             return back()->withInput();
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             DB::rollback();
             throw $ex;
         }
