@@ -493,20 +493,20 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         });
 
         $user = \Exment::user();
-        if(!isset($user)){
+        if (!isset($user)) {
             return;
         }
 
         if (hasTable(getDBTableName(SystemTableName::USER, false))) {
-            $query->orWhere(function ($qry) use($user) {
+            $query->orWhere(function ($qry) use ($user) {
                 $qry->where('view_type', ViewType::USER)
                     ->where('created_user_id', $user->getUserId());
-            })->orWhereHas('data_authoritable_users', function ($qry) use($user) {
+            })->orWhereHas('data_authoritable_users', function ($qry) use ($user) {
                 $qry->where('authoritable_target_id', $user->getUserId());
             });
         }
         if (hasTable(getDBTableName(SystemTableName::ORGANIZATION, false))) {
-            $query->orWhereHas('data_authoritable_organizations', function ($qry) use($user) {
+            $query->orWhereHas('data_authoritable_organizations', function ($qry) use ($user) {
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                 $qry->whereIn('authoritable_target_id', $user->getOrganizationIds($enum));
             });
