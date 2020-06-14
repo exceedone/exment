@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\DataShareAuthoritable;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\GroupCondition;
@@ -122,28 +123,29 @@ class CustomViewController extends AdminControllerTableBase
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
         });
 
-        if (isset($this->custom_table)) {
-            $grid->model()->where('custom_table_id', $this->custom_table->id);
-            $custom_table = $this->custom_table;
-        }
+        $grid->model()->where('custom_table_id', $this->custom_table->id);
+        $custom_table = $this->custom_table;
 
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
-            if (isset($custom_table)) {
-                $table_name = $custom_table->table_name;
-            }
-            if (boolval($actions->row->disabled_delete)) {
-                $actions->disableDelete();
-            }
-            if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
-                intval($actions->row->view_kind_type) === Enums\ViewKindType::CALENDAR) {
+            $table_name = $custom_table->table_name;
+            if (boolval($actions->row->hasEditPermission())) {
+                if (boolval($actions->row->disabled_delete)) {
+                    $actions->disableDelete();
+                }
+                if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
+                    intval($actions->row->view_kind_type) === Enums\ViewKindType::CALENDAR) {
+                    $actions->disableEdit();
+                    
+                    $linker = (new Linker)
+                        ->url(admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type)
+                        ->icon('fa-edit')
+                        ->tooltip(trans('admin.edit'));
+                    $actions->prepend($linker);
+                }
+            } else {
                 $actions->disableEdit();
-                
-                $linker = (new Linker)
-                    ->url(admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type)
-                    ->icon('fa-edit')
-                    ->tooltip(trans('admin.edit'));
-                $actions->prepend($linker);
+                $actions->disableDelete();
             }
             // if ($actions->row->disabled_delete) {
             //     $actions->disableDelete();
@@ -353,7 +355,7 @@ class CustomViewController extends AdminControllerTableBase
 
             case Enums\ViewKindType::CALENDAR:
                 // columns setting
-                $hasmany = $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
+                $hasmany = $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_start_date"))
                         ->required()
                         ->options($this->custom_table->getDateColumnsSelectOptions());
@@ -374,7 +376,7 @@ class CustomViewController extends AdminControllerTableBase
             default:
                 if ($view_kind_type != Enums\ViewKindType::FILTER) {
                     // columns setting
-                    $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
+                    $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) {
                         $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                             ->options($this->custom_table->getColumnsSelectOptions([
                                 'append_table' => true,
@@ -394,7 +396,7 @@ class CustomViewController extends AdminControllerTableBase
                 }
 
                 // sort setting
-                $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
+                $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                     ->options($this->custom_table->getColumnsSelectOptions([
                         'append_table' => true,
@@ -447,9 +449,14 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
 
-        $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table) {
-            $tools->add((new Tools\CustomTableMenuButton('view', $custom_table, false))->render());
+        $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table, $view_type) {
+            $tools->add((new Tools\CustomTableMenuButton('view', $custom_table)));
 
+            if ($view_type == Enums\ViewType::USER) {
+                $tools->append(new Tools\ShareButton($id, 
+                    admin_urls(Enums\ShareTargetType::VIEW()->lowerkey(), $custom_table->table_name, $id, "shareClick")));
+            }
+    
             if (isset($suuid)) {
                 $tools->append(view('exment::tools.button', [
                     'href' => $custom_table->getGridUrl(true, ['view' => $suuid]),
@@ -609,5 +616,32 @@ class CustomViewController extends AdminControllerTableBase
         $item->filterKind(Enums\FilterKind::VIEW);
 
         return $item;
+    }
+
+    /**
+     * create share form
+     */
+    public function shareClick(Request $request, $tableKey, $id)
+    {
+        // get custom view
+        $custom_view = CustomView::getEloquent($id);
+
+        $form = DataShareAuthoritable::getShareDialogForm($custom_view, $tableKey);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.shared')
+        ]);
+    }
+
+    /**
+     * set share users organizations
+     */
+    public function sendShares(Request $request, $tableKey, $id)
+    {
+        // get custom view
+        $custom_view = CustomView::getEloquent($id);
+        return DataShareAuthoritable::saveShareDialogForm($custom_view);
     }
 }

@@ -271,7 +271,7 @@ class CustomFormController extends AdminControllerTableBase
             'editmode' => isset($id),
             'form_view_name' => $form->form_view_name,
             'default_flg' => $form->default_flg?? '0',
-            'change_page_menu' => (new Tools\CustomTableMenuButton('form', $this->custom_table))->render()
+            'change_page_menu' => (new Tools\CustomTableMenuButton('form', $this->custom_table))
         ]));
     }
 
@@ -303,6 +303,7 @@ class CustomFormController extends AdminControllerTableBase
                 $custom_form_column_array['required'] = boolval(array_get($custom_form_column, 'required')) || boolval(array_get($custom_form_column, 'custom_column.required'));
 
                 // get column view name
+                $column_view_name = null;
                 switch (array_get($custom_form_column, 'form_column_type')) {
                     case FormColumnType::COLUMN:
                         $custom_column = array_get($custom_form_column, 'custom_column');
@@ -431,7 +432,7 @@ class CustomFormController extends AdminControllerTableBase
      * If first request, set from database.
      * If not (ex. validation error), set from request value
      *
-     * @return void
+     * @return array|\Illuminate\Support\Collection
      */
     protected function getFormBlockItems($form)
     {
@@ -455,7 +456,7 @@ class CustomFormController extends AdminControllerTableBase
      * If first request, set from database.
      * If not (ex. validation error), set from request value
      *
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     protected function getFormColumns($custom_form_block)
     {
@@ -685,7 +686,7 @@ class CustomFormController extends AdminControllerTableBase
 
             DB::commit();
             return true;
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
             throw $exception;
@@ -693,7 +694,7 @@ class CustomFormController extends AdminControllerTableBase
     }
 
     // create form because we need for delete
-    protected function form()
+    protected function form($id = null)
     {
         return Admin::form(CustomForm::class, function (Form $form) {
         });

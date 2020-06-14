@@ -182,7 +182,7 @@ class MailSendJob implements ShouldQueue
      * Get User Mail Address
      *
      * @param [type] $users
-     * @return void
+     * @return array
      */
     protected function getAddress($users)
     {

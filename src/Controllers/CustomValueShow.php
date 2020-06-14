@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Layout\Row;
 use Exceedone\Exment\Form\Show;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
@@ -17,6 +18,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -108,7 +110,7 @@ trait CustomValueShow
                             continue;
                         }
                         $field = $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
-                            ->as(function ($v) use ($form_column, $item) {
+                            ->as(function ($v) use ($item) {
                                 if (is_null($this)) {
                                     return '';
                                 }
@@ -162,9 +164,11 @@ trait CustomValueShow
                     $tools->disableList();
                 } elseif (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
+                    
                     if ($this->custom_table->enableTableMenuButton()) {
-                        $tools->append((new Tools\CustomTableMenuButton('data', $this->custom_table))->render());
+                        $tools->append((new Tools\CustomTableMenuButton('data', $this->custom_table)));
                     }
+
                     $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_SHOW, $this->custom_table);
                     $copyButtons = $this->custom_table->from_custom_copies;
                     $notifies = $this->custom_table->notifies;
@@ -200,7 +204,8 @@ trait CustomValueShow
 
                         // check share permission.
                         if ($custom_value->enableShare() === true) {
-                            $tools->append(new Tools\ShareButton($this->custom_table, $id));
+                            $tools->append(new Tools\ShareButton($id, 
+                                admin_urls('data', $this->custom_table->table_name, $id, "shareClick")));
                         }
                     }
                     // only trashed
@@ -403,7 +408,7 @@ trait CustomValueShow
 
         $change_page_menu = null;
         if ($this->custom_table->enableTableMenuButton()) {
-            $change_page_menu = (new Tools\CustomTableMenuButton('data', $this->custom_table))->render();
+            $change_page_menu = (new Tools\CustomTableMenuButton('data', $this->custom_table));
         }
 
         $prms = [

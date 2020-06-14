@@ -469,63 +469,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ], $options)
         );
 
-        // get fields for validation
-        $rules = [];
-        $fields = [];
+        // get rules for validation
+        $rules = $this->getValidateRules($value, $custom_value, $options);
 
         // get custom attributes
         $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
 
-        foreach ($this->custom_columns_cache as $custom_column) {
-            $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value, null, $column_name_prefix, true, true);
-
-            // if not contains $value[$custom_column->column_name], set as null.
-            // if not set, we cannot validate null check because $field->getValidator returns false.
-            if (is_null($custom_value) && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
-                array_set($value, $column_name_prefix.$custom_column->column_name, null);
-            }
-        }
-        
-        // create parent type validation array
-        if ($systemColumn) {
-            $custom_relation_parent = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
-            $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
-            
-            if (!isset($custom_table_parent)) {
-                $parent_id_rules = [new EmptyRule];
-            } elseif (!$checkCustomValueExists) {
-                $parent_id_rules = ['nullable', 'numeric'];
-            } else {
-                $parent_id_rules = ['nullable', 'numeric', new CustomValueRule($custom_table_parent)];
-            }
-            $parent_type_rules = isset($custom_table_parent) ? ['nullable', "in:". $custom_table_parent->table_name] : [new EmptyRule];
-    
-            // create common validate rules.
-            $rules = array_merge([
-                'id' => ['nullable', 'numeric'],
-                'parent_id' => $parent_id_rules,
-                'parent_type' => $parent_type_rules,
-                'suuid' => ['nullable', 'regex:/^[a-z0-9]{20}$/'],
-                'created_at' => ['nullable', 'date'],
-                'updated_at' => ['nullable', 'date'],
-                'deleted_at' => ['nullable', 'date'],
-            ], $rules);
-        }
-
-        // foreach for field validation rules
-        foreach ($fields as $field) {
-            // get field validator
-            $field_validator = $field->getValidator($value);
-            if (!$field_validator) {
-                continue;
-            }
-            // get field rules
-            $field_rules = $field_validator->getRules();
-
-            // merge rules
-            $rules = array_merge($field_rules, $rules);
-        }
-        
         // execute validation
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
@@ -583,6 +532,80 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         
         return $customAttributes;
+    }
+    
+    /**
+     * get validation rules
+     */
+    public function getValidateRules($value, $custom_value = null, array $options = [])
+    {
+        extract(
+            array_merge([
+                'systemColumn' => false,  // whether checking system column
+                'column_name_prefix' => null,  // appending error key's prefix, and value prefix
+                'appendKeyName' => true, // whether appending key name if eror
+                'checkCustomValueExists' => true, // whether checking require custom column
+            ], $options)
+        );
+
+        // get fields for validation
+        $rules = [];
+        $fields = [];
+
+        // get custom attributes
+        $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
+
+        foreach ($this->custom_columns_cache as $custom_column) {
+            $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value, null, $column_name_prefix, true, true);
+
+            // if not contains $value[$custom_column->column_name], set as null.
+            // if not set, we cannot validate null check because $field->getValidator returns false.
+            if (is_null($custom_value) && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
+                array_set($value, $column_name_prefix.$custom_column->column_name, null);
+            }
+        }
+
+        // create parent type validation array
+        if ($systemColumn) {
+            $custom_relation_parent = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
+            $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
+            
+            if (!isset($custom_table_parent)) {
+                $parent_id_rules = [new EmptyRule];
+            } elseif (!$checkCustomValueExists) {
+                $parent_id_rules = ['nullable', 'numeric'];
+            } else {
+                $parent_id_rules = ['nullable', 'numeric', new CustomValueRule($custom_table_parent)];
+            }
+            $parent_type_rules = isset($custom_table_parent) ? ['nullable', "in:". $custom_table_parent->table_name] : [new EmptyRule];
+
+            // create common validate rules.
+            $rules = array_merge([
+                'id' => ['nullable', 'numeric'],
+                'parent_id' => $parent_id_rules,
+                'parent_type' => $parent_type_rules,
+                'suuid' => ['nullable', 'regex:/^[a-z0-9]{20}$/'],
+                'created_at' => ['nullable', 'date'],
+                'updated_at' => ['nullable', 'date'],
+                'deleted_at' => ['nullable', 'date'],
+            ], $rules);
+        }
+
+        // foreach for field validation rules
+        foreach ($fields as $field) {
+            // get field validator
+            $field_validator = $field->getValidator($value);
+            if (!$field_validator) {
+                continue;
+            }
+            // get field rules
+            $field_rules = $field_validator->getRules();
+
+            // merge rules
+            $rules = array_merge($field_rules, $rules);
+        }
+
+        return $rules;
     }
     
     public function validatorMultiUniques($input, $custom_value = null, array $options = [])
@@ -1987,7 +2010,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @param null|int|string $id CustomValue's id
      * @param bool $withTrashed if true, get already trashed value.
-     * @return CustomValue CustomValue's model.
+     * @return ?CustomValue CustomValue's model.
      */
     public function getValueModel($id = null, $withTrashed = false)
     {

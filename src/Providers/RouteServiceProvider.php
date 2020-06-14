@@ -8,6 +8,7 @@ use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
 
@@ -44,7 +45,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'        => config('admin.route.prefix'),
             'namespace'     => $this->namespace,
-            'middleware'    => config('admin.route.middleware'),
+            'middleware'    => ['adminweb', 'admin'],
         ], function (Router $router) {
             $router->get('/', 'DashboardController@home');
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
@@ -52,6 +53,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('dashboard', 'DashboardController');
             $router->get("dashboardbox/table_views/{dashboard_type}", 'DashboardBoxController@tableViews');
             $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');
+            $router->get("dashboard/{id}/shareClick", 'DashboardController@shareClick');
+            $router->post("dashboard/{id}/sendShares", 'DashboardController@sendShares');
             $router->resource('dashboardbox', 'DashboardBoxController');
         
             $router->resource('auth/logs', 'LogController', ['except' => ['create', 'edit']]);
@@ -65,8 +68,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system/update', 'SystemController@updatePackage');
             $router->put('system/filedelete', 'SystemController@filedelete');
             $router->get('system/version', 'SystemController@version');
-            $router->post('system/2factor-verify', 'SystemController@auth_2factor_verify');
-            $router->post('system/2factor', 'SystemController@post2factor');
             $router->post('system/send_testmail', 'SystemController@sendTestMail');
             
             $router->get('template', 'TemplateController@index');
@@ -87,16 +88,31 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
-
-            $router->resource('api_setting', 'ApiSettingController');
-            $router->resource('plugin', 'PluginController');
-            $router->resource('role_group', 'RoleGroupController');
-            $router->resource('table', 'CustomTableController');
-            $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
             
+            $router->post('login_setting/{id}/activate', 'LoginSettingController@activate')->name('exment.login_activate');
+            $router->post('login_setting/{id}/deactivate', 'LoginSettingController@deactivate')->name('exment.login_deactivate');
+            $router->get('login_setting/{id}/testModal', 'LoginSettingController@loginTestModal')->name('exment.logintest_modal');
+            $router->post('login_setting/{id}/testForm', 'LoginSettingController@loginTestForm')->name('exment.logintest_form');
+            $router->get('login_setting/{id}/testSso', 'LoginSettingController@loginTestSso')->name('exment.logintest_sso');
+            $router->get('login_setting/{id}/testcallback', 'LoginSettingController@loginTestCallback')->name('exment.logintest_callback');
+            $router->post('login_setting/{id}/testcallback', 'LoginSettingController@loginTestCallback')->name('exment.logintest_acs');
+            $router->post('login_setting/2factor-verify', 'LoginSettingController@auth_2factor_verify')->name('exment.2factor_verify');
+            $router->post('login_setting/2factor', 'LoginSettingController@post2factor')->name('exment.post2factor');
+            $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal')->name('exment.postglobal');
+
+            $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
+
             $router->get("workflow/beginning", 'WorkflowController@beginningForm');
             $router->post("workflow/beginning", 'WorkflowController@beginningPost');
-            $router->resource('workflow', 'WorkflowController');
+
+            $this->setResouce($router, 'login_setting', 'LoginSettingController');
+            $this->setResouce($router, 'api_setting', 'ApiSettingController');
+            $this->setResouce($router, 'plugin', 'PluginController');
+            $this->setResouce($router, 'role_group', 'RoleGroupController');
+            $this->setResouce($router, 'table', 'CustomTableController');
+            $this->setResouce($router, 'workflow', 'WorkflowController');
+
+
             $router->post('workflow/{id}/modal/target', 'WorkflowController@targetModal');
             $router->post('workflow/{id}/modal/condition', 'WorkflowController@conditionModal');
             $router->get("workflow/{id}/filter-value", 'WorkflowController@getFilterValue');
@@ -154,6 +170,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
+            $router->get("view/{tableKey}/{id}/shareClick", 'CustomViewController@shareClick');
+            $router->post("view/{tableKey}/{id}/sendShares", 'CustomViewController@sendShares');
 
             $router->post("column/{tableKey}/calcModal", 'CustomColumnController@calcModal');
             $router->post("column/{tableKey}/{id}/calcModal", 'CustomColumnController@calcModal');
@@ -192,12 +210,13 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'        => config('admin.route.prefix'),
             'namespace'     => $this->namespace,
-            'middleware'    => ['web', 'admin_anonymous'],
+            'middleware'    => ['adminweb', 'admin_anonymous'],
         ], function (Router $router) {
             $router->get('initialize', 'InitializeController@index');
             $router->post('initialize', 'InitializeController@post');
             $router->put('initialize/filedelete', 'InitializeController@filedelete');
-            $router->get('auth/login', 'AuthController@getLoginExment');
+            $router->get('auth/login', 'AuthController@getLoginExment')->name('exment.login');
+            $router->get('auth/logout', 'AuthController@getLogout')->name('exment.logout');
             $router->post('auth/login', 'AuthController@postLogin');
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
@@ -208,10 +227,18 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('favicon', 'FileController@downloadFavicon');
 
             // get config about login provider
-            $login_providers = config('exment.login_providers');
-            if (!is_nullorempty($login_providers)) {
-                $router->get('auth/login/{provider}', 'AuthController@getLoginProvider');
-                $router->get('auth/login/{provider}/callback', 'AuthController@callbackLoginProvider');
+            if (canConnection() && hasTable(SystemTableName::LOGIN_SETTINGS)) {
+                if (LoginSetting::getOAuthSettings()->count() > 0) {
+                    $router->get('auth/login/{provider}', 'AuthOAuthController@getLoginProvider');
+                    $router->get('auth/login/{provider}/callback', 'AuthOAuthController@callback');
+                }
+                // get config about login provider
+                if (LoginSetting::getSamlSettings()->count() > 0) {
+                    $router->get('saml/logout', 'AuthSamlController@sls')->name('exment.saml_sls');
+                    $router->get('saml/login/{provider}', 'AuthSamlController@login')->name('exment.saml_login');
+                    $router->get('saml/login/{provider}/metadata', 'AuthSamlController@metadata');
+                    $router->post('saml/login/{provider}/acs', 'AuthSamlController@acs')->name('exment.saml_acs');
+                }
             }
         });
     }
@@ -221,7 +248,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'        => config('admin.route.prefix'),
             'namespace'     => $this->namespace,
-            'middleware'    => ['web', 'admin_install'],
+            'middleware'    => ['adminweb', 'admin_install'],
         ], function (Router $router) {
             $router->get('install', 'InstallController@index');
             $router->post('install', 'InstallController@post');
@@ -232,7 +259,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         // define adminapi(for webapi), api(for web)
         $routes = [
-            ['type' => 'webapi', 'prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminwebapi'], 'addScope' => false],
+            ['type' => 'webapi', 'prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['adminweb', 'adminwebapi'], 'addScope' => false],
         ];
         
         if (canConnection() && hasTable(SystemTableName::SYSTEM) && System::api_available()) {
@@ -317,7 +344,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         // define adminapi(for webapi), api(for web)
         $routes = [
-            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi_anonymous']],
+            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['adminweb', 'adminapi_anonymous']],
             ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi_anonymous']],
         ];
         
@@ -339,13 +366,32 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function setTableResouce($router, $endpointName, $controllerName, $isShow = false)
     {
-        $router->get("{$endpointName}/{tableKey}", "$controllerName@index");
-        $router->get("{$endpointName}/{tableKey}/create", "$controllerName@create");
-        $router->post("{$endpointName}/{tableKey}", "$controllerName@store");
-        $router->get("{$endpointName}/{tableKey}/{id}/edit", "$controllerName@edit");
-        $router->put("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
+        $router->get("{$endpointName}/{tableKey}", "$controllerName@index")->name("exment.$endpointName.index");
+        $router->get("{$endpointName}/{tableKey}/create", "$controllerName@create")->name("exment.$endpointName.create");
+        $router->post("{$endpointName}/{tableKey}", "$controllerName@store")->name("exment.$endpointName.store");
+        $router->get("{$endpointName}/{tableKey}/{id}/edit", "$controllerName@edit")->name("exment.$endpointName.edit");
+        $router->put("{$endpointName}/{tableKey}/{id}", "$controllerName@update")->name("exment.$endpointName.update");
         $router->patch("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
-        $router->delete("{$endpointName}/{tableKey}/{id}", "$controllerName@destroy");
-        $router->get("{$endpointName}/{tableKey}/{id}", "$controllerName@show");
+        $router->delete("{$endpointName}/{tableKey}/{id}", "$controllerName@destroy")->name("exment.$endpointName.destroy");
+        $router->get("{$endpointName}/{tableKey}/{id}", "$controllerName@show")->name("exment.$endpointName.show");
+    }
+    
+    /**
+     * set resource.
+     * (Set names simply)
+     */
+    protected function setResouce($router, $endpointName, $controllerName, $isShow = false)
+    {
+        $names = [
+            'index' => "exment.$endpointName.index",
+            'create' => "exment.$endpointName.create",
+            'store' => "exment.$endpointName.store",
+            'edit' => "exment.$endpointName.edit",
+            'update' => "exment.$endpointName.update",
+            'delete' => "exment.$endpointName.delete",
+            'show' => "exment.$endpointName.show",
+        ];
+
+        $router->resource($endpointName, $controllerName)->names($names);
     }
 }

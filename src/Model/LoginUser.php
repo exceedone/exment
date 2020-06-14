@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Auth\HasPermissions;
-use Exceedone\Exment\Providers\CustomUserProvider;
+use Exceedone\Exment\Providers\LoginUserProvider;
 use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Traits\AdminBuilder;
 use Laravel\Passport\HasApiTokens;
@@ -92,14 +92,14 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         return !is_nullorempty($this->login_provider);
     }
     
-    public function findForPassport($username)
+    public function findForPassport($username, ?array $credentials = [])
     {
-        return CustomUserProvider::RetrieveByCredential(['username' => $username]);
+        return LoginUserProvider::RetrieveByCredential(array_merge(['username' => $username], $credentials));
     }
 
-    public function validateForPassportPasswordGrant($password)
+    public function validateForPassportPasswordGrant($password, ?array $credentials = [])
     {
-        return CustomUserProvider::ValidateCredential($this, ['password' => $password]);
+        return LoginUserProvider::ValidateCredential($this, array_merge(['password' => $password], $credentials));
     }
 
     /**

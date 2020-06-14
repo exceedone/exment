@@ -2,6 +2,12 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
+/**
+ * set Suuid automatic
+ *
+ * @method static \Illuminate\Support\Collection allRecords(\Closure $filter = null, $isGetAll = true, $with = [])
+ * @method static \Illuminate\Support\Collection allRecordsCache(\Closure $filter = null, $isGetAll = true, $with = [])
+ */
 trait AutoSUuidTrait
 {
     public static function bootAutoSUuidTrait()

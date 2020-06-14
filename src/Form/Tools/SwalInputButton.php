@@ -20,6 +20,8 @@ class SwalInputButton
     protected $icon;
     protected $confirmError;
     protected $btn_class;
+    protected $showCancelButton = true;
+    protected $type = 'warning';
     protected $method = 'POST';
 
     public function __construct($options = [])
@@ -39,8 +41,10 @@ class SwalInputButton
         $text = $this->text;
         $input = $this->input;
         $html = $this->html;
+        $type = $this->type;
         $method = $this->method;
         $confirmKeyword = $this->confirmKeyword;
+        $showCancelButton = $this->showCancelButton;
 
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
@@ -49,6 +53,7 @@ class SwalInputButton
 
         $('.btn-{$suuid}').unbind('click').click(function() {
             Exment.CommonEvent.ShowSwal("$url", {
+                type: "{$type}",
                 title: "{$title}",
                 text: "{$text}",
                 html: "{$html}",
@@ -56,6 +61,7 @@ class SwalInputButton
                 method: '{$method}',
                 confirm:"{$confirm}",
                 cancel:"{$cancel}",
+                showCancelButton: "{$showCancelButton}",
                 redirect: "{$redirectUrl}",
                 preConfirmValidate: function(input){
                     if('$input' != 'text'){

@@ -8,6 +8,55 @@ use Carbon\Carbon;
 use Storage;
 use Cache;
 
+/**
+ * System definition.
+ *
+* @method static string|void site_name($arg = null)
+* @method static string|void site_name_short($arg = null)
+* @method static string|void site_logo($arg = null)
+* @method static string|void site_logo_mini($arg = null)
+* @method static string|void site_favicon($arg = null)
+* @method static string|void site_skin($arg = null)
+* @method static string|void site_layout($arg = null)
+* @method static boolean|void api_available($arg = null)
+* @method static boolean|void outside_api($arg = null)
+* @method static boolean|void permission_available($arg = null)
+* @method static boolean|void organization_available($arg = null)
+* @method static string|void filter_search_type($arg = null)
+* @method static string|void system_mail_host($arg = null)
+* @method static string|void system_mail_port($arg = null)
+* @method static string|void system_mail_username($arg = null)
+* @method static string|void system_mail_password($arg = null)
+* @method static string|void system_mail_encryption($arg = null)
+* @method static string|void system_mail_from($arg = null)
+* @method static string|void default_date_format($arg = null)
+* @method static int|void grid_pager_count($arg = null)
+* @method static int|void datalist_pager_count($arg = null)
+* @method static array|void grid_filter_disable_flg($arg = null)
+* @method static boolean|void complex_password($arg = null)
+* @method static int|void password_expiration_days($arg = null)
+* @method static boolean|void first_change_password($arg = null)
+* @method static int|void password_history_cnt($arg = null)
+* @method static string|void web_ip_filters($arg = null)
+* @method static string|void api_ip_filters($arg = null)
+* @method static int|void org_joined_type_role_group($arg = null)
+* @method static int|void org_joined_type_custom_value($arg = null)
+* @method static int|void custom_value_save_autoshare($arg = null)
+* @method static boolean|void backup_enable_automatic($arg = null)
+* @method static int|void backup_automatic_term($arg = null)
+* @method static int|void backup_automatic_hour($arg = null)
+* @method static array|void backup_target($arg = null)
+* @method static datetime|void backup_automatic_executed($arg = null)
+* @method static int|void backup_history_files($arg = null)
+* @method static boolean|void login_use_2factor($arg = null)
+* @method static string|void login_2factor_provider($arg = null)
+* @method static array|void system_admin_users($arg = null)
+* @method static boolean|void show_default_login_provider($arg = null)
+* @method static boolean|void sso_redirect_force($arg = null)
+* @method static boolean|void sso_jit($arg = null)
+* @method static string|void sso_accept_mail_domain($arg = null)
+* @method static array|void jit_rolegroups($arg = null)
+ */
 class System extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
@@ -34,7 +83,7 @@ class System extends ModelBase
      *
      * @param string $key key name.
      * @param mixed $value setting value.
-     * @return void
+     * @return mixed
      */
     public static function requestSession($key, $value = null)
     {
@@ -58,7 +107,14 @@ class System extends ModelBase
         static::setRequestSession($key, $value);
     }
 
-    protected static function setRequestSession($key, $value)
+    /**
+     * Set Request Settion.
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return void
+     */
+    public static function setRequestSession($key, $value)
     {
         static::$requestSession[$key] = $value;
     }
@@ -81,7 +137,7 @@ class System extends ModelBase
      * @param string $key key name.
      * @param mixed $value setting value.
      * @param bool $onlySetTrue if this arg is true, set cache if val is true.
-     * @return void
+     * @return mixed
      */
     public static function cache($key, $value = null, $onlySetTrue = false)
     {

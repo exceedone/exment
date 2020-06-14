@@ -2,6 +2,12 @@
 
 namespace Exceedone\Exment\Controllers;
 
+/**
+ * Admin(Exment) Controller
+ *
+* @method \Encore\Admin\Grid grid()
+* @method \Encore\Admin\Form form($id = null)
+ */
 trait HasResourceTableActions
 {
     /**

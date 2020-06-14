@@ -26,12 +26,14 @@ class SystemTableName extends EnumBase
     const NOTIFY_NAVBAR = 'notify_navbars';
     const PASSWORD_RESET = 'password_resets';
     const REVISION = 'revisions';
+    const LOGIN_SETTINGS = 'login_settings';
     const WORKFLOW_AUTHORITY = 'workflow_authorities';
     const WORKFLOW = 'workflows';
     const WORKFLOW_TABLE = 'workflow_tables';
     const WORKFLOW_ACTION = 'workflow_actions';
     const WORKFLOW_VALUE = 'workflow_values';
     const WORKFLOW_VALUE_AUTHORITY = 'workflow_value_authorities';
+    const DATA_SHARE_AUTHORITABLE = 'data_share_authoritables';
 
     public static function SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY()
     {

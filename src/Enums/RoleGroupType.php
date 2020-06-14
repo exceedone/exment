@@ -2,6 +2,15 @@
 
 namespace Exceedone\Exment\Enums;
 
+/**
+ * Role Group Type Difinition.
+ *
+ * @method static ErrorCode SYSTEM()
+ * @method static ErrorCode TABLE()
+ * @method static ErrorCode MASTER()
+ * @method static ErrorCode PLUGIN()
+ * @method static ErrorCode ROLE_GROUP()
+ */
 class RoleGroupType extends EnumBase
 {
     const SYSTEM = "system";

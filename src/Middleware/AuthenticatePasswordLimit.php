@@ -18,8 +18,9 @@ class AuthenticatePasswordLimit extends \Encore\Admin\Middleware\Authenticate
      */
     public function handle($request, Closure $next)
     {
-        // not have Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT, go next
-        if (!$request->session()->has(Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT)) {
+        // not have Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT and SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD, go next
+        if (!$request->session()->has(Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT) &&
+            !$request->session()->has(Define::SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD)) {
             return $next($request);
         }
 

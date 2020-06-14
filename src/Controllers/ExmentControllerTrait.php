@@ -10,6 +10,7 @@ trait ExmentControllerTrait
     protected $title;
     protected $header;
     protected $description;
+    protected $headericon;
     
     protected function setPageInfo($title = null, $header = null, $description = null, $headericon = null)
     {

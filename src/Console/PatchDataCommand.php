@@ -26,6 +26,7 @@ use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Middleware\Morph;
 use Carbon\Carbon;
@@ -133,6 +134,9 @@ class PatchDataCommand extends Command
             case 'remove_stored_revision':
                 $this->removeStoredRevision();
                 return;
+            case 'login_type_sso':
+                $this->setLoginTypeSso();
+                // no break
             case 'patch_log_opelation':
                 $this->patchLogOpelation();
                 return;
@@ -876,6 +880,73 @@ class PatchDataCommand extends Command
             });
         });
     }
+    
+    /**
+     * setLoginType
+     *
+     * @return void
+     */
+    protected function setLoginTypeSso()
+    {
+        // patch login provider already logined.
+        \DB::table('login_users')->whereNotNull('login_provider')->where('login_type', LoginType::PURE)->update(['login_type' => LoginType::OAUTH]);
+
+        
+        // update system value
+        System::show_default_login_provider(config('exment.show_default_login_provider', true));
+
+
+        // move to config to database
+        $providers = stringToArray(config('exment.login_providers', ''));
+        foreach ($providers as $provider) {
+            $config = config("services.$provider");
+            if (is_nullorempty($config)) {
+                continue;
+            }
+
+            $oauth_provider_type = Enums\LoginProviderType::getEnum($provider);
+            $oauth_provider_name = !isset($oauth_provider_type) ? $provider : null;
+            $oauth_provider_type = isset($oauth_provider_type) ? $oauth_provider_type->getValue() : Enums\LoginProviderType::OTHER;
+            
+            // check has already executed
+            if (Model\LoginSetting::where('login_type', Enums\LoginType::OAUTH)
+            ->where('options->oauth_provider_type', $oauth_provider_type)
+            ->where('options->oauth_provider_name', $oauth_provider_name)
+            ->count() > 0) {
+                continue;
+            }
+
+            $name = array_get($config, 'display_name') ?? pascalize($provider);
+
+            $login_setting = new Model\LoginSetting([
+                'login_view_name' => $name,
+                'login_type' => Enums\LoginType::OAUTH,
+                'active_flg' => true,
+                'options' => [
+                    'oauth_provider_type' => $oauth_provider_type,
+                    'oauth_provider_name' => $oauth_provider_name,
+                    'oauth_client_id' => array_get($config, 'client_id'),
+                    'oauth_client_secret' => array_get($config, 'client_secret'),
+                    'oauth_redirect_url' => array_get($config, 'redirect'),
+                    'oauth_scope' => array_get($config, 'scope'),
+                    'login_button_label' => exmtrans('login.login_button_format', ['display_name' => $name]),
+                    'login_button_icon' => array_get($config, 'font_owesome'),
+                    'login_button_background_color' => array_get($config, 'background_color'),
+                    'login_button_background_color_hover' => array_get($config, 'background_color_hover'),
+                    'login_button_font_color' => array_get($config, 'font_color'),
+                    'login_button_font_color_hover' => array_get($config, 'font_color_hover'),
+
+                    'mapping_user_column' => 'email',
+                    'sso_jit' => false,
+                    'jit_rolegroups' => [],
+                    'update_user_info' => true,
+                ]
+            ]);
+
+            $login_setting->save();
+        }
+    }
+    
     /**
      * removeStoredRevision
      *

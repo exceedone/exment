@@ -54,7 +54,6 @@ if (!function_exists('getManualUrl')) {
     function getManualUrl($uri = null)
     {
         $manual_url_base = config('exment.manual_url');
-        ;
         // if ja, set
         if (config('app.locale') == 'ja') {
             $manual_url_base = url_join($manual_url_base, 'ja') . '/';
@@ -63,6 +62,7 @@ if (!function_exists('getManualUrl')) {
         return $manual_url_base;
     }
 }
+
 if (!function_exists('mbTrim')) {
     function mbTrim($pString)
     {
@@ -158,7 +158,9 @@ if (!function_exists('formatAttributes')) {
 
 if (!function_exists('is_nullorempty')) {
     /**
-     * validate string. null is true, "" is true, 0 and "0" is false.
+     * validate string, array, Collection and object.
+     *
+     * @return bool null is true, "" is true, 0 and "0" is false.
      */
     function is_nullorempty($obj)
     {
@@ -235,6 +237,19 @@ if (!function_exists('rmcomma')) {
         return str_replace(",", "", $value);
     }
 }
+if (!function_exists('trydecrypt')) {
+    /**
+     * decrypt if can, caanot return null
+     */
+    function trydecrypt($value)
+    {
+        try {
+            return isset($value) ? decrypt($value) : null;
+        } catch (\Exception $ex) {
+            return null;
+        }
+    }
+}
 
 // File, path  --------------------------------------------------
 if (!function_exists('exment_app_path')) {
@@ -290,6 +305,26 @@ if (!function_exists('admin_base_paths')) {
     }
 }
 
+if (!function_exists('admin_urls_query')) {
+    /**
+     * Join admin url paths and query. Please set last arg
+     */
+    function admin_urls_query(...$pass_array)
+    {
+        // get last arg
+        $args = func_get_args();
+        $count = count($args);
+        if (count($args) <= 1) {
+            return admin_urls($args);
+        }
+
+        $args = collect($args);
+        $query = $args->last();
+
+        $url = admin_urls(...$args->slice(0, $count - 1)->toArray());
+        return $url . '?' . http_build_query($query);
+    }
+}
 if (!function_exists('namespace_join')) {
     /**
      * Join NameSpace.
@@ -511,6 +546,32 @@ if (!function_exists('isApiEndpoint')) {
     }
 }
 
+if (!function_exists('isMatchRequest')) {
+    /**
+     * Is match uri from request
+     *
+     * @param array_string $uris
+     * @return boolean
+     */
+    function isMatchRequest($uris = null)
+    {
+        $request = app('request');
+
+        foreach (toArray($uris) as $uri) {
+            $uri = admin_base_path($uri);
+            
+            if ($uri !== '/') {
+                $uri = trim($uri, '/');
+            }
+
+            if ($request->is($uri)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
 
 if (!function_exists('deleteDirectory')) {
     /**
@@ -962,6 +1023,17 @@ if (!function_exists('explodeBreak')) {
     }
 }
 
+if (!function_exists('getYesNo')) {
+    /**
+     * get yes no label
+     * @return string
+     */
+    function getYesNo($value) : string
+    {
+        return boolval($value) ? 'YES' : 'NO';
+    }
+}
+
 // Laravel, laravel-admin --------------------------------------------------
 if (!function_exists('getModelName')) {
     /**
@@ -1078,12 +1150,13 @@ if (!function_exists('getDBTableName')) {
     /**
      * Get database table name.
      * @param string|CustomTable|array $obj
+     * @param bool $isThrow if true and not has database, throwing
      * @return string
      */
-    function getDBTableName($obj)
+    function getDBTableName($obj, $isThrow = true)
     {
         $obj = CustomTable::getEloquent($obj);
-        if (!isset($obj)) {
+        if (!isset($obj) && $isThrow) {
             throw new Exception('table name is not found. please tell system administrator.');
         }
         return 'exm__'.array_get($obj, 'suuid');
@@ -1148,36 +1221,26 @@ if (!function_exists('replaceTextFromFormat')) {
 if (!function_exists('shouldPassThrough')) {
     function shouldPassThrough($initialize = false)
     {
-        $request = app('request');
-        
         if ($initialize) {
             $excepts = [
-                admin_base_path('initialize'),
-                admin_base_path('install'),
-                admin_base_path('template/search'),
+                'initialize',
+                'install',
+                'template/search',
             ];
         } else {
             $excepts = [
-                admin_base_path('auth/login'),
-                admin_base_path('auth/logout'),
-                admin_base_path('auth/reset'),
-                admin_base_path('auth/forget'),
-                admin_base_path('initialize'),
-                admin_base_path('template/search'),
+                'auth/login',
+                'auth/logout',
+                'saml/login',
+                'saml/logout',
+                'auth/reset',
+                'auth/forget',
+                'initialize',
+                'template/search',
             ];
         }
 
-        foreach ($excepts as $except) {
-            if ($except !== '/') {
-                $except = trim($except, '/');
-            }
-
-            if ($request->is($except)) {
-                return true;
-            }
-        }
-
-        return false;
+        return isMatchRequest($excepts);
     }
 }
 
@@ -1222,7 +1285,7 @@ if (! function_exists('abortJson')) {
      * @param  \Symfony\Component\HttpFoundation\Response|int     $code
      * @param  string|array|ErrorCode  $message
      * @param  ErrorCode  $errorCode
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     function abortJson($code, $message = null, $errorCode = null)
     {
@@ -1249,7 +1312,9 @@ if (! function_exists('abortJson')) {
 if (!function_exists('getAjaxResponse')) {
     /**
      * get ajax response.
-     * using plugin, copy, data import/export
+     * using plugin, copy, data import/
+     *
+     * @return \Symfony\Component\HttpFoundation\Response Response for ajax json
      */
     function getAjaxResponse($results)
     {
@@ -1414,7 +1479,7 @@ if (!function_exists('getExmentCurrentVersion')) {
     /**
      * getExmentCurrentVersion
      *
-     * @return string this version in server
+     * @return string|null this version in server
      */
     function getExmentCurrentVersion()
     {
@@ -1611,43 +1676,27 @@ if (!function_exists('getUserName')) {
     }
 }
 
-if (!function_exists('useLoginProvider')) {
+if (!function_exists('admin_exclusion_path')) {
     /**
-     * use login provider
+     * Get admin exclusion url.
+     * Ex. admin/data/testtable to data/testtable
+     *
+     * @param string $path
+     *
+     * @return string
      */
-    function useLoginProvider()
+    function admin_exclusion_path($path = '')
     {
-        $config = config('exment.login_providers');
-        if (is_nullorempty($config)) {
-            return false;
-        } elseif (is_array($config)) {
-            return (count($config) > 0);
-        } else {
-            return true;
+        $path = trim($path, '/');
+
+        $prefix = trim(config('admin.route.prefix'), '/');
+
+        if (starts_with($path, $prefix)) {
+            $path = substr($path, strlen($prefix));
         }
-    }
 
-    if (!function_exists('admin_exclusion_path')) {
-        /**
-         * Get admin exclusion url.
-         *
-         * @param string $path
-         *
-         * @return string
-         */
-        function admin_exclusion_path($path = '')
-        {
-            $path = trim($path, '/');
+        $path = trim($path, '/');
 
-            $prefix = trim(config('admin.route.prefix'), '/');
-
-            if (starts_with($path, $prefix)) {
-                $path = substr($path, strlen($prefix));
-            }
-
-            $path = trim($path, '/');
-    
-            return $path?? '/';
-        }
+        return $path?? '/';
     }
 }

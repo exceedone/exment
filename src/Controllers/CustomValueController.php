@@ -264,7 +264,7 @@ class CustomValueController extends AdminControllerTableBase
         $form = $this->form($id);
         $fields = $form->builder()->fields();
         // filter file
-        $fields->filter(function ($field) use ($del_column_name) {
+        $fields->filter(function ($field) {
             return $field instanceof Field\Embeds;
         })->each(function ($field) use ($del_column_name, $id) {
             // get fields
@@ -727,6 +727,7 @@ class CustomValueController extends AdminControllerTableBase
  
         // id set, checking as update.
         // check for update
+        $code = null;
         if ($formActionType == CustomValuePageType::CREATE) {
             $code = $this->custom_table->enableCreate(true);
         } elseif ($formActionType == CustomValuePageType::EDIT) {

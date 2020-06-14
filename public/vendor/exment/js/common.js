@@ -93,7 +93,7 @@ var Exment;
          */
         static copyScriptEvent(ev) {
             let input = $(ev.target).closest('input');
-            if (input.prop('type') != 'text') {
+            if (input.prop('type') == 'password') {
                 return;
             }
             input.select();
@@ -125,7 +125,9 @@ var Exment;
                 else if (hasValue(res.swal)) {
                     swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'success');
                 }
-                $('.modal').modal('hide');
+                if (!hasValue(res.keepModal) || !res.keepModal) {
+                    $('.modal').modal('hide');
+                }
                 if (hasValue(resolve) && !hasValue(res.swal)) {
                     resolve(res);
                 }
@@ -192,7 +194,8 @@ var Exment;
                 method: 'POST',
                 data: [],
                 redirect: null,
-                preConfirmValidate: null
+                preConfirmValidate: null,
+                showCancelButton: true,
             }, options);
             let data = $.extend({
                 _pjax: true,
@@ -205,13 +208,16 @@ var Exment;
             let swalOptions = {
                 title: options.title,
                 type: options.type,
-                showCancelButton: true,
+                showCancelButton: options.showCancelButton,
                 confirmButtonColor: "#DD6B55",
                 confirmButtonText: options.confirm,
                 showLoaderOnConfirm: true,
                 allowOutsideClick: false,
                 cancelButtonText: options.cancel,
                 preConfirm: function (input) {
+                    if (!hasValue(url)) {
+                        return;
+                    }
                     $('.swal2-cancel').hide();
                     if (hasValue(options.preConfirmValidate)) {
                         var result = options.preConfirmValidate(input);

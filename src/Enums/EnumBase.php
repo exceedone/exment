@@ -32,6 +32,19 @@ class EnumBase extends Enum
     /**
      * convert trans Array.
      * value is enum value.
+     * text translates using enum value.
+     */
+    public static function transArrayFilter($base_key, $targetEnums, $isExment = true)
+    {
+        $arrays = collect(static::arrays())->filter(function ($arr) use ($targetEnums) {
+            return in_array($arr, $targetEnums);
+        })->toArray();
+        return getTransArray($arrays, $base_key, $isExment);
+    }
+
+    /**
+     * convert trans Array.
+     * value is enum value.
      * text translates using enum key.
      */
     public static function transKeyArray($base_key, $isExment = true)

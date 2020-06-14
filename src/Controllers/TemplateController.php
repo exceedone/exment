@@ -18,7 +18,7 @@ class TemplateController extends AdminControllerBase
 {
     use InitializeFormTrait;
     
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("template.header"), exmtrans("template.header"), exmtrans("template.description"), 'fa-clone');
     }

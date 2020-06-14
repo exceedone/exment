@@ -148,8 +148,8 @@ trait CustomValueGrid
                 }
 
                 if (!$custom_table->gridFilterDisable('workflow_work_users')) {
-                    $filterItems[] = function ($filter) use ($workflow, $custom_table) {
-                        $field = $filter->where(function ($query) use ($custom_table) {
+                    $filterItems[] = function ($filter) {
+                        $field = $filter->where(function ($query) {
                         }, exmtrans('workflow.login_work_user'))->checkbox([1 => 'YES']);
     
                         if (boolval(request()->get($field->getFilter()->getId()))) {
@@ -201,7 +201,7 @@ trait CustomValueGrid
         $service = $this->getImportExportService($grid);
         $grid->exporter($service);
         
-        $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
+        $grid->tools(function (Grid\Tools $tools) use ($grid) {
             $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::GRID_MENUBUTTON, $this->custom_table);
             
             // validate export and import

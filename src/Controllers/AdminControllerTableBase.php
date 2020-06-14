@@ -9,7 +9,13 @@ use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use App\Http\Controllers\Controller;
 
-class AdminControllerTableBase extends Controller
+/**
+ * Admin(Exment) Controller for root-table
+ *
+* @method \Encore\Admin\Grid grid()
+* @method \Encore\Admin\Form form($id = null)
+ */
+abstract class AdminControllerTableBase extends Controller
 {
     use ExmentControllerTrait;
 

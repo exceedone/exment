@@ -11,10 +11,24 @@ var Exment;
             $(document).on('pjax:complete', function (event) {
                 Exment.CommonEvent.AddEvent();
             });
+            $(document).off('click', '.click_disabled').on('click', '.click_disabled', {}, function (ev) {
+                // not working ".prop('disabled', true)" ... why??
+                $(ev.target).closest('.click_disabled').attr('disabled', 'true');
+            });
         }
         static AddEvent() {
             $('form').submit(function (ev) {
-                $(ev.target).find('.submit_disabled').prop('disabled', true);
+                let $button = $(ev.target).find('.submit_disabled');
+                if ($button.length > 1) {
+                    return true;
+                }
+                // create hidden 
+                $(ev.target).append($('<input />', {
+                    'name': $button.prop('name'),
+                    'value': $button.prop('value'),
+                    'type': 'hidden',
+                }));
+                $button.prop('disabled', true);
                 return true;
             });
         }

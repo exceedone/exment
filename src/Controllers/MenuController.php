@@ -25,7 +25,7 @@ class MenuController extends AdminControllerBase
 {
     use HasResourceActions, ExmentControllerTrait;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(trans('admin.menu'), trans('admin.menu'), exmtrans('menu.description'), 'fa-sitemap');
     }

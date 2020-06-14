@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\System;
 
 class LoginUserProvider extends ProviderBase
 {
@@ -141,6 +142,11 @@ class LoginUserProvider extends ProviderBase
         }
 
         if ($update_flg) {
+            // first password reset 
+            if (System::first_change_password() || 
+                boolval(array_get($data, 'password_reset_flg'))) {
+                $model->login_user->password_reset_flg = true;
+            }
             $model->login_user->password = $password;
             $model->login_user->save();
         }

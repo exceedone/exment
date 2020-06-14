@@ -98,7 +98,7 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         // set order by
-        if (isset($orderby_list)) {
+        if (!is_nullorempty($orderby_list)) {
             $hasId = false;
             foreach ($orderby_list as $item) {
                 if ($item[0] == 'id') {
@@ -658,7 +658,7 @@ class ApiTableController extends AdminControllerTableBase
      * Get root values from post data.
      * root value is ex. {"parent_type": "sales", "parent_id": 1, "value": {"sale_code": "XYZ", "sale_name": "Sample"}}
      *
-     * @return void
+     * @return array
      */
     protected function getRootValuesFromPost(Request $request, &$is_single)
     {
@@ -996,7 +996,7 @@ class ApiTableController extends AdminControllerTableBase
     /**
      * Modify logic for getting value
      *
-     * @return void
+     * @return \Illuminate\Pagination\LengthAwarePaginator|CustomValue
      */
     protected function modifyAfterGetValue(Request $request, $target, $options = [])
     {

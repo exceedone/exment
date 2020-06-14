@@ -16,7 +16,7 @@ use Carbon\Carbon;
  */
 class Google
 {
-    use AuthTrait, ThrottlesLogins;
+    use AuthTrait;
 
     public function __construct()
     {

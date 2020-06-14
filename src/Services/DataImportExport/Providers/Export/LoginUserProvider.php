@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 
@@ -71,6 +72,11 @@ class LoginUserProvider extends ProviderBase
             exmtrans('user.password'),
             exmtrans('user.send_password'),
         ];
+
+        if (!System::first_change_password()) {
+            $rows[0][] = 'password_reset_flg';
+            $rows[1][] = exmtrans('user.password_reset_flg');
+        }
 
         return $rows;
     }

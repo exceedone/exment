@@ -2,41 +2,104 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Auth\ThrottlesLogins;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Lang;
+use Symfony\Component\HttpFoundation\Response;
 
 trait AuthTrait
 {
+    use ThrottlesLogins;
+
+    protected $maxAttempts;
+    protected $decayMinutes;
+    protected $throttle;
+
     public function getLoginPageData($array = [])
     {
-        // whether using sso
-        $login_providers = config('exment.login_providers');
-        if (!is_null($login_providers)) {
-            if (is_string($login_providers)) {
-                $login_providers = explode(",", $login_providers);
-            }
+        $array['site_name'] = System::site_name();
 
-            // create login provider items for login page
-            $login_provider_items = [];
-            foreach ($login_providers as $login_provider) {
-                $login_provider_items[$login_provider] = [
-                    'font_owesome' => config("services.$login_provider.font_owesome", "fa-$login_provider"),
-                    'btn_name' => 'btn-'.$login_provider,
-                    'display_name' => config("services.$login_provider.display_name", pascalize($login_provider)),
-                    'background_color' => config("services.$login_provider.background_color"),
-                    'font_color' => config("services.$login_provider.font_color"),
-                    'background_color_hover' => config("services.$login_provider.background_color_hover"),
-                    'font_color_hover' => config("services.$login_provider.font_color_hover"),
-                ];
-            }
-
-            $array['login_providers'] = $login_provider_items;
-            $array['show_default_login_provider']= config('exment.show_default_login_provider', false);
-        } else {
+        // if sso_disabled is true
+        if (boolval(config('exment.custom_login_disabled', false))) {
             $array['login_providers'] = [];
-            $array['show_default_login_provider']= true;
+            $array['form_providers'] = [];
+            $array['show_default_login_provider'] = true;
+        } else {
+            // get login settings
+            $array['login_providers'] = LoginSetting::getSSOSettings()->mapWithKeys(function ($login_setting) {
+                return [$login_setting->provider_name => $login_setting->getLoginButton()];
+            })->toArray();
+            $array['form_providers'] = LoginSetting::getLdapSettings()->mapWithKeys(function ($login_setting) {
+                return [$login_setting->provider_name => $login_setting->getLoginButton()];
+            })->toArray();
+
+            $array['show_default_login_provider'] = LoginSetting::isUseDefaultLoginForm();
         }
 
-        $array['site_name'] = System::site_name();
+        $array['show_default_form'] = $array['show_default_login_provider'] || count($array['form_providers']) > 0;
+
         return $array;
+    }
+
+    protected function logoutSso(Request $request, $login_user, $options = [])
+    {
+        if ($login_user->login_type == LoginType::SAML) {
+            return $this->logoutSaml($request, $login_user->login_provider, $options);
+        }
+
+        return redirect(\URL::route('exment.login'));
+    }
+
+    /**
+     * Initiate a logout request across all the SSO infrastructure.
+     *
+     */
+    protected function logoutSaml(Request $request, $provider_name, $options = [])
+    {
+        $login_setting = LoginSetting::getSamlSetting($provider_name);
+        
+        // if not set ssout_url, return login
+        if (!isset($login_setting) || is_nullorempty($login_setting->getOption('saml_idp_ssout_url'))) {
+            return redirect(\URL::route('exment.login'));
+        }
+
+        $saml2Auth = LoginSetting::getSamlAuth($provider_name);
+        
+        $returnTo = route('exment.saml_sls');
+        $sessionIndex = array_get($options, Define::SYSTEM_KEY_SESSION_SAML_SESSION . '.sessionIndex');
+        $nameId = array_get($options, Define::SYSTEM_KEY_SESSION_SAML_SESSION . '.nameId');
+        $saml2Auth->logout($returnTo, $nameId, $sessionIndex, $login_setting->name_id_format_string); //will actually end up in the sls endpoint
+        //does not return
+    }
+    
+    /**
+     * Send the response after the user was authenticated.
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\Response
+     */
+    protected function sendLoginResponse(Request $request)
+    {
+        admin_toastr(trans('admin.login_successful'));
+
+        $request->session()->regenerate();
+
+        return redirect()->intended($this->redirectPath());
+    }
+
+    /**
+     * @return string|\Symfony\Component\Translation\TranslatorInterface
+     */
+    protected function getFailedLoginMessage()
+    {
+        if (Lang::has('exment::exment.error.login_failed')) {
+            return exmtrans('error.login_failed');
+        }
+        return parent::getFailedLoginMessage();
     }
 }
