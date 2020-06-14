@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Encore\Admin\Facades\Admin;
-use Exceedone\Exment\Enums\ShareTargetType;
 
 /**
  * Open Share button.

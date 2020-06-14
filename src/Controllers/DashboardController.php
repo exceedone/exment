@@ -305,8 +305,10 @@ EOT;
 
             // add share button
             if ($dashboard_type == DashboardType::USER) {
-                $tools->append(new ShareButton($id, 
-                    admin_urls(ShareTargetType::DASHBOARD()->lowerkey(), $id, "shareClick")));
+                $tools->append(new ShareButton(
+                    $id,
+                    admin_urls(ShareTargetType::DASHBOARD()->lowerkey(), $id, "shareClick")
+                ));
             }
     
             // addhome button

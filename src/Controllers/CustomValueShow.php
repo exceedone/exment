@@ -204,8 +204,10 @@ trait CustomValueShow
 
                         // check share permission.
                         if ($custom_value->enableShare() === true) {
-                            $tools->append(new Tools\ShareButton($id, 
-                                admin_urls('data', $this->custom_table->table_name, $id, "shareClick")));
+                            $tools->append(new Tools\ShareButton(
+                                $id,
+                                admin_urls('data', $this->custom_table->table_name, $id, "shareClick")
+                            ));
                         }
                     }
                     // only trashed

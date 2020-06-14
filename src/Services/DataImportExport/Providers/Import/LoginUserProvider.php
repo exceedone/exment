@@ -142,8 +142,8 @@ class LoginUserProvider extends ProviderBase
         }
 
         if ($update_flg) {
-            // first password reset 
-            if (System::first_change_password() || 
+            // first password reset
+            if (System::first_change_password() ||
                 boolval(array_get($data, 'password_reset_flg'))) {
                 $model->login_user->password_reset_flg = true;
             }
