@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
@@ -142,6 +143,9 @@ class PatchDataCommand extends Command
                 return;
             case 'plugin_all_user_enabled':
                 $this->patchAllUserEnabled();
+                return;
+            case 'view_column_suuid':
+                $this->patchViewColumnSuuid();
                 return;
         }
 
@@ -1013,5 +1017,32 @@ class PatchDataCommand extends Command
             $plugin->setOption('all_user_enabled', "1");
             $plugin->save();
         });
+    }
+    
+    /**
+     * patchViewColumnSuuid
+     *
+     * @return void
+     */
+    protected function patchViewColumnSuuid()
+    {
+        if (!canConnection() || !hasTable('custom_view_columns')) {
+            return;
+        }
+
+        $classes = [
+            CustomViewColumn::class,
+            CustomViewSummary::class,
+        ];
+        foreach($classes as $c){
+            $c::all()->each(function($v){
+                if(!is_nullorempty($v->suuid)){
+                    return true;
+                }
+
+                $v->suuid = short_uuid();
+                $v->save();
+            });
+        }
     }
 }

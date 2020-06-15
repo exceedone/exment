@@ -1111,6 +1111,11 @@ abstract class CustomValue extends ModelBase
         $options = $this->getQueryOptions($q, $options);
         extract($options);
 
+        // if approvalNull is true, and $q is null, return table's query.
+        if($approvalNull && is_null($q)){
+            return $this->query();
+        }
+
         if (empty($searchColumns)) {
             // return null if searchColumns is not has
             return null;
@@ -1211,6 +1216,7 @@ abstract class CustomValue extends ModelBase
                 'makeHidden' => false,
                 'searchColumns' => null,
                 'relation' => false,
+                'approvalNull' => false, // if true, approvalNull. if $q is null, not filter.
             ],
             $options
         );

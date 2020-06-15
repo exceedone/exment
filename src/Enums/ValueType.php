@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Enums;
 
 use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\ColumnItems\CustomItem;
+use Exceedone\Exment\ColumnItems\ItemInterface;
 
 /**
  * ValueType
@@ -20,11 +20,13 @@ class ValueType extends EnumBase
      *
      * @return mixed
      */
-    public function getCustomValue(?CustomItem $item, ?CustomValue $custom_value)
+    public function getCustomValue(?ItemInterface $item, ?CustomValue $custom_value)
     {
         if (!isset($item) || !isset($custom_value)) {
             return null;
         }
+
+        $item->setCustomValue($custom_value);
 
         switch ($this) {
             case static::VALUE:

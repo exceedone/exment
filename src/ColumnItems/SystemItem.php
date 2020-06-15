@@ -16,7 +16,7 @@ use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 
 class SystemItem implements ItemInterface
 {
-    use ItemTrait, ColumnOptionQueryTrait;
+    use ItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
     
     protected $column_name;
     
@@ -62,12 +62,21 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * Get API column name
+     *
+     * @return string
+     */
+    public function apiName(){
+        return $this->_apiName();
+    } 
+
+    /**
      * get column key refer to subquery.
      */
     public function getGroupName()
     {
         if (boolval(array_get($this->options, 'summary'))) {
-            $summary_condition = SummaryCondition::getSummaryCondition(array_get($this->options, 'summary_condition'));
+            $summary_condition = $this->getSummaryConditionName();
             $alter_name = $this->sqlAsName();
             $raw = "$summary_condition($alter_name) AS $alter_name";
             return \DB::raw($raw);
@@ -82,8 +91,7 @@ class SystemItem implements ItemInterface
     {
         $column_name = $this->getSqlColumnName();
 
-        $summary_option = array_get($this->options, 'summary_condition');
-        $summary_condition = is_null($summary_option)? null: SummaryCondition::getEnum($summary_option)->lowerKey();
+        $summary_condition = $this->getSummaryConditionName();
         $group_condition = array_get($this->options, 'group_condition');
 
         if (isset($summary_condition)) {

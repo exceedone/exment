@@ -1082,6 +1082,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'relation' => false,
                 'target_view' => null,
                 'getLabel' => false,
+                'approvalNull' => false, // if true, approvalNull. if $q is null, not filter.
             ],
             $options
         );

@@ -852,6 +852,20 @@ if (!function_exists('is_list')) {
     }
 }
 
+if (!function_exists('isMatchString')) {
+    /**
+     * isMatch string using strcmp
+     *
+     * @param mixed $v1
+     * @param mixed $v2
+     * @return bool
+     */
+    function isMatchString($v1, $v2) : bool
+    {
+        return strcmp($v1, $v2) == 0;
+    }
+}
+
 // string --------------------------------------------------
 if (!function_exists('make_password')) {
     function make_password($length = 16, $options = [])

@@ -228,7 +228,7 @@ EOT;
         // get headers and bodies
         $view = CustomView::getAllData($table);
 
-        list($headers, $bodies, $columnStyles, $columnClasses) = $view->getDataTable($datalist, [
+        list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($datalist, [
             'action_callback' => function (&$link, $custom_table, $data) {
                 if (count($custom_table->getRelationTables()) > 0) {
                     $link .= (new Linker)
@@ -365,7 +365,7 @@ EOT;
             $option = [];
         }
         
-        list($headers, $bodies, $columnStyles, $columnClasses) = $view->getDataTable($data, $option);
+        list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($data, $option);
         $table = (new WidgetTable($headers, $bodies))
             ->class('table table-hover')
             ->setColumnStyle($columnStyles)
