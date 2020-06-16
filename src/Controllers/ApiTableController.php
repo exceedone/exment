@@ -97,28 +97,6 @@ class ApiTableController extends AdminControllerTableBase
         return $query->get();
     }
 
-    /**
-     * get view 
-     * @param mixed $idOrSuuid if length is 20, use suuid
-     * @return mixed
-     */
-    public function view(Request $request, $tableKey, $idOrSuuid)
-    {
-        if (($code = $this->custom_table->enableAccess()) !== true) {
-            return abortJson(403, $code);
-        }
-
-        $query = CustomView::where('custom_table_id', $this->custom_table->id);
-        if(strlen($idOrSuuid) == 20){
-            $query->where('suuid', $idOrSuuid);
-        }
-        else{
-            $query->where('id', $idOrSuuid);
-        }
-
-        return $query->first();
-    }
-    
 
 
     /**

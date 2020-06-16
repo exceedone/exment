@@ -394,9 +394,6 @@ class ApiDataController extends AdminControllerTableBase
     }
 
 
-
-    
-
     // viewdata ----------------------------------------------------
     
     /**
@@ -405,15 +402,74 @@ class ApiDataController extends AdminControllerTableBase
      */
     public function viewDataList(Request $request, $tableKey, $viewid)
     {
-        if (($code = $this->custom_table->enableAccess()) !== true) {
-            return abortJson(403, $code);
+        $init = $this->viewDataInit($request, $viewid);
+        if ($init instanceof Response) {
+            return $init;
+        }
+        list($custom_view, $valuetype, $count) = $init;
+
+        $paginator = $custom_view->getDataPaginate([
+            'maxCount' => $count,
+            'approvalNull' => true,
+        ]);
+        $paginator = $this->modifyAfterGetValue($request, $paginator, [
+            'appends' => [
+                'count' => $count,
+            ],
+            'makeHidden' => false,
+        ]);
+
+        list($results, $apiDefinitions) = $this->viewDataAfter($custom_view, $valuetype, $paginator->items());
+
+        $paginator->setCollection(collect($results));
+        
+        // convert to array
+        $array = $paginator->toArray();
+
+        // set difinition
+        $array['column_definitions'] = $apiDefinitions;
+
+        return $array;
+    }
+
+    /**
+     * list view data
+     * @return mixed
+     */
+    public function viewDataFind(Request $request, $tableKey, $viewid, $id)
+    {
+        $init = $this->viewDataInit($request, $viewid);
+        if ($init instanceof Response) {
+            return $init;
         }
 
-        // get and check query parameter
-        if (($count = $this->getCount($request)) instanceof Response) {
-            return $count;
+        $model = getModelName($this->custom_table->table_name)::find($id);
+        // not contains data, return empty data.
+        if (!isset($model)) {
+            $code = $this->custom_table->getNoDataErrorCode($id);
+            if ($code == ErrorCode::PERMISSION_DENY) {
+                return abortJson(403, $code);
+            } else {
+                // nodata
+                return abortJson(400, $code);
+            }
         }
 
+        if (($code = $model->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        list($custom_view, $valuetype, $count) = $init;
+
+        list($results, $apiDefinitions) = $this->viewDataAfter($custom_view, $valuetype, collect([$model]));
+
+        // convert to array
+        $array = ['value' => $results->first(), 'column_definitions' => $apiDefinitions];
+
+        return $array;
+    }
+
+    protected function viewDataInit(Request $request, $viewid){
         // get view
         $custom_view = CustomView::getEloquent($viewid);
         //not found
@@ -425,20 +481,28 @@ class ApiDataController extends AdminControllerTableBase
             return abortJson(400, ErrorCode::WRONG_VIEW_AND_TABLE());   
         }
 
-        $paginator = $custom_view->getDataPaginate([
-            'maxCount' => $count,
-            'approvalNull' => true,
-        ]);
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            return abortJson(403, trans('admin.deny'), $code);
+        }
 
-        $paginator = $this->modifyAfterGetValue($request, $paginator, [
-            'appends' => [
-                'count' => $count,
-            ],
-            'makeHidden' => false,
-        ]);
+        // get and check query parameter
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
 
+        // convert to custom values
+        $valuetype = ValueType::getEnum($request->get('valuetype')) ?? ValueType::PURE_VALUE;
+        if (!ValueType::filterApiValueType($valuetype)) {
+            $valuetype = ValueType::PURE_VALUE;
+        }
 
-        list($headers, $bodies, $columnStyles, $columnClasses, $columnItems) = $custom_view->convertDataTable($paginator->items(), ['appendLink' => false, 'valueType' => ValueType::TEXT]);
+        return [$custom_view, $valuetype, $count];
+    }
+
+    protected function viewDataAfter($custom_view, $valuetype, $target)
+    {
+        list($headers, $bodies, $columnStyles, $columnClasses, $columnItems) = 
+            $custom_view->convertDataTable($target, ['appendLink' => false, 'valueType' => $valuetype]);
                 
         // get api name and definitions
         $apiNames = collect($columnItems)->map(function($columnItem){
@@ -451,19 +515,9 @@ class ApiDataController extends AdminControllerTableBase
         $results = collect($bodies)->map(function($body, $index) use($apiNames, $apiDefinitions){
             return array_combine($apiNames, $body);
         });
-        $paginator->setCollection(collect($results));
-        
-        // convert to array
-        $array = $paginator->toArray();
 
-        // set difinition
-        $array['column_definitions'] = $apiDefinitions;
-
-        return $array;
+        return [$results, $apiDefinitions];
     }
-
-
-
 
 
     // Document ----------------------------------------------------
@@ -1011,12 +1065,18 @@ class ApiDataController extends AdminControllerTableBase
      */
     protected function modifyAfterGetValue(Request $request, $target, $options = [])
     {
+        $options = array_merge(
+            [
+                'makeHidden' => true,
+            ],
+            $options
+        );
+
         // for paginate logic
         if ($target instanceof \Illuminate\Pagination\LengthAwarePaginator) {
             $options = array_merge(
                 [
                     'appends' => [],
-                    'makeHidden' => true,
                 ],
                 $options
             );
@@ -1033,8 +1093,7 @@ class ApiDataController extends AdminControllerTableBase
                 ]),
                 $options['appends']
             );
-
-            // if for custom view, convert customview
+            
             if(boolval($options['makeHidden'])){
                 // execute makehidden
                 $results = $target->makeHidden($this->custom_table->getMakeHiddenArray());
@@ -1054,8 +1113,12 @@ class ApiDataController extends AdminControllerTableBase
         }
         // as single model
         elseif ($target instanceof CustomValue) {
-            $target = $target->makeHidden($this->custom_table->getMakeHiddenArray());
-            return $this->modifyCustomValue($request, $target);
+            if(boolval($options['makeHidden'])){
+                $target = $target->makeHidden($this->custom_table->getMakeHiddenArray());
+                return $this->modifyCustomValue($request, $target);    
+            }
+
+            return $target;
         }
     }
 

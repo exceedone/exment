@@ -288,6 +288,7 @@ class RouteServiceProvider extends ServiceProvider
 
                 // viewdata ----------------------------------------------------
                 $router->get("viewdata/{tableKey}/{viewid}", 'ApiDataController@viewDataList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("viewdata/{tableKey}/{viewid}/{id}", 'ApiDataController@viewDataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
 
 
                 // file, document --------------------------------------------------
@@ -307,17 +308,14 @@ class RouteServiceProvider extends ServiceProvider
                 $router->get("table/filterviews", 'ApiController@filterviews')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 $router->get("table/{tableKey}", 'ApiController@table')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 
-                // column --------------------------------------------------
+                // column,view --------------------------------------------------
                 $router->get("table/{tableKey}/columns", 'ApiTableController@tableColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 $router->get("table/{tableKey}/column/{columnKey}", 'ApiTableController@tableColumn')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
+                $router->get("table/{tableKey}/views", 'ApiTableController@views')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 $router->get("column/{id}", 'ApiController@column')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
+                $router->get("view/{id}", 'ApiController@view')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 $router->get("target_table/columns/{id}", 'ApiController@targetBelongsColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
                 
-                // view --------------------------------------------------
-                $router->get("view/{tableKey}", 'ApiTableController@views')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
-                $router->get("view/{tableKey}/{id}", 'ApiTableController@view')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ));
-                
-
                 // System --------------------------------------------------
                 $router->get("version", 'ApiController@version');
 
