@@ -319,10 +319,13 @@ EOT;
                     ///// set changedata info
                     $this->setChangeDataArray($column, $form_column_options, $options, $changedata_array);
                 }
+                    
+                // set relatedlinkage_array
+                // if set form_column_options relation_filter_target_column_id
+                if (array_key_value_exists('relation_filter_target_column_id', $form_column_options)){
+                    $this->setRelatedLinkageArray($custom_form_block, $form_column, $relatedlinkage_array);
+                }
             }
-
-            // set relatedlinkage_array
-            $this->setRelatedLinkageArray($custom_form_block, $relatedlinkage_array);
         }
     }
 
@@ -496,6 +499,8 @@ EOT;
     /**
      * set change data array.
      * "change data": When selecting a list, paste the value of that item into another form item.
+     * "changedata_target_column_id" : trigger column when user select
+     * "changedata_column_id" : set column when getting selected value
      */
     protected function setChangeDataArray($column, $form_column_options, $options, &$changedata_array)
     {
@@ -559,7 +564,7 @@ EOT;
      * set related linkage array.
      * "related linkage": When selecting a value, change the choices of other list. It's for 1:n relation.
      */
-    protected function setRelatedLinkageArray($custom_form_block, &$relatedlinkage_array)
+    protected function setRelatedLinkageArray($custom_form_block, $form_column, &$relatedlinkage_array)
     {
         // if config "select_relation_linkage_disabled" is true, return
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
@@ -571,15 +576,23 @@ EOT;
             return;
         }
 
+        $relation_filter_target_column_id = array_get($form_column, 'options.relation_filter_target_column_id');
+        if(!isset($relation_filter_target_column_id)){
+            return;
+        }
+
+        $custom_column = $form_column->custom_column_cache;
+        if(!isset($custom_column)){
+            return;
+        }
+
         // get relation columns
-        $relationColumns = $custom_form_block->target_table->getSelectTableRelationColumns();
+        $relationColumns = collect($custom_form_block->target_table->getSelectTableRelationColumns())
+            ->filter(function ($relationColumn) use($custom_column, $relation_filter_target_column_id) {
+                return array_get($relationColumn, 'child_column')->id == $custom_column->id && $relation_filter_target_column_id == array_get($relationColumn, 'parent_column')->id;
+            });
 
         foreach ($relationColumns as $relationColumn) {
-            // ignore n:n
-            if ($relationColumn['searchType'] == SearchType::MANY_TO_MANY) {
-                continue;
-            }
-
             $parent_column = $relationColumn['parent_column'];
             $parent_column_name = array_get($parent_column, 'column_name');
             $parent_table = $parent_column->select_target_table;

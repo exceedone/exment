@@ -192,6 +192,30 @@ class CustomFormController extends AdminControllerTableBase
         return null; //TODO
     }
 
+
+    /**
+     * Get relation select modal
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function relationFilterModal(Request $request){
+        $target_column_id = $request->get('target_column_id');
+        $custom_column = CustomColumn::getEloquent($target_column_id);
+        
+        // get relation columns.
+        $relationColumns = !isset($custom_column) ? collect() : collect($custom_column->custom_table_cache
+            ->getSelectTableRelationColumns())
+            ->filter(function($c) use($target_column_id){
+                return $c['child_column']->id == $target_column_id;
+            });
+
+        return view('exment::custom-form.form-relation-filter-modal', [
+            'columns' => $relationColumns,
+            'target_column' => $custom_column,
+        ]);
+    }
+
     /**
      * Make a grid builder.
      *
@@ -271,7 +295,9 @@ class CustomFormController extends AdminControllerTableBase
             'editmode' => isset($id),
             'form_view_name' => $form->form_view_name,
             'default_flg' => $form->default_flg?? '0',
-            'change_page_menu' => (new Tools\CustomTableMenuButton('form', $this->custom_table))
+            'change_page_menu' => (new Tools\CustomTableMenuButton('form', $this->custom_table)),
+            'relationFilterUrl' => admin_urls('form', $this->custom_table->table_name, 'relationFilterModal'),
+            'relationFilterHelp' => $this->getRelationFilterHelp(),
         ]));
     }
 
@@ -712,5 +738,9 @@ class CustomFormController extends AdminControllerTableBase
                 return exmtrans('custom_form.table_many_to_many_label');
         }
         return exmtrans('custom_form.table_default_label');
+    }
+
+    protected function getRelationFilterHelp(){
+        return exmtrans('custom_form.help.relation_filter') . '<br/>' . exmtrans('common.help.more_help_here', getManualUrl('form#relation_filter_manual'));
     }
 }

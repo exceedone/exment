@@ -530,7 +530,10 @@
                         {
                             "form_column_type": "0",
                             "column_no": "1",
-                            "options": null,
+                            "options": {
+                                "relation_filter_target_table_name": "client_manage",
+                                "relation_filter_target_column_name": "major_class"
+                            },
                             "order": "3",
                             "form_column_target_name": "minor_class"
                         },

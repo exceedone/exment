@@ -6,6 +6,7 @@ use Exceedone\Exment\Validator;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -154,54 +155,7 @@ class SelectTable extends CustomItem
             return;
         }
 
-        $relationColumn = collect($this->custom_column->custom_table
-            ->getSelectTableRelationColumns())
-            ->first(function ($relationColumn) {
-                return array_get($relationColumn, 'child_column')->id == $this->custom_column->id;
-            });
-
-        // get callback
-        //TODO:refactor
-        $callback = null;
-        // if config "select_relation_linkage_disabled" is true, not callback
-        if (boolval(config('exment.select_relation_linkage_disabled', false))) {
-        } elseif (isset($relationColumn)) {
-            $parent_value = $this->custom_column->custom_table->getValueModel($this->id);
-            $parent_v = array_get($parent_value, 'value.' . $relationColumn['parent_column']->column_name);
-            $parent_target_table_id = $relationColumn['parent_column']->select_target_table->id;
-            $parent_target_table_name = $relationColumn['parent_column']->select_target_table->table_name;
-                
-            if ($relationColumn['searchType'] == SearchType::ONE_TO_MANY) {
-                $callback = function (&$query) use ($parent_v, $parent_target_table_name) {
-                    $query = $query->where("parent_id", $parent_v)->where('parent_type', $parent_target_table_name);
-                    return $query;
-                };
-            }
-            // elseif ($relationColumn['searchType'] == SearchType::MANY_TO_MANY) {
-            //     $callback = function (&$query) use ($parent_v, $parent_target_table_name, $relationColumn) {
-            //         $relation = $relationColumn['relation'];
-            //         $query->whereHas($relation->getRelationName(), function ($query) use($relation, $parent_v) {
-            //             $query->where($relation->getRelationName() . '.parent_id', $parent_v);
-            //         });
-            //         return $query;
-            //     };
-            // }
-            else {
-                $child_target_table_id = $relationColumn['child_column']->select_target_table->id;
-                if ($parent_target_table_id != $child_target_table_id) {
-                    $searchColumn = $relationColumn['child_column']->select_target_table->custom_columns()
-                        ->where('column_type', ColumnType::SELECT_TABLE)
-                        ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
-                        ->first();
-                    if (isset($searchColumn)) {
-                        $callback = function (&$query) use ($parent_v, $searchColumn) {
-                            $query = $query->where("value->{$searchColumn->column_name}", $parent_v);
-                            return $query;
-                        };
-                    }
-                }
-            }
-        }
+        $callback = $this->getRelationFilterCallback($form_column_options);
 
         $selectOption = [
             'custom_column' => $this->custom_column,
@@ -211,7 +165,7 @@ class SelectTable extends CustomItem
             'target_id' => isset($this->custom_value) ? $this->custom_value->id : null,
         ];
 
-        $field->options(function ($value) use ($selectOption, $relationColumn) {
+        $field->options(function ($value) use ($selectOption) {
             $selectOption['selected_value'] = $value;
 
             // get DB option value
@@ -224,6 +178,76 @@ class SelectTable extends CustomItem
                 'data-add-select2-ajax' => $ajax
             ]);
         }
+    }
+
+    /**
+     * get relation filter callback
+     *
+     * @return void
+     */
+    protected function getRelationFilterCallback($form_column_options)
+    {
+        $relation_filter_target_column_id = array_get($form_column_options, 'relation_filter_target_column_id');
+        if(!isset($relation_filter_target_column_id)){
+            return;
+        }
+
+        $relationColumn = collect($this->custom_column->custom_table
+            ->getSelectTableRelationColumns())
+            ->first(function ($relationColumn) use($relation_filter_target_column_id) {
+                return array_get($relationColumn, 'child_column')->id == $this->custom_column->id && $relation_filter_target_column_id == array_get($relationColumn, 'parent_column')->id;
+            });
+
+        if (!isset($relationColumn)) {
+            return;
+        }
+
+        // get callback
+        //TODO:refactor
+        $callback = null;
+        // if config "select_relation_linkage_disabled" is true, not callback
+        if (boolval(config('exment.select_relation_linkage_disabled', false))) {
+            return;
+        } 
+        
+        $parent_value = $this->custom_column->custom_table->getValueModel($this->id);
+        $parent_v = array_get($parent_value, 'value.' . $relationColumn['parent_column']->column_name);
+        $parent_target_table_id = $relationColumn['parent_column']->select_target_table->id;
+        $parent_target_table_name = $relationColumn['parent_column']->select_target_table->table_name;
+            
+        if ($relationColumn['searchType'] == SearchType::ONE_TO_MANY) {
+            $callback = function (&$query) use ($parent_v, $parent_target_table_name) {
+                $query = $query->where("parent_id", $parent_v)->where('parent_type', $parent_target_table_name);
+                return $query;
+            };
+        }
+        elseif ($relationColumn['searchType'] == SearchType::MANY_TO_MANY) {
+            $callback = function (&$query) use ($parent_v, $parent_target_table_name, $relationColumn) {
+                $relation = CustomRelation::getRelationByParentChild($relationColumn['parent_column']->select_target_table, $relationColumn['child_column']->select_target_table);
+                $query->whereHas($relation->getRelationName(), function ($query) use($relation, $parent_v) {
+                    $query->where($relation->getRelationName() . '.parent_id', $parent_v);
+                });
+                return $query;
+            };
+        }
+        // select_table
+        else {
+            $child_target_table_id = $relationColumn['child_column']->select_target_table->id;
+            if ($parent_target_table_id != $child_target_table_id) {
+                $searchColumn = $relationColumn['child_column']->select_target_table->custom_columns()
+                    ->where('column_type', ColumnType::SELECT_TABLE)
+                    ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
+                    ->first();
+                if (isset($searchColumn)) {
+                    $callback = function (&$query) use ($parent_v, $searchColumn) {
+                        $query = $query->where("value->{$searchColumn->column_name}", $parent_v);
+                        return $query;
+                    };
+                }
+            }
+        }
+
+        return $callback;
     }
     
     public function getAdminFilterWhereQuery($query, $input)

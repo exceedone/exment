@@ -1,4 +1,5 @@
 <link rel="stylesheet" type="text/css" href="{{$css}}" />
+<input type="hidden" id="relationFilterUrl" value="{{$relationFilterUrl}}">
 
 <form method="POST" action="{{$endpoint}}" accept-charset="UTF-8" pjax-container>
     {{-- Form basic setting --}}
@@ -169,46 +170,50 @@
 
 {{-- Modal --}}
 <div class="modal fade" id="form-changedata-modal" data-backdrop="static">
-        <div class="modal-dialog" >
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
-                    <h4 class="modal-title" id="modal-label">{{exmtrans('custom_form.changedata')}}</h4>
+    <div class="modal-dialog" >
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+                <h4 class="modal-title" id="modal-label">{{exmtrans('custom_form.changedata')}}</h4>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <div class="col-sm-12">
+                    <span class="help-block">
+                        <i class="fa fa-info-circle"></i>&nbsp;{!! sprintf(exmtrans('custom_form.help.changedata'), getManualUrl('form#'.exmtrans('custom_form.changedata'))) !!}
+                    </span>
+                </div>    
+                <div class="col-sm-12 select_no_item red small" style="display:none;">
+                    {{exmtrans('custom_form.help.changedata_no_item')}}
+                </div>    
+                <div class="col-sm-12 select_item">
+                    <select data-add-select2="{{exmtrans('custom_form.changedata_target_column')}}" class="form-control select2 changedata_target_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
+                    </select>
+                </div>    
+                <div class="col-sm-12 small select_item" style="margin-bottom:1em;">
+                    {{exmtrans('custom_form.changedata_target_column_when')}}
                 </div>
-                <div class="modal-body" id="modal-body">
-                    <div class="col-sm-12">
-                        <span class="help-block">
-                            <i class="fa fa-info-circle"></i>&nbsp;{!! sprintf(exmtrans('custom_form.help.changedata'), getManualUrl('form#'.exmtrans('custom_form.changedata'))) !!}
-                        </span>
-                    </div>    
-                    <div class="col-sm-12 select_no_item red small" style="display:none;">
-                        {{exmtrans('custom_form.help.changedata_no_item')}}
-                    </div>    
-                    <div class="col-sm-12 select_item">
-                        <select data-add-select2="{{exmtrans('custom_form.changedata_target_column')}}" class="form-control select2 changedata_target_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
-                        </select>
-                    </div>    
-                    <div class="col-sm-12 small select_item" style="margin-bottom:1em;">
-                        {{exmtrans('custom_form.changedata_target_column_when')}}
-                    </div>
-                    <div class="col-sm-12 select_item">
-                        <select data-add-select2="{{exmtrans('custom_form.changedata_column')}}" class="form-control select2 changedata_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
-                        </select>
-                    </div>    
-                    <div class="col-sm-12 small select_item" style="margin-bottom:1em;">
-                        {{exmtrans('custom_form.changedata_column_then')}}
-                    </div>
+                <div class="col-sm-12 select_item">
+                    <select data-add-select2="{{exmtrans('custom_form.changedata_column')}}" class="form-control select2 changedata_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
+                    </select>
+                </div>    
+                <div class="col-sm-12 small select_item" style="margin-bottom:1em;">
+                    {{exmtrans('custom_form.changedata_column_then')}}
                 </div>
-                <div class="modal-footer">
-                    <div class="col-sm-12">
-                            <button id="changedata-button-reset" type="button" class="btn btn-default">{{trans('admin.reset')}}</button>
-                            <button id="changedata-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
+            </div>
+            <div class="modal-footer">
+                <div class="col-sm-12">
+                        <button id="changedata-button-reset" type="button" class="btn btn-default">{{trans('admin.reset')}}</button>
+                        <button id="changedata-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
 
-                            <input type="hidden" class="target_header_column_name" />
-                    </div>
+                        <input type="hidden" class="target_header_column_name" />
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+
+<div class="modal fade" id="form-relation_filter-modal" data-backdrop="static">
+</div>
 
 <script type="text/javascript" src="{{ $js }}"></script>

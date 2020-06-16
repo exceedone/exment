@@ -178,7 +178,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
 
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
-        
+            $router->get('form/{tableKey}/relationFilterModal', 'CustomFormController@relationFilterModal');
+
             $router->get('files/{uuid}', 'FileController@download');
             $router->get('files/{tableKey}/{uuid}', 'FileController@downloadTable');
             

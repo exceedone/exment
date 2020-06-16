@@ -285,7 +285,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return array contains parent_column, child_column, searchType
      */
-    public function getSelectTableRelationColumns()
+    public function getSelectTableRelationColumns($checkPermission = true)
     {
         $result = [];
 
@@ -305,7 +305,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
 
             // get children tables
-            $relations = $custom_table->getRelationTables();
+            $relations = $custom_table->getRelationTables($checkPermission);
             // if not exists, continue
             if (!$relations) {
                 continue;
@@ -1211,11 +1211,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // many_to_many
             case SearchType::MANY_TO_MANY:
                 $relation_name = CustomRelation::getRelationNameByTables($this, $child_table);
+                $database_table_name = getDBTableName($child_table);
                 // get search_table value
                 // where: parent_id is value_id
                 $query = $child_table->getValueModel()
-                    ::join($relation_name, "$relation_name.child_id", getDBTableName($child_table).".id")
-                    ->where("$relation_name.parent_id", $parent_value_id);
+                    ::join($relation_name, "$relation_name.child_id", "$database_table_name.id")
+                    ->where("$relation_name.parent_id", $parent_value_id)
+                    // remove pivot table's data
+                    ->select(["$database_table_name.*"]);
                     
                 return $paginate ? $query->paginate($maxCount) : $query->get();
         }
@@ -1956,7 +1959,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * Get relation tables list.
      * It contains search_type(select_table, one_to_many, many_to_many)
      */
-    public function getRelationTables()
+    public function getRelationTables($checkPermission = true)
     {
         // check already execute
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES, $this->table_name);
@@ -1977,9 +1980,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             foreach ($tables as $table) {
                 // if not role, continue
                 $table_obj = static::getEloquent(array_get($table, 'id'));
-                if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
-                    continue;
-                }
                 $results[] = ['searchType' => SearchType::SELECT_TABLE, 'table' => $table_obj];
             }
     
@@ -1994,17 +1994,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             foreach ($tables as $table) {
                 // if not role, continue
                 $table_obj = static::getEloquent(array_get($table, 'id'));
-                if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
-                    continue;
-                }
                 $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY;
                 $results[] = ['searchType' => $searchType, 'table' => $table_obj];
             }
     
-            return $results;
-        });
-    }
+            return collect($results);
+        })->filter(function($result) use($checkPermission){
+            if ($checkPermission && !$result['table']->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+                return false;
+            }
 
+            return true;
+        })->toArray();
+    }
     /**
      * Get CustomValue's model.
      *
