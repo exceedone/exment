@@ -195,7 +195,7 @@ class SelectTable extends CustomItem
                         ->first();
                     if (isset($searchColumn)) {
                         $callback = function (&$query) use ($parent_v, $searchColumn) {
-                            $query = $query->where("value->{$searchColumn->column_name}", $parent_v);
+                            $query = $query->where("value->{$searchColumn->column_name}", empty($parent_v)? NULL :$parent_v);
                             return $query;
                         };
                     }
