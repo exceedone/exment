@@ -15,6 +15,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginEventTrigger;
+use Exceedone\Exment\Enums\ShareTrigger;
 
 abstract class CustomValue extends ModelBase
 {
@@ -419,12 +420,18 @@ abstract class CustomValue extends ModelBase
             // save Authoritable
             CustomValueAuthoritable::setValueAuthoritable($this);
 
+            // save external Authoritable
+            CustomValueAuthoritable::setValueAuthoritableEx($this, ShareTrigger::CREATE);
+
             // send notify
             $this->notify(NotifySavedType::CREATE);
  
             // set revision
             $this->postCreate();
         } else {
+            // save external Authoritable
+            CustomValueAuthoritable::setValueAuthoritableEx($this, ShareTrigger::UPDATE);
+
             // send notify
             $this->notify(NotifySavedType::UPDATE);
 

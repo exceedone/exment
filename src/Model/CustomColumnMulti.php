@@ -15,7 +15,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     use Traits\TemplateTrait;
     use Traits\UniqueKeyCustomColumnTrait;
 
-    protected $appends = ['unique1', 'unique2', 'unique3', 'compare_column1_id', 'compare_column2_id', 'compare_type', 'table_label_id'];
+    protected $appends = ['unique1', 'unique2', 'unique3', 'compare_column1_id', 'compare_column2_id', 'compare_type', 'table_label_id', 'share_trigger_type', 'share_column_id', 'share_permission'];
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
     protected $table = 'custom_column_multisettings';
@@ -28,7 +28,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     public static $templateItems = [
         'excepts' => [
             'export' => [
-                'unique1', 'unique2', 'unique3', 'compare_type', 'options.unique1_id', 'options.unique2_id', 'options.unique3_id', 'options.compare_column1_id', 'options.compare_column2_id', 'options.table_label_id'
+                'unique1', 'unique2', 'unique3', 'compare_type', 'options.unique1_id', 'options.unique2_id', 'options.unique3_id', 'options.compare_column1_id', 'options.compare_column2_id', 'options.table_label_id', 'options.share_trigger_type', 'options.share_column_id', 'options.share_permission'
             ],
             'import' => [
                 'custom_table_id', 'column_name'
@@ -164,6 +164,35 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         return $this;
     }
     
+    public function getShareTriggerTypeAttribute()
+    {
+        return $this->getOption('share_trigger_type');
+    }
+    public function setShareTriggerTypeAttribute($share_trigger_type)
+    {
+        $this->setOption('share_trigger_type', $share_trigger_type);
+        return $this;
+    }
+
+    public function getShareColumnIdAttribute()
+    {
+        return $this->getOption('share_column_id');
+    }
+    public function setShareColumnIdAttribute($share_column_id)
+    {
+        $this->setOption('share_column_id', $share_column_id);
+        return $this;
+    }
+
+    public function getSharePermissionAttribute()
+    {
+        return $this->getOption('share_permission');
+    }
+    public function setSharePermissionAttribute($share_permission)
+    {
+        $this->setOption('share_permission', $share_permission);
+        return $this;
+    }
 
     public function getCompareColumn1IdAttribute()
     {
@@ -183,6 +212,11 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     {
         $this->setOption('compare_column2_id', $compare_column);
         return $this;
+    }
+    
+    public function getShareColumnAttribute()
+    {
+        return CustomColumn::getEloquent($this->share_column_id);
     }
     
     public function getCompareColumn1Attribute()

@@ -28,6 +28,8 @@ use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\MultisettingType;
+use Exceedone\Exment\Enums\ShareTrigger;
+use Exceedone\Exment\Enums\SharePermission;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -370,6 +372,17 @@ HTML;
             $form->hidden('multisetting_type')->default(MultisettingType::COMPARE_COLUMNS);
         })->setTableColumnWidth(4, 3, 4, 1)
         ->description(exmtrans("custom_table.custom_column_multi.help.compare_columns"));
+        
+        $form->hasManyTable('share_settings', exmtrans("custom_table.custom_column_multi.share_settings"), function ($form) use ($custom_table) {
+            $form->select('share_trigger_type', exmtrans("custom_table.custom_column_multi.share_trigger_type"))->required()
+                ->options(ShareTrigger::transArray("custom_table.custom_column_multi.share_trigger_type_options"));
+            $form->select('share_column_id', exmtrans("custom_table.custom_column_multi.share_column_id"))->required()
+                ->options($custom_table->getUserOrgColumnsSelectOptions());
+            $form->select('share_permission', exmtrans("custom_table.custom_column_multi.share_permission"))->required()
+                ->options(SharePermission::transArray("custom_table.custom_column_multi.share_permission_options"));
+            $form->hidden('multisetting_type')->default(MultisettingType::SHARE_SETTINGS);
+        })->setTableColumnWidth(3, 5, 3, 1)
+        ->description(exmtrans("custom_table.custom_column_multi.help.share_settings"));
         
 
         $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
