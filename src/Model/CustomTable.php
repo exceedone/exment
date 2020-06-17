@@ -1176,14 +1176,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     ->whereIn('options->select_target_table', [strval($this->id), intval($this->id)])
                     ->indexEnabled()
                     ->get()
-                    ->map(function ($c) {
-                        return $c->getIndexColumnName();
-                    });
+                    ;
 
                 // set query info
-                if (isset($searchColumns)) {
+                if ($searchColumns->count() > 0) {
                     $options['listQuery'] = [
-                        $searchColumns->first() => $parent_value_id,
+                        $searchColumns->first()->getIndexColumnName() => $parent_value_id,
                     ];
                 }
 

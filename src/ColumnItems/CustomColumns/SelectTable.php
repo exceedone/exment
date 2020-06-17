@@ -446,4 +446,27 @@ class SelectTable extends CustomItem
         
         return true;
     }
+    
+    /**
+     * Get Search queries for free text search
+     *
+     * @param [type] $mark
+     * @param [type] $value
+     * @param [type] $takeCount
+     * @return void
+     */
+    public function getSearchQueries($mark, $value, $takeCount, $q)
+    {
+        if(!boolval($this->custom_column->getOption('multiple_enabled'))){
+            return parent::getSearchQueries($mark, $value, $takeCount, $q);
+        }
+
+        $query = $this->custom_table->getValueModel()->query();
+        $this->getAdminFilterWhereQuery($query, $value);
+
+        $query->take($takeCount);
+
+        return [$query];
+    }
+
 }
