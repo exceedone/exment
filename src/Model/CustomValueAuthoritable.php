@@ -76,24 +76,29 @@ class CustomValueAuthoritable extends ModelBase
     public static function setValueAuthoritableEx($custom_value, $share_trigger_type)
     {
         $custom_table = $custom_value->custom_table;
+
+        // create share target user or orgs
         foreach ($custom_table->share_settings as $share_setting) {
-            if (array_get($share_setting, 'share_trigger_type') == $share_trigger_type) {
+            foreach (stringToArray(array_get($share_setting, 'share_trigger_type')) as $t) {
+                if ($share_trigger_type != $t) {
+                    continue;
+                }
+
                 $share_permission = array_get($share_setting, 'share_permission');
                 $share_column = array_get($share_setting, 'share_column');
                 $target_ids = array_get($custom_value->value, $share_column->column_name);
-                if (!is_array($target_ids)) {
-                    $target_ids = [$target_ids];
-                }
-                $user_organizations = collect($target_ids)->map(function($target_id) use($share_column) {
+                $user_organizations = collect(stringToArray($target_ids))->map(function ($target_id) use ($share_column) {
                     return [
-                        'related_id' => $target_id,
-                        'related_type' => $share_column->column_type,
-                    ];
+                    'related_id' => $target_id,
+                    'related_type' => $share_column->column_type,
+                ];
                 })->toArray();
+
                 // set Custom Value Authoritable
                 self::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $share_permission == SharePermission::EDIT);
             }
         }
+        
     }
 
     /**

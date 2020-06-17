@@ -1962,23 +1962,31 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * get user and organization columns select options.
      *
      */
-    public function getUserOrgColumnsSelectOptions($append_table = false)
+    public function getUserOrgColumnsSelectOptions($options = [])
     {
-        $options = [];
+        $options = array_merge(
+            [
+                'append_table' => false,
+                'index_enabled_only' => true,
+            ],
+            $options
+        );
+
+        $results = [];
 
         ///// get table columns
         $custom_columns = $this->custom_columns_cache;
         foreach ($custom_columns as $option) {
-            if (!$option->index_enabled) {
+            if ($options['index_enabled_only'] && !$option->index_enabled) {
                 continue;
             }
             $column_type = array_get($option, 'column_type');
             if (ColumnType::isUserOrganization($column_type)) {
-                $options[static::getOptionKey(array_get($option, 'id'), $append_table, $this->id)] = array_get($option, 'column_view_name');
+                $results[static::getOptionKey(array_get($option, 'id'), $options['append_table'], $this->id)] = array_get($option, 'column_view_name');
             }
         }
 
-        return $options;
+        return $results;
     }
 
     /**
