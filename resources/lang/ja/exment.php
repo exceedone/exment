@@ -957,7 +957,7 @@ return [
             'compare_column2_id' => '比較列(B)',
             'compare_type' => '条件',
 
-            'share_settings' => 'データ共有列設定',
+            'share_settings' => 'データ共有設定',
             'share_trigger_type' => 'トリガー',
             'share_column_id' => '対象列',
             'share_permission' => '対象の権限',
@@ -987,7 +987,7 @@ return [
             ],
             'share_trigger_type_options' => [
                 '1' => '新規作成時',
-                '2' => '編集時',
+                '2' => '更新時',
             ],
             'share_permission_options' => [
                 '1' => '編集',
