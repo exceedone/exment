@@ -96,6 +96,9 @@ namespace Exment {
 
                             // add icheck event
                             CustomFromEvent.appendIcheckEvent(ui.helper.find('.icheck'));
+
+                            // replace html name(for clone object)
+                            CustomFromEvent.replaceCloneColumnName(ui.helper);
                         } else {
                             ui.helper.find('.delete,.options,[data-toggle]').hide();
                         }
@@ -278,6 +281,40 @@ namespace Exment {
                     $e.data('ichecked', true);
                 }    
             });
+        }
+
+        /**
+         * Replace clone suggest li name.
+         * @param $li 
+         */
+        private static replaceCloneColumnName($li){
+            let replaceHeaderName = $li.data('header_column_name');
+            let $replaceLi = $li.parents('.custom_form_block')
+                .find('.custom_form_column_suggests')
+                .find('.custom_form_column_item[data-header_column_name="' + replaceHeaderName + '"]');
+
+            if($replaceLi.length == 0){
+                return;
+            }
+
+            // get "NEW__" string
+            let newCode = replaceHeaderName.match(/NEW__.{8}-.{4}-.{4}-.{4}-.{12}/);
+            if(!newCode){
+                return;
+            }
+
+            // set replaced name
+            let updateCode = 'NEW__' + getUuid();
+
+            // replace inner
+            let html = $replaceLi.html();
+            html = html.replace(new RegExp(newCode[0], "g"), updateCode);
+            $replaceLi.html(html);
+
+            // replace li id and header_column_name
+            let newHeaderName = replaceHeaderName.replace(new RegExp(newCode[0], "g"), updateCode);
+            $replaceLi.attr('data-header_column_name', newHeaderName);
+            $replaceLi.attr('id', newHeaderName);
         }
 
         private static changedataModalEvent = (ev) => {
