@@ -9,6 +9,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\RelationColumn;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
@@ -587,17 +588,14 @@ EOT;
         }
 
         // get relation columns
-        $relationColumns = collect($custom_form_block->target_table->getSelectTableRelationColumns())
-            ->filter(function ($relationColumn) use($custom_column, $relation_filter_target_column_id) {
-                return array_get($relationColumn, 'child_column')->id == $custom_column->id && $relation_filter_target_column_id == array_get($relationColumn, 'parent_column')->id;
-            });
+        $relationColumns = RelationColumn::getRelationColumns($relation_filter_target_column_id, $custom_column);
 
         foreach ($relationColumns as $relationColumn) {
-            $parent_column = $relationColumn['parent_column'];
+            $parent_column = $relationColumn->parent_column;
             $parent_column_name = array_get($parent_column, 'column_name');
             $parent_table = $parent_column->select_target_table;
 
-            $child_column = $relationColumn['child_column'];
+            $child_column = $relationColumn->child_column;
             $child_table = $child_column->select_target_table;
                     
             // skip same table
@@ -615,7 +613,7 @@ EOT;
                 'url' => admin_urls('webapi', 'data', $parent_table->table_name ?? null, 'relatedLinkage'),
                 'expand' => [
                     'child_table_id' => $child_table->id ?? null,
-                    'search_type' => array_get($relationColumn, 'searchType'),
+                    'search_type' => $relationColumn->searchType,
                 ],
                 'to' => array_get($child_column, 'column_name'),
             ];

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SearchType;
+use Exceedone\Exment\Enums\ColumnType;
 
 /**
  * Relation column for search, relation filter(form), etc...
@@ -86,15 +87,18 @@ class RelationColumn
         $parent_target_table_id = $this->parent_column->select_target_table->id;
         $parent_target_table_name = $this->parent_column->select_target_table->table_name;
 
+        // if value is array, execute query as 'whereIn'
+        $whereFunc = is_list($parent_v) ? 'whereIn' : 'where';
+
         if ($this->searchType == SearchType::ONE_TO_MANY) {
-            $query->where("parent_id", $parent_v)->where('parent_type', $parent_target_table_name);
+            $query->{$whereFunc}("parent_id", $parent_v)->where('parent_type', $parent_target_table_name);
         }
 
         // n:n filter
         elseif ($this->searchType == SearchType::MANY_TO_MANY) {
             $relation = CustomRelation::getRelationByParentChild($this->parent_column->select_target_table, $this->child_column->select_target_table);
-                $query->whereHas($relation->getRelationName(), function ($query) use($relation, $parent_v) {
-                    $query->where($relation->getRelationName() . '.parent_id', $parent_v);
+                $query->whereHas($relation->getRelationName(), function ($query) use($relation, $parent_v, $whereFunc) {
+                    $query->{$whereFunc}($relation->getRelationName() . '.parent_id', $parent_v);
                 });
         }
         // select_table filter
@@ -106,7 +110,7 @@ class RelationColumn
                     ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
                     ->first();
                 if (isset($searchColumn)) {
-                    $query->where($searchColumn->getQueryKey(), $parent_v);
+                    $query->{$whereFunc}($searchColumn->getQueryKey(), $parent_v);
                 }
             }
         }
