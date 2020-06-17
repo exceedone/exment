@@ -1074,14 +1074,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $options = array_merge(
             [
-                'isLike' => true,
-                'maxCount' => 5,
-                'paginate' => false,
+                'isLike' => true, // search as "like"
+                'maxCount' => 5, // result max count
+                'paginate' => false, // if return as paginate, set true.
                 'makeHidden' => false,
-                'searchColumns' => null,
-                'relation' => false,
-                'target_view' => null,
+                'searchColumns' => null, // if select search columns, set them. If null search for index_enabled columns.
+                'relation' => false, // if relation search, set true
+                'target_view' => null, // search target
                 'getLabel' => false,
+                'relationColumn' => null, // RelationColumn object. if has, filtering value.
             ],
             $options
         );
@@ -1093,11 +1094,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         if (!isset($mainQuery)) {
             return null;
-        }
-
-        // set custom view's filter
-        if (isset($target_view)) {
-            \Exment::user()->filterModel($mainQuery, $target_view);
         }
 
         // return as paginate
@@ -1160,6 +1156,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         $child_table = static::getEloquent($child_table);
 
+        // if parent_value_id is array, execute query as 'whereIn'
+        $whereFunc = is_array($parent_value_id) ? 'whereIn' : 'where';
+
         switch ($search_type) {
             // self table
             case SearchType::SELF:
@@ -1199,7 +1198,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // one_to_many
             case SearchType::ONE_TO_MANY:
                 $query = $child_table->getValueModel()
-                    ->where('parent_id', $parent_value_id)
+                    ->{$whereFunc}('parent_id', $parent_value_id)
                     ->where('parent_type', $this->table_name);
 
                 // set query info
@@ -1216,7 +1215,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 // where: parent_id is value_id
                 $query = $child_table->getValueModel()
                     ::join($relation_name, "$relation_name.child_id", "$database_table_name.id")
-                    ->where("$relation_name.parent_id", $parent_value_id)
+                    ->{$whereFunc}("$relation_name.parent_id", $parent_value_id)
                     // remove pivot table's data
                     ->select(["$database_table_name.*"]);
                     
@@ -1482,7 +1481,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($this->isGetOptions($options)) {
             return null;
         }
-        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "select");
+
+        $display_table = array_get($options, 'display_table');
+        return admin_urls_query("webapi", 'data', array_get($this, 'table_name'), "select", ['display_table_id' => $display_table ? $display_table->id : null]);
     }
 
     /**
@@ -1558,20 +1559,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         } else {
             $display_table = self::getEloquent($display_table);
         }
-        $table_name = $this->table_name;
+
         // get query.
-        // if org
-        if (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
-            $query = $this->getValueModel();
-        }
-        // if $table_name is user or organization, get from getRoleUserOrOrg
-        elseif ($table_name == SystemTableName::USER && !$all) {
-            $query = AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission);
-        } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
-            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission);
-        } else {
-            $query = $this->getValueModel()->query();
-        }
+        $query = $this->getValueModel()->query();
+        
+        ///// filter display table
+        $this->filterDisplayTable($query, $display_table, $options);
 
         // filter model using view
         if (isset($target_view)) {
@@ -1583,6 +1576,33 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         if (isset($filterCallback)) {
             $filterCallback($query);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Filtering display table. if $this table is user or org, filtering.
+     */
+    public function filterDisplayTable($query, $display_table, $options = []){
+        extract(array_merge(
+            [
+                'all' => false,
+                'permission' => null,
+            ],
+            $options
+        ));
+        $display_table = CustomTable::getEloquent($display_table);
+
+        $table_name = $this->table_name;
+        if (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
+            return $query;
+        }
+        // if $table_name is user or organization, get from getRoleUserOrOrg
+        if ($table_name == SystemTableName::USER && !$all) {
+            return AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission, $query);
+        } if ($table_name == SystemTableName::ORGANIZATION && !$all) {
+            return AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission, $query);
         }
 
         return $query;
@@ -2016,6 +2036,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getValueModel($id = null, $withTrashed = false)
     {
+        if($id instanceof CustomValue){
+            return $id;
+        }
+
         $modelname = getModelName($this);
         if (isset($id)) {
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $id);

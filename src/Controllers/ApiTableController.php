@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\RelationColumn;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -151,7 +152,14 @@ class ApiTableController extends AdminControllerTableBase
     /**
      * find match data by query
      * use form select ajax
-     * @param mixed $id
+     * * (required) q : search word
+     * * (optional) expand.target_view_id : filtering data using view. 
+     * * (optional) expand.linkage_column_id : if called column sets linkage from other column, set this linkage column id.
+     * * (optional) expand.linkage_value_id : if called column sets linkage from other column, set linkage selected linkage_value_id.
+     * 
+     * if has linkage_column_id and linkage_value_id, filtering using linkage
+     * 
+     * @param Request $request
      * @return mixed
      */
     public function dataQuery(Request $request)
@@ -180,10 +188,27 @@ class ApiTableController extends AdminControllerTableBase
             return $count;
         }
 
+        // get expand value
+        $expand = $request->get('expand');
         // get custom_view
-        $custom_view = null;
-        if ($request->has('target_view_id')) {
-            $custom_view = CustomView::getEloquent($request->get('target_view_id'));
+        $custom_view = CustomView::getEloquent(array_get($expand, 'target_view_id'));
+
+        ///// If set linkage, filter relation.
+        // get children table id
+        $relationColumn = null;
+        if(array_key_value_exists('linkage_column_id', $expand)){
+            $column_id = array_get($expand, 'column_id');
+            $column = CustomColumn::getEloquent($column_id);
+
+            $linkage_column_id = array_get($expand, 'linkage_column_id');
+            $linkage_column = CustomColumn::getEloquent($linkage_column_id);
+
+            // get linkage (parent) selected custom_value id
+            $linkage_value_id = array_get($expand, 'linkage_value_id');
+
+            if(isset($linkage_value_id)){
+                $relationColumn = RelationColumn::getRelationColumn($linkage_column, $column);
+            }
         }
 
         $getLabel = $this->isAppendLabel($request);
@@ -193,6 +218,9 @@ class ApiTableController extends AdminControllerTableBase
             'target_view' => $custom_view,
             'maxCount' => $count,
             'getLabel' => $getLabel,
+            'relationColumn' => $relationColumn,
+            'relationColumnValue' => $linkage_value_id ?? null,
+            'display_table' => $request->get('display_table_id'),
         ]);
         
         return $this->modifyAfterGetValue($request, $paginator, [

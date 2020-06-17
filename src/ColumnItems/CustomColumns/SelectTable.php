@@ -7,6 +7,7 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\RelationColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -139,23 +140,17 @@ class SelectTable extends CustomItem
             return;
         }
 
-        // add table info
-        $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
-
-        // add view info
-        if (isset($this->target_view)) {
-            $field->attribute(['data-select2_expand' => json_encode([
-                    'target_view_id' => array_get($this->target_view, 'id')
-                ])
-            ]);
-        }
-
         // if this method calls for only validate, return
         if (boolval(array_get($this->options, 'forValidate'))) {
             return;
         }
 
-        $callback = $this->getRelationFilterCallback($form_column_options);
+        // add table info
+        $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
+
+        // add view info
+        $relationColumn = $this->getRelationColumn($form_column_options);
+        $callback = $this->getRelationFilterCallback($relationColumn);
 
         $selectOption = [
             'custom_column' => $this->custom_column,
@@ -171,13 +166,48 @@ class SelectTable extends CustomItem
             // get DB option value
             return $this->target_table->getSelectOptions($selectOption);
         });
+
         $ajax = $this->target_table->getOptionAjaxUrl($selectOption);
         if (isset($ajax)) {
+
+            // set select2_expand data
+            $select2_expand = [];
+            if (isset($this->target_view)) {
+                $select2_expand['target_view_id'] = array_get($this->target_view, 'id');
+            }
+            if(isset($relationColumn)){
+                $select2_expand['linkage_column_id'] = $relationColumn->parent_column->id;
+                $select2_expand['column_id'] = $relationColumn->child_column->id;
+                $select2_expand['linkage_value_id'] = $relationColumn->getParentValueId($this->custom_value);
+            }
+
             $field->attribute([
                 'data-add-select2' => $this->label(),
-                'data-add-select2-ajax' => $ajax
+                'data-add-select2-ajax' => $ajax,
+                'data-add-select2-expand' => json_encode($select2_expand),
             ]);
         }
+    }
+
+    /**
+     * Get relation filter object
+     *
+     * @param ?array $form_column_options
+     * @return void
+     */
+    protected function getRelationColumn($form_column_options)
+    {
+        // if config "select_relation_linkage_disabled" is true, not callback
+        if (boolval(config('exment.select_relation_linkage_disabled', false))) {
+            return;
+        } 
+
+        $relation_filter_target_column_id = array_get($form_column_options, 'relation_filter_target_column_id');
+        if(!isset($relation_filter_target_column_id)){
+            return;
+        }
+
+        return RelationColumn::getRelationColumn($relation_filter_target_column_id, $this->custom_column);
     }
 
     /**
@@ -185,68 +215,17 @@ class SelectTable extends CustomItem
      *
      * @return void
      */
-    protected function getRelationFilterCallback($form_column_options)
+    protected function getRelationFilterCallback($relationColumn)
     {
-        $relation_filter_target_column_id = array_get($form_column_options, 'relation_filter_target_column_id');
-        if(!isset($relation_filter_target_column_id)){
-            return;
-        }
-
-        $relationColumn = collect($this->custom_column->custom_table
-            ->getSelectTableRelationColumns())
-            ->first(function ($relationColumn) use($relation_filter_target_column_id) {
-                return array_get($relationColumn, 'child_column')->id == $this->custom_column->id && $relation_filter_target_column_id == array_get($relationColumn, 'parent_column')->id;
-            });
-
         if (!isset($relationColumn)) {
             return;
         }
 
         // get callback
-        //TODO:refactor
-        $callback = null;
-        // if config "select_relation_linkage_disabled" is true, not callback
-        if (boolval(config('exment.select_relation_linkage_disabled', false))) {
-            return;
-        } 
+        $callback = function (&$query) use ($relationColumn) {
+            return $relationColumn->setQueryFilter($query, $relationColumn->getParentValueId($this->custom_value));
+        };
         
-        $parent_value = $this->custom_column->custom_table->getValueModel($this->id);
-        $parent_v = array_get($parent_value, 'value.' . $relationColumn['parent_column']->column_name);
-        $parent_target_table_id = $relationColumn['parent_column']->select_target_table->id;
-        $parent_target_table_name = $relationColumn['parent_column']->select_target_table->table_name;
-            
-        if ($relationColumn['searchType'] == SearchType::ONE_TO_MANY) {
-            $callback = function (&$query) use ($parent_v, $parent_target_table_name) {
-                $query = $query->where("parent_id", $parent_v)->where('parent_type', $parent_target_table_name);
-                return $query;
-            };
-        }
-        elseif ($relationColumn['searchType'] == SearchType::MANY_TO_MANY) {
-            $callback = function (&$query) use ($parent_v, $parent_target_table_name, $relationColumn) {
-                $relation = CustomRelation::getRelationByParentChild($relationColumn['parent_column']->select_target_table, $relationColumn['child_column']->select_target_table);
-                $query->whereHas($relation->getRelationName(), function ($query) use($relation, $parent_v) {
-                    $query->where($relation->getRelationName() . '.parent_id', $parent_v);
-                });
-                return $query;
-            };
-        }
-        // select_table
-        else {
-            $child_target_table_id = $relationColumn['child_column']->select_target_table->id;
-            if ($parent_target_table_id != $child_target_table_id) {
-                $searchColumn = $relationColumn['child_column']->select_target_table->custom_columns()
-                    ->where('column_type', ColumnType::SELECT_TABLE)
-                    ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
-                    ->first();
-                if (isset($searchColumn)) {
-                    $callback = function (&$query) use ($parent_v, $searchColumn) {
-                        $query = $query->where("value->{$searchColumn->column_name}", $parent_v);
-                        return $query;
-                    };
-                }
-            }
-        }
-
         return $callback;
     }
     

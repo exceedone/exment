@@ -1102,7 +1102,7 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
-     * Get Query for text search
+     * Get Query for text search.
      *
      * @return void
      */
@@ -1115,6 +1115,9 @@ abstract class CustomValue extends ModelBase
             // return null if searchColumns is not has
             return null;
         }
+
+        // if value is array, execute query as 'whereIn'
+        $whereFunc = is_list($value) ? 'whereIn' : 'where';
 
         // crate union query
         $queries = [];
@@ -1132,7 +1135,7 @@ abstract class CustomValue extends ModelBase
                 }
             } else {
                 $query = static::query();
-                $query->where($searchColumn, $mark, $value)->select('id');
+                $query->{$whereFunc}($searchColumn, $mark, $value)->select('id');
                 $query->take($takeCount);
     
                 $queries[] = $query;
@@ -1150,7 +1153,25 @@ abstract class CustomValue extends ModelBase
             }
         } else {
             $subquery = static::query();
-            $subquery->where($searchColumn, $mark, $value)->select('id');
+            $subquery->{$whereFunc}($searchColumn, $mark, $value)->select('id');
+        }
+
+        // if has relationColumn, set query filtering
+        if(isset($relationColumn)){
+            $relationColumn->setQueryFilter($subquery, array_get($options, 'relationColumnValue'));
+        }
+        
+        ///// if has display table, filter display table
+        if(isset($display_table)){
+            $this->custom_table->filterDisplayTable($subquery, $display_table);
+        }
+
+        // set custom view's filter
+        if (isset($target_view)) {
+            $user = \Exment::user();
+            if(isset($user)){
+                $user->filterModel($subquery, $target_view);
+            }
         }
 
         $subquery->take($takeCount);
