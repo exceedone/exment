@@ -80,10 +80,16 @@ class CustomValueAuthoritable extends ModelBase
             if (array_get($share_setting, 'share_trigger_type') == $share_trigger_type) {
                 $share_permission = array_get($share_setting, 'share_permission');
                 $share_column = array_get($share_setting, 'share_column');
-                $user_organizations[] = [
-                    'related_id' => array_get($custom_value->value, $share_column->column_name),
-                    'related_type' => $share_column->column_type,
-                ];
+                $target_ids = array_get($custom_value->value, $share_column->column_name);
+                if (!is_array($target_ids)) {
+                    $target_ids = [$target_ids];
+                }
+                $user_organizations = collect($target_ids)->map(function($target_id) use($share_column) {
+                    return [
+                        'related_id' => $target_id,
+                        'related_type' => $share_column->column_type,
+                    ];
+                })->toArray();
                 // set Custom Value Authoritable
                 self::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $share_permission == SharePermission::EDIT);
             }
