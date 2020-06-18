@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Database\Seeder;
 
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
@@ -46,13 +47,13 @@ class TestDataSeeder extends Seeder
 
         $users = $this->createUserOrg();
        
-        $menu = $this->createMenu();
+        $menu = $this->createMenuParent();
 
         $custom_tables = $this->createTables($users, $menu);
 
         $this->createPermission($custom_tables);
 
-        $this->createRelationTables($users, $menu);
+        $this->createRelationTables($users);
 
         $this->createApiSetting();
     }
@@ -138,33 +139,140 @@ class TestDataSeeder extends Seeder
         return $values['user'];
     }
 
-    protected function createRelationTables($users, $menu)
+    protected function createRelationTables($users)
     {
-        // 1:n table
-        $parent_table = $this->createTable('parent_table', $users, $menu->id, [], 1);
-        $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $parent_table]);
+        $menu = $this->createMenuParent([
+            'title' => 'RelationTables',
+        ]);
 
-        $child_table = $this->createTable('child_table', [], $menu->id);
-        $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $child_table]);
+        $relations = [
+            [
+                'suffix' => '',
+                'relation_type' => Enums\RelationType::ONE_TO_MANY,
+            ],
+            [
+                'suffix' => '_n_n',
+                'relation_type' => Enums\RelationType::MANY_TO_MANY,
+            ],
+            [
+                'suffix' => '_select',
+                'relation_type' => null,
+            ],
+        ];
 
-        $relation = new CustomRelation;
-        $relation->parent_custom_table_id = $parent_table->id;
-        $relation->child_custom_table_id = $child_table->id;
-        $relation->relation_type = 1;
-        $relation->save();
+        foreach($relations as $relationItem){
+            // create parent
+            $parentOptions = [
+                'count' => ($relationItem['relation_type'] == 2 ? 10 : 1),
+                'users' => $users,
+                'menuParentId' => $menu->id, 
+            ];
+            $parent_table = $this->createTable('parent_table' . $relationItem['suffix'], $parentOptions);
+            $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $parent_table]);
+
+            // create child
+            $childOptions = [
+                'users' => $users,
+                'menuParentId' => $menu->id,
+                'createValueSavingCallback' => function($custom_value, $custom_table, $user, $i, $options) use($parent_table, $relationItem){
+                    // set relation if 1:n
+                    if($relationItem['relation_type'] != Enums\RelationType::ONE_TO_MANY){
+                        return;
+                    }
+
+                    $parent_custom_value = $parent_table->getValueModel()->query()
+                        ->where('value->text', "test_$i")
+                        ->first();
+                    if(!isset($parent_custom_value)){
+                        return;
+                    }
+
+                    $custom_value->parent_id = $parent_custom_value->id;
+                    $custom_value->parent_type = $parent_table->table_name;
+                },
+                'createValueSavedCallback' => function($custom_value, $custom_table, $user, $i, $options) use($parent_table, $relationItem){
+                    // set relation if n:n
+                    if($relationItem['relation_type'] != Enums\RelationType::MANY_TO_MANY){
+                        return;
+                    }
+
+                    $parent_custom_value_ids = $parent_table->getValueModel()->query()
+                        ->where('value->text', "test_$i")
+                        ->get()
+                        ->pluck('id');
+                    if(empty($parent_custom_value_ids)){
+                        return;
+                    }
+
+                    $relationName = CustomRelation::getRelationNamebyTables($parent_table, $custom_table);
+
+                    //$custom_value->{$relationName}()->sync($parent_custom_value_ids);
+                    // $parent_custom_value_ids->each(function($parent_custom_value_id) use($relationName, $custom_value, $custom_table){
+                    //     \DB::table($relationName)->insert([
+                    //         'parent_id' => $parent_custom_value_id,
+                    //         'child_id' => $custom_value->id,
+                    //     ]);
+                    // });
+                }
+            ];
+            $child_table = $this->createTable('child_table' . $relationItem['suffix'], $childOptions);
+
+            $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $child_table]);
+
+            if(isset($relationItem['relation_type'])){
+                $relation = new CustomRelation;
+                $relation->parent_custom_table_id = $parent_table->id;
+                $relation->child_custom_table_id = $child_table->id;
+                $relation->relation_type = $relationItem['relation_type'];
+                $relation->save();
+            }
+
+            // cerate pivot table
+            $pivot_table = $this->createTable('pivot_table' . $relationItem['suffix'], [
+                'menuParentId' => $menu->id,
+                'count' => 0,
+                'createColumnCallback' => function($custom_table, &$custom_columns) use($parent_table, $child_table){
+                    // creating relation column
+                    $columns = [
+                        ['column_name' => 'parent', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_target_table' => $parent_table->id]],
+                        ['column_name' => 'child', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_target_table' => $child_table->id]],
+                    ];
+
+                    foreach($columns as $column){
+                        $custom_column = new CustomColumn;
+                        $custom_column->custom_table_id = $custom_table->id;
+                        $custom_column->column_name = $column['column_name'];
+                        $custom_column->column_view_name = $column['column_name'];
+                        $custom_column->column_type = $column['column_type'];
+                        $custom_column->options = $column['options'];
+                        $custom_column->save();
+                
+                        $custom_columns[] = $custom_column;
+                    }
+                },
+                'createValueSavingCallback' => function($custom_value) use($relationItem){
+                }
+            ]);
+
+        }
     }
 
-    protected function createMenu()
+    protected function createMenuParent($options = [])
     {
+        $options = array_merge(
+            ['title' => 'TestTables'],
+            $options
+        );
+
         // create parent id
         $menu = Menu::create([
             'parent_id' => 0,
             'order' => 92,
-            'title' => 'TestTables',
+            'title' => $options['title'],
             'icon' => 'fa-table',
             'uri' => '#',
             'menu_type' => 'parent_node',
-            'menu_name' => 'TestTables',
+            'menu_name' => $options['title'],
             'menu_target' => null,
         ]);
 
@@ -184,19 +292,27 @@ class TestDataSeeder extends Seeder
 
         $tables = [];
         foreach ($permissions as $permission) {
-            $custom_table = $this->createTable($permission, $users, $menu->id);
+            $custom_table = $this->createTable($permission, [
+                'users' => $users, 
+                'menuParentId' => $menu->id, 
+            ]);
             $tables[$permission] = $custom_table;
         }
 
         // create table for workflow
         foreach (range(1, 4) as $i) {
-            $custom_table = $this->createTable("workflow$i", $users, $menu->id, [
-                'all_user_editable_flg' => 1
+            $custom_table = $this->createTable("workflow$i", [
+                'users' => $users, 
+                'menuParentId' => $menu->id, 
+                'customTableOptions' => ['all_user_editable_flg' => 1],
             ]);
         }
 
         // NO permission
-        $this->createTable('no_permission', $users, $menu->id);
+        $this->createTable('no_permission', [
+            'users' => $users, 
+            'menuParentId' => $menu->id, 
+        ]);
 
         return $tables;
     }
@@ -210,41 +326,57 @@ class TestDataSeeder extends Seeder
      * @param array $customTableOptions
      * @return void
      */
-    protected function createTable($keyName, $users, $menuParentId = null, $customTableOptions = [], $count = 10)
+    protected function createTable($keyName, $options = [])
     {
-        // create table
-        $custom_table = new CustomTable;
-        $custom_table->table_name = $keyName;
-        $custom_table->table_view_name = $keyName;
-        $custom_table->options =  $customTableOptions;
-        $custom_table->save();
+        extract(array_merge([
+            'users' => [], // users who can has permission
+            'menuParentId' => 0, // menu's parent id
+            'customTableOptions' => [], // saving customtable option
+            'createColumn' => true, // if false, not creating default columns
+            'createColumnCallback' => null, // if not null, callback as creating columns
+            'createValue' => true, // if false, not creating default values
+            'createValueCallback' => null, // if not null, callback as creting value
+        ], $options));
 
+        // create table
+        $custom_table = CustomTable::create([
+            'table_name' => $keyName,
+            'table_view_name' => $keyName,
+            'options' => $customTableOptions,
+        ]);
+
+        System::clearRequestSession();
         \Illuminate\Database\Eloquent\Relations\Relation::morphMap([
             $keyName => ltrim(getModelName($custom_table, true), "\\")
         ]);
 
-        $columns = [
-            ['column_name' => 'text', 'column_view_name' => 'text', 'column_type' => ColumnType::TEXT, 'options' => ['required' => '1']],
-            ['column_name' => 'user', 'column_view_name' => 'user', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
-            ['column_name' => 'index_text', 'column_view_name' => 'index_text', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1']],
-            ['column_name' => 'odd_even', 'column_view_name' => 'odd_even', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1']],
-            ['column_name' => 'multiples_of_3', 'column_view_name' => 'multiples_of_3', 'column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
-            ['column_name' => 'file', 'column_view_name' => 'file', 'column_type' => ColumnType::FILE, 'options' => []],
-            ['column_name' => 'date', 'column_view_name' => 'date', 'column_type' => ColumnType::DATE, 'options' => []],
-            ['column_name' => 'init_text', 'column_view_name' => 'init_text', 'column_type' => ColumnType::TEXT, 'options' => ['init_only' => '1']],
-        ];
-
         $custom_columns = [];
-        foreach ($columns as $column) {
-            $custom_column = new CustomColumn;
-            $custom_column->custom_table_id = $custom_table->id;
-            $custom_column->column_name = $column['column_name'];
-            $custom_column->column_view_name = $column['column_view_name'];
-            $custom_column->column_type = $column['column_type'];
-            $custom_column->options = $column['options'];
-            $custom_column->save();
+        if($createColumnCallback){
+            $createColumnCallback($custom_table, $custom_columns);
+        }
+        elseif($createColumn){
+            $columns = [
+                ['column_name' => 'text', 'column_view_name' => 'text', 'column_type' => ColumnType::TEXT, 'options' => ['required' => '1']],
+                ['column_name' => 'user', 'column_view_name' => 'user', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
+                ['column_name' => 'index_text', 'column_view_name' => 'index_text', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1']],
+                ['column_name' => 'odd_even', 'column_view_name' => 'odd_even', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1']],
+                ['column_name' => 'multiples_of_3', 'column_view_name' => 'multiples_of_3', 'column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
+                ['column_name' => 'file', 'column_view_name' => 'file', 'column_type' => ColumnType::FILE, 'options' => []],
+                ['column_name' => 'date', 'column_view_name' => 'date', 'column_type' => ColumnType::DATE, 'options' => []],
+                ['column_name' => 'init_text', 'column_view_name' => 'init_text', 'column_type' => ColumnType::TEXT, 'options' => ['init_only' => '1']],
+            ];
     
-            $custom_columns[] = $custom_column;
+            foreach ($columns as $column) {
+                $custom_column = CustomColumn::create([
+                    'custom_table_id' => $custom_table->id,
+                    'column_name' => $column['column_name'],
+                    'column_view_name' => $column['column_view_name'],
+                    'column_type' => $column['column_type'],
+                    'options' => $column['options'],
+                ]);
+        
+                $custom_columns[] = $custom_column;
+            }
         }
 
         $custom_form_conditions = [
@@ -286,38 +418,13 @@ class TestDataSeeder extends Seeder
         $this->createView($custom_table, $custom_columns);
 
         $notify_id = $this->createNotify($custom_table);
+        $options['notify_id'] = $notify_id;
 
-        System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
-        foreach ($users as $key => $user) {
-            \Auth::guard('admin')->attempt([
-                'username' => $key,
-                'password' => array_get($user, 'password')
-            ]);
-
-            $id = array_get($user, 'id');
-
-            for ($i = 1; $i <= $count; $i++) {
-                $custom_value = $custom_table->getValueModel();
-                $custom_value->setValue("text", 'test_'.$id);
-                $custom_value->setValue("user", $id);
-                $custom_value->setValue("index_text", 'index_'.$id.'_'.$i);
-                $custom_value->setValue("odd_even", ($i % 2 == 0 ? 'even' : 'odd'));
-                $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
-                $custom_value->setValue("date", \Carbon\Carbon::now());
-                $custom_value->setValue("init_text", 'init_text');
-                $custom_value->created_user_id = $id;
-                $custom_value->updated_user_id = $id;
-    
-                $custom_value->save();
-
-                if ($id == 3) {
-                    // no notify for User2
-                } elseif ($i == 5) {
-                    $this->createNotifyNavbar($custom_table, $notify_id, $custom_value, 1);
-                } elseif ($i == 10) {
-                    $this->createNotifyNavbar($custom_table, $notify_id, $custom_value, 0);
-                }
-            }
+        if(isset($createValueCallback)){
+            $options['custom_values'] = $createValueCallback($custom_table, $options);
+        }
+        elseif($createValue){
+            $options['custom_values'] = $this->createValue($custom_table, $options);
         }
 
         // create table menu
@@ -345,6 +452,63 @@ class TestDataSeeder extends Seeder
             $roleGroupPermission->permissions = [$permission];
             $roleGroupPermission->save();
         }
+    }
+
+    protected function createValue($custom_table, $options = [])
+    {
+        extract(array_merge([
+            'users' => [], // users who can has permission
+            'count' => 10, // testdata count
+            'notify_id' => null,
+            'createValueSavingCallback' => null, // if not null, callback when saving value
+            'createValueSavedCallback' => null, // if not null, callback when saved value
+        ], $options));
+
+        $custom_values = [];
+        System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
+        foreach ($users as $key => $user) {
+            \Auth::guard('admin')->attempt([
+                'username' => $key,
+                'password' => array_get($user, 'password')
+            ]);
+
+            $user_id = array_get($user, 'id');
+
+            for ($i = 1; $i <= $count; $i++) {
+                $custom_value = $custom_table->getValueModel();
+                $custom_value->setValue("text", 'test_'.$user_id);
+                $custom_value->setValue("user", $user_id);
+                $custom_value->setValue("index_text", 'index_'.$user_id.'_'.$i);
+                $custom_value->setValue("odd_even", ($i % 2 == 0 ? 'even' : 'odd'));
+                $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
+                $custom_value->setValue("date", \Carbon\Carbon::now());
+                $custom_value->setValue("init_text", 'init_text');
+                $custom_value->created_user_id = $user_id;
+                $custom_value->updated_user_id = $user_id;
+
+                if(isset($createValueSavingCallback)){
+                    $createValueSavingCallback($custom_value, $custom_table, $user, $i, $options);
+                }
+
+                $custom_value->save();
+
+                if(isset($createValueSavedCallback)){
+                    $createValueSavedCallback($custom_value, $custom_table, $user, $i, $options);
+                }
+
+                if ($user_id == 3) {
+                    // no notify for User2
+                } elseif ($i == 5) {
+                    $this->createNotifyNavbar($custom_table, $notify_id, $custom_value, 1);
+                } elseif ($i == 10) {
+                    $this->createNotifyNavbar($custom_table, $notify_id, $custom_value, 0);
+                }
+
+                $custom_values[] = $custom_value;
+            }
+        }
+
+        return $custom_values;
     }
     
     /**

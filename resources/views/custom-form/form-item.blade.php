@@ -58,7 +58,7 @@
                         </div>
                     </div>
 
-                        @if(\Exceedone\Exment\Enums\ColumnType::isSelectTable(array_get($custom_form_column, 'custom_column.column_type')))
+                        @if(\Exceedone\Exment\Enums\ColumnType::isSelectTable(array_get($custom_form_column, 'column_type')) || \Exceedone\Exment\Enums\ColumnType::isSelectTable(array_get($custom_form_column, 'custom_column.column_type')))
                         <div class="form-group">
                             <span class="small control-label col-sm-5">
                                 {{exmtrans('custom_form.relation_filter')}}
