@@ -1246,12 +1246,20 @@ abstract class CustomValue extends ModelBase
             return $options;
         }
 
+        $mark = ($isLike ? 'LIKE' : '=');
+
         if (System::filter_search_type() == FilterSearchType::ALL) {
             $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         } else {
-            $value = $q . ($isLike ? '%' : '');
+            if (is_array($q)) {
+                $mark = 'regexp';
+                $value = implode('|', collect($q)->map(function($item) use($isLike) {
+                    return '^' . $item . ($isLike ? '' : '$');
+                })->toArray());
+            } else {
+                $value = $q . ($isLike ? '%' : '');
+            }
         }
-        $mark = ($isLike ? 'LIKE' : '=');
 
         if ($relation) {
             $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
