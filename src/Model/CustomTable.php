@@ -1212,8 +1212,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 // get search_table value
                 // where: parent_id is value_id
                 $query = $child_table->getValueModel()
-                    ::join($relation_name, "$relation_name.child_id", "$database_table_name.id")
-                    ->{$whereFunc}("$relation_name.parent_id", $parent_value_id)
+                    ::whereHas($relation_name, function ($query) use ($relation_name, $whereFunc, $parent_value_id) {
+                        $query->{$whereFunc}("$relation_name.parent_id", $parent_value_id);
+                    })
                     // remove pivot table's data
                     ->select(["$database_table_name.*"]);
                     
