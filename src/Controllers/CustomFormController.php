@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\RelationColumn;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
@@ -204,11 +205,7 @@ class CustomFormController extends AdminControllerTableBase
         $custom_column = CustomColumn::getEloquent($target_column_id);
         
         // get relation columns.
-        $relationColumns = !isset($custom_column) ? collect() : collect($custom_column->custom_table_cache
-            ->getSelectTableRelationColumns())
-            ->filter(function($c) use($target_column_id){
-                return $c['child_column']->id == $target_column_id;
-            });
+        $relationColumns = RelationColumn::getRelationColumns(null, $custom_column);
 
         return view('exment::custom-form.form-relation-filter-modal', [
             'columns' => $relationColumns,

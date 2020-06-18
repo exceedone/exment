@@ -11,6 +11,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\CustomColumn;
@@ -169,14 +170,59 @@ class TestDataSeeder extends Seeder
             ];
             $parent_table = $this->createTable('parent_table' . $relationItem['suffix'], $parentOptions);
             $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $parent_table]);
+            
+            $createRelationCallback = function($custom_table) use($parent_table, $relationItem){
+                if(isset($relationItem['relation_type'])){
+                    CustomRelation::create([
+                        'parent_custom_table_id' => $parent_table->id,
+                        'child_custom_table_id' => $custom_table->id,
+                        'relation_type' => $relationItem['relation_type'],
+                    ]);
+                }
+            };
 
             // create child
             $childOptions = [
                 'users' => $users,
                 'menuParentId' => $menu->id,
+                'createColumnFirstCallback' => function($custom_table, &$custom_columns) use($parent_table, $relationItem){
+                    // set relation if select_table
+                    if(!is_null($relationItem['relation_type'])){
+                        return;
+                    }
+
+                    // $parent_custom_value = $parent_table->getValueModel()->query()
+                    //     ->where('value->text', "test_$i")
+                    //     ->first();
+                    // if(!isset($parent_custom_value)){
+                    //     return;
+                    // }
+
+                    $multis = [null, 1];
+                    foreach($multis as $multi){
+                        $name = 'parent_select_table' . (boolval($multi) ? '_multi' : '');
+                        $options = [
+                            'index_enabled' => 1,
+                            'select_target_table' => $parent_table->id,
+                        ];
+                        if(boolval($multi)){
+                            $options['multiple_enabled'] = 1;   
+                        }
+
+                        $custom_column = CustomColumn::create([
+                            'custom_table_id' => $custom_table->id,
+                            'column_name' => $name,
+                            'column_view_name' => $name,
+                            'column_type' => ColumnType::SELECT_TABLE,
+                            'options' => $options,
+                        ]);
+                        $custom_columns[] = $custom_column;
+                    }
+                },
+                'createRelationCallback' => $createRelationCallback,
                 'createValueSavingCallback' => function($custom_value, $custom_table, $user, $i, $options) use($parent_table, $relationItem){
                     // set relation if 1:n
-                    if($relationItem['relation_type'] != Enums\RelationType::ONE_TO_MANY){
+                    if($relationItem['relation_type'] == Enums\RelationType::MANY_TO_MANY){
                         return;
                     }
 
@@ -187,8 +233,14 @@ class TestDataSeeder extends Seeder
                         return;
                     }
 
-                    $custom_value->parent_id = $parent_custom_value->id;
-                    $custom_value->parent_type = $parent_table->table_name;
+                    if ($relationItem['relation_type'] == Enums\RelationType::ONE_TO_MANY) {
+                        $custom_value->parent_id = $parent_custom_value->id;
+                        $custom_value->parent_type = $parent_table->table_name;
+                    }
+                    else{
+                        $custom_value->setValue('parent_select_table', $parent_custom_value->id);
+                        $custom_value->setValue('parent_select_table_multi', [$parent_custom_value->id]);
+                    }
                 },
                 'createValueSavedCallback' => function($custom_value, $custom_table, $user, $i, $options) use($parent_table, $relationItem){
                     // set relation if n:n
@@ -206,26 +258,17 @@ class TestDataSeeder extends Seeder
 
                     $relationName = CustomRelation::getRelationNamebyTables($parent_table, $custom_table);
 
-                    //$custom_value->{$relationName}()->sync($parent_custom_value_ids);
-                    // $parent_custom_value_ids->each(function($parent_custom_value_id) use($relationName, $custom_value, $custom_table){
-                    //     \DB::table($relationName)->insert([
-                    //         'parent_id' => $parent_custom_value_id,
-                    //         'child_id' => $custom_value->id,
-                    //     ]);
-                    // });
+                    $parent_custom_value_ids->each(function($parent_custom_value_id) use($relationName, $custom_value, $custom_table){
+                        \DB::table($relationName)->insert([
+                            'parent_id' => $parent_custom_value_id,
+                            'child_id' => $custom_value->id,
+                        ]);
+                    });
                 }
             ];
             $child_table = $this->createTable('child_table' . $relationItem['suffix'], $childOptions);
 
             $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $child_table]);
-
-            if(isset($relationItem['relation_type'])){
-                $relation = new CustomRelation;
-                $relation->parent_custom_table_id = $parent_table->id;
-                $relation->child_custom_table_id = $child_table->id;
-                $relation->relation_type = $relationItem['relation_type'];
-                $relation->save();
-            }
 
             // cerate pivot table
             $pivot_table = $this->createTable('pivot_table' . $relationItem['suffix'], [
@@ -234,23 +277,23 @@ class TestDataSeeder extends Seeder
                 'createColumnCallback' => function($custom_table, &$custom_columns) use($parent_table, $child_table){
                     // creating relation column
                     $columns = [
-                        ['column_name' => 'parent', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_target_table' => $parent_table->id]],
-                        ['column_name' => 'child', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_target_table' => $child_table->id]],
+                        ['column_name' => 'parent', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $parent_table->id]],
+                        ['column_name' => 'child', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'child_relation_filter', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id]],
                     ];
 
                     foreach($columns as $column){
-                        $custom_column = new CustomColumn;
-                        $custom_column->custom_table_id = $custom_table->id;
-                        $custom_column->column_name = $column['column_name'];
-                        $custom_column->column_view_name = $column['column_name'];
-                        $custom_column->column_type = $column['column_type'];
-                        $custom_column->options = $column['options'];
-                        $custom_column->save();
-                
+                        $custom_column = CustomColumn::create([
+                            'custom_table_id' => $custom_table->id,
+                            'column_name' => $column['column_name'],
+                            'column_view_name' => $column['column_name'],
+                            'column_type' => $column['column_type'],
+                            'options' => $column['options'],
+                        ]);
                         $custom_columns[] = $custom_column;
                     }
                 },
-                'createValueSavingCallback' => function($custom_value) use($relationItem){
+                'createValueCallback' => function($custom_value) use($relationItem){
                 }
             ]);
 
@@ -333,7 +376,9 @@ class TestDataSeeder extends Seeder
             'menuParentId' => 0, // menu's parent id
             'customTableOptions' => [], // saving customtable option
             'createColumn' => true, // if false, not creating default columns
-            'createColumnCallback' => null, // if not null, callback as creating columns
+            'createColumnCallback' => null, // if not null, callback as creating columns instead of default
+            'createColumnFirstCallback' => null, // if not null, callback as creating columns. After this callback, call default columns.
+            'createRelationCallback' => null, // if not null, callback as creating relations
             'createValue' => true, // if false, not creating default values
             'createValueCallback' => null, // if not null, callback as creting value
         ], $options));
@@ -355,10 +400,14 @@ class TestDataSeeder extends Seeder
             $createColumnCallback($custom_table, $custom_columns);
         }
         elseif($createColumn){
+            if(isset($createColumnFirstCallback)){
+                $createColumnFirstCallback($custom_table, $custom_columns);
+            }
+
             $columns = [
                 ['column_name' => 'text', 'column_view_name' => 'text', 'column_type' => ColumnType::TEXT, 'options' => ['required' => '1']],
                 ['column_name' => 'user', 'column_view_name' => 'user', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
-                ['column_name' => 'index_text', 'column_view_name' => 'index_text', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1']],
+                ['column_name' => 'index_text', 'column_view_name' => 'index_text', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1'], 'label' => true],
                 ['column_name' => 'odd_even', 'column_view_name' => 'odd_even', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1']],
                 ['column_name' => 'multiples_of_3', 'column_view_name' => 'multiples_of_3', 'column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
                 ['column_name' => 'file', 'column_view_name' => 'file', 'column_type' => ColumnType::FILE, 'options' => []],
@@ -376,7 +425,21 @@ class TestDataSeeder extends Seeder
                 ]);
         
                 $custom_columns[] = $custom_column;
+
+                if(boolval(array_get($column, 'label'))){
+                    Model\CustomColumnMulti::create([
+                        'custom_table_id' => $custom_table->id,
+                        'multisetting_type' => Enums\MultisettingType::TABLE_LABELS,
+                        'options' => [
+                            'table_label_id' => $custom_column->id,
+                        ],
+                    ]);
+                }
             }
+        }
+
+        if(isset($createRelationCallback)){
+            $createRelationCallback($custom_table);
         }
 
         $custom_form_conditions = [
@@ -391,20 +454,21 @@ class TestDataSeeder extends Seeder
 
         foreach ($custom_form_conditions as $index => $condition) {
             // create form
-            $custom_form = new CustomForm;
-            $custom_form->custom_table_id = $custom_table->id;
-            $custom_form->form_view_name = ($index === 1 ? 'form_default' : 'form');
-            $custom_form->default_flg = ($index === 1);
-            $custom_form->save();
+            $custom_form = CustomForm::create([
+                'custom_table_id' => $custom_table->id,
+                'form_view_name' => ($index === 1 ? 'form_default' : 'form'),
+                'default_flg' => ($index === 1),
+            ]);
+            CustomForm::getDefault($custom_table);
         
             if (count($condition) == 0) {
                 continue;
             }
             
-            $custom_form_priority = new CustomFormPriority;
-            $custom_form_priority->custom_form_id = $custom_form->id;
-            $custom_form_priority->order = $index + 1;
-            $custom_form_priority->save();
+            $custom_form_priority = CustomFormPriority::create([
+                'custom_form_id' => $custom_form->id,
+                'order' => $index + 1,
+            ]);
 
             $custom_form_condition = new Condition;
             $custom_form_condition->morph_type = 'custom_form_priority';

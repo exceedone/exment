@@ -38,13 +38,18 @@ class RelationColumn
         $parent_custom_column = CustomColumn::getEloquent($parent_custom_column);
         $child_custom_column = CustomColumn::getEloquent($child_custom_column);
 
-        if(!isset($parent_custom_column) || !isset($child_custom_column)){
+        if(!isset($child_custom_column)){
             return collect();
         }
 
         return collect($child_custom_column->custom_table_cache->getSelectTableRelationColumns())
             ->filter(function ($relationColumn) use($parent_custom_column, $child_custom_column) {
-                return array_get($relationColumn, 'child_column')->id == $child_custom_column->id && $parent_custom_column->id == array_get($relationColumn, 'parent_column')->id;
+                if(isset($parent_custom_column)){
+                    if($parent_custom_column->id != array_get($relationColumn, 'parent_column')->id){
+                        return false;
+                    }
+                }
+                return array_get($relationColumn, 'child_column')->id == $child_custom_column->id;
             })->map(function($relationColumn){
                 return new self($relationColumn);
             });

@@ -305,7 +305,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
 
             // get children tables
-            $relations = $custom_table->getRelationTables($checkPermission);
+            $relations = $custom_table->getRelationTables($checkPermission, ['search_enabled_only' => false]);
             // if not exists, continue
             if (!$relations) {
                 continue;
@@ -1593,13 +1593,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $display_table = CustomTable::getEloquent($display_table);
 
         $table_name = $this->table_name;
-        if (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
+        if (isset($display_table) && in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
             return $query;
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
         if ($table_name == SystemTableName::USER && !$all) {
             return AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission, $query);
-        } if ($table_name == SystemTableName::ORGANIZATION && !$all) {
+        } 
+        if ($table_name == SystemTableName::ORGANIZATION && !$all) {
             return AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission, $query);
         }
 
@@ -1977,23 +1978,31 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * Get relation tables list.
      * It contains search_type(select_table, one_to_many, many_to_many)
      */
-    public function getRelationTables($checkPermission = true)
+    public function getRelationTables($checkPermission = true, $options = [])
     {
+        $options = array_merge([
+                'search_enabled_only' => true, // if true, filtering search enabled
+            ],
+            $options
+        );
+
         // check already execute
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES, $this->table_name);
-        return System::requestSession($key, function () {
+        return System::requestSession($key, function () use($options) {
             $results = [];
             // 1. Get tables as "select_table". They contains these columns matching them.
             // * table_column > options > search_enabled is true.
             // * table_column > options > select_target_table is table id user selected.
-            $tables = static::whereHas('custom_columns', function ($query) {
+            $query =  static::whereHas('custom_columns', function ($query) {
                 $query
                 ->withoutGlobalScope(OrderScope::class)
-                ->whereIn('options->index_enabled', [1, "1"])
+                ->indexEnabled()
                 ->whereIn('options->select_target_table', [$this->id, strval($this->id)]);
-            })
-            ->searchEnabled()
-            ->get();
+            });
+            if($options['search_enabled_only']){
+                $query->searchEnabled();               
+            }
+            $tables = $query->get();
     
             foreach ($tables as $table) {
                 // if not role, continue
