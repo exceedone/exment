@@ -391,7 +391,7 @@ EOT;
         $results[] = $this->getTableArray($value_table, SearchType::SELF);
         // loop and add $results
         foreach ($relationTables as $relationTable) {
-            $results[] = $this->getTableArray($relationTable['table'], $relationTable['searchType']);
+            $results[] = $this->getTableArray($relationTable->table, $relationTable->searchType);
         }
         return $results;
     }

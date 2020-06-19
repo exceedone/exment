@@ -7,7 +7,7 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\RelationColumn;
+use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -149,7 +149,7 @@ class SelectTable extends CustomItem
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
 
         // add view info
-        $relationColumn = $this->getRelationColumn($form_column_options);
+        $relationColumn = $this->getLinkage($form_column_options);
         $callback = $this->getRelationFilterCallback($relationColumn);
 
         $selectOption = [
@@ -195,7 +195,7 @@ class SelectTable extends CustomItem
      * @param ?array $form_column_options
      * @return void
      */
-    protected function getRelationColumn($form_column_options)
+    protected function getLinkage($form_column_options)
     {
         // if config "select_relation_linkage_disabled" is true, not callback
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
@@ -207,7 +207,7 @@ class SelectTable extends CustomItem
             return;
         }
 
-        return RelationColumn::getRelationColumn($relation_filter_target_column_id, $this->custom_column);
+        return Linkage::getLinkage($relation_filter_target_column_id, $this->custom_column);
     }
 
     /**
@@ -455,10 +455,10 @@ class SelectTable extends CustomItem
      * @param [type] $takeCount
      * @return void
      */
-    public function getSearchQueries($mark, $value, $takeCount, $q)
+    public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {
         if(!boolval($this->custom_column->getOption('multiple_enabled'))){
-            return parent::getSearchQueries($mark, $value, $takeCount, $q);
+            return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
         }
 
         $query = $this->custom_table->getValueModel()->query();

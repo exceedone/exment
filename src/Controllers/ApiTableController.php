@@ -8,11 +8,12 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Model\RelationColumn;
+use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
@@ -207,7 +208,7 @@ class ApiTableController extends AdminControllerTableBase
             $linkage_value_id = array_get($expand, 'linkage_value_id');
 
             if(isset($linkage_value_id)){
-                $relationColumn = RelationColumn::getRelationColumn($linkage_column, $column);
+                $relationColumn = Linkage::getLinkage($linkage_column, $column);
             }
         }
 
@@ -511,9 +512,23 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, $code);
         }
 
-        // get children table id
-        $child_table_id = $request->get('child_table_id');
-        $child_table = CustomTable::getEloquent($child_table_id);
+        // get parent and child table, column
+        $parent_select_table_id = $request->get('parent_select_table_id');
+        $child_select_table_id = $request->get('child_select_table_id');
+        $child_column_id = $request->get('child_column_id');
+
+        $child_column = CustomColumn::getEloquent($child_column_id);
+        $child_select_table = CustomTable::getEloquent($child_select_table_id);
+        if(!isset($child_column) || !isset($child_select_table) || !isset($parent_select_table_id)){
+            return [];
+        }
+
+        // get search target column
+        $searchType = $request->get('search_type');
+        if($searchType == SearchType::SELECT_TABLE){
+            $searchColumns = $child_select_table->getSelectTableColumns($parent_select_table_id);
+        }
+
         // get selected custom_value id(q)
         $q = $request->get('q');
 
@@ -522,8 +537,10 @@ class ApiTableController extends AdminControllerTableBase
             'paginate' => false,
             'maxCount' => null,
             'getLabel' => true,
+            'searchColumns' => $searchColumns ?? null,
+            'target_view' => CustomView::getEloquent($child_column->getOption('select_target_view')),
         ];
-        $datalist = $this->custom_table->searchRelationValue($request->get('search_type'), $q, $child_table, $options);
+        $datalist = $this->custom_table->searchRelationValue($searchType, $q, $child_select_table, $options);
         return collect($datalist)->map(function ($data) {
             return ['id' => $data->id, 'text' => $data->label];
         });

@@ -146,6 +146,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $query->whereIn('options->required', [1, "1", true]);
     }
 
+    public function scopeSelectTargetTable($query, $id)
+    {
+        return $query->whereIn('options->select_target_table', [$id, strval($id)]);
+    }
+
     public function getCustomTableCacheAttribute()
     {
         return CustomTable::getEloquent($this);
@@ -514,7 +519,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     /**
      * import template (for setting other custom column id)
      */
-    public static function importTemplateRelationColumn($json, $is_update, $options = [])
+    public static function importTemplateLinkage($json, $is_update, $options = [])
     {
         $custom_table = array_get($options, 'parent');
         $column_name = array_get($json, 'column_name');

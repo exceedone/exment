@@ -16,7 +16,7 @@ use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\RelationColumn;
+use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
@@ -205,7 +205,7 @@ class CustomFormController extends AdminControllerTableBase
         $custom_column = CustomColumn::getEloquent($target_column_id);
         
         // get relation columns.
-        $relationColumns = RelationColumn::getRelationColumns(null, $custom_column);
+        $relationColumns = Linkage::getLinkages(null, $custom_column);
 
         return view('exment::custom-form.form-relation-filter-modal', [
             'columns' => $relationColumns,

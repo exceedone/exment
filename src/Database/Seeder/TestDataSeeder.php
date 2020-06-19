@@ -198,26 +198,18 @@ class TestDataSeeder extends Seeder
                     //     return;
                     // }
 
-                    $multis = [null, 1];
-                    foreach($multis as $multi){
-                        $name = 'parent_select_table' . (boolval($multi) ? '_multi' : '');
-                        $options = [
-                            'index_enabled' => 1,
-                            'select_target_table' => $parent_table->id,
-                        ];
-                        if(boolval($multi)){
-                            $options['multiple_enabled'] = 1;   
-                        }
-
-                        $custom_column = CustomColumn::create([
-                            'custom_table_id' => $custom_table->id,
-                            'column_name' => $name,
-                            'column_view_name' => $name,
-                            'column_type' => ColumnType::SELECT_TABLE,
-                            'options' => $options,
-                        ]);
-                        $custom_columns[] = $custom_column;
-                    }
+                    $options = [
+                        'index_enabled' => 1,
+                        'select_target_table' => $parent_table->id,
+                    ];
+                    $custom_column = CustomColumn::create([
+                        'custom_table_id' => $custom_table->id,
+                        'column_name' => 'parent_select_table',
+                        'column_view_name' => 'parent_select_table',
+                        'column_type' => ColumnType::SELECT_TABLE,
+                        'options' => $options,
+                    ]);
+                    $custom_columns[] = $custom_column;
                 },
                 'createRelationCallback' => $createRelationCallback,
                 'createValueSavingCallback' => function($custom_value, $custom_table, $user, $i, $options) use($parent_table, $relationItem){
@@ -239,7 +231,6 @@ class TestDataSeeder extends Seeder
                     }
                     else{
                         $custom_value->setValue('parent_select_table', $parent_custom_value->id);
-                        $custom_value->setValue('parent_select_table_multi', [$parent_custom_value->id]);
                     }
                 },
                 'createValueSavedCallback' => function($custom_value, $custom_table, $user, $i, $options) use($parent_table, $relationItem){
@@ -382,6 +373,10 @@ class TestDataSeeder extends Seeder
             'createValue' => true, // if false, not creating default values
             'createValueCallback' => null, // if not null, callback as creting value
         ], $options));
+
+        $customTableOptions = array_merge([
+            'search_enabled' => 1,
+        ], $customTableOptions);
 
         // create table
         $custom_table = CustomTable::create([

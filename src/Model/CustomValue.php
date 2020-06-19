@@ -1130,7 +1130,7 @@ abstract class CustomValue extends ModelBase
                     continue;
                 }
 
-                foreach ($column_item->getSearchQueries($mark, $value, $takeCount, $q) as $query) {
+                foreach ($column_item->getSearchQueries($mark, $value, $takeCount, $q, $options) as $query) {
                     $queries[] = $query;
                 }
             } else {
@@ -1149,7 +1149,7 @@ abstract class CustomValue extends ModelBase
             if (!isset($column_item)) {
                 $subquery = static::query();
             } else {
-                $subquery = $column_item->getSearchQueries($mark, $value, $takeCount, $q)[0];
+                $subquery = $column_item->getSearchQueries($mark, $value, $takeCount, $q, $options)[0];
             }
         } else {
             $subquery = static::query();

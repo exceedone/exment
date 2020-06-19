@@ -9,7 +9,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\RelationColumn;
+use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
@@ -440,9 +440,9 @@ EOT;
         $keys = [];
         // loop $option_calc_formulas and get column_name
         foreach ($option_calc_formulas as &$option_calc_formula) {
-            $child_table = array_get($option_calc_formula, 'table');
-            if (isset($child_table)) {
-                $option_calc_formula['relation_name'] = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
+            $child_select_table = array_get($option_calc_formula, 'table');
+            if (isset($child_select_table)) {
+                $option_calc_formula['relation_name'] = CustomRelation::getRelationNameByTables($this->custom_table, $child_select_table);
             }
             switch (array_get($option_calc_formula, 'type')) {
                 case 'count':
@@ -588,18 +588,18 @@ EOT;
         }
 
         // get relation columns
-        $relationColumns = RelationColumn::getRelationColumns($relation_filter_target_column_id, $custom_column);
+        $linkages = Linkage::getLinkages($relation_filter_target_column_id, $custom_column);
 
-        foreach ($relationColumns as $relationColumn) {
-            $parent_column = $relationColumn->parent_column;
+        foreach ($linkages as $linkage) {
+            $parent_column = $linkage->parent_column;
             $parent_column_name = array_get($parent_column, 'column_name');
-            $parent_table = $parent_column->select_target_table;
+            $parent_select_table = $parent_column->select_target_table;
 
-            $child_column = $relationColumn->child_column;
-            $child_table = $child_column->select_target_table;
+            $child_column = $linkage->child_column;
+            $child_select_table = $child_column->select_target_table;
                     
             // skip same table
-            if ($parent_table->id == $child_table->id) {
+            if ($parent_select_table->id == $child_select_table->id) {
                 continue;
             }
 
@@ -610,10 +610,12 @@ EOT;
 
             // add array. key is column name.
             $relatedlinkage_array[$parent_column_name][] = [
-                'url' => admin_urls('webapi', 'data', $parent_table->table_name ?? null, 'relatedLinkage'),
+                'url' => admin_urls('webapi', 'data', $parent_select_table->table_name ?? null, 'relatedLinkage'),
                 'expand' => [
-                    'child_table_id' => $child_table->id ?? null,
-                    'search_type' => $relationColumn->searchType,
+                    'child_column_id' => $child_column->id ?? null,
+                    'parent_select_table_id' => $parent_select_table->id ?? null,
+                    'child_select_table_id' => $child_select_table->id ?? null,
+                    'search_type' => $linkage->searchType,
                 ],
                 'to' => array_get($child_column, 'column_name'),
             ];

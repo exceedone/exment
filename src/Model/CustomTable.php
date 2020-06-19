@@ -211,20 +211,30 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * Get this table's select table's key-value collection.
-     * Key is column index name.
+     * Get custom columns, filtering "references" "users" "organizations", in this table.
      * Value is custom column.
      * Filter is select_target_table
      *
+     * @param int|string|CustomTable|null $select_target_table if filter select target table, set value.
      * @return Collection
      */
-    public function getSelectTableColumns()
+    public function getSelectTableColumns($select_target_table = null)
     {
-        return $this->custom_columns_cache->filter(function ($item) {
-            return ColumnType::isSelectTable($item->column_type);
-        })->mapWithKeys(function ($item) {
-            $key = $item->getIndexColumnName();
-            return [$key => $item];
+        return $this->custom_columns_cache->filter(function ($item) use($select_target_table) {
+            if(!ColumnType::isSelectTable($item->column_type)){
+                return false;
+            }
+
+            if(is_null($select_target_table)){
+                return true;
+            }
+
+            $select_target_table = CustomTable::getEloquent($select_target_table);
+            if(!isset($select_target_table)){
+                return false;
+            }
+
+            return isset($item->select_target_table) && $select_target_table->id == $item->select_target_table->id;
         });
     }
 
@@ -285,48 +295,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return array contains parent_column, child_column, searchType
      */
-    public function getSelectTableRelationColumns($checkPermission = true)
+    public function getSelectTableLinkages($checkPermission = true)
     {
-        $result = [];
-
-        $columns = $this->getSelectTableColumns();
-        
-        // re-loop for relation
-        foreach ($columns as $column) {
-            // get custom table
-            $custom_table = $column->select_target_table;
-            if (!isset($custom_table)) {
-                continue;
-            }
-
-            // if same table, continue
-            if ($this->id == $custom_table->id) {
-                continue;
-            }
-
-            // get children tables
-            $relations = $custom_table->getRelationTables($checkPermission, ['search_enabled_only' => false]);
-            // if not exists, continue
-            if (!$relations) {
-                continue;
-            }
-            foreach ($relations as $relation) {
-                $child_custom_table = array_get($relation, 'table');
-                collect($columns)->filter(function ($child_column) use ($child_custom_table) {
-                    return $child_column->select_target_table && $child_column->select_target_table->id == $child_custom_table->id;
-                })
-                ->each(function ($child_column) use ($column, $relation, &$result) {
-                    $result[] = [
-                        'parent_column' => $column,
-                        'child_column' => $child_column,
-                        'searchType' => array_get($relation, 'searchType'),
-                    ];
-                });
-            }
-        }
-
-        return $result;
+        return Linkage::getSelectTableLinkages($this, $checkPermission);
     }
+
+
 
     public function getMultipleUniques($custom_column = null)
     {
@@ -1080,9 +1054,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'makeHidden' => false,
                 'searchColumns' => null, // if select search columns, set them. If null search for index_enabled columns.
                 'relation' => false, // if relation search, set true
-                'target_view' => null, // search target
+                'target_view' => null, // filtering view if select
                 'getLabel' => false,
-                'relationColumn' => null, // RelationColumn object. if has, filtering value.
+                'relationColumn' => null, // Linkage object. if has, filtering value.
             ],
             $options
         );
@@ -1149,6 +1123,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             [
                 'paginate' => false,
                 'maxCount' => 5,
+                'searchColumns' => null, // if search_type is SELECT_TABLE, and selecting target, set columns collection
             ],
             $options
         );
@@ -1171,12 +1146,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // select_table(select box)
             case SearchType::SELECT_TABLE:
                 // get columns for relation child to parent
-                $searchColumns = $child_table->custom_columns()
+                if(!isset($searchColumns)){
+                    $searchColumns = $child_table->custom_columns()
                     ->where('column_type', ColumnType::SELECT_TABLE)
-                    ->whereIn('options->select_target_table', [strval($this->id), intval($this->id)])
+                    ->selectTargetTable($this->id)
                     ->indexEnabled()
                     ->get()
                     ;
+                }
 
                 // set query info
                 if ($searchColumns->count() > 0) {
@@ -1980,60 +1957,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getRelationTables($checkPermission = true, $options = [])
     {
-        $options = array_merge([
-                'search_enabled_only' => true, // if true, filtering search enabled
-            ],
-            $options
-        );
-
-        // check already execute
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES, $this->table_name);
-        return System::requestSession($key, function () use($options) {
-            $results = [];
-            // 1. Get tables as "select_table". They contains these columns matching them.
-            // * table_column > options > search_enabled is true.
-            // * table_column > options > select_target_table is table id user selected.
-            $query =  static::whereHas('custom_columns', function ($query) {
-                $query
-                ->withoutGlobalScope(OrderScope::class)
-                ->indexEnabled()
-                ->whereIn('options->select_target_table', [$this->id, strval($this->id)]);
-            });
-            if($options['search_enabled_only']){
-                $query->searchEnabled();               
-            }
-            $tables = $query->get();
-    
-            foreach ($tables as $table) {
-                // if not role, continue
-                $table_obj = static::getEloquent(array_get($table, 'id'));
-                $results[] = ['searchType' => SearchType::SELECT_TABLE, 'table' => $table_obj];
-            }
-    
-            // 2. Get relation tables.
-            // * table "custom_relations" and column "parent_custom_table_id" is $this->id.
-            $tables = static
-            ::join('custom_relations', 'custom_tables.id', 'custom_relations.parent_custom_table_id')
-            ->join('custom_tables AS child_custom_tables', 'child_custom_tables.id', 'custom_relations.child_custom_table_id')
-                ->whereHas('custom_relations', function ($query) {
-                    $query->where('parent_custom_table_id', $this->id);
-                })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
-            foreach ($tables as $table) {
-                // if not role, continue
-                $table_obj = static::getEloquent(array_get($table, 'id'));
-                $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY;
-                $results[] = ['searchType' => $searchType, 'table' => $table_obj];
-            }
-    
-            return collect($results);
-        })->filter(function($result) use($checkPermission){
-            if ($checkPermission && !$result['table']->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
-                return false;
-            }
-
-            return true;
-        })->toArray();
+        return RelationTable::getRelationTables($this, $checkPermission, $options);
     }
+
     /**
      * Get CustomValue's model.
      *
