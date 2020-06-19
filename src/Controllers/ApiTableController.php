@@ -169,10 +169,6 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, $code);
         }
 
-        // get model filtered using role
-        $model = getModelName($this->custom_table)::query();
-        \Exment::user()->filterModel($model);
-
         $validator = Validator::make($request->all(), [
             'q' => 'required',
         ]);
@@ -243,10 +239,6 @@ class ApiTableController extends AdminControllerTableBase
         if (($code = $this->custom_table->enableAccess()) !== true) {
             return abortJson(403, $code);
         }
-
-        // get model filtered using role
-        $model = getModelName($this->custom_table)::query();
-        \Exment::user()->filterModel($model);
 
         $validator = Validator::make($request->all(), [
             'q' => 'required',
@@ -505,6 +497,11 @@ class ApiTableController extends AdminControllerTableBase
 
     /**
      * get selected id's children values
+     * *parent_select_table_id(required) : The select_table of the parent column(Changed by user) that executed Linkage. .
+     * *child_select_table_id(required) : The select_table of the child column(Linkage target column) that executed Linkage.
+     * *child_column_id(required) : Called Linkage target column.
+     * *search_type(required) : 1:n, n:n or select_table.
+     * *q(required) : id that user selected.
      */
     public function relatedLinkage(Request $request)
     {
@@ -810,7 +807,7 @@ class ApiTableController extends AdminControllerTableBase
         // get paginate
         $model = $this->custom_table->getValueModel()->query();
         // filter model
-        \Exment::user()->filterModel($model, $custom_view);
+        $custom_view->filterModel($model);
 
         $tasks = [];
         foreach ($custom_view->custom_view_columns as $custom_view_column) {

@@ -1168,10 +1168,7 @@ abstract class CustomValue extends ModelBase
 
         // set custom view's filter
         if (isset($target_view)) {
-            $user = \Exment::user();
-            if(isset($user)){
-                $user->filterModel($subquery, $target_view);
-            }
+            $target_view->filterModel($subquery);
         }
 
         $subquery->take($takeCount);
@@ -1246,20 +1243,7 @@ abstract class CustomValue extends ModelBase
             return $options;
         }
 
-        $mark = ($isLike ? 'LIKE' : '=');
-
-        if (System::filter_search_type() == FilterSearchType::ALL) {
-            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        } else {
-            if (is_array($q)) {
-                $mark = 'regexp';
-                $value = implode('|', collect($q)->map(function($item) use($isLike) {
-                    return '^' . $item . ($isLike ? '' : '$');
-                })->toArray());
-            } else {
-                $value = $q . ($isLike ? '%' : '');
-            }
-        }
+        list($mark, $value) = $this->getQueryMarkAndValue($isLike, $q, $relation);
 
         if ($relation) {
             $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
@@ -1279,6 +1263,30 @@ abstract class CustomValue extends ModelBase
         $options['q'] = $q;
 
         return $options;
+    }
+
+    /**
+     * Get mark and value for search
+     *
+     * @param bool $isLike
+     * @param search $q
+     * @return array
+     */
+    protected function getQueryMarkAndValue($isLike, $q, bool $relation){
+        // if relation search, return always "=" and $q
+        if($relation){
+            return ["=", $q];
+        }
+
+        // if all search
+        $mark = ($isLike ? 'LIKE' : '=');
+        if (System::filter_search_type() == FilterSearchType::ALL) {
+            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        } else {
+            $value = $q . ($isLike ? '%' : '');
+        }
+
+        return [$mark, $value];
     }
 
     /**

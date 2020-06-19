@@ -79,4 +79,75 @@ class RelationTable
         });
     }
 
+    /**
+     * Set query as relation filter for 1:n relation
+     *
+     * @param [type] $query
+     * @param CustomTable $parent_table
+     * @param mixed $value
+     * @return mixed
+     */
+    public static function setQueryOneMany($query, $parent_table, $value){
+        if(!isset($parent_table)){
+            return;
+        }
+        
+        // if value is array, execute query as 'whereIn'
+        $whereFunc = is_list($value) ? 'whereIn' : 'where';
+
+        $query->{$whereFunc}("parent_id", $value)->where('parent_type', $parent_table->table_name);
+        
+        return $query;
+    }
+
+
+    /**
+     * Set query as relation filter for n:n relation
+     *
+     * @param [type] $query
+     * @param CustomTable $parent_table
+     * @param CustomTable $child_table
+     * @param mixed $value
+     * @return mixed
+     */
+    public static function setQueryManyMany($query, $parent_table, $child_table, $value){
+        if(!isset($parent_table) || !isset($child_table)){
+            return;
+        }
+        $relation = CustomRelation::getRelationByParentChild($parent_table, $child_table);
+        if(!isset($relation)){
+            return;
+        }
+        
+        // if value is array, execute query as 'whereIn'
+        $whereFunc = is_list($value) ? 'whereIn' : 'where';
+            
+        $query->whereHas($relation->getRelationName(), function ($query) use($relation, $value, $whereFunc) {
+            $query->{$whereFunc}($relation->getRelationName() . '.parent_id', $value);
+        });
+        
+        return $query;
+    }
+
+    /**
+     * Set query as relation filter for select table
+     *
+     * @param [type] $query
+     * @param CustomColumn $custom_column
+     * @param mixed $value
+     * @return mixed
+     */
+    public static function setQuerySelectTable($query, $custom_column, $value){
+        if(!isset($custom_column)){
+            return;
+        }
+        
+        // if value is array, execute query as 'whereIn'
+        $whereFunc = is_list($value) ? 'whereIn' : 'where';
+
+        $query->{$whereFunc}($custom_column->getQueryKey(), $value);
+
+        return $query;
+    }
+
 }

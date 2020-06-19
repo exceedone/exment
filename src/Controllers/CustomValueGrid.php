@@ -7,6 +7,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Grid\Tools as GridTools;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomOperation;
@@ -39,7 +40,7 @@ trait CustomValueGrid
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
 
         // filter
-        Admin::user()->filterModel($grid->model(), $this->custom_view, $filter_func);
+        $this->custom_view->filterModel($grid->model(), $filter_func);
         $this->setCustomGridFilters($grid, $search_enabled_columns);
     
         // create grid
@@ -101,34 +102,24 @@ trait CustomValueGrid
                 $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
                 $table_view_name = $relation->parent_custom_table->table_view_name;
 
-                // switch 1:n or n:n
-                if ($relation->relation_type == RelationType::ONE_TO_MANY) {
-                    if (isset($ajax)) {
-                        $filterItems[] = function ($filter) use ($table_view_name, $ajax) {
-                            $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'text');
-                        };
-                    } else {
-                        $filterItems[] = function ($filter) use ($table_view_name, $options) {
-                            $filter->equal('parent_id', $table_view_name)->select($options);
-                        };
+                $relationQuery = function ($query) use ($relation) {
+                    if($relation->relation_type == RelationType::ONE_TO_MANY){
+                        RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $this->input);
                     }
-                } else {
-                    $relationQuery = function ($query) use ($relation) {
-                        $query->whereHas($relation->getRelationName(), function ($query) use ($relation) {
-                            $query->where($relation->getRelationName() . '.parent_id', $this->input);
-                        });
-                    };
+                    else{
+                        RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $this->input);   
+                    }
+                };
 
-                    // set relation
-                    if (isset($ajax)) {
-                        $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
-                            $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
-                        };
-                    } else {
-                        $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
-                            $filter->where($relationQuery, $table_view_name)->select($options);
-                        };
-                    }
+                // set relation
+                if (isset($ajax)) {
+                    $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
+                        $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
+                    };
+                } else {
+                    $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
+                        $filter->where($relationQuery, $table_view_name)->select($options);
+                    };
                 }
             }
 

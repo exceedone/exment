@@ -146,24 +146,19 @@ class Linkage
         $whereFunc = is_list($parent_v) ? 'whereIn' : 'where';
 
         if ($this->searchType == SearchType::ONE_TO_MANY) {
-            $query->{$whereFunc}("parent_id", $parent_v)->where('parent_type', $$parent_target_table->table_name);
+            RelationTable::setQueryOneMany($query, $parent_target_table, $parent_v);
         }
 
         // n:n filter
         elseif ($this->searchType == SearchType::MANY_TO_MANY) {
-            $relation = CustomRelation::getRelationByParentChild($parent_target_table, $child_target_table);
-            $query->whereHas($relation->getRelationName(), function ($query) use($relation, $parent_v, $whereFunc) {
-                $query->{$whereFunc}($relation->getRelationName() . '.parent_id', $parent_v);
-            });
+            RelationTable::setQueryManyMany($query, $parent_target_table, $child_target_table, $parent_v);
         }
         // select_table filter
         else {
             if ($parent_target_table->id != $child_target_table->id) {
                 $searchColumn = $child_target_table->getSelectTableColumns($parent_target_table->id)
                     ->first();
-                if (isset($searchColumn)) {
-                    $query->{$whereFunc}($searchColumn->getQueryKey(), $parent_v);
-                }
+                RelationTable::setQuerySelectTable($query, $searchColumn, $parent_v);
             }
         }
     }

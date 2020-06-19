@@ -149,8 +149,8 @@ class SelectTable extends CustomItem
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
 
         // add view info
-        $relationColumn = $this->getLinkage($form_column_options);
-        $callback = $this->getRelationFilterCallback($relationColumn);
+        $linkage = $this->getLinkage($form_column_options);
+        $callback = $this->getRelationFilterCallback($linkage);
 
         $selectOption = [
             'custom_column' => $this->custom_column,
@@ -175,10 +175,10 @@ class SelectTable extends CustomItem
             if (isset($this->target_view)) {
                 $select2_expand['target_view_id'] = array_get($this->target_view, 'id');
             }
-            if(isset($relationColumn)){
-                $select2_expand['linkage_column_id'] = $relationColumn->parent_column->id;
-                $select2_expand['column_id'] = $relationColumn->child_column->id;
-                $select2_expand['linkage_value_id'] = $relationColumn->getParentValueId($this->custom_value);
+            if(isset($linkage)){
+                $select2_expand['linkage_column_id'] = $linkage->parent_column->id;
+                $select2_expand['column_id'] = $linkage->child_column->id;
+                $select2_expand['linkage_value_id'] = $linkage->getParentValueId($this->custom_value);
             }
 
             $field->attribute([
@@ -215,15 +215,15 @@ class SelectTable extends CustomItem
      *
      * @return void
      */
-    protected function getRelationFilterCallback($relationColumn)
+    protected function getRelationFilterCallback($linkage)
     {
-        if (!isset($relationColumn)) {
+        if (!isset($linkage)) {
             return;
         }
 
         // get callback
-        $callback = function (&$query) use ($relationColumn) {
-            return $relationColumn->setQueryFilter($query, $relationColumn->getParentValueId($this->custom_value));
+        $callback = function (&$query) use ($linkage) {
+            return $linkage->setQueryFilter($query, $linkage->getParentValueId($this->custom_value));
         };
         
         return $callback;

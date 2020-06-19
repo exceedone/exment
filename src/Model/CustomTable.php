@@ -1147,12 +1147,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             case SearchType::SELECT_TABLE:
                 // get columns for relation child to parent
                 if(!isset($searchColumns)){
-                    $searchColumns = $child_table->custom_columns()
-                    ->where('column_type', ColumnType::SELECT_TABLE)
-                    ->selectTargetTable($this->id)
-                    ->indexEnabled()
-                    ->get()
-                    ;
+                    $searchColumns = $child_table->getSelectTableColumns($this->id);
                 }
 
                 // set query info
@@ -1168,33 +1163,35 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'relation' => true,
                     'searchColumns' => $searchColumns,
                     'maxCount' => $maxCount,
+                    'target_view' => $target_view,
                 ]);
             
             // one_to_many
             case SearchType::ONE_TO_MANY:
-                $query = $child_table->getValueModel()
-                    ->{$whereFunc}('parent_id', $parent_value_id)
-                    ->where('parent_type', $this->table_name);
+                $query = $child_table->getValueModel()->query();
+                RelationTable::setQueryOneMany($query, $this, $parent_value_id);
 
                 // set query info
                 $options['listQuery'] = [
                     'parent_id' => $parent_value_id,
                 ];
 
+                // target view
+                if(isset($target_view)){
+                    $target_view->filterModel($query);
+                }
+
                 return $paginate ? $query->paginate($maxCount) : $query->get();
             // many_to_many
             case SearchType::MANY_TO_MANY:
-                $relation_name = CustomRelation::getRelationNameByTables($this, $child_table);
-                $database_table_name = getDBTableName($child_table);
-                // get search_table value
-                // where: parent_id is value_id
-                $query = $child_table->getValueModel()
-                    ::whereHas($relation_name, function ($query) use ($relation_name, $whereFunc, $parent_value_id) {
-                        $query->{$whereFunc}("$relation_name.parent_id", $parent_value_id);
-                    })
-                    // remove pivot table's data
-                    ->select(["$database_table_name.*"]);
-                    
+                $query = $child_table->getValueModel()->query();
+                RelationTable::setQueryManyMany($query, $this, $child_table, $parent_value_id);
+
+                // target view
+                if(isset($target_view)){
+                    $target_view->filterModel($query);
+                }
+
                 return $paginate ? $query->paginate($maxCount) : $query->get();
         }
 
@@ -1544,10 +1541,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // filter model using view
         if (isset($target_view)) {
-            $user = Admin::user();
-            if (isset($user)) {
-                $user->filterModel($query, $target_view);
-            }
+            $target_view->filterModel($query);
         }
 
         if (isset($filterCallback)) {
