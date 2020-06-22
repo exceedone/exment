@@ -112,6 +112,11 @@ class CustomTableController extends AdminControllerBase
         // filter table --------------------------------------------------
         CustomTable::filterList($grid->model(), ['getModel' => false]);
 
+        $grid->filter(function ($filter) {
+            $filter->like('table_name', exmtrans("custom_table.table_name"));
+            $filter->like('table_view_name', exmtrans("custom_table.table_view_name"));
+        });
+
         return $grid;
     }
 
