@@ -142,9 +142,6 @@ class Linkage
         $parent_target_table = $this->parent_column->select_target_table;
         $child_target_table = $this->child_column->select_target_table;
 
-        // if value is array, execute query as 'whereIn'
-        $whereFunc = is_list($parent_v) ? 'whereIn' : 'where';
-
         if ($this->searchType == SearchType::ONE_TO_MANY) {
             RelationTable::setQueryOneMany($query, $parent_target_table, $parent_v);
         }

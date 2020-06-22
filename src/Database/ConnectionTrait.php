@@ -5,6 +5,18 @@ namespace Exceedone\Exment\Database;
 trait ConnectionTrait
 {
     /**
+     * Get a new query builder instance.
+     *
+     * @return \Exceedone\Exment\Database\Query\ExtendedBuilder
+     */
+    public function query()
+    {
+        return new \Exceedone\Exment\Database\Query\ExtendedBuilder(
+            $this, $this->getQueryGrammar(), $this->getPostProcessor()
+        );
+    }
+
+    /**
      * Get database version.
      *
      * @return void

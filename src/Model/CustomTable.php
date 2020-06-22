@@ -1131,9 +1131,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         $child_table = static::getEloquent($child_table);
 
-        // if parent_value_id is array, execute query as 'whereIn'
-        $whereFunc = is_array($parent_value_id) ? 'whereIn' : 'where';
-
         switch ($search_type) {
             // self table
             case SearchType::SELF:

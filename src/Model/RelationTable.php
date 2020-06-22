@@ -92,10 +92,7 @@ class RelationTable
             return;
         }
         
-        // if value is array, execute query as 'whereIn'
-        $whereFunc = is_list($value) ? 'whereIn' : 'where';
-
-        $query->{$whereFunc}("parent_id", $value)->where('parent_type', $parent_table->table_name);
+        $query->whereOrIn("parent_id", $value)->where('parent_type', $parent_table->table_name);
         
         return $query;
     }
@@ -119,11 +116,8 @@ class RelationTable
             return;
         }
         
-        // if value is array, execute query as 'whereIn'
-        $whereFunc = is_list($value) ? 'whereIn' : 'where';
-            
-        $query->whereHas($relation->getRelationName(), function ($query) use($relation, $value, $whereFunc) {
-            $query->{$whereFunc}($relation->getRelationName() . '.parent_id', $value);
+        $query->whereHas($relation->getRelationName(), function ($query) use($relation, $value) {
+            $query->whereOrIn($relation->getRelationName() . '.parent_id', $value);
         });
         
         return $query;
@@ -142,10 +136,7 @@ class RelationTable
             return;
         }
         
-        // if value is array, execute query as 'whereIn'
-        $whereFunc = is_list($value) ? 'whereIn' : 'where';
-
-        $query->{$whereFunc}($custom_column->getQueryKey(), $value);
+        $query->whereOrIn($custom_column->getQueryKey(), $value);
 
         return $query;
     }

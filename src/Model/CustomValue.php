@@ -1116,9 +1116,6 @@ abstract class CustomValue extends ModelBase
             return null;
         }
 
-        // if value is array, execute query as 'whereIn'
-        $whereFunc = is_list($value) ? 'whereIn' : 'where';
-
         // crate union query
         $queries = [];
         $searchColumns = collect($searchColumns);
@@ -1135,7 +1132,7 @@ abstract class CustomValue extends ModelBase
                 }
             } else {
                 $query = static::query();
-                $query->{$whereFunc}($searchColumn, $mark, $value)->select('id');
+                $query->whereOrIn($searchColumn, $mark, $value)->select('id');
                 $query->take($takeCount);
     
                 $queries[] = $query;
@@ -1153,7 +1150,7 @@ abstract class CustomValue extends ModelBase
             }
         } else {
             $subquery = static::query();
-            $subquery->{$whereFunc}($searchColumn, $mark, $value)->select('id');
+            $subquery->whereOrIn($searchColumn, $mark, $value)->select('id');
         }
 
         // if has relationColumn, set query filtering

@@ -197,4 +197,16 @@ class ModelBase extends Model
     {
         return CustomTable::getEloquent(SystemTableName::USER)->getValueModel($this->{$column}, true);
     }
+
+    /**
+     * Create a new Eloquent query builder for the model.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return \Exceedone\Exment\Database\Eloquent\ExtendedBuilder
+     */
+    public function newEloquentBuilder($query)
+    {
+        return new \Exceedone\Exment\Database\Eloquent\ExtendedBuilder($query);
+    }
+
 }
