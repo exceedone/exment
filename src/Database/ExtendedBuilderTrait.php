@@ -18,7 +18,10 @@ trait ExtendedBuilderTrait
         // if arg is array or list, execute whereIn
         $checkArray = (func_num_args() == 3 ? $value : $operator);
         if(is_list($checkArray)){
-            return $this->whereIn($column, $operator, $value, $boolean);
+            if($operator == '<>'){
+                return $this->whereNotIn($column, toArray($checkArray));
+            }
+            return $this->whereIn($column, toArray($checkArray));
         }
 
         return $this->where($column, $operator, $value, $boolean);

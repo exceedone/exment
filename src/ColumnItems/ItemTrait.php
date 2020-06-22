@@ -158,11 +158,7 @@ trait ItemTrait
 
         $query = $this->custom_table->getValueModel()->query();
         
-        if (is_list($pureValue)) {
-            $query->whereIn($this->custom_column->getIndexColumnName(), toArray($pureValue))->select('id');
-        } else {
-            $query->where($this->custom_column->getIndexColumnName(), $mark, $pureValue)->select('id');
-        }
+        $query->whereOrIn($this->custom_column->getIndexColumnName(), $mark, $pureValue)->select('id');
         
         $query->take($takeCount);
 
