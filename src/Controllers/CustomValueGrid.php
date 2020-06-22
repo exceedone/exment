@@ -53,6 +53,12 @@ trait CustomValueGrid
         $this->manageMenuToolButton($grid);
 
         Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
+
+        $grid->getDataCallback(function($grid){
+            $customValueCollection = $grid->getOriginalCollection();
+            $this->custom_table->setSelectTableValues($customValueCollection);    
+        });
+
         return $grid;
     }
 
@@ -251,7 +257,9 @@ trait CustomValueGrid
             // name
             $custom_table = $this->custom_table;
             $relationTables = $custom_table->getRelationTables();
-            $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
+
+            $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) 
+            {
                 $enableEdit = true;
                 $enableDelete = true;
                 $enableHardDelete = false;

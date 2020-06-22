@@ -68,32 +68,27 @@ class SelectTable extends CustomItem
         $value = $isArray ? $this->value : [$this->value];
         $result = [];
 
-        // if can select table relation, set value
-        if (!is_null($select_table_value = array_get($this->custom_value, $this->custom_column->getSelectTableRelationName()))) {
-            $result[] = $this->getResult($select_table_value, $text, $html);
-        } else {
-            foreach ($value as $v) {
-                if (!isset($v)) {
+        foreach ($value as $v) {
+            if (!isset($v)) {
+                continue;
+            }
+            
+            $model = $this->target_table->getValueModel($v);
+            if (is_null($model)) {
+                continue;
+            }
+            
+            // if $model is array multiple, set as array
+            if (!($model instanceof Collection)) {
+                $model = [$model];
+            }
+    
+            foreach ($model as $m) {
+                if (is_null($m)) {
                     continue;
                 }
                 
-                $model = $this->target_table->getValueModel($v);
-                if (is_null($model)) {
-                    continue;
-                }
-                
-                // if $model is array multiple, set as array
-                if (!($model instanceof Collection)) {
-                    $model = [$model];
-                }
-        
-                foreach ($model as $m) {
-                    if (is_null($m)) {
-                        continue;
-                    }
-                    
-                    $result[] = $this->getResult($m, $text, $html);
-                }
+                $result[] = $this->getResult($m, $text, $html);
             }
         }
 

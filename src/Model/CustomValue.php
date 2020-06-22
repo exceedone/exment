@@ -1289,6 +1289,18 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
+     * Set CustomValue's model for request session.
+     *
+     */
+    public function setValueModel()
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->custom_table_name, $this->id);
+        System::setRequestSession($key, $this);
+
+        return $this;
+    }
+
+    /**
      * Is locked by workflow
      *
      * @return void

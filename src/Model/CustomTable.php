@@ -1213,19 +1213,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
 
-        // set select_table_column
-        $select_columns = $this->getSelectTableColumns();
-        foreach ($select_columns as $select_column) {
-            // dynamic belongs to for select_table
-            $relation_name = $select_column->getSelectTableRelationName();
-            getModelName($this)::addDynamicRelation($relation_name, function ($model) use ($select_column) {
-                $modelname = getModelName($select_column->select_target_table);
-                return $model->belongsTo($modelname, $select_column->getQueryKey());
-            });
-            
-            $query->with($relation_name);
-        }
-
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
             (isset($custom_view) &&
@@ -1246,6 +1233,42 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             WorkflowItem::getWorkUsersSubQuery($query, $this);
         }
     }
+
+
+    /**
+     * Set selectTable value's. for after calling from select_table object
+     */
+    public function setSelectTableValues(?Collection $customValueCollection){
+        if(empty($customValueCollection)){
+            return;
+        }
+
+        $this->getSelectTableColumns()->each(function($column) use($customValueCollection){
+            $target_table = $column->select_target_table;
+
+            // get searching value
+            $values = $customValueCollection->map(function($custom_value) use($column){
+                return array_get($custom_value, "value.{$column->column_name}");
+            })->filter()->toArray();
+            if(empty($values)){
+                return;
+            }
+
+            // value sometimes array, so flatten value. maybe has best way..
+            $finds = [];
+            foreach($values as $value){
+                foreach(toArray($value) as $v){
+                    $finds[] = $v;
+                }
+            }
+
+            $target_table->getValueModel()->findMany($finds)->each(function($target_value){
+                // set request settion
+                $target_value->setValueModel();
+            });
+        });
+    } 
+
 
     /**
      * Get CustomValues using key. for performance

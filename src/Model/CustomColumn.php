@@ -423,18 +423,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     }
 
     /**
-     * Get select table relation name.
-     * @param CustomColumn|array $obj
-     * @param boolean $alterColumn if not exists column on db, execute alter column. if false, only get name
-     * @return string
-     */
-    public function getSelectTableRelationName()
-    {
-        $name = 'select_table_'.array_get($this->custom_table_cache, 'suuid') . '_' . $this->select_target_table->suuid . '_' . $this->id;
-        return $name;
-    }
-
-    /**
      * Create laravel-admin select box options. for column_type "select", "select_valtext"
      */
     public function createSelectOptions()

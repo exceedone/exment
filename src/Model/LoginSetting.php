@@ -156,7 +156,7 @@ class LoginSetting extends ModelBase
     {
         return static::allRecords(function ($record) use ($filterActive) {
             return !$filterActive || $record->active_flg;
-        });
+        }, false);
     }
 
     /**
