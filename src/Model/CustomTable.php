@@ -1124,6 +1124,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'paginate' => false,
                 'maxCount' => 5,
                 'searchColumns' => null, // if search_type is SELECT_TABLE, and selecting target, set columns collection
+                'target_view' => null, // filtering view if select  
             ],
             $options
         );

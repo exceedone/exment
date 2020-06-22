@@ -268,9 +268,13 @@ class TestDataSeeder extends Seeder
                 'createColumnCallback' => function($custom_table, &$custom_columns) use($parent_table, $child_table){
                     // creating relation column
                     $columns = [
-                        ['column_name' => 'parent', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $parent_table->id]],
                         ['column_name' => 'child', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'parent', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $parent_table->id]],
                         ['column_name' => 'child_relation_filter', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'child_relation_filter_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'parent_multi', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $parent_table->id]],
+                        ['column_name' => 'child_relation_filter_multi', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'child_relation_filter_multi_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $child_table->id]],
                     ];
 
                     foreach($columns as $column){
@@ -288,6 +292,46 @@ class TestDataSeeder extends Seeder
                 }
             ]);
 
+            // select_relation
+            $selectRelations = [
+                ['parent' => 'parent', 'child' => 'child_relation_filter'],
+                ['parent' => 'parent', 'child' => 'child_relation_filter_ajax'],
+                ['parent' => 'parent_multi', 'child' => 'child_relation_filter_multi'],
+                ['parent' => 'parent_multi', 'child' => 'child_relation_filter_multi_ajax'],
+            ];
+
+            foreach($selectRelations as $selectRelation){
+                // append pivot table's relation filter
+                $custom_forms = $pivot_table->custom_forms;
+                foreach($custom_forms as $custom_form){
+                    $custom_form_columns = $custom_form->custom_form_columns;
+                    foreach($custom_form_columns as $custom_form_column){
+                        if ($custom_form_column->form_column_type != Enums\FormColumnType::COLUMN) {
+                            continue;
+                        }
+
+                        $form_custom_column = $custom_form_column->custom_column_cache;
+                        if(!isset($form_custom_column)){
+                            continue;
+                        }
+
+                        if($form_custom_column->column_name != $selectRelation['child']){
+                            continue;
+                        }
+
+                        // search 'parent' column
+                        $parent_pivot_column = $pivot_table->custom_columns_cache->first(function($custom_column) use($selectRelation){
+                            return $custom_column->column_name == $selectRelation['parent'];
+                        });
+                        if(!isset($parent_pivot_column)){
+                            continue;
+                        }
+
+                        $custom_form_column->setOption('relation_filter_target_column_id', $parent_pivot_column->id);
+                        $custom_form_column->save(); 
+                    }
+                }
+            }
         }
     }
 

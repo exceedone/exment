@@ -207,9 +207,13 @@ class CustomFormController extends AdminControllerTableBase
         // get relation columns.
         $relationColumns = Linkage::getLinkages(null, $custom_column);
 
+        // get selected value
+        $selected_value = $request->get('relation_filter_target_column_id');
+
         return view('exment::custom-form.form-relation-filter-modal', [
             'columns' => $relationColumns,
             'target_column' => $custom_column,
+            'selected_value' => $selected_value,
         ]);
     }
 

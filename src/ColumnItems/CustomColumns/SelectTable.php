@@ -464,7 +464,7 @@ class SelectTable extends CustomItem
         $query = $this->custom_table->getValueModel()->query();
         $this->getAdminFilterWhereQuery($query, $value);
 
-        $query->take($takeCount);
+        $query->take($takeCount)->select('id');
 
         return [$query];
     }

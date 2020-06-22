@@ -1116,18 +1116,16 @@ abstract class CustomValue extends ModelBase
             return null;
         }
 
-        // crate union query
-        $queries = [];
-        $searchColumns = collect($searchColumns);
-        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
-            $searchColumn = collect($searchColumns)->values()->get($i);
+        $getQueryFunc = function($searchColumn, $options){
+            extract($options);
             if ($searchColumn instanceof CustomColumn) {
                 $column_item = $searchColumn->column_item;
                 if (!isset($column_item)) {
-                    continue;
+                    return;
                 }
 
                 foreach ($column_item->getSearchQueries($mark, $value, $takeCount, $q, $options) as $query) {
+                    $query->take($takeCount);
                     $queries[] = $query;
                 }
             } else {
@@ -1137,41 +1135,45 @@ abstract class CustomValue extends ModelBase
     
                 $queries[] = $query;
             }
+            
+            foreach($queries as &$query){
+                // if has relationColumn, set query filtering
+                if(isset($relationColumn)){
+                    $relationColumn->setQueryFilter($query, array_get($options, 'relationColumnValue'));
+                }
+                
+                ///// if has display table, filter display table
+                if(isset($display_table)){
+                    $this->custom_table->filterDisplayTable($query, $display_table);
+                }
+
+                // set custom view's filter
+                if (isset($target_view)) {
+                    $target_view->filterModel($query);
+                }
+            }
+
+            return $queries;
+        };
+
+        // crate union query
+        $queries = [];
+        $searchColumns = collect($searchColumns);
+        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
+            $searchColumn = collect($searchColumns)->values()->get($i);
+
+            foreach($getQueryFunc($searchColumn, $options) as $query){
+                $queries[] = $query;
+            }
         }
 
         $searchColumn = $searchColumns->last();
+        $subquery = $getQueryFunc($searchColumn, $options)[0];
 
-        if ($searchColumn instanceof CustomColumn) {
-            $column_item = $searchColumn->column_item;
-            if (!isset($column_item)) {
-                $subquery = static::query();
-            } else {
-                $subquery = $column_item->getSearchQueries($mark, $value, $takeCount, $q, $options)[0];
-            }
-        } else {
-            $subquery = static::query();
-            $subquery->whereOrIn($searchColumn, $mark, $value)->select('id');
-        }
-
-        // if has relationColumn, set query filtering
-        if(isset($relationColumn)){
-            $relationColumn->setQueryFilter($subquery, array_get($options, 'relationColumnValue'));
-        }
-        
-        ///// if has display table, filter display table
-        if(isset($display_table)){
-            $this->custom_table->filterDisplayTable($subquery, $display_table);
-        }
-
-        // set custom view's filter
-        if (isset($target_view)) {
-            $target_view->filterModel($subquery);
-        }
-
-        $subquery->take($takeCount);
         foreach ($queries as $inq) {
             $subquery->union($inq);
         }
+        $subquery->take($takeCount);
 
         // create main query
         $mainQuery = \DB::query()->fromSub($subquery, 'sub');

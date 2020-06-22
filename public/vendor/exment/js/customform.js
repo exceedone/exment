@@ -405,12 +405,13 @@ var Exment;
         var $target_li = $(ev.target).closest('.custom_form_column_item');
         var target_header_column_name = $target_li.data('header_column_name');
         // get default value
-        var relation_filter_target_column_id = $target_li.find('.form_column_target_id').val();
+        var target_column_id = $target_li.find('.form_column_target_id').val();
+        var relation_filter_target_column_id = $target_li.find('.relation_filter_target_column_id').val();
         $.ajax({
             type: 'GET',
             url: $('#relationFilterUrl').val(),
             //container: "#pjax-container",
-            data: { target_column_id: relation_filter_target_column_id },
+            data: { target_column_id: target_column_id, relation_filter_target_column_id: relation_filter_target_column_id },
             success: function (repsonse) {
                 $('#form-relation_filter-modal').html(repsonse);
                 $('#form-relation_filter-modal').modal('show');

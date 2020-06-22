@@ -19,7 +19,7 @@
             <div class="col-sm-12 select_item">
                 <select data-add-select2="{{exmtrans('custom_form.relation_filter_target_column')}}" class="form-control select2 relation_filter_target_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
                     @foreach($columns as $column)
-                    <option value="{{$column->parent_column->id}}">{{$column->parent_column->column_view_name}}</option>
+                    <option value="{{$column->parent_column->id}}" {{$selected_value == $column->parent_column->id ? 'selected' : ''}}>{{$column->parent_column->column_view_name}}</option>
                     @endforeach
                 </select>
             </div>    
