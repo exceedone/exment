@@ -200,7 +200,8 @@ class CustomFormController extends AdminControllerTableBase
      * @param Request $request
      * @return void
      */
-    public function relationFilterModal(Request $request){
+    public function relationFilterModal(Request $request)
+    {
         $target_column_id = $request->get('target_column_id');
         $custom_column = CustomColumn::getEloquent($target_column_id);
         
@@ -741,7 +742,8 @@ class CustomFormController extends AdminControllerTableBase
         return exmtrans('custom_form.table_default_label');
     }
 
-    protected function getRelationFilterHelp(){
+    protected function getRelationFilterHelp()
+    {
         return exmtrans('custom_form.help.relation_filter') . '<br/>' . exmtrans('common.help.more_help_here', getManualUrl('form#relation_filter_manual'));
     }
 }

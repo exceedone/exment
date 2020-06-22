@@ -220,17 +220,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSelectTableColumns($select_target_table = null)
     {
-        return $this->custom_columns_cache->filter(function ($item) use($select_target_table) {
-            if(!ColumnType::isSelectTable($item->column_type)){
+        return $this->custom_columns_cache->filter(function ($item) use ($select_target_table) {
+            if (!ColumnType::isSelectTable($item->column_type)) {
                 return false;
             }
 
-            if(is_null($select_target_table)){
+            if (is_null($select_target_table)) {
                 return true;
             }
 
             $select_target_table = CustomTable::getEloquent($select_target_table);
-            if(!isset($select_target_table)){
+            if (!isset($select_target_table)) {
                 return false;
             }
 
@@ -1124,7 +1124,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'paginate' => false,
                 'maxCount' => 5,
                 'searchColumns' => null, // if search_type is SELECT_TABLE, and selecting target, set columns collection
-                'target_view' => null, // filtering view if select  
+                'target_view' => null, // filtering view if select
             ],
             $options
         );
@@ -1144,7 +1144,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // select_table(select box)
             case SearchType::SELECT_TABLE:
                 // get columns for relation child to parent
-                if(!isset($searchColumns)){
+                if (!isset($searchColumns)) {
                     $searchColumns = $child_table->getSelectTableColumns($this->id);
                 }
 
@@ -1175,7 +1175,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 ];
 
                 // target view
-                if(isset($target_view)){
+                if (isset($target_view)) {
                     $target_view->filterModel($query);
                 }
 
@@ -1186,7 +1186,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 RelationTable::setQueryManyMany($query, $this, $child_table, $parent_value_id);
 
                 // target view
-                if(isset($target_view)){
+                if (isset($target_view)) {
                     $target_view->filterModel($query);
                 }
 
@@ -1238,44 +1238,46 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set selectTable value's. for after calling from select_table object
      */
-    public function setSelectTableValues(?Collection $customValueCollection){
-        if(empty($customValueCollection)){
+    public function setSelectTableValues(?Collection $customValueCollection)
+    {
+        if (empty($customValueCollection)) {
             return;
         }
 
-        $this->getSelectTableColumns()->each(function($column) use($customValueCollection){
+        $this->getSelectTableColumns()->each(function ($column) use ($customValueCollection) {
             $target_table = $column->select_target_table;
 
             // get searching value
-            $values = $customValueCollection->map(function($custom_value) use($column){
+            $values = $customValueCollection->map(function ($custom_value) use ($column) {
                 return array_get($custom_value, "value.{$column->column_name}");
             })->filter()->toArray();
-            if(empty($values)){
+            if (empty($values)) {
                 return;
             }
 
             // value sometimes array, so flatten value. maybe has best way..
             $target_table->setCustomValueModels($values);
         });
-    } 
+    }
 
-    public function setCustomValueModels($ids){
+    public function setCustomValueModels($ids)
+    {
         // value sometimes array, so flatten value. maybe has best way..
         $finds = [];
-        foreach(collect($ids)->filter() as $id){
-            foreach(toArray($id) as $v){
-                if(System::hasRequestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $v))){
+        foreach (collect($ids)->filter() as $id) {
+            foreach (toArray($id) as $v) {
+                if (System::hasRequestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $v))) {
                     continue;
                 }
                 $finds[] = $v;
             }
         }
 
-        if(empty($finds)){
+        if (empty($finds)) {
             return;
         }
 
-        $this->getValueModel()->findMany(array_unique($finds))->each(function($target_value){
+        $this->getValueModel()->findMany(array_unique($finds))->each(function ($target_value) {
             // set request settion
             $target_value->setValueModel();
         });
@@ -1587,7 +1589,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Filtering display table. if $this table is user or org, filtering.
      */
-    public function filterDisplayTable($query, $display_table, $options = []){
+    public function filterDisplayTable($query, $display_table, $options = [])
+    {
         extract(array_merge(
             [
                 'all' => false,
@@ -1604,7 +1607,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // if $table_name is user or organization, get from getRoleUserOrOrg
         if ($table_name == SystemTableName::USER && !$all) {
             return AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission, $query);
-        } 
+        }
         if ($table_name == SystemTableName::ORGANIZATION && !$all) {
             return AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission, $query);
         }
@@ -1997,7 +2000,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getValueModel($id = null, $withTrashed = false)
     {
-        if($id instanceof CustomValue){
+        if ($id instanceof CustomValue) {
             return $id;
         }
 

@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SearchType;
-use Exceedone\Exment\Enums\ColumnType;
 
 /**
  * Linkage item for Select table in form
@@ -14,16 +13,19 @@ class Linkage
     public $child_column;
     public $searchType;
 
-    public function __construct(array $params = []){
+    public function __construct(array $params = [])
+    {
         $this->parent_column = array_get($params, 'parent_column');
         $this->child_column = array_get($params, 'child_column');
         $this->searchType = array_get($params, 'searchType');
     }
 
-    public function parent_custom_table(){
+    public function parent_custom_table()
+    {
         return isset($this->parent_column) ? $this->parent_column->custom_table_cache : null;
     }
-    public function child_custom_table(){
+    public function child_custom_table()
+    {
         return isset($this->child_column) ? $this->child_column->custom_table_cache : null;
     }
 
@@ -85,23 +87,24 @@ class Linkage
      * @param CustomColumn|string|null $child_custom_column
      * @return \Illuminate\Support\Collection
      */
-    public static function getLinkages($parent_custom_column, $child_custom_column){
+    public static function getLinkages($parent_custom_column, $child_custom_column)
+    {
         $parent_custom_column = CustomColumn::getEloquent($parent_custom_column);
         $child_custom_column = CustomColumn::getEloquent($child_custom_column);
 
-        if(!isset($child_custom_column)){
+        if (!isset($child_custom_column)) {
             return collect();
         }
 
         return collect(static::getSelectTableLinkages($child_custom_column->custom_table_cache))
-            ->filter(function ($relationColumn) use($parent_custom_column, $child_custom_column) {
-                if(isset($parent_custom_column)){
-                    if($parent_custom_column->id != array_get($relationColumn, 'parent_column')->id){
+            ->filter(function ($relationColumn) use ($parent_custom_column, $child_custom_column) {
+                if (isset($parent_custom_column)) {
+                    if ($parent_custom_column->id != array_get($relationColumn, 'parent_column')->id) {
                         return false;
                     }
                 }
                 return array_get($relationColumn, 'child_column')->id == $child_custom_column->id;
-            })->map(function($relationColumn){
+            })->map(function ($relationColumn) {
                 return new self($relationColumn);
             });
     }
@@ -113,13 +116,15 @@ class Linkage
      * @param CustomColumn|string|null $child_custom_column
      * @return ?Linkage
      */
-    public static function getLinkage($parent_custom_column, $child_custom_column){
+    public static function getLinkage($parent_custom_column, $child_custom_column)
+    {
         return static::getLinkages($parent_custom_column, $child_custom_column)->first();
     }
 
 
-    public function getParentValueId($custom_value){
-        if(!isset($custom_value)){
+    public function getParentValueId($custom_value)
+    {
+        if (!isset($custom_value)) {
             return null;
         }
 
@@ -159,5 +164,4 @@ class Linkage
             }
         }
     }
-
 }

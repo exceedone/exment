@@ -50,7 +50,7 @@ class AuthUserOrgHelper
         }
 
         // return target values
-        if(!isset($builder)){
+        if (!isset($builder)) {
             $builder = getModelName(SystemTableName::ORGANIZATION)::query();
         }
         if (!$all) {
@@ -111,7 +111,7 @@ class AuthUserOrgHelper
     
         $target_ids = array_unique($target_ids);
         // return target values
-        if(!isset($builder)){
+        if (!isset($builder)) {
             $builder = getModelName(SystemTableName::USER)::query();
         }
         if (!$all) {

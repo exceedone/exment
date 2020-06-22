@@ -208,9 +208,9 @@ trait ItemTrait
         }
 
         // if not relation search, get pure value
-        if(!boolval($options['relation'])){
+        if (!boolval($options['relation'])) {
             $pureValue = $this->getPureValue($q);
-        }else{
+        } else {
             $pureValue = $value;
         }
 

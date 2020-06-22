@@ -1116,7 +1116,7 @@ abstract class CustomValue extends ModelBase
             return null;
         }
 
-        $getQueryFunc = function($searchColumn, $options){
+        $getQueryFunc = function ($searchColumn, $options) {
             extract($options);
             if ($searchColumn instanceof CustomColumn) {
                 $column_item = $searchColumn->column_item;
@@ -1136,14 +1136,14 @@ abstract class CustomValue extends ModelBase
                 $queries[] = $query;
             }
             
-            foreach($queries as &$query){
+            foreach ($queries as &$query) {
                 // if has relationColumn, set query filtering
-                if(isset($relationColumn)){
+                if (isset($relationColumn)) {
                     $relationColumn->setQueryFilter($query, array_get($options, 'relationColumnValue'));
                 }
                 
                 ///// if has display table, filter display table
-                if(isset($display_table)){
+                if (isset($display_table)) {
                     $this->custom_table->filterDisplayTable($query, $display_table);
                 }
 
@@ -1162,7 +1162,7 @@ abstract class CustomValue extends ModelBase
         for ($i = 0; $i < count($searchColumns) - 1; $i++) {
             $searchColumn = collect($searchColumns)->values()->get($i);
 
-            foreach($getQueryFunc($searchColumn, $options) as $query){
+            foreach ($getQueryFunc($searchColumn, $options) as $query) {
                 $queries[] = $query;
             }
         }
@@ -1271,9 +1271,10 @@ abstract class CustomValue extends ModelBase
      * @param search $q
      * @return array
      */
-    protected function getQueryMarkAndValue($isLike, $q, bool $relation){
+    protected function getQueryMarkAndValue($isLike, $q, bool $relation)
+    {
         // if relation search, return always "=" and $q
-        if($relation){
+        if ($relation) {
             return ["=", $q];
         }
 

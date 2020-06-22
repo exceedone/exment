@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Grid\Tools as GridTools;
@@ -55,9 +54,9 @@ trait CustomValueGrid
 
         Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
 
-        $grid->getDataCallback(function($grid){
+        $grid->getDataCallback(function ($grid) {
             $customValueCollection = $grid->getOriginalCollection();
-            $this->custom_table->setSelectTableValues($customValueCollection);    
+            $this->custom_table->setSelectTableValues($customValueCollection);
         });
 
         return $grid;
@@ -68,7 +67,8 @@ trait CustomValueGrid
      *
      * @return void
      */
-    protected function getFilterHtml(){
+    protected function getFilterHtml()
+    {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
         
@@ -103,7 +103,7 @@ trait CustomValueGrid
                 $filter->scope('trashed', exmtrans('custom_value.soft_deleted_data'))->onlyTrashed();
             }
 
-            if(config('exment.custom_value_filter_ajax', true) && !$ajax && !boolval(request()->get('execute_filter'))){
+            if (config('exment.custom_value_filter_ajax', true) && !$ajax && !boolval(request()->get('execute_filter'))) {
                 $filter->setFilterAjax(admin_urls_query('data', $this->custom_table->table_name, ['filter_ajax' => 1]));
                 return;
             }
@@ -138,11 +138,10 @@ trait CustomValueGrid
                 $table_view_name = $relation->parent_custom_table->table_view_name;
 
                 $relationQuery = function ($query) use ($relation) {
-                    if($relation->relation_type == RelationType::ONE_TO_MANY){
+                    if ($relation->relation_type == RelationType::ONE_TO_MANY) {
                         RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $this->input);
-                    }
-                    else{
-                        RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $this->input);   
+                    } else {
+                        RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $this->input);
                     }
                 };
 
@@ -287,8 +286,7 @@ trait CustomValueGrid
             $custom_table = $this->custom_table;
             $relationTables = $custom_table->getRelationTables();
 
-            $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) 
-            {
+            $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
                 $enableEdit = true;
                 $enableDelete = true;
                 $enableHardDelete = false;

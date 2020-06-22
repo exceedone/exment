@@ -12,7 +12,9 @@ trait ConnectionTrait
     public function query()
     {
         return new \Exceedone\Exment\Database\Query\ExtendedBuilder(
-            $this, $this->getQueryGrammar(), $this->getPostProcessor()
+            $this,
+            $this->getQueryGrammar(),
+            $this->getPostProcessor()
         );
     }
 

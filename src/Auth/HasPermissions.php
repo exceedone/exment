@@ -292,12 +292,12 @@ trait HasPermissions
 
     /**
      * filter target model
-     * 
+     *
      * @deprecated Please call $custom_view->filterModel($model, $callback);
      */
     public function filterModel($model, $custom_view = null, $callback = null)
     {
-        if(isset($$custom_view)){
+        if (isset($$custom_view)) {
             return $custom_view->filterModel($model, $callback);
         }
         return $model;

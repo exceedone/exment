@@ -208,5 +208,4 @@ class ModelBase extends Model
     {
         return new \Exceedone\Exment\Database\Eloquent\ExtendedBuilder($query);
     }
-
 }

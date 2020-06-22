@@ -11,7 +11,6 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -323,7 +322,7 @@ EOT;
                     
                 // set relatedlinkage_array
                 // if set form_column_options relation_filter_target_column_id
-                if (array_key_value_exists('relation_filter_target_column_id', $form_column_options)){
+                if (array_key_value_exists('relation_filter_target_column_id', $form_column_options)) {
                     $this->setRelatedLinkageArray($custom_form_block, $form_column, $relatedlinkage_array);
                 }
             }
@@ -578,12 +577,12 @@ EOT;
         }
 
         $relation_filter_target_column_id = array_get($form_column, 'options.relation_filter_target_column_id');
-        if(!isset($relation_filter_target_column_id)){
+        if (!isset($relation_filter_target_column_id)) {
             return;
         }
 
         $custom_column = $form_column->custom_column_cache;
-        if(!isset($custom_column)){
+        if (!isset($custom_column)) {
             return;
         }
 

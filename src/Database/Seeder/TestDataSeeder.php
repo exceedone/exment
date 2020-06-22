@@ -161,18 +161,18 @@ class TestDataSeeder extends Seeder
             ],
         ];
 
-        foreach($relations as $relationItem){
+        foreach ($relations as $relationItem) {
             // create parent
             $parentOptions = [
                 'count' => ($relationItem['relation_type'] == 2 ? 10 : 1),
                 'users' => $users,
-                'menuParentId' => $menu->id, 
+                'menuParentId' => $menu->id,
             ];
             $parent_table = $this->createTable('parent_table' . $relationItem['suffix'], $parentOptions);
             $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $parent_table]);
             
-            $createRelationCallback = function($custom_table) use($parent_table, $relationItem){
-                if(isset($relationItem['relation_type'])){
+            $createRelationCallback = function ($custom_table) use ($parent_table, $relationItem) {
+                if (isset($relationItem['relation_type'])) {
                     CustomRelation::create([
                         'parent_custom_table_id' => $parent_table->id,
                         'child_custom_table_id' => $custom_table->id,
@@ -185,9 +185,9 @@ class TestDataSeeder extends Seeder
             $childOptions = [
                 'users' => $users,
                 'menuParentId' => $menu->id,
-                'createColumnFirstCallback' => function($custom_table, &$custom_columns) use($parent_table, $relationItem){
+                'createColumnFirstCallback' => function ($custom_table, &$custom_columns) use ($parent_table, $relationItem) {
                     // set relation if select_table
-                    if(!is_null($relationItem['relation_type'])){
+                    if (!is_null($relationItem['relation_type'])) {
                         return;
                     }
 
@@ -212,30 +212,29 @@ class TestDataSeeder extends Seeder
                     $custom_columns[] = $custom_column;
                 },
                 'createRelationCallback' => $createRelationCallback,
-                'createValueSavingCallback' => function($custom_value, $custom_table, $user, $i, $options) use($parent_table, $relationItem){
+                'createValueSavingCallback' => function ($custom_value, $custom_table, $user, $i, $options) use ($parent_table, $relationItem) {
                     // set relation if 1:n
-                    if($relationItem['relation_type'] == Enums\RelationType::MANY_TO_MANY){
+                    if ($relationItem['relation_type'] == Enums\RelationType::MANY_TO_MANY) {
                         return;
                     }
 
                     $parent_custom_value = $parent_table->getValueModel()->query()
                         ->where('value->text', "test_$i")
                         ->first();
-                    if(!isset($parent_custom_value)){
+                    if (!isset($parent_custom_value)) {
                         return;
                     }
 
                     if ($relationItem['relation_type'] == Enums\RelationType::ONE_TO_MANY) {
                         $custom_value->parent_id = $parent_custom_value->id;
                         $custom_value->parent_type = $parent_table->table_name;
-                    }
-                    else{
+                    } else {
                         $custom_value->setValue('parent_select_table', $parent_custom_value->id);
                     }
                 },
-                'createValueSavedCallback' => function($custom_value, $custom_table, $user, $i, $options) use($parent_table, $relationItem){
+                'createValueSavedCallback' => function ($custom_value, $custom_table, $user, $i, $options) use ($parent_table, $relationItem) {
                     // set relation if n:n
-                    if($relationItem['relation_type'] != Enums\RelationType::MANY_TO_MANY){
+                    if ($relationItem['relation_type'] != Enums\RelationType::MANY_TO_MANY) {
                         return;
                     }
 
@@ -243,13 +242,13 @@ class TestDataSeeder extends Seeder
                         ->where('value->text', "test_$i")
                         ->get()
                         ->pluck('id');
-                    if(empty($parent_custom_value_ids)){
+                    if (empty($parent_custom_value_ids)) {
                         return;
                     }
 
                     $relationName = CustomRelation::getRelationNamebyTables($parent_table, $custom_table);
 
-                    $parent_custom_value_ids->each(function($parent_custom_value_id) use($relationName, $custom_value, $custom_table){
+                    $parent_custom_value_ids->each(function ($parent_custom_value_id) use ($relationName, $custom_value, $custom_table) {
                         \DB::table($relationName)->insert([
                             'parent_id' => $parent_custom_value_id,
                             'child_id' => $custom_value->id,
@@ -265,7 +264,7 @@ class TestDataSeeder extends Seeder
             $pivot_table = $this->createTable('pivot_table' . $relationItem['suffix'], [
                 'menuParentId' => $menu->id,
                 'count' => 0,
-                'createColumnCallback' => function($custom_table, &$custom_columns) use($parent_table, $child_table){
+                'createColumnCallback' => function ($custom_table, &$custom_columns) use ($parent_table, $child_table) {
                     // creating relation column
                     $columns = [
                         ['column_name' => 'child', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id]],
@@ -277,7 +276,7 @@ class TestDataSeeder extends Seeder
                         ['column_name' => 'child_relation_filter_multi_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $child_table->id]],
                     ];
 
-                    foreach($columns as $column){
+                    foreach ($columns as $column) {
                         $custom_column = CustomColumn::create([
                             'custom_table_id' => $custom_table->id,
                             'column_name' => $column['column_name'],
@@ -288,7 +287,7 @@ class TestDataSeeder extends Seeder
                         $custom_columns[] = $custom_column;
                     }
                 },
-                'createValueCallback' => function($custom_value) use($relationItem){
+                'createValueCallback' => function ($custom_value) use ($relationItem) {
                 }
             ]);
 
@@ -300,35 +299,35 @@ class TestDataSeeder extends Seeder
                 ['parent' => 'parent_multi', 'child' => 'child_relation_filter_multi_ajax'],
             ];
 
-            foreach($selectRelations as $selectRelation){
+            foreach ($selectRelations as $selectRelation) {
                 // append pivot table's relation filter
                 $custom_forms = $pivot_table->custom_forms;
-                foreach($custom_forms as $custom_form){
+                foreach ($custom_forms as $custom_form) {
                     $custom_form_columns = $custom_form->custom_form_columns;
-                    foreach($custom_form_columns as $custom_form_column){
+                    foreach ($custom_form_columns as $custom_form_column) {
                         if ($custom_form_column->form_column_type != Enums\FormColumnType::COLUMN) {
                             continue;
                         }
 
                         $form_custom_column = $custom_form_column->custom_column_cache;
-                        if(!isset($form_custom_column)){
+                        if (!isset($form_custom_column)) {
                             continue;
                         }
 
-                        if($form_custom_column->column_name != $selectRelation['child']){
+                        if ($form_custom_column->column_name != $selectRelation['child']) {
                             continue;
                         }
 
                         // search 'parent' column
-                        $parent_pivot_column = $pivot_table->custom_columns_cache->first(function($custom_column) use($selectRelation){
+                        $parent_pivot_column = $pivot_table->custom_columns_cache->first(function ($custom_column) use ($selectRelation) {
                             return $custom_column->column_name == $selectRelation['parent'];
                         });
-                        if(!isset($parent_pivot_column)){
+                        if (!isset($parent_pivot_column)) {
                             continue;
                         }
 
                         $custom_form_column->setOption('relation_filter_target_column_id', $parent_pivot_column->id);
-                        $custom_form_column->save(); 
+                        $custom_form_column->save();
                     }
                 }
             }
@@ -371,8 +370,8 @@ class TestDataSeeder extends Seeder
         $tables = [];
         foreach ($permissions as $permission) {
             $custom_table = $this->createTable($permission, [
-                'users' => $users, 
-                'menuParentId' => $menu->id, 
+                'users' => $users,
+                'menuParentId' => $menu->id,
             ]);
             $tables[$permission] = $custom_table;
         }
@@ -380,16 +379,16 @@ class TestDataSeeder extends Seeder
         // create table for workflow
         foreach (range(1, 4) as $i) {
             $custom_table = $this->createTable("workflow$i", [
-                'users' => $users, 
-                'menuParentId' => $menu->id, 
+                'users' => $users,
+                'menuParentId' => $menu->id,
                 'customTableOptions' => ['all_user_editable_flg' => 1],
             ]);
         }
 
         // NO permission
         $this->createTable('no_permission', [
-            'users' => $users, 
-            'menuParentId' => $menu->id, 
+            'users' => $users,
+            'menuParentId' => $menu->id,
         ]);
 
         return $tables;
@@ -435,11 +434,10 @@ class TestDataSeeder extends Seeder
         ]);
 
         $custom_columns = [];
-        if($createColumnCallback){
+        if ($createColumnCallback) {
             $createColumnCallback($custom_table, $custom_columns);
-        }
-        elseif($createColumn){
-            if(isset($createColumnFirstCallback)){
+        } elseif ($createColumn) {
+            if (isset($createColumnFirstCallback)) {
                 $createColumnFirstCallback($custom_table, $custom_columns);
             }
 
@@ -465,7 +463,7 @@ class TestDataSeeder extends Seeder
         
                 $custom_columns[] = $custom_column;
 
-                if(boolval(array_get($column, 'label'))){
+                if (boolval(array_get($column, 'label'))) {
                     Model\CustomColumnMulti::create([
                         'custom_table_id' => $custom_table->id,
                         'multisetting_type' => Enums\MultisettingType::TABLE_LABELS,
@@ -477,7 +475,7 @@ class TestDataSeeder extends Seeder
             }
         }
 
-        if(isset($createRelationCallback)){
+        if (isset($createRelationCallback)) {
             $createRelationCallback($custom_table);
         }
 
@@ -523,10 +521,9 @@ class TestDataSeeder extends Seeder
         $notify_id = $this->createNotify($custom_table);
         $options['notify_id'] = $notify_id;
 
-        if(isset($createValueCallback)){
+        if (isset($createValueCallback)) {
             $options['custom_values'] = $createValueCallback($custom_table, $options);
-        }
-        elseif($createValue){
+        } elseif ($createValue) {
             $options['custom_values'] = $this->createValue($custom_table, $options);
         }
 
@@ -589,13 +586,13 @@ class TestDataSeeder extends Seeder
                 $custom_value->created_user_id = $user_id;
                 $custom_value->updated_user_id = $user_id;
 
-                if(isset($createValueSavingCallback)){
+                if (isset($createValueSavingCallback)) {
                     $createValueSavingCallback($custom_value, $custom_table, $user, $i, $options);
                 }
 
                 $custom_value->save();
 
-                if(isset($createValueSavedCallback)){
+                if (isset($createValueSavedCallback)) {
                     $createValueSavedCallback($custom_value, $custom_table, $user, $i, $options);
                 }
 

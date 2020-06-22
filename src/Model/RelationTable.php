@@ -14,7 +14,8 @@ class RelationTable
     public $table;
     public $searchType;
 
-    public function __construct(array $params = []){
+    public function __construct(array $params = [])
+    {
         $this->table = array_get($params, 'table');
         $this->searchType = array_get($params, 'searchType');
     }
@@ -26,7 +27,8 @@ class RelationTable
      */
     public static function getRelationTables($custom_table, $checkPermission = true, $options = [])
     {
-        $options = array_merge([
+        $options = array_merge(
+            [
             'search_enabled_only' => true, // if true, filtering search enabled
             ],
             $options
@@ -34,19 +36,19 @@ class RelationTable
 
         // check already execute
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES, $custom_table->table_name);
-        return System::requestSession($key, function () use($custom_table, $options) {
+        return System::requestSession($key, function () use ($custom_table, $options) {
             $results = [];
             // 1. Get tables as "select_table". They contains these columns matching them.
             // * table_column > options > search_enabled is true.
             // * table_column > options > select_target_table is table id user selected.
-            $query = CustomTable::whereHas('custom_columns', function ($query) use($custom_table) {
+            $query = CustomTable::whereHas('custom_columns', function ($query) use ($custom_table) {
                 $query
                 ->withoutGlobalScope(OrderScope::class)
                 ->indexEnabled()
                 ->selectTargetTable($custom_table->id, strval($custom_table->id));
             });
-            if($options['search_enabled_only']){
-                $query->searchEnabled();               
+            if ($options['search_enabled_only']) {
+                $query->searchEnabled();
             }
             $tables = $query->get();
 
@@ -59,7 +61,7 @@ class RelationTable
             // * table "custom_relations" and column "parent_custom_table_id" is $this->id.
             $tables = CustomTable::join('custom_relations', 'custom_tables.id', 'custom_relations.parent_custom_table_id')
             ->join('custom_tables AS child_custom_tables', 'child_custom_tables.id', 'custom_relations.child_custom_table_id')
-                ->whereHas('custom_relations', function ($query) use($custom_table) {
+                ->whereHas('custom_relations', function ($query) use ($custom_table) {
                     $query->where('parent_custom_table_id', $custom_table->id);
                 })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
             foreach ($tables as $table) {
@@ -69,7 +71,7 @@ class RelationTable
             }
 
             return collect($results);
-        })->filter(function($result) use($checkPermission){
+        })->filter(function ($result) use ($checkPermission) {
             // if not role, continue
             if ($checkPermission && !$result->table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 return false;
@@ -87,8 +89,9 @@ class RelationTable
      * @param mixed $value
      * @return mixed
      */
-    public static function setQueryOneMany($query, $parent_table, $value){
-        if(!isset($parent_table)){
+    public static function setQueryOneMany($query, $parent_table, $value)
+    {
+        if (!isset($parent_table)) {
             return;
         }
         
@@ -107,16 +110,17 @@ class RelationTable
      * @param mixed $value
      * @return mixed
      */
-    public static function setQueryManyMany($query, $parent_table, $child_table, $value){
-        if(!isset($parent_table) || !isset($child_table)){
+    public static function setQueryManyMany($query, $parent_table, $child_table, $value)
+    {
+        if (!isset($parent_table) || !isset($child_table)) {
             return;
         }
         $relation = CustomRelation::getRelationByParentChild($parent_table, $child_table);
-        if(!isset($relation)){
+        if (!isset($relation)) {
             return;
         }
         
-        $query->whereHas($relation->getRelationName(), function ($query) use($relation, $value) {
+        $query->whereHas($relation->getRelationName(), function ($query) use ($relation, $value) {
             $query->whereOrIn($relation->getRelationName() . '.parent_id', $value);
         });
         
@@ -131,8 +135,9 @@ class RelationTable
      * @param mixed $value
      * @return mixed
      */
-    public static function setQuerySelectTable($query, $custom_column, $value){
-        if(!isset($custom_column)){
+    public static function setQuerySelectTable($query, $custom_column, $value)
+    {
+        if (!isset($custom_column)) {
             return;
         }
         
@@ -140,5 +145,4 @@ class RelationTable
 
         return $query;
     }
-
 }

@@ -6,13 +6,10 @@ use Exceedone\Exment\Validator;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\SearchType;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Encore\Admin\Form\Field;
@@ -176,7 +173,7 @@ class SelectTable extends CustomItem
             if (isset($this->target_view)) {
                 $select2_expand['target_view_id'] = array_get($this->target_view, 'id');
             }
-            if(isset($linkage)){
+            if (isset($linkage)) {
                 $select2_expand['linkage_column_id'] = $linkage->parent_column->id;
                 $select2_expand['column_id'] = $linkage->child_column->id;
                 $select2_expand['linkage_value_id'] = $linkage->getParentValueId($this->custom_value);
@@ -201,10 +198,10 @@ class SelectTable extends CustomItem
         // if config "select_relation_linkage_disabled" is true, not callback
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
             return;
-        } 
+        }
 
         $relation_filter_target_column_id = array_get($form_column_options, 'relation_filter_target_column_id');
-        if(!isset($relation_filter_target_column_id)){
+        if (!isset($relation_filter_target_column_id)) {
             return;
         }
 
@@ -456,7 +453,7 @@ class SelectTable extends CustomItem
      */
     public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {
-        if(!boolval($this->custom_column->getOption('multiple_enabled'))){
+        if (!boolval($this->custom_column->getOption('multiple_enabled'))) {
             return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
         }
 
@@ -467,5 +464,4 @@ class SelectTable extends CustomItem
 
         return [$query];
     }
-
 }

@@ -1035,7 +1035,7 @@ class PatchDataCommand extends Command
         }
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
             return;
-        } 
+        }
         
         CustomFormColumn::all()->each(function ($custom_form_column) {
             if ($custom_form_column->form_column_type != FormColumnType::COLUMN) {
@@ -1043,25 +1043,25 @@ class PatchDataCommand extends Command
             }
 
             $custom_column = CustomColumn::getEloquent($custom_form_column->form_column_target_id);
-            if(!isset($custom_column)){
+            if (!isset($custom_column)) {
                 return true;
             }
 
-            if(!ColumnType::isSelectTable($custom_column['column_type'])){
+            if (!ColumnType::isSelectTable($custom_column['column_type'])) {
                 return true;
             }
 
-            if(!is_null($custom_form_column->getOption('relation_filter_target_column_id'))){
+            if (!is_null($custom_form_column->getOption('relation_filter_target_column_id'))) {
                 return true;
             }
 
             // get relation columns.
             $relationColumn = collect(Model\Linkage::getSelectTableLinkages($custom_column->custom_table_cache, false))
-                ->filter(function($c) use($custom_column){
+                ->filter(function ($c) use ($custom_column) {
                     return $c->searchType != Enums\SearchType::MANY_TO_MANY && $c->child_column->id == $custom_column->id;
                 })->first();
 
-            if(!isset($relationColumn)){
+            if (!isset($relationColumn)) {
                 return true;
             }
 
@@ -1082,7 +1082,7 @@ class PatchDataCommand extends Command
         }
 
         CustomFormColumn::all()->each(function ($custom_form_column) {
-            if(is_null($custom_form_column->getOption('relation_filter_target_column_id'))){
+            if (is_null($custom_form_column->getOption('relation_filter_target_column_id'))) {
                 return true;
             }
 

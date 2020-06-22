@@ -245,7 +245,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         // saved event
         static::saved(function ($model) {
             // Create pivot table
-            if($model->relation_type != RelationType::MANY_TO_MANY){
+            if ($model->relation_type != RelationType::MANY_TO_MANY) {
                 return;
             }
 

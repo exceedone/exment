@@ -154,12 +154,12 @@ class ApiTableController extends AdminControllerTableBase
      * find match data by query
      * use form select ajax
      * * (required) q : search word
-     * * (optional) expand.target_view_id : filtering data using view. 
+     * * (optional) expand.target_view_id : filtering data using view.
      * * (optional) expand.linkage_column_id : if called column sets linkage from other column, set this linkage column id.
      * * (optional) expand.linkage_value_id : if called column sets linkage from other column, set linkage selected linkage_value_id.
-     * 
+     *
      * if has linkage_column_id and linkage_value_id, filtering using linkage
-     * 
+     *
      * @param Request $request
      * @return mixed
      */
@@ -193,7 +193,7 @@ class ApiTableController extends AdminControllerTableBase
         ///// If set linkage, filter relation.
         // get children table id
         $relationColumn = null;
-        if(array_key_value_exists('linkage_column_id', $expand)){
+        if (array_key_value_exists('linkage_column_id', $expand)) {
             $column_id = array_get($expand, 'column_id');
             $column = CustomColumn::getEloquent($column_id);
 
@@ -203,7 +203,7 @@ class ApiTableController extends AdminControllerTableBase
             // get linkage (parent) selected custom_value id
             $linkage_value_id = array_get($expand, 'linkage_value_id');
 
-            if(isset($linkage_value_id)){
+            if (isset($linkage_value_id)) {
                 $relationColumn = Linkage::getLinkage($linkage_column, $column);
             }
         }
@@ -516,13 +516,13 @@ class ApiTableController extends AdminControllerTableBase
 
         $child_column = CustomColumn::getEloquent($child_column_id);
         $child_select_table = CustomTable::getEloquent($child_select_table_id);
-        if(!isset($child_column) || !isset($child_select_table) || !isset($parent_select_table_id)){
+        if (!isset($child_column) || !isset($child_select_table) || !isset($parent_select_table_id)) {
             return [];
         }
 
         // get search target column
         $searchType = $request->get('search_type');
-        if($searchType == SearchType::SELECT_TABLE){
+        if ($searchType == SearchType::SELECT_TABLE) {
             $searchColumns = $child_select_table->getSelectTableColumns($parent_select_table_id);
         }
 

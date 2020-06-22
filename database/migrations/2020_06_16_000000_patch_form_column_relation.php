@@ -1,11 +1,6 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use Exceedone\Exment\Database\ExtendedBlueprint;
-use Exceedone\Exment\Enums\LoginType;
-use Exceedone\Exment\Enums\SystemTableName;
 
 class PatchFormColumnRelation extends Migration
 {
