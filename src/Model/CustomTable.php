@@ -1420,9 +1420,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return false;
         }
 
-        // get count table..
+        // get count table. get Database value directly
         if (boolval($callQuery)) {
-            $count = $this->getOptionsQuery($options)->count();
+            $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_COUNT, $this->id);
+            $count = System::requestSession($key, function(){
+                return $this->getValueModel()->withoutGlobalScopes([CustomValueModelScope::class])->count();
+            });
             // when count > 0, create option only value.
             return $count <= config('exment.select_table_limit_count', 100);
         }

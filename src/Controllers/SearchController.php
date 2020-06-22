@@ -121,6 +121,9 @@ EOT;
                     break;
                 }
             }
+            if (count($results) >= 10) {
+                break;
+            }
         }
         return $results;
     }

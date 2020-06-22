@@ -131,7 +131,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataSelect(Request $request)
     {
-        $paginator = $this->dataQuery($request);
+        $paginator = $this->executeQuery($request, 10);
         if (!isset($paginator)) {
             return [];
         }
@@ -165,6 +165,10 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataQuery(Request $request)
     {
+        return $this->executeQuery($request);
+    }
+
+    protected function executeQuery(Request $request, $count = null){
         if (($code = $this->custom_table->enableAccess()) !== true) {
             return abortJson(403, $code);
         }
@@ -181,8 +185,10 @@ class ApiTableController extends AdminControllerTableBase
         // filtered query
         $q = $request->get('q');
         
-        if (($count = $this->getCount($request)) instanceof Response) {
-            return $count;
+        if(!isset($count)){
+            if (($count = $this->getCount($request)) instanceof Response) {
+                return $count;
+            }    
         }
 
         // get expand value
