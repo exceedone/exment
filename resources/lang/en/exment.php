@@ -988,12 +988,12 @@ return [
                 'export' => 'Export',
             ],
             'share_trigger_type_options' => [
-                '1' => 'Created',
-                '2' => 'Updated',
+                'create' => 'Created',
+                'update' => 'Updated',
             ],
             'share_permission_options' => [
-                '1' => 'Edit',
-                '2' => 'Share',
+                'edit' => 'Edit',
+                'view' => 'Share',
             ],
             
             'filter_condition_compare_options' => [

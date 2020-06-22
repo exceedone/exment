@@ -986,12 +986,12 @@ return [
                 'export' => 'エクスポート',
             ],
             'share_trigger_type_options' => [
-                '1' => '新規作成時',
-                '2' => '更新時',
+                'create' => '新規作成時',
+                'update' => '更新時',
             ],
             'share_permission_options' => [
-                '1' => '編集',
-                '2' => '閲覧',
+                'edit' => '編集',
+                'view' => '閲覧',
             ],
                 
             'filter_condition_compare_options' => [

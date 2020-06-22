@@ -391,11 +391,11 @@ HTML;
         if (!in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
             $form->hasManyTable('share_settings', exmtrans("custom_table.custom_column_multi.share_settings"), function ($form) use ($custom_table) {
                 $form->multipleSelect('share_trigger_type', exmtrans("custom_table.custom_column_multi.share_trigger_type"))->required()
-                    ->options(ShareTrigger::transArray("custom_table.custom_column_multi.share_trigger_type_options"));
+                    ->options(ShareTrigger::transKeyArray("custom_table.custom_column_multi.share_trigger_type_options"));
                 $form->select('share_column_id', exmtrans("custom_table.custom_column_multi.share_column_id"))->required()
                     ->options($custom_table->getUserOrgColumnsSelectOptions(['index_enabled_only' => false]));
                 $form->select('share_permission', exmtrans("custom_table.custom_column_multi.share_permission"))->required()
-                    ->options(SharePermission::transArray("custom_table.custom_column_multi.share_permission_options"));
+                    ->options(SharePermission::transKeyArray("custom_table.custom_column_multi.share_permission_options"));
                 $form->hidden('multisetting_type')->default(MultisettingType::SHARE_SETTINGS);
             })->setTableColumnWidth(3, 5, 3, 1)
             ->description(exmtrans("custom_table.custom_column_multi.help.share_settings"));
