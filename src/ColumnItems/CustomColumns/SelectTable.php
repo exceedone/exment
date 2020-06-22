@@ -21,6 +21,8 @@ use Illuminate\Support\Collection;
 
 class SelectTable extends CustomItem
 {
+    use SelectTrait;
+
     protected $target_table;
     protected $target_view;
     
@@ -231,9 +233,7 @@ class SelectTable extends CustomItem
     
     public function getAdminFilterWhereQuery($query, $input)
     {
-        $index = \DB::getQueryGrammar()->wrap($this->index());
-        // index is wraped
-        $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))", $input);
+        $this->getSelectFilterQuery($query, $input);
     }
 
     protected function setAdminFilterOptions(&$filter)
