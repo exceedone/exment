@@ -427,6 +427,7 @@ EOT;
 
             if (boolval(config('exment.search_list_link_filter', true)) && isset($query)) {
                 $query['view'] = CustomView::getAllData($custom_table)->suuid;
+                $query['execute_filter'] = '1';
                 
                 $list_url .= '?' . http_build_query($query);
             }

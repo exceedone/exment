@@ -34,11 +34,12 @@ trait CustomValueGrid
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
         
         // get search_enabled_columns and loop
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
 
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
+        
         // filter
         $this->custom_view->filterModel($grid->model(), $filter_func);
         $this->setCustomGridFilters($grid, $search_enabled_columns);
@@ -63,21 +64,49 @@ trait CustomValueGrid
     }
 
     /**
+     * Get filter html. call from ajax, or execute set filter.
+     *
+     * @return void
+     */
+    protected function getFilterHtml(){
+        $classname = getModelName($this->custom_table);
+        $grid = new Grid(new $classname);
+        
+        // get search_enabled_columns and loop
+        $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
+
+        $this->setCustomGridFilters($grid, $search_enabled_columns, true);
+
+        // get html force
+        $html = null;
+        $grid->filter(function ($filter) use (&$html) {
+            $html = $filter->render();
+        });
+
+        return ['html' => $html, 'script' => \Admin::purescript()->render()];
+    }
+
+    /**
      * set grid filter
      */
-    protected function setCustomGridFilters($grid, $search_enabled_columns)
+    protected function setCustomGridFilters($grid, $search_enabled_columns, $ajax = false)
     {
         $grid->quickSearch(function ($model, $input) {
             $model->eloquent()->setSearchQueryOrWhere($model, $input);
         }, 'left');
 
-        $grid->filter(function ($filter) use ($search_enabled_columns) {
+        $grid->filter(function ($filter) use ($search_enabled_columns, $ajax) {
+            $filter->disableIdFilter();
+            $filter->setAction(admin_urls('data', $this->custom_table->table_name));
+
             if ($this->custom_table->enableShowTrashed() === true) {
                 $filter->scope('trashed', exmtrans('custom_value.soft_deleted_data'))->onlyTrashed();
             }
 
-            $filter->disableIdFilter();
-
+            if(config('exment.custom_value_filter_ajax', true) && !$ajax && !boolval(request()->get('execute_filter'))){
+                $filter->setFilterAjax(admin_urls_query('data', $this->custom_table->table_name, ['filter_ajax' => 1]));
+                return;
+            }
 
             $filterItems = [];
 
