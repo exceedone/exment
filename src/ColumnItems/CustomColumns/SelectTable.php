@@ -66,6 +66,10 @@ class SelectTable extends CustomItem
 
         $isArray = is_array($this->value);
         $value = $isArray ? $this->value : [$this->value];
+
+        // set custom value cache
+        $this->target_table->setCustomValueModels($value);
+
         $result = [];
 
         foreach ($value as $v) {

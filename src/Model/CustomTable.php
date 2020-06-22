@@ -1255,19 +1255,31 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
 
             // value sometimes array, so flatten value. maybe has best way..
-            $finds = [];
-            foreach($values as $value){
-                foreach(toArray($value) as $v){
-                    $finds[] = $v;
-                }
-            }
-
-            $target_table->getValueModel()->findMany($finds)->each(function($target_value){
-                // set request settion
-                $target_value->setValueModel();
-            });
+            $target_table->setCustomValueModels($values);
         });
     } 
+
+    public function setCustomValueModels($ids){
+        // value sometimes array, so flatten value. maybe has best way..
+        $finds = [];
+        foreach(collect($ids)->filter() as $id){
+            foreach(toArray($id) as $v){
+                if(System::hasRequestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $v))){
+                    continue;
+                }
+                $finds[] = $v;
+            }
+        }
+
+        if(empty($finds)){
+            return;
+        }
+
+        $this->getValueModel()->findMany(array_unique($finds))->each(function($target_value){
+            // set request settion
+            $target_value->setValueModel();
+        });
+    }
 
 
     /**

@@ -120,6 +120,18 @@ class System extends ModelBase
     }
 
     /**
+     * Has Request Settion.
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return void
+     */
+    public static function hasRequestSession($key)
+    {
+        return array_has(static::$requestSession, $key);
+    }
+
+    /**
      * clear all request settion
      */
     public static function clearRequestSession($key = null)
