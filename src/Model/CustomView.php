@@ -633,8 +633,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function setValueFilters($model, $db_table_name = null)
     {
-        foreach ($this->custom_view_filters_cache as $filter) {
-            $filter->setValueFilter($model, $db_table_name, $this->filter_is_or);
+        if(!empty($this->custom_view_filters_cache)){
+            $model->where(function($model) use($db_table_name) {
+                foreach ($this->custom_view_filters_cache as $filter) {
+                    $filter->setValueFilter($model, $db_table_name, $this->filter_is_or);
+                }    
+            });
         }
         return $model;
     }
