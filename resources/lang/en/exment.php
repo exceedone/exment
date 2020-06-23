@@ -1822,6 +1822,7 @@ return [
         'scopes' => [
             'me' => 'Get Login User Info',
             'table_read' => 'Get Table Info',
+            'table_read' => 'Get View Info',
             'table_write' => 'Get, Create, Update, Delete Table',
             'value_read' => 'Get Value',
             'value_write' => 'Get, Create, Update, Delete Value',

@@ -1821,6 +1821,7 @@ return [
         'scopes' => [
             'me' => 'ログインユーザー情報の取得',
             'table_read' => 'テーブル情報の取得',
+            'view_read' => 'ビュー情報の取得',
             'value_read' => 'データの取得',
             'value_write' => 'データの取得・新規追加・更新・削除',
             'notify_read' => '通知の取得',
