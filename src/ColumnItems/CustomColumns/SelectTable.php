@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
@@ -29,6 +30,26 @@ class SelectTable extends CustomItem
 
         $this->target_table = CustomTable::getEloquent(array_get($custom_column, 'options.select_target_table'));
         $this->target_view = CustomView::getEloquent(array_get($custom_column, 'options.select_target_view'));
+    }
+
+    /**
+     * sortable for grid
+     */
+    public function sortable()
+    {
+        if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
+            return false;
+        }
+        return parent::sortable();
+    }
+
+    /**
+     * get cast name for sort
+     */
+    public function getCastName()
+    {
+        $grammar = \DB::getQueryGrammar();
+        return $grammar->getCastString(DatabaseDataType::TYPE_INTEGER, true);
     }
 
     public function getSelectTable()
