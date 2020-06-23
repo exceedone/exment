@@ -102,7 +102,7 @@ class NotifyNavbarController extends AdminControllerBase
         }
 
         return new Show($model, function (Show $show) use ($id, $custom_value, $custom_table) {
-            $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) use($custom_table) {
+            $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) use ($custom_table) {
                 if (is_null($parent_type) || is_null($custom_table)) {
                     return null;
                 }

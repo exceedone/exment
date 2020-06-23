@@ -157,7 +157,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param int|string $id
      * @return [boolean, string] status, error message.
      */
-    public static function validateDestroy($id) {
+    public static function validateDestroy($id)
+    {
         // check select_table
         $child_count = CustomRelation::where('parent_custom_table_id', $id)
             ->count();
@@ -1455,7 +1456,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // get count table. get Database value directly
         if (boolval($callQuery)) {
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_COUNT, $this->id);
-            $count = System::requestSession($key, function(){
+            $count = System::requestSession($key, function () {
                 return $this->getValueModel()->withoutGlobalScopes([CustomValueModelScope::class])->count();
             });
             // when count > 0, create option only value.

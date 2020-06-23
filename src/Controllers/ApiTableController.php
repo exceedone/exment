@@ -168,7 +168,8 @@ class ApiTableController extends AdminControllerTableBase
         return $this->executeQuery($request);
     }
 
-    protected function executeQuery(Request $request, $count = null){
+    protected function executeQuery(Request $request, $count = null)
+    {
         if (($code = $this->custom_table->enableAccess()) !== true) {
             return abortJson(403, $code);
         }
@@ -185,10 +186,10 @@ class ApiTableController extends AdminControllerTableBase
         // filtered query
         $q = $request->get('q');
         
-        if(!isset($count)){
+        if (!isset($count)) {
             if (($count = $this->getCount($request)) instanceof Response) {
                 return $count;
-            }    
+            }
         }
 
         // get expand value
