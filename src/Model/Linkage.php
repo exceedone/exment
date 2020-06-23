@@ -96,7 +96,7 @@ class Linkage
             return collect();
         }
 
-        return collect(static::getSelectTableLinkages($child_custom_column->custom_table_cache))
+        return collect(static::getSelectTableLinkages($child_custom_column->custom_table_cache, false))
             ->filter(function ($relationColumn) use ($parent_custom_column, $child_custom_column) {
                 if (isset($parent_custom_column)) {
                     if ($parent_custom_column->id != array_get($relationColumn, 'parent_column')->id) {
