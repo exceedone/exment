@@ -615,6 +615,7 @@ EOT;
                     'parent_select_table_id' => $parent_select_table->id ?? null,
                     'child_select_table_id' => $child_select_table->id ?? null,
                     'search_type' => $linkage->searchType,
+                    'display_table_id' => $this->custom_table->id,
                 ],
                 'to' => array_get($child_column, 'column_name'),
             ];

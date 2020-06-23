@@ -542,6 +542,7 @@ class ApiTableController extends AdminControllerTableBase
             'getLabel' => true,
             'searchColumns' => $searchColumns ?? null,
             'target_view' => CustomView::getEloquent($child_column->getOption('select_target_view')),
+            'display_table' => $request->get('display_table_id'),
         ];
         $datalist = $this->custom_table->searchRelationValue($searchType, $q, $child_select_table, $options);
         return collect($datalist)->map(function ($data) {
