@@ -147,7 +147,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
      */
     public function getSettingValue($key, $default = null)
     {
-        if (is_null($this->base_user)) {
+        if (is_null($this->base_user_id)) {
             return $default;
         }
         // get settings from settion

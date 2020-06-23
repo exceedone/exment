@@ -9,8 +9,8 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -319,10 +319,13 @@ EOT;
                     ///// set changedata info
                     $this->setChangeDataArray($column, $form_column_options, $options, $changedata_array);
                 }
+                    
+                // set relatedlinkage_array
+                // if set form_column_options relation_filter_target_column_id
+                if (array_key_value_exists('relation_filter_target_column_id', $form_column_options)) {
+                    $this->setRelatedLinkageArray($custom_form_block, $form_column, $relatedlinkage_array);
+                }
             }
-
-            // set relatedlinkage_array
-            $this->setRelatedLinkageArray($custom_form_block, $relatedlinkage_array);
         }
     }
 
@@ -436,9 +439,9 @@ EOT;
         $keys = [];
         // loop $option_calc_formulas and get column_name
         foreach ($option_calc_formulas as &$option_calc_formula) {
-            $child_table = array_get($option_calc_formula, 'table');
-            if (isset($child_table)) {
-                $option_calc_formula['relation_name'] = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
+            $child_select_table = array_get($option_calc_formula, 'table');
+            if (isset($child_select_table)) {
+                $option_calc_formula['relation_name'] = CustomRelation::getRelationNameByTables($this->custom_table, $child_select_table);
             }
             switch (array_get($option_calc_formula, 'type')) {
                 case 'count':
@@ -496,6 +499,8 @@ EOT;
     /**
      * set change data array.
      * "change data": When selecting a list, paste the value of that item into another form item.
+     * "changedata_target_column_id" : trigger column when user select
+     * "changedata_column_id" : set column when getting selected value
      */
     protected function setChangeDataArray($column, $form_column_options, $options, &$changedata_array)
     {
@@ -559,7 +564,7 @@ EOT;
      * set related linkage array.
      * "related linkage": When selecting a value, change the choices of other list. It's for 1:n relation.
      */
-    protected function setRelatedLinkageArray($custom_form_block, &$relatedlinkage_array)
+    protected function setRelatedLinkageArray($custom_form_block, $form_column, &$relatedlinkage_array)
     {
         // if config "select_relation_linkage_disabled" is true, return
         if (boolval(config('exment.select_relation_linkage_disabled', false))) {
@@ -571,24 +576,29 @@ EOT;
             return;
         }
 
+        $relation_filter_target_column_id = array_get($form_column, 'options.relation_filter_target_column_id');
+        if (!isset($relation_filter_target_column_id)) {
+            return;
+        }
+
+        $custom_column = $form_column->custom_column_cache;
+        if (!isset($custom_column)) {
+            return;
+        }
+
         // get relation columns
-        $relationColumns = $custom_form_block->target_table->getSelectTableRelationColumns();
+        $linkages = Linkage::getLinkages($relation_filter_target_column_id, $custom_column);
 
-        foreach ($relationColumns as $relationColumn) {
-            // ignore n:n
-            if ($relationColumn['searchType'] == SearchType::MANY_TO_MANY) {
-                continue;
-            }
-
-            $parent_column = $relationColumn['parent_column'];
+        foreach ($linkages as $linkage) {
+            $parent_column = $linkage->parent_column;
             $parent_column_name = array_get($parent_column, 'column_name');
-            $parent_table = $parent_column->select_target_table;
+            $parent_select_table = $parent_column->select_target_table;
 
-            $child_column = $relationColumn['child_column'];
-            $child_table = $child_column->select_target_table;
+            $child_column = $linkage->child_column;
+            $child_select_table = $child_column->select_target_table;
                     
             // skip same table
-            if ($parent_table->id == $child_table->id) {
+            if ($parent_select_table->id == $child_select_table->id) {
                 continue;
             }
 
@@ -599,10 +609,13 @@ EOT;
 
             // add array. key is column name.
             $relatedlinkage_array[$parent_column_name][] = [
-                'url' => admin_urls('webapi', 'data', $parent_table->table_name ?? null, 'relatedLinkage'),
+                'url' => admin_urls('webapi', 'data', $parent_select_table->table_name ?? null, 'relatedLinkage'),
                 'expand' => [
-                    'child_table_id' => $child_table->id ?? null,
-                    'search_type' => array_get($relationColumn, 'searchType'),
+                    'child_column_id' => $child_column->id ?? null,
+                    'parent_select_table_id' => $parent_select_table->id ?? null,
+                    'child_select_table_id' => $child_select_table->id ?? null,
+                    'search_type' => $linkage->searchType,
+                    'display_table_id' => $this->custom_table->id,
                 ],
                 'to' => array_get($child_column, 'column_name'),
             ];

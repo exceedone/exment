@@ -18,7 +18,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     protected $with = ['custom_column'];
 
     public static $templateItems = [
-        'excepts' => ['custom_column', 'form_column_target', 'options.changedata_target_column_id', 'options.changedata_column_id'],
+        'excepts' => ['custom_column', 'form_column_target', 'options.changedata_target_column_id', 'options.changedata_column_id', 'options.relation_filter_target_column_id'],
         'langs' => [
             'keys' => ['form_column_target_name'],
             'values' => ['options.html', 'options.text'],
@@ -66,6 +66,18 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
                 ],
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
                 'uniqueKeyFunctionArgs' => ['options.changedata_target_column_id'],
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.relation_filter_target_table_name',
+                            'column_name' => 'options.relation_filter_target_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.relation_filter_target_column_id'],
             ],
         ]
     ];
@@ -119,6 +131,15 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         }
     }
 
+    protected function getCustomColumnCacheAttribute()
+    {
+        if ($this->form_column_type != FormColumnType::COLUMN) {
+            return null;
+        }
+        
+        return CustomColumn::getEloquent($this->form_column_target_id);
+    }
+    
     /**
      * get Table And Column Name
      */
@@ -166,6 +187,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         // set changedata_custom_table_id
         static::replaceChangedata($json, 'options.changedata_column_table_name', 'options.changedata_column_name', 'options.changedata_column_id');
         static::replaceChangedata($json, 'options.changedata_target_table_name', 'options.changedata_target_column_name', 'options.changedata_target_column_id');
+        static::replaceChangedata($json, 'options.relation_filter_target_table_name', 'options.relation_filter_target_column_name', 'options.relation_filter_target_column_id');
     }
 
     /**

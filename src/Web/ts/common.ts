@@ -641,6 +641,18 @@ namespace Exment {
                 var url = link.url;
                 var expand = link.expand;
                 var $target = $parent.find(CommonEvent.getClassKey(link.to));
+
+                // if target has 'data-add-select2-ajax'(Call as ajax), set data to $target, and not call linkage
+                if(hasValue($target.data('add-select2-ajax'))){
+                    let select2_expand = $target.data('add-select2-expand');
+                    if(!hasValue(select2_expand)){
+                        select2_expand = {};
+                    }
+
+                    select2_expand['linkage_value_id'] = $base.val();
+                    $target.data('add-select2-expand', select2_expand);
+                    continue;
+                }
                 CommonEvent.linkage($target, url, $base.val(), expand);
             }
         }
@@ -1076,6 +1088,7 @@ namespace Exment {
                             return {
                                 q: params.term,
                                 page: params.page,
+                                expand: $elem.data('add-select2-expand'),
                             };
                         },
                         processResults: function (data, params) {

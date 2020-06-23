@@ -121,6 +121,9 @@ EOT;
                     break;
                 }
             }
+            if (count($results) >= 10) {
+                break;
+            }
         }
         return $results;
     }
@@ -391,7 +394,7 @@ EOT;
         $results[] = $this->getTableArray($value_table, SearchType::SELF);
         // loop and add $results
         foreach ($relationTables as $relationTable) {
-            $results[] = $this->getTableArray($relationTable['table'], $relationTable['searchType']);
+            $results[] = $this->getTableArray($relationTable->table, $relationTable->searchType);
         }
         return $results;
     }
@@ -427,6 +430,7 @@ EOT;
 
             if (boolval(config('exment.search_list_link_filter', true)) && isset($query)) {
                 $query['view'] = CustomView::getAllData($custom_table)->suuid;
+                $query['execute_filter'] = '1';
                 
                 $list_url .= '?' . http_build_query($query);
             }

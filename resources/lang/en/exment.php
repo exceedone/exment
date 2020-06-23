@@ -1159,6 +1159,8 @@ return [
         'hasmany_type' => 'Make the form in table form.',
         'header_basic_setting' => 'Form Basic Setting',
         'changedata' => 'Data Linkage Setting',
+        'relation_filter' => 'Relation Filter Setting',
+        'relation_filter_manual' => 'Relation Filter Setting',
         'items' => 'Form Items',
         'suggest_items' => 'Suggest Items',
         'add_all_items' => 'Add All Items',
@@ -1186,7 +1188,9 @@ return [
         'help'=> [
             'items' => 'Set the items to be displayed on the data form. <br /> From the "form item candidate list", drag & drop the item you want to display on the form to "form item column 1" "form item column 2".',
             'changedata' => 'When you select another item in the form, you can copy the value of the selected data to the item.<br />Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
+            'relation_filter' => 'If the column of the parent table or the referenced table of this column exists in the form, you can narrow down the selection of this column by selecting the column.',
             'changedata_no_item' => '*There are no columns in the table whose column type is "Select (From Table)", "User", and "Organization". Register these columns if you want to use data linkage settings.',
+            'relation_filter_no_item' => '*The parent of column "%s" or the table to be referenced does not exist.',
         ],
 
         'message' => [

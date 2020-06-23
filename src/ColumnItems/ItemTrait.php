@@ -180,17 +180,13 @@ trait ItemTrait
      * @param [type] $takeCount
      * @return void
      */
-    public function getSearchQueries($mark, $value, $takeCount, $q)
+    public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {
-        list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q);
+        list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q, $options);
 
         $query = $this->custom_table->getValueModel()->query();
         
-        if (is_list($pureValue)) {
-            $query->whereIn($this->custom_column->getIndexColumnName(), toArray($pureValue))->select('id');
-        } else {
-            $query->where($this->custom_column->getIndexColumnName(), $mark, $pureValue)->select('id');
-        }
+        $query->whereOrIn($this->custom_column->getIndexColumnName(), $mark, $pureValue)->select('id');
         
         $query->take($takeCount);
 
@@ -229,13 +225,23 @@ trait ItemTrait
         return null;
     }
 
-    protected function getQueryMarkAndValue($mark, $value, $q)
+    protected function getQueryMarkAndValue($mark, $value, $q, $options = [])
     {
+        $options = array_merge([
+            'relation' => false,
+        ], $options);
+
         if (is_nullorempty($q)) {
             return [$mark, $value];
         }
 
-        $pureValue = $this->getPureValue($q);
+        // if not relation search, get pure value
+        if (!boolval($options['relation'])) {
+            $pureValue = $this->getPureValue($q);
+        } else {
+            $pureValue = $value;
+        }
+
         if (is_null($pureValue)) {
             return [$mark, $value];
         }

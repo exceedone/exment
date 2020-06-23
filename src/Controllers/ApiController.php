@@ -401,10 +401,6 @@ class ApiController extends AdminControllerBase
                 return abortJson(403, ErrorCode::PERMISSION_DENY());
             }
 
-            // get model filtered using role
-            $model = getModelName($custom_table)::query();
-            \Exment::user()->filterModel($model);
-
             $validator = \Validator::make($request->all(), [
                 'q' => 'required',
             ]);

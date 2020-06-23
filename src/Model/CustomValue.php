@@ -1102,7 +1102,7 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
-     * Get Query for text search
+     * Get Query for text search.
      *
      * @return void
      */
@@ -1121,47 +1121,64 @@ abstract class CustomValue extends ModelBase
             return null;
         }
 
+        $getQueryFunc = function ($searchColumn, $options) {
+            extract($options);
+            if ($searchColumn instanceof CustomColumn) {
+                $column_item = $searchColumn->column_item;
+                if (!isset($column_item)) {
+                    return;
+                }
+
+                foreach ($column_item->getSearchQueries($mark, $value, $takeCount, $q, $options) as $query) {
+                    $query->take($takeCount);
+                    $queries[] = $query;
+                }
+            } else {
+                $query = static::query();
+                $query->whereOrIn($searchColumn, $mark, $value)->select('id');
+                $query->take($takeCount);
+    
+                $queries[] = $query;
+            }
+            
+            foreach ($queries as &$query) {
+                // if has relationColumn, set query filtering
+                if (isset($relationColumn)) {
+                    $relationColumn->setQueryFilter($query, array_get($options, 'relationColumnValue'));
+                }
+                
+                ///// if has display table, filter display table
+                if (isset($display_table)) {
+                    $this->custom_table->filterDisplayTable($query, $display_table);
+                }
+
+                // set custom view's filter
+                if (isset($target_view)) {
+                    $target_view->filterModel($query);
+                }
+            }
+
+            return $queries;
+        };
+
         // crate union query
         $queries = [];
         $searchColumns = collect($searchColumns);
         for ($i = 0; $i < count($searchColumns) - 1; $i++) {
             $searchColumn = collect($searchColumns)->values()->get($i);
-            if ($searchColumn instanceof CustomColumn) {
-                $column_item = $searchColumn->column_item;
-                if (!isset($column_item)) {
-                    continue;
-                }
 
-                foreach ($column_item->getSearchQueries($mark, $value, $takeCount, $q) as $query) {
-                    $queries[] = $query;
-                }
-            } else {
-                $query = static::query();
-                $query->where($searchColumn, $mark, $value)->select('id');
-                $query->take($takeCount);
-    
+            foreach ($getQueryFunc($searchColumn, $options) as $query) {
                 $queries[] = $query;
             }
         }
 
         $searchColumn = $searchColumns->last();
+        $subquery = $getQueryFunc($searchColumn, $options)[0];
 
-        if ($searchColumn instanceof CustomColumn) {
-            $column_item = $searchColumn->column_item;
-            if (!isset($column_item)) {
-                $subquery = static::query();
-            } else {
-                $subquery = $column_item->getSearchQueries($mark, $value, $takeCount, $q)[0];
-            }
-        } else {
-            $subquery = static::query();
-            $subquery->where($searchColumn, $mark, $value)->select('id');
-        }
-
-        $subquery->take($takeCount);
         foreach ($queries as $inq) {
             $subquery->union($inq);
         }
+        $subquery->take($takeCount);
 
         // create main query
         $mainQuery = \DB::query()->fromSub($subquery, 'sub');
@@ -1231,12 +1248,7 @@ abstract class CustomValue extends ModelBase
             return $options;
         }
 
-        if (System::filter_search_type() == FilterSearchType::ALL) {
-            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        } else {
-            $value = $q . ($isLike ? '%' : '');
-        }
-        $mark = ($isLike ? 'LIKE' : '=');
+        list($mark, $value) = $this->getQueryMarkAndValue($isLike, $q, $relation);
 
         if ($relation) {
             $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
@@ -1256,6 +1268,43 @@ abstract class CustomValue extends ModelBase
         $options['q'] = $q;
 
         return $options;
+    }
+
+    /**
+     * Get mark and value for search
+     *
+     * @param bool $isLike
+     * @param search $q
+     * @return array
+     */
+    protected function getQueryMarkAndValue($isLike, $q, bool $relation)
+    {
+        // if relation search, return always "=" and $q
+        if ($relation) {
+            return ["=", $q];
+        }
+
+        // if all search
+        $mark = ($isLike ? 'LIKE' : '=');
+        if (System::filter_search_type() == FilterSearchType::ALL) {
+            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        } else {
+            $value = $q . ($isLike ? '%' : '');
+        }
+
+        return [$mark, $value];
+    }
+
+    /**
+     * Set CustomValue's model for request session.
+     *
+     */
+    public function setValueModel()
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->custom_table_name, $this->id);
+        System::setRequestSession($key, $this);
+
+        return $this;
     }
 
     /**

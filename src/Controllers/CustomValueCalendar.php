@@ -10,7 +10,7 @@ trait CustomValueCalendar
     {
         $table_name = $this->custom_table->table_name;
         $model = $this->custom_table->getValueModel()->query();
-        \Exment::user()->filterModel($model, $this->custom_view);
+        $this->custom_view->filterModel($model);
 
         $tools = [];
         if ($this->custom_table->enableTableMenuButton()) {

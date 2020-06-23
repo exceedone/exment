@@ -21,7 +21,7 @@ class AuthUserOrgHelper
      * this function is called from custom value role
      */
     // getRoleUserOrgQuery
-    public static function getRoleOrganizationQuery($target_table, $tablePermission = null)
+    public static function getRoleOrganizationQuery($target_table, $tablePermission = null, $builder = null)
     {
         if (is_null($target_table)) {
             return [];
@@ -50,7 +50,9 @@ class AuthUserOrgHelper
         }
 
         // return target values
-        $builder = getModelName(SystemTableName::ORGANIZATION)::query();
+        if (!isset($builder)) {
+            $builder = getModelName(SystemTableName::ORGANIZATION)::query();
+        }
         if (!$all) {
             $builder->whereIn('id', $target_ids);
         }
@@ -64,7 +66,7 @@ class AuthUserOrgHelper
      * this function is called from custom value role
      */
     // getRoleUserOrgQuery
-    public static function getRoleUserQueryTable($target_table, $tablePermission = null)
+    public static function getRoleUserQueryTable($target_table, $tablePermission = null, $builder = null)
     {
         if (is_null($target_table)) {
             return [];
@@ -109,7 +111,9 @@ class AuthUserOrgHelper
     
         $target_ids = array_unique($target_ids);
         // return target values
-        $builder = getModelName(SystemTableName::USER)::query();
+        if (!isset($builder)) {
+            $builder = getModelName(SystemTableName::USER)::query();
+        }
         if (!$all) {
             $builder->whereIn('id', $target_ids);
         }
@@ -122,7 +126,7 @@ class AuthUserOrgHelper
      * *key:custom_value
      * @return CustomValue users who can access custom_value.
      */
-    public static function getRoleUserQueryValue($custom_value, $tablePermission = null)
+    public static function getRoleUserQueryValue($custom_value, $tablePermission = null, $builder = null)
     {
         // get custom_value's users
         $target_ids = [];
@@ -168,7 +172,9 @@ class AuthUserOrgHelper
         }
     
         // return target values
-        $builder = getModelName(SystemTableName::USER)::query();
+        if (!isset($builder)) {
+            $builder = getModelName(SystemTableName::USER)::query();
+        }
         $builder->whereIn('id', $target_ids);
         return $builder;
     }

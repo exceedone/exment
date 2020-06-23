@@ -595,7 +595,7 @@ class TemplateImporter
                 // get columns. --------------------------------------------------
                 if (array_key_exists('custom_columns', $table)) {
                     foreach (array_get($table, 'custom_columns') as $column) {
-                        CustomColumn::importTemplateRelationColumn($column, $is_update, [
+                        CustomColumn::importTemplateLinkage($column, $is_update, [
                             'system_flg' => $system_flg,
                             'parent' => $obj_table,
                         ]);

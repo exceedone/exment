@@ -118,6 +118,10 @@ class CustomValueController extends AdminControllerTableBase
                 $group_keys = json_decode($request->query('group_key'));
                 $callback = $this->getSummaryDetailFilter($group_keys);
             }
+            if ($request->has('filter_ajax')) {
+                return $this->getFilterAjaxHtml();
+            }
+
             switch ($this->custom_view->view_kind_type) {
                 case ViewKindType::AGGREGATE:
                     $row = new Row($this->gridSummary());
@@ -808,5 +812,17 @@ class CustomValueController extends AdminControllerTableBase
 
         // set form
         $this->custom_form = $this->custom_table->getPriorityForm($id);
+    }
+
+    protected function getFilterAjaxHtml()
+    {
+        switch ($this->custom_view->view_kind_type) {
+            case ViewKindType::AGGREGATE:
+                return null;
+            case ViewKindType::CALENDAR:
+                return null;
+            default:
+                return $this->getFilterHtml();
+        }
     }
 }
