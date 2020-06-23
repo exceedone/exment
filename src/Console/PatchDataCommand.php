@@ -1061,7 +1061,7 @@ class PatchDataCommand extends Command
             // get relation columns.
             $relationColumn = collect(Model\Linkage::getSelectTableLinkages($custom_column->custom_table_cache, false))
                 ->filter(function ($c) use ($custom_column) {
-                    return $c->searchType != Enums\SearchType::MANY_TO_MANY && $c->child_column->id == $custom_column->id;
+                    return $c['searchType'] != Enums\SearchType::MANY_TO_MANY && $c['child_column']->id == $custom_column->id;
                 })->first();
 
             if (!isset($relationColumn)) {
