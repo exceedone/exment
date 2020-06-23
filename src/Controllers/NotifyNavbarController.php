@@ -32,10 +32,10 @@ class NotifyNavbarController extends AdminControllerBase
             return exmtrans("notify_navbar.read_flg_options.$read_flg");
         });
         $grid->column('parent_type', exmtrans('notify_navbar.parent_type'))->sortable()->displayEscape(function ($parent_type) {
-            if (is_null($parent_type)) {
+            if (is_null($parent_type) || is_null($custom_table = CustomTable::getEloquent($parent_type))) {
                 return null;
             }
-            return CustomTable::getEloquent($parent_type)->table_view_name;
+            return $custom_table->table_view_name;
         });
         $grid->column('notify_subject', exmtrans('notify_navbar.notify_subject'))->sortable();
         $grid->column('created_at', exmtrans('common.created_at'))->sortable();
@@ -94,17 +94,19 @@ class NotifyNavbarController extends AdminControllerBase
         }
 
         $custom_value = null;
+        $custom_table = null;
         if (!is_null($parent_type = array_get($model, 'parent_type'))) {
-            $custom_value = CustomTable::getEloquent($parent_type)
-                ->getValueModel(array_get($model, 'parent_id'));
+            if (!is_null($custom_table = CustomTable::getEloquent($parent_type))) {
+                $custom_value = $custom_table->getValueModel(array_get($model, 'parent_id'));
+            }
         }
 
-        return new Show($model, function (Show $show) use ($id, $custom_value) {
-            $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) {
-                if (is_null($parent_type)) {
+        return new Show($model, function (Show $show) use ($id, $custom_value, $custom_table) {
+            $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) use($custom_table) {
+                if (is_null($parent_type) || is_null($custom_table)) {
                     return null;
                 }
-                return CustomTable::getEloquent($parent_type)->table_view_name;
+                return $custom_table->table_view_name;
             });
 
             if (isset($custom_value)) {
@@ -151,7 +153,13 @@ class NotifyNavbarController extends AdminControllerBase
             $model->update(['read_flg' => true]);
         }
 
-        $custom_value = getModelName($model->parent_type)::find($model->parent_id);
+        $custom_table = getModelName($model->parent_type);
+
+        if (!isset($custom_table)) {
+            return back();
+        }
+
+        $custom_value = $custom_table::find($model->parent_id);
 
         if (!isset($custom_value)) {
             return back();

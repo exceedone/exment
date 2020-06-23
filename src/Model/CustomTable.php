@@ -146,7 +146,39 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getDisabledDeleteAttribute()
     {
-        return boolval($this->system_flg);
+        if (boolval($this->system_flg)) {
+            return true;
+        }
+        return !empty(self::validateDestroy($this->id));
+    }
+
+    /**
+     * check if target id table can be deleted
+     * @param int|string $id
+     * @return [boolean, string] status, error message.
+     */
+    public static function validateDestroy($id) {
+        // check select_table
+        $child_count = CustomRelation::where('parent_custom_table_id', $id)
+            ->count();
+
+        if ($child_count > 0) {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_value.help.relation_error'),
+            ];
+        }
+        // check select_table
+        $column_count = CustomColumn::whereIn('options->select_target_table', [strval($id), intval($id)])
+            ->where('custom_table_id', '<>', $id)
+            ->count();
+
+        if ($column_count > 0) {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_value.help.reference_error'),
+            ];
+        }
     }
 
     /**
