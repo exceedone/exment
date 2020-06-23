@@ -1313,7 +1313,7 @@ class ApiTest extends ApiTestBase
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'notify'))
             ->assertStatus(200)
-            ->assertJsonCount(10, 'data');
+            ->assertJsonCount(14, 'data');
     }
 
     public function testGetNotifyAll(){

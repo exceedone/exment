@@ -2,11 +2,11 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Grid\Tools as GridTools;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomOperation;
@@ -33,13 +33,14 @@ trait CustomValueGrid
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
         
         // get search_enabled_columns and loop
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
 
+        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
+        
         // filter
-        Admin::user()->filterModel($grid->model(), $this->custom_view, $filter_func);
+        $this->custom_view->filterModel($grid->model(), $filter_func);
         $this->setCustomGridFilters($grid, $search_enabled_columns);
     
         // create grid
@@ -52,25 +53,60 @@ trait CustomValueGrid
         $this->manageMenuToolButton($grid);
 
         Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
+
+        $grid->getDataCallback(function ($grid) {
+            $customValueCollection = $grid->getOriginalCollection();
+            $this->custom_table->setSelectTableValues($customValueCollection);
+        });
+
         return $grid;
+    }
+
+    /**
+     * Get filter html. call from ajax, or execute set filter.
+     *
+     * @return void
+     */
+    protected function getFilterHtml()
+    {
+        $classname = getModelName($this->custom_table);
+        $grid = new Grid(new $classname);
+        
+        // get search_enabled_columns and loop
+        $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
+
+        $this->setCustomGridFilters($grid, $search_enabled_columns, true);
+
+        // get html force
+        $html = null;
+        $grid->filter(function ($filter) use (&$html) {
+            $html = $filter->render();
+        });
+
+        return ['html' => $html, 'script' => \Admin::purescript()->render()];
     }
 
     /**
      * set grid filter
      */
-    protected function setCustomGridFilters($grid, $search_enabled_columns)
+    protected function setCustomGridFilters($grid, $search_enabled_columns, $ajax = false)
     {
         $grid->quickSearch(function ($model, $input) {
             $model->eloquent()->setSearchQueryOrWhere($model, $input);
         }, 'left');
 
-        $grid->filter(function ($filter) use ($search_enabled_columns) {
+        $grid->filter(function ($filter) use ($search_enabled_columns, $ajax) {
+            $filter->disableIdFilter();
+            $filter->setAction(admin_urls('data', $this->custom_table->table_name));
+
             if ($this->custom_table->enableShowTrashed() === true) {
                 $filter->scope('trashed', exmtrans('custom_value.soft_deleted_data'))->onlyTrashed();
             }
 
-            $filter->disableIdFilter();
-
+            if (config('exment.custom_value_filter_ajax', true) && !$ajax && !boolval(request()->get('execute_filter'))) {
+                $filter->setFilterAjax(admin_urls_query('data', $this->custom_table->table_name, ['filter_ajax' => 1]));
+                return;
+            }
 
             $filterItems = [];
 
@@ -101,34 +137,23 @@ trait CustomValueGrid
                 $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
                 $table_view_name = $relation->parent_custom_table->table_view_name;
 
-                // switch 1:n or n:n
-                if ($relation->relation_type == RelationType::ONE_TO_MANY) {
-                    if (isset($ajax)) {
-                        $filterItems[] = function ($filter) use ($table_view_name, $ajax) {
-                            $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'text');
-                        };
+                $relationQuery = function ($query) use ($relation) {
+                    if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+                        RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $this->input);
                     } else {
-                        $filterItems[] = function ($filter) use ($table_view_name, $options) {
-                            $filter->equal('parent_id', $table_view_name)->select($options);
-                        };
+                        RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $this->input);
                     }
-                } else {
-                    $relationQuery = function ($query) use ($relation) {
-                        $query->whereHas($relation->getRelationName(), function ($query) use ($relation) {
-                            $query->where($relation->getRelationName() . '.parent_id', $this->input);
-                        });
-                    };
+                };
 
-                    // set relation
-                    if (isset($ajax)) {
-                        $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
-                            $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
-                        };
-                    } else {
-                        $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
-                            $filter->where($relationQuery, $table_view_name)->select($options);
-                        };
-                    }
+                // set relation
+                if (isset($ajax)) {
+                    $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
+                        $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
+                    };
+                } else {
+                    $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
+                        $filter->where($relationQuery, $table_view_name)->select($options);
+                    };
                 }
             }
 
@@ -260,6 +285,7 @@ trait CustomValueGrid
             // name
             $custom_table = $this->custom_table;
             $relationTables = $custom_table->getRelationTables();
+
             $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
                 $enableEdit = true;
                 $enableDelete = true;

@@ -6,10 +6,13 @@ namespace Exment {
             $('.box-custom_form_block').on('click', '.delete', {}, CustomFromEvent.deleteColumn);
             $('.box-custom_form_block').on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
             $('.box-custom_form_block').on('click', '.changedata-modal', {}, CustomFromEvent.changedataModalEvent);
+            $('.box-custom_form_block').on('click', '.relation_filter-modal', {}, CustomFromEvent.relationfilterModalEvent);
             
             $(document).off('change', '.changedata_target_column').on('change', '.changedata_target_column', {}, CustomFromEvent.changedataColumnEvent);
             $(document).off('click', '#changedata-button-setting').on('click', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
             $(document).off('click', '#changedata-button-reset').on('click', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
+            $(document).off('click', '#relation_filter-button-setting').on('click', '#relation_filter-button-setting', {}, CustomFromEvent.relationfilterSetting);
+            $(document).off('click', '#relation_filter-button-reset').on('click', '#relation_filter-button-reset', {}, CustomFromEvent.relationfilterReset);
 
             CustomFromEvent.addDragEvent();
             CustomFromEvent.addCollapseEvent();
@@ -93,6 +96,9 @@ namespace Exment {
 
                             // add icheck event
                             CustomFromEvent.appendIcheckEvent(ui.helper.find('.icheck'));
+
+                            // replace html name(for clone object)
+                            CustomFromEvent.replaceCloneColumnName(ui.helper);
                         } else {
                             ui.helper.find('.delete,.options,[data-toggle]').hide();
                         }
@@ -277,6 +283,40 @@ namespace Exment {
             });
         }
 
+        /**
+         * Replace clone suggest li name.
+         * @param $li 
+         */
+        private static replaceCloneColumnName($li){
+            let replaceHeaderName = $li.data('header_column_name');
+            let $replaceLi = $li.parents('.custom_form_block')
+                .find('.custom_form_column_suggests')
+                .find('.custom_form_column_item[data-header_column_name="' + replaceHeaderName + '"]');
+
+            if($replaceLi.length == 0){
+                return;
+            }
+
+            // get "NEW__" string
+            let newCode = replaceHeaderName.match(/NEW__.{8}-.{4}-.{4}-.{4}-.{12}/);
+            if(!newCode){
+                return;
+            }
+
+            // set replaced name
+            let updateCode = 'NEW__' + getUuid();
+
+            // replace inner
+            let html = $replaceLi.html();
+            html = html.replace(new RegExp(newCode[0], "g"), updateCode);
+            $replaceLi.html(html);
+
+            // replace li id and header_column_name
+            let newHeaderName = replaceHeaderName.replace(new RegExp(newCode[0], "g"), updateCode);
+            $replaceLi.attr('data-header_column_name', newHeaderName);
+            $replaceLi.attr('id', newHeaderName);
+        }
+
         private static changedataModalEvent = (ev) => {
             // get target header_column_name
             var $target_li = $(ev.target).closest('.custom_form_column_item');
@@ -371,7 +411,7 @@ namespace Exment {
          */
         private static changedataReset = (ev) => {
             // get target_header_column_name for updating.
-            var $target_li = CustomFromEvent.getModalTargetLi();
+            var $target_li = CustomFromEvent.getModalTargetLi('#form-changedata-modal');
             
             // data setting and show message
             $target_li.find('.changedata_target_column_id').val('');
@@ -385,7 +425,7 @@ namespace Exment {
          */
         private static changedataSetting = (ev) => {
             // get target_header_column_name for updating.
-            var $target_li = CustomFromEvent.getModalTargetLi();
+            var $target_li = CustomFromEvent.getModalTargetLi('#form-changedata-modal');
             
             // data setting and show message
             $target_li.find('.changedata_target_column_id').val($('.changedata_target_column').val());
@@ -395,9 +435,63 @@ namespace Exment {
             $('#form-changedata-modal').modal('hide');
         }
 
-        private static getModalTargetLi(){
+
+        private static relationfilterModalEvent = (ev) => {
+            // get target header_column_name
+            var $target_li = $(ev.target).closest('.custom_form_column_item');
+            var target_header_column_name = $target_li.data('header_column_name');
+
+            // get default value
+            var target_column_id = $target_li.find('.form_column_target_id').val();
+            var relation_filter_target_column_id = $target_li.find('.relation_filter_target_column_id').val();
+
+            $.ajax({
+                type: 'GET',
+                url: $('#relationFilterUrl').val() as string,
+                //container: "#pjax-container",
+                data: {target_column_id:target_column_id, relation_filter_target_column_id:relation_filter_target_column_id},
+                success: function (repsonse) {
+                    $('#form-relation_filter-modal').html(repsonse);
+                    $('#form-relation_filter-modal').modal('show');
+                    $('#form-relation_filter-modal').find('.target_header_column_name').val(target_header_column_name);
+
+                },
+                error: function (repsonse) {
+                }
+            });
+        }
+
+        /**
+         * Reset relation_filter Setting
+         */
+        private static relationfilterReset = (ev) => {
             // get target_header_column_name for updating.
-            var target_header_column_name = $('#form-changedata-modal').find('.target_header_column_name').val();
+            var $target_li = CustomFromEvent.getModalTargetLi('#form-relation_filter-modal');
+            
+            // data setting and show message
+            $target_li.find('.relation_filter_target_column_id').val('');
+            $target_li.find('.relation_filter_available').hide();
+
+            $('#form-relation_filter-modal').modal('hide');
+        }
+        /**
+         * Settng relation_filter Setting
+         */
+        private static relationfilterSetting = (ev) => {
+            // get target_header_column_name for updating.
+            var $target_li = CustomFromEvent.getModalTargetLi('#form-relation_filter-modal');
+            
+            // data setting and show message
+            $target_li.find('.relation_filter_target_column_id').val($('.relation_filter_target_column').val());
+            $target_li.find('.relation_filter_available').show();
+
+            $('#form-relation_filter-modal').modal('hide');
+        }
+
+
+        private static getModalTargetLi(formSelector){
+            // get target_header_column_name for updating.
+            var target_header_column_name = $(formSelector).find('.target_header_column_name').val();
             var $target_li = $('[data-header_column_name="' + target_header_column_name + '"]');
 
             return $target_li;

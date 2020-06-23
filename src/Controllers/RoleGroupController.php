@@ -409,6 +409,7 @@ class RoleGroupController extends AdminControllerBase
                 $role_group->role_group_name = $request->get('role_group_name');
             }
             $role_group->role_group_view_name = $request->get('role_group_view_name');
+            $role_group->description = $request->get('description');
             $role_group->save();
 
             $items = [

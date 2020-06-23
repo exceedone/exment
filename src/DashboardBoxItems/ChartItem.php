@@ -135,7 +135,6 @@ class ChartItem implements ItemInterface
         $model = $this->custom_table->getValueModel()->query();
 
         // get data
-        \Exment::user()->filterModel($model, $this->custom_view);
         $items = $model->get();
 
         $chart_label = $items->map(function ($val) use ($view_column_x) {

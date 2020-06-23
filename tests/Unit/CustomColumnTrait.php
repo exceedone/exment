@@ -4,11 +4,6 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\ValueType;
-use Exceedone\Exment\Enums\CurrencySymbol;
-use Exceedone\Exment\Enums\SystemTableName;
 
 trait CustomColumnTrait
 {

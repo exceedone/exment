@@ -242,6 +242,19 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         parent::boot();
         
+        // saved event
+        static::saved(function ($model) {
+            // Create pivot table
+            if ($model->relation_type != RelationType::MANY_TO_MANY) {
+                return;
+            }
+
+            $pivot_table_name = $model->getRelationName();
+            if (!hasTable($pivot_table_name)) {
+                \Schema::createRelationValueTable($pivot_table_name);
+            }
+        });
+        
         // update event
         static::updating(function ($model) {
             if ($model->isDirty('child_custom_table_id')) {

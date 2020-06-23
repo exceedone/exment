@@ -493,20 +493,20 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         });
 
         $user = \Exment::user();
-        if(!isset($user)){
+        if (!isset($user)) {
             return;
         }
 
         if (hasTable(getDBTableName(SystemTableName::USER, false))) {
-            $query->orWhere(function ($qry) use($user) {
+            $query->orWhere(function ($qry) use ($user) {
                 $qry->where('view_type', ViewType::USER)
                     ->where('created_user_id', $user->getUserId());
-            })->orWhereHas('data_authoritable_users', function ($qry) use($user) {
+            })->orWhereHas('data_authoritable_users', function ($qry) use ($user) {
                 $qry->where('authoritable_target_id', $user->getUserId());
             });
         }
         if (hasTable(getDBTableName(SystemTableName::ORGANIZATION, false))) {
-            $query->orWhereHas('data_authoritable_organizations', function ($qry) use($user) {
+            $query->orWhereHas('data_authoritable_organizations', function ($qry) use ($user) {
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                 $qry->whereIn('authoritable_target_id', $user->getOrganizationIds($enum));
             });
@@ -526,6 +526,31 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         
         return $view;
     }
+
+    /**
+     * filter target model
+     */
+    public function filterModel($model, $callback = null)
+    {
+        // if simple eloquent, throw
+        if ($model instanceof \Illuminate\Database\Eloquent\Model) {
+            throw new \Exception;
+        }
+
+        // view filter setting --------------------------------------------------
+        // has $custom_view, filter
+        if ($callback instanceof \Closure) {
+            call_user_func($callback, $model);
+        } else {
+            $this->setValueFilters($model);
+        }
+        $this->setValueSort($model);
+
+        ///// We don't need filter using role here because filter auto using global scope.
+
+        return $model;
+    }
+
 
     /**
      * Create default columns
@@ -608,8 +633,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function setValueFilters($model, $db_table_name = null)
     {
-        foreach ($this->custom_view_filters_cache as $filter) {
-            $filter->setValueFilter($model, $db_table_name, $this->filter_is_or);
+        if (!empty($this->custom_view_filters_cache)) {
+            $model->where(function ($model) use ($db_table_name) {
+                foreach ($this->custom_view_filters_cache as $filter) {
+                    $filter->setValueFilter($model, $db_table_name, $this->filter_is_or);
+                }
+            });
         }
         return $model;
     }

@@ -292,27 +292,14 @@ trait HasPermissions
 
     /**
      * filter target model
+     *
+     * @deprecated Please call $custom_view->filterModel($model, $callback);
      */
     public function filterModel($model, $custom_view = null, $callback = null)
     {
-        // if simple eloquent, throw
-        if ($model instanceof \Illuminate\Database\Eloquent\Model) {
-            throw new \Exception;
+        if (isset($$custom_view)) {
+            return $custom_view->filterModel($model, $callback);
         }
-
-        // view filter setting --------------------------------------------------
-        // has $custom_view, filter
-        if (isset($custom_view)) {
-            if ($callback instanceof \Closure) {
-                call_user_func($callback, $model);
-            } else {
-                $custom_view->setValueFilters($model);
-            }
-            $custom_view->setValueSort($model);
-        }
-
-        ///// We don't need filter using role here because filter auto using global scope.
-
         return $model;
     }
 

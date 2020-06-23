@@ -257,6 +257,9 @@ $('#has-many-table-{$this->column}').off('click', '.row-move').on('click', '.row
     }else{
         row.insertAfter(targetRow);
     }
+
+    row.stop().css('background-color', '#FFFFCC').animate({backgroundColor: "rgba(0,0,0,0.0)"}, 1000);
+
 });
 
 $("button[type='submit']").click(function(){
