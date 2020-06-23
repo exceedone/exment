@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -27,6 +28,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Middleware\Morph;
 use Carbon\Carbon;
@@ -142,6 +144,12 @@ class PatchDataCommand extends Command
                 return;
             case 'plugin_all_user_enabled':
                 $this->patchAllUserEnabled();
+                return;
+            case 'patch_form_column_relation':
+                $this->patchFormColumnRelation();
+                return;
+            case 'clear_form_column_relation':
+                $this->clearFormColumnRelation();
                 return;
         }
 
@@ -1012,6 +1020,74 @@ class PatchDataCommand extends Command
 
             $plugin->setOption('all_user_enabled', "1");
             $plugin->save();
+        });
+    }
+    
+    /**
+     * patchFormColumnRelation
+     *
+     * @return void
+     */
+    protected function patchFormColumnRelation()
+    {
+        if (!canConnection() || !hasTable('custom_form_columns')) {
+            return;
+        }
+        if (boolval(config('exment.select_relation_linkage_disabled', false))) {
+            return;
+        }
+        
+        CustomFormColumn::all()->each(function ($custom_form_column) {
+            if ($custom_form_column->form_column_type != FormColumnType::COLUMN) {
+                return true;
+            }
+
+            $custom_column = CustomColumn::getEloquent($custom_form_column->form_column_target_id);
+            if (!isset($custom_column)) {
+                return true;
+            }
+
+            if (!ColumnType::isSelectTable($custom_column['column_type'])) {
+                return true;
+            }
+
+            if (!is_null($custom_form_column->getOption('relation_filter_target_column_id'))) {
+                return true;
+            }
+
+            // get relation columns.
+            $relationColumn = collect(Model\Linkage::getSelectTableLinkages($custom_column->custom_table_cache, false))
+                ->filter(function ($c) use ($custom_column) {
+                    return $c['searchType'] != Enums\SearchType::MANY_TO_MANY && $c['child_column']->id == $custom_column->id;
+                })->first();
+
+            if (!isset($relationColumn)) {
+                return true;
+            }
+
+            $custom_form_column->setOption('relation_filter_target_column_id', $relationColumn['parent_column']->id);
+            $custom_form_column->save();
+        });
+    }
+
+    /**
+     * clearFormColumnRelation
+     *
+     * @return void
+     */
+    protected function clearFormColumnRelation()
+    {
+        if (!canConnection() || !hasTable('custom_form_columns')) {
+            return;
+        }
+
+        CustomFormColumn::all()->each(function ($custom_form_column) {
+            if (is_null($custom_form_column->getOption('relation_filter_target_column_id'))) {
+                return true;
+            }
+
+            $custom_form_column->forgetOption('relation_filter_target_column_id');
+            $custom_form_column->save();
         });
     }
 }

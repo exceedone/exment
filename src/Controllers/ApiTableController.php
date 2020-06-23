@@ -8,10 +8,12 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
@@ -129,7 +131,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataSelect(Request $request)
     {
-        $paginator = $this->dataQuery($request);
+        $paginator = $this->executeQuery($request, 10);
         if (!isset($paginator)) {
             return [];
         }
@@ -151,18 +153,26 @@ class ApiTableController extends AdminControllerTableBase
     /**
      * find match data by query
      * use form select ajax
-     * @param mixed $id
+     * * (required) q : search word
+     * * (optional) expand.target_view_id : filtering data using view.
+     * * (optional) expand.linkage_column_id : if called column sets linkage from other column, set this linkage column id.
+     * * (optional) expand.linkage_value_id : if called column sets linkage from other column, set linkage selected linkage_value_id.
+     *
+     * if has linkage_column_id and linkage_value_id, filtering using linkage
+     *
+     * @param Request $request
      * @return mixed
      */
     public function dataQuery(Request $request)
     {
+        return $this->executeQuery($request);
+    }
+
+    protected function executeQuery(Request $request, $count = null)
+    {
         if (($code = $this->custom_table->enableAccess()) !== true) {
             return abortJson(403, $code);
         }
-
-        // get model filtered using role
-        $model = getModelName($this->custom_table)::query();
-        \Exment::user()->filterModel($model);
 
         $validator = Validator::make($request->all(), [
             'q' => 'required',
@@ -176,14 +186,33 @@ class ApiTableController extends AdminControllerTableBase
         // filtered query
         $q = $request->get('q');
         
-        if (($count = $this->getCount($request)) instanceof Response) {
-            return $count;
+        if (!isset($count)) {
+            if (($count = $this->getCount($request)) instanceof Response) {
+                return $count;
+            }
         }
 
+        // get expand value
+        $expand = $request->get('expand');
         // get custom_view
-        $custom_view = null;
-        if ($request->has('target_view_id')) {
-            $custom_view = CustomView::getEloquent($request->get('target_view_id'));
+        $custom_view = CustomView::getEloquent(array_get($expand, 'target_view_id'));
+
+        ///// If set linkage, filter relation.
+        // get children table id
+        $relationColumn = null;
+        if (array_key_value_exists('linkage_column_id', $expand)) {
+            $column_id = array_get($expand, 'column_id');
+            $column = CustomColumn::getEloquent($column_id);
+
+            $linkage_column_id = array_get($expand, 'linkage_column_id');
+            $linkage_column = CustomColumn::getEloquent($linkage_column_id);
+
+            // get linkage (parent) selected custom_value id
+            $linkage_value_id = array_get($expand, 'linkage_value_id');
+
+            if (isset($linkage_value_id)) {
+                $relationColumn = Linkage::getLinkage($linkage_column, $column);
+            }
         }
 
         $getLabel = $this->isAppendLabel($request);
@@ -193,6 +222,9 @@ class ApiTableController extends AdminControllerTableBase
             'target_view' => $custom_view,
             'maxCount' => $count,
             'getLabel' => $getLabel,
+            'relationColumn' => $relationColumn,
+            'relationColumnValue' => $linkage_value_id ?? null,
+            'display_table' => $request->get('display_table_id'),
         ]);
         
         return $this->modifyAfterGetValue($request, $paginator, [
@@ -214,10 +246,6 @@ class ApiTableController extends AdminControllerTableBase
         if (($code = $this->custom_table->enableAccess()) !== true) {
             return abortJson(403, $code);
         }
-
-        // get model filtered using role
-        $model = getModelName($this->custom_table)::query();
-        \Exment::user()->filterModel($model);
 
         $validator = Validator::make($request->all(), [
             'q' => 'required',
@@ -476,6 +504,11 @@ class ApiTableController extends AdminControllerTableBase
 
     /**
      * get selected id's children values
+     * *parent_select_table_id(required) : The select_table of the parent column(Changed by user) that executed Linkage. .
+     * *child_select_table_id(required) : The select_table of the child column(Linkage target column) that executed Linkage.
+     * *child_column_id(required) : Called Linkage target column.
+     * *search_type(required) : 1:n, n:n or select_table.
+     * *q(required) : id that user selected.
      */
     public function relatedLinkage(Request $request)
     {
@@ -483,9 +516,23 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, $code);
         }
 
-        // get children table id
-        $child_table_id = $request->get('child_table_id');
-        $child_table = CustomTable::getEloquent($child_table_id);
+        // get parent and child table, column
+        $parent_select_table_id = $request->get('parent_select_table_id');
+        $child_select_table_id = $request->get('child_select_table_id');
+        $child_column_id = $request->get('child_column_id');
+
+        $child_column = CustomColumn::getEloquent($child_column_id);
+        $child_select_table = CustomTable::getEloquent($child_select_table_id);
+        if (!isset($child_column) || !isset($child_select_table) || !isset($parent_select_table_id)) {
+            return [];
+        }
+
+        // get search target column
+        $searchType = $request->get('search_type');
+        if ($searchType == SearchType::SELECT_TABLE) {
+            $searchColumns = $child_select_table->getSelectTableColumns($parent_select_table_id);
+        }
+
         // get selected custom_value id(q)
         $q = $request->get('q');
 
@@ -494,8 +541,11 @@ class ApiTableController extends AdminControllerTableBase
             'paginate' => false,
             'maxCount' => null,
             'getLabel' => true,
+            'searchColumns' => $searchColumns ?? null,
+            'target_view' => CustomView::getEloquent($child_column->getOption('select_target_view')),
+            'display_table' => $request->get('display_table_id'),
         ];
-        $datalist = $this->custom_table->searchRelationValue($request->get('search_type'), $q, $child_table, $options);
+        $datalist = $this->custom_table->searchRelationValue($searchType, $q, $child_select_table, $options);
         return collect($datalist)->map(function ($data) {
             return ['id' => $data->id, 'text' => $data->label];
         });
@@ -765,7 +815,7 @@ class ApiTableController extends AdminControllerTableBase
         // get paginate
         $model = $this->custom_table->getValueModel()->query();
         // filter model
-        \Exment::user()->filterModel($model, $custom_view);
+        $custom_view->filterModel($model);
 
         $tasks = [];
         foreach ($custom_view->custom_view_columns as $custom_view_column) {

@@ -218,18 +218,24 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         $query = $query->where(function ($qry) {
             $qry->where('dashboard_type', DashboardType::SYSTEM);
         });
+
+        $user = \Exment::user();
+        if (!isset($user)) {
+            return;
+        }
+
         if (hasTable(getDBTableName(SystemTableName::USER))) {
-            $query->orWhere(function ($qry) {
+            $query->orWhere(function ($qry) use ($user) {
                 $qry->where('dashboard_type', DashboardType::USER)
-                    ->where('created_user_id', \Exment::user()->getUserId());
-            })->orWhereHas('data_authoritable_users', function ($qry) {
-                $qry->where('authoritable_target_id', \Exment::user()->getUserId());
+                    ->where('created_user_id', $user->getUserId());
+            })->orWhereHas('data_authoritable_users', function ($qry) use ($user) {
+                $qry->where('authoritable_target_id', $user->getUserId());
             });
         }
         if (hasTable(getDBTableName(SystemTableName::ORGANIZATION))) {
-            $query->orWhereHas('data_authoritable_organizations', function ($qry) {
+            $query->orWhereHas('data_authoritable_organizations', function ($qry) use ($user) {
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
-                $qry->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds($enum));
+                $qry->whereIn('authoritable_target_id', $user->getOrganizationIds($enum));
             });
         }
     }

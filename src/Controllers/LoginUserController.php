@@ -61,6 +61,12 @@ class LoginUserController extends AdminControllerBase
             $actions->disableDelete();
             $actions->disableView();
         });
+
+        $grid->filter(function ($filter) use ($table) {
+            $filter->like($table->getIndexColumnName('user_code'), exmtrans('user.user_code'));
+            $filter->like($table->getIndexColumnName('user_name'), exmtrans('user.user_name'));
+            $filter->like($table->getIndexColumnName('email'), exmtrans('user.email'));
+        });
         
         // create exporter
         $service = $this->getImportExportService($grid);

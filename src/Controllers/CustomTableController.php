@@ -10,8 +10,6 @@ use Encore\Admin\Layout\Row;
 use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
@@ -111,6 +109,11 @@ class CustomTableController extends AdminControllerBase
 
         // filter table --------------------------------------------------
         CustomTable::filterList($grid->model(), ['getModel' => false]);
+
+        $grid->filter(function ($filter) {
+            $filter->like('table_name', exmtrans("custom_table.table_name"));
+            $filter->like('table_view_name', exmtrans("custom_table.table_view_name"));
+        });
 
         return $grid;
     }
@@ -525,30 +528,11 @@ HTML;
 
     /**
      * validate before delete.
+     * @param int|string $id
      */
     protected function validateDestroy($id)
     {
-        // check select_table
-        $child_count = CustomRelation::where('parent_custom_table_id', $id)
-            ->count();
-
-        if ($child_count > 0) {
-            return [
-                'status'  => false,
-                'message' => exmtrans('custom_value.help.relation_error'),
-            ];
-        }
-        // check select_table
-        $column_count = CustomColumn::whereIn('options->select_target_table', [strval($id), intval($id)])
-            ->where('custom_table_id', '<>', $id)
-            ->count();
-
-        if ($column_count > 0) {
-            return [
-                'status'  => false,
-                'message' => exmtrans('custom_value.help.reference_error'),
-            ];
-        }
+        return CustomTable::validateDestroy($id);
     }
     /**
      * Showing menu modal

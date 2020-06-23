@@ -31,9 +31,11 @@ class CustomViewTest extends UnitTestBase
     
         $custom_view = CustomView::where('view_view_name', $view_name)->first();
 
-        \Exment::user()->filterModel($grid->model(), $custom_view);
-        // create grid
-        $custom_view->setGrid($grid);
+        if(isset($custom_view)){
+            $custom_view->filterModel($grid->model());
+            // create grid
+            $custom_view->setGrid($grid);
+        }
  
         return $grid->model()->buildData(false);
     }
