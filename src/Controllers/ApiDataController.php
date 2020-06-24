@@ -442,7 +442,7 @@ class ApiDataController extends AdminControllerTableBase
 
         $paginator = $custom_view->getDataPaginate([
             'maxCount' => $count,
-            'approvalNull' => true,
+            'executeSearch' => false,
         ]);
         $paginator = $this->modifyAfterGetValue($request, $paginator, [
             'appends' => [

@@ -566,8 +566,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * filter target model
      */
-    public function filterModel($model, $callback = null)
+    public function filterModel($model, $options = [])
     {
+        $options = array_merge([
+            'sort' => true,
+            'callback' => null,
+        ], $options);
+
         // if simple eloquent, throw
         if ($model instanceof \Illuminate\Database\Eloquent\Model) {
             throw new \Exception;
@@ -575,12 +580,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
-        if ($callback instanceof \Closure) {
+        if ($options['callback'] instanceof \Closure) {
             call_user_func($callback, $model);
         } else {
             $this->setValueFilters($model);
         }
-        $this->setValueSort($model);
+
+        if(boolval($options['sort'])){
+            $this->setValueSort($model);
+        }
 
         ///// We don't need filter using role here because filter auto using global scope.
 
