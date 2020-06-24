@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Enums;
 
+use Exceedone\Exment\Model\System;
+
 /**
  * Role Group Type Difinition.
  *
@@ -39,7 +41,11 @@ class RoleGroupType extends EnumBase
     {
         switch ($this->lowerKey()) {
             case self::SYSTEM()->lowerKey():
-                return Permission::SYSTEM_ROLE_PERMISSIONS;
+                $permissions = Permission::SYSTEM_ROLE_PERMISSIONS;
+                if(System::filter_multi_user() != JoinedMultiUserFilterType::NOT_FILTER){
+                    $permissions[] = Permission::FILTER_MULTIUSER_ALL;
+                }
+                return $permissions;
             case self::TABLE()->lowerKey():
                 return Permission::TABLE_ROLE_PERMISSION;
             case self::MASTER()->lowerKey():

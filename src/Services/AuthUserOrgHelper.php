@@ -393,8 +393,8 @@ class AuthUserOrgHelper
             return;
         }
 
-        // if login user have user table permission, no filter
-        if (CustomTable::getEloquent(SystemTableName::USER)->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        // if login user have FILTER_MULTIUSER_ALL, no filter
+        if (\Exment::user()->hasPermission(Permission::FILTER_MULTIUSER_ALL)) {
             return;
         }
 
@@ -425,8 +425,8 @@ class AuthUserOrgHelper
             return;
         }
 
-        // if login user have organization table permission, no filter
-        if (CustomTable::getEloquent(SystemTableName::ORGANIZATION)->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        // if login user have FILTER_MULTIUSER_ALL, no filter
+        if (\Exment::user()->hasPermission(Permission::FILTER_MULTIUSER_ALL)) {
             return;
         }
 
