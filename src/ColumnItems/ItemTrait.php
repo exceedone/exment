@@ -116,9 +116,11 @@ trait ItemTrait
         $items['column_name'] = $this->name();
         $items['label'] = $this->label();
         
-        $summary_condition = $this->getSummaryConditionName();
-        if(isset($summary_condition)){
-            $items['summary_condition'] = $summary_condition;
+        if (method_exists($this, 'getSummaryConditionName')) {
+            $summary_condition = $this->getSummaryConditionName();
+            if(isset($summary_condition)){
+                $items['summary_condition'] = $summary_condition;
+            }
         }
 
         return $items;
