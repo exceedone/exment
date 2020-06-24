@@ -17,6 +17,7 @@ namespace Exment {
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('click', '.add,.remove', {}, (ev: JQueryEventObject) => {
+                CommonEvent.addSelect2();
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev: JQueryEventObject) => {
