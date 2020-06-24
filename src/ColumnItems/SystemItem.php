@@ -153,11 +153,35 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * get pure value. (In database value)
+     */
+    public function pureValue()
+    {
+        // convert to string if datetime
+        $option = $this->getSystemColumnOption();
+        if(array_get($option, 'type') == 'datetime'){
+            $v = $this->value;
+            if($v instanceof \Carbon\Carbon){
+                return $v->__toString();
+            }
+        }
+        return $this->value;
+    }
+
+    /**
+     * get pure value. (In database value)
+     */
+    public function value()
+    {
+        return $this->value;
+    }
+
+    /**
      * get text(for display)
      */
     public function text()
     {
-        return $this->getTargetValue(false);
+        return $this->pureValue();
     }
 
     /**
@@ -166,7 +190,12 @@ class SystemItem implements ItemInterface
      */
     public function html()
     {
-        return $this->getTargetValue(true);
+        $option = $this->getSystemColumnOption();
+        if (!is_null($keyname = array_get($option, 'tagname'))) {
+            // not escape because return html
+            return array_get($this->custom_value, $keyname);
+        }
+        return esc_html($this->text());
     }
 
     /**
@@ -234,15 +263,8 @@ class SystemItem implements ItemInterface
             return array_get($this->custom_value, $this->sqlAsName());
         }
 
-        if ($html) {
-            $option = $this->getSystemColumnOption();
-            if (!is_null($keyname = array_get($option, 'tagname'))) {
-                return array_get($this->custom_value, $keyname);
-            }
-        }
 
-        $val = array_get($this->custom_value, $this->column_name);
-        return $html ? esc_html($val) : $val;
+        return array_get($this->custom_value, $this->column_name);
     }
     
     public function getAdminField($form_column = null, $column_name_prefix = null)
