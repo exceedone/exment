@@ -188,6 +188,20 @@ EOT;
 
         $input = Arr::only($input, $this->column);
 
+        // remove NestedForm::REMOVE_FLAG_NAME = 1 in input
+        foreach($input as $key => &$i){
+            if($key !== $this->column){
+                continue;
+            }
+
+            $i = collect($i)->filter(function($i){
+                if(Arr::has($i, NestedForm::REMOVE_FLAG_NAME) && boolval(Arr::get($i, NestedForm::REMOVE_FLAG_NAME))){
+                    return false;
+                }
+                return true;
+            })->toArray();
+        }
+
         $form = $this->buildNestedForm($this->column, $this->builder);
 
         $rules = $attributes = [];
