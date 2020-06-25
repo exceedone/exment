@@ -40,7 +40,7 @@ class LoginService
     /**
      * Get access and refresh token
      *
-     * @return void
+     * @return array access_token, refresh_token, provider
      */
     public static function getToken()
     {
@@ -94,14 +94,13 @@ class LoginService
         return \Validator::make($data, $rules);
     }
 
-
     /**
-     * Remove "unique" 
+     * Remove "unique" and "init_flg" rule
      *
-     * @param [type] $custom_login_user
-     * @param [type] $exment_user
-     * @param [type] $rules
-     * @return void
+     * @param CustomLoginUserBase $custom_login_user
+     * @param CustomValue|null $exment_user
+     * @param array $rules
+     * @return array updated rules
      */
     protected static function removeInitRule(CustomLoginUserBase $custom_login_user, ?CustomValue $exment_user, array $rules){
         // remove unique, if not update and create. Because only use key for login
@@ -117,9 +116,14 @@ class LoginService
         }
 
         $mapping_user_column = $login_setting->getOption('mapping_user_column');
-        // remove "unique" and initflg class
+        // remove "unique" and initflg class if not key
         $rules = collect($rules)->mapWithKeys(function($rule, $key) use($mapping_user_column){
-            $rule = collect($rule)->filter(function($r) use($mapping_user_column){
+            // same mapping_user_column and r, return same rules
+            if($mapping_user_column == $key){
+                return [$key => $rule];
+            }
+
+            $rule = collect($rule)->filter(function($r){
                 if($r instanceof \Exceedone\Exment\Validator\InitOnlyRule){
                     return false;
                 }
@@ -127,6 +131,7 @@ class LoginService
                 if(!is_string($r)){
                     return true;
                 }
+
                 if(strpos($r, 'unique') === 0){
                     return false;
                 }
@@ -146,7 +151,7 @@ class LoginService
      * @param [type] $result
      * @param [type] $messages
      * @param [type] $custom_login_user
-     * @return list($result, $message)
+     * @return array
      */
     public static function getLoginResult($result, $messages, $adminMessages = null, ?CustomLoginUserBase $custom_login_user = null)
     {
