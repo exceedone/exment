@@ -9,6 +9,7 @@ class CustomViewColumn extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
+    use Traits\AutoSUuidTrait;
     use Traits\CustomViewColumnTrait;
     use Traits\CustomViewColumnOptionTrait;
     use Traits\TemplateTrait;

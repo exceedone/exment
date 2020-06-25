@@ -104,6 +104,15 @@ abstract class CustomItem implements ItemInterface
     }
 
     /**
+     * Get API column name
+     *
+     * @return string
+     */
+    public function apiName(){
+        return $this->_apiName();
+    } 
+
+    /**
      * get Text(for display)
      */
     public function text()

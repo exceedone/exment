@@ -9,6 +9,7 @@ class ApiScope extends EnumBase
     //public const SYSTEM_WRITE = 'system_write';
     public const TABLE_READ = 'table_read';
     //public const TABLE_WRITE = 'table_write';
+    public const VIEW_READ = 'view_read';
     public const VALUE_READ = 'value_read';
     public const VALUE_WRITE = 'value_write';
     public const WORKFLOW_READ = 'workflow_read';

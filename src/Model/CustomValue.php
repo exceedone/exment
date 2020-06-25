@@ -1111,14 +1111,21 @@ abstract class CustomValue extends ModelBase
         $options = $this->getQueryOptions($q, $options);
         extract($options);
 
-        if (empty($searchColumns)) {
+        // if search and not has searchColumns, return null;
+        if ($options['executeSearch'] && empty($searchColumns)) {
             // return null if searchColumns is not has
             return null;
         }
 
         $getQueryFunc = function ($searchColumn, $options) {
             extract($options);
-            if ($searchColumn instanceof CustomColumn) {
+            // if not search, set only pure query
+            if(!$options['executeSearch']){
+                $query = static::query();
+                //$query->take($takeCount);
+                $queries[] = $query;
+            }
+            elseif ($searchColumn instanceof CustomColumn) {
                 $column_item = $searchColumn->column_item;
                 if (!isset($column_item)) {
                     return;
@@ -1149,7 +1156,7 @@ abstract class CustomValue extends ModelBase
 
                 // set custom view's filter
                 if (isset($target_view)) {
-                    $target_view->filterModel($query);
+                    $target_view->filterModel($query, ['sort' => false]);
                 }
             }
 
@@ -1173,7 +1180,7 @@ abstract class CustomValue extends ModelBase
         foreach ($queries as $inq) {
             $subquery->union($inq);
         }
-        $subquery->take($takeCount);
+        //$subquery->take($takeCount);
 
         // create main query
         $mainQuery = \DB::query()->fromSub($subquery, 'sub');
@@ -1228,6 +1235,7 @@ abstract class CustomValue extends ModelBase
                 'makeHidden' => false,
                 'searchColumns' => null,
                 'relation' => false,
+                'executeSearch' => true, // if true, search $q . If false,  not filter.
             ],
             $options
         );

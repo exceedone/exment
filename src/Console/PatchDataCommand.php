@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
@@ -145,6 +146,8 @@ class PatchDataCommand extends Command
             case 'plugin_all_user_enabled':
                 $this->patchAllUserEnabled();
                 return;
+            case 'view_column_suuid':
+                $this->patchViewColumnSuuid();
             case 'patch_form_column_relation':
                 $this->patchFormColumnRelation();
                 return;
@@ -1089,5 +1092,32 @@ class PatchDataCommand extends Command
             $custom_form_column->forgetOption('relation_filter_target_column_id');
             $custom_form_column->save();
         });
+    }
+
+    /**
+     * patchViewColumnSuuid
+     *
+     * @return void
+     */
+    protected function patchViewColumnSuuid()
+    {
+        if (!canConnection() || !hasTable('custom_view_columns')) {
+            return;
+        }
+
+        $classes = [
+            CustomViewColumn::class,
+            CustomViewSummary::class,
+        ];
+        foreach($classes as $c){
+            $c::all()->each(function($v){
+                if(!is_nullorempty($v->suuid)){
+                    return true;
+                }
+
+                $v->suuid = short_uuid();
+                $v->save();
+            });
+        }
     }
 }

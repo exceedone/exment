@@ -7,6 +7,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ViewColumnSort;
@@ -215,7 +216,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public static function getEloquent($id, $withs = [])
     {
-        return static::getEloquentDefault($id, $withs);
+        if(strlen($id) == 20){
+            return static::getEloquentDefault($id, $withs, 'suuid');
+        }
+
+        return static::getEloquentDefault($id, $withs, 'id');
     }
 
     /**
@@ -259,16 +264,43 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // set with
         $custom_table->setQueryWith($grid->model(), $this);
     }
+
+    /**
+     * Get data paginate. default or summary
+     *
+     * @return void
+     */
+    public function getDataPaginate($options = []){
+        $options = array_merge([
+            'paginate' => true,
+            'maxCount' => System::datalist_pager_count() ?? 5,
+            'target_view' => $this,
+            'query' => null,
+            'grid' => null,
+        ], $options);
+
+        if($this->view_kind_type == ViewKindType::AGGREGATE){
+            $query = $options['query'] ?? $this->custom_table->getValueModel()->query();
+            return $this->getValueSummary($query, $this->custom_table, $options['grid'])->paginate($options['maxCount']);
+        }
+
+        // search all data using index --------------------------------------------------
+        $paginate = $this->custom_table->searchValue(null, $options);
+        return $paginate;
+    }
     
+
     /**
      * set DataTable using custom_view
      * @return list(array, array) headers, bodies
      */
-    public function getDataTable($datalist, $options = [])
+    public function convertDataTable($datalist, $options = [])
     {
         $options = array_merge(
             [
                 'action_callback' => null,
+                'appendLink' => true,
+                'valueType' => ValueType::HTML,
             ],
             $options
         );
@@ -280,6 +312,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $headers = [];
         $columnStyles = [];
         $columnClasses = [];
+        $columnItems = [];
         
         foreach ($view_column_items as $view_column_item) {
             $item = array_get($view_column_item, 'item');
@@ -290,8 +323,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
             $columnStyles[] = $item->column_item->gridStyle();
             $columnClasses[] = 'column-' . esc_html($item->column_item->name()) . ($item->column_item->indexEnabled() ? ' column-' . $item->column_item->index() : '');
+            $columnItems[] = $item->column_item;
         }
-        if ($this->view_kind_type != ViewKindType::AGGREGATE) {
+        if (boolval($options['appendLink']) && $this->view_kind_type != ViewKindType::AGGREGATE) {
             $headers[] = trans('admin.action');
         }
         
@@ -320,7 +354,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                         'view_pivot_table' => $column->view_pivot_table_id ?? null,
                         'grid_column' => true,
                     ]);
-                    $body_items[] = $item->setCustomValue($data)->html();
+
+                    $valueType = ValueType::getEnum($options['valueType']);
+                    $body_items[] = $valueType->getCustomValue($item, $data);
                 }
 
                 $link = '';
@@ -329,7 +365,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 }
 
                 ///// add show and edit link
-                if ($this->view_kind_type != ViewKindType::AGGREGATE) {
+                if (boolval($options['appendLink']) && $this->view_kind_type != ViewKindType::AGGREGATE) {
                     // using role
                     $link .= (new Linker)
                         ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
@@ -355,7 +391,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         //return headers, bodies
-        return [$headers, $bodies, $columnStyles, $columnClasses];
+        return [$headers, $bodies, $columnStyles, $columnClasses, $columnItems];
     }
 
     /**
@@ -530,8 +566,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * filter target model
      */
-    public function filterModel($model, $callback = null)
+    public function filterModel($model, $options = [])
     {
+        $options = array_merge([
+            'sort' => true,
+            'callback' => null,
+        ], $options);
+
         // if simple eloquent, throw
         if ($model instanceof \Illuminate\Database\Eloquent\Model) {
             throw new \Exception;
@@ -539,12 +580,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
-        if ($callback instanceof \Closure) {
+        if ($options['callback'] instanceof \Closure) {
             call_user_func($callback, $model);
         } else {
             $this->setValueFilters($model);
         }
-        $this->setValueSort($model);
+
+        if(boolval($options['sort'])){
+            $this->setValueSort($model);
+        }
 
         ///// We don't need filter using role here because filter auto using global scope.
 
@@ -756,7 +800,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             else {
                 $this->setSummaryItem($column_item, $index, $custom_tables, $grid, [
                     'column_label' => array_get($item, 'view_column_name')?? $column_item->label(),
-                    'summary_condition' => $item->view_summary_condition
+                    'summary_condition' => $item->view_summary_condition,
                 ]);
             }
         }

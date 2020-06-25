@@ -1089,6 +1089,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'relation' => false, // if relation search, set true
                 'target_view' => null, // filtering view if select
                 'getLabel' => false,
+                'executeSearch' => true, // if true, search $q . If false,  not filter.
                 'relationColumn' => null, // Linkage object. if has, filtering value.
             ],
             $options
@@ -1105,6 +1106,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // return as paginate
         if ($paginate) {
+            // set custom view, sort
+            if (isset($target_view)) {
+                $target_view->setValueSort($mainQuery);
+            }
+
             // get data(only id)
             $paginates = $mainQuery->select('id')->paginate($maxCount);
 
@@ -1115,6 +1121,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // set pager items
             $query = getModelName($this)::whereIn('id', $ids->toArray());
+
+            // set custom view, sort again.
+            if (isset($target_view)) {
+                $target_view->setValueSort($query);
+            }
 
             // set with
             $this->setQueryWith($query, $target_view);
@@ -1136,10 +1147,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return $paginates;
         }
 
+        // set custom view, sort.
+        if (isset($target_view)) {
+            $target_view->setValueSort($mainQuery);
+        }
+
         // return default
         $ids = $mainQuery->select('id')->take($maxCount)->get()->pluck('id');
         
         $query = getModelName($this)::whereIn('id', $ids);
+    
+        // set custom view, sort again
+        if (isset($target_view)) {
+            $target_view->setValueSort($query);
+        }
         
         // set with
         $this->setQueryWith($query, $target_view);

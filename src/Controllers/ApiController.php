@@ -198,6 +198,26 @@ class ApiController extends AdminControllerBase
     }
 
     /**
+     * get view 
+     * @param mixed $idOrSuuid if length is 20, use suuid
+     * @return mixed
+     */
+    public function view(Request $request, $idOrSuuid)
+    {
+        $query = CustomView::query();
+        if(strlen($idOrSuuid) == 20){
+            $query->where('suuid', $idOrSuuid);
+        }
+        else{
+            $query->where('id', $idOrSuuid);
+        }
+
+        return $query->first();
+    }
+    
+
+
+    /**
      * get columns that belongs table using column id
      * 1. find column and get column info
      * 2. get column target table
