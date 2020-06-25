@@ -754,17 +754,22 @@ class ApiDataController extends AdminControllerTableBase
         $validates = [];
         // saved files
         $files = [];
-        foreach ($rootValues as $index => $rootValue) {
+        foreach ($rootValues as $index => &$rootValue) {
             $validateValue = $rootValue;
             $value = array_get($rootValue, 'value');
+
+            // set default value if create
+            if (!isset($custom_value)) {
+                $value = $this->custom_table->setDefaultValue($value);
+                $rootValue['value'] = $value;
+            }
 
             // Convert base64 encode file
             list($value, $fileColumns) = $this->custom_table->convertFileData($value);
             $files[$index] = $fileColumns;
 
-            if (!isset($custom_value)) {
-                $value = $this->custom_table->setDefaultValue($value);
-            } else {
+            // merge value for validate
+            if (isset($custom_value)) {
                 $value = $custom_value->mergeValue($value);
             }
             $validateValue['value'] = $value;
