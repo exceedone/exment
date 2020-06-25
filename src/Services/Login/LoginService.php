@@ -89,7 +89,54 @@ class LoginService
         $data = $custom_login_user->mapping_values;
         $rules = CustomTable::getEloquent(SystemTableName::USER)->getValidateRules($data, $exment_user);
 
+        $rules = static::removeInitRule($custom_login_user, $exment_user, $rules);
+
         return \Validator::make($data, $rules);
+    }
+
+
+    /**
+     * Remove "unique" 
+     *
+     * @param [type] $custom_login_user
+     * @param [type] $exment_user
+     * @param [type] $rules
+     * @return void
+     */
+    protected static function removeInitRule(CustomLoginUserBase $custom_login_user, ?CustomValue $exment_user, array $rules){
+        // remove unique, if not update and create. Because only use key for login
+        $login_setting = $custom_login_user->login_setting;
+
+        // If has exment user and update user info, return rules(all validate)
+        if(isset($exment_user) && boolval($login_setting->getOption('update_user_info'))){
+            return $rules;
+        }
+        // If not has exment user and sso_jit, return rules(all validate)
+        elseif(!isset($exment_user) && boolval($login_setting->getOption('sso_jit'))){
+            return $rules;
+        }
+
+        $mapping_user_column = $login_setting->getOption('mapping_user_column');
+        // remove "unique" and initflg class
+        $rules = collect($rules)->mapWithKeys(function($rule, $key) use($mapping_user_column){
+            $rule = collect($rule)->filter(function($r) use($mapping_user_column){
+                if($r instanceof \Exceedone\Exment\Validator\InitOnlyRule){
+                    return false;
+                }
+                
+                if(!is_string($r)){
+                    return true;
+                }
+                if(strpos($r, 'unique') === 0){
+                    return false;
+                }
+                return true;
+            })->toArray();
+
+            return [$key => $rule];
+        })->toArray();
+
+        return $rules;
     }
     
 
