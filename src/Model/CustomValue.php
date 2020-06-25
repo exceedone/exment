@@ -1122,7 +1122,7 @@ abstract class CustomValue extends ModelBase
             // if not search, set only pure query
             if(!$options['executeSearch']){
                 $query = static::query();
-                $query->take($takeCount);
+                //$query->take($takeCount);
                 $queries[] = $query;
             }
             elseif ($searchColumn instanceof CustomColumn) {
@@ -1180,7 +1180,7 @@ abstract class CustomValue extends ModelBase
         foreach ($queries as $inq) {
             $subquery->union($inq);
         }
-        $subquery->take($takeCount);
+        //$subquery->take($takeCount);
 
         // create main query
         $mainQuery = \DB::query()->fromSub($subquery, 'sub');
