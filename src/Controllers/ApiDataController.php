@@ -65,32 +65,8 @@ class ApiDataController extends AdminControllerTableBase
             return $count;
         }
 
-        $orderby = null;
-        $orderby_list = [];
-        if ($request->has('orderby')) {
-            $orderby = $request->get('orderby');
-            $params = explode(',', $orderby);
-            $orderby_list = [];
-            foreach ($params as $param) {
-                $values = preg_split("/\s+/", trim($param));
-                $column_name = $values[0];
-                if (count($values) > 1 && !preg_match('/^asc|desc$/i', $values[1])) {
-                    return abortJson(400, ErrorCode::INVALID_PARAMS());
-                }
-                if (SystemColumn::isSqlValid($column_name)) {
-                } else {
-                    $column = CustomColumn::getEloquent($column_name, $this->custom_table);
-                    if (!isset($column)) {
-                        return abortJson(400, ErrorCode::INVALID_PARAMS());
-                    } elseif (!$column->index_enabled) {
-                        return abortJson(400, ErrorCode::NOT_INDEX_ENABLED());
-                    }
-                    $column_name = $column->getIndexColumnName();
-                }
-                $orderby_list[] = [$column_name, count($values) > 1? $values[1]: 'asc'];
-            }
-        }
-        
+        $orderby_list = $this->getOrderBy($request);
+
         // get paginate
         $model = $this->custom_table->getValueModel()->query();
 
@@ -101,26 +77,14 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         // set order by
-        if (!is_nullorempty($orderby_list)) {
-            $hasId = false;
-            foreach ($orderby_list as $item) {
-                if ($item[0] == 'id') {
-                    $hasId = true;
-                }
-                $model->orderBy($item[0], $item[1]);
-            }
-
-            if (!$hasId) {
-                $model->orderBy('id');
-            }
-        }
+        $this->setOrderByQuery($model, $orderby_list);
 
         $paginator = $model->paginate($count);
 
         return $this->modifyAfterGetValue($request, $paginator, [
             'appends' => [
                 'count' => $count,
-                'orderby' => $orderby,
+                'orderby' => $request->get('orderby'),
             ]
         ]);
     }
@@ -261,16 +225,54 @@ class ApiDataController extends AdminControllerTableBase
             ], ErrorCode::VALIDATION_ERROR());
         }
 
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
+
         // get query
         $model = $this->custom_table->getValueModel()->query();
 
         // filtered query
         $params = explode(',', $request->get('q'));
-        $orderby_list = [];
+
+        // set query
+        if(($res = $this->setParamsQueryColumn($request, $model, $params)) instanceof Response){
+            return $res;
+        }
+
+        // set order by
+        $orderby_list = $this->getOrderBy($request);
+        $this->setOrderByQuery($model, $orderby_list);
+
+        $paginator = $model->paginate($count);
+
+        return $this->modifyAfterGetValue($request, $paginator, [
+            'appends' => [
+                'count' => $count,
+                'orderby' => $request->get('orderby'),
+            ]
+        ]);
+    }
+
+    /**
+     * Set query parameter for query column search
+     *
+     * @param mixed $query
+     * @param array $params
+     * @return Response|boolean
+     */
+    protected function setParamsQueryColumn(Request $request, $query, $params)
+    {
+        if(empty($params)){
+            return true;
+        }
+
+        $paramInfos = [];
         foreach ($params as $param) {
             $values = preg_split("/\s+/", trim($param));
             $column_name = $values[0];
-            if (count($values) < 3 || !preg_match('/^eq|ne|gt|gte|lt|lte$/i', $values[1])) {
+
+            if (count($values) < 3 || !preg_match('/^eq|ne|gt|gte|lt|lte|like$/i', $values[1])) {
                 return abortJson(400, ErrorCode::INVALID_PARAMS());
             }
             if (SystemColumn::isSqlValid($column_name)) {
@@ -283,6 +285,7 @@ class ApiDataController extends AdminControllerTableBase
                 }
                 $column_name = $column->getIndexColumnName();
             }
+
             $operator = '=';
             switch ($values[1]) {
                 case 'gt':
@@ -300,23 +303,23 @@ class ApiDataController extends AdminControllerTableBase
                 case 'ne':
                     $operator = '<>';
                     break;
+                case 'like':
+                    $operator = 'LIKE';
+                    break;
             }
-            $model->where($column_name, $operator, $values[2]);
-        }
-    
-        if (($count = $this->getCount($request)) instanceof Response) {
-            return $count;
+            $paramInfos[] = [$column_name, $operator, $values[2]];
         }
 
-        $paginator = $model->paginate($count);
+        $query->where(function($query) use($request, $paramInfos){
+            $whereFunc = boolval($request->get('or', false)) ? 'orWhere' : 'where';
+            foreach($paramInfos as $paramInfo){
+                $query->{$whereFunc}($paramInfo[0], $paramInfo[1], $paramInfo[2]);
+            }
+        });
 
-        return $this->modifyAfterGetValue($request, $paginator, [
-            'appends' => [
-                'count' => $count,
-            ]
-        ]);
+        return true;
     }
-    
+
     /**
      * find data by id
      * use select Changedata
@@ -1205,6 +1208,69 @@ class ApiDataController extends AdminControllerTableBase
             'created_at' => $document->created_at->__toString(),
             'created_user_id' => $document->created_user_id,
         ];
+    }
+
+    /**
+     * Get order by array from request
+     *
+     * @param Request $request
+     * @return void
+     */
+    protected function getOrderBy(Request $request){
+        if (!$request->has('orderby')) {
+            return [];
+        }
+
+        $orderby_list = [];
+        $orderby = $request->get('orderby');
+        $params = explode(',', $orderby);
+
+        foreach ($params as $param) {
+            $values = preg_split("/\s+/", trim($param));
+            $column_name = $values[0];
+            if (count($values) > 1 && !preg_match('/^asc|desc$/i', $values[1])) {
+                return abortJson(400, ErrorCode::INVALID_PARAMS());
+            }
+            if (SystemColumn::isSqlValid($column_name)) {
+            } else {
+                $column = CustomColumn::getEloquent($column_name, $this->custom_table);
+                if (!isset($column)) {
+                    return abortJson(400, ErrorCode::INVALID_PARAMS());
+                } elseif (!$column->index_enabled) {
+                    return abortJson(400, ErrorCode::NOT_INDEX_ENABLED());
+                }
+                $column_name = $column->getIndexColumnName();
+            }
+            $orderby_list[] = [$column_name, count($values) > 1? $values[1]: 'asc'];
+        }
+     
+        return $orderby_list;
+    }
+
+    /**
+     * Set order by query
+     *
+     * @param [type] $query
+     * @param [type] $orderby_list
+     * @return void
+     */
+    protected function setOrderByQuery($query, $orderby_list){
+        if(empty($orderby_list)){
+            return;
+        }
+        
+        // set order by
+        $hasId = false;
+        foreach ($orderby_list as $item) {
+            if ($item[0] == 'id') {
+                $hasId = true;
+            }
+            $query->orderBy($item[0], $item[1]);
+        }
+
+        if (!$hasId) {
+            $query->orderBy('id');
+        }
     }
 
 }
