@@ -1549,14 +1549,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     protected function putSelectedValue($items, $selected_value, $options = [])
     {
-        if (is_nullorempty($selected_value)) {
-            return $items;
-        }
-
         // if display_table and $this is same, and contains target_id, remove selects
         if (!is_null(array_get($options, 'display_table')) && $this->id == array_get($options, 'display_table.id')
             && !is_null(array_get($options, 'target_id'))) {
             array_forget($items, $options['target_id']);
+        }
+
+        if (is_nullorempty($selected_value)) {
+            return $items;
         }
 
         ///// if not contains $selected_value, add
