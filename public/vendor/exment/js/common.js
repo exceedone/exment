@@ -19,6 +19,7 @@ var Exment;
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('click', '.add,.remove', {}, (ev) => {
+                CommonEvent.addSelect2();
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev) => {

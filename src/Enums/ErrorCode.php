@@ -17,6 +17,7 @@ namespace Exceedone\Exment\Enums;
  * @method static ErrorCode OVER_LENGTH()
  * @method static ErrorCode ALREADY_DELETED()
  * @method static ErrorCode PLUGIN_NOT_FOUND()
+ * @method static ErrorCode WRONG_VIEW_AND_TABLE()
  * @method static ErrorCode WORKFLOW_LOCK()
  * @method static ErrorCode WORKFLOW_NOSTART()
  * @method static ErrorCode WORKFLOW_END()
@@ -37,6 +38,8 @@ class ErrorCode extends EnumBase
     const OVER_LENGTH = '109';
     const ALREADY_DELETED = '110';
     const PLUGIN_NOT_FOUND = '111';
+    const WRONG_VIEW_AND_TABLE = '112';
+    const UNSUPPORTED_VIEW_KIND_TYPE = '113';
     const WORKFLOW_LOCK = '201';
     const WORKFLOW_NOSTART = '202';
     const WORKFLOW_END = '203';

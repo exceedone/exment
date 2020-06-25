@@ -299,7 +299,7 @@ trait HasPermissions
     public function filterModel($model, $custom_view = null, $callback = null)
     {
         if (isset($$custom_view)) {
-            return $custom_view->filterModel($model, $callback);
+            return $custom_view->filterModel($model, ['callback' => $callback]);
         }
         return $model;
     }

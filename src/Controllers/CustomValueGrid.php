@@ -40,7 +40,7 @@ trait CustomValueGrid
         Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
         
         // filter
-        $this->custom_view->filterModel($grid->model(), $filter_func);
+        $this->custom_view->filterModel($grid->model(), ['callback' => $filter_func]);
         $this->setCustomGridFilters($grid, $search_enabled_columns);
     
         // create grid

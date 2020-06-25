@@ -6,7 +6,6 @@ use Encore\Admin\Form\Field\Date;
 use Encore\Admin\Form\Field\Select;
 use Encore\Admin\Form\Field\Text;
 use Exceedone\Exment\Form\Field;
-use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterType;
@@ -16,7 +15,7 @@ use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 
 class SystemItem implements ItemInterface
 {
-    use ItemTrait, ColumnOptionQueryTrait;
+    use ItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
     
     protected $column_name;
     
@@ -62,12 +61,22 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * Get API column name
+     *
+     * @return string
+     */
+    public function apiName()
+    {
+        return $this->_apiName();
+    }
+
+    /**
      * get column key refer to subquery.
      */
     public function getGroupName()
     {
         if (boolval(array_get($this->options, 'summary'))) {
-            $summary_condition = SummaryCondition::getSummaryCondition(array_get($this->options, 'summary_condition'));
+            $summary_condition = $this->getSummaryConditionName();
             $alter_name = $this->sqlAsName();
             $raw = "$summary_condition($alter_name) AS $alter_name";
             return \DB::raw($raw);
@@ -82,8 +91,7 @@ class SystemItem implements ItemInterface
     {
         $column_name = $this->getSqlColumnName();
 
-        $summary_option = array_get($this->options, 'summary_condition');
-        $summary_condition = is_null($summary_option)? null: SummaryCondition::getEnum($summary_option)->lowerKey();
+        $summary_condition = $this->getSummaryConditionName();
         $group_condition = array_get($this->options, 'group_condition');
 
         if (isset($summary_condition)) {
@@ -145,11 +153,35 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * get pure value. (In database value)
+     */
+    public function pureValue()
+    {
+        // convert to string if datetime
+        $option = $this->getSystemColumnOption();
+        if (array_get($option, 'type') == 'datetime') {
+            $v = $this->value;
+            if ($v instanceof \Carbon\Carbon) {
+                return $v->__toString();
+            }
+        }
+        return $this->value;
+    }
+
+    /**
+     * get pure value. (In database value)
+     */
+    public function value()
+    {
+        return $this->value;
+    }
+
+    /**
      * get text(for display)
      */
     public function text()
     {
-        return $this->getTargetValue(false);
+        return $this->pureValue();
     }
 
     /**
@@ -158,7 +190,12 @@ class SystemItem implements ItemInterface
      */
     public function html()
     {
-        return $this->getTargetValue(true);
+        $option = $this->getSystemColumnOption();
+        if (!is_null($keyname = array_get($option, 'tagname'))) {
+            // not escape because return html
+            return array_get($this->custom_value, $keyname);
+        }
+        return esc_html($this->text());
     }
 
     /**
@@ -206,6 +243,7 @@ class SystemItem implements ItemInterface
         $this->custom_value = $custom_value;
         if (isset($custom_value)) {
             $this->id = array_get($custom_value, 'id');
+            $this->value = $this->getTargetValue($custom_value);
         }
 
         $this->prepare();
@@ -225,15 +263,8 @@ class SystemItem implements ItemInterface
             return array_get($this->custom_value, $this->sqlAsName());
         }
 
-        if ($html) {
-            $option = $this->getSystemColumnOption();
-            if (!is_null($keyname = array_get($option, 'tagname'))) {
-                return array_get($this->custom_value, $keyname);
-            }
-        }
 
-        $val = array_get($this->custom_value, $this->column_name);
-        return $html ? esc_html($val) : $val;
+        return array_get($this->custom_value, $this->column_name);
     }
     
     public function getAdminField($form_column = null, $column_name_prefix = null)

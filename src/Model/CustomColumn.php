@@ -23,6 +23,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected $guarded = ['id', 'suuid'];
     // protected $with = ['custom_table'];
 
+    private $_custom_item;
+
+
     /**
      * $custom available_characters
      * @var \Closure[]
@@ -158,7 +161,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     public function getColumnItemAttribute()
     {
-        return ColumnItems\CustomItem::getItem($this);
+        if (isset($this->_custom_item)) {
+            return $this->_custom_item;
+        }
+
+        $this->_custom_item = ColumnItems\CustomItem::getItem($this);
+        return $this->_custom_item;
     }
 
     public function getSelectTargetTableAttribute()

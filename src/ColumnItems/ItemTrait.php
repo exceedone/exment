@@ -97,6 +97,38 @@ trait ItemTrait
     }
 
     /**
+     * Get API column name
+     *
+     * @return string
+     */
+    public function apiName()
+    {
+        return $this->name();
+    }
+
+    /**
+     * Get API column definition
+     *
+     * @return array
+     */
+    public function apiDefinitions()
+    {
+        $items = [];
+        $items['table_name'] = $this->custom_table->table_name;
+        $items['column_name'] = $this->name();
+        $items['label'] = $this->label();
+        
+        if (method_exists($this, 'getSummaryConditionName')) {
+            $summary_condition = $this->getSummaryConditionName();
+            if (isset($summary_condition)) {
+                $items['summary_condition'] = $summary_condition;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
      * get sort column name as SQL
      */
     public function getSortColumn()

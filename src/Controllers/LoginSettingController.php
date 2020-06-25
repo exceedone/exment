@@ -178,7 +178,7 @@ class LoginSettingController extends AdminControllerBase
             
             $form->switchbool('update_user_info', exmtrans("login.update_user_info"))
             ->help(exmtrans("login.help.update_user_info"))
-            ->default(true);
+            ->default(false);
 
             
             $form->exmheader(exmtrans('login.login_button'))->hr();

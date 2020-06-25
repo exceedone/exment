@@ -7,8 +7,14 @@ use Exceedone\Exment\Enums\GroupCondition;
 
 trait SummaryItemTrait
 {
-
     //for summary  --------------------------------------------------
+
+    protected function getSummaryConditionName()
+    {
+        $summary_option = array_get($this->options, 'summary_condition');
+        $summary_condition = is_null($summary_option) ? null : SummaryCondition::getEnum($summary_option)->lowerKey();
+        return $summary_condition;
+    }
 
     /**
      * get sqlname for summary
@@ -17,8 +23,7 @@ trait SummaryItemTrait
     {
         extract($this->getSummaryParams());
 
-        $summary_option = array_get($this->options, 'summary_condition');
-        $summary_condition = is_null($summary_option) ? null : SummaryCondition::getEnum($summary_option)->lowerKey();
+        $summary_condition = $this->getSummaryConditionName();
         
         if (isset($summary_condition)) {
             $raw = "$summary_condition($value_column) AS ".$this->sqlAsName();
@@ -87,11 +92,21 @@ trait SummaryItemTrait
     {
         $db_table_name = getDBTableName($this->custom_column->custom_table);
         $column_name = $this->custom_column->column_name;
-
-        $summary_condition = SummaryCondition::getSummaryCondition(array_get($this->options, 'summary_condition'));
+        
+        $summary_condition = $this->getSummaryConditionName();
         $alter_name = $this->sqlAsName();
         $raw = "$summary_condition($alter_name) AS $alter_name";
 
         return \DB::raw($raw);
+    }
+    
+    /**
+     * Get API column name
+     *
+     * @return string
+     */
+    protected function _apiName()
+    {
+        return array_get($this->options, 'view_column_suuid');
     }
 }
