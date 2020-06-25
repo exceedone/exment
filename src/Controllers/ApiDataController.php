@@ -65,8 +65,10 @@ class ApiDataController extends AdminControllerTableBase
         if (($count = $this->getCount($request)) instanceof Response) {
             return $count;
         }
-
-        $orderby_list = $this->getOrderBy($request);
+        
+        if (($orderby_list = $this->getOrderBy($request)) instanceof Response) {
+            return $orderby_list;
+        }
 
         // get paginate
         $model = $this->custom_table->getValueModel()->query();
@@ -242,7 +244,9 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         // set order by
-        $orderby_list = $this->getOrderBy($request);
+        if (($orderby_list = $this->getOrderBy($request)) instanceof Response) {
+            return $orderby_list;
+        }
         $this->setOrderByQuery($model, $orderby_list);
 
         $paginator = $model->paginate($count);
