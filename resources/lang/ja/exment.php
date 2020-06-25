@@ -1850,6 +1850,8 @@ return [
             'disapproval_ip' => '許可されていないIPアドレスです。',
             'already_deleted' => 'すでに削除されています。',
             'plugin_not_found' => 'プラグインが見つかりませんでした。',
+            'wrong_view_and_table' => '対象のテーブルとビューが異なっています。',
+            'unsupported_view_kind_type' => '指定したビューの種類は、APIでサポートされていません。',
         ],
         
         'help' =>[

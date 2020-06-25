@@ -39,6 +39,7 @@ class ErrorCode extends EnumBase
     const ALREADY_DELETED = '110';
     const PLUGIN_NOT_FOUND = '111';
     const WRONG_VIEW_AND_TABLE = '112';
+    const UNSUPPORTED_VIEW_KIND_TYPE = '113';
     const WORKFLOW_LOCK = '201';
     const WORKFLOW_NOSTART = '202';
     const WORKFLOW_END = '203';

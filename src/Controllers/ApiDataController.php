@@ -15,6 +15,7 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ValueType;
+use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
@@ -437,7 +438,7 @@ class ApiDataController extends AdminControllerTableBase
      */
     public function viewDataList(Request $request, $tableKey, $viewid)
     {
-        $init = $this->viewDataInit($request, $viewid);
+        $init = $this->viewDataInit($request, $viewid, true);
         if ($init instanceof Response) {
             return $init;
         }
@@ -473,7 +474,7 @@ class ApiDataController extends AdminControllerTableBase
      */
     public function viewDataFind(Request $request, $tableKey, $viewid, $id)
     {
-        $init = $this->viewDataInit($request, $viewid);
+        $init = $this->viewDataInit($request, $viewid, false);
         if ($init instanceof Response) {
             return $init;
         }
@@ -504,7 +505,15 @@ class ApiDataController extends AdminControllerTableBase
         return $array;
     }
 
-    protected function viewDataInit(Request $request, $viewid){
+    /**
+     * Initialize view data
+     *
+     * @param Request $request
+     * @param int|string $viewid
+     * @param boolean $isList
+     * @return Response|array if error, return response. or not, return list($custom_view, $valuetype, $count)
+     */
+    protected function viewDataInit(Request $request, $viewid, bool $isList){
         // get view
         $custom_view = CustomView::getEloquent($viewid);
         //not found
@@ -514,6 +523,12 @@ class ApiDataController extends AdminControllerTableBase
         // not match table and view
         if(!isMatchString($custom_view->custom_table_id, $this->custom_table->id)){
             return abortJson(400, ErrorCode::WRONG_VIEW_AND_TABLE());   
+        }
+
+        // validate view type
+        $acceptView = $isList ? ViewKindType::acceptApiList($custom_view->view_kind_type) : ViewKindType::acceptApiData($custom_view->view_kind_type);
+        if (!$acceptView) {
+            return abortJson(400, ErrorCode::UNSUPPORTED_VIEW_KIND_TYPE());   
         }
 
         if (($code = $this->custom_table->enableAccess()) !== true) {
