@@ -337,6 +337,9 @@ class AuthUserOrgHelper
         });
 
         foreach ($children as $child) {
+            if ($org['id'] == $child['id']) {
+                continue;
+            }
             // set children
             $org['children'][] = $child;
             static::children($org, $orgs, $child, $indexName);

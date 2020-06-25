@@ -179,8 +179,8 @@ class SelectTable extends CustomItem
             'target_id' => isset($this->custom_value) ? $this->custom_value->id : null,
         ];
 
-        $field->options(function ($value) use ($selectOption) {
-            $selectOption['selected_value'] = $value;
+        $field->options(function ($value, $field) use ($selectOption) {
+            $selectOption['selected_value'] = $field->getOld() ?? $value;
 
             // get DB option value
             return $this->target_table->getSelectOptions($selectOption);

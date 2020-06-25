@@ -1822,6 +1822,7 @@ return [
         'scopes' => [
             'me' => 'Get Login User Info',
             'table_read' => 'Get Table Info',
+            'view_read' => 'Get View Info',
             'table_write' => 'Get, Create, Update, Delete Table',
             'value_read' => 'Get Value',
             'value_write' => 'Get, Create, Update, Delete Value',
@@ -1851,6 +1852,8 @@ return [
             'disapproval_ip' => 'Unauthorized IP address.',
             'already_deleted' => 'Already deleted this data.',
             'plugin_not_found' => 'Plugin not found.',
+            'wrong_view_and_table' => 'The target table and view are different.',
+            'unsupported_view_kind_type' => 'The view type is not supported by the API.',
         ],
 
         'help' =>[
