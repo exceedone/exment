@@ -148,6 +148,7 @@ class PatchDataCommand extends Command
                 return;
             case 'view_column_suuid':
                 $this->patchViewColumnSuuid();
+                // no break
             case 'patch_form_column_relation':
                 $this->patchFormColumnRelation();
                 return;
@@ -1109,9 +1110,9 @@ class PatchDataCommand extends Command
             CustomViewColumn::class,
             CustomViewSummary::class,
         ];
-        foreach($classes as $c){
-            $c::all()->each(function($v){
-                if(!is_nullorempty($v->suuid)){
+        foreach ($classes as $c) {
+            $c::all()->each(function ($v) {
+                if (!is_nullorempty($v->suuid)) {
                     return true;
                 }
 

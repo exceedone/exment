@@ -102,37 +102,38 @@ class LoginService
      * @param array $rules
      * @return array updated rules
      */
-    protected static function removeInitRule(CustomLoginUserBase $custom_login_user, ?CustomValue $exment_user, array $rules){
+    protected static function removeInitRule(CustomLoginUserBase $custom_login_user, ?CustomValue $exment_user, array $rules)
+    {
         // remove unique, if not update and create. Because only use key for login
         $login_setting = $custom_login_user->login_setting;
 
         // If has exment user and update user info, return rules(all validate)
-        if(isset($exment_user) && boolval($login_setting->getOption('update_user_info'))){
+        if (isset($exment_user) && boolval($login_setting->getOption('update_user_info'))) {
             return $rules;
         }
         // If not has exment user and sso_jit, return rules(all validate)
-        elseif(!isset($exment_user) && boolval($login_setting->getOption('sso_jit'))){
+        elseif (!isset($exment_user) && boolval($login_setting->getOption('sso_jit'))) {
             return $rules;
         }
 
         $mapping_user_column = $login_setting->getOption('mapping_user_column');
         // remove "unique" and initflg class if not key
-        $rules = collect($rules)->mapWithKeys(function($rule, $key) use($mapping_user_column){
+        $rules = collect($rules)->mapWithKeys(function ($rule, $key) use ($mapping_user_column) {
             // same mapping_user_column and r, return same rules
-            if($mapping_user_column == $key){
+            if ($mapping_user_column == $key) {
                 return [$key => $rule];
             }
 
-            $rule = collect($rule)->filter(function($r){
-                if($r instanceof \Exceedone\Exment\Validator\InitOnlyRule){
+            $rule = collect($rule)->filter(function ($r) {
+                if ($r instanceof \Exceedone\Exment\Validator\InitOnlyRule) {
                     return false;
                 }
                 
-                if(!is_string($r)){
+                if (!is_string($r)) {
                     return true;
                 }
 
-                if(strpos($r, 'unique') === 0){
+                if (strpos($r, 'unique') === 0) {
                     return false;
                 }
                 return true;

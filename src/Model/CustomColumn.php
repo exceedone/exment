@@ -161,7 +161,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     public function getColumnItemAttribute()
     {
-        if(isset($this->_custom_item)){
+        if (isset($this->_custom_item)) {
             return $this->_custom_item;
         }
 

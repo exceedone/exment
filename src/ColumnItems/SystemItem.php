@@ -6,7 +6,6 @@ use Encore\Admin\Form\Field\Date;
 use Encore\Admin\Form\Field\Select;
 use Encore\Admin\Form\Field\Text;
 use Exceedone\Exment\Form\Field;
-use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterType;
@@ -66,9 +65,10 @@ class SystemItem implements ItemInterface
      *
      * @return string
      */
-    public function apiName(){
+    public function apiName()
+    {
         return $this->_apiName();
-    } 
+    }
 
     /**
      * get column key refer to subquery.
@@ -159,9 +159,9 @@ class SystemItem implements ItemInterface
     {
         // convert to string if datetime
         $option = $this->getSystemColumnOption();
-        if(array_get($option, 'type') == 'datetime'){
+        if (array_get($option, 'type') == 'datetime') {
             $v = $this->value;
-            if($v instanceof \Carbon\Carbon){
+            if ($v instanceof \Carbon\Carbon) {
                 return $v->__toString();
             }
         }

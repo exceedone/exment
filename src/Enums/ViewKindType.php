@@ -19,7 +19,8 @@ class ViewKindType extends EnumBase
      * @param [type] $view_kind_type
      * @return bool
      */
-    public static function acceptApiList($view_kind_type){
+    public static function acceptApiList($view_kind_type)
+    {
         return static::acceptApi($view_kind_type, [static::DEFAULT, static::ALLDATA, static::AGGREGATE]);
     }
 
@@ -29,13 +30,15 @@ class ViewKindType extends EnumBase
      * @param [type] $view_kind_type
      * @return bool
      */
-    public static function acceptApiData($view_kind_type){
+    public static function acceptApiData($view_kind_type)
+    {
         return static::acceptApi($view_kind_type, [static::DEFAULT, static::ALLDATA]);
     }
 
-    protected static function acceptApi($view_kind_type, array $acceptTypes){
+    protected static function acceptApi($view_kind_type, array $acceptTypes)
+    {
         $enum = static::getEnum($view_kind_type);
-        if(!isset($enum)){
+        if (!isset($enum)) {
             return false;
         }
 

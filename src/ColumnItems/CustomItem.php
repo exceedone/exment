@@ -108,9 +108,10 @@ abstract class CustomItem implements ItemInterface
      *
      * @return string
      */
-    public function apiName(){
+    public function apiName()
+    {
         return $this->_apiName();
-    } 
+    }
 
     /**
      * get Text(for display)

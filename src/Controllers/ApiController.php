@@ -198,17 +198,16 @@ class ApiController extends AdminControllerBase
     }
 
     /**
-     * get view 
+     * get view
      * @param mixed $idOrSuuid if length is 20, use suuid
      * @return mixed
      */
     public function view(Request $request, $idOrSuuid)
     {
         $query = CustomView::query();
-        if(strlen($idOrSuuid) == 20){
+        if (strlen($idOrSuuid) == 20) {
             $query->where('suuid', $idOrSuuid);
-        }
-        else{
+        } else {
             $query->where('id', $idOrSuuid);
         }
 

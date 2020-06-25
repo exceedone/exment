@@ -19,8 +19,6 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
-use Exceedone\Exment\ConditionItems\ConditionItemBase;
-use Encore\Admin\Grid;
 use Carbon\Carbon;
 use Validator;
 
@@ -239,7 +237,7 @@ class ApiDataController extends AdminControllerTableBase
         $params = explode(',', $request->get('q'));
 
         // set query
-        if(($res = $this->setParamsQueryColumn($request, $model, $params)) instanceof Response){
+        if (($res = $this->setParamsQueryColumn($request, $model, $params)) instanceof Response) {
             return $res;
         }
 
@@ -268,7 +266,7 @@ class ApiDataController extends AdminControllerTableBase
      */
     protected function setParamsQueryColumn(Request $request, $query, $params)
     {
-        if(empty($params)){
+        if (empty($params)) {
             return true;
         }
 
@@ -315,9 +313,9 @@ class ApiDataController extends AdminControllerTableBase
             $paramInfos[] = [$column_name, $operator, $values[2]];
         }
 
-        $query->where(function($query) use($request, $paramInfos){
+        $query->where(function ($query) use ($request, $paramInfos) {
             $whereFunc = boolval($request->get('or', false)) ? 'orWhere' : 'where';
-            foreach($paramInfos as $paramInfo){
+            foreach ($paramInfos as $paramInfo) {
                 $query->{$whereFunc}($paramInfo[0], $paramInfo[1], $paramInfo[2]);
             }
         });
@@ -517,22 +515,23 @@ class ApiDataController extends AdminControllerTableBase
      * @param boolean $isList
      * @return Response|array if error, return response. or not, return list($custom_view, $valuetype, $count)
      */
-    protected function viewDataInit(Request $request, $viewid, bool $isList){
+    protected function viewDataInit(Request $request, $viewid, bool $isList)
+    {
         // get view
         $custom_view = CustomView::getEloquent($viewid);
         //not found
-        if(!isset($custom_view)){
-            return abortJson(400, ErrorCode::DATA_NOT_FOUND());   
+        if (!isset($custom_view)) {
+            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
         // not match table and view
-        if(!isMatchString($custom_view->custom_table_id, $this->custom_table->id)){
-            return abortJson(400, ErrorCode::WRONG_VIEW_AND_TABLE());   
+        if (!isMatchString($custom_view->custom_table_id, $this->custom_table->id)) {
+            return abortJson(400, ErrorCode::WRONG_VIEW_AND_TABLE());
         }
 
         // validate view type
         $acceptView = $isList ? ViewKindType::acceptApiList($custom_view->view_kind_type) : ViewKindType::acceptApiData($custom_view->view_kind_type);
         if (!$acceptView) {
-            return abortJson(400, ErrorCode::UNSUPPORTED_VIEW_KIND_TYPE());   
+            return abortJson(400, ErrorCode::UNSUPPORTED_VIEW_KIND_TYPE());
         }
 
         if (($code = $this->custom_table->enableAccess()) !== true) {
@@ -555,18 +554,18 @@ class ApiDataController extends AdminControllerTableBase
 
     protected function viewDataAfter($custom_view, $valuetype, $target)
     {
-        list($headers, $bodies, $columnStyles, $columnClasses, $columnItems) = 
+        list($headers, $bodies, $columnStyles, $columnClasses, $columnItems) =
             $custom_view->convertDataTable($target, ['appendLink' => false, 'valueType' => $valuetype]);
                 
         // get api name and definitions
-        $apiNames = collect($columnItems)->map(function($columnItem){
+        $apiNames = collect($columnItems)->map(function ($columnItem) {
             return $columnItem->apiName();
         })->toArray();
-        $apiDefinitions = collect($columnItems)->mapWithKeys(function($columnItem){
+        $apiDefinitions = collect($columnItems)->mapWithKeys(function ($columnItem) {
             return [$columnItem->apiName() => $columnItem->apiDefinitions()];
         })->toArray();
         
-        $results = collect($bodies)->map(function($body, $index) use($apiNames, $apiDefinitions){
+        $results = collect($bodies)->map(function ($body, $index) use ($apiNames, $apiDefinitions) {
             return array_combine($apiNames, $body);
         });
 
@@ -1175,7 +1174,7 @@ class ApiDataController extends AdminControllerTableBase
                 $options['appends']
             );
             
-            if(boolval($options['makeHidden'])){
+            if (boolval($options['makeHidden'])) {
                 // execute makehidden
                 $results = $target->makeHidden($this->custom_table->getMakeHiddenArray());
 
@@ -1194,9 +1193,9 @@ class ApiDataController extends AdminControllerTableBase
         }
         // as single model
         elseif ($target instanceof CustomValue) {
-            if(boolval($options['makeHidden'])){
+            if (boolval($options['makeHidden'])) {
                 $target = $target->makeHidden($this->custom_table->getMakeHiddenArray());
-                return $this->modifyCustomValue($request, $target);    
+                return $this->modifyCustomValue($request, $target);
             }
 
             return $target;
@@ -1240,7 +1239,8 @@ class ApiDataController extends AdminControllerTableBase
      * @param Request $request
      * @return void
      */
-    protected function getOrderBy(Request $request){
+    protected function getOrderBy(Request $request)
+    {
         if (!$request->has('orderby')) {
             return [];
         }
@@ -1278,8 +1278,9 @@ class ApiDataController extends AdminControllerTableBase
      * @param [type] $orderby_list
      * @return void
      */
-    protected function setOrderByQuery($query, $orderby_list){
-        if(empty($orderby_list)){
+    protected function setOrderByQuery($query, $orderby_list)
+    {
+        if (empty($orderby_list)) {
             return;
         }
         
@@ -1296,5 +1297,4 @@ class ApiDataController extends AdminControllerTableBase
             $query->orderBy('id');
         }
     }
-
 }

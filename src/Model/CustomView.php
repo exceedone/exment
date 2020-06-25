@@ -216,7 +216,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public static function getEloquent($id, $withs = [])
     {
-        if(strlen($id) == 20){
+        if (strlen($id) == 20) {
             return static::getEloquentDefault($id, $withs, 'suuid');
         }
 
@@ -270,7 +270,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      *
      * @return void
      */
-    public function getDataPaginate($options = []){
+    public function getDataPaginate($options = [])
+    {
         $options = array_merge([
             'paginate' => true,
             'maxCount' => System::datalist_pager_count() ?? 5,
@@ -279,7 +280,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             'grid' => null,
         ], $options);
 
-        if($this->view_kind_type == ViewKindType::AGGREGATE){
+        if ($this->view_kind_type == ViewKindType::AGGREGATE) {
             $query = $options['query'] ?? $this->custom_table->getValueModel()->query();
             return $this->getValueSummary($query, $this->custom_table, $options['grid'])->paginate($options['maxCount']);
         }
@@ -586,7 +587,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $this->setValueFilters($model);
         }
 
-        if(boolval($options['sort'])){
+        if (boolval($options['sort'])) {
             $this->setValueSort($model);
         }
 

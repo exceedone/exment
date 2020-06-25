@@ -9,7 +9,8 @@ trait SummaryItemTrait
 {
     //for summary  --------------------------------------------------
 
-    protected function getSummaryConditionName(){
+    protected function getSummaryConditionName()
+    {
         $summary_option = array_get($this->options, 'summary_condition');
         $summary_condition = is_null($summary_option) ? null : SummaryCondition::getEnum($summary_option)->lowerKey();
         return $summary_condition;
@@ -104,8 +105,8 @@ trait SummaryItemTrait
      *
      * @return string
      */
-    protected function _apiName(){
+    protected function _apiName()
+    {
         return array_get($this->options, 'view_column_suuid');
-    } 
-
+    }
 }

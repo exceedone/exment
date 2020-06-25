@@ -1120,12 +1120,11 @@ abstract class CustomValue extends ModelBase
         $getQueryFunc = function ($searchColumn, $options) {
             extract($options);
             // if not search, set only pure query
-            if(!$options['executeSearch']){
+            if (!$options['executeSearch']) {
                 $query = static::query();
                 //$query->take($takeCount);
                 $queries[] = $query;
-            }
-            elseif ($searchColumn instanceof CustomColumn) {
+            } elseif ($searchColumn instanceof CustomColumn) {
                 $column_item = $searchColumn->column_item;
                 if (!isset($column_item)) {
                     return;

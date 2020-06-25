@@ -47,7 +47,7 @@ trait CustomViewColumnTrait
 
     public function getColumnItemAttribute()
     {
-        if(isset($this->_custom_item)){
+        if (isset($this->_custom_item)) {
             return $this->_custom_item;
         }
 
@@ -68,7 +68,7 @@ trait CustomViewColumnTrait
             $this->_custom_item = ColumnItems\SystemItem::getItem(CustomTable::getEloquent($this->view_column_table_id), $this->view_column_target);
         }
 
-        if(!is_nullorempty($this->suuid)){
+        if (!is_nullorempty($this->suuid)) {
             $this->_custom_item->options([
                 'view_column_suuid' => $this->suuid,
             ]);

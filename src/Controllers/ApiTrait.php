@@ -128,6 +128,4 @@ trait ApiTrait
 
         return $custom_value;
     }
-
-    
 }

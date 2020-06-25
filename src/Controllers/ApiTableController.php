@@ -3,24 +3,9 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Model\Linkage;
-use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\SearchType;
-use Exceedone\Exment\Enums\ValueType;
-use Exceedone\Exment\Enums\ConditionType;
-use Exceedone\Exment\Enums\ErrorCode;
-use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
-use Carbon\Carbon;
-use Validator;
 
 /**
  * Api about target table
@@ -90,8 +75,8 @@ class ApiTableController extends AdminControllerTableBase
         $req = $request->all();
         $keys = ['view_type', 'view_kind_type', 'view_view_name'];
 
-        foreach($keys as $key){
-            if(!is_null($v = array_get($req, $key))){
+        foreach ($keys as $key) {
+            if (!is_null($v = array_get($req, $key))) {
                 $query->where($key, $v);
             }
         }
