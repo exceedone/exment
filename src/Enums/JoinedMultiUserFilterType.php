@@ -27,6 +27,8 @@ class JoinedMultiUserFilterType extends EnumBase
             return static::transKeyArray('system.filter_multi_orguser_options');
         } 
 
-        return getTransArray([static::NOT_FILTER()->lowerKey(), static::ONLY_JOIN()->lowerKey()], 'system.filter_multi_user_options');
+        return collect([static::NOT_FILTER(), static::ONLY_JOIN()])->mapWithKeys(function($enum){
+            return [$enum->getValue() => exmtrans("system.filter_multi_user_options." . $enum->lowerKey())];
+        })->toArray();
     }
 }

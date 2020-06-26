@@ -2269,7 +2269,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         foreach ($rows as $row) {
             // check role permissions
-            $authoritable_type = array_get(toArray($row), 'pivot.authoritable_type') ?? array_get(toArray($row), 'authoritable_type');
+            $r = ($row instanceof \Illuminate\Database\Eloquent\Model) ? $row->toArray() : $row;
+            $authoritable_type = array_get($r, 'pivot.authoritable_type') ?? array_get($r, 'authoritable_type');
             if (in_array($authoritable_type, $role_key)) {
                 return true;
             }
