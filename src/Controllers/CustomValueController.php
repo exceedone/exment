@@ -210,11 +210,11 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
 
+        $custom_value = $this->custom_table->getValueModel($id, boolval(request()->get('trashed')));
+
         if ($modal) {
             return $this->createShowForm($id, $custom_value, $modal);
         }
-
-        $custom_value = $this->custom_table->getValueModel($id, boolval(request()->get('trashed')));
 
         $this->AdminContent($content);
         $content->row($this->createShowForm($id, $custom_value));
