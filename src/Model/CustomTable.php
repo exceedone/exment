@@ -1776,7 +1776,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     [
                         'append_table' => $append_table,
                         'index_enabled_only' => $index_enabled_only,
-                        'include_parent' => true,
+                        'include_parent' => false,
                         'include_system' => $include_system,
                         'table_view_name' => $tablename,
                         'view_pivot_column' => SystemColumn::PARENT_ID,
@@ -1800,7 +1800,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     [
                         'append_table' => $append_table,
                         'index_enabled_only' => $index_enabled_only,
-                        'include_parent' => true,
+                        'include_parent' => false,
                         'include_system' => $include_system,
                         'table_view_name' => $tablename,
                         'view_pivot_column' => $select_table_column,
