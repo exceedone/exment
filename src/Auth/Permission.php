@@ -299,7 +299,7 @@ class Permission
     /**
      * Get Endpoint
      * @param ?string $endpoint
-     * @return mixed
+     * @return string|null
      */
     protected function getEndPoint(?string $endpoint) : ?string
     {
@@ -317,7 +317,7 @@ class Permission
         ///// get last url.
         $uris = explode("/", $url);
         foreach ($uris as $k => $uri) {
-            if (!isset($uri) || mb_strlen($uri) == 0) {
+            if (mb_strlen($uri) == 0) {
                 continue;
             }
 
@@ -338,8 +338,8 @@ class Permission
 
     /**
      * Whether matching url endpoint and table_name for check.
-     * @param Request $request
-     * @return mixed
+     * @param string|null $endpoint
+     * @return bool
      */
     protected function matchEndPointTable($endpoint)
     {

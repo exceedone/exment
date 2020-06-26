@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FormColumnType;
 
 abstract class FormOtherItem implements ItemInterface
