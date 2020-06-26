@@ -2065,11 +2065,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (isset($id)) {
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $id);
             $model = System::requestSession($key, function () use ($id, $withTrashed) {
-                if ($withTrashed) {
-                    return getModelName($this->table_name)::withTrashed()->find($id);
-                }
                 return getModelName($this->table_name)::find($id);
             });
+
+            if(!isset($model) && $withTrashed){
+                $model = getModelName($this->table_name)::withTrashed()->find($id);
+            }
         } else {
             $model = new $modelname;
         }
