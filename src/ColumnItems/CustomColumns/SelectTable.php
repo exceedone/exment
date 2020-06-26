@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
@@ -181,6 +182,7 @@ class SelectTable extends CustomItem
             'filterCallback' => $callback,
             'target_view' => $this->target_view,
             'target_id' => isset($this->custom_value) ? $this->custom_value->id : null,
+            'all' => $this->custom_column->isGetAllUserOrganization(),
         ];
 
         $field->options(function ($value, $field) use ($selectOption) {

@@ -1228,6 +1228,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'parent_id' => $parent_value_id,
                 ];
 
+                ///// if has display table, filter display table and $child_table
+                if (isset($display_table)) {
+                    $child_table->filterDisplayTable($query, $display_table, $options);
+                }
+
                 // target view
                 if (isset($target_view)) {
                     $target_view->filterModel($query);
@@ -1238,6 +1243,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             case SearchType::MANY_TO_MANY:
                 $query = $child_table->getValueModel()->query();
                 RelationTable::setQueryManyMany($query, $this, $child_table, $parent_value_id);
+
+                ///// if has display table, filter display table
+                if (isset($display_table)) {
+                    $child_table->filterDisplayTable($query, $display_table, $options);
+                }
 
                 // target view
                 if (isset($target_view)) {

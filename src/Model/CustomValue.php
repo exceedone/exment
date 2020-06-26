@@ -1177,7 +1177,7 @@ abstract class CustomValue extends ModelBase
                 
                 ///// if has display table, filter display table
                 if (isset($display_table)) {
-                    $this->custom_table->filterDisplayTable($query, $display_table);
+                    $this->custom_table->filterDisplayTable($query, $display_table, $options);
                 }
 
                 // set custom view's filter
