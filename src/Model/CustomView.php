@@ -582,7 +582,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
         if ($options['callback'] instanceof \Closure) {
-            call_user_func($callback, $model);
+            call_user_func($options['callback'], $model);
         } else {
             $this->setValueFilters($model);
         }
