@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\ApiClientRepository;
@@ -169,7 +170,7 @@ class TestDataSeeder extends Seeder
                 'menuParentId' => $menu->id,
             ];
             $parent_table = $this->createTable('parent_table' . $relationItem['suffix'], $parentOptions);
-            $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $parent_table]);
+            $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $parent_table]);
             
             $createRelationCallback = function ($custom_table) use ($parent_table, $relationItem) {
                 if (isset($relationItem['relation_type'])) {
@@ -190,13 +191,6 @@ class TestDataSeeder extends Seeder
                     if (!is_null($relationItem['relation_type'])) {
                         return;
                     }
-
-                    // $parent_custom_value = $parent_table->getValueModel()->query()
-                    //     ->where('value->text', "test_$i")
-                    //     ->first();
-                    // if(!isset($parent_custom_value)){
-                    //     return;
-                    // }
 
                     $options = [
                         'index_enabled' => 1,
@@ -257,20 +251,29 @@ class TestDataSeeder extends Seeder
                 }
             ];
             $child_table = $this->createTable('child_table' . $relationItem['suffix'], $childOptions);
+            $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $child_table]);
 
-            $this->createPermission([Permission::CUSTOM_VALUE_EDIT_ALL => $child_table]);
+            // get child table's view
+            $child_table_view = $child_table->custom_views->first(function($view) use($child_table){
+                return $view->view_view_name == "{$child_table->table_name}-view-odd";
+            });
 
             // cerate pivot table
             $pivot_table = $this->createTable('pivot_table' . $relationItem['suffix'], [
                 'menuParentId' => $menu->id,
                 'count' => 0,
-                'createColumnCallback' => function ($custom_table, &$custom_columns) use ($parent_table, $child_table) {
+                'createColumnCallback' => function ($custom_table, &$custom_columns) use ($parent_table, $child_table, $child_table_view) {
                     // creating relation column
                     $columns = [
                         ['column_name' => 'child', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id]],
                         ['column_name' => 'parent', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $parent_table->id]],
+                        ['column_name' => 'child_view', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id, 'select_target_view' => $child_table_view->id]],
+                        ['column_name' => 'child_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id, 'select_load_ajax' => 1]],
+                        ['column_name' => 'child_ajax_view', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id, 'select_target_view' => $child_table_view->id, 'select_load_ajax' => 1]],
                         ['column_name' => 'child_relation_filter', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'child_relation_filter_view', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id, 'select_target_view' => $child_table_view->id]],
                         ['column_name' => 'child_relation_filter_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'child_relation_filter_ajax_view', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'select_target_table' => $child_table->id, 'select_target_view' => $child_table_view->id]],
                         ['column_name' => 'parent_multi', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $parent_table->id]],
                         ['column_name' => 'child_relation_filter_multi', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $child_table->id]],
                         ['column_name' => 'child_relation_filter_multi_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $child_table->id]],
@@ -290,46 +293,115 @@ class TestDataSeeder extends Seeder
                 'createValueCallback' => function ($custom_value) use ($relationItem) {
                 }
             ]);
+            $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $pivot_table]);
 
-            // select_relation
+            // select_relation filter in form column
             $selectRelations = [
                 ['parent' => 'parent', 'child' => 'child_relation_filter'],
                 ['parent' => 'parent', 'child' => 'child_relation_filter_ajax'],
+                ['parent' => 'parent', 'child' => 'child_relation_filter_view'],
+                ['parent' => 'parent', 'child' => 'child_relation_filter_ajax_view'],
                 ['parent' => 'parent_multi', 'child' => 'child_relation_filter_multi'],
                 ['parent' => 'parent_multi', 'child' => 'child_relation_filter_multi_ajax'],
             ];
 
             foreach ($selectRelations as $selectRelation) {
-                // append pivot table's relation filter
-                $custom_forms = $pivot_table->custom_forms;
-                foreach ($custom_forms as $custom_form) {
-                    $custom_form_columns = $custom_form->custom_form_columns;
-                    foreach ($custom_form_columns as $custom_form_column) {
-                        if ($custom_form_column->form_column_type != Enums\FormColumnType::COLUMN) {
-                            continue;
-                        }
+                $this->createRelationFilter($selectRelation, $pivot_table);
+            }
+        }
 
-                        $form_custom_column = $custom_form_column->custom_column_cache;
-                        if (!isset($form_custom_column)) {
-                            continue;
-                        }
+        // cerate pivot table for user org  ----------------------------------------------------
+        // get user table's view
+        $user_table_view = CustomTable::getEloquent(SystemTableName::USER)->custom_views->first(function($view){
+            return $view->view_view_name == "user-view-dev";
+        });
 
-                        if ($form_custom_column->column_name != $selectRelation['child']) {
-                            continue;
-                        }
+        $pivot_table = $this->createTable('pivot_table_user_org', [
+            'menuParentId' => $menu->id,
+            'count' => 0,
+            'createColumnCallback' => function ($custom_table, &$custom_columns) use($user_table_view) {
+                // creating relation column
+                $columns = [
+                    ['column_name' => 'user', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
+                    ['column_name' => 'organization', 'column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1']],
+                    ['column_name' => 'user_view', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'select_target_view' => $user_table_view->id]],
+                    ['column_name' => 'user_ajax', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'select_load_ajax' => 1]],
+                    ['column_name' => 'user_ajax_view', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'select_target_view' => $user_table_view->id, 'select_load_ajax' => 1]],
+                    ['column_name' => 'user_relation_filter', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
+                    ['column_name' => 'user_relation_filter_view', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'select_target_view' => $user_table_view->id]],
+                    ['column_name' => 'user_relation_filter_ajax', 'column_type' => ColumnType::USER, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1']],
+                    ['column_name' => 'user_relation_filter_ajax_view', 'column_type' => ColumnType::USER, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'select_target_view' => $user_table_view->id]],
+                    ['column_name' => 'organization_multi', 'column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1']],
+                    ['column_name' => 'user_relation_filter_multi', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1']],
+                    ['column_name' => 'user_relation_filter_multi_ajax', 'column_type' => ColumnType::USER, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'multiple_enabled' => '1']],
+                ];
 
-                        // search 'parent' column
-                        $parent_pivot_column = $pivot_table->custom_columns_cache->first(function ($custom_column) use ($selectRelation) {
-                            return $custom_column->column_name == $selectRelation['parent'];
-                        });
-                        if (!isset($parent_pivot_column)) {
-                            continue;
-                        }
-
-                        $custom_form_column->setOption('relation_filter_target_column_id', $parent_pivot_column->id);
-                        $custom_form_column->save();
-                    }
+                foreach ($columns as $column) {
+                    $custom_column = CustomColumn::create([
+                        'custom_table_id' => $custom_table->id,
+                        'column_name' => $column['column_name'],
+                        'column_view_name' => $column['column_name'],
+                        'column_type' => $column['column_type'],
+                        'options' => $column['options'],
+                    ]);
+                    $custom_columns[] = $custom_column;
                 }
+            },
+            'createValueCallback' => function ($custom_value) {
+            }
+        ]);
+        $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $pivot_table]);
+
+        // select_relation filter in form column
+        $selectRelations = [
+            ['parent' => 'organization', 'child' => 'user_relation_filter'],
+            ['parent' => 'organization', 'child' => 'user_relation_filter_ajax'],
+            ['parent' => 'organization', 'child' => 'user_relation_filter_view'],
+            ['parent' => 'organization', 'child' => 'user_relation_filter_ajax_view'],
+            ['parent' => 'organization_multi', 'child' => 'user_relation_filter_multi'],
+            ['parent' => 'organization_multi', 'child' => 'user_relation_filter_multi_ajax'],
+        ];
+        foreach ($selectRelations as $selectRelation) {
+            $this->createRelationFilter($selectRelation, $pivot_table);
+        }
+    }
+
+    /**
+     * Create relation filter to custom form column
+     *
+     * @param array $selectRelation 'parent' and 'child' array
+     * @param CustomTable $custom_table
+     * @return void
+     */
+    protected function createRelationFilter($selectRelation, $custom_table){
+        // append pivot table's relation filter
+        $custom_forms = $custom_table->custom_forms;
+        foreach ($custom_forms as $custom_form) {
+            $custom_form_columns = $custom_form->custom_form_columns;
+            foreach ($custom_form_columns as $custom_form_column) {
+                if ($custom_form_column->form_column_type != Enums\FormColumnType::COLUMN) {
+                    continue;
+                }
+
+                $form_custom_column = $custom_form_column->custom_column_cache;
+                if (!isset($form_custom_column)) {
+                    continue;
+                }
+
+                if ($form_custom_column->column_name != $selectRelation['child']) {
+                    continue;
+                }
+
+                // search 'parent' column
+                $parent_pivot_column = $custom_table->custom_columns_cache->first(function ($custom_column) use ($selectRelation) {
+                    return $custom_column->column_name == $selectRelation['parent'];
+                });
+                if (!isset($parent_pivot_column)) {
+                    continue;
+                }
+
+                $custom_form_column->setOption('relation_filter_target_column_id', $parent_pivot_column->id);
+                $custom_form_column->save();
             }
         }
     }
@@ -358,6 +430,26 @@ class TestDataSeeder extends Seeder
 
     protected function createTables($users, $menu)
     {
+        // create user view ----------------------------------------------------
+        $custom_table_user = CustomTable::getEloquent(SystemTableName::USER);
+        $custom_view = $this->createCustomView($custom_table_user, ViewType::SYSTEM, ViewKindType::DEFAULT, $custom_table_user->table_name . '-view-dev', []);
+        $order = 1;
+        $this->createSystemViewColumn($custom_view->id, $custom_table_user->id, $order++);
+
+        foreach ($custom_table_user->custom_columns as $custom_column) {
+            $this->createViewColumn($custom_view->id, $custom_table_user->id, $custom_column->id, $order++);
+            if ($custom_column->column_name == 'user_code') {
+                $this->createCustomViewFilter(
+                    $custom_view->id,
+                    ConditionType::COLUMN,
+                    $custom_table_user->id,
+                    $custom_column->id,
+                    FilterOption::LIKE,
+                    'dev'
+                );
+            }
+        }
+
         // create test table
         $permissions = [
             Permission::CUSTOM_VALUE_EDIT_ALL,
@@ -637,12 +729,7 @@ class TestDataSeeder extends Seeder
     protected function createView($custom_table, $custom_columns)
     {
         ///// create AllData view
-        $custom_view = new CustomView;
-        $custom_view->custom_table_id = $custom_table->id;
-        $custom_view->view_view_name = $custom_table->table_name . '-view-all';
-        $custom_view->view_type = ViewType::SYSTEM;
-        $custom_view->view_kind_type = ViewKindType::ALLDATA;
-        $custom_view->save();
+        $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::ALLDATA, $custom_table->table_name . '-view-all', []);
         $order = 1;
         
         $this->createSystemViewColumn($custom_view->id, $custom_table->id, $order++);
@@ -654,13 +741,7 @@ class TestDataSeeder extends Seeder
         // create andor
         foreach (['and', 'or'] as $join_type) {
             // create view
-            $custom_view = new CustomView;
-            $custom_view->custom_table_id = $custom_table->id;
-            $custom_view->view_view_name = $custom_table->table_name . '-view-' . $join_type;
-            $custom_view->view_type = ViewType::SYSTEM;
-            $custom_view->view_kind_type = ViewKindType::DEFAULT;
-            $custom_view->options = ['condition_join' => $join_type];
-            $custom_view->save();
+            $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::DEFAULT, $custom_table->table_name . '-view-' . $join_type, ['condition_join' => $join_type]);
             $order = 1;
 
             $this->createSystemViewColumn($custom_view->id, $custom_table->id, $order++);
@@ -701,7 +782,35 @@ class TestDataSeeder extends Seeder
             }
         }
 
-        // workflow view
+        // create simple 'odd_even' is 'odd' filter
+        // create view
+        $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::DEFAULT, $custom_table->table_name . '-view-odd', ['condition_join' => $join_type]);
+        $order = 1;
+        $this->createSystemViewColumn($custom_view->id, $custom_table->id, $order++);
+
+        foreach ($custom_columns as $custom_column) {
+            $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $order++);
+            if ($custom_column->column_view_name == 'odd_even') {
+                $this->createCustomViewFilter(
+                    $custom_view->id,
+                    ConditionType::COLUMN,
+                    $custom_table->id,
+                    $custom_column->id,
+                    FilterOption::EQ,
+                    'odd'
+                );
+            }
+        }
+    }
+
+    protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = []){
+        return CustomView::create([
+            'custom_table_id' => $custom_table->id,
+            'view_view_name' => $view_view_name,
+            'view_type' => $view_type,
+            'view_kind_type' => $view_kind_type,
+            'options' => $options,
+        ]);
     }
 
     protected function createCustomViewFilter($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $view_filter_condition, $view_filter_condition_value_text)

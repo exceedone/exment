@@ -176,6 +176,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
         return CustomTable::getEloquent($this->getOption('select_target_table'));
     }
+    public function getSelectTargetViewAttribute()
+    {
+        return CustomView::getEloquent($this->getOption('select_target_view'));
+    }
 
     public function getRequiredAttribute()
     {

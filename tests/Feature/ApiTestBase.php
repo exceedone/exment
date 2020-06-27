@@ -42,8 +42,7 @@ abstract class ApiTestBase extends TestCase
      * @return void
      */
     protected function getPasswordToken($user_code, $password, $scope = []){
-        System::clearCache();
-        \Exceedone\Exment\Middleware\Morph::defineMorphMap();
+        $this->initAllTest();
         list($client_id, $client_secret) = $this->getClientIdAndSecret();
         
         if(\is_nullorempty($scope)){
@@ -66,8 +65,7 @@ abstract class ApiTestBase extends TestCase
      * @return void
      */
     protected function getApiKey($scope = []){
-        System::clearCache();
-        \Exceedone\Exment\Middleware\Morph::defineMorphMap();
+        $this->initAllTest();
         list($client_id, $client_secret, $api_key) = $this->getClientIdAndSecretAndKey();
         
         if(\is_nullorempty($scope)){
