@@ -799,6 +799,10 @@ if (!function_exists('toArray')) {
             return $value->toArray();
         }
 
+        if ($value instanceof \Illuminate\Database\Eloquent\Model) {
+            return $value->toArray();
+        }
+
         return (array)$value;
     }
 }
