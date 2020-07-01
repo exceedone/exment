@@ -192,10 +192,10 @@ EOT;
             // search using column
             $result = array_get($table, 'custom_columns')->first(function ($custom_column) {
                 // this column is search_enabled, add array.
-                if (!$custom_column->index_enabled) {
-                    return false;
+                if (boolval($custom_column->getOption('freeword_search'))) {
+                    return true;
                 }
-                return true;
+                return false;
             });
             if (!is_null($result)) {
                 $results[] = $table;

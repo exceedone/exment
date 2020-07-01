@@ -155,7 +155,10 @@ class PatchDataCommand extends Command
             case 'clear_form_column_relation':
                 $this->clearFormColumnRelation();
                 return;
-        }
+            case 'patch_freeword_search':
+                $this->setFreewordSearchOption();
+                return;
+            }
 
         $this->error('patch name not found.');
     }
@@ -252,6 +255,22 @@ class PatchDataCommand extends Command
 
             \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
             \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
+        }
+    }
+    
+    /**
+     * set freeword_search option true, if index-column
+     *
+     * @return void
+     */
+    protected function setFreewordSearchOption()
+    {
+        // get index columns
+        $index_custom_columns = CustomColumn::indexEnabled()->get();
+        
+        foreach ($index_custom_columns as  $index_custom_column) {
+            $index_custom_column->setOption('freeword_search', '1');
+            $index_custom_column->save();
         }
     }
     

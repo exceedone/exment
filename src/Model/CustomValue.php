@@ -1242,7 +1242,7 @@ abstract class CustomValue extends ModelBase
 
         // if selected target column,
         if (is_null($searchColumns)) {
-            $searchColumns = $this->custom_table->getSearchEnabledColumns();
+            $searchColumns = $this->custom_table->getFreewordSearchColumns();
         }
 
         if (!isset($searchColumns) || count($searchColumns) == 0) {

@@ -222,7 +222,11 @@ class CustomColumnController extends AdminControllerTableBase
                     new Validator\CustomColumnIndexCountRule($this->custom_table, $id),
                     new Validator\CustomColumnUsingIndexRule($id),
                 ])
+                ->attribute(['data-filtertrigger' =>true])
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
+            $form->switchbool('freeword_search', exmtrans("custom_column.options.freeword_search"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_index_enabled', 'value' => '1'])])
+                ->help(exmtrans("custom_column.help.freeword_search"));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
             $form->switchbool('init_only', exmtrans("custom_column.options.init_only"))

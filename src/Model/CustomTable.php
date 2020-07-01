@@ -1401,6 +1401,24 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Get freeword-search columns.
+     */
+    public function getFreewordSearchColumns()
+    {
+        return CustomColumn::allRecords(function ($custom_column) {
+            if ($custom_column->custom_table_id != $this->id) {
+                return false;
+            }
+
+            if (!boolval($custom_column->getOption('freeword_search'))) {
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    /**
      * Create Table on Database.
      *
      * @return void

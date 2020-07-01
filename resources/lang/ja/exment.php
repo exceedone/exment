@@ -1013,6 +1013,7 @@ return [
         'options' => [
             'header' => '詳細オプション',
             'index_enabled' => '検索インデックス',
+            'freeword_search' => 'フリーワード検索対象',
             'unique' => 'ユニーク(一意)',
             'init_only' => '1度のみ入力',
             'login_user_default' => '初期値をログインユーザーにする',
@@ -1084,6 +1085,7 @@ return [
         ],
         'help' => [
             'index_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+            'freeword_search' => 'YESにすることで、フリーワード検索を行う際、対象の列になります。',
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
             'init_only' => 'YESにすることで、1回だけ値を入力可能になります。保存後は、読み取り専用で表示されます。',
             'default' => '新規登録時の、項目の初期値です。',
