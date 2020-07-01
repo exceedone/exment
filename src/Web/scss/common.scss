@@ -52,10 +52,6 @@
     margin-left: 1px;
 }
 
-.text-space-margin{
-    margin-right: 0.5em;;
-}
-
 @for $i from 1 through 10 {
     .w-#{$i * 10} {
         width: $i * 10% !important;

@@ -974,7 +974,7 @@ return [
             'compare_column2_id' => '比較列(B)',
             'compare_type' => '条件',
 
-            'share_settings' => 'データ共有設定',
+            'share_settings' => 'データ自動共有設定',
             'share_trigger_type' => 'トリガー',
             'share_column_id' => '対象列',
             'share_permission' => '対象の権限',

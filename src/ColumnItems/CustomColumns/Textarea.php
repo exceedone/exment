@@ -18,7 +18,7 @@ class Textarea extends CustomItem
         }
 
         // replace space to tag
-        return preg_replace('/ /', '<span class="text-space-margin"></span>', $text);
+        return preg_replace('/ /', '<span style="margin-right: 0.5em;"></span>', $text);
     }
     protected function getAdminFieldClass()
     {
