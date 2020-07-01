@@ -1504,6 +1504,40 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Get all accessible users on this table. (only get id, consider performance)
+     * *Not check "loginuser"'s permission. 
+     */
+    public function getAccessibleUserIds()
+    {
+        return $this->getAccessibleUserOrganizationIds(SystemTableName::USER);
+    }
+
+    /**
+     * Get all accessible organizations on this table. (only get id, consider performance)
+     * *Not check "loginuser"'s permission.
+     */
+    public function getAccessibleOrganizationIds()
+    {
+        return $this->getAccessibleUserOrganizationIds(SystemTableName::ORGANIZATION);
+    }
+
+    /**
+     * Get all accessible organizations. (only get id, consider performance)
+     */
+    protected function getAccessibleUserOrganizationIds($target_table)
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE, $target_table, $this->table_name);
+        return System::requestSession($key, function() use($target_table){
+            // $target_table : user or org
+            $table = CustomTable::getEloquent($target_table);
+            $query = $table->getValueModel()->query();
+            $table->filterDisplayTable($query, $this);
+
+            return $query->select(['id'])->pluck('id');
+        });
+    }
+
+    /**
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
      *

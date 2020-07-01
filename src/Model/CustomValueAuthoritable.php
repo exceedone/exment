@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\SharePermission;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
 
@@ -127,6 +128,11 @@ class CustomValueAuthoritable extends ModelBase
                 continue;
             }
 
+            // if not has permission for accessible, continue;
+            if(!static::hasPermssionAccessible($custom_table, $related_id, $related_type)){
+                continue;
+            }
+
             self::firstOrCreate([
                 'parent_id' => $custom_value->id,
                 'parent_type' => $table_name,
@@ -135,6 +141,20 @@ class CustomValueAuthoritable extends ModelBase
                 'authoritable_target_id' => $related_id,
             ]);
         }
+    }
+
+    /**
+     * Check $related_id has permission for access $custom_table
+     *
+     * @param CustomTable $custom_table
+     * @param string|int $related_id target user or org id
+     * @param string $related_type
+     * @return boolean
+     */
+    protected static function hasPermssionAccessible($custom_table, $related_id, $related_type){
+        $accessibleIds = ($related_type == ColumnType::ORGANIZATION ? $custom_table->getAccessibleOrganizationIds() : $custom_table->getAccessibleUserIds());
+
+        return $accessibleIds->contains($related_id);
     }
 
     /**
