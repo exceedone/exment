@@ -15,14 +15,6 @@ class CustomValueAuthoritable extends ModelBase
 {
     use Traits\DataShareTrait;
 
-    public function getCustomTableCacheAttribute(){
-        return CustomTable::getEloquent($this->parent_type);
-    }
-
-    public function getCustomValueAttribute(){
-        return $this->custom_table_cache->getValueModel($this->parent_id);
-    }
-
     public function getAuthoritableUserOrgAttribute(){
         return CustomTable::getEloquent($this->authoritable_user_org_type)->getValueModel($this->authoritable_target_id);
     }
@@ -145,7 +137,7 @@ class CustomValueAuthoritable extends ModelBase
                 continue;
             }
 
-            static::firstOrCreate([
+            $model = static::firstOrNew([
                 'parent_id' => $custom_value->id,
                 'parent_type' => $table_name,
                 'authoritable_type' => $is_edit ? Permission::CUSTOM_VALUE_EDIT: Permission::CUSTOM_VALUE_VIEW,
@@ -153,6 +145,10 @@ class CustomValueAuthoritable extends ModelBase
                 'authoritable_target_id' => $related_id,
             ]);
 
+            if(!isset($model->id)){
+                $model->save();
+                static::notifyUser($custom_value, collect([$model->authoritable_user_org]));
+            }
         }
     }
 
@@ -408,19 +404,8 @@ class CustomValueAuthoritable extends ModelBase
      * @return void
      */
     protected static function notifyUser($custom_value, $shareTargets){
-        // loop for $notifies
         foreach ($custom_value->custom_table->notifies as $notify) {
             $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE, ['targetUserOrgs' => $shareTargets]);
         }
     }
-    
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::created(function ($model) {
-            static::notifyUser($model->custom_value, collect([$model->authoritable_user_org]));
-        });
-    }
-
 }

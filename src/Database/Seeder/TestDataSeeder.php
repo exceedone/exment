@@ -267,13 +267,13 @@ class TestDataSeeder extends Seeder
                 'createColumnCallback' => function ($custom_table, &$custom_columns) use ($parent_table, $child_table) {
                     // creating relation column
                     $columns = [
-                        ['column_name' => 'child', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id]],
-                        ['column_name' => 'parent', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $parent_table->id]],
-                        ['column_name' => 'child_relation_filter', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $child_table->id]],
-                        ['column_name' => 'child_relation_filter_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'select_target_table' => $child_table->id]],
-                        ['column_name' => 'parent_multi', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $parent_table->id]],
-                        ['column_name' => 'child_relation_filter_multi', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $child_table->id]],
-                        ['column_name' => 'child_relation_filter_multi_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'child', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'parent', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $parent_table->id]],
+                        ['column_name' => 'child_relation_filter', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'child_relation_filter_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'freeword_search' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'parent_multi', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'multiple_enabled' => '1', 'select_target_table' => $parent_table->id]],
+                        ['column_name' => 'child_relation_filter_multi', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'freeword_search' => '1', 'multiple_enabled' => '1', 'select_target_table' => $child_table->id]],
+                        ['column_name' => 'child_relation_filter_multi_ajax', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['select_load_ajax' => 1, 'index_enabled' => '1', 'freeword_search' => '1', 'multiple_enabled' => '1', 'select_target_table' => $child_table->id]],
                     ];
 
                     foreach ($columns as $column) {
@@ -443,10 +443,10 @@ class TestDataSeeder extends Seeder
 
             $columns = [
                 ['column_name' => 'text', 'column_view_name' => 'text', 'column_type' => ColumnType::TEXT, 'options' => ['required' => '1']],
-                ['column_name' => 'user', 'column_view_name' => 'user', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
-                ['column_name' => 'index_text', 'column_view_name' => 'index_text', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1'], 'label' => true],
-                ['column_name' => 'odd_even', 'column_view_name' => 'odd_even', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1']],
-                ['column_name' => 'multiples_of_3', 'column_view_name' => 'multiples_of_3', 'column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
+                ['column_name' => 'user', 'column_view_name' => 'user', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
+                ['column_name' => 'index_text', 'column_view_name' => 'index_text', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1'], 'label' => true],
+                ['column_name' => 'odd_even', 'column_view_name' => 'odd_even', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
+                ['column_name' => 'multiples_of_3', 'column_view_name' => 'multiples_of_3', 'column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
                 ['column_name' => 'file', 'column_view_name' => 'file', 'column_type' => ColumnType::FILE, 'options' => []],
                 ['column_name' => 'date', 'column_view_name' => 'date', 'column_type' => ColumnType::DATE, 'options' => []],
                 ['column_name' => 'init_text', 'column_view_name' => 'init_text', 'column_type' => ColumnType::TEXT, 'options' => ['init_only' => '1']],

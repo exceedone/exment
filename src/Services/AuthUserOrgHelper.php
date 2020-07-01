@@ -369,13 +369,13 @@ class AuthUserOrgHelper
         }
 
         $results[] = $org;
-        if (JoinedOrgFilterType::isGetUpper($filterType) && array_has($org, 'parents')) {
+        if (JoinedOrgFilterType::isGetDowner($filterType) && array_has($org, 'parents')) {
             foreach ($org['parents'] as $parent) {
                 $results[] = $parent;
             }
         }
 
-        if (JoinedOrgFilterType::isGetDowner($filterType) && array_has($org, 'children')) {
+        if (JoinedOrgFilterType::isGetUpper($filterType) && array_has($org, 'children')) {
             foreach ($org['children'] as $child) {
                 $results[] = $child;
             }

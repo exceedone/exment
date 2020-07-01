@@ -1426,7 +1426,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return false;
             }
 
-            if (!boolval($custom_column->getOption('freeword_search'))) {
+            if (!boolval($custom_column->index_enabled) || !boolval($custom_column->getOption('freeword_search'))) {
                 return false;
             }
 

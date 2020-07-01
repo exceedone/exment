@@ -1046,6 +1046,7 @@ return [
         'options' => [
             'header' => 'Detail Option',
             'index_enabled' => 'Index Enabled',
+            'freeword_search' => 'Freeword Search Target',
             'unique' => 'Unique',
             'init_only' => 'Input Only Once',
             'login_user_default' => 'Set initial value to login user',
@@ -1119,6 +1120,7 @@ return [
         'help' => [
             'column_type' => 'Please select this column type. When entering data, the form changes according to the column type.',
             'index_enabled' => 'If set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>',
+            'freeword_search' => 'If set to YES, it will be the target column when performing a free word search.',
             'unique' => 'If you do not want to register the same value with other data in duplicate, please set it to YES. * For data with a large number of cases, we recommend setting "Search index" to YES.',
             'init_only' => 'If set to YES, the value can be entered only once. After saving, it is displayed as read-only.',
             'default' => 'The initial value of the item at the time of new registration.',
