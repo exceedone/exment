@@ -8,6 +8,9 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\JoinedMultiUserFilterType;
+use Exceedone\Exment\Enums\Login2FactorProviderType;
+use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -163,6 +166,14 @@ class SystemController extends AdminControllerBase
                 ->default(CustomValueAutoShare::USER_ONLY)
                 ;
         }
+
+        $manualUrl = getManualUrl('multiuser');
+        $form->select('filter_multi_user', exmtrans(boolval(System::organization_available()) ? "system.filter_multi_orguser" : "system.filter_multi_user"))
+            ->help(exmtrans("system.help.filter_multi_orguser") . exmtrans("common.help.more_help_here", $manualUrl))
+            ->options(JoinedMultiUserFilterType::getOptions())
+            ->config('allowClear', false)
+            ->default(JoinedMultiUserFilterType::NOT_FILTER)
+        ;
 
         // use mail setting
         if (!boolval(config('exment.mail_setting_env_force', false))) {

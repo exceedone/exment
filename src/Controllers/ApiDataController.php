@@ -163,12 +163,14 @@ class ApiDataController extends AdminControllerTableBase
         // get custom_view
         $custom_view = CustomView::getEloquent(array_get($expand, 'target_view_id'));
 
+        // get target column if exists
+        $column_id = array_get($expand, 'column_id');
+        $column = CustomColumn::getEloquent($column_id);
+
         ///// If set linkage, filter relation.
         // get children table id
         $relationColumn = null;
         if (array_key_value_exists('linkage_column_id', $expand)) {
-            $column_id = array_get($expand, 'column_id');
-            $column = CustomColumn::getEloquent($column_id);
 
             $linkage_column_id = array_get($expand, 'linkage_column_id');
             $linkage_column = CustomColumn::getEloquent($linkage_column_id);
@@ -191,6 +193,7 @@ class ApiDataController extends AdminControllerTableBase
             'relationColumn' => $relationColumn,
             'relationColumnValue' => $linkage_value_id ?? null,
             'display_table' => $request->get('display_table_id'),
+            'all' => $column ? $column->isGetAllUserOrganization() : false,
         ]);
         
         return $this->modifyAfterGetValue($request, $paginator, [
@@ -698,6 +701,7 @@ class ApiDataController extends AdminControllerTableBase
             'searchColumns' => $searchColumns ?? null,
             'target_view' => CustomView::getEloquent($child_column->getOption('select_target_view')),
             'display_table' => $request->get('display_table_id'),
+            'all' => $child_column->isGetAllUserOrganization(),
         ];
         $datalist = $this->custom_table->searchRelationValue($searchType, $q, $child_select_table, $options);
         return collect($datalist)->map(function ($data) {

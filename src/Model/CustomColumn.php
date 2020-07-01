@@ -384,11 +384,20 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     /**
      * Get where query. index name or value->XXXX
      *
-     * @return void
+     * @return string database query key.
      */
     public function getQueryKey()
     {
         return $this->index_enabled ? $this->getIndexColumnName() : 'value->' . $this->column_name;
+    }
+
+    /**
+     * Is get all user or org. Not filtering display table.
+     *
+     * @return boolean
+     */
+    public function isGetAllUserOrganization(){
+        return ColumnType::isUserOrganization($this->column_type) && boolval($this->getOption('showing_all_user_organizations'));
     }
 
     /**

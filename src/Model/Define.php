@@ -88,6 +88,7 @@ class Define
         'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'advanced'],
         'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
         'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
+        'filter_multi_user' => ['type' => 'int', 'default' => '-1', 'group' => 'advanced'],
         
         // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
@@ -167,6 +168,7 @@ class Define
     public const SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK = "worlflow_status_check";
     public const SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE = "import_key_value_%s_%s_%s";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_TREE = "organization_tree";
+    public const SYSTEM_KEY_SESSION_GRID_AUTHORITABLE = "grid_authoritable_%s";
 
     /**
      * MENU SYSTEM DIFINITION

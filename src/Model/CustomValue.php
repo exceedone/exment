@@ -665,6 +665,33 @@ abstract class CustomValue extends ModelBase
      */
     public function getAuthoritable($related_type)
     {
+        // check request session for grid.
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_GRID_AUTHORITABLE, $this->custom_table->id);
+        $reqSessions = System::requestSession($key);
+
+        // If already getting, filter value.
+        if(!is_null($reqSessions)){
+            return $reqSessions->filter(function($value) use($related_type){
+                $value = (array)$value;
+                if ($value['authoritable_user_org_type'] != $related_type) {
+                    return false;
+                }
+                if ($value['parent_id'] != $this->id) {
+                    return false;
+                }
+
+                // check has user or org id
+                if ($related_type == SystemTableName::USER) {
+                    return $value['authoritable_target_id'] == \Exment::user()->getUserId();
+                } 
+                elseif ($related_type == SystemTableName::ORGANIZATION) {
+                    $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                    return in_array($value['authoritable_target_id'], \Exment::user()->getOrganizationIds($enum));
+                }
+            });
+        }
+
+        // if not get before, now get.
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
@@ -1150,7 +1177,7 @@ abstract class CustomValue extends ModelBase
                 
                 ///// if has display table, filter display table
                 if (isset($display_table)) {
-                    $this->custom_table->filterDisplayTable($query, $display_table);
+                    $this->custom_table->filterDisplayTable($query, $display_table, $options);
                 }
 
                 // set custom view's filter

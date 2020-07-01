@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -190,7 +191,17 @@ class CustomColumnController extends AdminControllerTableBase
             ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
         $form->select('column_type', exmtrans("custom_column.column_type"))
-        ->options(ColumnType::transArray("custom_column.column_type_options"))
+        ->help(exmtrans("custom_column.help.column_type"))
+        ->options(function() {
+            $arrays = collect(ColumnType::arrays())->filter(function ($arr) {
+                if (System::organization_available() || $arr != ColumnType::ORGANIZATION) {
+                    return true;
+                } else {
+                    return false;
+                }
+            })->toArray();
+            return getTransArray($arrays, "custom_column.column_type_options");
+        })
         ->attribute(['data-filtertrigger' =>true,
             'data-linkage' => json_encode([
                 'options_select_import_column_id' => [
@@ -416,7 +427,14 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.select_load_ajax", config('exment.select_table_limit_count', 100)))
                 ->default("0")
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
-            
+
+            // user organization
+            $form->switchbool('showing_all_user_organizations', exmtrans("custom_column.options.showing_all_user_organizations"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_USER_ORGANIZATION()])])
+                ->help(exmtrans("custom_column.help.showing_all_user_organizations"))
+                ->default('0');
+
+
             // yes/no ----------------------------
             $form->text('true_value', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_value"))
@@ -495,6 +513,7 @@ class CustomColumnController extends AdminControllerTableBase
             // image, file, select
             // enable multiple
             $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
+                ->help(exmtrans("custom_column.help.multiple_enabled"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
         })->disableHeader();
 

@@ -3,13 +3,16 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\JoinedMultiUserFilterType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Model\CustomValueModelScope;
 
 /**
  * Role, user , organization helper
@@ -61,9 +64,9 @@ class AuthUserOrgHelper
     }
     
     /**
-     * get users who has roles.
+     * get users who has roles for target table.
      * and get users joined parent or children organizations
-     * this function is called from custom value role
+     * this function is called from custom value display's role
      */
     // getRoleUserOrgQuery
     public static function getRoleUserQueryTable($target_table, $tablePermission = null, $builder = null)
@@ -92,7 +95,8 @@ class AuthUserOrgHelper
                     $organizations = static::getRoleOrganizationQuery($target_table)
                         ->get() ?? [];
                     foreach ($organizations as $organization) {
-                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                        // get JoinedOrgFilterType. this method is for org_joined_type_role_group. get users for has role groups.
+                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ONLY_JOIN);
                         $relatedOrgs = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel()->with('users')->find($organization->getOrganizationIds($enum));
 
                         foreach ($relatedOrgs as $related_organization) {
@@ -287,7 +291,16 @@ class AuthUserOrgHelper
             $indexName = $modelname::getParentOrgIndexName();
 
             // get query
-            $orgs = $modelname::with('users')->get(['id', $indexName])->toArray();
+            $orgs = $modelname::with([
+                'users' => function ($query) {
+                        // pass aborting 
+                        return $query->withoutGlobalScope(CustomValueModelScope::class);
+                    }
+                ])
+                // pass aborting
+                ->withoutGlobalScopes([CustomValueModelScope::class])
+                ->get(['id', $indexName])->toArray();
+
             $baseOrgs = $orgs;
 
             if (is_nullorempty($orgs)) {
@@ -356,19 +369,76 @@ class AuthUserOrgHelper
         }
 
         $results[] = $org;
-        if (JoinedOrgFilterType::isGetDowner($filterType) && array_has($org, 'parents')) {
+        if (JoinedOrgFilterType::isGetUpper($filterType) && array_has($org, 'parents')) {
             foreach ($org['parents'] as $parent) {
                 $results[] = $parent;
             }
         }
 
-        if (JoinedOrgFilterType::isGetUpper($filterType) && array_has($org, 'children')) {
+        if (JoinedOrgFilterType::isGetDowner($filterType) && array_has($org, 'children')) {
             foreach ($org['children'] as $child) {
                 $results[] = $child;
             }
         }
     }
+
+    /**
+     * Filtering user. Only join. set by filter_multi_user.
+     *
+     * @param [type] $builder
+     * @param [type] $user
+     * @param [type] $db_table_name
+     * @return void
+     */
+    public static function filterUserOnlyJoin($builder, $user, $db_table_name){
+        $setting = System::filter_multi_user();
+        if ($setting == JoinedMultiUserFilterType::NOT_FILTER) {
+            return;
+        }
+
+        // if login user have FILTER_MULTIUSER_ALL, no filter
+        if (\Exment::user()->hasPermission(Permission::FILTER_MULTIUSER_ALL)) {
+            return;
+        }
+
+        $joinedOrgFilterType = JoinedOrgFilterType::getEnum($setting);
+
+        // First, get users org joined
+        $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+        $target_users = \DB::table($db_table_name_pivot)->whereIn('parent_id', $user->getOrganizationIds($joinedOrgFilterType))
+            ->get(['child_id'])->pluck('child_id');
+
+        $target_users = $target_users->merge($user->getUserId())->unique();
+        
+        // get only login user's organization user
+        $builder->whereIn("$db_table_name.id", $target_users->toArray());
+    }
     
+    /**
+     * Filtering user. Only join. set by filter_multi_user.
+     *
+     * @param [type] $builder
+     * @param [type] $user
+     * @param [type] $db_table_name
+     * @return void
+     */
+    public static function filterOrganizationOnlyJoin($builder, $user, $db_table_name){
+        $setting = System::filter_multi_user();
+        if ($setting == JoinedMultiUserFilterType::NOT_FILTER) {
+            return;
+        }
+
+        // if login user have FILTER_MULTIUSER_ALL, no filter
+        if (\Exment::user()->hasPermission(Permission::FILTER_MULTIUSER_ALL)) {
+            return;
+        }
+
+        $joinedOrgFilterType = JoinedOrgFilterType::getEnum($setting);
+
+        // get only login user's organization
+        $builder->whereIn("$db_table_name.id", $user->getOrganizationIds($joinedOrgFilterType));
+    }
+
     /**
      * Get User, org, role group form
      *
