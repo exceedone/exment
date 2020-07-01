@@ -15,6 +15,18 @@ class CustomValueAuthoritable extends ModelBase
 {
     use Traits\DataShareTrait;
 
+    public function getCustomTableCacheAttribute(){
+        return CustomTable::getEloquent($this->parent_type);
+    }
+
+    public function getCustomValueAttribute(){
+        return $this->custom_table_cache->getValueModel($this->parent_id);
+    }
+
+    public function getAuthoritableUserOrgAttribute(){
+        return CustomTable::getEloquent($this->authoritable_user_org_type)->getValueModel($this->authoritable_target_id);
+    }
+
     /**
      * Set Custom Value Authoritable after custom value save
      *
@@ -133,13 +145,14 @@ class CustomValueAuthoritable extends ModelBase
                 continue;
             }
 
-            self::firstOrCreate([
+            static::firstOrCreate([
                 'parent_id' => $custom_value->id,
                 'parent_type' => $table_name,
-                'authoritable_type' => $is_edit? Permission::CUSTOM_VALUE_EDIT: Permission::CUSTOM_VALUE_VIEW,
+                'authoritable_type' => $is_edit ? Permission::CUSTOM_VALUE_EDIT: Permission::CUSTOM_VALUE_VIEW,
                 'authoritable_user_org_type' => $related_type,
                 'authoritable_target_id' => $related_id,
             ]);
+
         }
     }
 
@@ -285,10 +298,7 @@ class CustomValueAuthoritable extends ModelBase
                 return CustomTable::getEloquent($share['authoritable_user_org_type'])->getValueModel($share['authoritable_target_id']);
             });
             
-            // loop for $notifies
-            foreach ($custom_value->custom_table->notifies as $notify) {
-                $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE, ['targetUserOrgs' => $shares]);
-            }
+            static::notifyUser($custom_value, $shares);
 
             return getAjaxResponse([
                 'result'  => true,
@@ -389,4 +399,28 @@ class CustomValueAuthoritable extends ModelBase
 
         return false;
     }
+
+    /**
+     * Notify target user.
+     *
+     * @param CustomValue $custom_value shared target custom_value.
+     * @param Collection $shareTargets user and organization notify targets collection
+     * @return void
+     */
+    protected static function notifyUser($custom_value, $shareTargets){
+        // loop for $notifies
+        foreach ($custom_value->custom_table->notifies as $notify) {
+            $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE, ['targetUserOrgs' => $shareTargets]);
+        }
+    }
+    
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($model) {
+            static::notifyUser($model->custom_value, collect([$model->authoritable_user_org]));
+        });
+    }
+
 }
