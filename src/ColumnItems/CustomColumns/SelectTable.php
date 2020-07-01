@@ -175,21 +175,11 @@ class SelectTable extends CustomItem
         // add view info
         $linkage = $this->getLinkage($form_column_options);
         $callback = $this->getRelationFilterCallback($linkage);
+        $selectOption = $this->getSelectFieldOptions($callback);
 
-        $selectOption = [
-            'custom_column' => $this->custom_column,
-            'display_table' => $this->custom_column->custom_table_cache,
-            'filterCallback' => $callback,
-            'target_view' => $this->target_view,
-            'target_id' => isset($this->custom_value) ? $this->custom_value->id : null,
-            'all' => $this->custom_column->isGetAllUserOrganization(),
-        ];
-
-        $field->options(function ($value, $field) use ($selectOption) {
-            $selectOption['selected_value'] = $field->getOld() ?? $value;
-
-            // get DB option value
-            return $this->target_table->getSelectOptions($selectOption);
+        $thisObj = $this;
+        $field->options(function ($value, $field) use ($thisObj, $selectOption) {
+            return $thisObj->getSelectOptions($value, $field, $selectOption);
         });
 
         $ajax = $this->target_table->getOptionAjaxUrl($selectOption);
@@ -212,6 +202,35 @@ class SelectTable extends CustomItem
                 'data-add-select2-expand' => json_encode($select2_expand),
             ]);
         }
+    }
+
+    public function getSelectOptions($value, $field, array $selectOption = [])
+    {
+        if(empty($selectOption)){
+            $selectOption = $this->getSelectFieldOptions();
+        }
+        $selectOption['selected_value'] = $field->getOld() ?? $value;
+
+        // get DB option value
+        return $this->target_table->getSelectOptions($selectOption);
+    }
+
+    /**
+     * Get select field option, for getting selectitem, and ajax.
+     *
+     * @param [type] $callback
+     * @return void
+     */
+    protected function getSelectFieldOptions($callback = null)
+    {
+        return [
+            'custom_column' => $this->custom_column,
+            'display_table' => $this->custom_column->custom_table_cache,
+            'filterCallback' => $callback,
+            'target_view' => $this->target_view,
+            'target_id' => isset($this->custom_value) ? $this->custom_value->id : null,
+            'all' => $this->custom_column->isGetAllUserOrganization(),
+        ];
     }
 
     /**
