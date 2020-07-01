@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -191,7 +192,16 @@ class CustomColumnController extends AdminControllerTableBase
             ->help(exmtrans('common.help.view_name'));
         $form->select('column_type', exmtrans("custom_column.column_type"))
         ->help(exmtrans("custom_column.help.column_type"))
-        ->options(ColumnType::transArray("custom_column.column_type_options"))
+        ->options(function() {
+            $arrays = collect(ColumnType::arrays())->filter(function ($arr) {
+                if (System::organization_available() || $arr != ColumnType::ORGANIZATION) {
+                    return true;
+                } else {
+                    return false;
+                }
+            })->toArray();
+            return getTransArray($arrays, "custom_column.column_type_options");
+        })
         ->attribute(['data-filtertrigger' =>true,
             'data-linkage' => json_encode([
                 'options_select_import_column_id' => [
