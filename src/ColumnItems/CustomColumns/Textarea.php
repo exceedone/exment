@@ -11,8 +11,14 @@ class Textarea extends CustomItem
     {
         $text = $this->text();
         $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($text) : $text;
-        
-        return  replaceBreak($text);
+        $text = replaceBreak($text);
+
+        if(!config('exment.textarea_space_tag', true)){
+            return $text;
+        }
+
+        // replace space to tag
+        return preg_replace('/ /', '<span class="text-space-margin"></span>', $text);
     }
     protected function getAdminFieldClass()
     {
