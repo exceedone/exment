@@ -43,7 +43,7 @@ abstract class FormOtherItem implements ItemInterface
      */
     public function name()
     {
-        return null;
+        return make_uuid();
     }
 
     /**

@@ -139,6 +139,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ->where('multisetting_type', MultisettingType::COMPARE_COLUMNS);
     }
 
+    public function share_settings()
+    {
+        return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
+            ->where('multisetting_type', MultisettingType::SHARE_SETTINGS);
+    }
+
     /**
      * Whether this model disables delete
      *
@@ -2047,6 +2053,37 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return $options;
+    }
+
+    /**
+     * get user and organization columns select options.
+     *
+     */
+    public function getUserOrgColumnsSelectOptions($options = [])
+    {
+        $options = array_merge(
+            [
+                'append_table' => false,
+                'index_enabled_only' => true,
+            ],
+            $options
+        );
+
+        $results = [];
+
+        ///// get table columns
+        $custom_columns = $this->custom_columns_cache;
+        foreach ($custom_columns as $option) {
+            if ($options['index_enabled_only'] && !$option->index_enabled) {
+                continue;
+            }
+            $column_type = array_get($option, 'column_type');
+            if (ColumnType::isUserOrganization($column_type)) {
+                $results[static::getOptionKey(array_get($option, 'id'), $options['append_table'], $this->id)] = array_get($option, 'column_view_name');
+            }
+        }
+
+        return $results;
     }
 
     /**

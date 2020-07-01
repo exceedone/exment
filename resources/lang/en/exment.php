@@ -967,12 +967,18 @@ return [
             'compare_column2_id' => 'Compare column(B)',
             'compare_type' => 'Condition',
 
+            'share_settings' => 'Data Share Setting',
+            'share_trigger_type' => 'Trigger',
+            'share_column_id' => 'Target Column',
+            'share_permission' => 'Target Permission',
+
             'help' => [
                 'table_labels' => 'When selecting data, set the wording column to be displayed on the screen. Display as heading items in order from the top.<br/>Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
                 'uniques' => 'Set a composite unique key. If all the values ​​in these columns match the registered values, an error will occur when saving the data.',
                 'compare_columns' => 'Compares two columns when saving data. You can save only when the column value matches the set conditions.',
                 'table_label_format' => '(For advanced users) You can flexibly set the format to be displayed in the heading. Please refer to&nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp;for the parameter to display the value.* If you set a value to this item, "header display column setting" above will be disabled.',
                 'form_action_disable_flg' => 'The checked operation cannot be executed from the screen. Check this if you want to manage data only from the API or dashboard.',
+                'share_settings' => 'When saving the data, the data is automatically shared with the organization or user who is set in the data.',
             ],
             'form_action_options' => [
                 'create' => 'Create',
@@ -980,6 +986,14 @@ return [
                 'delete' => 'Delete',
                 'import' => 'Import',
                 'export' => 'Export',
+            ],
+            'share_trigger_type_options' => [
+                'create' => 'Created',
+                'update' => 'Updated',
+            ],
+            'share_permission_options' => [
+                'edit' => 'Edit',
+                'view' => 'Share',
             ],
             
             'filter_condition_compare_options' => [

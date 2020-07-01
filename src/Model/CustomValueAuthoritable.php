@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
+use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
 
@@ -63,6 +64,41 @@ class CustomValueAuthoritable extends ModelBase
                 'authoritable_target_id' => $belong_organization->id,
             ]);
         }
+    }
+
+    /**
+     * Set Custom Value Authoritable after custom value save
+     *
+     * @param [CustomValue] $custom_value
+     * @param [ShareTrigger] $share_trigger_type
+     * @return void
+     */
+    public static function setValueAuthoritableEx($custom_value, $share_trigger_type)
+    {
+        $custom_table = $custom_value->custom_table;
+
+        // create share target user or orgs
+        foreach ($custom_table->share_settings as $share_setting) {
+            foreach (stringToArray(array_get($share_setting, 'share_trigger_type')) as $t) {
+                if ($share_trigger_type != $t) {
+                    continue;
+                }
+
+                $share_permission = array_get($share_setting, 'share_permission');
+                $share_column = array_get($share_setting, 'share_column');
+                $target_ids = array_get($custom_value->value, $share_column->column_name);
+                $user_organizations = collect(stringToArray($target_ids))->map(function ($target_id) use ($share_column) {
+                    return [
+                    'related_id' => $target_id,
+                    'related_type' => $share_column->column_type,
+                ];
+                })->toArray();
+
+                // set Custom Value Authoritable
+                self::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $share_permission == SharePermission::EDIT);
+            }
+        }
+        
     }
 
     /**
