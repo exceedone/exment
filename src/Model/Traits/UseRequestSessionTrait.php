@@ -27,7 +27,7 @@ trait UseRequestSessionTrait
     /**
      * get first record. use system session
      */
-    protected static function firstRecord(Closure $filter = null, $isGetAll = true, $with = [])
+    public static function firstRecord(Closure $filter = null, $isGetAll = true, $with = [])
     {
         return static::_allRecords('requestSession', $filter, $isGetAll, $with, true);
     }
@@ -35,7 +35,7 @@ trait UseRequestSessionTrait
     /**
      * get first record. use cache
      */
-    protected static function firstRecordCache(Closure $filter = null, $isGetAll = true, $with = [])
+    public static function firstRecordCache(Closure $filter = null, $isGetAll = true, $with = [])
     {
         return static::_allRecords('cache', $filter, $isGetAll, $with, true);
     }

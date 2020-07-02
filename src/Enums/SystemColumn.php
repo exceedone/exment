@@ -2,6 +2,22 @@
 
 namespace Exceedone\Exment\Enums;
 
+/**
+ * System column info.
+ *
+ * @method static SystemColumn ID()
+ * @method static SystemColumn SUUID()
+ * @method static SystemColumn PARENT_ID()
+ * @method static SystemColumn PARENT_TYPE()
+ * @method static SystemColumn CREATED_AT()
+ * @method static SystemColumn UPDATED_AT()
+ * @method static SystemColumn DELETED_AT()
+ * @method static SystemColumn CREATED_USER()
+ * @method static SystemColumn UPDATED_USER()
+ * @method static SystemColumn DELETED_USER()
+ * @method static SystemColumn WORKFLOW_STATUS()
+ * @method static SystemColumn WORKFLOW_WORK_USERS()
+ */
 class SystemColumn extends EnumBase
 {
     use EnumOptionTrait;

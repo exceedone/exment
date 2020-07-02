@@ -568,7 +568,7 @@ class ApiDataController extends AdminControllerTableBase
             return [$columnItem->apiName() => $columnItem->apiDefinitions()];
         })->toArray();
         
-        $results = collect($bodies)->map(function ($body, $index) use ($apiNames, $apiDefinitions) {
+        $results = collect($bodies)->map(function ($body, $index) use ($apiNames) {
             return array_combine($apiNames, $body);
         });
 
@@ -1001,7 +1001,7 @@ class ApiDataController extends AdminControllerTableBase
      * ex. display: 4/1 - 4/30
      *
      * @param mixed $query
-     * @return void
+     * @return \Illuminate\Database\Query\Builder
      */
     protected function getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column)
     {
@@ -1241,7 +1241,7 @@ class ApiDataController extends AdminControllerTableBase
      * Get order by array from request
      *
      * @param Request $request
-     * @return void
+     * @return array offset 0 : target column name, 1 : 'asc' or 'desc'
      */
     protected function getOrderBy(Request $request)
     {

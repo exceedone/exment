@@ -1256,7 +1256,7 @@ abstract class CustomValue extends ModelBase
      *
      * @param string $q search text
      * @param array $options
-     * @return void
+     * @return array query option for search.
      */
     protected function getQueryOptions($q, $options = [])
     {
@@ -1309,7 +1309,7 @@ abstract class CustomValue extends ModelBase
      * Get mark and value for search
      *
      * @param bool $isLike
-     * @param search $q
+     * @param string $q search string
      * @return array
      */
     protected function getQueryMarkAndValue($isLike, $q, bool $relation)
@@ -1345,7 +1345,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Is locked by workflow
      *
-     * @return void
+     * @return bool is lock this data.
      */
     public function lockedWorkflow()
     {

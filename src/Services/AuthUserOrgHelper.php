@@ -3,6 +3,7 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\System;
@@ -33,6 +34,7 @@ class AuthUserOrgHelper
             return [];
         }
 
+        $target_ids = [];
         $all = false;
         if ($target_table->allUserAccessable()) {
             $all = true;
@@ -341,7 +343,7 @@ class AuthUserOrgHelper
 
     protected static function children(&$org, $orgs, $target, $indexName)
     {
-        $children = collect($orgs)->filter(function ($o) use ($org, $target, $indexName) {
+        $children = collect($orgs)->filter(function ($o) use ($target, $indexName) {
             if (!isset($o[$indexName])) {
                 return;
             }

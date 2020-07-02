@@ -370,7 +370,7 @@ EOT;
     /**
      * get chart color array.
      *
-     * @return chart color array
+     * @return array Chart color array
      */
     protected function getChartColor($datacnt)
     {

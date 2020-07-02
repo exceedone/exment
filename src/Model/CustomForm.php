@@ -67,7 +67,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
      * get default form using table
      *
      * @param mixed $tableObj table_name, object or id eic
-     * @return void
+     * @return CustomForm
      */
     public static function getDefault($tableObj)
     {

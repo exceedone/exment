@@ -38,7 +38,7 @@ class InstallSeeder extends Seeder
 
             $importer = new TemplateImportExport\TemplateImporter;
             $importer->importSystemTemplate();
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //DB::rollback();
             throw $exception;
         }

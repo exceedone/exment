@@ -355,7 +355,7 @@ class Permission
     /**
      * Check plugin's permission
      *
-     * @return void
+     * @return bool
      */
     protected function validatePluginPermission($endpoint)
     {
@@ -385,7 +385,7 @@ class Permission
     /**
      * Check custom value's permission
      *
-     * @return void
+     * @return boolean
      */
     protected function validateCustomValuePermission($endpoint)
     {

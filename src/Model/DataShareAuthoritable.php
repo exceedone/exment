@@ -39,7 +39,7 @@ class DataShareAuthoritable extends ModelBase
     /**
      * Get share target type
      *
-     * @return void
+     * @return ShareTargetType
      */
     public static function getTargetType($target_data)
     {
@@ -67,7 +67,7 @@ class DataShareAuthoritable extends ModelBase
     /**
      * Get share form
      *
-     * @return void
+     * @return ModalForm
      */
     public static function getShareDialogForm($target_data, $tableKey = null)
     {
@@ -136,7 +136,7 @@ class DataShareAuthoritable extends ModelBase
     /**
      * Set share form
      *
-     * @return void
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public static function saveShareDialogForm($target_data)
     {
@@ -217,7 +217,7 @@ class DataShareAuthoritable extends ModelBase
                 'result'  => true,
                 'toastr' => trans('admin.save_succeeded'),
             ]);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             \DB::rollback();
             throw $exception;

@@ -2,14 +2,21 @@
 
 namespace Exceedone\Exment\Storage\Disk;
 
-use Exceedone\Exment\Model\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Contracts\Filesystem\Filesystem;
 
 /**
  * Disk Service Item.
  */
 class DiskServiceItem
 {
+    /**
+     * Construct
+     *
+     * @param Filesystem $disk
+     * @param string $fileName
+     * @param string $dirName
+     */
     public function __construct($disk, $fileName, $dirName)
     {
         $this->disk = $disk;
@@ -33,6 +40,8 @@ class DiskServiceItem
 
     /**
      * Storage disk
+     * 
+     * @var Filesystem disk
      *
      */
     protected $disk;
@@ -62,7 +71,7 @@ class DiskServiceItem
     /**
      * return this disk
      *
-     * @return void
+     * @return Filesystem
      */
     public function disk()
     {

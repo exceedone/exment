@@ -5,6 +5,23 @@ namespace Exceedone\Exment\Enums;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginPublicDefault;
 
+/**
+ * Plugin Type.
+ *
+ * @method static PluginType TRIGGER()
+ * @method static PluginType PAGE()
+ * @method static PluginType API()
+ * @method static PluginType DOCUMENT()
+ * @method static PluginType BATCH()
+ * @method static PluginType DASHBOARD()
+ * @method static PluginType IMPORT()
+ * @method static PluginType SCRIPT()
+ * @method static PluginType STYLE()
+ * @method static PluginType VALIDATOR()
+ * @method static PluginType EXPORT()
+ * @method static PluginType BUTTON()
+ * @method static PluginType EVENT()
+ */
 class PluginType extends EnumBase
 {
     public const TRIGGER = '0';
@@ -88,7 +105,7 @@ class PluginType extends EnumBase
     /**
      * Use plugin with button
      *
-     * @return void
+     * @return array
      */
     public static function PLUGIN_TYPE_BUTTON()
     {
@@ -102,7 +119,7 @@ class PluginType extends EnumBase
     /**
      * Use plugin with event
      *
-     * @return void
+     * @return array
      */
     public static function PLUGIN_TYPE_EVENT()
     {
@@ -206,7 +223,7 @@ class PluginType extends EnumBase
      *
      * @param mixed $plugin_type
      * @param array $options
-     * @return void
+     * @return string
      */
     public static function getPluginClassShortName($plugin_type, $plugin, $options = [])
     {

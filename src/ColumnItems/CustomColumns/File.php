@@ -150,7 +150,7 @@ class File extends CustomItem
     /**
      * Get File Value. checking array
      *
-     * @return void
+     * @return string
      */
     protected function fileValue()
     {

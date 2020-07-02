@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Tests\Feature;
 use Tests\TestCase;
 use Exceedone\Exment\Model\ApiClient;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Tests\TestTrait;
 
@@ -16,7 +15,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get Client Id and Secret 
      *
-     * @return void
+     * @return array [client_id, client_secret]
      */
     protected function getClientIdAndSecret(){
         // get client id and secret token
@@ -28,7 +27,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get Client Id and Secret and Key
      *
-     * @return void
+     * @return array [client_id, client_secret, api_key]
      */
     protected function getClientIdAndSecretAndKey(){
         // get client id and secret token
@@ -39,7 +38,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get Password token
      *
-     * @return void
+     * @return \Illuminate\Foundation\Testing\TestResponse
      */
     protected function getPasswordToken($user_code, $password, $scope = []){
         $this->initAllTest();
@@ -62,7 +61,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get API Key 
      *
-     * @return void
+     * @return \Illuminate\Foundation\Testing\TestResponse
      */
     protected function getApiKey($scope = []){
         $this->initAllTest();
@@ -85,7 +84,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get Admin access token for administrator
      *
-     * @return void
+     * @return string
      */
     protected function getAdminAccessToken($scope = []){
         $response = $this->getPasswordToken('admin', 'adminadmin', $scope);
@@ -96,7 +95,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get Admin access token for administrator. get as api key
      *
-     * @return void
+     * @return string
      */
     protected function getAdminAccessTokenAsApiKey($scope = []){
         $response = $this->getApiKey($scope);
@@ -107,7 +106,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get user1 access token for all-edit user
      *
-     * @return void
+     * @return string
      */
     protected function getUser1AccessToken($scope = []){
         $response = $this->getPasswordToken('user1', 'user1user1', $scope);
@@ -118,7 +117,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get user2 access token for general user
      *
-     * @return void
+     * @return string
      */
     protected function getUser2AccessToken($scope = []){
         $response = $this->getPasswordToken('user2', 'user2user2', $scope);
@@ -129,7 +128,7 @@ abstract class ApiTestBase extends TestCase
     /**
      * Get user access token for target user
      *
-     * @return void
+     * @return string
      */
     protected function getUserAccessToken($userid, $password, $scope = []){
         $response = $this->getPasswordToken($userid, $password, $scope);

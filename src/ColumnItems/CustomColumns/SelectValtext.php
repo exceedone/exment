@@ -22,6 +22,11 @@ class SelectValtext extends Select
         return $returns;
     }
     
+    /**
+     * replace value for import
+     *
+     * @return array
+     */
     protected function getImportValueOption()
     {
         return $this->custom_column->createSelectOptions();

@@ -15,7 +15,7 @@ class BackupTarget extends EnumBase
     /**
      * Get backup target disk and relative path
      *
-     * @param stirng $target
+     * @param string $target
      * @return \Storage|string
      */
     public static function dirOrDisk($target)

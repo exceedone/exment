@@ -17,7 +17,7 @@ class LoginService
     /**
      * Get access and refresh token
      *
-     * @return void
+     * @return array access_token, refresh_token, provider
      */
     public static function getToken()
     {
@@ -27,7 +27,7 @@ class LoginService
     /**
      * Get access token
      *
-     * @return void
+     * @return string|null
      */
     public static function getAccessToken()
     {
@@ -37,7 +37,7 @@ class LoginService
     /**
      * Get refresh token
      *
-     * @return void
+     * @return string|null
      */
     public static function getRefreshToken()
     {

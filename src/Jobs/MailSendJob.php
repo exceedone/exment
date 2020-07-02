@@ -125,7 +125,7 @@ class MailSendJob implements ShouldQueue
     /**
      * Archive tmp attachment
      *
-     * @return void
+     * @return array offset 0 : zip path, offset 1 : filename
      */
     protected function archiveAttachments()
     {
@@ -206,8 +206,8 @@ class MailSendJob implements ShouldQueue
     /**
      * Get User id
      *
-     * @param [type] $users
-     * @return void
+     * @param mixed $user user object
+     * @return string
      */
     protected function getUserId($user)
     {

@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class CustomValueAuthoritable extends ModelBase
 {
@@ -274,14 +275,14 @@ class CustomValueAuthoritable extends ModelBase
                         ->where('parent_id', $custom_value->id)
                         ->where('authoritable_type', $item['name']);
                     },
-                    'dbDeleteFilter' => function (&$model, $dbValue) use ($id, $item, $custom_value) {
+                    'dbDeleteFilter' => function (&$model, $dbValue) use ($item, $custom_value) {
                         $model->where('parent_type', $custom_value->custom_table->table_name)
                             ->where('parent_id', $custom_value->id)
                             ->where('authoritable_type', $item['name'])
                             ->where('authoritable_user_org_type', array_get((array)$dbValue, 'authoritable_user_org_type'))
                             ->where('authoritable_target_id', array_get((array)$dbValue, 'authoritable_target_id'));
                     },
-                    'matchFilter' => function ($dbValue, $value) use ($id, $item) {
+                    'matchFilter' => function ($dbValue, $value) {
                         return array_get((array)$dbValue, 'authoritable_user_org_type') == array_get($value, 'authoritable_user_org_type')
                             && array_get((array)$dbValue, 'authoritable_target_id') == array_get($value, 'authoritable_target_id');
                     },
@@ -300,7 +301,7 @@ class CustomValueAuthoritable extends ModelBase
                 'result'  => true,
                 'toastr' => trans('admin.save_succeeded'),
             ]);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             \DB::rollback();
             throw $exception;
@@ -354,7 +355,7 @@ class CustomValueAuthoritable extends ModelBase
      * get listbox options default
      *
      * @param [type] $custom_value
-     * @return void
+     * @return array user and organization default options
      */
     protected static function getUserOrgSelectDefault($custom_value, $permission)
     {

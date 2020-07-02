@@ -293,7 +293,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * set DataTable using custom_view
-     * @return list(array, array) headers, bodies
+     * @return array $headers : header items, $bodies : body items.
      */
     public function convertDataTable($datalist, $options = [])
     {
@@ -990,7 +990,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * Get arrays about Summary Column and custom_view_columns and custom_view_summaries
      *
-     * @return void
+     * @return array
      */
     public function getSummaryIndexAndViewColumns()
     {

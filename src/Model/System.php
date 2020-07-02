@@ -11,6 +11,7 @@ use Cache;
 /**
  * System definition.
  *
+* @method static boolean|void initialized($arg = null)
 * @method static string|void site_name($arg = null)
 * @method static string|void site_name_short($arg = null)
 * @method static string|void site_logo($arg = null)
@@ -41,6 +42,7 @@ use Cache;
 * @method static string|void api_ip_filters($arg = null)
 * @method static int|void org_joined_type_role_group($arg = null)
 * @method static int|void org_joined_type_custom_value($arg = null)
+* @method static int|void filter_multi_user($arg = null)
 * @method static int|void custom_value_save_autoshare($arg = null)
 * @method static boolean|void backup_enable_automatic($arg = null)
 * @method static int|void backup_automatic_term($arg = null)

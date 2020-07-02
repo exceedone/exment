@@ -281,7 +281,7 @@ class PatchDataCommand extends Command
      */
     protected function import2factorTemplate()
     {
-        return $this->patchMailTemplate([
+        $this->patchMailTemplate([
             'verify_2factor',
             'verify_2factor_google',
             'verify_2factor_system',
@@ -295,7 +295,7 @@ class PatchDataCommand extends Command
      */
     protected function importZipPasswordTemplate()
     {
-        return $this->patchMailTemplate([
+        $this->patchMailTemplate([
             'password_notify',
             'password_notify_header',
         ]);
@@ -308,7 +308,7 @@ class PatchDataCommand extends Command
      */
     protected function importWorkflowTemplate()
     {
-        return $this->patchMailTemplate([
+        $this->patchMailTemplate([
             'workflow_notify',
         ]);
     }
@@ -619,7 +619,7 @@ class PatchDataCommand extends Command
      */
     protected function movePluginFolder()
     {
-        return $this->moveAppToStorageFolder('Plugins', Define::DISKNAME_PLUGIN_LOCAL);
+        $this->moveAppToStorageFolder('Plugins', Define::DISKNAME_PLUGIN_LOCAL);
     }
     
     // /**

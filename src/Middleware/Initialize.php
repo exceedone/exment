@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -402,7 +403,7 @@ class Initialize
             'tile'          => Field\Tile::class,
             'hasMany'           => Field\HasMany::class,
             'hasManyTable'           => Field\HasManyTable::class,
-            'relationTable'          => Field\RelationTable::class,
+            //'relationTable'          => Field\RelationTable::class,
             'embeds'          => Field\Embeds::class,
             'nestedEmbeds'          => Field\NestedEmbeds::class,
             'valueModal'          => Field\ValueModal::class,

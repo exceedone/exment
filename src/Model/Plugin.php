@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Storage\Disk\PluginDiskService;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class Plugin extends ModelBase
 {
@@ -155,7 +156,7 @@ class Plugin extends ModelBase
     /**
      * Get Batches filtering hour
      *
-     * @return void
+     * @return Collection
      */
     public static function getBatches()
     {
@@ -169,7 +170,7 @@ class Plugin extends ModelBase
     /**
      * Get Batches filtering has Cron
      *
-     * @return void
+     * @return Collection
      */
     public static function getCronBatches()
     {
@@ -189,7 +190,7 @@ class Plugin extends ModelBase
     /**
      * Get Plugin's class object
      *
-     * @return void
+     * @return mixed \Exceedone\Exment\Services\Plugin\PluginBase
      */
     public function getClass($plugin_type, $options = [])
     {
@@ -464,7 +465,7 @@ class Plugin extends ModelBase
     /**
      * Get plugin page object model
      *
-     * @return void
+     * @return Collection
      */
     public static function getPluginPages()
     {
@@ -474,7 +475,7 @@ class Plugin extends ModelBase
     /**
      * Get plugin scripts and styles
      *
-     * @return void
+     * @return Collection
      */
     public static function getPluginPublics()
     {
@@ -484,7 +485,7 @@ class Plugin extends ModelBase
     /**
      * Get plugin sessions
      *
-     * @return void
+     * @return Collection
      */
     protected static function getPluginPublicSessions($targetPluginTypes, $getAsClass = false)
     {

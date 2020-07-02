@@ -147,7 +147,7 @@ trait ItemTrait
      * get style string from key-values
      *
      * @param array $array
-     * @return void
+     * @return string
      */
     public function getStyleString($array)
     {

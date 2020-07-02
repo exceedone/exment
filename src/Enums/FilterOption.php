@@ -172,7 +172,7 @@ class FilterOption extends EnumBase
     /**
      * Get option for condition
      *
-     * @return void
+     * @return array
      */
     public static function FILTER_CONDITION_OPTIONS()
     {

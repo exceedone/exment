@@ -53,7 +53,7 @@ class Yesno extends CustomItem
     /**
      * replace value for import
      *
-     * @return void
+     * @return array
      */
     public function getImportValueOption()
     {

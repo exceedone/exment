@@ -456,14 +456,17 @@ class TemplateImporter
      */
     protected function importFromFile($jsonString, $options = [])
     {
-        extract(array_merge(
+        $options = array_merge(
             [
                 'system_flg' => false,
                 'is_update' => false,
                 'basePath' => null,
             ],
             $options
-        ));
+        );
+        $system_flg = $options['system_flg'];
+        $is_update = $options['is_update'];
+        $basePath = $options['basePath'];
 
         $json = json_decode($jsonString, true);
         if (!isset($json)) {

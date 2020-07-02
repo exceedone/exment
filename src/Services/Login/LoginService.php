@@ -55,7 +55,7 @@ class LoginService
     /**
      * Get access token
      *
-     * @return void
+     * @return string|null
      */
     public static function getAccessToken()
     {
@@ -65,7 +65,7 @@ class LoginService
     /**
      * Get refresh token
      *
-     * @return void
+     * @return string|null
      */
     public static function getRefreshToken()
     {
@@ -76,7 +76,7 @@ class LoginService
      * Get custom login validator for synced user.
      *
      * @param array $array
-     * @return void
+     * @return \Validator
      */
     public static function validateCustomLoginSync(CustomLoginUserBase $custom_login_user)
     {
@@ -202,7 +202,7 @@ class LoginService
      * Get test form for sso
      *
      * @param LoginSetting $login_setting
-     * @return void
+     * @return ModalForm
      */
     public static function getTestFormSso(LoginSetting $login_setting)
     {

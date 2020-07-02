@@ -10,7 +10,7 @@ class SystemLocale extends EnumBase
     /**
      * Get System Locale. Getting from config
      *
-     * @return void
+     * @return array
      */
     public static function getLocaleOptions()
     {

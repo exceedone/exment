@@ -1623,7 +1623,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * get options for select and ajax url
      *
      * @param array $options
-     * @return offset 0 is select options, 1 is ajax url
+     * @return array offset 0 is select options, 1 is ajax url
      */
     public function getSelectOptionsAndAjaxUrl($options = [])
     {

@@ -6,7 +6,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -73,7 +72,7 @@ class InitializeForm
             session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
 
             return redirect(admin_url('/'));
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();
         }

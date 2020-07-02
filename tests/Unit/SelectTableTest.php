@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\RelationTable;
@@ -12,6 +11,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Illuminate\Support\Collection;
 
 class SelectTableTest extends UnitTestBase
 {
@@ -291,6 +291,7 @@ class SelectTableTest extends UnitTestBase
         }
 
         if(isset($options['relation_filter'])){
+            $table_name = null;
             switch($options['relation_filter']){
                 case SearchType::ONE_TO_MANY:
                     $table_name = TestDefine::TESTDATA_TABLE_NAME_PIVOT_TABLE;

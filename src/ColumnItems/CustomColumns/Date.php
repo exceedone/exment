@@ -68,7 +68,7 @@ class Date extends CustomItem
     /**
      * Get date again use format
      *
-     * @return void
+     * @return \Carbon\Carbon|null
      */
     protected function getDateUseValue($format)
     {
@@ -120,7 +120,7 @@ class Date extends CustomItem
     /**
      * Whether this is autodate
      *
-     * @return void
+     * @return true
      */
     protected function autoDate()
     {
@@ -146,7 +146,7 @@ class Date extends CustomItem
     /**
      * Whether only display
      *
-     * @return void
+     * @return bool
      */
     protected function displayDate()
     {

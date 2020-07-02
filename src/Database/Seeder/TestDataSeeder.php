@@ -428,6 +428,13 @@ class TestDataSeeder extends Seeder
         return $menu;
     }
 
+    /**
+     * Create custom tables
+     *
+     * @param array $users
+     * @param stirng $menu menu id
+     * @return void
+     */
     protected function createTables($users, $menu)
     {
         // create user view ----------------------------------------------------
@@ -489,11 +496,9 @@ class TestDataSeeder extends Seeder
     /**
      * Create table
      *
-     * @param [type] $keyName
-     * @param [type] $users
-     * @param [type] $menuParentId
-     * @param array $customTableOptions
-     * @return void
+     * @param string $keyName table_name
+     * @param array $options
+     * @return CustomTable
      */
     protected function createTable($keyName, $options = [])
     {
@@ -706,7 +711,7 @@ class TestDataSeeder extends Seeder
     /**
      * Create Notify
      *
-     * @return void
+     * @return string|int notify id
      */
     protected function createNotify($custom_table)
     {

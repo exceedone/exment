@@ -64,6 +64,11 @@ class Boolean extends CustomItem
         ]);
     }
     
+    /**
+     * replace value for import
+     *
+     * @return array
+     */
     protected function getImportValueOption()
     {
         $column = $this->custom_column;

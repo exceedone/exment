@@ -21,7 +21,7 @@ class ConditionType extends EnumBase
             case static::SYSTEM:
                 return new ConditionItems\SystemItem($custom_table, $target);
             case static::WORKFLOW:
-                return new ConditionItems\WorlflowItem($custom_table, $target);
+                return new ConditionItems\WorkflowItem($custom_table, $target);
             case static::CONDITION:
                 $detail = ConditionTypeDetail::getEnum($target_column_id);
                 if (!isset($detail)) {

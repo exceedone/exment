@@ -15,7 +15,7 @@ class SqlServerConnection extends BaseConnection
     /**
      * Get a schema builder instance for the connection.
      *
-     * @return Builder
+     * @return \Illuminate\Database\Schema\Builder
      */
     public function getSchemaBuilder()
     {

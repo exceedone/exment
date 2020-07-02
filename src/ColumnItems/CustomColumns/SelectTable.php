@@ -218,8 +218,8 @@ class SelectTable extends CustomItem
     /**
      * Get select field option, for getting selectitem, and ajax.
      *
-     * @param [type] $callback
-     * @return void
+     * @param \Closure|null $callback
+     * @return array
      */
     protected function getSelectFieldOptions($callback = null)
     {
@@ -237,7 +237,7 @@ class SelectTable extends CustomItem
      * Get relation filter object
      *
      * @param ?array $form_column_options
-     * @return void
+     * @return Linkage|null
      */
     protected function getLinkage($form_column_options)
     {
@@ -257,7 +257,7 @@ class SelectTable extends CustomItem
     /**
      * get relation filter callback
      *
-     * @return void
+     * @return \Closure|null
      */
     protected function getRelationFilterCallback($linkage)
     {

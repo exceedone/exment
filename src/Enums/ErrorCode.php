@@ -18,6 +18,7 @@ namespace Exceedone\Exment\Enums;
  * @method static ErrorCode ALREADY_DELETED()
  * @method static ErrorCode PLUGIN_NOT_FOUND()
  * @method static ErrorCode WRONG_VIEW_AND_TABLE()
+ * @method static ErrorCode UNSUPPORTED_VIEW_KIND_TYPE()
  * @method static ErrorCode WORKFLOW_LOCK()
  * @method static ErrorCode WORKFLOW_NOSTART()
  * @method static ErrorCode WORKFLOW_END()

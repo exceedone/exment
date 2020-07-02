@@ -7,6 +7,12 @@ use Exceedone\Exment\Model\System;
 /**
  * joined organization filter type. MultiTenant.
  * Getting User type.
+ * 
+ * @method static JoinedMultiUserFilterType NOT_FILTER()
+ * @method static JoinedMultiUserFilterType ALL()
+ * @method static JoinedMultiUserFilterType ONLY_UPPER()
+ * @method static JoinedMultiUserFilterType ONLY_DOWNER()
+ * @method static JoinedMultiUserFilterType ONLY_JOIN()
  */
 class JoinedMultiUserFilterType extends EnumBase
 {

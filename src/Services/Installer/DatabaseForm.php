@@ -129,7 +129,7 @@ class DatabaseForm
     /**
      * Check database minimum version.
      *
-     * @return void
+     * @return bool|string if true, success, if false, return message.
      */
     protected function checkDatabaseVersion()
     {
@@ -169,7 +169,7 @@ class DatabaseForm
     /**
      * Check database mariadb and mysql mistake/
      *
-     * @return void
+     * @return bool|string if true, success, if false, return message.
      */
     protected function checkDatabaseMatch()
     {
@@ -200,7 +200,7 @@ class DatabaseForm
     /**
      * Check PHP version
      *
-     * @return void
+     * @return bool|string if true, success, if false, return message.
      */
     protected function checkPhpVersion()
     {

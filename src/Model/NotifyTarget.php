@@ -142,7 +142,7 @@ class NotifyTarget
                     }
                 }
                 // if select table(cotains user)
-                elseif (ColumnType::COLUMN_TYPE_SELECT_TABLE($custom_column->column_type)) {
+                elseif (ColumnType::isSelectTable($custom_column->column_type)) {
                     // get email address
                     $item = static::getModelAsSelectTable($v, null, $custom_column);
                     if (isset($item)) {

@@ -110,7 +110,7 @@ class MySqlGrammar extends BaseGrammar
      * convert carbon date to date format
      *
      * @param GroupCondition $groupCondition Y, YM, YMD, ...
-     * @param Carbon $carbon
+     * @param \Carbon\Carbon $carbon
      *
      * @return string
      */
@@ -137,7 +137,7 @@ class MySqlGrammar extends BaseGrammar
     /**
      * Get case when query
      *
-     * @return void
+     * @return string
      */
     protected function getWeekdayCaseWhenQuery($str)
     {

@@ -12,7 +12,7 @@ trait BuilderTrait
      * dbDeleteFilter: Query that retrieves data to be deleted
      * matchFilter: Query to determine if the data exists in the database
      *
-     * @return void
+     * @return array Inserted data
      */
     public function insertDelete($table, $values, $settings = [])
     {
