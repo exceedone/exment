@@ -165,7 +165,7 @@
     {{-- /custom_form_block --}}
     {{csrf_field() }} @if($editmode)
     <input type="hidden" name="_method" value="PUT" class="_method"> @endif
-    <button type="submit" id="admin-submit" class="btn btn-info pull-right" style="margin-bottom:2em;" data-loading-text="<i class='fa fa-spinner fa-spin '></i> {{__('admin.submit')}}">@lang('admin.submit')</button>
+    <button type="submit" id="admin-submit" class="btn btn-info pull-right" style="margin-bottom:2em;" data-loading-text="<i class='fa fa-spinner fa-spin '></i> {{__('admin.save')}}">@lang('admin.save')</button>
 </form>
 
 {{-- Modal --}}

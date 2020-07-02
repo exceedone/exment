@@ -16,6 +16,7 @@ use Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Encore\Admin\Form;
+use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use \Html;
@@ -354,6 +355,8 @@ class Initialize
                 $tools->disableView();
             });
         });
+        Form\Footer::$defaultSubmitLabel = trans('admin.save');
+        WidgetForm::$defaultSubmitLabel = trans('admin.save');
 
         Grid\Tools::$defaultPosition = 'right';
         Grid\Concerns\HasQuickSearch::$searchKey = 'query';
