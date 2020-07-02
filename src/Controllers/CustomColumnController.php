@@ -5,18 +5,18 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-//use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ConditionType;
@@ -526,16 +526,20 @@ class CustomColumnController extends AdminControllerTableBase
 
         // if create column, add custom form and view
         if (!isset($id)) {
+            $form->exmheader(exmtrans('common.create_only_setting'))->hr();
+
             $form->switchbool('add_custom_form_flg', exmtrans("custom_column.add_custom_form_flg"))->help(exmtrans("custom_column.help.add_custom_form_flg"))
                 ->default("1")
-                ->attribute(['data-filtertrigger' =>true])
             ;
             $form->switchbool('add_custom_view_flg', exmtrans("custom_column.add_custom_view_flg"))->help(exmtrans("custom_column.help.add_custom_view_flg"))
                 ->default("0")
-                ->attribute(['data-filtertrigger' =>true])
+            ;
+            $form->switchbool('add_table_label_flg', exmtrans("custom_column.add_table_label_flg"))->help(exmtrans("custom_column.help.add_table_label_flg"))
+                ->default("0")
             ;
             $form->ignore('add_custom_form_flg');
             $form->ignore('add_custom_view_flg');
+            $form->ignore('add_table_label_flg');
         }
 
         $form->saved(function (Form $form) {
@@ -697,6 +701,22 @@ class CustomColumnController extends AdminControllerTableBase
             $custom_view_column->order = $order;
 
             $custom_view_column->save();
+        }
+
+        
+        // set table labels --------------------------------------------------
+        $add_table_label_flg = app('request')->input('add_table_label_flg');
+        if (boolval($add_table_label_flg)) {
+            $priority = CustomColumnMulti::where('custom_table_id', $this->custom_table->id)->where('multisetting_type', MultisettingType::TABLE_LABELS)->max('priority') ?? 0;
+            
+            CustomColumnMulti::create([
+                'custom_table_id' => $this->custom_table->id,
+                'multisetting_type' => MultisettingType::TABLE_LABELS,
+                'priority' => ++$priority,
+                'options' => [
+                    'table_label_id' => $model->id,
+                ],
+            ]);
         }
     }
 
