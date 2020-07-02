@@ -433,6 +433,7 @@ return [
         'active_flg' => '有効フラグ',
         'select_plugin_file' => 'プラグインを選択',
         'show_plugin_page' => 'プラグインページを表示',
+        'edit_plugin' => 'プラグイン編集',
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',
@@ -500,6 +501,15 @@ return [
             'api' => 'API',
             'event' => 'イベント',
             'button' => 'ボタン',
+        ],
+    ],
+
+    'plugincode' => [
+        'header' => 'プラグイン編集',
+        'description' => 'インストールされているプラグインのソースを直接編集することができます。',
+        'error' => [
+            'plugin_notfound' => 'プラグインが存在しません。',
+            'file_notfound' => 'プラグインファイルが削除された可能性があります。システム管理者にお問い合わせください。',
         ],
     ],
 

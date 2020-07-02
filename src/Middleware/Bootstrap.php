@@ -61,8 +61,16 @@ class Bootstrap
         Ad::css(asset('vendor/exment/fullcalendar/timegrid/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
         Ad::css(asset('vendor/exment/css/workflow.css?ver='.$ver));
+        Ad::css(asset('vendor/exment/codemirror/codemirror.css?ver='.$ver));
         
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
+        Ad::js(asset('vendor/exment/codemirror/codemirror.js'));
+        Ad::js(asset('vendor/exment/codemirror/mode/htmlmixed/htmlmixed.js'));
+        Ad::js(asset('vendor/exment/codemirror/mode/xml/xml.js'));
+        Ad::js(asset('vendor/exment/codemirror/mode/javascript/javascript.js'));
+        Ad::js(asset('vendor/exment/codemirror/mode/css/css.js'));
+        Ad::js(asset('vendor/exment/codemirror/mode/php/php.js'));
+        Ad::js(asset('vendor/exment/codemirror/mode/clike/clike.js'));
         Ad::js(asset('vendor/exment/jquery/jquery.color.min.js'));
         Ad::js(asset('vendor/exment/mathjs/math.min.js'));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$ver));

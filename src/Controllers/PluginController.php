@@ -260,10 +260,17 @@ class PluginController extends AdminControllerBase
             $this->setCustomOptionForm($plugin, $form);
         }
 
-        $form->tools(function (Form\Tools $tools) use ($plugin) {
+        $form->tools(function (Form\Tools $tools) use ($plugin, $id) {
             if ($plugin->disabled_delete) {
                 $tools->disableDelete();
             }
+
+            $tools->append(view('exment::tools.button', [
+                'href' => admin_url("plugin/edit_code/$id"),
+                'label' => exmtrans('plugin.edit_plugin'),
+                'icon' => 'fa-edit',
+                'btn_class' => 'btn-warning',
+            ]));
 
             if ($plugin->matchPluginType(PluginType::PAGE)) {
                 $tools->append(view('exment::tools.button', [
