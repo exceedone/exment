@@ -16,7 +16,8 @@ class CustomValueAuthoritable extends ModelBase
 {
     use Traits\DataShareTrait;
 
-    public function getAuthoritableUserOrgAttribute(){
+    public function getAuthoritableUserOrgAttribute()
+    {
         return CustomTable::getEloquent($this->authoritable_user_org_type)->getValueModel($this->authoritable_target_id);
     }
 
@@ -104,7 +105,6 @@ class CustomValueAuthoritable extends ModelBase
                 self::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $share_permission == SharePermission::EDIT);
             }
         }
-        
     }
 
     /**
@@ -134,7 +134,7 @@ class CustomValueAuthoritable extends ModelBase
             }
 
             // if not has permission for accessible, continue;
-            if(!static::hasPermssionAccessible($custom_table, $related_id, $related_type)){
+            if (!static::hasPermssionAccessible($custom_table, $related_id, $related_type)) {
                 continue;
             }
 
@@ -146,7 +146,7 @@ class CustomValueAuthoritable extends ModelBase
                 'authoritable_target_id' => $related_id,
             ]);
 
-            if(!isset($model->id)){
+            if (!isset($model->id)) {
                 $model->save();
                 static::notifyUser($custom_value, collect([$model->authoritable_user_org]));
             }
@@ -161,7 +161,8 @@ class CustomValueAuthoritable extends ModelBase
      * @param string $related_type
      * @return boolean
      */
-    protected static function hasPermssionAccessible($custom_table, $related_id, $related_type){
+    protected static function hasPermssionAccessible($custom_table, $related_id, $related_type)
+    {
         $accessibleIds = ($related_type == ColumnType::ORGANIZATION ? $custom_table->getAccessibleOrganizationIds() : $custom_table->getAccessibleUserIds());
 
         return $accessibleIds->contains($related_id);
@@ -404,7 +405,8 @@ class CustomValueAuthoritable extends ModelBase
      * @param Collection $shareTargets user and organization notify targets collection
      * @return void
      */
-    protected static function notifyUser($custom_value, $shareTargets){
+    protected static function notifyUser($custom_value, $shareTargets)
+    {
         foreach ($custom_value->custom_table->notifies as $notify) {
             $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE, ['targetUserOrgs' => $shareTargets]);
         }

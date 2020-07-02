@@ -149,7 +149,7 @@ trait ItemTrait
      * @param array $array
      * @return string
      */
-    public function getStyleString($array)
+    public function getStyleString(array $array = [])
     {
         $array['word-wrap'] = 'break-word';
         $array['white-space'] = 'normal';

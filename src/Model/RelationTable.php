@@ -91,7 +91,7 @@ class RelationTable
      */
     public static function setQueryOneMany($query, $parent_table, $value)
     {
-        if (!isset($parent_table)) {
+        if (is_nullorempty($parent_table)) {
             return;
         }
         
@@ -112,11 +112,11 @@ class RelationTable
      */
     public static function setQueryManyMany($query, $parent_table, $child_table, $value)
     {
-        if (!isset($parent_table) || !isset($child_table)) {
+        if (is_nullorempty($parent_table) || is_nullorempty($child_table)) {
             return;
         }
         $relation = CustomRelation::getRelationByParentChild($parent_table, $child_table);
-        if (!isset($relation)) {
+        if (is_nullorempty($relation)) {
             return;
         }
         
@@ -137,7 +137,7 @@ class RelationTable
      */
     public static function setQuerySelectTable($query, $custom_column, $value)
     {
-        if (!isset($custom_column)) {
+        if (is_nullorempty($custom_column)) {
             return;
         }
         

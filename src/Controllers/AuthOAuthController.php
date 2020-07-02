@@ -85,7 +85,7 @@ class AuthOAuthController extends \Encore\Admin\Controllers\AuthController
                 session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
 
                 // set session access key
-                LoginService::setToken($custom_login_user);
+                LoginService::setToken();
                 
                 return $this->sendLoginResponse($request);
             }

@@ -22,9 +22,11 @@ use Illuminate\Http\Request;
  */
 class LoginService
 {
-    public static function setToken(CustomLoginUserBase $custom_login_user)
+    public static function setToken()
     {
-        if ($custom_login_user != LoginType::OAUTH) {
+        // get custom login user
+        $custom_login_user = System::requestSession(Define::SYSTEM_KEY_SESSION_CUSTOM_LOGIN_USER);
+        if (is_nullorempty($custom_login_user) || $custom_login_user != LoginType::OAUTH) {
             return;
         }
 
@@ -290,6 +292,9 @@ class LoginService
 
         $login_user = static::getLoginUser($custom_login_user, $exment_user, $socialiteProvider);
         
+        // Set custom_login_user to request session
+        System::setRequestSession(Define::SYSTEM_KEY_SESSION_CUSTOM_LOGIN_USER, $custom_login_user);
+
         return $login_user;
     }
 

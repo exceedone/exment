@@ -40,7 +40,7 @@ class DiskServiceItem
 
     /**
      * Storage disk
-     * 
+     *
      * @var Filesystem disk
      *
      */

@@ -141,7 +141,7 @@ class CustomColumnController extends AdminControllerTableBase
 
             $keys = ['required' => 'common', 'index_enabled' => 'custom_column.options', 'unique' => 'custom_column.options'];
             foreach ($keys as $key => $label) {
-                $filter->where(function ($query) use ($key, $label) {
+                $filter->where(function ($query) use ($key) {
                     $query->whereIn("options->$key", [1, "1"]);
                 }, exmtrans("$label.$key"))->radio([
                     '' => 'All',
@@ -192,7 +192,7 @@ class CustomColumnController extends AdminControllerTableBase
             ->help(exmtrans('common.help.view_name'));
         $form->select('column_type', exmtrans("custom_column.column_type"))
         ->help(exmtrans("custom_column.help.column_type"))
-        ->options(function() {
+        ->options(function () {
             $arrays = collect(ColumnType::arrays())->filter(function ($arr) {
                 if (System::organization_available() || $arr != ColumnType::ORGANIZATION) {
                     return true;
@@ -723,9 +723,9 @@ class CustomColumnController extends AdminControllerTableBase
     /**
      * Get column options for calc
      *
-     * @param [type] $id
-     * @param [type] $custom_table
-     * @return void
+     * @param string|int|null $id
+     * @param CustomTable $custom_table
+     * @return array
      */
     protected function getCalcCustomColumnOptions($id, $custom_table)
     {

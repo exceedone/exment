@@ -2,16 +2,15 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Services\LoginService as NewLoginService;
-use Exceedone\Exment\Auth\CustomLoginUserBase;
 
 /**
  * OLD : LoginService
  */
 class LoginService
 {
-    public static function setToken(CustomLoginUserBase $custom_login_user)
+    public static function setToken()
     {
-        return NewLoginService::setToken($custom_login_user);
+        return NewLoginService::setToken();
     }
 
     /**

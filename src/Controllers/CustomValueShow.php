@@ -679,7 +679,8 @@ EOT;
         return $query->get() ?? [];
     }
 
-    protected function getCustomValue($id){
+    protected function getCustomValue($id)
+    {
         return $this->custom_table->getValueModel($id, boolval(request()->get('trashed')));
     }
 }

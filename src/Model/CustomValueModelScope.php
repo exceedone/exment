@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
-use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 class CustomValueModelScope implements Scope
@@ -40,15 +39,16 @@ class CustomValueModelScope implements Scope
         // if system administrator user, return
         if ($user->isAdministrator()) {
             return;
-        // if user can access list, return
-        } if ($table_name == SystemTableName::USER) {
+            // if user can access list, return
+        }
+        if ($table_name == SystemTableName::USER) {
             AuthUserOrgHelper::filterUserOnlyJoin($builder, $user, $db_table_name);
-        } 
+        }
 
         // organization
         elseif ($table_name == SystemTableName::ORGANIZATION) {
             AuthUserOrgHelper::filterOrganizationOnlyJoin($builder, $user, $db_table_name);
-        } 
+        }
         
         // Add document skip logic
         elseif ($table_name == SystemTableName::DOCUMENT) {

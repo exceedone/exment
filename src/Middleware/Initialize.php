@@ -239,51 +239,51 @@ class Initialize
             // Set system setting to config --------------------------------------------------
             // Site Name
             $val = System::site_name();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 Config::set('admin.name', $val);
                 Config::set('admin.title', $val);
             }
 
             // Logo
             $val = System::site_logo();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 Config::set('admin.logo', Html::image($val, 'header logo'));
             } else {
                 $val = System::site_name();
-                if (isset($val)) {
+                if (!is_nullorempty($val)) {
                     Config::set('admin.logo', esc_html($val));
                 }
             }
 
             // Logo(Short)
             $val = System::site_logo_mini();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 Config::set('admin.logo-mini', Html::image($val, 'header logo mini'));
             } else {
                 $val = System::site_name_short();
-                if (isset($val)) {
+                if (!is_nullorempty($val)) {
                     Config::set('admin.logo-mini', esc_html($val));
                 }
             }
 
             // Site Skin
             $val = System::site_skin();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 Config::set('admin.skin', esc_html($val));
             }
 
             // Site layout
             $val = System::site_layout();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
 
             // Date format
             $val = System::default_date_format();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 $list = exmtrans("system.date_format_list.$val");
             }
-            if (isset($list) && is_array($list) && count($list) > 2) {
+            if (!is_nullorempty($list) && is_array($list) && count($list) > 2) {
                 Config::set('admin.date_format', $list[0]);
                 Config::set('admin.datetime_format', $list[1]);
                 Config::set('admin.time_format', $list[2]);

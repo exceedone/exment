@@ -400,7 +400,8 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      *
      * @return boolean
      */
-    public function isGetAllUserOrganization(){
+    public function isGetAllUserOrganization()
+    {
         return ColumnType::isUserOrganization($this->column_type) && boolval($this->getOption('showing_all_user_organizations'));
     }
 
@@ -464,7 +465,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         if (is_string($select_item)) {
             $str = str_replace(array("\r\n","\r","\n"), "\n", $select_item);
-            if (isset($str) && mb_strlen($str) > 0) {
+            if (!is_nullorempty($str) && mb_strlen($str) > 0) {
                 // loop for split new line
                 $array = explode("\n", $str);
                 foreach ($array as $a) {

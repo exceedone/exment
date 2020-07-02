@@ -118,7 +118,7 @@ class ConditionHasManyTable
             'condition_key_label' => "condition.condition_key",
             'condition_value_label' => "condition.condition_value",
         ];
-        foreach($defaults as $k => $def){
+        foreach ($defaults as $k => $def) {
             if (!array_has($options, $k)) {
                 $this->{$k} = exmtrans($def);
             }

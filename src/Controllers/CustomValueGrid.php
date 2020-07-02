@@ -65,7 +65,7 @@ trait CustomValueGrid
     /**
      * Get filter html. call from ajax, or execute set filter.
      *
-     * @return void
+     * @return array offset 0 : html, 1 : script
      */
     protected function getFilterHtml()
     {

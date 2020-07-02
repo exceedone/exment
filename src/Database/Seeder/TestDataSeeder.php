@@ -254,7 +254,7 @@ class TestDataSeeder extends Seeder
             $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $child_table]);
 
             // get child table's view
-            $child_table_view = $child_table->custom_views->first(function($view) use($child_table){
+            $child_table_view = $child_table->custom_views->first(function ($view) use ($child_table) {
                 return $view->view_view_name == "{$child_table->table_name}-view-odd";
             });
 
@@ -312,14 +312,14 @@ class TestDataSeeder extends Seeder
 
         // cerate pivot table for user org  ----------------------------------------------------
         // get user table's view
-        $user_table_view = CustomTable::getEloquent(SystemTableName::USER)->custom_views->first(function($view){
+        $user_table_view = CustomTable::getEloquent(SystemTableName::USER)->custom_views->first(function ($view) {
             return $view->view_view_name == "user-view-dev";
         });
 
         $pivot_table = $this->createTable('pivot_table_user_org', [
             'menuParentId' => $menu->id,
             'count' => 0,
-            'createColumnCallback' => function ($custom_table, &$custom_columns) use($user_table_view) {
+            'createColumnCallback' => function ($custom_table, &$custom_columns) use ($user_table_view) {
                 // creating relation column
                 $columns = [
                     ['column_name' => 'user', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
@@ -373,7 +373,8 @@ class TestDataSeeder extends Seeder
      * @param CustomTable $custom_table
      * @return void
      */
-    protected function createRelationFilter($selectRelation, $custom_table){
+    protected function createRelationFilter($selectRelation, $custom_table)
+    {
         // append pivot table's relation filter
         $custom_forms = $custom_table->custom_forms;
         foreach ($custom_forms as $custom_form) {
@@ -808,7 +809,8 @@ class TestDataSeeder extends Seeder
         }
     }
 
-    protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = []){
+    protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
+    {
         return CustomView::create([
             'custom_table_id' => $custom_table->id,
             'view_view_name' => $view_view_name,

@@ -11,6 +11,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Auth trait, use from Auth Controller.
+ *
+ * @method string redirectPath()
+ */
 trait AuthTrait
 {
     use ThrottlesLogins;

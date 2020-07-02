@@ -677,8 +677,8 @@ abstract class CustomValue extends ModelBase
         $reqSessions = System::requestSession($key);
 
         // If already getting, filter value.
-        if(!is_null($reqSessions)){
-            return $reqSessions->filter(function($value) use($related_type){
+        if (!is_null($reqSessions)) {
+            return $reqSessions->filter(function ($value) use ($related_type) {
                 $value = (array)$value;
                 if ($value['authoritable_user_org_type'] != $related_type) {
                     return false;
@@ -690,8 +690,7 @@ abstract class CustomValue extends ModelBase
                 // check has user or org id
                 if ($related_type == SystemTableName::USER) {
                     return $value['authoritable_target_id'] == \Exment::user()->getUserId();
-                } 
-                elseif ($related_type == SystemTableName::ORGANIZATION) {
+                } elseif ($related_type == SystemTableName::ORGANIZATION) {
                     $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                     return in_array($value['authoritable_target_id'], \Exment::user()->getOrganizationIds($enum));
                 }
@@ -1115,7 +1114,7 @@ abstract class CustomValue extends ModelBase
         $child_table = CustomTable::getEloquent($relation);
         $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
 
-        if (isset($pivot_table_name)) {
+        if (!is_nullorempty($pivot_table_name)) {
             return $returnBuilder ? $this->{$pivot_table_name}() : $this->{$pivot_table_name};
         }
 

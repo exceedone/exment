@@ -42,7 +42,7 @@ class RoleGroupType extends EnumBase
         switch ($this->lowerKey()) {
             case self::SYSTEM()->lowerKey():
                 $permissions = Permission::SYSTEM_ROLE_PERMISSIONS;
-                if(System::filter_multi_user() != JoinedMultiUserFilterType::NOT_FILTER){
+                if (System::filter_multi_user() != JoinedMultiUserFilterType::NOT_FILTER) {
                     $permissions[] = Permission::FILTER_MULTIUSER_ALL;
                 }
                 return $permissions;

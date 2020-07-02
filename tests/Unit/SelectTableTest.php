@@ -248,7 +248,7 @@ class SelectTableTest extends UnitTestBase
 
         // get target column.
         $custom_column = $this->getTargetColumn($column_type, $options);
-        if(!isset($custom_column)){
+        if(is_nullorempty($custom_column)){
             $this->assertTrue(false, 'target column is not found. Please check.');
             return;
         }

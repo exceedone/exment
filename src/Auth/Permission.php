@@ -360,7 +360,7 @@ class Permission
     protected function validatePluginPermission($endpoint)
     {
         // Get plugin data by Endpoint
-        $plugin = Plugin::firstRecord(function($plugin) use($endpoint){
+        $plugin = Plugin::firstRecord(function ($plugin) use ($endpoint) {
             return strcmp($plugin->getOption('uri'), $endpoint) == 0;
         }, false);
         if (!isset($plugin)) {

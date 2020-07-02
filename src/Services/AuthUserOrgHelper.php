@@ -295,9 +295,9 @@ class AuthUserOrgHelper
             // get query
             $orgs = $modelname::with([
                 'users' => function ($query) {
-                        // pass aborting 
-                        return $query->withoutGlobalScope(CustomValueModelScope::class);
-                    }
+                    // pass aborting
+                    return $query->withoutGlobalScope(CustomValueModelScope::class);
+                }
                 ])
                 // pass aborting
                 ->withoutGlobalScopes([CustomValueModelScope::class])
@@ -392,7 +392,8 @@ class AuthUserOrgHelper
      * @param [type] $db_table_name
      * @return void
      */
-    public static function filterUserOnlyJoin($builder, $user, $db_table_name){
+    public static function filterUserOnlyJoin($builder, $user, $db_table_name)
+    {
         $setting = System::filter_multi_user();
         if ($setting == JoinedMultiUserFilterType::NOT_FILTER) {
             return;
@@ -424,7 +425,8 @@ class AuthUserOrgHelper
      * @param [type] $db_table_name
      * @return void
      */
-    public static function filterOrganizationOnlyJoin($builder, $user, $db_table_name){
+    public static function filterOrganizationOnlyJoin($builder, $user, $db_table_name)
+    {
         $setting = System::filter_multi_user();
         if ($setting == JoinedMultiUserFilterType::NOT_FILTER) {
             return;

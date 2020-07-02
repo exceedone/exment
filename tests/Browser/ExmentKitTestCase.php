@@ -13,6 +13,9 @@ abstract class ExmentKitTestCase extends BaseTestCase
     use \Tests\CreatesApplication;
 //    use DatabaseMigrations;
 
+    protected $baseUrl;
+
+    
     /**
      * pre-excecute process before test.
      */

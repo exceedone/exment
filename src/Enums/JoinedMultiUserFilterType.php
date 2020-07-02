@@ -7,7 +7,7 @@ use Exceedone\Exment\Model\System;
 /**
  * joined organization filter type. MultiTenant.
  * Getting User type.
- * 
+ *
  * @method static JoinedMultiUserFilterType NOT_FILTER()
  * @method static JoinedMultiUserFilterType ALL()
  * @method static JoinedMultiUserFilterType ONLY_UPPER()
@@ -28,12 +28,13 @@ class JoinedMultiUserFilterType extends EnumBase
     const ONLY_JOIN = '0';
 
 
-    public static function getOptions(){
-        if(boolval(System::organization_available())){
+    public static function getOptions()
+    {
+        if (boolval(System::organization_available())) {
             return static::transKeyArray('system.filter_multi_orguser_options');
-        } 
+        }
 
-        return collect([static::NOT_FILTER(), static::ONLY_JOIN()])->mapWithKeys(function($enum){
+        return collect([static::NOT_FILTER(), static::ONLY_JOIN()])->mapWithKeys(function ($enum) {
             return [$enum->getValue() => exmtrans("system.filter_multi_user_options." . $enum->lowerKey())];
         })->toArray();
     }

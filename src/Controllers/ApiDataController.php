@@ -171,7 +171,6 @@ class ApiDataController extends AdminControllerTableBase
         // get children table id
         $relationColumn = null;
         if (array_key_value_exists('linkage_column_id', $expand)) {
-
             $linkage_column_id = array_get($expand, 'linkage_column_id');
             $linkage_column = CustomColumn::getEloquent($linkage_column_id);
 

@@ -17,7 +17,7 @@ trait ColumnOptionQueryTrait
      * @param string $key
      * @param boolean $append_table if true, append table info to qeury
      * @param string $table_id target table id
-     * @return string 
+     * @return string
      */
     protected static function getOptionKey($column_key, $append_table = true, $table_id = null, $options = [])
     {

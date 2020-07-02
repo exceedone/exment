@@ -1106,7 +1106,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
 
-        if (!isset($mainQuery)) {
+        if (is_nullorempty($mainQuery)) {
             return null;
         }
 
@@ -1523,7 +1523,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * Get all accessible users on this table. (only get id, consider performance)
-     * *Not check "loginuser"'s permission. 
+     * *Not check "loginuser"'s permission.
      */
     public function getAccessibleUserIds()
     {
@@ -1545,7 +1545,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     protected function getAccessibleUserOrganizationIds($target_table)
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE, $target_table, $this->table_name);
-        return System::requestSession($key, function() use($target_table){
+        return System::requestSession($key, function () use ($target_table) {
             // $target_table : user or org
             $table = CustomTable::getEloquent($target_table);
             $query = $table->getValueModel()->query();
@@ -2167,7 +2167,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return getModelName($this->table_name)::find($id);
             });
 
-            if(!isset($model) && $withTrashed){
+            if (!isset($model) && $withTrashed) {
                 $model = getModelName($this->table_name)::withTrashed()->find($id);
             }
         } else {
@@ -2395,10 +2395,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function setGridAuthoritable(Collection $custom_values){
+    public function setGridAuthoritable(Collection $custom_values)
+    {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_GRID_AUTHORITABLE, $this->id);
 
-        System::requestSession($key, function() use($custom_values){
+        System::requestSession($key, function () use ($custom_values) {
             // get custom_values_authoritable
             $values = \DB::table('custom_value_authoritables')
                 ->where('parent_type', $this->table_name)

@@ -9,8 +9,6 @@ use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\JoinedMultiUserFilterType;
-use Exceedone\Exment\Enums\Login2FactorProviderType;
-use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -73,7 +71,7 @@ class SystemController extends AdminControllerBase
 
         $box = new Box(trans('admin.edit'), $form);
         
-        $box->tools(new Tools\SystemChangePageMenu('basic_setting'));
+        $box->tools(new Tools\SystemChangePageMenu());
 
         $content->row($box);
 
@@ -204,7 +202,7 @@ class SystemController extends AdminControllerBase
 
         $box = new Box(exmtrans('common.detail_setting'), $form);
 
-        $box->tools(new Tools\SystemChangePageMenu('detail_setting'));
+        $box->tools(new Tools\SystemChangePageMenu());
 
         $content->row($box);
 

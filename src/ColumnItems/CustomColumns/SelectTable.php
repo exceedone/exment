@@ -12,7 +12,6 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\DatabaseDataType;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
@@ -206,7 +205,7 @@ class SelectTable extends CustomItem
 
     public function getSelectOptions($value, $field, array $selectOption = [])
     {
-        if(empty($selectOption)){
+        if (empty($selectOption)) {
             $selectOption = $this->getSelectFieldOptions();
         }
         $selectOption['selected_value'] = $field->getOld() ?? $value;
