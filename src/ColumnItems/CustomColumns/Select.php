@@ -84,6 +84,11 @@ class Select extends CustomItem
         $filter->select($options);
     }
     
+    /**
+     * replace value for import
+     *
+     * @return array
+     */
     protected function getImportValueOption()
     {
         return $this->custom_column->createSelectOptions();

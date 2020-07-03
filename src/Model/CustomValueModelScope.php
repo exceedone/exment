@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 class CustomValueModelScope implements Scope
 {
@@ -21,6 +22,8 @@ class CustomValueModelScope implements Scope
     public function apply(Builder $builder, Model $model)
     {
         $table_name = $model->custom_table->table_name;
+        $db_table_name = getDBTableName($table_name);
+
         // get user info
         $user = \Exment::user();
         // if not have, check as login
@@ -33,15 +36,22 @@ class CustomValueModelScope implements Scope
             return;
         }
 
-        // if user can access list, return
+        // if system administrator user, return
+        if ($user->isAdministrator()) {
+            return;
+            // if user can access list, return
+        }
         if ($table_name == SystemTableName::USER) {
-            //TODO
-            return;
-        } elseif ($table_name == SystemTableName::ORGANIZATION) {
-            //TODO
-            return;
+            AuthUserOrgHelper::filterUserOnlyJoin($builder, $user, $db_table_name);
+        }
+
+        // organization
+        elseif ($table_name == SystemTableName::ORGANIZATION) {
+            AuthUserOrgHelper::filterOrganizationOnlyJoin($builder, $user, $db_table_name);
+        }
+        
         // Add document skip logic
-        } elseif ($table_name == SystemTableName::DOCUMENT) {
+        elseif ($table_name == SystemTableName::DOCUMENT) {
             //TODO
             return;
         } elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {

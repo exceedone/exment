@@ -449,7 +449,7 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
 
-        $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table, $view_type) {
+        $form->tools(function (Form\Tools $tools) use ($id, $suuid, $custom_table, $view_type) {
             $tools->add((new Tools\CustomTableMenuButton('view', $custom_table)));
 
             if ($view_type == Enums\ViewType::USER) {

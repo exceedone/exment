@@ -150,9 +150,13 @@ class File extends ModelBase
     }
 
     /**
-     * get file object(laravel)
+     * Get file object(laravel)
+     *
+     * @param string $uuid
+     * @param \Closure $authCallback
+     * @return \Illuminate\Contracts\Filesystem\Filesystem
      */
-    public static function getFile($uuid, Closure $authCallback = null)
+    public static function getFile($uuid, \Closure $authCallback = null)
     {
         $data = static::getData($uuid);
         if (!$data) {

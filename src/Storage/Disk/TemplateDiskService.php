@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Storage\Disk;
 
-use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Define;
 use Illuminate\Support\Facades\Storage;
 

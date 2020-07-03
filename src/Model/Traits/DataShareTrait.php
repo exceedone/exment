@@ -12,8 +12,11 @@ trait DataShareTrait
     /**
      * get listbox options contains user and org
      *
-     * @param [type] $custom_table
-     * @return void
+     * @param CustomTable $custom_table
+     * @param ?array $permission
+     * @param bool $ignoreLoginUser if true, ignore login user id from options
+     * @param ?string $default default setting
+     * @return array $options : Select Options, $ajax : ajax url
      */
     public static function getUserOrgSelectOptions($custom_table, $permission = null, $ignoreLoginUser = false, $default = null)
     {

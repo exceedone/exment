@@ -22,9 +22,11 @@ use Illuminate\Http\Request;
  */
 class LoginService
 {
-    public static function setToken(CustomLoginUserBase $custom_login_user)
+    public static function setToken()
     {
-        if ($custom_login_user != LoginType::OAUTH) {
+        // get custom login user
+        $custom_login_user = System::requestSession(Define::SYSTEM_KEY_SESSION_CUSTOM_LOGIN_USER);
+        if (is_nullorempty($custom_login_user) || $custom_login_user != LoginType::OAUTH) {
             return;
         }
 
@@ -55,7 +57,7 @@ class LoginService
     /**
      * Get access token
      *
-     * @return void
+     * @return string|null
      */
     public static function getAccessToken()
     {
@@ -65,7 +67,7 @@ class LoginService
     /**
      * Get refresh token
      *
-     * @return void
+     * @return string|null
      */
     public static function getRefreshToken()
     {
@@ -76,7 +78,7 @@ class LoginService
      * Get custom login validator for synced user.
      *
      * @param array $array
-     * @return void
+     * @return \Validator
      */
     public static function validateCustomLoginSync(CustomLoginUserBase $custom_login_user)
     {
@@ -202,7 +204,7 @@ class LoginService
      * Get test form for sso
      *
      * @param LoginSetting $login_setting
-     * @return void
+     * @return ModalForm
      */
     public static function getTestFormSso(LoginSetting $login_setting)
     {
@@ -290,6 +292,9 @@ class LoginService
 
         $login_user = static::getLoginUser($custom_login_user, $exment_user, $socialiteProvider);
         
+        // Set custom_login_user to request session
+        System::setRequestSession(Define::SYSTEM_KEY_SESSION_CUSTOM_LOGIN_USER, $custom_login_user);
+
         return $login_user;
     }
 

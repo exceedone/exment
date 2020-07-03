@@ -1,0 +1,69 @@
+<?php
+
+namespace Exceedone\Exment\Tests;
+
+class TestDefine
+{
+    public const TESTDATA_USER_LOGINID_ADMIN = '1'; // admin
+    public const TESTDATA_USER_LOGINID_DEV1_USERC = '7'; //dev1-userC
+
+    public const TESTDATA_TABLE_NAME_PARENT_TABLE = 'parent_table';
+    public const TESTDATA_TABLE_NAME_CHILD_TABLE = 'child_table';
+    public const TESTDATA_TABLE_NAME_PIVOT_TABLE = 'pivot_table';
+    public const TESTDATA_TABLE_NAME_PIVOT_TABLE_MANY_TO_MANY = 'pivot_table_n_n';
+    public const TESTDATA_TABLE_NAME_PIVOT_TABLE_SELECT = 'pivot_table_select';
+    public const TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG = 'pivot_table_user_org';
+
+    public const TESTDATA_COLUMN_NAME_PARENT = 'parent';
+    public const TESTDATA_COLUMN_NAME_CHILD = 'child';
+    public const TESTDATA_COLUMN_NAME_CHILD_VIEW = 'child_view';
+    public const TESTDATA_COLUMN_NAME_CHILD_AJAX = 'child_ajax';
+    public const TESTDATA_COLUMN_NAME_CHILD_AJAX_VIEW = 'child_ajax_view';
+
+    public const TESTDATA_COLUMN_NAME_CHILD_RELATION_FILTER = 'child_relation_filter';
+    public const TESTDATA_COLUMN_NAME_CHILD_RELATION_FILTER_VIEW = 'child_relation_filter_view';
+    public const TESTDATA_COLUMN_NAME_CHILD_RELATION_FILTER_AJAX = 'child_relation_filter_ajax';
+    public const TESTDATA_COLUMN_NAME_CHILD_RELATION_FILTER_AJAX_VIEW = 'child_relation_filter_ajax_view';
+    
+    public const TESTDATA_COLUMN_NAME_ORGANIZATION = 'organization';
+    public const TESTDATA_COLUMN_NAME_USER = 'user';
+    public const TESTDATA_COLUMN_NAME_USER_VIEW = 'user_view';
+    public const TESTDATA_COLUMN_NAME_USER_AJAX = 'user_ajax';
+    public const TESTDATA_COLUMN_NAME_USER_AJAX_VIEW = 'user_ajax_view';
+
+    public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER = 'user_relation_filter';
+    public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_VIEW = 'user_relation_filter_view';
+    public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX = 'user_relation_filter_ajax';
+    public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX_VIEW = 'user_relation_filter_ajax_view';
+    
+    public const TESTDATA_COLUMN_NAMES = [
+        'default' => [
+            'default' => self::TESTDATA_COLUMN_NAME_CHILD,
+            'view' => self::TESTDATA_COLUMN_NAME_CHILD_VIEW,
+            'ajax' => self::TESTDATA_COLUMN_NAME_CHILD_AJAX,
+            'ajax_view' => self::TESTDATA_COLUMN_NAME_CHILD_AJAX_VIEW,
+        ],
+        'user' => [
+            'default' => self::TESTDATA_COLUMN_NAME_USER,
+            'view' => self::TESTDATA_COLUMN_NAME_USER_VIEW,
+            'ajax' => self::TESTDATA_COLUMN_NAME_USER_AJAX,
+            'ajax_view' => self::TESTDATA_COLUMN_NAME_USER_AJAX_VIEW,
+        ],
+        'organization' => [
+            'default' => self::TESTDATA_COLUMN_NAME_ORGANIZATION,
+        ],
+        'relation_filter' => [
+            'default' => self::TESTDATA_COLUMN_NAME_CHILD_RELATION_FILTER,
+            'view' => self::TESTDATA_COLUMN_NAME_CHILD_RELATION_FILTER_VIEW,
+            'ajax' => self::TESTDATA_COLUMN_NAME_CHILD_RELATION_FILTER_AJAX,
+            'ajax_view' => self::TESTDATA_COLUMN_NAME_CHILD_RELATION_FILTER_AJAX_VIEW,
+        ],
+        'user_relation_filter' => [
+            'default' => self::TESTDATA_COLUMN_NAME_USER_RELATION_FILTER,
+            'view' => self::TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_VIEW,
+            'ajax' => self::TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX,
+            'ajax_view' => self::TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX_VIEW,
+        ],
+    ];
+    
+}

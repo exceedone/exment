@@ -14,6 +14,12 @@ use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Validator\ChangeFieldRule;
 use Carbon\Carbon;
 
+/**
+ *
+ * @method mixed getFilterOption()
+ * @method mixed getChangeField()
+ * @method string getText()
+ */
 abstract class ConditionItemBase
 {
     protected $custom_table;
@@ -165,7 +171,7 @@ abstract class ConditionItemBase
      *
      * @param [type] $condition
      * @param [type] $value
-     * @return void
+     * @return bool
      */
     protected function compareValue($condition, $value)
     {

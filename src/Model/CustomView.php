@@ -293,7 +293,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * set DataTable using custom_view
-     * @return list(array, array) headers, bodies
+     * @return array $headers : header items, $bodies : body items.
      */
     public function convertDataTable($datalist, $options = [])
     {
@@ -582,7 +582,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
         if ($options['callback'] instanceof \Closure) {
-            call_user_func($callback, $model);
+            call_user_func($options['callback'], $model);
         } else {
             $this->setValueFilters($model);
         }
@@ -990,7 +990,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * Get arrays about Summary Column and custom_view_columns and custom_view_summaries
      *
-     * @return void
+     * @return array
      */
     public function getSummaryIndexAndViewColumns()
     {

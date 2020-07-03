@@ -2,6 +2,11 @@
 
 namespace Exceedone\Exment\Enums;
 
+/**
+ * EnumOptionTrait
+ *
+ * @property array $options
+ */
 trait EnumOptionTrait
 {
     public function option()

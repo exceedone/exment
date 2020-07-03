@@ -155,7 +155,7 @@ class NotifyNavbarController extends AdminControllerBase
 
         $custom_table = getModelName($model->parent_type);
 
-        if (!isset($custom_table)) {
+        if (is_nullorempty($custom_table)) {
             return back();
         }
 

@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Enums\ApiScope;
@@ -362,7 +361,7 @@ class RouteServiceProvider extends ServiceProvider
                 'prefix' => array_get($route, 'prefix'),
                 'namespace'     => $this->namespace,
                 'middleware'    => array_get($route, 'middleware'),
-            ], function (Router $router) use ($route) {
+            ], function (Router $router) {
                 $router->post('template/search', 'TemplateController@searchTemplate');
                 $router->delete('template/delete', 'TemplateController@delete');
             });

@@ -159,7 +159,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
 
         // get dashboard value
         $view_column = CustomViewSummary::getSummaryViewColumn(array_get($this, $key));
-        if (!isset($view_column)) {
+        if (is_nullorempty($view_column)) {
             return [
                 'table_name' => null,
                 'column_name' => null,

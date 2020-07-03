@@ -299,7 +299,7 @@ class Permission
     /**
      * Get Endpoint
      * @param ?string $endpoint
-     * @return mixed
+     * @return string|null
      */
     protected function getEndPoint(?string $endpoint) : ?string
     {
@@ -317,7 +317,7 @@ class Permission
         ///// get last url.
         $uris = explode("/", $url);
         foreach ($uris as $k => $uri) {
-            if (!isset($uri) || mb_strlen($uri) == 0) {
+            if (!is_null($uri) && mb_strlen($uri) == 0) {
                 continue;
             }
 
@@ -338,8 +338,8 @@ class Permission
 
     /**
      * Whether matching url endpoint and table_name for check.
-     * @param Request $request
-     * @return mixed
+     * @param string|null $endpoint
+     * @return bool
      */
     protected function matchEndPointTable($endpoint)
     {
@@ -355,12 +355,14 @@ class Permission
     /**
      * Check plugin's permission
      *
-     * @return void
+     * @return bool
      */
     protected function validatePluginPermission($endpoint)
     {
         // Get plugin data by Endpoint
-        $plugin = Plugin::where('options->uri', $endpoint)->first();
+        $plugin = Plugin::firstRecord(function ($plugin) use ($endpoint) {
+            return strcmp($plugin->getOption('uri'), $endpoint) == 0;
+        }, false);
         if (!isset($plugin)) {
             return false;
         }
@@ -383,7 +385,7 @@ class Permission
     /**
      * Check custom value's permission
      *
-     * @return void
+     * @return boolean
      */
     protected function validateCustomValuePermission($endpoint)
     {

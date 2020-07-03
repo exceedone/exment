@@ -50,9 +50,9 @@ trait ImportValueTrait
     /**
      * Match options with key
      *
-     * @param [type] $v
-     * @param [type] $options
-     * @return void
+     * @param string $v search target string
+     * @param array $options target options
+     * @return string|null
      */
     protected function matchValue($v, $options)
     {

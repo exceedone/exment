@@ -84,6 +84,7 @@ return [
             'exists_row' => 'Be sure to enter at least one line of %s.',
             'sendmail_succeeded' => 'E-mail transmission succeeded.',
             'input_keyword' => 'Please input "%s".',
+            'no_permission' => '(No Permission)',
         ],
 
         'help' =>[
@@ -165,6 +166,7 @@ return [
         ],
 
         'error' => [
+            'cannot_write_env' => 'Failed to write the setting file. Please check if you have write permission or if the file is not open.',
             'database_canconnection' => 'Could not connect to the database. Please check your settings.',
             'mistake_mysql_mariadb' => 'The database you are using is :database, but you have selected :database_select. Please check the settings.',
             'not_require_php_version' => 'The PHP you are using is :current, but you have selected :min or more and less than :max. Please check the settings.',
@@ -247,6 +249,8 @@ return [
         'organization_header' => 'Organization Setting',
         'org_joined_type_role_group' => 'Organization Tree Setting(Role Group)',
         'org_joined_type_custom_value' => 'Organization Tree Setting(Data)',
+        'filter_multi_orguser' => 'User Organization Filter',
+        'filter_multi_user' => 'User Filter',
         'custom_value_save_autoshare' => 'Data Share Setting',
         'ip_filter' => 'IP Filter Setting',
         'web_ip_filters' => 'Web Page',
@@ -303,6 +307,19 @@ return [
             'only_join' => 'Only your organization',
         ],
           
+        'filter_multi_orguser_options' => [
+            'not_filter' => 'Not filter',
+            'all' => 'Organization to which the logged-in user belongs and organization of parent-child hierarchy. And, the users to which they belong',
+            'only_upper' => 'Organization to which the logged-in user belongs and organization of parent hierarchy. And, the users to which they belong',
+            'only_downer' => 'Organization to which the logged-in user belongs and organization of child hierarchy. And, the users to which they belong',
+            'only_join' => 'Organization to which the logged-in user belongs. And, the users to which they belong',
+        ],
+
+        'filter_multi_user_options' => [
+            'not_filter' => 'Not filter',
+            'only_join' => 'Only login user',
+        ],
+
         'custom_value_save_autoshare_options' => [
             'user_only' => 'Only login user',
             'user_organization' => 'Login user and your organization',
@@ -340,6 +357,7 @@ return [
             'password_history_cnt' => 'If you enter 1 or more, old passwords that have been used in the past cannot be registered again for the number of entered passwords. <br />*Even if set to 0, the password being set cannot be registered.',
             'org_joined_type_role_group' => 'When an organization is set in "User / Organization Settings" of the role group, set the range to include the parent/child hierarchy organization.',
             'org_joined_type_custom_value' => 'When the organization is set in the sharing settings for each custom data, set the scope to include the organization of the parent-child hierarchy.',
+            'filter_multi_orguser' => 'Set the range where the logged-in user can view other users/organizations. * Set this when you do not want to display other user information such as portal sites that are used across multiple companies.',
             'custom_value_save_autoshare' => 'Set the automatic sharing method when users create new custom data. The default is only the logged-in user, and it can be shared with your organization depending on the setting.',
             'ip_filter' => 'Set the IP address to allow communication. Fixed IP (example: 12.3.5.6) and range specification format (example: 123.4.5.0/24) can be used. If it is not set, all IP addresses are allowed. <br /> If you want to set more than one, please separate them with line breaks.',
         ],
@@ -967,12 +985,18 @@ return [
             'compare_column2_id' => 'Compare column(B)',
             'compare_type' => 'Condition',
 
+            'share_settings' => 'Data Share Setting',
+            'share_trigger_type' => 'Trigger',
+            'share_column_id' => 'Target Column',
+            'share_permission' => 'Target Permission',
+
             'help' => [
                 'table_labels' => 'When selecting data, set the wording column to be displayed on the screen. Display as heading items in order from the top.<br/>Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
                 'uniques' => 'Set a composite unique key. If all the values ​​in these columns match the registered values, an error will occur when saving the data.',
                 'compare_columns' => 'Compares two columns when saving data. You can save only when the column value matches the set conditions.',
                 'table_label_format' => '(For advanced users) You can flexibly set the format to be displayed in the heading. Please refer to&nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp;for the parameter to display the value.* If you set a value to this item, "header display column setting" above will be disabled.',
                 'form_action_disable_flg' => 'The checked operation cannot be executed from the screen. Check this if you want to manage data only from the API or dashboard.',
+                'share_settings' => 'When saving the data, the data is automatically shared with the organization or user who is set in the data.',
             ],
             'form_action_options' => [
                 'create' => 'Create',
@@ -980,6 +1004,14 @@ return [
                 'delete' => 'Delete',
                 'import' => 'Import',
                 'export' => 'Export',
+            ],
+            'share_trigger_type_options' => [
+                'create' => 'Created',
+                'update' => 'Updated',
+            ],
+            'share_permission_options' => [
+                'edit' => 'Edit',
+                'view' => 'Share',
             ],
             
             'filter_condition_compare_options' => [
@@ -1003,6 +1035,7 @@ return [
         'order' => 'Order',
         'add_custom_form_flg' => 'Add to the Default Form',
         'add_custom_view_flg' => 'Add to the Default View',
+        'add_table_label_flg' => 'Add to the Table Label',
         'auto_number_format_rule' => 'Auto Number format of the role',
         'child_count_text' => '%s:Count',
         'child_sum_text' => '%s:%s(Sum)',
@@ -1015,6 +1048,7 @@ return [
         'options' => [
             'header' => 'Detail Option',
             'index_enabled' => 'Index Enabled',
+            'freeword_search' => 'Freeword Search Target',
             'unique' => 'Unique',
             'init_only' => 'Input Only Once',
             'login_user_default' => 'Set initial value to login user',
@@ -1043,6 +1077,7 @@ return [
             'select_import_column_id' => 'Key column when importing',
             'select_export_column_id' => 'Key column when exporting',
             'select_load_ajax' => 'Narrow down the choices',
+            'showing_all_user_organizations' => 'Display users/organizations without permission',
             'true_value' => 'Select1 Value',
             'true_label' => 'Select1 Label',
             'true_label_default' => 'Yes',
@@ -1085,7 +1120,9 @@ return [
             "organization" => "Organization",
         ],
         'help' => [
+            'column_type' => 'Please select this column type. When entering data, the form changes according to the column type.',
             'index_enabled' => 'If set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>',
+            'freeword_search' => 'If set to YES, it will be the target column when performing a free word search.',
             'unique' => 'If you do not want to register the same value with other data in duplicate, please set it to YES. * For data with a large number of cases, we recommend setting "Search index" to YES.',
             'init_only' => 'If set to YES, the value can be entered only once. After saving, it is displayed as read-only.',
             'default' => 'The initial value of the item at the time of new registration.',
@@ -1102,6 +1139,7 @@ return [
             'select_item_valtext' => 'Enter choices by line break separator. The word before the comma is the value, the word after the comma is the label.<br/>Ex：「1,Adult<br/>2,Underage」→"1" is the value saving data. "Adult" is the label user selected.',
             'select_target_table' => 'Select the table to be selected.',
             'select_load_ajax' => 'If set to YES, the options are not read at first, but the data is searched by the user input value, and the candidates are narrowed down. <br/> * Regardless of this setting, if the number of data items is %s or more, it will be set to narrow down to improve performance.',
+            'showing_all_user_organizations' => 'When set to YES, all users/organizations are displayed in the selection without checking the permission to access the table. *If this setting is NO, the options displayed will be limited to the users and organizations that can access this table.',
             'select_target_view' => 'To narrow the data, specify a condition view. Please create the condition view on the custom table setting screen first.',
             'select_import_column_id' => 'When importing data, you can specify custom columns to narrow the data in the selected table. If not set, use id. Please refer to &nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp; for details.',
             'select_import_column_id_key' => 'Change of specification method of data of parent table',
@@ -1118,8 +1156,10 @@ return [
             'currency_symbol' => 'Please select the format of the currency displayed on the screen.',
             'add_custom_form_flg' => 'After creating custom column, you can add it to the default custom form. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "Form" page.',
             'add_custom_view_flg' => 'After creating custom column, you can add it to the default custom view. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "View" page.',
+            'add_table_label_flg' => 'After creating custom column, you can add it to table labels. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "Table Expand" page.',
             'select_table_deny' => "You don't have the permissions for the referenced table '%s'. Please contact your system administrator to request additional permissions.",
             'login_user_default' => 'If set to YES, the initial value of the item will be the login user.',
+            'multiple_enabled' => 'By setting to YES, you can register multiple values ​​in this column. *Some functions are limited.',
         ],
         'available_characters' => [
             'lower' => 'Lower Letters', 
@@ -1408,6 +1448,7 @@ return [
         'role_type_option_system' => [
             'system' => ['label' => 'System Setting', 'help' => 'Users can edit system setting.'],
             'login_user' => ['label' => 'Manage login user', 'help' => 'You can manage the users who log in to Exment.'],
+            'filter_multiuser_all' => ['label' => 'Get All User and Org', 'help' => 'Information of all users/organizations can be obtained regardless of the setting of User/organization filter.'],
             'workflow' => ['label' => 'Workflow Settings', 'help' => 'You can change the workflow settings.'],
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can add, edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],

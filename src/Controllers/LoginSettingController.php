@@ -80,7 +80,7 @@ class LoginSettingController extends AdminControllerBase
             $actions->disableView();
         });
         $grid->tools(function (Grid\Tools $tools) {
-            $tools->prepend(new Tools\SystemChangePageMenu('login_setting'));
+            $tools->prepend(new Tools\SystemChangePageMenu());
         });
         return $grid;
     }
@@ -219,7 +219,7 @@ class LoginSettingController extends AdminControllerBase
         }
 
         $form->tools(function (Form\Tools $tools) use ($login_setting) {
-            $tools->append(new Tools\SystemChangePageMenu('login_setting'));
+            $tools->append(new Tools\SystemChangePageMenu());
             
             if (isset($login_setting)) {
                 $tools->append(new Tools\ModalMenuButton(

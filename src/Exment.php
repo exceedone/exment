@@ -50,7 +50,7 @@ class Exment
             return $errorController->error($request, $exception);
         } catch (\Exception $ex) {
             return $callback($request, $exception);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             return $callback($request, $exception);
         }
     }

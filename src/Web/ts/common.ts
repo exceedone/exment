@@ -651,7 +651,7 @@ namespace Exment {
                     }
 
                     select2_expand['linkage_value_id'] = $base.val();
-                    $target.data('add-select2-expand', select2_expand);
+                    $target.data('add-select2-expand', select2_expand).val(null).trigger("change");
                     continue;
                 }
                 CommonEvent.linkage($target, url, $base.val(), expand);

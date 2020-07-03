@@ -46,7 +46,7 @@ class Morph
     /**
      * return Morph maps
      *
-     * @return void
+     * @return array
      */
     public static function getMorphs()
     {

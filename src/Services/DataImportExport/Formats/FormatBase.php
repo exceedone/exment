@@ -49,6 +49,7 @@ abstract class FormatBase
         $files = [];
         // create excel
         $spreadsheet = new Spreadsheet();
+        $sheet_name = null;
         foreach ($this->datalist as $index => $data) {
             $sheet_name = array_get($data, 'name');
             $outputs = array_get($data, 'outputs');
@@ -101,4 +102,12 @@ abstract class FormatBase
 
     abstract public function createResponse($files);
     abstract protected function getDefaultHeaders();
+
+    /**
+     * whether this out is as zip.
+     * This table is parent and contains relation 1:n or n:n.
+     *
+     * @return boolean
+     */
+    abstract protected function isOutputAsZip();
 }

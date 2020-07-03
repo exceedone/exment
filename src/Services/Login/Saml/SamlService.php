@@ -5,6 +5,7 @@ use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\LoginSetting;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SsoLoginErrorType;
 use Exceedone\Exment\Services\Login\LoginServiceInterface;
@@ -26,7 +27,7 @@ class SamlService implements LoginServiceInterface
      * (5) get login_user info. If not exists, create user (if set setting).
      * return login_user
      * @param array $credentials
-     * @return ?LoginUser
+     * @return LoginUser|null
      * if null, not match ldap user. Showing wrong ID or password not match.
      *
      * @throws SsoLoginErrorException
@@ -63,7 +64,12 @@ class SamlService implements LoginServiceInterface
     }
 
 
-
+    /**
+     * Get test form for sso
+     *
+     * @param LoginSetting $login_setting
+     * @return ModalForm
+     */
     public static function getTestForm(LoginSetting $login_setting)
     {
         return LoginService::getTestFormSso($login_setting);
@@ -197,7 +203,8 @@ class SamlService implements LoginServiceInterface
      * Execute login test callback
      *
      * @param Request $request
-     * @return void
+     * @param LoginSetting $login_setting
+     * @return array $result(bool), $message(string), $adminMessage(string), $custom_login_user
      */
     public static function loginCallback(Request $request, $login_setting, $isTest = false)
     {

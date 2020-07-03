@@ -36,7 +36,7 @@ class Condition extends ModelBase
     /**
      * Get target condition.
      *
-     * @return void
+     * @return string|null
      */
     public function getConditionTarget()
     {

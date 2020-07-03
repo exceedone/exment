@@ -7,6 +7,10 @@ use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 
 class DefaultTableProvider extends ProviderBase
 {
+    protected $custom_table;
+
+    protected $custom_columns;
+    
     protected $primary_key;
     
     protected $filter;

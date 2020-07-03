@@ -65,7 +65,7 @@ trait CustomValueGrid
     /**
      * Get filter html. call from ajax, or execute set filter.
      *
-     * @return void
+     * @return array offset 0 : html, 1 : script
      */
     protected function getFilterHtml()
     {
@@ -287,6 +287,7 @@ trait CustomValueGrid
             $relationTables = $custom_table->getRelationTables();
 
             $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
+                $custom_table->setGridAuthoritable($actions->grid->getOriginalCollection());
                 $enableEdit = true;
                 $enableDelete = true;
                 $enableHardDelete = false;

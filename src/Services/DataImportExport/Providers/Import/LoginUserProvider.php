@@ -126,6 +126,7 @@ class LoginUserProvider extends ProviderBase
         }
         
         // set password
+        $password = null;
         if (boolval(array_get($data, 'create_password_auto'))) {
             $password = make_password();
             $update_flg = true;

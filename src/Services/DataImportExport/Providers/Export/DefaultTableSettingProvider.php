@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomRelation;
 
 class DefaultTableSettingProvider extends ProviderBase
 {
+    protected $custom_table;
     protected $custom_columns;
     protected $outputs = [];
 
@@ -104,7 +105,7 @@ class DefaultTableSettingProvider extends ProviderBase
     /**
      * get setting target columns
      *
-     * @return void
+     * @return \Illuminate\Support\Collection
      */
     protected static function getTargetColumns($custom_table)
     {

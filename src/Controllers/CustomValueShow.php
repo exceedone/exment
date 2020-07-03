@@ -39,10 +39,8 @@ trait CustomValueShow
      * set option boxes.
      * contains file uploads, revisions
      */
-    protected function setOptionBoxes($row, $id, $modal = false)
+    protected function setOptionBoxes($row, $id, CustomValue $custom_value, $modal = false)
     {
-        $custom_value = $this->custom_table->getValueModel($id);
-        
         $this->setChildBlockBox($row, $custom_value, $id, $modal);
 
         $this->setDocumentBox($row, $custom_value, $id, $modal);
@@ -55,11 +53,9 @@ trait CustomValueShow
     /**
      * create show form list
      */
-    protected function createShowForm($id = null, $modal = false)
+    protected function createShowForm($id, CustomValue $custom_value, $modal = false)
     {
-        return new Show($this->custom_table->getValueModel($id), function (Show $show) use ($id, $modal) {
-            $custom_value = $this->custom_table->getValueModel($id);
-
+        return new Show($custom_value, function (Show $show) use ($id, $custom_value, $modal) {
             if (isset($id) && !$modal) {
                 $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
                 $field->border = false;
@@ -368,7 +364,7 @@ trait CustomValueShow
         $this->firstFlow($request, CustomValuePageType::EDIT, $id);
         
         $revision_suuid = $request->get('revision');
-        $custom_value = $this->custom_table->getValueModel($id);
+        $custom_value = $this->getCustomValue($id);
         $custom_value->setRevision($revision_suuid)->save();
         return redirect($custom_value->getUrl());
     }
@@ -455,7 +451,7 @@ EOT;
 
     protected function setRevisionBox($row, $custom_value, $id, $modal = false)
     {
-        $revisions = $this->getRevisions($id, $modal);
+        $revisions = $this->getRevisions($custom_value, $modal);
 
         if (count($revisions) == 0) {
             return;
@@ -672,7 +668,7 @@ EOT;
             return [];
         }
         
-        $query = $this->custom_table->getValueModel($id)
+        $query = $this->getCustomValue($id)
             ->revisionHistory()
             ->orderby('id', 'desc');
         
@@ -681,5 +677,10 @@ EOT;
             $query = $query->take(10);
         }
         return $query->get() ?? [];
+    }
+
+    protected function getCustomValue($id)
+    {
+        return $this->custom_table->getValueModel($id, boolval(request()->get('trashed')));
     }
 }

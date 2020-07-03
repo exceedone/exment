@@ -84,6 +84,7 @@ return [
             'exists_row' => '%sは必ず1行以上入力してください。',
             'sendmail_succeeded' => 'メールを送信しました。',
             'input_keyword' => '「%s」と入力してください。',
+            'no_permission' => '(権限がありません)',
         ],
 
         'help' =>[
@@ -164,6 +165,7 @@ return [
         ],
 
         'error' => [
+            'cannot_write_env' => '設定ファイルの書き込みに失敗しました。書き込み権限が設定されているか、ファイルが開かれていないかどうかをご確認ください。',
             'database_canconnection' => 'データベースに接続できませんでした。設定内容をご確認ください。',
             'mistake_mysql_mariadb' => 'お使いのデータベースは:databaseですが、:database_selectを選択しています。設定内容をご確認ください。',
             'not_require_php_version' => 'PHPはバージョン:min以上:max未満が必要です。ご利用のバージョンは:currentです。',
@@ -245,6 +247,8 @@ return [
         'organization_header' => '組織設定',
         'org_joined_type_role_group' => '組織階層設定(役割グループ)',
         'org_joined_type_custom_value' => '組織階層設定(データ)',
+        'filter_multi_orguser' => 'ユーザー・組織のフィルター',
+        'filter_multi_user' => 'ユーザーのフィルター',
         'custom_value_save_autoshare' => 'カスタムデータ共有設定',
         'ip_filter' => 'IPフィルタ設定',
         'web_ip_filters' => 'Webページ',
@@ -301,6 +305,19 @@ return [
             'only_join' => 'データが共有された組織のユーザーのみ',
         ],
           
+        'filter_multi_orguser_options' => [
+            'not_filter' => '絞り込みを行わない',
+            'all' => 'ログインユーザーが所属する組織と、親子階層の組織。ならびに、それらの所属ユーザー',
+            'only_upper' => 'ログインユーザーが所属する組織と、親階層の組織。ならびに、それらの所属ユーザー',
+            'only_downer' => 'ログインユーザーが所属する組織と、子階層の組織。ならびに、それらの所属ユーザー',
+            'only_join' => 'ログインユーザーが所属する組織。ならびに、それらの所属ユーザー',
+        ],
+
+        'filter_multi_user_options' => [
+            'not_filter' => '絞り込みを行わない',
+            'only_join' => 'ログインユーザーのみ',
+        ],
+
         'custom_value_save_autoshare_options' => [
             'user_only' => 'ログインユーザーのみ',
             'user_organization' => 'ログインユーザーと、所属する組織',
@@ -338,6 +355,7 @@ return [
             'password_history_cnt' => '1以上を入力することで、過去に使用したことのある古いパスワードは、入力した件数分、再度登録できなくなります。<br />※0にした場合でも、設定中のパスワードは登録できません。',
             'org_joined_type_role_group' => '役割グループの「ユーザー・組織設定」に組織を設定したとき、役割の設定範囲で、親子階層の組織を含める範囲を設定します。',
             'org_joined_type_custom_value' => '各カスタムデータの共有設定に組織を設定したとき、データの共有範囲で、親子階層の組織を含めるかどうかをを設定します。',
+            'filter_multi_orguser' => 'ログインユーザーが、他のユーザー・組織を表示できる範囲を設定します。※複数の会社をまたいで利用するポータルサイトなど、他のユーザー情報を表示させたくない場合に設定してください。',
             'custom_value_save_autoshare' => 'ユーザーがカスタムデータを新規作成時の、自動共有方法を設定します。既定はログインユーザーのみで、設定により、所属組織にも共有することができます。',
             'ip_filter' => '通信を許可するIPアドレスを設定します。固定IP（例：12.3.5.6）、および範囲指定形式（例：123.4.5.0/24）が使用できます。未設定の場合は、すべてのIPアドレスを許可します。<br />複数設定する場合は改行で区切ってください。',
         ],
@@ -957,6 +975,11 @@ return [
             'compare_column2_id' => '比較列(B)',
             'compare_type' => '条件',
 
+            'share_settings' => 'データ自動共有設定',
+            'share_trigger_type' => 'トリガー',
+            'share_column_id' => '対象列',
+            'share_permission' => '対象の権限',
+
             'table_labels' => '見出し表示列設定',
             'column_target' => '対象列',
             'priority' => '優先順位',
@@ -971,6 +994,7 @@ return [
                 'compare_columns' => 'データ保存時、2つの列を比較します。列の値が、設定した条件と一致した場合のみ、保存ができます。',
                 'table_label_format' => '（上級者向け）見出しに表示するフォーマットを柔軟に設定できます。値を表示するためのパラメータは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。※この項目に値を設定した場合、上記の「見出し表示列設定」は無効になります。',
                 'form_action_disable_flg' => 'チェックした操作は、画面から実行することができなくなります。APIやダッシュボードからのみ、データの管理を行いたい場合はチェックしてください。',
+                'share_settings' => 'データ保存時、データに設定されている組織またはユーザーに、自動的にデータを共有します。',
             ],
             'form_action_options' => [
                 'create' => '新規作成',
@@ -978,6 +1002,14 @@ return [
                 'delete' => '削除',
                 'import' => 'インポート',
                 'export' => 'エクスポート',
+            ],
+            'share_trigger_type_options' => [
+                'create' => '新規作成時',
+                'update' => '更新時',
+            ],
+            'share_permission_options' => [
+                'edit' => '編集',
+                'view' => '閲覧',
             ],
                 
             'filter_condition_compare_options' => [
@@ -1001,6 +1033,7 @@ return [
         'order' => '表示順',
         'add_custom_form_flg' => '既定のフォームに追加する',
         'add_custom_view_flg' => '既定のビューに追加する',
+        'add_table_label_flg' => '見出し列に追加する',
         'auto_number_format_rule' => '自動採番フォーマットのルール',
         'child_count_text' => '%s:件数',
         'child_sum_text' => '%s:%s(合計)',
@@ -1013,6 +1046,7 @@ return [
         'options' => [
             'header' => '詳細オプション',
             'index_enabled' => '検索インデックス',
+            'freeword_search' => 'フリーワード検索対象',
             'unique' => 'ユニーク(一意)',
             'init_only' => '1度のみ入力',
             'login_user_default' => '初期値をログインユーザーにする',
@@ -1037,10 +1071,11 @@ return [
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
-            'select_target_view' => '対象ビュー',
+            'select_target_view' => '絞り込み条件ビュー',
             'select_import_column_id' => 'インポート時のキー列',
             'select_export_column_id' => 'エクスポート時のキー列',
-            'select_load_ajax' => '選択肢を絞り込む',
+            'select_load_ajax' => '選択肢を都度検索する',
+            'showing_all_user_organizations' => '権限をもたないユーザー・組織も表示する',
             'true_value' => '選択肢1のときの値',
             'true_label' => '選択肢1のときの表示',
             'true_label_default' => 'はい',
@@ -1083,7 +1118,9 @@ return [
             "organization" => "組織",
         ],
         'help' => [
+            'column_type' => 'この列の種類を選択してください。データ入力時に、列種類に合わせてフォームが変更されます。',
             'index_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+            'freeword_search' => 'YESにすることで、検索バーに文字列を入れて検索を行う際、検索対象となります。',
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
             'init_only' => 'YESにすることで、1回だけ値を入力可能になります。保存後は、読み取り専用で表示されます。',
             'default' => '新規登録時の、項目の初期値です。',
@@ -1100,6 +1137,7 @@ return [
             'select_item_valtext' => '改行区切りで選択肢を入力します。カンマの前が値、後が見出しとなります。<br/>例：<br/>「1,成人<br/>2,未成年」→"1"が選択時にデータとして登録する値、"成人"が選択時の見出し',
             'select_target_table' => '選択対象となるテーブルを選択してください。',
             'select_load_ajax' => 'YESにすることで、はじめは選択肢を読み込まず、ユーザーの入力値でデータを検索し、候補を絞り込みます。<br/>※この設定に関わらず、データの件数が%s件以上の場合は、パフォーマンス向上のために、絞り込みを行う設定になります。',
+            'showing_all_user_organizations' => 'YESにすることで、そのテーブルにアクセスできるかどうかの権限を確認せず、すべてのユーザー・組織を選択肢に表示します。  ※この設定がNOの場合、選択肢に表示されるのは、このテーブルにアクセスできるユーザー・組織のみに絞り込まれます。',
             'select_target_view' => 'データを絞り込む場合に、条件ビューを指定します。条件ビューは、先にカスタムテーブルの設定画面で作成してください。',
             'select_import_column_id' => 'データのインポート時、選択テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'select_import_column_id_key' => '親テーブルのデータの指定方法変更',
@@ -1116,8 +1154,10 @@ return [
             'currency_symbol' => '画面に表示する通貨の形式を選択してください。',
             'add_custom_form_flg' => '新規作成後、既定のフォームに列を追加することができます。追加する場合はYESにしてください。<br/>※列の新規作成時のみ設定できます。更新時は「フォーム」画面より設定してください。',
             'add_custom_view_flg' => '新規作成後、既定のビューに列を追加することができます。追加する場合はYESにしてください。<br/>※列の新規作成時のみ設定できます。更新時は「ビュー」画面より設定してください。',
+            'add_table_label_flg' => '新規作成後、検索のサジェスト表示や、他のテーブルからの参照表示に使用する、見出し列に追加することができます。追加する場合はYESにしてください。<br/>※列の新規作成時のみ設定できます。更新時は「カスタムテーブル」の「拡張設定」画面より設定してください。',
             'select_table_deny' => '参照先のテーブル「%s」の権限がありません。システム管理者に問い合わせし、権限の追加を依頼してください。',
             'login_user_default' => 'YESにすることで、項目の初期値がログインユーザーになります。',
+            'multiple_enabled' => 'YESにすることで、この列に複数の値を登録することができます。※一部の機能に制限がかかります。',
         ],
         'available_characters' => [
             'lower' => '英小文字', 
@@ -1406,6 +1446,7 @@ return [
         'role_type_option_system' => [
             'system' => ['label' => 'システム管理', 'help' => 'Exmentのすべての機能を使用・設定・変更できます。'],
             'login_user' => ['label' => 'ユーザーログイン設定', 'help' => 'ユーザーに、ログインするためのパスワード付与や、パスワードリセットなど行うことができます。<br/>※ユーザーアカウントの追加・変更は、下記の「マスター権限設定」の「ユーザー」の、「データ編集」にチェックを行ってください。'],
+            'filter_multiuser_all' => ['label' => '全ユーザー・組織取得', 'help' => '「ユーザー・組織のフィルター」の設定に関わらず、全ユーザー・組織の情報を取得できます。'],
             'workflow' => ['label' => 'ワークフロー設定', 'help' => 'ワークフローの設定を変更できます。'],
             'custom_table' => ['label' => 'すべてのテーブル管理', 'help' => 'カスタムテーブルの追加や、すべてのカスタムテーブルの変更・削除を行えます。また、カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],

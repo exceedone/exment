@@ -33,6 +33,8 @@ class ReplaceFormatService
                 for ($i = 0; $i < count($matches[1]); $i++) {
                     $str = null;
                     $matchString = null;
+                    $matchOptions = [];
+                    
                     try {
                         $match = $matches[1][$i];
                         $matchString = $matches[0][$i];

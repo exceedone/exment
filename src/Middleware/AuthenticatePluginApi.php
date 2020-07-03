@@ -41,8 +41,8 @@ class AuthenticatePluginApi extends \Encore\Admin\Middleware\Authenticate
     /**
      * Get Plugin Model from name
      *
-     * @param [type] $request
-     * @return void
+     * @param \Illuminate\Http\Request $request
+     * @return Plugin|null
      */
     protected function getPlugin($request)
     {

@@ -225,8 +225,8 @@ class LdapService implements LoginServiceInterface
      * Get login result and message.
      *
      * @param Request $request
-     * @param [type] $login_setting
-     * @return void
+     * @param LoginSetting $login_setting
+     * @return array $result(bool), $message(string), $adminMessage(string), $custom_login_user
      */
     protected static function loginCallback(Request $request, $login_setting)
     {

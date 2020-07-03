@@ -36,8 +36,8 @@ abstract class ItemBase
             $classname = Value::class;
         } elseif ($key == "select_table") {
             $classname = SelectTableValue::class;
-        } elseif ($key == "sum") {
-            $classname = Sum::class;
+        // } elseif ($key == "sum") {
+        //     $classname = Sum::class;
         } elseif ($key == "child") {
             $classname = Child::class;
         } elseif ($key == "parent") {

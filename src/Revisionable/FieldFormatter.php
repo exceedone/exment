@@ -92,7 +92,7 @@ class FieldFormatter
      * @param  $value
      * @param  $format
      *
-     * @return formatted string
+     * @return string formatted string
      */
     public static function string($value, $format = null)
     {
@@ -109,7 +109,7 @@ class FieldFormatter
      * @param string $value
      * @param string $format
      *
-     * @return formatted datetime
+     * @return string formatted datetime
      */
     public static function datetime($value, $format = 'Y-m-d H:i:s')
     {

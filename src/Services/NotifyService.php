@@ -216,7 +216,7 @@ class NotifyService
                         'message' => exmtrans('error.mailsend_failed')
                     ]],
                 ]);
-            } catch (Exception $ex) {
+            } catch (\Exception $ex) {
                 return getAjaxResponse([
                     'result'  => false,
                     'errors' => ['send_error_message' => ['type' => 'input',
@@ -245,17 +245,19 @@ class NotifyService
      */
     public static function executeTestNotify($params = [])
     {
-        extract(
-            array_merge(
-                [
-                    'to' => null,
-                    'type' => 'mail',
-                    'subject' => 'Exment TestMail',
-                    'body' => 'Exment TestMail'
-                ],
-                $params
-            )
+        $params = array_merge(
+            [
+                'to' => null,
+                'type' => 'mail',
+                'subject' => 'Exment TestMail',
+                'body' => 'Exment TestMail'
+            ],
+            $params
         );
+        $to = $params['to'];
+        $type = $params['type'];
+        $subject = $params['subject'];
+        $body = $params['body'];
 
 
         // send mail
@@ -280,22 +282,30 @@ class NotifyService
      */
     public static function executeNotifyAction($notify, $params = [])
     {
-        extract(
-            array_merge(
-                [
-                    'mail_template' => null,
-                    'prms' => [],
-                    'user' => null,
-                    'custom_value' => null,
-                    'subject' => null,
-                    'body' => null,
-                    'attach_files' => null,
-                    'is_chat' => false,
-                    'replaceOptions' => []
-                ],
-                $params
-            )
+        $params = array_merge(
+            [
+                'mail_template' => null,
+                'prms' => [],
+                'user' => null,
+                'custom_value' => null,
+                'subject' => null,
+                'body' => null,
+                'attach_files' => null,
+                'is_chat' => false,
+                'replaceOptions' => []
+            ],
+            $params
         );
+        $mail_template = $params['mail_template'];
+        $prms = $params['prms'];
+        $user = $params['user'];
+        $custom_value = $params['custom_value'];
+        $subject = $params['subject'];
+        $body = $params['body'];
+        $attach_files = $params['attach_files'];
+        $is_chat = $params['is_chat'];
+        $replaceOptions = $params['replaceOptions'];
+
 
         // get template
         if (!isset($mail_template)) {

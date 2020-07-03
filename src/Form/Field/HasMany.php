@@ -76,7 +76,7 @@ EOT;
      *
      * @param string $templateScript
      *
-     * @return void
+     * @return string
      */
     protected function setupScriptForDefaultView($templateScript)
     {
@@ -272,7 +272,7 @@ EOT;
     /**
      * Get hasmany Count
      *
-     * @return void
+     * @return int
      */
     protected function getHasManyCount()
     {

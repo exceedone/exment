@@ -164,6 +164,8 @@ class CustomOperationController extends AdminControllerTableBase
             'condition_target_name' => 'view_column_target',
             'condition_key_name' => 'view_column_target',
             'condition_value_name' => 'update_value',
+            'condition_target_label' => exmtrans('custom_operation.view_column_target'),
+            'condition_value_label' => exmtrans('custom_operation.update_value_text'),
         ]);
 
         $hasManyTable->callbackField(function ($field) {

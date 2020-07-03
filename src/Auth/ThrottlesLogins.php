@@ -12,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Copied by Illuminate\Foundation\Auth\ThrottlesLogins
+ *
+ * @method string username()
  */
 trait ThrottlesLogins
 {

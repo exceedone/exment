@@ -6,12 +6,20 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
+use Exceedone\Exment\Enums\SharePermission;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class CustomValueAuthoritable extends ModelBase
 {
     use Traits\DataShareTrait;
+
+    public function getAuthoritableUserOrgAttribute()
+    {
+        return CustomTable::getEloquent($this->authoritable_user_org_type)->getValueModel($this->authoritable_target_id);
+    }
 
     /**
      * Set Custom Value Authoritable after custom value save
@@ -66,6 +74,40 @@ class CustomValueAuthoritable extends ModelBase
     }
 
     /**
+     * Set Custom Value Authoritable after custom value save
+     *
+     * @param [CustomValue] $custom_value
+     * @param [ShareTrigger] $share_trigger_type
+     * @return void
+     */
+    public static function setValueAuthoritableEx($custom_value, $share_trigger_type)
+    {
+        $custom_table = $custom_value->custom_table;
+
+        // create share target user or orgs
+        foreach ($custom_table->share_settings as $share_setting) {
+            foreach (stringToArray(array_get($share_setting, 'share_trigger_type')) as $t) {
+                if ($share_trigger_type != $t) {
+                    continue;
+                }
+
+                $share_permission = array_get($share_setting, 'share_permission');
+                $share_column = array_get($share_setting, 'share_column');
+                $target_ids = array_get($custom_value->value, $share_column->column_name);
+                $user_organizations = collect(stringToArray($target_ids))->map(function ($target_id) use ($share_column) {
+                    return [
+                    'related_id' => $target_id,
+                    'related_type' => $share_column->column_type,
+                ];
+                })->toArray();
+
+                // set Custom Value Authoritable
+                self::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $share_permission == SharePermission::EDIT);
+            }
+        }
+    }
+
+    /**
      * Set Authoritable By User and Org Array
      *
      * @return void
@@ -91,14 +133,39 @@ class CustomValueAuthoritable extends ModelBase
                 continue;
             }
 
-            self::firstOrCreate([
+            // if not has permission for accessible, continue;
+            if (!static::hasPermssionAccessible($custom_table, $related_id, $related_type)) {
+                continue;
+            }
+
+            $model = static::firstOrNew([
                 'parent_id' => $custom_value->id,
                 'parent_type' => $table_name,
-                'authoritable_type' => $is_edit? Permission::CUSTOM_VALUE_EDIT: Permission::CUSTOM_VALUE_VIEW,
+                'authoritable_type' => $is_edit ? Permission::CUSTOM_VALUE_EDIT: Permission::CUSTOM_VALUE_VIEW,
                 'authoritable_user_org_type' => $related_type,
                 'authoritable_target_id' => $related_id,
             ]);
+
+            if (!isset($model->id)) {
+                $model->save();
+                static::notifyUser($custom_value, collect([$model->authoritable_user_org]));
+            }
         }
+    }
+
+    /**
+     * Check $related_id has permission for access $custom_table
+     *
+     * @param CustomTable $custom_table
+     * @param string|int $related_id target user or org id
+     * @param string $related_type
+     * @return boolean
+     */
+    protected static function hasPermssionAccessible($custom_table, $related_id, $related_type)
+    {
+        $accessibleIds = ($related_type == ColumnType::ORGANIZATION ? $custom_table->getAccessibleOrganizationIds() : $custom_table->getAccessibleUserIds());
+
+        return $accessibleIds->contains($related_id);
     }
 
     /**
@@ -209,14 +276,14 @@ class CustomValueAuthoritable extends ModelBase
                         ->where('parent_id', $custom_value->id)
                         ->where('authoritable_type', $item['name']);
                     },
-                    'dbDeleteFilter' => function (&$model, $dbValue) use ($id, $item, $custom_value) {
+                    'dbDeleteFilter' => function (&$model, $dbValue) use ($item, $custom_value) {
                         $model->where('parent_type', $custom_value->custom_table->table_name)
                             ->where('parent_id', $custom_value->id)
                             ->where('authoritable_type', $item['name'])
                             ->where('authoritable_user_org_type', array_get((array)$dbValue, 'authoritable_user_org_type'))
                             ->where('authoritable_target_id', array_get((array)$dbValue, 'authoritable_target_id'));
                     },
-                    'matchFilter' => function ($dbValue, $value) use ($id, $item) {
+                    'matchFilter' => function ($dbValue, $value) {
                         return array_get((array)$dbValue, 'authoritable_user_org_type') == array_get($value, 'authoritable_user_org_type')
                             && array_get((array)$dbValue, 'authoritable_target_id') == array_get($value, 'authoritable_target_id');
                     },
@@ -229,16 +296,13 @@ class CustomValueAuthoritable extends ModelBase
                 return CustomTable::getEloquent($share['authoritable_user_org_type'])->getValueModel($share['authoritable_target_id']);
             });
             
-            // loop for $notifies
-            foreach ($custom_value->custom_table->notifies as $notify) {
-                $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE, ['targetUserOrgs' => $shares]);
-            }
+            static::notifyUser($custom_value, $shares);
 
             return getAjaxResponse([
                 'result'  => true,
                 'toastr' => trans('admin.save_succeeded'),
             ]);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             //TODO:error handling
             \DB::rollback();
             throw $exception;
@@ -292,7 +356,7 @@ class CustomValueAuthoritable extends ModelBase
      * get listbox options default
      *
      * @param [type] $custom_value
-     * @return void
+     * @return array user and organization default options
      */
     protected static function getUserOrgSelectDefault($custom_value, $permission)
     {
@@ -332,5 +396,19 @@ class CustomValueAuthoritable extends ModelBase
         }
 
         return false;
+    }
+
+    /**
+     * Notify target user.
+     *
+     * @param CustomValue $custom_value shared target custom_value.
+     * @param Collection $shareTargets user and organization notify targets collection
+     * @return void
+     */
+    protected static function notifyUser($custom_value, $shareTargets)
+    {
+        foreach ($custom_value->custom_table->notifies as $notify) {
+            $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE, ['targetUserOrgs' => $shareTargets]);
+        }
     }
 }

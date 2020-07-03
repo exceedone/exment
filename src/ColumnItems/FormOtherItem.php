@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FormColumnType;
 
 abstract class FormOtherItem implements ItemInterface
@@ -42,7 +43,7 @@ abstract class FormOtherItem implements ItemInterface
      */
     public function name()
     {
-        return null;
+        return make_uuid();
     }
 
     /**

@@ -53,9 +53,7 @@ class Yesno extends CustomItem
     /**
      * replace value for import
      *
-     * @param mixed $value
-     * @param array $setting
-     * @return void
+     * @return array
      */
     public function getImportValueOption()
     {
@@ -68,7 +66,7 @@ class Yesno extends CustomItem
     /**
      * Get pure value. If you want to change the search value, change it with this function.
      *
-     * @param [type] $value
+     * @param string $label
      * @return ?string string:matched, null:not matched
      */
     public function getPureValue($label)

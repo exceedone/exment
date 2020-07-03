@@ -300,7 +300,7 @@ EOT;
             }
         })->disableHeader();
 
-        $form->tools(function (Form\Tools $tools) use ($id, $dashboard_type, $form) {
+        $form->tools(function (Form\Tools $tools) use ($id, $dashboard_type) {
             $tools->disableList();
 
             // add share button
