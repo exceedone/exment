@@ -1,12 +1,17 @@
 <?php
 
-namespace Exceedone\Exment\Controllers;
+namespace Exceedone\Exment\DataGridItems;
 
 use Exceedone\Exment\Form\Tools;
 
-trait CustomValueCalendar
+class CalendarGrid extends GridBase
 {
-    protected function gridCalendar()
+    public function __construct($custom_table, $custom_view){
+        $this->custom_table = $custom_table;
+        $this->custom_view = $custom_view;
+    }
+
+    public function grid()
     {
         $table_name = $this->custom_table->table_name;
         $model = $this->custom_table->getValueModel()->query();

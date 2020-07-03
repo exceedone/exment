@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Controllers;
+namespace Exceedone\Exment\DataGridItems;
 
 use Encore\Admin\Grid;
 use Exceedone\Exment\Form\Tools;
@@ -9,7 +9,6 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
@@ -17,9 +16,14 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 
-trait CustomValueSummary
+class SummaryGrid extends GridBase
 {
-    protected function gridSummary()
+    public function __construct($custom_table, $custom_view){
+        $this->custom_table = $custom_table;
+        $this->custom_view = $custom_view;
+    }
+
+    public function grid()
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);

@@ -35,8 +35,7 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceTableActions, CustomValueGrid, CustomValueForm;
-    use CustomValueShow, CustomValueSummary, CustomValueCalendar;
+    use HasResourceTableActions, CustomValueForm, CustomValueShow;
 
     const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
     const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
@@ -118,22 +117,14 @@ class CustomValueController extends AdminControllerTableBase
                 $group_keys = json_decode($request->query('group_key'));
                 $callback = $this->getSummaryDetailFilter($group_keys);
             }
+            
+            $grid = $this->custom_view->grid_item;
+
             if ($request->has('filter_ajax')) {
-                return $this->getFilterAjaxHtml();
+                return $grid->getFilterHtml();
             }
-
-            switch ($this->custom_view->view_kind_type) {
-                case ViewKindType::AGGREGATE:
-                    $row = new Row($this->gridSummary());
-                    break;
-                case ViewKindType::CALENDAR:
-                    $row = new Row($this->gridCalendar());
-                    break;
-                default:
-                    $row = new Row($this->grid($callback));
-                    $this->custom_table->saveGridParameter($request->path());
-            }
-
+            
+            $row = new Row($grid->grid($callback));
             $row->class([static::CLASSNAME_CUSTOM_VALUE_GRID, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         }
 
@@ -330,6 +321,15 @@ class CustomValueController extends AdminControllerTableBase
         admin_toastr(trans('admin.save_succeeded'));
         return redirect($url);
     }
+
+    /**
+     * @param Request $request
+     */
+    public function import(Request $request)
+    {
+        $grid = $this->custom_view->grid_item;
+        return $grid->import($request);
+    }
  
     /**
      * get import modal
@@ -340,7 +340,8 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
 
-        $service = $this->getImportExportService();
+        $grid = $this->custom_view->grid_item;
+        $service = $grid->getImportExportService();
         $importlist = Plugin::pluginPreparingImport($this->custom_table);
         return $service->getImportModal($importlist);
     }
@@ -814,17 +815,5 @@ class CustomValueController extends AdminControllerTableBase
 
         // set form
         $this->custom_form = $this->custom_table->getPriorityForm($id);
-    }
-
-    protected function getFilterAjaxHtml()
-    {
-        switch ($this->custom_view->view_kind_type) {
-            case ViewKindType::AGGREGATE:
-                return null;
-            case ViewKindType::CALENDAR:
-                return null;
-            default:
-                return $this->getFilterHtml();
-        }
     }
 }

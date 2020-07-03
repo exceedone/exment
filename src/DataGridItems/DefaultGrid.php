@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Controllers;
+namespace Exceedone\Exment\DataGridItems;
 
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
@@ -22,14 +22,19 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
 
-trait CustomValueGrid
+class DefaultGrid extends GridBase
 {
+    public function __construct($custom_table, $custom_view){
+        $this->custom_table = $custom_table;
+        $this->custom_view = $custom_view;
+    }
+
     /**
      * Make a grid builder.
      *
      * @return Grid
      */
-    protected function grid($filter_func = null)
+    public function grid($filter_func = null)
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
@@ -67,7 +72,7 @@ trait CustomValueGrid
      *
      * @return array offset 0 : html, 1 : script
      */
-    protected function getFilterHtml()
+    public function getFilterHtml()
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
@@ -393,7 +398,7 @@ trait CustomValueGrid
     }
 
     // create import and exporter
-    protected function getImportExportService($grid = null)
+    public function getImportExportService($grid = null)
     {
         $service = (new DataImportExport\DataImportExportService())
             ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
