@@ -317,7 +317,7 @@ class Permission
         ///// get last url.
         $uris = explode("/", $url);
         foreach ($uris as $k => $uri) {
-            if (mb_strlen($uri) == 0) {
+            if (!is_null($uri) && mb_strlen($uri) == 0) {
                 continue;
             }
 
