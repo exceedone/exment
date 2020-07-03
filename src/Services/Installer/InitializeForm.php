@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Services\EnvService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -64,6 +65,17 @@ class InitializeForm
 
             // add system initialized flg.
             System::initialized(1);
+
+            // write env
+            try{
+                EnvService::setEnv(['EXMENT_INITIALIZE' => 1]);
+            }
+            // if cannot write, nothing do
+            catch(\Exception $ex){
+            }
+            catch(\Throwable $ex){
+            }
+
             \DB::commit();
             admin_toastr(trans('admin.save_succeeded'));
             $this->guard()->login($loginuser);

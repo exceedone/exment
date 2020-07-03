@@ -1616,7 +1616,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         $display_table = array_get($options, 'display_table');
-        return admin_urls_query("webapi", 'data', array_get($this, 'table_name'), "select", ['display_table_id' => $display_table ? $display_table->id : null]);
+        $custom_column = array_get($options, 'custom_column');
+        return admin_urls_query("webapi", 'data', array_get($this, 'table_name'), "select", ['column_id' => $custom_column ? $custom_column->id : null, 'display_table_id' => $display_table ? $display_table->id : null]);
     }
 
     /**

@@ -87,7 +87,15 @@ class DatabaseForm
             $inputs['DB_' . strtoupper($s)] = $request->get($s);
         }
 
-        $this->setEnv($inputs);
+        
+        try{
+            $this->setEnv($inputs);
+        }
+        catch(\Exception $ex){
+            return back()->withInput()->withErrors([
+                'database_canconnection' => exmtrans('install.error.cannot_write_env'),
+            ]);
+        }
 
         InstallService::setInitializeStatus(InitializeStatus::DATABASE);
 

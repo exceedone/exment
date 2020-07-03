@@ -164,7 +164,7 @@ class ApiDataController extends AdminControllerTableBase
         $custom_view = CustomView::getEloquent(array_get($expand, 'target_view_id'));
 
         // get target column if exists
-        $column_id = array_get($expand, 'column_id');
+        $column_id = array_get($expand, 'column_id') ?? $request->get('column_id');
         $column = CustomColumn::getEloquent($column_id);
 
         ///// If set linkage, filter relation.
@@ -709,7 +709,12 @@ class ApiDataController extends AdminControllerTableBase
     }
 
     /**
-     * get table columns data
+     * get table columns data. seletcting column, and search.
+     *
+     * @param Request $request
+     * @param string $tableKey
+     * @param string $column_name
+     * @return Response
      */
     public function columnData(Request $request, $tableKey, $column_name)
     {

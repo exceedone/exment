@@ -31,6 +31,7 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Services\EnvService;
 use Exceedone\Exment\Middleware\Morph;
 use Carbon\Carbon;
 
@@ -157,6 +158,9 @@ class PatchDataCommand extends Command
                 return;
             case 'patch_freeword_search':
                 $this->setFreewordSearchOption();
+                return;
+            case 'set_env':
+                $this->setEnv();
                 return;
             }
 
@@ -1138,6 +1142,32 @@ class PatchDataCommand extends Command
                 $v->suuid = short_uuid();
                 $v->save();
             });
+        }
+    }
+    
+    /**
+     * setEnv
+     *
+     * @return void
+     */
+    protected function setEnv()
+    {
+        if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
+            return;
+        }
+
+        if(!boolval(System::initialized())){
+            return;
+        }
+
+        // write env
+        try{
+            EnvService::setEnv(['EXMENT_INITIALIZE' => 1]);
+        }
+        // if cannot write, nothing do
+        catch(\Exception $ex){
+        }
+        catch(\Throwable $ex){
         }
     }
 }

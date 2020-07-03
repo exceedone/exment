@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 
-class PatchSearchFreeword extends Migration
+class SupportForV340 extends Migration
 {
     /**
      * Run the migrations.
@@ -12,6 +12,7 @@ class PatchSearchFreeword extends Migration
     public function up()
     {
         \Artisan::call('exment:patchdata', ['action' => 'patch_freeword_search']);
+        \Artisan::call('exment:patchdata', ['action' => 'set_env']);
     }
 
     /**

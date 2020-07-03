@@ -3,6 +3,12 @@
         <p class="login-box-msg">{{ trans('admin.setting') }}(1/3) : Language</p>
 
         <form action="{{ admin_url('install') }}" method="post">
+            <div class="form-group has-feedback {!! !$errors->has('common_error') ?: 'has-error' !!}">
+                @if($errors->has('common_error')) @foreach($errors->get('common_error') as $message)
+                <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
+                @endforeach @endif
+            </div>
+
             <div class="form-group has-feedback {!! !$errors->has('locale') ?: 'has-error' !!}">
 
                 @if($errors->has('locale')) @foreach($errors->get('locale') as $message)
