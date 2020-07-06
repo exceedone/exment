@@ -1348,6 +1348,7 @@ if (!function_exists('getAjaxResponse')) {
             'swal' => null,
             'swaltext' => null,
             'errors' => [],
+            'pjaxmodal' => false,
         ], $results);
 
         if (isset($results['swaltext']) && !isset($results['swal'])) {

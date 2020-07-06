@@ -118,13 +118,20 @@ class CustomValueController extends AdminControllerTableBase
                 $callback = $this->getSummaryDetailFilter($group_keys);
             }
             
-            $grid = $this->custom_view->grid_item;
+            $grid_item = $this->custom_view->grid_item
+                ->modal($request->has('modal'));
 
             if ($request->has('filter_ajax')) {
-                return $grid->getFilterHtml();
+                return $grid_item->getFilterHtml();
             }
-            
-            $row = new Row($grid->grid($callback));
+
+            $grid = $grid_item->grid($callback);
+
+            if($request->has('modal')){
+                return $grid_item->renderModal($grid);
+            }
+
+            $row = new Row($grid);
             $row->class([static::CLASSNAME_CUSTOM_VALUE_GRID, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         }
 
@@ -327,6 +334,10 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function import(Request $request)
     {
+        if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
+            return $response;
+        }
+        
         $grid = $this->custom_view->grid_item;
         return $grid->import($request);
     }

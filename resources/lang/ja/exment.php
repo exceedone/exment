@@ -69,6 +69,7 @@ return [
         'join_and' => 'かつ',
         'join_or' => 'または',
         'download' => 'ダウンロード',
+        'append_to_selectitem' => '「%s」に追加',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',

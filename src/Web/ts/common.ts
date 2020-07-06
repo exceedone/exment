@@ -1206,6 +1206,14 @@ const pInt = (obj) => {
     return parseInt(obj);
 }
 
+const pBool = (obj) : boolean => {
+    if (!hasValue(obj)) {
+        return false;
+    }
+    const booleanStr = obj.toString().toLowerCase();
+    return booleanStr === "true" || booleanStr === "1";
+ }
+
 const hasValue = (obj): boolean => {
     if (obj == null || obj == undefined || obj.length == 0) {
         return false;

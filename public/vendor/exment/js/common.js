@@ -1126,6 +1126,13 @@ const pInt = (obj) => {
     obj = obj.toString().replace(/,/g, '');
     return parseInt(obj);
 };
+const pBool = (obj) => {
+    if (!hasValue(obj)) {
+        return false;
+    }
+    const booleanStr = obj.toString().toLowerCase();
+    return booleanStr === "true" || booleanStr === "1";
+};
 const hasValue = (obj) => {
     if (obj == null || obj == undefined || obj.length == 0) {
         return false;

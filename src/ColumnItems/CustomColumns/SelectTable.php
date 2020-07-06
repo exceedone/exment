@@ -171,6 +171,24 @@ class SelectTable extends CustomItem
         // add table info
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
 
+        // set buttons
+        $field->buttons([
+            [
+                'label' => trans('admin.search'),
+                'btn_class' => 'btn-info',
+                'icon' => 'fa-search',
+                'attributes' => [
+                    'data-widgetmodal_url' => admin_urls_query('data', $this->target_table->table_name, ['modal' => 1]),
+                    'data-widgetmodal_expand' => json_encode([
+                        'target_column_id' => $this->custom_column->id,
+                        'target_view_id' => $this->custom_column->getOption('select_target_view'),
+                        'display_table_id' => $this->custom_table->id,
+                        ]),
+                    'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'value_' . $this->name()]),
+                ],
+            ],
+        ]);
+
         // add view info
         $linkage = $this->getLinkage($form_column_options);
         $callback = $this->getRelationFilterCallback($linkage);

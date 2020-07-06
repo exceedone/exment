@@ -36,55 +36,17 @@ trait CustomValueForm
             $form->systemValues()->setWidth(12, 0);
         }
 
-        // get select_parent
-        $select_parent = null;
-        if ($request->has('select_parent')) {
-            $select_parent = intval($request->get('select_parent'));
-        }
-
         //TODO: escape laravel-admin bug.
         //https://github.com/z-song/laravel-admin/issues/1998
         $form->hidden('laravel_admin_escape');
-        $form->hidden('select_parent')->default($select_parent);
 
         // for lock data
         $form->hidden('updated_at');
 
-        // add parent select if this form is 1:n relation
-        $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
-        if (isset($relation)) {
-            $parent_custom_table = $relation->parent_custom_table;
-            $form->hidden('parent_type')->default($parent_custom_table->table_name);
-
-            // if create data and not has $select_parent, select item
-            if (!isset($id) && !isset($select_parent)) {
-                $select = $form->select('parent_id', $parent_custom_table->table_view_name)
-                ->options(function ($value) use ($parent_custom_table) {
-                    return $parent_custom_table->getSelectOptions([
-                        'selected_value' => $value,
-                        'showMessage_ifDeny' => true,
-                    ]);
-                });
-                $select->required();
-
-                // set select options
-                $select->ajax($parent_custom_table->getOptionAjaxUrl());
-            }
-            // if edit data or has $select_parent, only display
-            else {
-                if ($request->has('parent_id')) {
-                    $parent_id = $request->get('parent_id');
-                } else {
-                    $parent_id = isset($select_parent) ? $select_parent : $classname::find($id)->parent_id;
-                }
-                $parent_value = $parent_custom_table->getValueModel($parent_id);
-
-                if (isset($parent_id) && isset($parent_value) && isset($parent_custom_table)) {
-                    $form->hidden('parent_id')->default($parent_id);
-                    $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label);
-                }
-            }
-        }
+        // get select_parent
+        $select_parent = $request->has('select_parent') ? intval($request->get('select_parent')) : null;
+        // set one:many select
+        $this->setParentSelect($request, $form, $select_parent, $id);
 
         $calc_formula_array = [];
         $changedata_array = [];
@@ -619,6 +581,67 @@ EOT;
                 ],
                 'to' => array_get($child_column, 'column_name'),
             ];
+        }
+    }
+
+    protected function setParentSelect($request, $form, $select_parent, $id){
+        // get select_parent
+        $select_parent = null;
+        if ($request->has('select_parent')) {
+            $select_parent = intval($request->get('select_parent'));
+        }
+        $form->hidden('select_parent')->default($select_parent);
+
+        // add parent select if this form is 1:n relation
+        $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
+        if (!isset($relation)) {
+            return;
+        }
+        $parent_custom_table = $relation->parent_custom_table;
+        $form->hidden('parent_type')->default($parent_custom_table->table_name);
+
+        // if create data and not has $select_parent, select item
+        if (!isset($id) && !isset($select_parent)) {
+            $select = $form->select('parent_id', $parent_custom_table->table_view_name)
+            ->options(function ($value) use ($parent_custom_table) {
+                return $parent_custom_table->getSelectOptions([
+                    'selected_value' => $value,
+                    'showMessage_ifDeny' => true,
+                ]);
+            });
+            $select->required();
+
+            // set select options
+            $select->ajax($parent_custom_table->getOptionAjaxUrl());
+
+            // set buttons
+            $select->buttons([
+                [
+                    'label' => trans('admin.search'),
+                    'btn_class' => 'btn-info',
+                    'icon' => 'fa-search',
+                    'attributes' => [
+                        'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modal' => 1]),
+                        'data-widgetmodal_expand' => json_encode(['target_column_class' => 'parent_id']),
+                        'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'parent_id']),
+                    ],
+                ],
+            ]);
+
+        }
+        // if edit data or has $select_parent, only display
+        else {
+            if ($request->has('parent_id')) {
+                $parent_id = $request->get('parent_id');
+            } else {
+                $parent_id = isset($select_parent) ? $select_parent : getModelName($this->custom_table)::find($id)->parent_id;
+            }
+            $parent_value = $parent_custom_table->getValueModel($parent_id);
+
+            if (isset($parent_id) && isset($parent_value) && isset($parent_custom_table)) {
+                $form->hidden('parent_id')->default($parent_id);
+                $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label);
+            }
         }
     }
 }
