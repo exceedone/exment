@@ -62,6 +62,7 @@ class Bootstrap
         Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
         Ad::css(asset('vendor/exment/css/workflow.css?ver='.$ver));
         Ad::css(asset('vendor/exment/codemirror/codemirror.css?ver='.$ver));
+        Ad::css(asset('vendor/exment/jstree/themes/default/style.min.css?ver='.$ver));
         
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
         Ad::js(asset('vendor/exment/codemirror/codemirror.js'));
@@ -80,6 +81,7 @@ class Bootstrap
         Ad::js(asset('vendor/exment/fullcalendar/daygrid/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/list/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/timegrid/main.min.js?ver='.$ver));
+        Ad::js(asset('vendor/exment/jstree/jstree.min.js'));
         Ad::js(asset('vendor/exment/js/common_all.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/notify_navbar.js?ver='.$ver));

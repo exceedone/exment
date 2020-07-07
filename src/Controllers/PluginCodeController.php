@@ -52,31 +52,104 @@ class PluginCodeController extends AdminControllerBase
             $content->row(function (Row $row) use($id, $filedata) {
                 $row->column(9, function (Column $column) use($id, $filedata) {
                     $form = new \Encore\Admin\Widgets\Form();
-                    //$form->action(admin_url("plugin/code_edit"));
                     $form->disableReset();
                     $form->disableSubmit();
 
-                    $form->textarea('edit_file')->default($filedata)->setWidth(12, 0)->attribute(['id' => 'edit_file']);
+                    $form->textarea('edit_file')->setWidth(12, 0)->attribute(['id' => 'edit_file']);
+                    $form->hidden('file_path')->attribute(['id' => 'file_path']);
                     $form->ajaxButton('save_plugin_code', trans("admin.save"))
                         ->url(admin_urls('plugin', 'edit_code', $id))
                         ->button_class('btn-md btn-info pull-right')
                         ->button_label(trans("admin.save"))
-                        ->send_params('edit_file')
+                        ->send_params('edit_file,file_path')
                         ->setWidth(10, 0);
         
-                    $column->append((new Box('Plugin.php', $form))->style('success'));
+                    $column->append((new Box('未選択', $form))->style('success'));
                 });
 
-                $row->column(3, function (Column $column) {
-
-                });
+                $row->column(3, view('exment::widgets.jstree', [
+                    'data_get_url' => "$id/getTree",
+                    'file_get_url' => "$id/getFile",
+                ]));
             });
     }
 
-    //Function use to upload file and update or add new record
+    public function getTreeData(Request $request, $id) {
+        $json = [];
+        $plugin = Plugin::getEloquent($id);
+        $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
+        $folder = $plugin->getPath();
+        $node_idx = 0;
+        if ($disk->exists($folder)) {
+            $this->setDirectoryNodes($folder, '#', $node_idx, $json);
+        }
+        return response()->json($json);
+    }
+
+    public function getFileData(Request $request, $id) {
+        $json = [];
+        $validator = \Validator::make($request->all(), [
+            'nodepath' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
+        $nodepath = $request->get('nodepath');
+        if ($disk->exists($nodepath)) {
+            $filedata = $disk->get($nodepath);
+            $json = [
+                'filepath' => $nodepath,
+                'filename' => basename($nodepath),
+                'filedata' => $filedata
+            ];
+        }
+        return response()->json($json);
+    }
+
+    protected function setDirectoryNodes($folder, $parent, &$node_idx, &$json) {
+        $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
+
+        $node_idx++;
+        $directory_node = "node_$node_idx";
+        $json[] = [
+            'id' => $directory_node,
+            'parent' => $parent,
+            'text' => basename($folder),
+            'state' => [
+                'opened' => $parent == '#'
+            ]
+        ];
+
+        $directories = $disk->directories($folder);
+        foreach ($directories as $directory) {
+            $this->setDirectoryNodes($directory, $directory_node, $node_idx, $json);
+        }
+
+        $files = $disk->files($folder);
+        foreach ($files as $file) {
+            $node_idx++;
+            $json[] = [
+                'id' => "node_$node_idx",
+                'parent' => $directory_node,
+                'icon' => 'jstree-file',
+                'text' => basename($file),
+            ];
+        }
+
+        return $directory_node;
+    }
+
+    /**
+     * Function use to upload file and update or add new record
+     */
     public function store(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
+            'file_path' => 'required',
             'edit_file' => 'required',
         ]);
 
@@ -88,27 +161,18 @@ class PluginCodeController extends AdminControllerBase
             ]);
         }
 
+        $file_path = $request->get('file_path');
         $edit_file = $request->get('edit_file');
-        
-        $plugin = Plugin::getEloquent($id);
-        if (!isset($plugin)) {
-            return getAjaxResponse([
-                'result'  => false,
-                'toastr' => exmtrans('plugincode.error.plugin_notfound'),
-                'reload' => false,
-            ]);
-        }
 
         $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
-        $folder = $plugin->getPath();
-        if (!$disk->exists($folder)) {
+        if (!$disk->exists($file_path)) {
             return getAjaxResponse([
                 'result'  => false,
                 'toastr' => exmtrans('plugincode.error.file_notfound'),
                 'reload' => false,
             ]);
         }
-        $disk->put("$folder/plugin.php", $edit_file);
+        $disk->put($file_path, $edit_file);
 
         return getAjaxResponse([
             'result'  => true,
