@@ -1884,6 +1884,7 @@ return [
             'delete_disabled' => 'This data cannot be deleted.',
             'not_index_enabled' => ':attribute does not have a search index.',
             'data_not_found' => 'The target data cannot be found.',
+            'form_action_disabled' => 'Depending on the settings, this action cannot be performed.',
             'workflow_nostart' => 'The workflow has not started or is out of scope.',
             'workflow_end' => 'The workflow has been completed or excluded.',
             'workflow_action_disabled' => 'Invalid action or no permission.',

@@ -429,15 +429,22 @@ class SelectTable extends CustomItem
         if (is_string($labelColumns)) {
             return null;
         }
-
+        
         $use_table_label_id = boolval($select_table->getOption('use_label_id_flg', false));
 
         // searching select table query
         $query = $select_table->getValueModel()::query();
         $executeSearch = false;
 
+
+        // not has label column, get custom column's first.
+        if (!$use_table_label_id && count($labelColumns) == 0) {
+            if ($this->setSelectTableQuery($query, $select_table->custom_columns_cache->first(), $label)) {
+                $executeSearch = true;
+            }
+        }
         // only single search column, search
-        if (!$use_table_label_id && count($labelColumns) == 1) {
+        elseif (!$use_table_label_id && count($labelColumns) == 1) {
             if ($this->setSelectTableQuery($query, array_get($labelColumns[0], 'table_label_id'), $label)) {
                 $executeSearch = true;
             }

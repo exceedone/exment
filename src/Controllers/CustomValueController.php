@@ -67,6 +67,13 @@ class CustomValueController extends AdminControllerTableBase
         if (($response = $this->firstFlow($request, CustomValuePageType::GRID, null)) instanceof Response) {
             return $response;
         }
+        // checking export
+        if($request->get('action') == 'export'){
+            if (($response = $this->firstFlow($request, CustomValuePageType::EXPORT)) instanceof Response) {
+                return $response;
+            }
+        }
+
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
@@ -347,7 +354,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function importModal(Request $request, $tableKey)
     {
-        if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
+        if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
             return $response;
         }
 
@@ -759,6 +766,11 @@ class CustomValueController extends AdminControllerTableBase
         } elseif ($formActionType == CustomValuePageType::DELETE) {
             $custom_value = $this->custom_table->getValueModel($id);
             $code = $custom_value ? $custom_value->enableDelete(true) : $this->custom_table->getNoDataErrorCode($id);
+        } elseif ($formActionType == CustomValuePageType::EXPORT) {
+            $code = $this->custom_table->enableExport();
+        } elseif ($formActionType == CustomValuePageType::IMPORT) {
+            // if import, check has create permission(but not check "create" form action)
+            $code = $this->custom_table->enableImport();
         }
         
         if ($code !== true) {
