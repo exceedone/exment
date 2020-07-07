@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\DataGridItems;
+namespace Exceedone\Exment\DataItems\Grid;
 
 use Exceedone\Exment\Form\Tools;
 

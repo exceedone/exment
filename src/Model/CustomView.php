@@ -17,7 +17,7 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
-use Exceedone\Exment\DataGridItems;
+use Exceedone\Exment\DataItems\Grid as GridItem;
 
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -149,13 +149,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         switch ($this->view_kind_type) {
             case ViewKindType::AGGREGATE:
-                $this->_grid_item = DataGridItems\SummaryGrid::getItem($this->custom_table, $this);
+                $this->_grid_item = GridItem\SummaryGrid::getItem($this->custom_table, $this);
                 break;
             case ViewKindType::CALENDAR:
-                $this->_grid_item = DataGridItems\CalendarGrid::getItem($this->custom_table, $this);
+                $this->_grid_item = GridItem\CalendarGrid::getItem($this->custom_table, $this);
                 break;
             default:
-                $this->_grid_item = DataGridItems\DefaultGrid::getItem($this->custom_table, $this);
+                $this->_grid_item = GridItem\DefaultGrid::getItem($this->custom_table, $this);
                 break;
         }
 

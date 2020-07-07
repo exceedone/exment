@@ -76,6 +76,8 @@ class CustomValueController extends AdminControllerTableBase
 
         $this->AdminContent($content);
 
+        $modal = $request->has('modal');
+
         // if table setting is "one_record_flg" (can save only one record)
         if ($this->custom_table->isOneRecord()) {
             // get record list
@@ -120,21 +122,18 @@ class CustomValueController extends AdminControllerTableBase
             if ($request->has('query') && $this->custom_view->view_kind_type != ViewKindType::ALLDATA) {
                 $this->custom_view = CustomView::getAllData($this->custom_table);
             }
-            if ($request->has('group_key')) {
-                $group_keys = json_decode($request->query('group_key'));
-                $callback = $this->getSummaryDetailFilter($group_keys);
-            }
-            
-            $grid_item = $this->custom_view->grid_item
-                ->modal($request->has('modal'));
 
+            $grid_item = $this->custom_view->grid_item
+                ->modal($modal);
+            $callback = $grid_item->getCallbackFilter();
+            
             if ($request->has('filter_ajax')) {
                 return $grid_item->getFilterHtml();
             }
 
             $grid = $grid_item->grid($callback);
 
-            if($request->has('modal')){
+            if($modal){
                 return $grid_item->renderModal($grid);
             }
             elseif($request->has('modalframe')){
@@ -147,7 +146,9 @@ class CustomValueController extends AdminControllerTableBase
 
         $content->row($row);
 
-        PartialCrudService::setGridContent($this->custom_table, $content);
+        if(!$modal){
+            PartialCrudService::setGridContent($this->custom_table, $content);
+        }
 
         return $content;
     }
@@ -218,21 +219,60 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
 
-        $custom_value = $this->custom_table->getValueModel($id, boolval(request()->get('trashed')));
-
+        $show_item = $this->custom_form->show_item->id($id)->modal($modal);
         if ($modal) {
-            return $this->createShowForm($id, $custom_value, $modal);
+            return $show_item->createShowForm();
         }
 
         $this->AdminContent($content);
-        $content->row($this->createShowForm($id, $custom_value));
-        $content->row(function ($row) use ($id, $custom_value) {
+        $content->row($show_item->createShowForm());
+        $content->row(function ($row) use($show_item) {
             $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
-            $this->setOptionBoxes($row, $id, $custom_value, false);
+            $show_item->setOptionBoxes($row);
         });
         return $content;
     }
 
+    /**
+     * compare
+     */
+    public function compare(Request $request, Content $content, $tableKey, $id)
+    {
+        $this->firstFlow($request, CustomValuePageType::SHOW, $id);
+        $this->AdminContent($content);
+
+        $show_item = $this->custom_form->show_item->id($id);
+
+        $content->body($show_item->getRevisionCompare($request->get('revision')));
+        return $content;
+    }
+   
+    /**
+     * get compare item for pjax
+     */
+    public function compareitem(Request $request, Content $content, $tableKey, $id)
+    {
+        $this->firstFlow($request, CustomValuePageType::SHOW, $id);
+        
+        $show_item = $this->custom_form->show_item->id($id);
+
+        return $show_item->getRevisionCompare($request->get('revision'), true);
+    }
+   
+    /**
+     * restore data
+     */
+    public function restoreRevision(Request $request, $tableKey, $id)
+    {
+        $this->firstFlow($request, CustomValuePageType::EDIT, $id);
+        
+        $show_item = $this->custom_form->show_item->id($id);
+
+        $revision_suuid = $request->get('revision');
+
+        return $show_item->restoreRevision($revision_suuid);
+    }
+  
     /**
      * for file upload function.
      */
@@ -241,28 +281,8 @@ class CustomValueController extends AdminControllerTableBase
         if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
             return $response;
         }
-        $httpfiles = $request->file('file_data');
-        // file put(store)
-        foreach(toArray($httpfiles) as $httpfile){
-            $filename = $httpfile->getClientOriginalName();
-            // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
-            // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
-            $custom_value = getModelName($this->custom_table)::find($id);
-            $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
-                ->saveCustomValue($custom_value->id, null, $this->custom_table);
-            // save document model
-            $document_model = $file->saveDocumentModel($custom_value, $filename);
-            
-            // loop for $notifies
-            foreach ($custom_value->custom_table->notifies as $notify) {
-                $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::ATTACHMENT, ['attachment' => $filename]);
-            }
-        }
-
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.update_succeeded'),
-        ]);
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->fileupload($request->file('file_data'));
     }
 
     /**
@@ -274,37 +294,8 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
 
-        // get file delete flg column name
-        $del_column_name = $request->input(Field::FILE_DELETE_FLAG);
-        /// file remove
-        $form = $this->form($id);
-        $fields = $form->builder()->fields();
-        // filter file
-        $fields->filter(function ($field) {
-            return $field instanceof Field\Embeds;
-        })->each(function ($field) use ($del_column_name, $id) {
-            // get fields
-            $embedFields = $field->fields();
-            $embedFields->filter(function ($field) use ($del_column_name) {
-                return $field->column() == $del_column_name;
-            })->each(function ($field) use ($del_column_name, $id) {
-                // get file path
-                $obj = getModelName($this->custom_table)::find($id);
-                $original = $obj->getValue($del_column_name, true);
-                $field->setOriginal($obj->value);
-
-                $field->destroy(); // delete file
-                ExmentFile::deleteFileInfo($original); // delete file table
-                $obj->setValue($del_column_name, null)
-                    ->remove_file_columns($del_column_name)
-                    ->save();
-            });
-        });
-
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.delete_succeeded'),
-        ]);
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->filedelete($request, $this->form($id));
     }
  
     /**
@@ -317,28 +308,8 @@ class CustomValueController extends AdminControllerTableBase
         }
         $comment = $request->get('comment');
 
-        if (!empty($comment)) {
-            // save Comment Model
-            $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
-            $model->parent_id = $id;
-            $model->parent_type = $tableKey;
-            $model->setValue([
-                'comment_detail' => $comment,
-            ]);
-            $model->save();
-                
-            // execute notify
-            $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
-            if (isset($custom_value)) {
-                foreach ($custom_value->custom_table->notifies as $notify) {
-                    $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::COMMENT, ['comment' => $comment]);
-                }
-            }
-        }
-
-        $url = admin_urls('data', $this->custom_table->table_name, $id);
-        admin_toastr(trans('admin.save_succeeded'));
-        return redirect($url);
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->addComment($comment);
     }
 
     /**

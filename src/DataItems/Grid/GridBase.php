@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\DataGridItems;
+namespace Exceedone\Exment\DataItems\Grid;
 
 abstract class GridBase
 {
@@ -24,4 +24,10 @@ abstract class GridBase
     public function renderModal($grid){
         return [];
     }
+    
+    public function getCallbackFilter()
+    {
+        return null;
+    }
+
 }

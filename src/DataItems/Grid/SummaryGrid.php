@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\DataGridItems;
+namespace Exceedone\Exment\DataItems\Grid;
 
 use Encore\Admin\Grid;
 use Exceedone\Exment\Form\Tools;
@@ -102,8 +102,10 @@ class SummaryGrid extends GridBase
         return $grid;
     }
 
-    protected function getSummaryDetailFilter($group_keys)
+    public function getCallbackFilter()
     {
+        $group_keys = json_decode(request()->query('group_key'));
+        
         // save summary view
         $custom_view = $this->custom_view;
         // replace view
@@ -138,6 +140,7 @@ class SummaryGrid extends GridBase
         };
         return $filter_func;
     }
+
     /**
      * set summary grid
      */

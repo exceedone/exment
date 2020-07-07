@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\DataGridItems;
+namespace Exceedone\Exment\DataItems\Grid;
 
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
@@ -44,27 +44,7 @@ class DefaultGrid extends GridBase
         
         // if modal, Change view model
         if($this->modal){
-            // set request session data url disabled;
-            System::setRequestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG, true);
-
-            $modal_target_view = CustomView::getEloquent(request()->get('target_view_id'));
-
-            // modal use alldata view
-            $this->custom_view = CustomView::getAllData($this->custom_table);
-
-            // filter using modal_target_view, and display table
-            if(isset($modal_target_view)){
-                $modal_target_view->filterModel($grid->model(), ['callback' => $filter_func]);
-            }
-
-            // filter display table
-            $modal_display_table = CustomTable::getEloquent(request()->get('display_table_id'));
-            $modal_custom_column = CustomColumn::getEloquent(request()->get('target_column_id'));
-            if(!empty($modal_display_table) && !empty($modal_custom_column)){
-                $this->custom_table->filterDisplayTable($grid->model(), $modal_display_table, [
-                    'all' => $modal_custom_column->isGetAllUserOrganization(),
-                ]);
-            }
+            $this->gridFilterForModal($grid, $filter_func);
         }
         else{
             // filter
@@ -75,7 +55,9 @@ class DefaultGrid extends GridBase
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
         $this->setCustomGridFilters($grid, $search_enabled_columns);
 
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
+        if(!$this->modal){
+            Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
+        }
         
         // create grid
         $this->custom_view->setGrid($grid);
@@ -86,7 +68,9 @@ class DefaultGrid extends GridBase
         // manage tool button
         $this->manageMenuToolButton($grid);
 
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
+        if (!$this->modal) {
+            Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
+        }
 
         $grid->getDataCallback(function ($grid) {
             $customValueCollection = $grid->getOriginalCollection();
@@ -101,28 +85,33 @@ class DefaultGrid extends GridBase
         return $grid;
     }
 
-    protected function viewFilter($grid, $filter_func = null)
-    {
-        // if modal, Change view model
-        if($this->modal){
-            $this->modal_target_view = CustomView::getEloquent(request()->get('target_view_id'));
+    /**
+     * execute filter for modal
+     *
+     * @return void
+     */
+    protected function gridFilterForModal($grid, $filter_func){
+        // set request session data url disabled;
+        System::setRequestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG, true);
 
-            // modal use alldata view
-            $this->custom_view = CustomView::getAllData($this->custom_table);
+        $modal_target_view = CustomView::getEloquent(request()->get('target_view_id'));
 
-            // filter using modal_target_view, and display table
-            if(isset($this->modal_target_view)){
-                $this->modal_target_view->filterModel($grid->model(), ['callback' => $filter_func]);
-            }
+        // modal use alldata view
+        $this->custom_view = CustomView::getAllData($this->custom_table);
 
-            $this->modal_display_table = CustomView::getEloquent(request()->get('target_view_id'));
-
-        }
-        else{
-            // filter
-            $this->custom_view->filterModel($grid->model(), ['callback' => $filter_func]);
+        // filter using modal_target_view, and display table
+        if(isset($modal_target_view)){
+            $modal_target_view->filterModel($grid->model(), ['callback' => $filter_func]);
         }
 
+        // filter display table
+        $modal_display_table = CustomTable::getEloquent(request()->get('display_table_id'));
+        $modal_custom_column = CustomColumn::getEloquent(request()->get('target_column_id'));
+        if(!empty($modal_display_table) && !empty($modal_custom_column)){
+            $this->custom_table->filterDisplayTable($grid->model(), $modal_display_table, [
+                'all' => $modal_custom_column->isGetAllUserOrganization(),
+            ]);
+        }
     }
 
     /**

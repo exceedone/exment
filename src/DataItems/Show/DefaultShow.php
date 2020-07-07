@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Controllers;
+namespace Exceedone\Exment\DataItems\Show;
 
 use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
@@ -8,54 +8,61 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Row;
 use Exceedone\Exment\Form\Show;
-use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Encore\Admin\Form\Field;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\DataItems\DataTrait;
 
-/**
- * CustomValueShow
- */
-trait CustomValueShow
+class DefaultShow extends ShowBase
 {
+    use DataTrait;
+
+    public function __construct($custom_table, $custom_form){
+        $this->custom_table = $custom_table;
+        $this->custom_form = $custom_form;
+    }
+
     /**
      * set option boxes.
      * contains file uploads, revisions
      */
-    protected function setOptionBoxes($row, $id, CustomValue $custom_value, $modal = false)
+    public function setOptionBoxes($row)
     {
-        $this->setChildBlockBox($row, $custom_value, $id, $modal);
+        $this->setChildBlockBox($row);
 
-        $this->setDocumentBox($row, $custom_value, $id, $modal);
+        $this->setDocumentBox($row);
 
-        $this->setRevisionBox($row, $custom_value, $id, $modal);
+        $this->setRevisionBox($row);
  
-        $this->setCommentBox($row, $custom_value, $id, $modal);
+        $this->setCommentBox($row);
     }
     
     /**
      * create show form list
      */
-    protected function createShowForm($id, CustomValue $custom_value, $modal = false)
+    public function createShowForm()
     {
-        return new Show($custom_value, function (Show $show) use ($id, $custom_value, $modal) {
-            if (isset($id) && !$modal) {
+        return new Show($this->custom_value, function (Show $show) {
+            if (!$this->modal) {
                 $field = $show->column(null, 8)->system_values()->setWidth(12, 0);
                 $field->border = false;
             }
@@ -72,7 +79,7 @@ trait CustomValueShow
                     return $item->setCustomValue($this)->html();
                 })->setEscape(false);
 
-                if ($modal) {
+                if ($this->modal) {
                     $field->setWidth(9, 3);
                 }
             }
@@ -80,7 +87,7 @@ trait CustomValueShow
             // loop for custom form blocks
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
                 // whether update set width
-                $updateSetWidth = $custom_form_block->isMultipleColumn() || $modal;
+                $updateSetWidth = $custom_form_block->isMultipleColumn() || $this->modal;
     
                 // if available is false, continue
                 if (!$custom_form_block->available) {
@@ -120,26 +127,26 @@ trait CustomValueShow
             }
             
             // if modal, disable list and delete
-            $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
-                $enableEdit = $custom_value->enableEdit(true);
-                if ($custom_value->enableEdit(true) !== true) {
+            $show->panel()->tools(function ($tools) {
+                $enableEdit = $this->custom_value->enableEdit(true);
+                if ($this->custom_value->enableEdit(true) !== true) {
                     $tools->disableEdit();
                 }
-                if ($custom_value->enableDelete(true) !== true) {
+                if ($this->custom_value->enableDelete(true) !== true) {
                     $tools->disableDelete();
                 }
 
-                if (!is_null($parent_value = $custom_value->getParentValue()) && $parent_value->enableEdit(true) !== true) {
+                if (!is_null($parent_value = $this->custom_value->getParentValue()) && $parent_value->enableEdit(true) !== true) {
                     $tools->disableEdit();
                     $tools->disableDelete();
                 }
 
-                if ($modal) {
+                if ($this->modal) {
                     $tools->disableList();
                     $tools->disableDelete();
 
                     $tools->append(view('exment::tools.button', [
-                        'href' => $custom_value->getUrl(),
+                        'href' => $this->custom_value->getUrl(),
                         'label' => trans('admin.show'),
                         'icon' => 'fa-eye',
                         'btn_class' => 'btn-default',
@@ -148,7 +155,7 @@ trait CustomValueShow
 
                 if (count($this->custom_table->getRelationTables()) > 0) {
                     $tools->append(view('exment::tools.button', [
-                        'href' => $custom_value->getRelationSearchUrl(true),
+                        'href' => $this->custom_value->getRelationSearchUrl(true),
                         'label' => exmtrans('search.header_relation'),
                         'icon' => 'fa-compress',
                         'btn_class' => 'btn-purple',
@@ -157,7 +164,7 @@ trait CustomValueShow
 
                 if ($this->custom_table->isOneRecord()) {
                     $tools->disableList();
-                } elseif (!$modal) {
+                } elseif (!$this->modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
                     
                     if ($this->custom_table->enableTableMenuButton()) {
@@ -169,14 +176,14 @@ trait CustomValueShow
                     $notifies = $this->custom_table->notifies;
      
                     // only not trashed
-                    if (!$custom_value->trashed()) {
+                    if (!$this->custom_value->trashed()) {
                         foreach ($listButtons as $plugin) {
-                            $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
+                            $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $this->custom_value->id));
                         }
 
-                        foreach ($custom_value->getWorkflowActions(true)->reverse() as $action) {
+                        foreach ($this->custom_value->getWorkflowActions(true)->reverse() as $action) {
                             $tools->append(new Tools\ModalMenuButton(
-                                admin_urls("data", $this->custom_table->table_name, $id, "actionModal"),
+                                admin_urls("data", $this->custom_table->table_name, $this->custom_value->id, "actionModal"),
                                 [
                                     'label' => array_get($action, 'action_name'),
                                     'expand' => ['action_id' => array_get($action, 'id')],
@@ -187,21 +194,21 @@ trait CustomValueShow
                         }
                             
                         foreach ($copyButtons as $copyButton) {
-                            $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $id);
+                            $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $this->custom_value->id);
                         
                             $tools->append($b->toHtml());
                         }
                         foreach ($notifies as $notify) {
-                            if ($notify->isNotifyTarget($custom_value, NotifyTrigger::BUTTON)) {
-                                $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
+                            if ($notify->isNotifyTarget($this->custom_value, NotifyTrigger::BUTTON)) {
+                                $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $this->custom_value->id));
                             }
                         }
 
                         // check share permission.
-                        if ($custom_value->enableShare() === true) {
+                        if ($this->custom_value->enableShare() === true) {
                             $tools->append(new Tools\ShareButton(
-                                $id,
-                                admin_urls('data', $this->custom_table->table_name, $id, "shareClick")
+                                $this->custom_value->id,
+                                admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, "shareClick")
                             ));
                         }
                     }
@@ -212,7 +219,7 @@ trait CustomValueShow
 
                             // add hard delete button
                             $tools->prepend(new Tools\SwalInputButton([
-                                'url' => admin_urls("data", $this->custom_table->table_name, $id),
+                                'url' => admin_urls("data", $this->custom_table->table_name, $this->custom_value->id),
                                 'label' => exmtrans('custom_value.hard_delete'),
                                 'icon' => 'fa-trash',
                                 'btn_class' => 'btn-danger',
@@ -224,7 +231,7 @@ trait CustomValueShow
 
                             // add restore button
                             $tools->prepend(new Tools\SwalInputButton([
-                                'url' => admin_urls("data", $this->custom_table->table_name, $id, "restoreClick"),
+                                'url' => admin_urls("data", $this->custom_table->table_name, $this->custom_value->id, "restoreClick"),
                                 'label' => exmtrans('custom_value.restore'),
                                 'icon' => 'fa-undo',
                                 'btn_class' => 'btn-warning',
@@ -234,7 +241,7 @@ trait CustomValueShow
                         }
                     }
                     
-                    PartialCrudService::setAdminShowTools($this->custom_table, $tools, $id);
+                    PartialCrudService::setAdminShowTools($this->custom_table, $tools, $this->custom_value->id);
                 }
             });
         });
@@ -244,15 +251,15 @@ trait CustomValueShow
      * Append child block box.
      *
      * @param Row $row
-     * @param CustomValue $custom_value
+     * @param CustomValue $this->custom_value
      * @param int $id
      * @param boolean $modal
      * @return void
      */
-    protected function setChildBlockBox($row, $custom_value, $id = null, $modal = false)
+    protected function setChildBlockBox($row)
     {
         // if modal, dont show children
-        if ($modal) {
+        if ($this->modal) {
             return;
         }
 
@@ -285,12 +292,12 @@ trait CustomValueShow
                 // one to many
                 if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
                     // append filter
-                    $grid->model()->where('parent_id', $id);
+                    $grid->model()->where('parent_id', $this->custom_value->id);
                 }
                 // one to many
                 elseif ($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY) {
                     // first, getting children ids
-                    $children_ids = $custom_value->{$relation_name}()->get()->pluck('id');
+                    $children_ids = $this->custom_value->{$relation_name}()->get()->pluck('id');
                     // second, filtering children ids
                     $grid->model()->whereIn('id', $children_ids->toArray());
                 }
@@ -301,12 +308,14 @@ trait CustomValueShow
                 $grid->disableFilter();
                 $grid->disableCreateButton();
                 $grid->disableExport();
-                $grid->tools(function ($tools) use ($custom_value, $target_table, $id, $custom_form_block) {
+
+                $custom_value = $this->custom_value;
+                $grid->tools(function ($tools) use ($custom_value, $target_table, $custom_form_block) {
                     // Add new button if one_to_many
                     if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY && $custom_value->enableEdit(true) === true && $target_table->enableCreate(true) === true) {
                         $tools->append(view(
                             'exment::custom-value.new-button',
-                            ['table_name' => $target_table->table_name, 'params' => ['select_parent' => $id]]
+                            ['table_name' => $target_table->table_name, 'params' => ['select_parent' => $this->custom_value->id]]
                         ));
                     }
 
@@ -336,46 +345,13 @@ trait CustomValueShow
     }
 
     /**
-     * compare
-     */
-    public function compare(Request $request, Content $content, $tableKey, $id)
-    {
-        $this->firstFlow($request, CustomValuePageType::SHOW, $id);
-        $this->AdminContent($content);
-        $content->body($this->getRevisionCompare($id, $request->get('revision')));
-        return $content;
-    }
-   
-    /**
-     * get compare item for pjax
-     */
-    public function compareitem(Request $request, Content $content, $tableKey, $id)
-    {
-        $this->firstFlow($request, CustomValuePageType::SHOW, $id);
-        return $this->getRevisionCompare($id, $request->get('revision'), true);
-    }
-   
-    /**
-     * restore data
-     */
-    public function restoreRevision(Request $request, $tableKey, $id)
-    {
-        $this->firstFlow($request, CustomValuePageType::EDIT, $id);
-        
-        $revision_suuid = $request->get('revision');
-        $custom_value = $this->getCustomValue($id);
-        $custom_value->setRevision($revision_suuid)->save();
-        return redirect($custom_value->getUrl());
-    }
-  
-    /**
      * get revision compare.
      */
-    protected function getRevisionCompare($id, $revision_suuid = null, $pjax = false)
+    public function getRevisionCompare($revision_suuid = null, $pjax = false)
     {
         $table_name = $this->custom_table->table_name;
         // get all revisions
-        $revisions = $this->getRevisions($id, false, true);
+        $revisions = $this->getRevisions(true);
         $newest_revision = $revisions->first();
         $newest_revision_suuid = $newest_revision->suuid;
         if (!isset($revision_suuid)) {
@@ -383,6 +359,7 @@ trait CustomValueShow
         }
 
         // create revision value
+        $id = $this->custom_value->id;
         $old_revision = Revision::findBySuuid($revision_suuid);
         $revision_value = getModelName($this->custom_table)::withTrashed()->find($id)->setRevision($revision_suuid);
         $custom_value = getModelName($this->custom_table)::withTrashed()->find($id);
@@ -448,9 +425,9 @@ EOT;
         return view("exment::custom-value.revision-compare", $prms);
     }
 
-    protected function setRevisionBox($row, $custom_value, $id, $modal = false)
+    protected function setRevisionBox($row)
     {
-        $revisions = $this->getRevisions($custom_value, $modal);
+        $revisions = $this->getRevisions();
 
         if (count($revisions) == 0) {
             return;
@@ -465,7 +442,7 @@ EOT;
             $form->html(
                 view('exment::form.field.revisionlink', [
                     'revision' => $revision,
-                    'link' => admin_urls('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid . (boolval(request()->get('trashed')) ? '&trashed=1' : '')),
+                    'link' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'compare?revision='.$revision->suuid . (boolval(request()->get('trashed')) ? '&trashed=1' : '')),
                     'index' => $index,
                 ])->render(),
                 'No.'.($revision->revision_no)
@@ -477,36 +454,36 @@ EOT;
     /**
      * whether file upload field
      */
-    protected function useFileUpload($custom_value, $modal = false)
+    protected function useFileUpload()
     {
         // if no permission, return
-        if ($custom_value->enableEdit() !== true) {
+        if ($this->custom_value->enableEdit() !== true) {
             return false;
         }
         
-        return !$modal && boolval($this->custom_table->getOption('attachment_flg') ?? true);
+        return !$this->modal && boolval($this->custom_table->getOption('attachment_flg') ?? true);
     }
     
     /**
      * whether comment field
      */
-    protected function useComment($custom_value, $modal = false)
+    protected function useComment()
     {
-        return !$modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
+        return !$this->modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
     
-    protected function getDocuments($custom_value, $modal = false)
+    protected function getDocuments()
     {
-        if ($modal) {
+        if ($this->modal) {
             return [];
         }
-        return $custom_value->getDocuments();
+        return $this->custom_value->getDocuments();
     }
     
-    protected function setDocumentBox($row, $custom_value, $id, $modal = false)
+    protected function setDocumentBox($row)
     {
-        $documents = $this->getDocuments($custom_value, $modal);
-        $useFileUpload = $this->useFileUpload($custom_value, $modal);
+        $documents = $this->getDocuments();
+        $useFileUpload = $this->useFileUpload();
 
         if (count($documents) == 0 && !$useFileUpload) {
             return;
@@ -517,20 +494,18 @@ EOT;
         $form->disableSubmit();
 
         // show document list
-        if (isset($id)) {
-            if (count($documents) > 0) {
-                $html = [];
-                foreach ($documents as $index => $d) {
-                    $html[] = "<p>" . view('exment::form.field.documentlink', [
-                        'document' => $d,
-                        'candelete' => $custom_value->enableDelete(true) === true,
-                    ])->render() . "</p>";
-                }
-                // loop and add as link
-                $form->html(implode("", $html))
-                    ->plain()
-                    ->setWidth(8, 3);
+        if (count($documents) > 0) {
+            $html = [];
+            foreach ($documents as $index => $d) {
+                $html[] = "<p>" . view('exment::form.field.documentlink', [
+                    'document' => $d,
+                    'candelete' => $this->custom_value->enableDelete(true) === true,
+                ])->render() . "</p>";
             }
+            // loop and add as link
+            $form->html(implode("", $html))
+                ->plain()
+                ->setWidth(8, 3);
         }
 
         // add file uploader
@@ -539,7 +514,7 @@ EOT;
                 'showUpload' => true,
                 'showPreview' => false,
                 'showCancel' => false,
-                'uploadUrl' => admin_urls('data', $this->custom_table->table_name, $id, 'fileupload'),
+                'uploadUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'fileupload'),
                 'uploadExtraData'=> [
                     '_token' => csrf_token()
                 ],
@@ -565,28 +540,28 @@ EOT;
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
     }
     
-    protected function getComments($id, $modal = false)
+    protected function getComments()
     {
-        if ($modal) {
+        if ($this->modal) {
             return [];
         }
         return getModelName(SystemTableName::COMMENT)
-            ::where('parent_id', $id)
+            ::where('parent_id', $this->custom_value->id)
             ->where('parent_type', $this->custom_table->table_name)
             ->get();
     }
     
-    protected function setCommentBox($row, $custom_value, $id, $modal = false)
+    protected function setCommentBox($row)
     {
-        $useComment = $this->useComment($custom_value, $modal);
+        $useComment = $this->useComment();
         if (!$useComment) {
             return;
         }
 
-        $comments = $this->getComments($id, $modal);
+        $comments = $this->getComments();
         $form = new WidgetForm;
         $form->disableReset();
-        $form->action(admin_urls('data', $this->custom_table->table_name, $id, 'addcomment'));
+        $form->action(admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'addcomment'));
         $form->setWidth(10, 2);
 
         if (count($comments) > 0) {
@@ -604,7 +579,7 @@ EOT;
                 ->setWidth(8, 3);
         }
 
-        if ($custom_value->trashed()) {
+        if ($this->custom_value->trashed()) {
             $form->disableSubmit();
         } else {
             $form->textarea('comment', exmtrans("common.comment"))
@@ -617,22 +592,22 @@ EOT;
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
     
-    protected function getWorkflowHistory($custom_value, $id)
+    protected function getWorkflowHistory()
     {
-        $workflows = $custom_value->getWorkflowHistories(true)->toArray();
+        $workflows = $this->custom_value->getWorkflowHistories(true)->toArray();
         if (count($workflows) == 0) {
             return;
         }
 
         $form = new ModalForm;
 
-        $workflow = $custom_value->workflow_value->workflow;
+        $workflow = $this->custom_value->workflow_value->workflow;
 
         $form->display('workflow_view_name', exmtrans('workflow.execute_workflow'))
             ->default($workflow->workflow_view_name ?? null);
 
         $form->display('current_status_name', exmtrans('workflow.current_status_name'))
-            ->default($custom_value->workflow_status_name);
+            ->default($this->custom_value->workflow_status_name);
 
         $form->hasManyTable('workflow_histories', exmtrans('common.workflow_history'), function ($form) {
             $form->display('created_at', exmtrans("workflow.executed_at"));
@@ -650,24 +625,33 @@ EOT;
     }
 
     /**
+     * restore data
+     */
+    public function restoreRevision($revision_suuid)
+    {
+        $this->custom_value->setRevision($revision_suuid)->save();
+        return redirect($this->custom_value->getUrl());
+    }
+  
+    /**
      * get target data revisions
      */
-    protected function getRevisions($id, $modal = false, $all = false)
+    protected function getRevisions($all = false)
     {
-        if ($modal || !boolval($this->custom_table->getOption('revision_flg', true))) {
+        if ($this->modal || !boolval($this->custom_table->getOption('revision_flg', true))) {
             return [];
         }
 
-        if (is_null($id)) {
+        if (is_null($this->custom_value->id)) {
             return [];
         }
 
         // if no permission, return
-        if (!$this->custom_table->hasPermissionEditData($id)) {
+        if (!$this->custom_table->hasPermissionEditData($this->custom_value->id)) {
             return [];
         }
         
-        $query = $this->getCustomValue($id)
+        $query = $this->custom_value
             ->revisionHistory()
             ->orderby('id', 'desc');
         
@@ -678,8 +662,96 @@ EOT;
         return $query->get() ?? [];
     }
 
-    protected function getCustomValue($id)
+    
+    /**
+     * for file upload function.
+     */
+    public function fileupload($httpfiles)
     {
-        return $this->custom_table->getValueModel($id, boolval(request()->get('trashed')));
+        // file put(store)
+        foreach(toArray($httpfiles) as $httpfile){
+            $filename = $httpfile->getClientOriginalName();
+            // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
+            // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
+            $custom_value = $this->custom_value;
+            $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
+                ->saveCustomValue($custom_value->id, null, $this->custom_table);
+            // save document model
+            $document_model = $file->saveDocumentModel($custom_value, $filename);
+            
+            // loop for $notifies
+            foreach ($this->custom_table->notifies as $notify) {
+                $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::ATTACHMENT, ['attachment' => $filename]);
+            }
+        }
+
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
     }
+
+    /**
+     * file delete custom column.
+     */
+    public function filedelete(Request $request, $form)
+    {
+        // get file delete flg column name
+        $del_column_name = $request->input(Field::FILE_DELETE_FLAG);
+        /// file remove
+        $fields = $form->builder()->fields();
+        // filter file
+        $fields->filter(function ($field) {
+            return $field instanceof Field\Embeds;
+        })->each(function ($field) use ($del_column_name) {
+            // get fields
+            $embedFields = $field->fields();
+            $embedFields->filter(function ($field) use ($del_column_name) {
+                return $field->column() == $del_column_name;
+            })->each(function ($field) use ($del_column_name) {
+                // get file path
+                $obj = $this->custom_value;
+                $original = $obj->getValue($del_column_name, true);
+                $field->setOriginal($obj->value);
+
+                $field->destroy(); // delete file
+                ExmentFile::deleteFileInfo($original); // delete file table
+                $obj->setValue($del_column_name, null)
+                    ->remove_file_columns($del_column_name)
+                    ->save();
+            });
+        });
+
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
+    }
+ 
+    /**
+     * add comment.
+     */
+    public function addComment($comment)
+    {
+        if (!empty($comment)) {
+            // save Comment Model
+            $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
+            $model->parent_id = $this->custom_value->id;
+            $model->parent_type = $this->custom_table->table_name;
+            $model->setValue([
+                'comment_detail' => $comment,
+            ]);
+            $model->save();
+                
+            // execute notify
+            foreach ($this->custom_table->notifies as $notify) {
+                $notify->notifyCreateUpdateUser($this->custom_value, NotifySavedType::COMMENT, ['comment' => $comment]);
+            }
+        }
+
+        $url = admin_urls('data', $this->custom_table->table_name, $this->custom_value->id);
+        admin_toastr(trans('admin.save_succeeded'));
+        return redirect($url);
+    }
+
 }

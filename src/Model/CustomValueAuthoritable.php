@@ -226,7 +226,7 @@ class CustomValueAuthoritable extends ModelBase
     /**
      * Set share form
      *
-     * @return void
+     * @return \Illuminate\Http\Response
      */
     public static function saveShareDialogForm($custom_value)
     {
