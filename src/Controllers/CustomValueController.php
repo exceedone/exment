@@ -360,7 +360,8 @@ class CustomValueController extends AdminControllerTableBase
 
         $class = $plugin->getClass($request->input('plugin_type'), [
             'custom_table' => $this->custom_table,
-            'id' => $id
+            'id' => $id,
+            'selected_custom_values' => (!is_nullorempty($request->get('select_ids')) ? $this->custom_table->getValueModel()->find($request->get('select_ids')) : collect()),
         ]);
         $response = $class->execute();
         

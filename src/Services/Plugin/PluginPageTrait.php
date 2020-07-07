@@ -7,8 +7,6 @@ namespace Exceedone\Exment\Services\Plugin;
 
 trait PluginPageTrait
 {
-    use PluginBase;
-
     /**
      * get load view if view exists and path
      *
@@ -22,5 +20,17 @@ trait PluginPageTrait
         }
 
         return [$base_path, 'exment_' . snake_case($this->plugin->plugin_name)];
+    }
+
+    /**
+     * return view. and append plugin's prefix automatic.
+     *
+     * @param string $bladeName
+     * @param array $data
+     * @return mixed
+     */
+    protected function pluginView($bladeName, $data = []){
+        $blade = 'exment_' . snake_case($this->plugin->plugin_name) . '::' . $bladeName;
+        return view($blade, $data);
     }
 }
