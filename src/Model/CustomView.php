@@ -427,6 +427,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public static function getAllData($tableObj)
     {
+        $tableObj = CustomTable::getEloquent($tableObj);
+        
         // get all data view
         $view = $tableObj->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
 

@@ -37,18 +37,18 @@ class DefaultGrid extends GridBase
      *
      * @return Grid
      */
-    public function grid($filter_func = null)
+    public function grid()
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
         
         // if modal, Change view model
         if($this->modal){
-            $this->gridFilterForModal($grid, $filter_func);
+            $this->gridFilterForModal($grid, $this->callback);
         }
         else{
             // filter
-            $this->custom_view->filterModel($grid->model(), ['callback' => $filter_func]);
+            $this->custom_view->filterModel($grid->model(), ['callback' => $this->callback]);
         }
 
         // get search_enabled_columns and loop

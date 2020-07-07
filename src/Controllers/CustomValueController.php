@@ -125,7 +125,7 @@ class CustomValueController extends AdminControllerTableBase
 
             $grid_item = $this->custom_view->grid_item
                 ->modal($modal);
-            $callback = $grid_item->getCallbackFilter();
+            $grid_item->callback($grid_item->getCallbackFilter());
             
             if ($request->has('filter_ajax')) {
                 return $grid_item->getFilterHtml();

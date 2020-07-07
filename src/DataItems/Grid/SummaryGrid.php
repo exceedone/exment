@@ -58,7 +58,7 @@ class SummaryGrid extends GridBase
 
             if ($isShowViewSummaryDetail) {
                 $linker = (new Grid\Linker)
-                ->url(admin_urls('data', $table_name).'?group_key='.json_encode($params))
+                ->url(admin_urls_query('data', $table_name, ['view' => CustomView::getAllData($table_name)->suuid,'group_key' => json_encode($params)]))
                 ->icon('fa-list')
                 ->tooltip(exmtrans('custom_value.view_summary_detail'));
                 $actions->prepend($linker);
@@ -100,45 +100,6 @@ class SummaryGrid extends GridBase
 
         Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
         return $grid;
-    }
-
-    public function getCallbackFilter()
-    {
-        $group_keys = json_decode(request()->query('group_key'));
-        
-        // save summary view
-        $custom_view = $this->custom_view;
-        // replace view
-        $this->custom_view = CustomView::getAllData($this->custom_table);
-        $filters = [];
-        foreach ($group_keys as $key => $value) {
-            $custom_view_column = CustomViewColumn::find($key);
-            $custom_view_filter = new CustomViewFilter;
-            $custom_view_filter->custom_view_id = $custom_view_column->custom_view_id;
-            $custom_view_filter->view_column_type = $custom_view_column->view_column_type;
-            $custom_view_filter->view_column_target = $custom_view_column->view_column_target;
-            $custom_view_filter->view_group_condition = $custom_view_column->view_group_condition;
-            $custom_view_filter->view_filter_condition = FilterOption::EQ;
-            $custom_view_filter->view_filter_condition_value_text = $value;
-            $filters[] = $custom_view_filter;
-            if ($custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id']) {
-                System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
-            }
-            if ($custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id']) {
-                System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
-            }
-        }
-        $filter_func = function ($model) use ($filters, $custom_view) {
-            $model->where(function ($query) use ($filters) {
-                foreach ($filters as $filter) {
-                    $filter->setValueFilter($query);
-                }
-            })->where(function ($query) use ($custom_view) {
-                $custom_view->setValueFilters($query);
-            });
-            return $model;
-        };
-        return $filter_func;
     }
 
     /**
