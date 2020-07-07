@@ -137,6 +137,9 @@ class CustomValueController extends AdminControllerTableBase
             if($request->has('modal')){
                 return $grid_item->renderModal($grid);
             }
+            elseif($request->has('modalframe')){
+                return $grid_item->renderModalFrame();
+            }
 
             $row = new Row($grid);
             $row->class([static::CLASSNAME_CUSTOM_VALUE_GRID, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);

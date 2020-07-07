@@ -8,7 +8,7 @@ use Illuminate\Contracts\Support\Renderable;
  */
 class SelectItemBox implements Renderable
 {
-    protected $html;
+    protected $iframe_url;
     protected $target_class;
     protected $items;
 
@@ -37,12 +37,12 @@ class SelectItemBox implements Renderable
      *     ]
      * ]
      *
-     * @param string $html
+     * @param string $iframe_url
      * @param array $items
      */
-    public function __construct($html, $target_class, array $items)
+    public function __construct($iframe_url, $target_class, array $items)
     {
-        $this->html = $html;
+        $this->iframe_url = $iframe_url;
         $this->target_class = $target_class;
         $this->items = $items;
     }
@@ -50,7 +50,7 @@ class SelectItemBox implements Renderable
     public function render()
     {
         return view('exment::widgets.selectitem-box', [
-            'html' => $this->html,
+            'iframe_url' => $this->iframe_url,
             'target_class' => $this->target_class ?? null,
             'items' => $this->items,
         ])->render();

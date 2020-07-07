@@ -178,7 +178,7 @@ class SelectTable extends CustomItem
                 'btn_class' => 'btn-info',
                 'icon' => 'fa-search',
                 'attributes' => [
-                    'data-widgetmodal_url' => admin_urls_query('data', $this->target_table->table_name, ['modal' => 1]),
+                    'data-widgetmodal_url' => admin_urls_query('data', $this->target_table->table_name, ['modalframe' => 1]),
                     'data-widgetmodal_expand' => json_encode([
                         'target_column_id' => $this->custom_column->id,
                         'target_view_id' => $this->custom_column->getOption('select_target_view'),

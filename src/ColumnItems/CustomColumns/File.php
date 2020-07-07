@@ -7,6 +7,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Validator;
 
 class File extends CustomItem
@@ -39,9 +40,10 @@ class File extends CustomItem
         if (!isset($url)) {
             return $url;
         }
-
-        $title = exmtrans('common.download');
-        return "<a href='$url' target='_blank' data-toggle='tooltip' title='$title'>".esc_html($file->filename).'</a>';
+        
+        return \Exment::getUrlTag($url, $file->filename, UrlTagType::BLANK, [], [
+            'tooltipTitle' => exmtrans('common.download'),
+        ]);
     }
 
     /**

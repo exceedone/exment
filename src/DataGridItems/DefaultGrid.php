@@ -44,6 +44,9 @@ class DefaultGrid extends GridBase
         
         // if modal, Change view model
         if($this->modal){
+            // set request session data url disabled;
+            System::setRequestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG, true);
+
             $modal_target_view = CustomView::getEloquent(request()->get('target_view_id'));
 
             // modal use alldata view
@@ -153,7 +156,7 @@ class DefaultGrid extends GridBase
     {
         $grid->quickSearch(function ($model, $input) {
             $model->eloquent()->setSearchQueryOrWhere($model, $input);
-        }, 'left', !$this->modal);
+        }, 'left');
 
         $grid->filter(function ($filter) use ($search_enabled_columns, $ajax) {
             $filter->disableIdFilter();
@@ -169,7 +172,6 @@ class DefaultGrid extends GridBase
             }
             
             if($this->modal){
-                $filter->disablePjax();
                 $filter->setAction(admin_urls_query('data', $this->custom_table->table_name, ['modal' => 1]));
             }
 
@@ -534,16 +536,18 @@ class DefaultGrid extends GridBase
         ]);
     }
     
-    public function renderModal($grid){
+    public function renderModalFrame(){
         // get target column id or class
         $custom_column = CustomColumn::getEloquent(request()->get('target_column_id'));
         $target_column_class = isset($custom_column) ? "value_{$custom_column->column_name}" :  request()->get('target_column_class');
 
         $items = $this->custom_table->getValueModel()->query()->whereOrIn('id', stringToArray(request()->get('selected_items')))->get();
+
+        $url = request()->fullUrl() . '&modal=1';
         return getAjaxResponse([
             'title' => trans('admin.search') . ' : ' . $this->custom_table->table_view_name,
             'body'  => (new SelectItemBox(
-                $grid->render(), 
+                $url, 
                 $target_column_class, 
                 [[
                 'name' => 'select',
@@ -561,10 +565,15 @@ class DefaultGrid extends GridBase
             ],
             ]))->render(),
             'submitlabel' => trans('admin.setting'),
-            'script' => \Admin::purescript()->render(),
             'modalSize' => 'modal-xl',
             'modalClass' => 'modal-selectitem modal-heightfix modal-body-overflow-hidden',
             'preventSubmit' => true,
+        ]);
+    }
+
+    public function renderModal($grid){
+        return view('exment::widgets.partialindex', [
+            'content' => $grid->render()
         ]);
     }
 
@@ -579,7 +588,7 @@ class DefaultGrid extends GridBase
             return view('exment::tools.selectitem-button', [
                 'value' => $model->id,
                 'valueLabel' => $model->getLabel(),
-                'label' => exmtrans('common.append_to_selectitem', trans('admin.choose')),
+                'label' => exmtrans('common.append_to_selectitem'),
                 'target_selectitem' => 'select',
             ])->render();
         });

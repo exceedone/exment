@@ -9,7 +9,7 @@ var Exment;
             $(document).off('click', '#modal-showmodal .modal-body a').on('click', '#modal-showmodal .modal-body a', {}, Exment.ModalEvent.setLinkClickEvent);
             $(document).off('click', '#modal-showmodal .modal-submit').on('click', '#modal-showmodal .modal-submit', {}, Exment.ModalEvent.setSubmitEvent);
             // selectitem box
-            $(document).off('click', '#modal-showmodal .button-append-selectitem').on('click', '#modal-showmodal .button-append-selectitem', {}, Exment.ModalEvent.appendSelectItemEvent);
+            $(document).off('click', '.table .button-append-selectitem').on('click', '.table .button-append-selectitem', {}, Exment.ModalEvent.appendSelectItemEvent);
             $(document).off('click', '#modal-showmodal .selectitembox-item .button-delete').on('click', '#modal-showmodal .selectitembox-item .button-delete', {}, Exment.ModalEvent.deleteSelectItemEvent);
             $(document).off('click', '#modal-showmodal .modal-selectitem .modal-submit').on('click', '#modal-showmodal .modal-selectitem .modal-submit', {}, Exment.ModalEvent.setCalledSelectItemEvent);
             Exment.ModalEvent.autoloadModalEvent();
@@ -246,7 +246,13 @@ var Exment;
                 return;
             }
             let value = $button.data('value');
-            let $target = $('#modal-showmodal').find('[data-selectitem="' + $button.data('target-selectitem') + '"]');
+            // get "parent's" target item.
+            let parent = window.parent;
+            if (!parent) {
+                return;
+            }
+            // get parent target
+            let $target = $('#modal-showmodal', parent.document).find('[data-selectitem="' + $button.data('target-selectitem') + '"]');
             if (!hasValue($target) || !hasValue(value)) {
                 return;
             }
@@ -262,8 +268,8 @@ var Exment;
             // get html from template
             let templateHtml = $target.find('template').html();
             let html = ModalEvent.replaceTemplate(templateHtml, {
-                'value': $button.data('value'),
-                'label': $button.data('label'),
+                'value': escHtml($button.data('value')),
+                'label': escHtml($button.data('label')),
             });
             $target.find('.selectitembox-item-inner').append(html);
         }

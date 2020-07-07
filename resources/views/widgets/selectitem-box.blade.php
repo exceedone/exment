@@ -1,7 +1,12 @@
 
-<div class="selectitembox-body" style="height: calc(100% - {{count($items) * 65 + 5}}px); overflow-y:auto; overflow-x:hidden;">
-    {!! $html !!}
+<div style="position:relative; width:100%; height: calc(100% - {{count($items) * 65 + 5}}px); border: 1px solid black;">
+    <iframe src="{{$iframe_url}}" sandbox="allow-same-origin allow-scripts allow-forms" class="selectitembox-body" style="position:absolute; left:0; top:0; width:100%; height: 100%; border:none; overflow-y:auto; overflow-x:hidden;">
+    </iframe>
+    <div class="selectitembox-loading" style="position:absolute; left:0; top:0; width:100%; height: 100%; z-index:10000; background-color:white;">
+        <i class="fa fa-spinner fa-spin fa-4x" style="position:absolute; left:calc(50% - 0.5em); top:calc(50% - 0.5em);"></i>
+    </div>
 </div>
+
 
 <div class="selectitembox-footer" style="">
     @foreach($items as $item)
@@ -49,3 +54,9 @@
     </div>
     @endforeach
 </div>
+
+<script>
+$('.selectitembox-body').load(function () {
+    $('.selectitembox-loading').fadeOut(200);
+});
+</script>
