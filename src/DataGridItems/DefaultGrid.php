@@ -22,9 +22,7 @@ use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
-use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Services\PartialCrudService;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\Request;
 
 class DefaultGrid extends GridBase
@@ -463,10 +461,6 @@ class DefaultGrid extends GridBase
      */
     public function import(Request $request)
     {
-        if (($response = $this->firstFlow($request, CustomValuePageType::IMPORT)) instanceof Response) {
-            return $response;
-        }
-
         $service = $this->getImportExportService()
             ->format($request->file('custom_table_file'))
             ->filebasename($this->custom_table->table_name);

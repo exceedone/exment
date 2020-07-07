@@ -549,7 +549,7 @@ EOT;
 
             $input_id = 'file_data';
 
-            $form->file($input_id, trans('admin.upload'))
+            $form->multipleFile($input_id, trans('admin.upload'))
                 ->options($options)
                 ->setLabelClass(['d-none'])
                 ->setWidth(12, 0);
