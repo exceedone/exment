@@ -1882,6 +1882,7 @@ return [
             'delete_disabled' => 'このデータは削除できません。',
             'not_index_enabled' => ':attributeは検索インデックスが設定されていません。',
             'data_not_found' => '対象データが見つかりません。',
+            'form_action_disabled' => '設定により、このアクションは実行できません。',
             'workflow_nostart' => 'ワークフローが開始されていない、または対象外のデータです。',
             'workflow_end' => 'ワークフローが完了済、または対象外のデータです。',
             'workflow_action_disabled' => '無効なアクション、または権限がありません。',

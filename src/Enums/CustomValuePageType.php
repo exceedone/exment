@@ -9,4 +9,8 @@ class CustomValuePageType extends EnumBase
     const GRID = 'grid';
     const SHOW = 'show';
     const DELETE = 'delete';
+ 
+    // For page validation ----------------------------------------------------
+    const EXPORT = 'export';
+    const IMPORT = 'import';
 }
