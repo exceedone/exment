@@ -25,16 +25,8 @@ class PluginCodeController extends AdminControllerBase
      */
     public function edit(Request $request, Content $content, $id)
     {
-        $filedata = null;
-
         $this->AdminContent($content);
 
-        $plugin = Plugin::getEloquent($id);
-        $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
-        $folder = $plugin->getPath();
-        if ($disk->exists($folder)) {
-            $filedata = $disk->get("$folder/plugin.php");
-        }
         $script = <<<EOT
         $(function () {
             $('textarea.edit_file').each(function(index, elem){
@@ -43,14 +35,17 @@ class PluginCodeController extends AdminControllerBase
                     lineNumbers: true,
                     indentUnit: 4
                 });
+            }).on('ajaxbutton-beforesubmit', function(ev){
+                var editor = document.querySelector(".CodeMirror").CodeMirror;
+                editor.save();
             });
         });
         EOT;
         Admin::script($script);
         
         return
-            $content->row(function (Row $row) use($id, $filedata) {
-                $row->column(9, function (Column $column) use($id, $filedata) {
+            $content->row(function (Row $row) use($id) {
+                $row->column(9, function (Column $column) use($id) {
                     $form = new \Encore\Admin\Widgets\Form();
                     $form->disableReset();
                     $form->disableSubmit();
@@ -61,6 +56,7 @@ class PluginCodeController extends AdminControllerBase
                         ->url(admin_urls('plugin', 'edit_code', $id))
                         ->button_class('btn-md btn-info pull-right')
                         ->button_label(trans("admin.save"))
+                        ->beforesubmit_events('edit_file') 
                         ->send_params('edit_file,file_path')
                         ->setWidth(10, 0);
         
