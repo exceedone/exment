@@ -6,7 +6,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Column;
 use Encore\Admin\Layout\Row;
-use Encore\Admin\Widgets\Box;
+use Encore\Admin\Widgets\Alert;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Illuminate\Http\Request;
@@ -27,45 +27,15 @@ class PluginCodeController extends AdminControllerBase
     {
         $this->AdminContent($content);
 
-        $script = <<<EOT
-        $(function () {
-            $('textarea.edit_file').each(function(index, elem){
-                CodeMirror.fromTextArea(elem, {
-                    mode: 'php',
-                    lineNumbers: true,
-                    indentUnit: 4
-                });
-            }).on('ajaxbutton-beforesubmit', function(ev){
-                var editor = document.querySelector(".CodeMirror").CodeMirror;
-                editor.save();
-            });
-        });
-        EOT;
-        Admin::script($script);
-        
         return
             $content->row(function (Row $row) use($id) {
-                $row->column(9, function (Column $column) use($id) {
-                    $form = new \Encore\Admin\Widgets\Form();
-                    $form->disableReset();
-                    $form->disableSubmit();
-
-                    $form->textarea('edit_file')->setWidth(12, 0)->attribute(['id' => 'edit_file']);
-                    $form->hidden('file_path')->attribute(['id' => 'file_path']);
-                    $form->ajaxButton('save_plugin_code', trans("admin.save"))
-                        ->url(admin_urls('plugin', 'edit_code', $id))
-                        ->button_class('btn-md btn-info pull-right')
-                        ->button_label(trans("admin.save"))
-                        ->beforesubmit_events('edit_file') 
-                        ->send_params('edit_file,file_path')
-                        ->setWidth(10, 0);
-        
-                    $column->append((new Box('未選択', $form))->style('success'));
-                });
+                $row->column(9, view('exment::plugin.editor.info', [
+                    'message' => exmtrans('plugincode.message.select_file'),
+                ]));
 
                 $row->column(3, view('exment::widgets.jstree', [
                     'data_get_url' => "$id/getTree",
-                    'file_get_url' => "$id/getFile",
+                    'file_get_url' => "$id/selectFile",
                 ]));
             });
     }
@@ -82,29 +52,78 @@ class PluginCodeController extends AdminControllerBase
         return response()->json($json);
     }
 
-    public function getFileData(Request $request, $id) {
-        $json = [];
+    public function fileupload(Request $request, $id) {
+        $validator = \Validator::make($request->all(), [
+            'plugin_file_path' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return back()->with('errorMess', exmtrans("plugincode.error.folder_notfound"));
+        }
+
+        if ($request->hasfile('fileUpload')) {
+            $plugin_file_path = $request->get('plugin_file_path');
+            $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
+            if ($disk->exists($plugin_file_path)) {
+                $disk->put($plugin_file_path, $request->file('fileUpload'));
+                admin_toastr(exmtrans('common.message.success_execute'));
+                return back();
+            }
+        }
+        // if not exists, return back and message
+        return back()->with('errorMess', exmtrans("plugin.help.errorMess"));
+    }
+
+    public function getFileEditForm(Request $request, $id) {
         $validator = \Validator::make($request->all(), [
             'nodepath' => 'required',
         ]);
         if ($validator->fails()) {
-            return abortJson(400, [
-                'errors' => $this->getErrorMessages($validator)
-            ], ErrorCode::VALIDATION_ERROR());
-        }
-
-        $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
-        $nodepath = $request->get('nodepath');
-        if ($disk->exists($nodepath)) {
-            $filedata = $disk->get($nodepath);
-            $json = [
-                'filepath' => $nodepath,
-                'filename' => basename($nodepath),
-                'filedata' => $filedata
+            return [
+                'editor' => view('exment::plugin.editor.info')->render(),
             ];
         }
-        return response()->json($json);
+
+        $nodepath = $request->get('nodepath');
+        $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
+        if ($disk->exists($nodepath)) {
+            $tmpFulldir = getFullpath($nodepath, Define::DISKNAME_PLUGIN, true);
+            if (\File::isDirectory($tmpFulldir)) {
+                return [
+                    'editor' => view('exment::plugin.editor.upload', [
+                        'url' => admin_url("plugin/edit_code/$id/fileupload"),
+                        'filepath' => $nodepath,
+                        'message' => exmtrans('plugincode.message.upload_file'),
+                    ])->render(),
+                ];
+            } 
+
+            $ext = \File::extension($nodepath);
+            switch ($ext) {
+                case 'php':
+                case 'css':
+                case 'js':
+                    $filedata = $disk->get($nodepath);
+                    $mode = $ext == 'js'? 'javascript': $ext;
+                    return [
+                        'editor' => view('exment::plugin.editor.code', [
+                            'url' => admin_url("plugin/edit_code/$id"),
+                            'filepath' => $nodepath,
+                            'filedata' => $filedata,
+                            'mode' => $mode,
+                        ])->render(),
+                    ];
+                    break;
+                default;
+                return [
+                    'editor' => view('exment::plugin.editor.other', [
+                        'url' => admin_url("plugin/edit_code/$id"),
+                        'filepath' => $nodepath,
+                    ])->render(),
+                ];
+            }
+        }
     }
+
 
     protected function setDirectoryNodes($folder, $parent, &$node_idx, &$json) {
         $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
@@ -137,6 +156,42 @@ class PluginCodeController extends AdminControllerBase
         }
 
         return $directory_node;
+    }
+
+    /**
+     * Function use to upload file and update or add new record
+     */
+    public function delete(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'file_path' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => $validator->errors()->first(),
+                'reload' => false,
+            ]);
+        }
+
+        $file_path = $request->get('file_path');
+
+        $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
+        if (!$disk->exists($file_path)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => exmtrans('plugincode.error.file_notfound'),
+                'reload' => false,
+            ]);
+        }
+        $disk->delete($file_path);
+
+        return getAjaxResponse([
+            'result'  => true,
+            'toastr' => trans('admin.delete_succeeded'),
+            'reload' => false,
+        ]);
     }
 
     /**

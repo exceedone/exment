@@ -236,6 +236,9 @@ var Exment;
                             //container: "#pjax-container",
                             data: data,
                             success: function (repsonse) {
+                                if (hasValue(options.reload)) {
+                                    repsonse.reload = options.reload;
+                                }
                                 if (hasValue(options.redirect)) {
                                     repsonse.redirect = options.redirect;
                                 }

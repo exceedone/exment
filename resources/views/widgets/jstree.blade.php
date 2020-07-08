@@ -13,17 +13,16 @@
             var path = data.instance.get_path(data.node,'/');
             $.ajax({
                 type: "GET",
-                dataType: "text",
                 url: "{{ $file_get_url }}",
                 data: "nodepath=" + path,
                 cache: false,
                 success: function(data){
-                    var json = JSON.parse(data);
-                    var editor = document.querySelector(".CodeMirror").CodeMirror;
-                    editor.setValue(json.filedata);
-                    editor.save();
-                    $('#file_path').val(json.filepath);
-                    $('h3.box-title').html(json.filename);
+                    if(data.editor){
+                        $('section.content > div > div.col-sm-9').html(data.editor);
+                    }
+                    if ('function' == typeof selected_file) {
+                        selected_file();
+                    }
                 },
                 error: function(msg){
                     alert(msg);
