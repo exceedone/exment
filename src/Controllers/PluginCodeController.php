@@ -6,7 +6,6 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Column;
 use Encore\Admin\Layout\Row;
-use Encore\Admin\Widgets\Alert;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Illuminate\Http\Request;
@@ -15,6 +14,10 @@ use Validator;
 
 class PluginCodeController extends AdminControllerBase
 {
+    /**
+     * constructer
+     *
+     */
     public function __construct()
     {
         $this->setPageInfo(exmtrans("plugincode.header"), exmtrans("plugincode.header"), exmtrans("plugincode.description"), 'fa-plug');
@@ -22,6 +25,11 @@ class PluginCodeController extends AdminControllerBase
 
     /**
      * Showing code edit page
+     * 
+     * @param Request $request
+     * @param Content $content
+     * @param int $id
+     * @return Content
      */
     public function edit(Request $request, Content $content, $id)
     {
@@ -40,6 +48,13 @@ class PluginCodeController extends AdminControllerBase
             });
     }
 
+    /**
+     * Get file tree data
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return Response
+     */
     public function getTreeData(Request $request, $id) {
         $json = [];
         $plugin = Plugin::getEloquent($id);
@@ -52,6 +67,13 @@ class PluginCodeController extends AdminControllerBase
         return response()->json($json);
     }
 
+    /**
+     * Upload file to target folder
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return Response
+     */
     public function fileupload(Request $request, $id) {
         $validator = \Validator::make($request->all(), [
             'plugin_file_path' => 'required',
@@ -75,6 +97,13 @@ class PluginCodeController extends AdminControllerBase
         return back()->with('errorMess', exmtrans("plugin.help.errorMess"));
     }
 
+    /**
+     * Get child form html for selected file
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return array
+     */
     public function getFileEditForm(Request $request, $id) {
         $validator = \Validator::make($request->all(), [
             'nodepath' => 'required',
@@ -126,6 +155,12 @@ class PluginCodeController extends AdminControllerBase
         }
     }
 
+    /**
+     * Get CodeMirror mode for file
+     * 
+     * @param string $nodepath
+     * @return string|boolean
+     */
     protected function getCodeMirrorMode($nodepath) {
         // exclude config.json
         if (mb_strtolower(basename($nodepath)) === 'config.json') {
@@ -149,6 +184,14 @@ class PluginCodeController extends AdminControllerBase
         }
     }
 
+    /**
+     * Get and set file and directory nodes in target folder
+     * 
+     * @param string $folder
+     * @param string $parent
+     * @param int &$node_idx
+     * @param array &$json
+     */
     protected function setDirectoryNodes($folder, $parent, &$node_idx, &$json) {
         $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
 
@@ -178,12 +221,14 @@ class PluginCodeController extends AdminControllerBase
                 'text' => basename($file),
             ];
         }
-
-        return $directory_node;
     }
 
     /**
-     * Function use to upload file and update or add new record
+     * delete target file from plugin folder
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return Response
      */
     public function delete(Request $request, $id)
     {
@@ -219,7 +264,11 @@ class PluginCodeController extends AdminControllerBase
     }
 
     /**
-     * Function use to upload file and update or add new record
+     * update file in plugin folder
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return Response
      */
     public function store(Request $request, $id)
     {
