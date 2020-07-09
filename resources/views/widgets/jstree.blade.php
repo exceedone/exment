@@ -20,8 +20,8 @@
                     if(data.editor){
                         $('section.content > div > div.col-sm-9').html(data.editor);
                     }
-                    if ('function' == typeof selected_file) {
-                        selected_file();
+                    if ('function' == typeof selected_jstree_node) {
+                        selected_jstree_node();
                     }
                 },
                 error: function(msg){

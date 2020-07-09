@@ -19,7 +19,10 @@
                 <div class="form-group">
                     <input class="" required type="file" name="fileUpload" /><br/>
                     <span class="help-block">
-                        <i class="fa fa-info-circle"></i>&nbsp;{{ exmtrans('plugincode.message.upload_file') }}
+                        <i class="fa fa-info-circle"></i>&nbsp;{{ exmtrans('plugincode.message.upload_file', $filepath) }}
+                    </span>
+                    <span class="help-block">
+                        <i class="fa fa-warning"></i>&nbsp;{{ exmtrans('plugincode.message.force_updated') }}
                     </span>
                 </div>
             </div>

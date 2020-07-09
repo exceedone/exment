@@ -61,10 +61,12 @@ class PluginCodeController extends AdminControllerBase
         }
 
         if ($request->hasfile('fileUpload')) {
-            $plugin_file_path = $request->get('plugin_file_path');
+            $folder_path = $request->get('plugin_file_path');
             $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
-            if ($disk->exists($plugin_file_path)) {
-                $disk->put($plugin_file_path, $request->file('fileUpload'));
+            if ($disk->exists($folder_path)) {
+                $upload_file = $request->file('fileUpload');
+                $filename = $upload_file->getClientOriginalName();
+                $disk->putFileAs($folder_path, $upload_file, $filename);
                 admin_toastr(exmtrans('common.message.success_execute'));
                 return back();
             }
@@ -85,6 +87,7 @@ class PluginCodeController extends AdminControllerBase
 
         $nodepath = $request->get('nodepath');
         $disk = \Storage::disk(Define::DISKNAME_PLUGIN);
+
         if ($disk->exists($nodepath)) {
             $tmpFulldir = getFullpath($nodepath, Define::DISKNAME_PLUGIN, true);
             if (\File::isDirectory($tmpFulldir)) {
@@ -97,13 +100,12 @@ class PluginCodeController extends AdminControllerBase
                 ];
             } 
 
-            $ext = \File::extension($nodepath);
-            switch ($ext) {
-                case 'php':
-                case 'css':
-                case 'js':
-                    $filedata = $disk->get($nodepath);
-                    $mode = $ext == 'js'? 'javascript': $ext;
+            $mode = $this->getCodeMirrorMode($nodepath);
+
+            if ($mode !== false) {
+                $filedata = $disk->get($nodepath);
+                $enc = mb_detect_encoding($filedata, mb_list_encodings(), true);
+                if ($enc == 'UTF-8') {
                     return [
                         'editor' => view('exment::plugin.editor.code', [
                             'url' => admin_url("plugin/edit_code/$id"),
@@ -112,18 +114,40 @@ class PluginCodeController extends AdminControllerBase
                             'mode' => $mode,
                         ])->render(),
                     ];
-                    break;
-                default;
-                return [
-                    'editor' => view('exment::plugin.editor.other', [
-                        'url' => admin_url("plugin/edit_code/$id"),
-                        'filepath' => $nodepath,
-                    ])->render(),
-                ];
+                }
             }
+
+            return [
+                'editor' => view('exment::plugin.editor.other', [
+                    'url' => admin_url("plugin/edit_code/$id"),
+                    'filepath' => $nodepath,
+                ])->render(),
+            ];
         }
     }
 
+    protected function getCodeMirrorMode($nodepath) {
+        // exclude config.json
+        if (mb_strtolower(basename($nodepath)) === 'config.json') {
+            return false;
+        }
+
+        // check extension
+        $ext = \File::extension($nodepath);
+        switch ($ext) {
+            case 'php':
+            case 'css':
+                return $ext;
+            case 'js':
+                return 'javascript';
+            case 'json':
+                return "{ name: 'javascript', json: true}";
+            case 'txt':
+                return null;
+            default;
+                return false;
+        }
+    }
 
     protected function setDirectoryNodes($folder, $parent, &$node_idx, &$json) {
         $disk = \Storage::disk(Define::DISKNAME_PLUGIN);

@@ -1,7 +1,7 @@
 <div class="alert alert-warning">
     <button type="button" class="close" aria-hidden="true">×</button>
     <h4><i class="icon fa fa-ban"></i>{{ exmtrans('plugincode.message.irregular_ext') }}</h4>
-    <p></p>
+    <p>({{$filepath}})</p>
 </div>
 <div class="col-md-12">
     <div class="btn-group pull-right">

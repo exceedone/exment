@@ -1,3 +1,6 @@
+<div class="form-group ">
+    <span>{{$filepath}}</span>
+</div>
 <div class="form-group">
     <textarea id="edit_plugin_file" class="form-control">{{$filedata}}</textarea>
 </div>
@@ -50,10 +53,14 @@
             }
         });
     });
-    function selected_file() {
+    function selected_jstree_node() {
         $('#edit_plugin_file').each(function(index, elem){
             CodeMirror.fromTextArea(elem, {
-                mode: '{{$mode}}',
+                @if(is_string($mode))
+                    mode: '{{ $mode }}',
+                @elseif(isset($mode))
+                    mode: {!! $mode !!},
+                @endif
                 lineNumbers: true,
                 indentUnit: 4
             });
