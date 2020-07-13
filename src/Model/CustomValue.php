@@ -430,12 +430,15 @@ abstract class CustomValue extends ModelBase
             // set revision
             $this->postCreate();
         } else {
-            // save external Authoritable
-            CustomValueAuthoritable::setValueAuthoritableEx($this, ShareTrigger::UPDATE);
+            // Only call already_updated is false
+            if(!$this->already_updated){
+                // save external Authoritable
+                CustomValueAuthoritable::setValueAuthoritableEx($this, ShareTrigger::UPDATE);
 
-            // send notify
-            $this->notify(NotifySavedType::UPDATE);
-
+                // send notify
+                $this->notify(NotifySavedType::UPDATE);
+            }
+            
             // set revision
             $this->postSave();
         }

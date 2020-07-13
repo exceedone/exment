@@ -9,6 +9,8 @@ use Exceedone\Exment\Enums\GroupCondition;
 
 class SqlServerGrammar extends BaseGrammar
 {
+    use GrammarTrait;
+    
     /**
      * Get cast column string
      *

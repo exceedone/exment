@@ -112,6 +112,16 @@ class DefaultGrid extends GridBase
                 'all' => $modal_custom_column->isGetAllUserOrganization(),
             ]);
         }
+
+        ///// If set linkage, filter relation.
+        // get children table id
+        $expand = request()->get('linkage');
+        if(!is_nullorempty($expand)){
+            RelationTable::setQuery($grid->model(), array_get($expand, 'search_type'), array_get($expand, 'linkage_value_id'), [
+                'parent_table' => CustomTable::getEloquent(array_get($expand, 'parent_select_table_id')),
+                'child_table' => CustomTable::getEloquent(array_get($expand, 'child_select_table_id')),
+            ]);
+        }
     }
 
     /**
