@@ -118,6 +118,10 @@ class CustomValueController extends AdminControllerTableBase
             if ($request->has('query') && $this->custom_view->view_kind_type != ViewKindType::ALLDATA) {
                 $this->custom_view = CustomView::getAllData($this->custom_table);
             }
+            // if modal, set alldata view
+            if ($request->has('modalframe')){
+                $this->custom_view = CustomView::getAllData($this->custom_table);
+            }
 
             $grid_item = $this->custom_view->grid_item
                 ->modal($modal);
