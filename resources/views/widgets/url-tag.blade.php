@@ -1,3 +1,1 @@
-<a href="{{$href}}" {!! $attributes !!}>
-    {!! $label !!}
-</a>
+<a href="{{$href}}" {!! $attributes !!}>{!! $label !!}</a>

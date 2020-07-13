@@ -92,7 +92,7 @@ class CustomColumnTest extends UnitTestBase
         return $this->_testUrl(ValueType::TEXT, static::URL_VALUE);
     }
     public function testUrlHtml(){
-        return $this->_testUrl(ValueType::HTML, "<a href='" . static::URL_VALUE . "' target='_blank'>" . static::URL_VALUE . "</a>");
+        return $this->_testUrl(ValueType::HTML, '<a href="' . static::URL_VALUE . '" target="_blank">' . static::URL_VALUE . "</a>");
     }
 
 
