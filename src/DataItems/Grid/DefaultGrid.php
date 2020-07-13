@@ -27,7 +27,8 @@ use Illuminate\Http\Request;
 
 class DefaultGrid extends GridBase
 {
-    public function __construct($custom_table, $custom_view){
+    public function __construct($custom_table, $custom_view)
+    {
         $this->custom_table = $custom_table;
         $this->custom_view = $custom_view;
     }
@@ -43,10 +44,9 @@ class DefaultGrid extends GridBase
         $grid = new Grid(new $classname);
         
         // if modal, Change view model
-        if($this->modal){
+        if ($this->modal) {
             $this->gridFilterForModal($grid, $this->callback);
-        }
-        else{
+        } else {
             // filter
             $this->custom_view->filterModel($grid->model(), ['callback' => $this->callback]);
         }
@@ -55,7 +55,7 @@ class DefaultGrid extends GridBase
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
         $this->setCustomGridFilters($grid, $search_enabled_columns);
 
-        if(!$this->modal){
+        if (!$this->modal) {
             Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
         }
         
@@ -78,7 +78,7 @@ class DefaultGrid extends GridBase
         });
 
         // if modal, append to selectitem button
-        if($this->modal){
+        if ($this->modal) {
             $this->appendSelectItemButton($grid);
         }
 
@@ -90,7 +90,8 @@ class DefaultGrid extends GridBase
      *
      * @return void
      */
-    protected function gridFilterForModal($grid, $filter_func){
+    protected function gridFilterForModal($grid, $filter_func)
+    {
         // set request session data url disabled;
         System::setRequestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG, true);
 
@@ -100,14 +101,14 @@ class DefaultGrid extends GridBase
         $this->custom_view = CustomView::getAllData($this->custom_table);
 
         // filter using modal_target_view, and display table
-        if(isset($modal_target_view)){
+        if (isset($modal_target_view)) {
             $modal_target_view->filterModel($grid->model(), ['callback' => $filter_func]);
         }
 
         // filter display table
         $modal_display_table = CustomTable::getEloquent(request()->get('display_table_id'));
         $modal_custom_column = CustomColumn::getEloquent(request()->get('target_column_id'));
-        if(!empty($modal_display_table) && !empty($modal_custom_column)){
+        if (!empty($modal_display_table) && !empty($modal_custom_column)) {
             $this->custom_table->filterDisplayTable($grid->model(), $modal_display_table, [
                 'all' => $modal_custom_column->isGetAllUserOrganization(),
             ]);
@@ -116,7 +117,7 @@ class DefaultGrid extends GridBase
         ///// If set linkage, filter relation.
         // get children table id
         $expand = request()->get('linkage');
-        if(!is_nullorempty($expand)){
+        if (!is_nullorempty($expand)) {
             RelationTable::setQuery($grid->model(), array_get($expand, 'search_type'), array_get($expand, 'linkage_value_id'), [
                 'parent_table' => CustomTable::getEloquent(array_get($expand, 'parent_select_table_id')),
                 'child_table' => CustomTable::getEloquent(array_get($expand, 'child_select_table_id')),
@@ -170,7 +171,7 @@ class DefaultGrid extends GridBase
                 return;
             }
             
-            if($this->modal){
+            if ($this->modal) {
                 $filter->setAction(admin_urls_query('data', $this->custom_table->table_name, ['modal' => 1]));
             }
 
@@ -284,7 +285,7 @@ class DefaultGrid extends GridBase
      */
     protected function manageMenuToolButton($grid)
     {
-        if($this->modal){
+        if ($this->modal) {
             $grid->disableRowSelector();
             $grid->disableCreateButton();
             $grid->disableExport();
@@ -354,7 +355,7 @@ class DefaultGrid extends GridBase
      */
     protected function manageRowAction($grid)
     {
-        if($this->modal){
+        if ($this->modal) {
             $grid->disableActions();
             return;
         }
@@ -535,7 +536,8 @@ class DefaultGrid extends GridBase
         ]);
     }
     
-    public function renderModalFrame(){
+    public function renderModalFrame()
+    {
         // get target column id or class
         $custom_column = CustomColumn::getEloquent(request()->get('target_column_id'));
         $target_column_class = isset($custom_column) ? "value_{$custom_column->column_name}" :  request()->get('target_column_class');
@@ -546,8 +548,8 @@ class DefaultGrid extends GridBase
         return getAjaxResponse([
             'title' => trans('admin.search') . ' : ' . $this->custom_table->table_view_name,
             'body'  => (new SelectItemBox(
-                $url, 
-                $target_column_class, 
+                $url,
+                $target_column_class,
                 [[
                 'name' => 'select',
                 'label' =>  trans('admin.choose'),
@@ -555,14 +557,15 @@ class DefaultGrid extends GridBase
                 'icon' => $this->custom_table->getOption('icon'),
                 'background_color' =>  $this->custom_table->getOption('color') ?? '#3c8dbc', //if especially
                 'color' => '#FFFFFF',
-                'items' => $items->map(function($item){
+                'items' => $items->map(function ($item) {
                     return [
                         'value' => $item->id,
                         'label' => $item->getLabel(),
                     ];
                 })->toArray(),
             ],
-            ]))->render(),
+            ]
+            ))->render(),
             'submitlabel' => trans('admin.setting'),
             'modalSize' => 'modal-xl',
             'modalClass' => 'modal-selectitem modal-heightfix modal-body-overflow-hidden',
@@ -570,7 +573,8 @@ class DefaultGrid extends GridBase
         ]);
     }
 
-    public function renderModal($grid){
+    public function renderModal($grid)
+    {
         return view('exment::widgets.partialindex', [
             'content' => $grid->render()
         ]);
@@ -582,8 +586,9 @@ class DefaultGrid extends GridBase
      * @param Grid $grid
      * @return void
      */
-    protected function appendSelectItemButton($grid){
-        $grid->column('modal_selectitem', trans('admin.action'))->display(function($a, $b, $model){
+    protected function appendSelectItemButton($grid)
+    {
+        $grid->column('modal_selectitem', trans('admin.action'))->display(function ($a, $b, $model) {
             return view('exment::tools.selectitem-button', [
                 'value' => $model->id,
                 'valueLabel' => $model->getLabel(),
@@ -592,5 +597,4 @@ class DefaultGrid extends GridBase
             ])->render();
         });
     }
-
 }

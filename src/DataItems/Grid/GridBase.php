@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\DataItems\Grid;
 
-
 use Encore\Admin\Grid;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -26,19 +25,22 @@ abstract class GridBase
         return new static($custom_table, $custom_view);
     }
 
-    public function modal(bool $modal){
+    public function modal(bool $modal)
+    {
         $this->modal = $modal;
 
         return $this;
     }
 
-    public function callback($callback){
+    public function callback($callback)
+    {
         $this->callback = $callback;
 
         return $this;
     }
 
-    public function renderModal($grid){
+    public function renderModal($grid)
+    {
         return [];
     }
     
@@ -50,7 +52,7 @@ abstract class GridBase
     public function getCallbackFilter()
     {
         $group_keys = json_decode(request()->query('group_key'));
-        if(is_nullorempty($group_keys)){
+        if (is_nullorempty($group_keys)) {
             return null;
         }
         

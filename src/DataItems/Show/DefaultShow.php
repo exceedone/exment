@@ -36,7 +36,8 @@ class DefaultShow extends ShowBase
 {
     use DataTrait;
 
-    public function __construct($custom_table, $custom_form){
+    public function __construct($custom_table, $custom_form)
+    {
         $this->custom_table = $custom_table;
         $this->custom_form = $custom_form;
     }
@@ -669,7 +670,7 @@ EOT;
     public function fileupload($httpfiles)
     {
         // file put(store)
-        foreach(toArray($httpfiles) as $httpfile){
+        foreach (toArray($httpfiles) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();
             // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
             // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
@@ -753,5 +754,4 @@ EOT;
         admin_toastr(trans('admin.save_succeeded'));
         return redirect($url);
     }
-
 }

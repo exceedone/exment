@@ -6,7 +6,8 @@ use Exceedone\Exment\Form\Tools;
 
 class CalendarGrid extends GridBase
 {
-    public function __construct($custom_table, $custom_view){
+    public function __construct($custom_table, $custom_view)
+    {
         $this->custom_table = $custom_table;
         $this->custom_view = $custom_view;
     }

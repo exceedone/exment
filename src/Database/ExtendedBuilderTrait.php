@@ -29,7 +29,7 @@ trait ExtendedBuilderTrait
 
     /**
      * Multiple wherein querys
-     * 
+     *
      * @param  array                                          $columns
      * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
      *

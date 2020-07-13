@@ -72,7 +72,7 @@ EOT;
 
         // if render method has and not null, return.
         $render = method_exists($pluginClass, 'render') ? $pluginClass->render() : null;
-        if(!is_null($render)){
+        if (!is_null($render)) {
             return $render;
         }
 

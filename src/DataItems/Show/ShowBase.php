@@ -16,22 +16,25 @@ abstract class ShowBase
         return new static($custom_table, $custom_form);
     }
 
-    public function custom_value($custom_value){
+    public function custom_value($custom_value)
+    {
         $this->custom_value = $custom_value;
 
         return $this;
     }
 
-    public function id($id){
-        $this->custom_value = $this->custom_table->getValueModel($id, boolval(request()->get('trashed')));;
+    public function id($id)
+    {
+        $this->custom_value = $this->custom_table->getValueModel($id, boolval(request()->get('trashed')));
+        ;
 
         return $this;
     }
 
-    public function modal(bool $modal){
+    public function modal(bool $modal)
+    {
         $this->modal = $modal;
 
         return $this;
     }
-
 }

@@ -38,7 +38,7 @@ class PluginButtonBase
      *
      * @return string|Renderable|null
      */
-    public function render(){
-
+    public function render()
+    {
     }
 }

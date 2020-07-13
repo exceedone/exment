@@ -33,10 +33,10 @@ class Initialize
     {
         if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
             // Check install directory
-            if(!$this->isInstallPath($request)){
+            if (!$this->isInstallPath($request)) {
                 // check has 'EXMENT_INITIALIZE' on .env directly
                 // if true, already installed
-                if(boolval(env('EXMENT_INITIALIZE', false))){
+                if (boolval(env('EXMENT_INITIALIZE', false))) {
                     // Throwing error connecting database purposely.
                     hasTable(SystemTableName::SYSTEM);
                 }
@@ -73,7 +73,8 @@ class Initialize
      * @param Request $request
      * @return boolean
      */
-    protected function isInstallPath(Request $request){
+    protected function isInstallPath(Request $request)
+    {
         // Check install directory
         $path = trim(admin_base_path('install'), '/');
         return $request->is($path);

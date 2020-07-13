@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\DataItems;
 
-use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\FormBlockType;
 

@@ -95,14 +95,14 @@ class RelationTable
         $parent_table = CustomTable::getEloquent(array_get($params, 'parent_table'));
         $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
         
-        switch($searchType){
+        switch ($searchType) {
             case SearchType::ONE_TO_MANY:
                 return static::setQueryOneMany($query, array_get($params, 'parent_table'), $value);
             case SearchType::MANY_TO_MANY:
                 return static::setQueryManyMany($query, array_get($params, 'parent_table'), array_get($params, 'child_table'), $value);
             case SearchType::SELECT_TABLE:
                 $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
-                if(\is_nullorempty($custom_column) && !\is_nullorempty($child_table)){
+                if (\is_nullorempty($custom_column) && !\is_nullorempty($child_table)) {
                     $custom_column = $child_table->getSelectTableColumns($parent_table)->first();
                 }
                 return static::setQuerySelectTable($query, $custom_column, $value);

@@ -84,7 +84,7 @@ class CustomValueAuthoritable extends ModelBase
     public static function setValueAuthoritableEx($custom_value, $share_trigger_type)
     {
         $custom_table = $custom_value->custom_table;
-        if(is_nullorempty($custom_table->share_settings)){
+        if (is_nullorempty($custom_table->share_settings)) {
             return;
         }
 
@@ -101,13 +101,12 @@ class CustomValueAuthoritable extends ModelBase
         // set values
         foreach ($custom_table->share_settings as $share_setting) {
             foreach (stringToArray(array_get($share_setting, 'share_trigger_type')) as $t) {
-
                 $share_permission = array_get($share_setting, 'share_permission');
                 $share_column = array_get($share_setting, 'share_column');
                 $target_ids = array_get($custom_value->value, $share_column->column_name);
-                $user_organizations = 
+                $user_organizations =
                     collect(stringToArray($target_ids))->map(function ($target_id) use ($share_column) {
-                            return [
+                        return [
                             'related_id' => $target_id,
                             'related_type' => $share_column->column_type,
                         ];
@@ -117,7 +116,7 @@ class CustomValueAuthoritable extends ModelBase
                 $total_user_organizations = array_merge($user_organizations, $total_user_organizations);
 
                 // if setting "share_setting_sync" is true, and this execute triggers edit, sync is true.
-                if(boolval($custom_table->getOption('share_setting_sync')) && $share_trigger_type == ShareTrigger::UPDATE && $t == ShareTrigger::UPDATE){
+                if (boolval($custom_table->getOption('share_setting_sync')) && $share_trigger_type == ShareTrigger::UPDATE && $t == ShareTrigger::UPDATE) {
                     $sync = true;
                 }
 
@@ -132,24 +131,24 @@ class CustomValueAuthoritable extends ModelBase
         }
 
         // if sync, not contains
-        if($sync){
-            $delete_user_organizations = $beforesaved_user_organizations->filter(function($beforesaved_user_organization) use($total_user_organizations){
+        if ($sync) {
+            $delete_user_organizations = $beforesaved_user_organizations->filter(function ($beforesaved_user_organization) use ($total_user_organizations) {
                 // skip self user
-                if(array_get($beforesaved_user_organization, 'authoritable_target_id') == \Exment::user()->getUserId()
-                    && array_get($beforesaved_user_organization, 'authoritable_user_org_type') == SystemTableName::USER){
+                if (array_get($beforesaved_user_organization, 'authoritable_target_id') == \Exment::user()->getUserId()
+                    && array_get($beforesaved_user_organization, 'authoritable_user_org_type') == SystemTableName::USER) {
                     return false;
                 }
                 
                 // get not contains "$total_user_organizations" (This method's saved user)
-                return !collect($total_user_organizations)->contains(function($total_user_organization) use($beforesaved_user_organization){                    
+                return !collect($total_user_organizations)->contains(function ($total_user_organization) use ($beforesaved_user_organization) {
                     return array_get($beforesaved_user_organization, 'authoritable_target_id') == array_get($total_user_organization, 'related_id')
                         && array_get($beforesaved_user_organization, 'authoritable_user_org_type') == array_get($total_user_organization, 'related_type');
                 });
-            })->map(function($delete_user_organization){
+            })->map(function ($delete_user_organization) {
                 return [array_get($delete_user_organization, 'authoritable_target_id'), array_get($delete_user_organization, 'authoritable_user_org_type')];
             });
 
-            if(count($delete_user_organizations) > 0){
+            if (count($delete_user_organizations) > 0) {
                 static::where([
                     'parent_id' => $custom_value->id,
                     'parent_type' => $custom_table->table_name,
@@ -162,7 +161,7 @@ class CustomValueAuthoritable extends ModelBase
 
     /**
      * Set Authoritable By User and Org Array
-     * 
+     *
      * @param CustomValue $custom_value
      * @param array $arrays saved target user or organization
      * @param bool $is_edit is true, as edit permission

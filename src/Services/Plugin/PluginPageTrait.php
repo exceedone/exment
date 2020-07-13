@@ -29,7 +29,8 @@ trait PluginPageTrait
      * @param array $data
      * @return mixed
      */
-    protected function pluginView($bladeName, $data = []){
+    protected function pluginView($bladeName, $data = [])
+    {
         $blade = 'exment_' . snake_case($this->plugin->plugin_name) . '::' . $bladeName;
         return view($blade, $data);
     }

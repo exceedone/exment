@@ -406,7 +406,7 @@ HTML;
         }
 
 
-        $form->embeds('options', exmtrans("custom_table.custom_column_multi.options_label"), function ($form) use($custom_table){
+        $form->embeds('options', exmtrans("custom_table.custom_column_multi.options_label"), function ($form) use ($custom_table) {
             if (!in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
                 $manualUrl = getManualUrl('table#' . exmtrans('custom_table.custom_column_multi.share_settings'));
                 $form->switchbool('share_setting_sync', exmtrans("custom_table.custom_column_multi.share_setting_sync"))

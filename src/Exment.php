@@ -107,33 +107,31 @@ class Exment
             $options
         );
 
-        if(!boolval($options['notEscape'])){
+        if (!boolval($options['notEscape'])) {
             $label = esc_html($label);
         }
 
         // if disable url tag in request, return only url. (for use modal search)
-        if(boolval(System::requestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG))){
+        if (boolval(System::requestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG))) {
             return view('exment::widgets.url-nottag', [
                 'label' => $label,
             ]);
         }
 
         $href = $url;
-        if($urlTagType == UrlTagType::MODAL){
+        if ($urlTagType == UrlTagType::MODAL) {
             $url .= '?modal=1';
             $href = 'javascript:void(0);';
             $options['tooltipTitle'] = exmtrans('custom_value.data_detail');
 
             $attributes['data-widgetmodal_url'] = $url;
-        }
-        elseif($urlTagType == UrlTagType::BLANK){
+        } elseif ($urlTagType == UrlTagType::BLANK) {
             $attributes['target'] = '_blank';
-        }
-        elseif($urlTagType == UrlTagType::TOP){
+        } elseif ($urlTagType == UrlTagType::TOP) {
             $attributes['target'] = '_top';
         }
 
-        if(isset($options['tooltipTitle'])){
+        if (isset($options['tooltipTitle'])) {
             $attributes['data-toggle'] = 'tooltip';
             $attributes['title'] = esc_html($options['tooltipTitle']);
         }

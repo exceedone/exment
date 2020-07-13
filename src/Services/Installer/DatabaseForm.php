@@ -88,10 +88,9 @@ class DatabaseForm
         }
 
         
-        try{
+        try {
             $this->setEnv($inputs);
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             return back()->withInput()->withErrors([
                 'database_canconnection' => exmtrans('install.error.cannot_write_env'),
             ]);

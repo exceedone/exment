@@ -7,7 +7,6 @@ use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
-use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
@@ -16,7 +15,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Notify;
-use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
@@ -24,8 +22,6 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\CustomValuePageType;
 use Exceedone\Exment\Enums\FormBlockType;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
@@ -68,7 +64,7 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
         // checking export
-        if($request->get('action') == 'export'){
+        if ($request->get('action') == 'export') {
             if (($response = $this->firstFlow($request, CustomValuePageType::EXPORT)) instanceof Response) {
                 return $response;
             }
@@ -133,10 +129,9 @@ class CustomValueController extends AdminControllerTableBase
 
             $grid = $grid_item->grid($callback);
 
-            if($modal){
+            if ($modal) {
                 return $grid_item->renderModal($grid);
-            }
-            elseif($request->has('modalframe')){
+            } elseif ($request->has('modalframe')) {
                 return $grid_item->renderModalFrame();
             }
 
@@ -146,7 +141,7 @@ class CustomValueController extends AdminControllerTableBase
 
         $content->row($row);
 
-        if(!$modal){
+        if (!$modal) {
             PartialCrudService::setGridContent($this->custom_table, $content);
         }
 
@@ -226,7 +221,7 @@ class CustomValueController extends AdminControllerTableBase
 
         $this->AdminContent($content);
         $content->row($show_item->createShowForm());
-        $content->row(function ($row) use($show_item) {
+        $content->row(function ($row) use ($show_item) {
             $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
             $show_item->setOptionBoxes($row);
         });

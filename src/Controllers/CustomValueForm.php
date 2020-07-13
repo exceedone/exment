@@ -584,7 +584,8 @@ EOT;
         }
     }
 
-    protected function setParentSelect($request, $form, $select_parent, $id){
+    protected function setParentSelect($request, $form, $select_parent, $id)
+    {
         // get select_parent
         $select_parent = null;
         if ($request->has('select_parent')) {
@@ -627,7 +628,6 @@ EOT;
                     ],
                 ],
             ]);
-
         }
         // if edit data or has $select_parent, only display
         else {

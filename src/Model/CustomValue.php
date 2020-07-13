@@ -431,7 +431,7 @@ abstract class CustomValue extends ModelBase
             $this->postCreate();
         } else {
             // Only call already_updated is false
-            if(!$this->already_updated){
+            if (!$this->already_updated) {
                 // save external Authoritable
                 CustomValueAuthoritable::setValueAuthoritableEx($this, ShareTrigger::UPDATE);
 
