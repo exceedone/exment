@@ -38,7 +38,7 @@ class ModalTileMenuButton extends ModalMenuButton
     /**
      * Get tile html
      *
-     * @return void
+     * @return string
      */
     public function html()
     {

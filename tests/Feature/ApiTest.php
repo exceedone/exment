@@ -207,6 +207,7 @@ class ApiTest extends ApiTestBase
                 "order"=> "0",
                 'options' => [
                     "index_enabled"=> "1",
+                    "freeword_search"=> "1",
                 ]
             ])
             ->assertJsonStructure([
@@ -343,6 +344,7 @@ class ApiTest extends ApiTestBase
                 'order'=> '0',
                 'options' => [
                     'index_enabled'=> '1',
+                    'freeword_search'=> '1',
                     'default'=> '1',
                     'required'=> '1',
                     'help'=> '一覧表示したい場合、YESに設定してください。',
@@ -383,6 +385,7 @@ class ApiTest extends ApiTestBase
                 'order'=> '0',
                 'options' => [
                     'index_enabled'=> '1',
+                    'freeword_search' => '1',
                 ]
             ]);
     }

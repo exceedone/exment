@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\DataItems\Show as ShowItem;
 
 class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -43,6 +44,13 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         ],
     ];
 
+    /**
+     * Show Item for data detail
+     *
+     * @var ShowItem\ShowBase
+     */
+    private $_show_item;
+
     public function custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
@@ -64,10 +72,26 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
     
     /**
+     * Show Item for data detail
+     *
+     * @return ShowItem\ShowBase
+     */
+    public function getShowItemAttribute()
+    {
+        if (isset($this->_show_item)) {
+            return $this->_show_item;
+        }
+
+        $this->_show_item = ShowItem\DefaultShow::getItem($this->custom_table, $this);
+
+        return $this->_show_item;
+    }
+
+    /**
      * get default form using table
      *
      * @param mixed $tableObj table_name, object or id eic
-     * @return void
+     * @return CustomForm
      */
     public static function getDefault($tableObj)
     {

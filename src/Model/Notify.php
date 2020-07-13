@@ -415,7 +415,7 @@ class Notify extends ModelBase
      * get notify target users
      *
      * @param CustomValue $custom_value target custom value
-     * @return void
+     * @return array
      */
     public function getNotifyTargetUsers($custom_value)
     {

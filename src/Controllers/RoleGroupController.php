@@ -64,7 +64,7 @@ class RoleGroupController extends AdminControllerBase
             if (!$hasCreatePermission) {
                 $tools->disableBatchActions();
             }
-            $tools->prepend(new Tools\SystemChangePageMenu('api_setting'));
+            $tools->prepend(new Tools\SystemChangePageMenu());
         });
 
         $grid->disableExport();

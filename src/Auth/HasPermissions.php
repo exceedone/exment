@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 trait HasPermissions
 {
@@ -99,7 +100,7 @@ trait HasPermissions
      * whethere has permission, permission level
      * $role_key * if set array, check whether either items.
      * Checking target plugin.
-     * @param string $id
+     * @param Plugin $plugin
      * @param array|string $role_key
      */
     public function hasPermissionPlugin($plugin, $role_key)
@@ -174,7 +175,7 @@ trait HasPermissions
     /**
      * Get all permissions of user.
      *
-     * @return mixed
+     * @return Collection
      */
     public function allPermissions() : Collection
     {
@@ -218,7 +219,7 @@ trait HasPermissions
     /**
      * Get all has permission tables of user.
      *
-     * @return mixed
+     * @return Collection
      */
     public function allHasPermissionTables($role_key) : Collection
     {
@@ -238,8 +239,8 @@ trait HasPermissions
      * If visible for permission_details.
      * called form menu
      *
-     * @param $item menu item
-     * @param $target_tables output target tables. for template export. default nothing item
+     * @param array|string $item
+     * @param array $target_tables output target tables. for template export. default nothing item
      *
      * @return bool
      */
@@ -263,7 +264,7 @@ trait HasPermissions
         // if $item has children, get children's visible result.
         // if children have true result, return true;
         if (array_key_exists('children', $item)) {
-            $first = collect($item['children'])->first(function ($child) use ($item, $target_tables) {
+            $first = collect($item['children'])->first(function ($child) use ($target_tables) {
                 return $this->visible($child, $target_tables);
             });
             return !is_null($first);
@@ -310,7 +311,12 @@ trait HasPermissions
     public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL)
     {
         return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS . '_' . $filterType, function () use ($filterType) {
-            return $this->base_user->getOrganizationIds($filterType);
+            //return $this->base_user->getOrganizationIds($filterType);
+            // if system doesn't use organization, return empty array.
+            if (!System::organization_available()) {
+                return [];
+            }
+            return AuthUserOrgHelper::getOrganizationIds($filterType, $this->base_user_id);
         });
     }
 

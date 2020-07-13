@@ -10,7 +10,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ChartAxisType;
 use Exceedone\Exment\Enums\ChartOptionType;
 use Exceedone\Exment\Enums\ChartType;
-use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -127,7 +126,7 @@ class ChartItem implements ItemInterface
         $view_column_x = CustomViewSummary::getSummaryViewColumn($this->axis_x);
         $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
 
-        if (!isset($view_column_x) || !isset($view_column_y)) {
+        if (is_nullorempty($view_column_x) || is_nullorempty($view_column_y)) {
             return false;
         }
 
@@ -370,7 +369,7 @@ EOT;
     /**
      * get chart color array.
      *
-     * @return chart color array
+     * @return array Chart color array
      */
     protected function getChartColor($datacnt)
     {

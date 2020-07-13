@@ -49,19 +49,39 @@ class WorkflowItem extends SystemItem
     }
 
     /**
+     * get text(for display)
+     */
+    public function text()
+    {
+        return $this->getWorkflowValue(false);
+    }
+
+    /**
+     * get html(for display)
+     * *this function calls from non-escaping value method. So please escape if not necessary unescape.
+     */
+    public function html()
+    {
+        return $this->getWorkflowValue(true);
+    }
+
+    /**
      * Get workflow item as status name string
      *
      * @param [type] $html
      * @return void
      */
-    protected function getTargetValue($html)
+    protected function getWorkflowValue($html)
     {
-        $val = parent::getTargetValue($html);
+        $val = $this->pureValue();
 
         if (boolval(array_get($this->options, 'summary'))) {
             if (isset($val)) {
                 $model = WorkflowStatus::find($val);
-                return array_get($model, 'status_name');
+
+                $status_name = array_get($model, 'status_name');
+
+                return $html ? esc_html($status_name) : $status_name;
             }
         }
 
@@ -78,7 +98,8 @@ class WorkflowItem extends SystemItem
         } elseif (is_string($val)) {
             return $val;
         } else {
-            return array_get($val, 'status_name');
+            $status_name = array_get($val, 'status_name');
+            return $html ? esc_html($status_name) : $status_name;
         }
     }
     
@@ -122,7 +143,7 @@ class WorkflowItem extends SystemItem
                     ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', true);
             })->select(["$tableName.id as morph_id", 'morph_type', 'workflow_status_from_id', 'workflow_status_to_id']);
             
-        $query->joinSub($subquery, 'workflow_values', function ($join) use ($tableName, $custom_table) {
+        $query->joinSub($subquery, 'workflow_values', function ($join) use ($tableName) {
             $join->on($tableName . '.id', 'workflow_values.morph_id');
         });
     }
@@ -141,7 +162,7 @@ class WorkflowItem extends SystemItem
 
         /////// first query. not has workflow value's custom value
         $subquery = \DB::table($tableName)
-        ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($tableName, $custom_table) {
+        ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($custom_table) {
             $join->where(SystemTableName::WORKFLOW_TABLE . '.custom_table_id', $custom_table->id)
                 ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
                 ;
@@ -193,7 +214,7 @@ class WorkflowItem extends SystemItem
                 ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
                 ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1);
         })
-        ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($tableName, $custom_table) {
+        ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($custom_table) {
             $join->where(SystemTableName::WORKFLOW_TABLE . '.custom_table_id', $custom_table->id)
                 ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
                 ;
@@ -245,7 +266,7 @@ class WorkflowItem extends SystemItem
                 ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
                 ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1);
         })
-        ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($tableName, $custom_table) {
+        ->join(SystemTableName::WORKFLOW_TABLE, function ($join) use ($custom_table) {
             $join->where(SystemTableName::WORKFLOW_TABLE . '.custom_table_id', $custom_table->id)
                 ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
                 ;

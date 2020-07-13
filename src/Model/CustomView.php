@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\DataItems\Grid as GridItem;
 
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -31,6 +32,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json'];
     //protected $with = ['custom_table', 'custom_view_columns'];
+    
+    private $_grid_item;
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target', 'pager_count'],
@@ -136,6 +139,27 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function getFilterIsOrAttribute()
     {
         return $this->condition_join == 'or';
+    }
+
+    public function getGridItemAttribute()
+    {
+        if (isset($this->_grid_item)) {
+            return $this->_grid_item;
+        }
+
+        switch ($this->view_kind_type) {
+            case ViewKindType::AGGREGATE:
+                $this->_grid_item = GridItem\SummaryGrid::getItem($this->custom_table, $this);
+                break;
+            case ViewKindType::CALENDAR:
+                $this->_grid_item = GridItem\CalendarGrid::getItem($this->custom_table, $this);
+                break;
+            default:
+                $this->_grid_item = GridItem\DefaultGrid::getItem($this->custom_table, $this);
+                break;
+        }
+
+        return $this->_grid_item;
     }
 
     public function getOption($key, $default = null)
@@ -293,7 +317,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * set DataTable using custom_view
-     * @return list(array, array) headers, bodies
+     * @return array $headers : header items, $bodies : body items.
      */
     public function convertDataTable($datalist, $options = [])
     {
@@ -403,6 +427,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public static function getAllData($tableObj)
     {
+        $tableObj = CustomTable::getEloquent($tableObj);
+        
         // get all data view
         $view = $tableObj->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
 
@@ -582,7 +608,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
         if ($options['callback'] instanceof \Closure) {
-            call_user_func($callback, $model);
+            call_user_func($options['callback'], $model);
         } else {
             $this->setValueFilters($model);
         }
@@ -990,7 +1016,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * Get arrays about Summary Column and custom_view_columns and custom_view_summaries
      *
-     * @return void
+     * @return array
      */
     public function getSummaryIndexAndViewColumns()
     {

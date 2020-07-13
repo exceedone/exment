@@ -26,6 +26,8 @@ use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\MultisettingType;
+use Exceedone\Exment\Enums\ShareTrigger;
+use Exceedone\Exment\Enums\SharePermission;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -336,6 +338,19 @@ HTML;
         $form->ignore('columnmulti');
 
         $custom_table = CustomTable::getEloquent($id);
+        
+        $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
+            $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
+                ->options($custom_table->getColumnsSelectOptions([
+                    'include_system' => false,
+                ]));
+            
+            $form->hidden('priority')->default(1);
+            $form->hidden('multisetting_type')->default(MultisettingType::TABLE_LABELS);
+        })->setTableColumnWidth(10, 2)
+        ->rowUpDown('priority')
+        ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
+
         $form->hasManyTable('multi_uniques', exmtrans("custom_table.custom_column_multi.uniques"), function ($form) use ($custom_table) {
             $form->select('unique1', exmtrans("custom_table.custom_column_multi.unique1"))->required()
                 ->options($custom_table->getColumnsSelectOptions([
@@ -374,20 +389,32 @@ HTML;
         })->setTableColumnWidth(4, 3, 4, 1)
         ->description(exmtrans("custom_table.custom_column_multi.help.compare_columns"));
         
+        
+        // if not master, share setting
+        if (!in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+            $manualUrl = getManualUrl('table#' . exmtrans('custom_table.custom_column_multi.share_settings'));
+            $form->hasManyTable('share_settings', exmtrans("custom_table.custom_column_multi.share_settings"), function ($form) use ($custom_table) {
+                $form->multipleSelect('share_trigger_type', exmtrans("custom_table.custom_column_multi.share_trigger_type"))->required()
+                    ->options(ShareTrigger::transKeyArray("custom_table.custom_column_multi.share_trigger_type_options"));
+                $form->select('share_column_id', exmtrans("custom_table.custom_column_multi.share_column_id"))->required()
+                    ->options($custom_table->getUserOrgColumnsSelectOptions(['index_enabled_only' => false]));
+                $form->select('share_permission', exmtrans("custom_table.custom_column_multi.share_permission"))->required()
+                    ->options(SharePermission::transKeyArray("custom_table.custom_column_multi.share_permission_options"));
+                $form->hidden('multisetting_type')->default(MultisettingType::SHARE_SETTINGS);
+            })->setTableColumnWidth(3, 5, 3, 1)
+            ->description(exmtrans("custom_table.custom_column_multi.help.share_settings") . '<br/>' . exmtrans('common.help.more_help_here', $manualUrl));
+        }
 
-        $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
-            $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
-                ->options($custom_table->getColumnsSelectOptions([
-                    'include_system' => false,
-                ]));
-            
-            $form->hidden('priority')->default(1);
-            $form->hidden('multisetting_type')->default(MultisettingType::TABLE_LABELS);
-        })->setTableColumnWidth(10, 2)
-        ->rowUpDown('priority')
-        ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
 
-        $form->embeds('options', exmtrans("custom_table.custom_column_multi.options_label"), function ($form) {
+        $form->embeds('options', exmtrans("custom_table.custom_column_multi.options_label"), function ($form) use ($custom_table) {
+            if (!in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+                $manualUrl = getManualUrl('table#' . exmtrans('custom_table.custom_column_multi.share_settings'));
+                $form->switchbool('share_setting_sync', exmtrans("custom_table.custom_column_multi.share_setting_sync"))
+                    ->help(exmtrans("custom_table.custom_column_multi.help.share_setting_sync") . exmtrans('common.help.more_help_here', $manualUrl))
+                    ->default('0')
+                ;
+            }
+
             $form->checkbox('form_action_disable_flg', exmtrans("custom_table.custom_column_multi.form_action_disable_flg"))
                 ->help(exmtrans("custom_table.custom_column_multi.help.form_action_disable_flg"))
                 ->options(FormActionType::transArray('custom_table.custom_column_multi.form_action_options'))
@@ -408,7 +435,6 @@ HTML;
                 $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
             }
         });
-        
 
         return $form;
     }

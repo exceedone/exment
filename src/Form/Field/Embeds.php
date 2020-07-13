@@ -11,11 +11,18 @@ class Embeds extends AdminField\Embeds
 
     protected $header = true;
 
+    protected $footer_hr = false;
+
     protected $gridFields = [];
 
     public function disableHeader()
     {
         $this->header = false;
+    }
+
+    public function footerHr($footer_hr = true)
+    {
+        $this->footer_hr = $footer_hr;
     }
 
     /**
@@ -77,7 +84,7 @@ class Embeds extends AdminField\Embeds
     {
         $form = $this->buildEmbeddedForm();
         if (count($this->gridFields) == 0) {
-            return parent::render()->with(['form' => $form, 'header' => $this->header]);
+            return parent::render()->with(['form' => $form, 'header' => $this->header, 'footer_hr' => $this->footer_hr]);
         }
 
         return parent::render()->with([
@@ -86,7 +93,8 @@ class Embeds extends AdminField\Embeds
             'gridHeaders' => $this->gridFields[8]?? null,
             'gridFooters' => $this->gridFields[9]?? null,
             'is_grid' => true,
-            'header' => $this->header
+            'header' => $this->header,
+            'footer_hr' => $this->footer_hr,
         ]);
     }
 }

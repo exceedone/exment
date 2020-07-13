@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -16,6 +17,7 @@ use Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Encore\Admin\Form;
+use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Grid;
 use Encore\Admin\Show;
 use \Html;
@@ -30,10 +32,19 @@ class Initialize
     public function handle(Request $request, \Closure $next)
     {
         if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
-            $path = trim(admin_base_path('install'), '/');
-            if (!$request->is($path)) {
+            // Check install directory
+            if (!$this->isInstallPath($request)) {
+                // check has 'EXMENT_INITIALIZE' on .env directly
+                // if true, already installed
+                if (boolval(env('EXMENT_INITIALIZE', false))) {
+                    // Throwing error connecting database purposely.
+                    hasTable(SystemTableName::SYSTEM);
+                }
+
+                // If not initialized, return to install path
                 return redirect()->guest(admin_base_path('install'));
             }
+
             static::initializeConfig(false);
         } else {
             $initialized = System::initialized();
@@ -55,6 +66,20 @@ class Initialize
 
         return $next($request);
     }
+
+    /**
+     * Whether this path is "install"
+     *
+     * @param Request $request
+     * @return boolean
+     */
+    protected function isInstallPath(Request $request)
+    {
+        // Check install directory
+        $path = trim(admin_base_path('install'), '/');
+        return $request->is($path);
+    }
+
 
     public static function initializeConfig($setDatabase = true)
     {
@@ -237,51 +262,51 @@ class Initialize
             // Set system setting to config --------------------------------------------------
             // Site Name
             $val = System::site_name();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 Config::set('admin.name', $val);
                 Config::set('admin.title', $val);
             }
 
             // Logo
             $val = System::site_logo();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 Config::set('admin.logo', Html::image($val, 'header logo'));
             } else {
                 $val = System::site_name();
-                if (isset($val)) {
+                if (!is_nullorempty($val)) {
                     Config::set('admin.logo', esc_html($val));
                 }
             }
 
             // Logo(Short)
             $val = System::site_logo_mini();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 Config::set('admin.logo-mini', Html::image($val, 'header logo mini'));
             } else {
                 $val = System::site_name_short();
-                if (isset($val)) {
+                if (!is_nullorempty($val)) {
                     Config::set('admin.logo-mini', esc_html($val));
                 }
             }
 
             // Site Skin
             $val = System::site_skin();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 Config::set('admin.skin', esc_html($val));
             }
 
             // Site layout
             $val = System::site_layout();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
 
             // Date format
             $val = System::default_date_format();
-            if (isset($val)) {
+            if (!is_nullorempty($val)) {
                 $list = exmtrans("system.date_format_list.$val");
             }
-            if (isset($list) && is_array($list) && count($list) > 2) {
+            if (!is_nullorempty($list) && is_array($list) && count($list) > 2) {
                 Config::set('admin.date_format', $list[0]);
                 Config::set('admin.datetime_format', $list[1]);
                 Config::set('admin.time_format', $list[2]);
@@ -354,6 +379,8 @@ class Initialize
                 $tools->disableView();
             });
         });
+        Form\Footer::$defaultSubmitLabel = trans('admin.save');
+        WidgetForm::$defaultSubmitLabel = trans('admin.save');
 
         Grid\Tools::$defaultPosition = 'right';
         Grid\Concerns\HasQuickSearch::$searchKey = 'query';
@@ -399,7 +426,7 @@ class Initialize
             'tile'          => Field\Tile::class,
             'hasMany'           => Field\HasMany::class,
             'hasManyTable'           => Field\HasManyTable::class,
-            'relationTable'          => Field\RelationTable::class,
+            //'relationTable'          => Field\RelationTable::class,
             'embeds'          => Field\Embeds::class,
             'nestedEmbeds'          => Field\NestedEmbeds::class,
             'valueModal'          => Field\ValueModal::class,

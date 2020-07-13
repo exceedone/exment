@@ -22,7 +22,7 @@ class Tile extends Field
     {
         parent::__construct($column, $arguments);
 
-        $this->multiple = false;
+        $this->multipled = false;
     }
 
     /**

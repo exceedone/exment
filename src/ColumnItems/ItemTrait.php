@@ -146,10 +146,10 @@ trait ItemTrait
     /**
      * get style string from key-values
      *
-     * @param [type] $array
-     * @return void
+     * @param array $array
+     * @return string
      */
-    public function getStyleString($array)
+    public function getStyleString(array $array = [])
     {
         $array['word-wrap'] = 'break-word';
         $array['white-space'] = 'normal';
@@ -179,10 +179,11 @@ trait ItemTrait
     /**
      * Get Search queries for free text search
      *
-     * @param [type] $mark
-     * @param [type] $value
-     * @param [type] $takeCount
-     * @return void
+     * @param string $mark
+     * @param string $value
+     * @param int $takeCount
+     * @param string|null $q
+     * @return array
      */
     public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {
@@ -200,9 +201,10 @@ trait ItemTrait
     /**
      * Set Search orWhere for free text search
      *
-     * @param [type] $mark
-     * @param [type] $value
-     * @param [type] $takeCount
+     * @param Builder $mark
+     * @param string $mark
+     * @param string $value
+     * @param string|null $q
      * @return void
      */
     public function setSearchOrWhere(&$query, $mark, $value, $q)
@@ -221,7 +223,7 @@ trait ItemTrait
     /**
      * Get pure value. If you want to change the search value, change it with this function.
      *
-     * @param [type] $value
+     * @param string $label
      * @return ?string string:matched, null:not matched
      */
     public function getPureValue($label)

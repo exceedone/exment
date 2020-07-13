@@ -21,7 +21,7 @@ class SamlUser extends CustomLoginUserBase
         $user->login_type = LoginType::SAML;
         $user->login_setting = LoginSetting::getSamlSetting($provider_name, !$isTest);
 
-        static::setMappingValue($user, $samlUser, $isTest);
+        static::setMappingValue($user, $samlUser);
 
         // find key name for search value
         $user->mapping_user_column = $user->login_setting->getOption('mapping_user_column') ?? 'email';

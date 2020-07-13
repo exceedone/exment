@@ -180,7 +180,7 @@ class Backup
     {
         // get history file counts
         $backup_history_files = System::backup_history_files();
-        if (!isset($backup_history_files) || $backup_history_files <= 0) {
+        if (is_nullorempty($backup_history_files) || $backup_history_files <= 0) {
             return;
         }
 

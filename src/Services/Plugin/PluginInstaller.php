@@ -185,8 +185,8 @@ class PluginInstaller
     /**
      * Function prepare data to do continue
      *
-     * @param [type] $json
-     * @return void
+     * @param array $json
+     * @return Plugin plugin object
      */
     protected static function prepareData($json)
     {

@@ -151,7 +151,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             return $default;
         }
         // get settings from settion
-        $settings = System::requestSession("user_setting", function () use ($key, $default) {
+        $settings = System::requestSession("user_setting", function () {
             $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->getUserId()]);
             $settings = $usersetting->settings ?? [];
             return $settings;

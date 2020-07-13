@@ -5,17 +5,18 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-//use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ConditionType;
@@ -140,7 +141,7 @@ class CustomColumnController extends AdminControllerTableBase
 
             $keys = ['required' => 'common', 'index_enabled' => 'custom_column.options', 'unique' => 'custom_column.options'];
             foreach ($keys as $key => $label) {
-                $filter->where(function ($query) use ($key, $label) {
+                $filter->where(function ($query) use ($key) {
                     $query->whereIn("options->$key", [1, "1"]);
                 }, exmtrans("$label.$key"))->radio([
                     '' => 'All',
@@ -190,7 +191,17 @@ class CustomColumnController extends AdminControllerTableBase
             ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
         $form->select('column_type', exmtrans("custom_column.column_type"))
-        ->options(ColumnType::transArray("custom_column.column_type_options"))
+        ->help(exmtrans("custom_column.help.column_type"))
+        ->options(function () {
+            $arrays = collect(ColumnType::arrays())->filter(function ($arr) {
+                if (System::organization_available() || $arr != ColumnType::ORGANIZATION) {
+                    return true;
+                } else {
+                    return false;
+                }
+            })->toArray();
+            return getTransArray($arrays, "custom_column.column_type_options");
+        })
         ->attribute(['data-filtertrigger' =>true,
             'data-linkage' => json_encode([
                 'options_select_import_column_id' => [
@@ -222,7 +233,11 @@ class CustomColumnController extends AdminControllerTableBase
                     new Validator\CustomColumnIndexCountRule($this->custom_table, $id),
                     new Validator\CustomColumnUsingIndexRule($id),
                 ])
+                ->attribute(['data-filtertrigger' =>true])
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
+            $form->switchbool('freeword_search', exmtrans("custom_column.options.freeword_search"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_index_enabled', 'value' => '1'])])
+                ->help(exmtrans("custom_column.help.freeword_search"));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
             $form->switchbool('init_only', exmtrans("custom_column.options.init_only"))
@@ -416,7 +431,14 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.select_load_ajax", config('exment.select_table_limit_count', 100)))
                 ->default("0")
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
-            
+
+            // user organization
+            $form->switchbool('showing_all_user_organizations', exmtrans("custom_column.options.showing_all_user_organizations"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_USER_ORGANIZATION()])])
+                ->help(exmtrans("custom_column.help.showing_all_user_organizations"))
+                ->default('0');
+
+
             // yes/no ----------------------------
             $form->text('true_value', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_value"))
@@ -495,6 +517,7 @@ class CustomColumnController extends AdminControllerTableBase
             // image, file, select
             // enable multiple
             $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
+                ->help(exmtrans("custom_column.help.multiple_enabled"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
         })->disableHeader();
 
@@ -503,16 +526,20 @@ class CustomColumnController extends AdminControllerTableBase
 
         // if create column, add custom form and view
         if (!isset($id)) {
+            $form->exmheader(exmtrans('common.create_only_setting'))->hr();
+
             $form->switchbool('add_custom_form_flg', exmtrans("custom_column.add_custom_form_flg"))->help(exmtrans("custom_column.help.add_custom_form_flg"))
                 ->default("1")
-                ->attribute(['data-filtertrigger' =>true])
             ;
             $form->switchbool('add_custom_view_flg', exmtrans("custom_column.add_custom_view_flg"))->help(exmtrans("custom_column.help.add_custom_view_flg"))
                 ->default("0")
-                ->attribute(['data-filtertrigger' =>true])
+            ;
+            $form->switchbool('add_table_label_flg', exmtrans("custom_column.add_table_label_flg"))->help(exmtrans("custom_column.help.add_table_label_flg"))
+                ->default("0")
             ;
             $form->ignore('add_custom_form_flg');
             $form->ignore('add_custom_view_flg');
+            $form->ignore('add_table_label_flg');
         }
 
         $form->saved(function (Form $form) {
@@ -675,14 +702,30 @@ class CustomColumnController extends AdminControllerTableBase
 
             $custom_view_column->save();
         }
+
+        
+        // set table labels --------------------------------------------------
+        $add_table_label_flg = app('request')->input('add_table_label_flg');
+        if (boolval($add_table_label_flg)) {
+            $priority = CustomColumnMulti::where('custom_table_id', $this->custom_table->id)->where('multisetting_type', MultisettingType::TABLE_LABELS)->max('priority') ?? 0;
+            
+            CustomColumnMulti::create([
+                'custom_table_id' => $this->custom_table->id,
+                'multisetting_type' => MultisettingType::TABLE_LABELS,
+                'priority' => ++$priority,
+                'options' => [
+                    'table_label_id' => $model->id,
+                ],
+            ]);
+        }
     }
 
     /**
      * Get column options for calc
      *
-     * @param [type] $id
-     * @param [type] $custom_table
-     * @return void
+     * @param string|int|null $id
+     * @param CustomTable $custom_table
+     * @return array
      */
     protected function getCalcCustomColumnOptions($id, $custom_table)
     {

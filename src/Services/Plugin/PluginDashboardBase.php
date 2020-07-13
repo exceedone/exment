@@ -7,8 +7,8 @@ namespace Exceedone\Exment\Services\Plugin;
  */
 class PluginDashboardBase extends PluginPublicBase
 {
-    use PluginPageTrait;
-    
+    use PluginBase, PluginPageTrait;
+
     protected $dashboard;
     protected $dashboard_box;
 

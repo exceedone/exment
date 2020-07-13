@@ -214,7 +214,8 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
                 $changedata_target_table_name = array_get($json, $table_key_name);
                 $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
             } else {
-                $changedata_target_table = $options['parent']->target_table;
+                $changedata_target_table = null;
+                //$changedata_target_table = $options['parent']->target_table;
             }
 
             if (isset($changedata_target_column_name) && isset($changedata_target_table)) {

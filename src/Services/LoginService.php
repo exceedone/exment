@@ -2,22 +2,21 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Services\LoginService as NewLoginService;
-use Exceedone\Exment\Auth\CustomLoginUserBase;
 
 /**
  * OLD : LoginService
  */
 class LoginService
 {
-    public static function setToken(CustomLoginUserBase $custom_login_user)
+    public static function setToken()
     {
-        return NewLoginService::setToken($custom_login_user);
+        return NewLoginService::setToken();
     }
 
     /**
      * Get access and refresh token
      *
-     * @return void
+     * @return array access_token, refresh_token, provider
      */
     public static function getToken()
     {
@@ -27,7 +26,7 @@ class LoginService
     /**
      * Get access token
      *
-     * @return void
+     * @return string|null
      */
     public static function getAccessToken()
     {
@@ -37,7 +36,7 @@ class LoginService
     /**
      * Get refresh token
      *
-     * @return void
+     * @return string|null
      */
     public static function getRefreshToken()
     {

@@ -284,7 +284,7 @@ class ExmentServiceProvider extends ServiceProvider
             return;
         }
 
-        $pluginPages = Plugin::getByPluginTypes(PluginType::PLUGIN_TYPE_PLUGIN_PAGE(), true);
+        $pluginPages = Plugin::getByPluginTypes(PluginType::PLUGIN_TYPE_PLUGIN_USE_VIEW(), true);
         foreach ($pluginPages as $pluginPage) {
             if (!is_null($items = $pluginPage->_getLoadView())) {
                 $this->loadViewsFrom($items[0], $items[1]);

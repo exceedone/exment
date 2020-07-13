@@ -20,7 +20,7 @@ class BackupController extends AdminControllerBase
     protected $backup;
     protected $restore;
 
-    public function __construct(Request $request)
+    public function __construct()
     {
         $this->setPageInfo(exmtrans("backup.header"), exmtrans("backup.header"), exmtrans("backup.description"), 'fa-database');
 

@@ -139,6 +139,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ->where('multisetting_type', MultisettingType::COMPARE_COLUMNS);
     }
 
+    public function share_settings()
+    {
+        return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
+            ->where('multisetting_type', MultisettingType::SHARE_SETTINGS);
+    }
+
     /**
      * Whether this model disables delete
      *
@@ -1100,7 +1106,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
 
-        if (!isset($mainQuery)) {
+        if (is_nullorempty($mainQuery)) {
             return null;
         }
 
@@ -1228,6 +1234,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'parent_id' => $parent_value_id,
                 ];
 
+                ///// if has display table, filter display table and $child_table
+                if (isset($display_table)) {
+                    $child_table->filterDisplayTable($query, $display_table, $options);
+                }
+
                 // target view
                 if (isset($target_view)) {
                     $target_view->filterModel($query);
@@ -1238,6 +1249,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             case SearchType::MANY_TO_MANY:
                 $query = $child_table->getValueModel()->query();
                 RelationTable::setQueryManyMany($query, $this, $child_table, $parent_value_id);
+
+                ///// if has display table, filter display table
+                if (isset($display_table)) {
+                    $child_table->filterDisplayTable($query, $display_table, $options);
+                }
 
                 // target view
                 if (isset($target_view)) {
@@ -1401,6 +1417,24 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Get freeword-search columns.
+     */
+    public function getFreewordSearchColumns()
+    {
+        return CustomColumn::allRecords(function ($custom_column) {
+            if ($custom_column->custom_table_id != $this->id) {
+                return false;
+            }
+
+            if (!boolval($custom_column->index_enabled) || !boolval($custom_column->getOption('freeword_search'))) {
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    /**
      * Create Table on Database.
      *
      * @return void
@@ -1488,6 +1522,40 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Get all accessible users on this table. (only get id, consider performance)
+     * *Not check "loginuser"'s permission.
+     */
+    public function getAccessibleUserIds()
+    {
+        return $this->getAccessibleUserOrganizationIds(SystemTableName::USER);
+    }
+
+    /**
+     * Get all accessible organizations on this table. (only get id, consider performance)
+     * *Not check "loginuser"'s permission.
+     */
+    public function getAccessibleOrganizationIds()
+    {
+        return $this->getAccessibleUserOrganizationIds(SystemTableName::ORGANIZATION);
+    }
+
+    /**
+     * Get all accessible organizations. (only get id, consider performance)
+     */
+    protected function getAccessibleUserOrganizationIds($target_table)
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE, $target_table, $this->table_name);
+        return System::requestSession($key, function () use ($target_table) {
+            // $target_table : user or org
+            $table = CustomTable::getEloquent($target_table);
+            $query = $table->getValueModel()->query();
+            $table->filterDisplayTable($query, $this);
+
+            return $query->select(['id'])->pluck('id');
+        });
+    }
+
+    /**
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
      *
@@ -1548,14 +1616,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         $display_table = array_get($options, 'display_table');
-        return admin_urls_query("webapi", 'data', array_get($this, 'table_name'), "select", ['display_table_id' => $display_table ? $display_table->id : null]);
+        $custom_column = array_get($options, 'custom_column');
+        return admin_urls_query("webapi", 'data', array_get($this, 'table_name'), "select", ['column_id' => $custom_column ? $custom_column->id : null, 'display_table_id' => $display_table ? $display_table->id : null]);
     }
 
     /**
      * get options for select and ajax url
      *
      * @param array $options
-     * @return offset 0 is select options, 1 is ajax url
+     * @return array offset 0 is select options, 1 is ajax url
      */
     public function getSelectOptionsAndAjaxUrl($options = [])
     {
@@ -1776,7 +1845,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     [
                         'append_table' => $append_table,
                         'index_enabled_only' => $index_enabled_only,
-                        'include_parent' => true,
+                        'include_parent' => false,
                         'include_system' => $include_system,
                         'table_view_name' => $tablename,
                         'view_pivot_column' => SystemColumn::PARENT_ID,
@@ -1800,7 +1869,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     [
                         'append_table' => $append_table,
                         'index_enabled_only' => $index_enabled_only,
-                        'include_parent' => true,
+                        'include_parent' => false,
                         'include_system' => $include_system,
                         'table_view_name' => $tablename,
                         'view_pivot_column' => $select_table_column,
@@ -2040,6 +2109,37 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * get user and organization columns select options.
+     *
+     */
+    public function getUserOrgColumnsSelectOptions($options = [])
+    {
+        $options = array_merge(
+            [
+                'append_table' => false,
+                'index_enabled_only' => true,
+            ],
+            $options
+        );
+
+        $results = [];
+
+        ///// get table columns
+        $custom_columns = $this->custom_columns_cache;
+        foreach ($custom_columns as $option) {
+            if ($options['index_enabled_only'] && !$option->index_enabled) {
+                continue;
+            }
+            $column_type = array_get($option, 'column_type');
+            if (ColumnType::isUserOrganization($column_type)) {
+                $results[static::getOptionKey(array_get($option, 'id'), $options['append_table'], $this->id)] = array_get($option, 'column_view_name');
+            }
+        }
+
+        return $results;
+    }
+
+    /**
      * Get relation tables list.
      * It contains search_type(select_table, one_to_many, many_to_many)
      */
@@ -2065,11 +2165,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (isset($id)) {
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $id);
             $model = System::requestSession($key, function () use ($id, $withTrashed) {
-                if ($withTrashed) {
-                    return getModelName($this->table_name)::withTrashed()->find($id);
-                }
                 return getModelName($this->table_name)::find($id);
             });
+
+            if (!isset($model) && $withTrashed) {
+                $model = getModelName($this->table_name)::withTrashed()->find($id);
+            }
         } else {
             $model = new $modelname;
         }
@@ -2199,7 +2300,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         if (is_numeric($id)) {
-            $model = getModelName($this)::find($id);
+            $model = $this->getValueModel($id);
         } else {
             $model = $id;
         }
@@ -2269,7 +2370,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         foreach ($rows as $row) {
             // check role permissions
-            $authoritable_type = array_get($row, 'pivot.authoritable_type');
+            $r = toArray($row);
+            $authoritable_type = array_get($r, 'pivot.authoritable_type') ?? array_get($r, 'authoritable_type');
             if (in_array($authoritable_type, $role_key)) {
                 return true;
             }
@@ -2287,6 +2389,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             || boolval($this->getOption('all_user_editable_flg'))
             || boolval($this->getOption('all_user_viewable_flg'))
             || boolval($this->getOption('all_user_accessable_flg'));
+    }
+
+    /**
+     * Set Authoritable for grid. (For performance)
+     *
+     * @return void
+     */
+    public function setGridAuthoritable(Collection $custom_values)
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_GRID_AUTHORITABLE, $this->id);
+
+        System::requestSession($key, function () use ($custom_values) {
+            // get custom_values_authoritable
+            $values = \DB::table('custom_value_authoritables')
+                ->where('parent_type', $this->table_name)
+                ->whereIn('parent_id', $custom_values->pluck('id')->toArray())
+                ->get(['authoritable_user_org_type', 'authoritable_target_id', 'authoritable_type', 'parent_id']);
+                    
+            return $values;
+        });
     }
 
     /**

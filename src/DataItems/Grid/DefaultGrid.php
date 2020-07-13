@@ -1,48 +1,64 @@
 <?php
 
-namespace Exceedone\Exment\Controllers;
+namespace Exceedone\Exment\DataItems\Grid;
 
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Grid\Tools as GridTools;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Form\Widgets\SelectItemBox;
 use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
 
-trait CustomValueGrid
+class DefaultGrid extends GridBase
 {
+    public function __construct($custom_table, $custom_view)
+    {
+        $this->custom_table = $custom_table;
+        $this->custom_view = $custom_view;
+    }
+
     /**
      * Make a grid builder.
      *
      * @return Grid
      */
-    protected function grid($filter_func = null)
+    public function grid()
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
         
+        // if modal, Change view model
+        if ($this->modal) {
+            $this->gridFilterForModal($grid, $this->callback);
+        } else {
+            // filter
+            $this->custom_view->filterModel($grid->model(), ['callback' => $this->callback]);
+        }
+
         // get search_enabled_columns and loop
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
-
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
-        
-        // filter
-        $this->custom_view->filterModel($grid->model(), ['callback' => $filter_func]);
         $this->setCustomGridFilters($grid, $search_enabled_columns);
-    
+
+        if (!$this->modal) {
+            Plugin::pluginExecuteEvent(PluginEventTrigger::LOADING, $this->custom_table);
+        }
+        
         // create grid
         $this->custom_view->setGrid($grid);
 
@@ -52,22 +68,69 @@ trait CustomValueGrid
         // manage tool button
         $this->manageMenuToolButton($grid);
 
-        Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
+        if (!$this->modal) {
+            Plugin::pluginExecuteEvent(PluginEventTrigger::LOADED, $this->custom_table);
+        }
 
         $grid->getDataCallback(function ($grid) {
             $customValueCollection = $grid->getOriginalCollection();
             $this->custom_table->setSelectTableValues($customValueCollection);
         });
 
+        // if modal, append to selectitem button
+        if ($this->modal) {
+            $this->appendSelectItemButton($grid);
+        }
+
         return $grid;
+    }
+
+    /**
+     * execute filter for modal
+     *
+     * @return void
+     */
+    protected function gridFilterForModal($grid, $filter_func)
+    {
+        // set request session data url disabled;
+        System::setRequestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG, true);
+
+        $modal_target_view = CustomView::getEloquent(request()->get('target_view_id'));
+
+        // modal use alldata view
+        $this->custom_view = CustomView::getAllData($this->custom_table);
+
+        // filter using modal_target_view, and display table
+        if (isset($modal_target_view)) {
+            $modal_target_view->filterModel($grid->model(), ['callback' => $filter_func]);
+        }
+
+        // filter display table
+        $modal_display_table = CustomTable::getEloquent(request()->get('display_table_id'));
+        $modal_custom_column = CustomColumn::getEloquent(request()->get('target_column_id'));
+        if (!empty($modal_display_table) && !empty($modal_custom_column)) {
+            $this->custom_table->filterDisplayTable($grid->model(), $modal_display_table, [
+                'all' => $modal_custom_column->isGetAllUserOrganization(),
+            ]);
+        }
+
+        ///// If set linkage, filter relation.
+        // get children table id
+        $expand = request()->get('linkage');
+        if (!is_nullorempty($expand)) {
+            RelationTable::setQuery($grid->model(), array_get($expand, 'search_type'), array_get($expand, 'linkage_value_id'), [
+                'parent_table' => CustomTable::getEloquent(array_get($expand, 'parent_select_table_id')),
+                'child_table' => CustomTable::getEloquent(array_get($expand, 'child_select_table_id')),
+            ]);
+        }
     }
 
     /**
      * Get filter html. call from ajax, or execute set filter.
      *
-     * @return void
+     * @return array offset 0 : html, 1 : script
      */
-    protected function getFilterHtml()
+    public function getFilterHtml()
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
@@ -103,9 +166,13 @@ trait CustomValueGrid
                 $filter->scope('trashed', exmtrans('custom_value.soft_deleted_data'))->onlyTrashed();
             }
 
-            if (config('exment.custom_value_filter_ajax', true) && !$ajax && !boolval(request()->get('execute_filter'))) {
+            if (config('exment.custom_value_filter_ajax', true) && !$ajax && !$this->modal && !boolval(request()->get('execute_filter'))) {
                 $filter->setFilterAjax(admin_urls_query('data', $this->custom_table->table_name, ['filter_ajax' => 1]));
                 return;
+            }
+            
+            if ($this->modal) {
+                $filter->setAction(admin_urls_query('data', $this->custom_table->table_name, ['modal' => 1]));
             }
 
             $filterItems = [];
@@ -218,6 +285,13 @@ trait CustomValueGrid
      */
     protected function manageMenuToolButton($grid)
     {
+        if ($this->modal) {
+            $grid->disableRowSelector();
+            $grid->disableCreateButton();
+            $grid->disableExport();
+            return;
+        }
+
         $custom_table = $this->custom_table;
         $grid->disableCreateButton();
         $grid->disableExport();
@@ -281,12 +355,18 @@ trait CustomValueGrid
      */
     protected function manageRowAction($grid)
     {
+        if ($this->modal) {
+            $grid->disableActions();
+            return;
+        }
+
         if (isset($this->custom_table)) {
             // name
             $custom_table = $this->custom_table;
             $relationTables = $custom_table->getRelationTables();
 
             $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
+                $custom_table->setGridAuthoritable($actions->grid->getOriginalCollection());
                 $enableEdit = true;
                 $enableDelete = true;
                 $enableHardDelete = false;
@@ -392,7 +472,7 @@ trait CustomValueGrid
     }
 
     // create import and exporter
-    protected function getImportExportService($grid = null)
+    public function getImportExportService($grid = null)
     {
         $service = (new DataImportExport\DataImportExportService())
             ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
@@ -454,5 +534,67 @@ trait CustomValueGrid
             'result'  => true,
             'toastr' => exmtrans('custom_value.message.operation_succeeded'),
         ]);
+    }
+    
+    public function renderModalFrame()
+    {
+        // get target column id or class
+        $custom_column = CustomColumn::getEloquent(request()->get('target_column_id'));
+        $target_column_class = isset($custom_column) ? "value_{$custom_column->column_name}" :  request()->get('target_column_class');
+
+        $items = $this->custom_table->getValueModel()->query()->whereOrIn('id', stringToArray(request()->get('selected_items')))->get();
+
+        $url = request()->fullUrl() . '&modal=1';
+        return getAjaxResponse([
+            'title' => trans('admin.search') . ' : ' . $this->custom_table->table_view_name,
+            'body'  => (new SelectItemBox(
+                $url,
+                $target_column_class,
+                [[
+                'name' => 'select',
+                'label' =>  trans('admin.choose'),
+                'multiple' => isset($custom_column) ? boolval($custom_column->getOption('multiple_enabled')) : false,
+                'icon' => $this->custom_table->getOption('icon'),
+                'background_color' =>  $this->custom_table->getOption('color') ?? '#3c8dbc', //if especially
+                'color' => '#FFFFFF',
+                'items' => $items->map(function ($item) {
+                    return [
+                        'value' => $item->id,
+                        'label' => $item->getLabel(),
+                    ];
+                })->toArray(),
+            ],
+            ]
+            ))->render(),
+            'submitlabel' => trans('admin.setting'),
+            'modalSize' => 'modal-xl',
+            'modalClass' => 'modal-selectitem modal-heightfix modal-body-overflow-hidden',
+            'preventSubmit' => true,
+        ]);
+    }
+
+    public function renderModal($grid)
+    {
+        return view('exment::widgets.partialindex', [
+            'content' => $grid->render()
+        ]);
+    }
+
+    /**
+     * Append select item button in grid
+     *
+     * @param Grid $grid
+     * @return void
+     */
+    protected function appendSelectItemButton($grid)
+    {
+        $grid->column('modal_selectitem', trans('admin.action'))->display(function ($a, $b, $model) {
+            return view('exment::tools.selectitem-button', [
+                'value' => $model->id,
+                'valueLabel' => $model->getLabel(),
+                'label' => exmtrans('common.append_to_selectitem'),
+                'target_selectitem' => 'select',
+            ])->render();
+        });
     }
 }

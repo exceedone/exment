@@ -20,6 +20,7 @@ class Permission extends EnumBase
     const PLUGIN_ACCESS = 'plugin_access';
     const PLUGIN_SETTING = 'plugin_setting';
     const LOGIN_USER = 'login_user';
+    const FILTER_MULTIUSER_ALL = 'filter_multiuser_all';
     const ROLE_GROUP_ALL = 'role_group_all';
     const ROLE_GROUP_PERMISSION = 'role_group_permission';
     const ROLE_GROUP_USER_ORGANIZATION = 'role_group_user_organization';
@@ -46,12 +47,15 @@ class Permission extends EnumBase
         self::API_ALL,
         self::API,
         self::PLUGIN_ALL,
+
+        // appending dynamic
+        //self::FILTER_MULTIUSER_ALL,
     ];
 
     public const ROLE_GROUP_ROLE_PERMISSION = [
         self::ROLE_GROUP_ALL,
         self::ROLE_GROUP_PERMISSION,
-        self::ROLE_GROUP_USER_ORGANIZATION
+        self::ROLE_GROUP_USER_ORGANIZATION,
     ];
     
     public const ROLE_GROUP_PLUGIN_PERMISSION = [

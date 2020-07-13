@@ -91,6 +91,8 @@ class AuthSamlController extends \Encore\Admin\Controllers\AuthController
         
         $error_url = admin_url('auth/login');
         try {
+            $saml2Auth = LoginSetting::getSamlAuth($provider_name);
+            
             $credentials = [
                 'login_type' => LoginType::SAML,
                 'login_setting' => LoginSetting::getSamlSetting($provider_name),

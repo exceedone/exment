@@ -42,7 +42,13 @@ class LangForm
             'APP_TIMEZONE' => str_replace('_', '/', $request->get('timezone')),
         ];
 
-        $this->setEnv($inputs);
+        try {
+            $this->setEnv($inputs);
+        } catch (\Exception $ex) {
+            return back()->withInput()->withErrors([
+                'common_error' => exmtrans('install.error.cannot_write_env'),
+            ]);
+        }
 
         InstallService::setInitializeStatus(InitializeStatus::LANG);
 

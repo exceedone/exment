@@ -1,9 +1,7 @@
 
 @if($header)
 <div class="">
-    <div class="col-sm-12">
-        <h4 class="field-header">{{ $label }}</h4>
-    </div>
+    <h4 class="field-header">{{ $label }}</h4>
 </div>
 <hr style="margin-top: 0px;">
 @endif
@@ -67,3 +65,7 @@
         </div>
     </div>
 </div>
+
+@if($footer_hr)
+<hr style="margin-top: 0px;">
+@endif

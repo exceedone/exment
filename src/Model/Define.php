@@ -88,6 +88,7 @@ class Define
         'org_joined_type_role_group' => ['type' => 'int', 'default' => '99', 'group' => 'advanced'],
         'org_joined_type_custom_value' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
         'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
+        'filter_multi_user' => ['type' => 'int', 'default' => '-1', 'group' => 'advanced'],
         
         // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
@@ -152,6 +153,7 @@ class Define
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER = "has_custom_table_order";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
+    public const SYSTEM_KEY_SESSION_CUSTOM_LOGIN_USER = "custom_login_user";
     public const SYSTEM_KEY_SESSION_PROVIDER_TOKEN = "provider_token";
     public const SYSTEM_KEY_SESSION_SAML_SESSION = "saml_session";
     public const SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE = "sso_test_message";
@@ -167,6 +169,9 @@ class Define
     public const SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK = "worlflow_status_check";
     public const SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE = "import_key_value_%s_%s_%s";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_TREE = "organization_tree";
+    public const SYSTEM_KEY_SESSION_GRID_AUTHORITABLE = "grid_authoritable_%s";
+    public const SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE = "accessible_table_%s_%s";
+    public const SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG = "disable_data_url_tag";
 
     /**
      * MENU SYSTEM DIFINITION

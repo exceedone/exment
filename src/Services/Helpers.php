@@ -799,6 +799,10 @@ if (!function_exists('toArray')) {
             return $value->toArray();
         }
 
+        if ($value instanceof \Illuminate\Database\Eloquent\Model) {
+            return $value->toArray();
+        }
+
         return (array)$value;
     }
 }
@@ -1344,6 +1348,7 @@ if (!function_exists('getAjaxResponse')) {
             'swal' => null,
             'swaltext' => null,
             'errors' => [],
+            'pjaxmodal' => false,
         ], $results);
 
         if (isset($results['swaltext']) && !isset($results['swal'])) {

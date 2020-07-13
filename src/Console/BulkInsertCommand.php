@@ -68,6 +68,7 @@ class BulkInsertCommand extends Command
 
             $this->line("該当ファイル数：".count($files));
 
+            $path = null;
             foreach ($files as $index => $file) {
                 $this->line(($index + 1) . "件目 実施開始 ファイル:{$file->getFileName()}");
 
@@ -144,6 +145,7 @@ class BulkInsertCommand extends Command
         // get physical table name
         $tablename = getDBTableName($targets[0]);
 
+        $tsvname = null;
         switch (count($targets)) {
             case 2:
                 $tsvname = $tablename . '.tsv';

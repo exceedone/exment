@@ -25,7 +25,7 @@ class OAuthService implements LoginServiceInterface
      * (5) get login_user info. If not exists, create user (if set setting).
      * return login_user
      * @param array $credentials
-     * @return ?LoginUser
+     * @return LoginUser|null
      * if null, not match ldap user. Showing wrong ID or password not match.
      *
      * @throws SsoLoginErrorException
@@ -135,7 +135,8 @@ class OAuthService implements LoginServiceInterface
      * Execute login callback
      *
      * @param Request $request
-     * @return void
+     * @param LoginSetting $login_setting
+     * @return array $result(bool), $message(string), $adminMessage(string), $custom_login_user
      */
     public static function loginCallback(Request $request, $login_setting, $isTest = false)
     {

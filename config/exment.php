@@ -619,6 +619,17 @@ return [
     */
     'select_relation_linkage_disabled' => env('SELECT_RELATION_LINKAGE_DISABLED', false),
 
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Textarea html space to tag
+    |--------------------------------------------------------------------------
+    |
+    | When showing html if textarea, space to tag.
+    | 
+    */
+    'textarea_space_tag' => env('EXMENT_TEXTAREA_SPACE_TAG', true),
+    
     /*
     |--------------------------------------------------------------------------
     | API default get data count 

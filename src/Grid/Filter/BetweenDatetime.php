@@ -61,7 +61,7 @@ class BetweenDatetime extends Between
     /**
      * Date filter.
      *
-     * @return DateTime
+     * @return \DateTime
      */
     public function date()
     {

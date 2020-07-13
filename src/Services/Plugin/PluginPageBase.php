@@ -10,7 +10,7 @@ namespace Exceedone\Exment\Services\Plugin;
  */
 class PluginPageBase extends PluginPublicBase
 {
-    use PluginPageTrait;
+    use PluginBase, PluginPageTrait;
 
     protected $showHeader = true;
 

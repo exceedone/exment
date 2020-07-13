@@ -26,7 +26,8 @@
                     "system_flg": "1",
                     "options": {
                         "use_label_flg": "1",
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 },
                 {
@@ -36,7 +37,8 @@
                     "description": null,
                     "system_flg": "1",
                     "options": {
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 }
             ]
@@ -64,7 +66,8 @@
                     "system_flg": "1",
                     "options": {
                         "use_label_flg": "1",
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 }
             ]
@@ -91,7 +94,8 @@
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 },
                 {
@@ -279,6 +283,7 @@
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
+                        "freeword_search": "1",
                         "init_only": "1",
                         "unique": "1",
                         "available_characters": ["lower","upper","number", "dot", "hyphen_underscore"]
@@ -293,7 +298,8 @@
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 },
                 {
@@ -305,6 +311,7 @@
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
+                        "freeword_search": "1",
                         "unique": "1"
                     }
                 }
@@ -333,6 +340,7 @@
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
+                        "freeword_search": "1",
                         "unique": "1",
                         "init_only": "1",
                         "available_characters": ["lower","upper","number","dot","hyphen_underscore"]
@@ -347,7 +355,8 @@
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 },
                 {
@@ -357,7 +366,8 @@
                     "description": null,
                     "system_flg": "1",
                     "options": {
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 }
             ]
@@ -385,6 +395,7 @@
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
+                        "freeword_search": "1",
                         "unique": "1",
                         "init_only": "1",
                         "available_characters": ["lower", "upper", "number", "hyphen_underscore"],
@@ -400,6 +411,7 @@
                         "required": "1",
                         "use_label_flg": "1",
                         "index_enabled": "1",
+                        "freeword_search": "1",
                         "help": "It is a template name displayed on the list screen."
                     }
                 },
@@ -412,6 +424,7 @@
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
+                        "freeword_search": "1",
                         "select_item_valtext": "header,Header\nbody,Body\nfooter,Footer",
                         "default": "body"
                     }
@@ -506,7 +519,8 @@
                     "column_type": "user",
                     "system_flg": "1",
                     "options": {
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 },
                 {
@@ -516,7 +530,8 @@
                     "system_flg": "1",
                     "options": {
                         "select_target_table_name": "mail_template",
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 },
                 {
@@ -525,7 +540,8 @@
                     "column_type": "datetime",
                     "system_flg": "1",
                     "options": {
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 }
             ]
@@ -557,7 +573,8 @@
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "index_enabled": "1"
+                        "index_enabled": "1",
+                        "freeword_search": "1"
                     }
                 },
                 {
@@ -578,6 +595,7 @@
                     "system_flg": "0",
                     "options": {
                         "index_enabled": "1",
+                        "freeword_search": "1",
                         "help": "If you want to display a list, please set to YES.",
                         "default": "1",
                         "required": "1"
@@ -591,6 +609,7 @@
                     "system_flg": "0",
                     "options": {
                         "index_enabled": "1",
+                        "freeword_search": "1",
                         "help": "Display in the list in descending order of numerical value. (In the case of the same value, the update date and time are in the order of latest)",
                         "required": "1",
                         "number_max": null,

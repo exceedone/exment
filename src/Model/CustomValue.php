@@ -15,6 +15,8 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginEventTrigger;
+use Exceedone\Exment\Enums\ShareTrigger;
+use Exceedone\Exment\Enums\UrlTagType;
 
 abstract class CustomValue extends ModelBase
 {
@@ -419,15 +421,24 @@ abstract class CustomValue extends ModelBase
             // save Authoritable
             CustomValueAuthoritable::setValueAuthoritable($this);
 
+            // save external Authoritable
+            CustomValueAuthoritable::setValueAuthoritableEx($this, ShareTrigger::CREATE);
+
             // send notify
             $this->notify(NotifySavedType::CREATE);
  
             // set revision
             $this->postCreate();
         } else {
-            // send notify
-            $this->notify(NotifySavedType::UPDATE);
+            // Only call already_updated is false
+            if (!$this->already_updated) {
+                // save external Authoritable
+                CustomValueAuthoritable::setValueAuthoritableEx($this, ShareTrigger::UPDATE);
 
+                // send notify
+                $this->notify(NotifySavedType::UPDATE);
+            }
+            
             // set revision
             $this->postSave();
         }
@@ -665,6 +676,32 @@ abstract class CustomValue extends ModelBase
      */
     public function getAuthoritable($related_type)
     {
+        // check request session for grid.
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_GRID_AUTHORITABLE, $this->custom_table->id);
+        $reqSessions = System::requestSession($key);
+
+        // If already getting, filter value.
+        if (!is_null($reqSessions)) {
+            return $reqSessions->filter(function ($value) use ($related_type) {
+                $value = (array)$value;
+                if ($value['authoritable_user_org_type'] != $related_type) {
+                    return false;
+                }
+                if ($value['parent_id'] != $this->id) {
+                    return false;
+                }
+
+                // check has user or org id
+                if ($related_type == SystemTableName::USER) {
+                    return $value['authoritable_target_id'] == \Exment::user()->getUserId();
+                } elseif ($related_type == SystemTableName::ORGANIZATION) {
+                    $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                    return in_array($value['authoritable_target_id'], \Exment::user()->getOrganizationIds($enum));
+                }
+            });
+        }
+
+        // if not get before, now get.
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
@@ -921,9 +958,10 @@ abstract class CustomValue extends ModelBase
             if (!$tag) {
                 return $url;
             }
-            $label = esc_html($document_name);
-            $title = exmtrans('common.download');
-            return "<a href='$url' target='_blank' data-toggle='tooltip' title='$title'>$label</a>";
+                
+            return \Exment::getUrlTag($url, $document_name, UrlTagType::BLANK, [], [
+                'tooltipTitle' => exmtrans('common.download')
+            ]);
         }
         $url = admin_urls('data', $this->custom_table->table_name);
         if (!boolval($options['list'])) {
@@ -936,35 +974,35 @@ abstract class CustomValue extends ModelBase
         if (!$tag) {
             return $url;
         }
-        if (isset($options['icon'])) {
-            $label = '<i class="fa ' . $options['icon'] . '" aria-hidden="true"></i>';
-        } else {
-            $label = esc_html($this->getLabel());
-        }
 
-        if (boolval($options['modal'])) {
-            $url .= '?modal=1';
-            $href = 'javascript:void(0);';
-            $widgetmodal_url = sprintf(" data-widgetmodal_url='$url' data-toggle='tooltip' title='%s'", exmtrans('custom_value.data_detail'));
+        $attributes = [];
+        $escape = true;
+
+        if (isset($options['icon'])) {
+            $label = '<i class="fa ' . esc_html($options['icon']) . '" aria-hidden="true"></i>';
+            $escape = false;
         } else {
-            $href = $url;
-            $widgetmodal_url = null;
+            $label = $this->getLabel();
         }
 
         if (boolval($options['add_id'])) {
-            $widgetmodal_url .= " data-id='{$this->id}'";
+            $attributes['data-id'] = $this->id;
         }
 
         if (!is_nullorempty($label) && (boolval($options['add_avatar']) || boolval($options['only_avatar'])) && method_exists($this, 'getDisplayAvatarAttribute')) {
             $img = "<img src='{$this->display_avatar}' class='user-avatar' />";
-            $label = '<span class="d-inline-block user-avatar-block">' . $img . $label . '</span>';
+            $label = '<span class="d-inline-block user-avatar-block">' . $img . esc_html($label) . '</span>';
+            $escape = false;
 
             if (boolval($options['only_avatar'])) {
                 return $label;
             }
         }
 
-        return "<a href='$href'$widgetmodal_url>$label</a>";
+        $urlType = boolval($options['modal']) ? UrlTagType::MODAL : UrlTagType::TOP;
+        return \Exment::getUrlTag($url, $label, $urlType, $attributes, [
+            'notEscape' => !$escape,
+        ]);
     }
 
     /**
@@ -1081,7 +1119,7 @@ abstract class CustomValue extends ModelBase
         $child_table = CustomTable::getEloquent($relation);
         $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
 
-        if (isset($pivot_table_name)) {
+        if (!is_nullorempty($pivot_table_name)) {
             return $returnBuilder ? $this->{$pivot_table_name}() : $this->{$pivot_table_name};
         }
 
@@ -1113,8 +1151,8 @@ abstract class CustomValue extends ModelBase
 
         // if search and not has searchColumns, return null;
         if ($options['executeSearch'] && empty($searchColumns)) {
-            // return null if searchColumns is not has
-            return null;
+            // return no value if searchColumns is not has
+            return static::query()->whereRaw('1 = 0');
         }
 
         $getQueryFunc = function ($searchColumn, $options) {
@@ -1150,7 +1188,7 @@ abstract class CustomValue extends ModelBase
                 
                 ///// if has display table, filter display table
                 if (isset($display_table)) {
-                    $this->custom_table->filterDisplayTable($query, $display_table);
+                    $this->custom_table->filterDisplayTable($query, $display_table, $options);
                 }
 
                 // set custom view's filter
@@ -1222,7 +1260,7 @@ abstract class CustomValue extends ModelBase
      *
      * @param string $q search text
      * @param array $options
-     * @return void
+     * @return array query option for search.
      */
     protected function getQueryOptions($q, $options = [])
     {
@@ -1242,7 +1280,7 @@ abstract class CustomValue extends ModelBase
 
         // if selected target column,
         if (is_null($searchColumns)) {
-            $searchColumns = $this->custom_table->getSearchEnabledColumns();
+            $searchColumns = $this->custom_table->getFreewordSearchColumns();
         }
 
         if (!isset($searchColumns) || count($searchColumns) == 0) {
@@ -1275,7 +1313,7 @@ abstract class CustomValue extends ModelBase
      * Get mark and value for search
      *
      * @param bool $isLike
-     * @param search $q
+     * @param string $q search string
      * @return array
      */
     protected function getQueryMarkAndValue($isLike, $q, bool $relation)
@@ -1311,7 +1349,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Is locked by workflow
      *
-     * @return void
+     * @return bool is lock this data.
      */
     public function lockedWorkflow()
     {

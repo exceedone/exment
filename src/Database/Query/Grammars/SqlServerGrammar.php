@@ -9,6 +9,8 @@ use Exceedone\Exment\Enums\GroupCondition;
 
 class SqlServerGrammar extends BaseGrammar
 {
+    use GrammarTrait;
+    
     /**
      * Get cast column string
      *
@@ -105,7 +107,7 @@ class SqlServerGrammar extends BaseGrammar
     /**
      * Get case when query
      *
-     * @return void
+     * @return string
      */
     protected function getWeekdayCaseWhenQuery($str)
     {
@@ -170,7 +172,7 @@ class SqlServerGrammar extends BaseGrammar
      * Compile the query to set diesable IDENTITY_INSERT
      *
      * @param string $tableName
-     * @return void
+     * @return string
      */
     public function compileDisableIdentityInsert(string $tableName)
     {

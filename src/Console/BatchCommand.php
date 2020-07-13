@@ -71,12 +71,13 @@ class BatchCommand extends Command
 
     protected function findPlugin()
     {
+        // Execute batch. *Batch can execute if active_flg is false, so get value directly.
         if (!is_null($key = $this->argument("id"))) {
             return Plugin::find($key);
         } elseif (!is_null($key = $this->option("name"))) {
-            return Plugin::getPluginByName($key);
+            return Plugin::where('plugin_name', $key)->first();
         } elseif (!is_null($key = $this->option("uuid"))) {
-            return Plugin::getPluginByUUID($key);
+            return Plugin::where('uuid', $key)->first();
         }
 
         return null;

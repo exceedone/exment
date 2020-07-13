@@ -47,7 +47,7 @@ class CustomColumnTest extends UnitTestBase
         return $this->_testTextarea(ValueType::TEXT, static::TEXTAREA_VALUE);
     }
     public function testTextareaHtml(){
-        return $this->_testTextarea(ValueType::HTML, replaceBreak(static::TEXTAREA_VALUE));
+        return $this->_testTextarea(ValueType::HTML, preg_replace('/ /', '<span style="margin-right: 0.5em;"></span>', replaceBreak(static::TEXTAREA_VALUE)));
     }
 
     
@@ -92,7 +92,7 @@ class CustomColumnTest extends UnitTestBase
         return $this->_testUrl(ValueType::TEXT, static::URL_VALUE);
     }
     public function testUrlHtml(){
-        return $this->_testUrl(ValueType::HTML, "<a href='" . static::URL_VALUE . "' target='_blank'>" . static::URL_VALUE . "</a>");
+        return $this->_testUrl(ValueType::HTML, '<a href="' . static::URL_VALUE . '" target="_blank">' . static::URL_VALUE . "</a>");
     }
 
 

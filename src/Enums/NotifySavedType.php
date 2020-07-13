@@ -37,7 +37,7 @@ class NotifySavedType extends EnumBase
     /**
      * Get target user name.
      *
-     * @param CutomValue $custom_value
+     * @param \Exceedone\Exment\Model\CustomValue $custom_value
      * @return string
      */
     public function getTargetUserName($custom_value)

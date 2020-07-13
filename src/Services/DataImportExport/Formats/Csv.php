@@ -62,6 +62,7 @@ class Csv extends FormatBase
                     return $count;
                 }
 
+                $datalist = [];
                 foreach ($files as $csvfile) {
                     $basename = $csvfile->getBasename('.csv');
                     $datalist[$basename] = $this->getCsvArray($csvfile->getRealPath());
@@ -94,9 +95,12 @@ class Csv extends FormatBase
         return $datalist;
     }
 
+    
     /**
      * whether this out is as zip.
      * This table is parent and contains relation 1:n or n:n.
+     *
+     * @return boolean
      */
     protected function isOutputAsZip()
     {

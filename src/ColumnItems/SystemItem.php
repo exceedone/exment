@@ -21,6 +21,8 @@ class SystemItem implements ItemInterface
     
     protected $custom_table;
     
+    protected $custom_value;
+    
     public function __construct($custom_table, $column_name, $custom_value)
     {
         // if view_pivot(like select table), custom_table is target's table
