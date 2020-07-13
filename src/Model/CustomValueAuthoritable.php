@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\SharePermission;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -83,36 +84,91 @@ class CustomValueAuthoritable extends ModelBase
     public static function setValueAuthoritableEx($custom_value, $share_trigger_type)
     {
         $custom_table = $custom_value->custom_table;
+        if(is_nullorempty($custom_table->share_settings)){
+            return;
+        }
+
+        // $sync is true, delete items if not has array.
+        // Only execute $share_trigger_type is EDIT and contains array's $share_trigger_type is edit
+        $sync = false;
 
         // create share target user or orgs
+        $total_user_organizations = [];
+
+        // get before saved user_organizations
+        $beforesaved_user_organizations = static::getListsOnCustomValue($custom_value);
+
+        // set values
         foreach ($custom_table->share_settings as $share_setting) {
             foreach (stringToArray(array_get($share_setting, 'share_trigger_type')) as $t) {
-                if ($share_trigger_type != $t) {
-                    continue;
-                }
 
                 $share_permission = array_get($share_setting, 'share_permission');
                 $share_column = array_get($share_setting, 'share_column');
                 $target_ids = array_get($custom_value->value, $share_column->column_name);
-                $user_organizations = collect(stringToArray($target_ids))->map(function ($target_id) use ($share_column) {
-                    return [
-                    'related_id' => $target_id,
-                    'related_type' => $share_column->column_type,
-                ];
-                })->toArray();
+                $user_organizations = 
+                    collect(stringToArray($target_ids))->map(function ($target_id) use ($share_column) {
+                            return [
+                            'related_id' => $target_id,
+                            'related_type' => $share_column->column_type,
+                        ];
+                    })->toArray();
+
+                // Append total_user_organizations. Even if not match share_trigger_type, append array.
+                $total_user_organizations = array_merge($user_organizations, $total_user_organizations);
+
+                // if setting "share_setting_sync" is true, and this execute triggers edit, sync is true.
+                if(boolval($custom_table->getOption('share_setting_sync')) && $share_trigger_type == ShareTrigger::UPDATE && $t == ShareTrigger::UPDATE){
+                    $sync = true;
+                }
+
+                // not match trigger type, continue
+                if ($share_trigger_type != $t) {
+                    continue;
+                }
 
                 // set Custom Value Authoritable
                 self::setAuthoritableByUserOrgArray($custom_value, $user_organizations, $share_permission == SharePermission::EDIT);
+            }
+        }
+
+        // if sync, not contains
+        if($sync){
+            $delete_user_organizations = $beforesaved_user_organizations->filter(function($beforesaved_user_organization) use($total_user_organizations){
+                // skip self user
+                if(array_get($beforesaved_user_organization, 'authoritable_target_id') == \Exment::user()->getUserId()
+                    && array_get($beforesaved_user_organization, 'authoritable_user_org_type') == SystemTableName::USER){
+                    return false;
+                }
+                
+                // get not contains "$total_user_organizations" (This method's saved user)
+                return !collect($total_user_organizations)->contains(function($total_user_organization) use($beforesaved_user_organization){                    
+                    return array_get($beforesaved_user_organization, 'authoritable_target_id') == array_get($total_user_organization, 'related_id')
+                        && array_get($beforesaved_user_organization, 'authoritable_user_org_type') == array_get($total_user_organization, 'related_type');
+                });
+            })->map(function($delete_user_organization){
+                return [array_get($delete_user_organization, 'authoritable_target_id'), array_get($delete_user_organization, 'authoritable_user_org_type')];
+            });
+
+            if(count($delete_user_organizations) > 0){
+                static::where([
+                    'parent_id' => $custom_value->id,
+                    'parent_type' => $custom_table->table_name,
+                ])
+                ->whereInMultiple(['authoritable_target_id', 'authoritable_user_org_type'], $delete_user_organizations->toArray())
+                ->delete();
             }
         }
     }
 
     /**
      * Set Authoritable By User and Org Array
-     *
-     * @return void
+     * 
+     * @param CustomValue $custom_value
+     * @param array $arrays saved target user or organization
+     * @param bool $is_edit is true, as edit permission
+     * @param bool $sync is true, delete items if not has array
      */
-    public static function setAuthoritableByUserOrgArray($custom_value, $arrays, $is_edit = false)
+    public static function setAuthoritableByUserOrgArray($custom_value, $arrays, $is_edit = false, $sync = false)
     {
         $custom_table = $custom_value->custom_table;
         $table_name = $custom_table->table_name;
@@ -396,6 +452,12 @@ class CustomValueAuthoritable extends ModelBase
         }
 
         return false;
+    }
+
+
+    public static function getListsOnCustomValue(CustomValue $custom_value)
+    {
+        return static::where(['parent_id' => $custom_value->id, 'parent_type' => $custom_value->custom_table->table_name])->get();
     }
 
     /**

@@ -168,6 +168,14 @@ class SelectTable extends CustomItem
             return;
         }
 
+        $linkage = $this->getLinkage($form_column_options);
+        $linkage_expand = !is_null($linkage) ? [
+            'parent_select_table_id' => $linkage->parent_column->select_target_table->id,
+            'child_select_table_id' => $linkage->child_column->select_target_table->id,
+            'search_type' => $linkage->searchType,
+            'linkage_value_id' => $linkage->getParentValueId($this->custom_value),
+        ] : null;
+
         // add table info
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
 
@@ -183,14 +191,14 @@ class SelectTable extends CustomItem
                         'target_column_id' => $this->custom_column->id,
                         'target_view_id' => $this->custom_column->getOption('select_target_view'),
                         'display_table_id' => $this->custom_table->id,
-                        ]),
+                        'linkage' => $linkage_expand,
+                    ]),
                     'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'value_' . $this->name()]),
                 ],
             ],
         ]);
 
         // add view info
-        $linkage = $this->getLinkage($form_column_options);
         $callback = $this->getRelationFilterCallback($linkage);
         $selectOption = $this->getSelectFieldOptions($callback);
 

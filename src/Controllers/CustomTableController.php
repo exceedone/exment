@@ -392,6 +392,7 @@ HTML;
         
         // if not master, share setting
         if (!in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+            $manualUrl = getManualUrl('table#' . exmtrans('custom_table.custom_column_multi.share_settings'));
             $form->hasManyTable('share_settings', exmtrans("custom_table.custom_column_multi.share_settings"), function ($form) use ($custom_table) {
                 $form->multipleSelect('share_trigger_type', exmtrans("custom_table.custom_column_multi.share_trigger_type"))->required()
                     ->options(ShareTrigger::transKeyArray("custom_table.custom_column_multi.share_trigger_type_options"));
@@ -401,10 +402,19 @@ HTML;
                     ->options(SharePermission::transKeyArray("custom_table.custom_column_multi.share_permission_options"));
                 $form->hidden('multisetting_type')->default(MultisettingType::SHARE_SETTINGS);
             })->setTableColumnWidth(3, 5, 3, 1)
-            ->description(exmtrans("custom_table.custom_column_multi.help.share_settings"));
+            ->description(exmtrans("custom_table.custom_column_multi.help.share_settings") . '<br/>' . exmtrans('common.help.more_help_here', $manualUrl));
         }
 
-        $form->embeds('options', exmtrans("custom_table.custom_column_multi.options_label"), function ($form) {
+
+        $form->embeds('options', exmtrans("custom_table.custom_column_multi.options_label"), function ($form) use($custom_table){
+            if (!in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+                $manualUrl = getManualUrl('table#' . exmtrans('custom_table.custom_column_multi.share_settings'));
+                $form->switchbool('share_setting_sync', exmtrans("custom_table.custom_column_multi.share_setting_sync"))
+                    ->help(exmtrans("custom_table.custom_column_multi.help.share_setting_sync") . exmtrans('common.help.more_help_here', $manualUrl))
+                    ->default('0')
+                ;
+            }
+
             $form->checkbox('form_action_disable_flg', exmtrans("custom_table.custom_column_multi.form_action_disable_flg"))
                 ->help(exmtrans("custom_table.custom_column_multi.help.form_action_disable_flg"))
                 ->options(FormActionType::transArray('custom_table.custom_column_multi.form_action_options'))
@@ -425,7 +435,6 @@ HTML;
                 $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
             }
         });
-        
 
         return $form;
     }

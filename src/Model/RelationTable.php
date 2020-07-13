@@ -82,6 +82,36 @@ class RelationTable
     }
 
     /**
+     * Set query as relation filter, all search type
+     *
+     * @param [type] $query
+     * @param mixed $searchType
+     * @param mixed $value
+     * @param array $params
+     * @return mixed
+     */
+    public static function setQuery($query, $searchType, $value, $params = [])
+    {
+        $parent_table = CustomTable::getEloquent(array_get($params, 'parent_table'));
+        $child_table = CustomTable::getEloquent(array_get($params, 'child_table'));
+        
+        switch($searchType){
+            case SearchType::ONE_TO_MANY:
+                return static::setQueryOneMany($query, array_get($params, 'parent_table'), $value);
+            case SearchType::MANY_TO_MANY:
+                return static::setQueryManyMany($query, array_get($params, 'parent_table'), array_get($params, 'child_table'), $value);
+            case SearchType::SELECT_TABLE:
+                $custom_column = CustomColumn::getEloquent(array_get($params, 'custom_column'));
+                if(\is_nullorempty($custom_column) && !\is_nullorempty($child_table)){
+                    $custom_column = $child_table->getSelectTableColumns($parent_table)->first();
+                }
+                return static::setQuerySelectTable($query, $custom_column, $value);
+            }
+        
+        return $query;
+    }
+
+    /**
      * Set query as relation filter for 1:n relation
      *
      * @param [type] $query
@@ -131,7 +161,7 @@ class RelationTable
      * Set query as relation filter for select table
      *
      * @param [type] $query
-     * @param CustomColumn $custom_column
+     * @param CustomColumn $custom_column select_table's column in $query's tbale
      * @param mixed $value
      * @return mixed
      */
