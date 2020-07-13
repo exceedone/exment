@@ -49,19 +49,39 @@ class WorkflowItem extends SystemItem
     }
 
     /**
+     * get text(for display)
+     */
+    public function text()
+    {
+        return $this->getWorkflowValue(false);
+    }
+
+    /**
+     * get html(for display)
+     * *this function calls from non-escaping value method. So please escape if not necessary unescape.
+     */
+    public function html()
+    {
+        return $this->getWorkflowValue(true);
+    }
+
+    /**
      * Get workflow item as status name string
      *
      * @param [type] $html
      * @return void
      */
-    protected function getTargetValue($html)
+    protected function getWorkflowValue($html)
     {
-        $val = parent::getTargetValue($html);
+        $val = $this->pureValue();
 
         if (boolval(array_get($this->options, 'summary'))) {
             if (isset($val)) {
                 $model = WorkflowStatus::find($val);
-                return array_get($model, 'status_name');
+
+                $status_name = array_get($model, 'status_name');
+
+                return $html ? esc_html($status_name) : $status_name;
             }
         }
 
@@ -78,7 +98,8 @@ class WorkflowItem extends SystemItem
         } elseif (is_string($val)) {
             return $val;
         } else {
-            return array_get($val, 'status_name');
+            $status_name = array_get($val, 'status_name');
+            return $html ? esc_html($status_name) : $status_name;
         }
     }
     
