@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Enums\UrlTagType;
 
 class Image extends File
 {
@@ -18,7 +19,9 @@ class Image extends File
             return $url;
         }
 
-        return '<a href="'.$url.'" target="_blank"><img src="'.$url.'" class="image_html" /></a>';
+        return \Exment::getUrlTag($url, '<img src="'.$url.'" class="image_html" />', UrlTagType::BLANK, [], [
+            'notEscape' => true,
+        ]);
     }
 
     protected function getAdminFieldClass()

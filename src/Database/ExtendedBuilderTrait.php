@@ -26,4 +26,23 @@ trait ExtendedBuilderTrait
 
         return $this->where($column, $operator, $value, $boolean);
     }
+
+    /**
+     * Multiple wherein querys
+     *
+     * @param  array                                          $columns
+     * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereInMultiple(array $columns, $values)
+    {
+        $columns = $this->query->grammar->wrapWhereInMultiple($columns);
+        list($bindStrings, $binds) = $this->query->grammar->bindValueWhereInMultiple($values);
+
+        return $this->whereRaw(
+            '('.implode($columns, ', ').') in ('.implode($bindStrings, ', ').')',
+            $binds
+        );
+    }
 }

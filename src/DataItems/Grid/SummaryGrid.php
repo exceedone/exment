@@ -1,25 +1,24 @@
 <?php
 
-namespace Exceedone\Exment\Controllers;
+namespace Exceedone\Exment\DataItems\Grid;
 
 use Encore\Admin\Grid;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomViewColumn;
-use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
-use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
 
-trait CustomValueSummary
+class SummaryGrid extends GridBase
 {
-    protected function gridSummary()
+    public function __construct($custom_table, $custom_view)
+    {
+        $this->custom_table = $custom_table;
+        $this->custom_view = $custom_view;
+    }
+
+    public function grid()
     {
         $classname = getModelName($this->custom_table);
         $grid = new Grid(new $classname);
@@ -54,7 +53,7 @@ trait CustomValueSummary
 
             if ($isShowViewSummaryDetail) {
                 $linker = (new Grid\Linker)
-                ->url(admin_urls('data', $table_name).'?group_key='.json_encode($params))
+                ->url(admin_urls_query('data', $table_name, ['view' => CustomView::getAllData($table_name)->suuid,'group_key' => json_encode($params)]))
                 ->icon('fa-list')
                 ->tooltip(exmtrans('custom_value.view_summary_detail'));
                 $actions->prepend($linker);
@@ -98,42 +97,6 @@ trait CustomValueSummary
         return $grid;
     }
 
-    protected function getSummaryDetailFilter($group_keys)
-    {
-        // save summary view
-        $custom_view = $this->custom_view;
-        // replace view
-        $this->custom_view = CustomView::getAllData($this->custom_table);
-        $filters = [];
-        foreach ($group_keys as $key => $value) {
-            $custom_view_column = CustomViewColumn::find($key);
-            $custom_view_filter = new CustomViewFilter;
-            $custom_view_filter->custom_view_id = $custom_view_column->custom_view_id;
-            $custom_view_filter->view_column_type = $custom_view_column->view_column_type;
-            $custom_view_filter->view_column_target = $custom_view_column->view_column_target;
-            $custom_view_filter->view_group_condition = $custom_view_column->view_group_condition;
-            $custom_view_filter->view_filter_condition = FilterOption::EQ;
-            $custom_view_filter->view_filter_condition_value_text = $value;
-            $filters[] = $custom_view_filter;
-            if ($custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id']) {
-                System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
-            }
-            if ($custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id']) {
-                System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
-            }
-        }
-        $filter_func = function ($model) use ($filters, $custom_view) {
-            $model->where(function ($query) use ($filters) {
-                foreach ($filters as $filter) {
-                    $filter->setValueFilter($query);
-                }
-            })->where(function ($query) use ($custom_view) {
-                $custom_view->setValueFilters($query);
-            });
-            return $model;
-        };
-        return $filter_func;
-    }
     /**
      * set summary grid
      */

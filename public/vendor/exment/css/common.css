@@ -3712,6 +3712,22 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   overflow-x: hidden;
 }
 
+.modal-body-overflow-hidden .modal-body {
+  overflow: hidden;
+}
+
+.modal-heightfix.modal-dialog {
+  height: 90%;
+}
+
+.modal-heightfix .modal-content {
+  height: 100%;
+}
+
+.modal-heightfix .modal-body {
+  height: calc(100vh - 140px);
+}
+
 .modal-tile .groupheader {
   font-size: 17px;
 }

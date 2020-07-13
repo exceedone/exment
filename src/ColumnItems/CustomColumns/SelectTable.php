@@ -168,11 +168,37 @@ class SelectTable extends CustomItem
             return;
         }
 
+        $linkage = $this->getLinkage($form_column_options);
+        $linkage_expand = !is_null($linkage) ? [
+            'parent_select_table_id' => $linkage->parent_column->select_target_table->id,
+            'child_select_table_id' => $linkage->child_column->select_target_table->id,
+            'search_type' => $linkage->searchType,
+            'linkage_value_id' => $linkage->getParentValueId($this->custom_value),
+        ] : null;
+
         // add table info
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
 
+        // set buttons
+        $field->buttons([
+            [
+                'label' => trans('admin.search'),
+                'btn_class' => 'btn-info',
+                'icon' => 'fa-search',
+                'attributes' => [
+                    'data-widgetmodal_url' => admin_urls_query('data', $this->target_table->table_name, ['modalframe' => 1]),
+                    'data-widgetmodal_expand' => json_encode([
+                        'target_column_id' => $this->custom_column->id,
+                        'target_view_id' => $this->custom_column->getOption('select_target_view'),
+                        'display_table_id' => $this->custom_table->id,
+                        'linkage' => $linkage_expand,
+                    ]),
+                    'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'value_' . $this->name()]),
+                ],
+            ],
+        ]);
+
         // add view info
-        $linkage = $this->getLinkage($form_column_options);
         $callback = $this->getRelationFilterCallback($linkage);
         $selectOption = $this->getSelectFieldOptions($callback);
 
@@ -411,15 +437,22 @@ class SelectTable extends CustomItem
         if (is_string($labelColumns)) {
             return null;
         }
-
+        
         $use_table_label_id = boolval($select_table->getOption('use_label_id_flg', false));
 
         // searching select table query
         $query = $select_table->getValueModel()::query();
         $executeSearch = false;
 
+
+        // not has label column, get custom column's first.
+        if (!$use_table_label_id && count($labelColumns) == 0) {
+            if ($this->setSelectTableQuery($query, $select_table->custom_columns_cache->first(), $label)) {
+                $executeSearch = true;
+            }
+        }
         // only single search column, search
-        if (!$use_table_label_id && count($labelColumns) == 1) {
+        elseif (!$use_table_label_id && count($labelColumns) == 1) {
             if ($this->setSelectTableQuery($query, array_get($labelColumns[0], 'table_label_id'), $label)) {
                 $executeSearch = true;
             }

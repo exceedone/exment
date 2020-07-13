@@ -2,7 +2,10 @@
 
 namespace Exceedone\Exment;
 
+use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Illuminate\Support\Facades\Auth;
 use Encore\Admin\Admin;
 
@@ -84,5 +87,59 @@ class Exment
     {
         list($latest, $current) = getExmentVersion($getFromComposer);
         return $current;
+    }
+
+
+
+
+
+
+
+    // Helper logic ----------------------------------------------------
+
+    public function getUrlTag(?string $url, ?string $label, $urlTagType, array $attributes = [], array $options = [])
+    {
+        $options = array_merge(
+            [
+                'tooltipTitle' => null,
+                'notEscape' => false,
+            ],
+            $options
+        );
+
+        if (!boolval($options['notEscape'])) {
+            $label = esc_html($label);
+        }
+
+        // if disable url tag in request, return only url. (for use modal search)
+        if (boolval(System::requestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG))) {
+            return view('exment::widgets.url-nottag', [
+                'label' => $label,
+            ]);
+        }
+
+        $href = $url;
+        if ($urlTagType == UrlTagType::MODAL) {
+            $url .= '?modal=1';
+            $href = 'javascript:void(0);';
+            $options['tooltipTitle'] = exmtrans('custom_value.data_detail');
+
+            $attributes['data-widgetmodal_url'] = $url;
+        } elseif ($urlTagType == UrlTagType::BLANK) {
+            $attributes['target'] = '_blank';
+        } elseif ($urlTagType == UrlTagType::TOP) {
+            $attributes['target'] = '_top';
+        }
+
+        if (isset($options['tooltipTitle'])) {
+            $attributes['data-toggle'] = 'tooltip';
+            $attributes['title'] = esc_html($options['tooltipTitle']);
+        }
+
+        return view('exment::widgets.url-tag', [
+            'href' => $href,
+            'label' => $label,
+            'attributes' => formatAttributes($attributes),
+        ]);
     }
 }

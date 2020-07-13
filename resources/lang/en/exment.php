@@ -69,6 +69,7 @@ return [
         'join_and' => 'And',
         'join_or' => 'Or',
         'download' => 'Download',
+        'append_to_selectitem' => 'Append',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -989,6 +990,7 @@ return [
             'share_trigger_type' => 'Trigger',
             'share_column_id' => 'Target Column',
             'share_permission' => 'Target Permission',
+            'share_setting_sync' => 'Sync automatic data Sharing settings When Updating',
 
             'help' => [
                 'table_labels' => 'When selecting data, set the wording column to be displayed on the screen. Display as heading items in order from the top.<br/>Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
@@ -997,6 +999,7 @@ return [
                 'table_label_format' => '(For advanced users) You can flexibly set the format to be displayed in the heading. Please refer to&nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp;for the parameter to display the value.* If you set a value to this item, "header display column setting" above will be disabled.',
                 'form_action_disable_flg' => 'The checked operation cannot be executed from the screen. Check this if you want to manage data only from the API or dashboard.',
                 'share_settings' => 'When saving the data, the data is automatically shared with the organization or user who is set in the data.',
+                'share_setting_sync' => 'When "Update" is set for one or more triggers in "Automatic data sharing setting", if YES, share the user/organization other than the user/organization set in the column when updating the data. Remove from settings.',
             ],
             'form_action_options' => [
                 'create' => 'Create',
@@ -1884,6 +1887,7 @@ return [
             'delete_disabled' => 'This data cannot be deleted.',
             'not_index_enabled' => ':attribute does not have a search index.',
             'data_not_found' => 'The target data cannot be found.',
+            'form_action_disabled' => 'Depending on the settings, this action cannot be performed.',
             'workflow_nostart' => 'The workflow has not started or is out of scope.',
             'workflow_end' => 'The workflow has been completed or excluded.',
             'workflow_action_disabled' => 'Invalid action or no permission.',

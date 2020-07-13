@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShareTrigger;
+use Exceedone\Exment\Enums\UrlTagType;
 
 abstract class CustomValue extends ModelBase
 {
@@ -429,12 +430,15 @@ abstract class CustomValue extends ModelBase
             // set revision
             $this->postCreate();
         } else {
-            // save external Authoritable
-            CustomValueAuthoritable::setValueAuthoritableEx($this, ShareTrigger::UPDATE);
+            // Only call already_updated is false
+            if (!$this->already_updated) {
+                // save external Authoritable
+                CustomValueAuthoritable::setValueAuthoritableEx($this, ShareTrigger::UPDATE);
 
-            // send notify
-            $this->notify(NotifySavedType::UPDATE);
-
+                // send notify
+                $this->notify(NotifySavedType::UPDATE);
+            }
+            
             // set revision
             $this->postSave();
         }
@@ -954,9 +958,10 @@ abstract class CustomValue extends ModelBase
             if (!$tag) {
                 return $url;
             }
-            $label = esc_html($document_name);
-            $title = exmtrans('common.download');
-            return "<a href='$url' target='_blank' data-toggle='tooltip' title='$title'>$label</a>";
+                
+            return \Exment::getUrlTag($url, $document_name, UrlTagType::BLANK, [], [
+                'tooltipTitle' => exmtrans('common.download')
+            ]);
         }
         $url = admin_urls('data', $this->custom_table->table_name);
         if (!boolval($options['list'])) {
@@ -969,35 +974,35 @@ abstract class CustomValue extends ModelBase
         if (!$tag) {
             return $url;
         }
-        if (isset($options['icon'])) {
-            $label = '<i class="fa ' . $options['icon'] . '" aria-hidden="true"></i>';
-        } else {
-            $label = esc_html($this->getLabel());
-        }
 
-        if (boolval($options['modal'])) {
-            $url .= '?modal=1';
-            $href = 'javascript:void(0);';
-            $widgetmodal_url = sprintf(" data-widgetmodal_url='$url' data-toggle='tooltip' title='%s'", exmtrans('custom_value.data_detail'));
+        $attributes = [];
+        $escape = true;
+
+        if (isset($options['icon'])) {
+            $label = '<i class="fa ' . esc_html($options['icon']) . '" aria-hidden="true"></i>';
+            $escape = false;
         } else {
-            $href = $url;
-            $widgetmodal_url = null;
+            $label = $this->getLabel();
         }
 
         if (boolval($options['add_id'])) {
-            $widgetmodal_url .= " data-id='{$this->id}'";
+            $attributes['data-id'] = $this->id;
         }
 
         if (!is_nullorempty($label) && (boolval($options['add_avatar']) || boolval($options['only_avatar'])) && method_exists($this, 'getDisplayAvatarAttribute')) {
             $img = "<img src='{$this->display_avatar}' class='user-avatar' />";
-            $label = '<span class="d-inline-block user-avatar-block">' . $img . $label . '</span>';
+            $label = '<span class="d-inline-block user-avatar-block">' . $img . esc_html($label) . '</span>';
+            $escape = false;
 
             if (boolval($options['only_avatar'])) {
                 return $label;
             }
         }
 
-        return "<a href='$href'$widgetmodal_url>$label</a>";
+        $urlType = boolval($options['modal']) ? UrlTagType::MODAL : UrlTagType::TOP;
+        return \Exment::getUrlTag($url, $label, $urlType, $attributes, [
+            'notEscape' => !$escape,
+        ]);
     }
 
     /**

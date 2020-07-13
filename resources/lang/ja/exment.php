@@ -69,6 +69,7 @@ return [
         'join_and' => 'かつ',
         'join_or' => 'または',
         'download' => 'ダウンロード',
+        'append_to_selectitem' => '追加',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -979,6 +980,7 @@ return [
             'share_trigger_type' => 'トリガー',
             'share_column_id' => '対象列',
             'share_permission' => '対象の権限',
+            'share_setting_sync' => '更新時、データ自動共有設定を同期する',
 
             'table_labels' => '見出し表示列設定',
             'column_target' => '対象列',
@@ -995,6 +997,7 @@ return [
                 'table_label_format' => '（上級者向け）見出しに表示するフォーマットを柔軟に設定できます。値を表示するためのパラメータは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。※この項目に値を設定した場合、上記の「見出し表示列設定」は無効になります。',
                 'form_action_disable_flg' => 'チェックした操作は、画面から実行することができなくなります。APIやダッシュボードからのみ、データの管理を行いたい場合はチェックしてください。',
                 'share_settings' => 'データ保存時、データに設定されている組織またはユーザーに、自動的にデータを共有します。',
+                'share_setting_sync' => '「データ自動共有設定」でトリガーが「更新時」が1件以上設定されている場合で、YESの場合、データの更新時に、列に設定されているユーザー・組織以外のユーザー・組織を、共有設定から削除します。',
             ],
             'form_action_options' => [
                 'create' => '新規作成',
@@ -1882,6 +1885,7 @@ return [
             'delete_disabled' => 'このデータは削除できません。',
             'not_index_enabled' => ':attributeは検索インデックスが設定されていません。',
             'data_not_found' => '対象データが見つかりません。',
+            'form_action_disabled' => '設定により、このアクションは実行できません。',
             'workflow_nostart' => 'ワークフローが開始されていない、または対象外のデータです。',
             'workflow_end' => 'ワークフローが完了済、または対象外のデータです。',
             'workflow_action_disabled' => '無効なアクション、または権限がありません。',

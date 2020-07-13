@@ -1156,18 +1156,17 @@ class PatchDataCommand extends Command
             return;
         }
 
-        if(!boolval(System::initialized())){
+        if (!boolval(System::initialized())) {
             return;
         }
 
         // write env
-        try{
+        try {
             EnvService::setEnv(['EXMENT_INITIALIZE' => 1]);
         }
         // if cannot write, nothing do
-        catch(\Exception $ex){
-        }
-        catch(\Throwable $ex){
+        catch (\Exception $ex) {
+        } catch (\Throwable $ex) {
         }
     }
 }

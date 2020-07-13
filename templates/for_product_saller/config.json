@@ -24,6 +24,7 @@
                     "options": {
                         "required": 1,
                         "index_enabled": 1,
+                        "freeword_search": 1,
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -35,7 +36,8 @@
                     "options": {
                         "required": 1,
                         "use_label_flg": 1,
-                        "index_enabled": 1
+                        "index_enabled": 1,
+                        "freeword_search": 1
                     }
                 }
             ]
@@ -61,6 +63,7 @@
                     "options": {
                         "required": 1,
                         "index_enabled": 1,
+                        "freeword_search": 1,
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -72,7 +75,8 @@
                     "options": {
                         "required": 1,
                         "use_label_flg": 1,
-                        "index_enabled": 1
+                        "index_enabled": 1,
+                        "freeword_search": 1
                     }
                 }
             ]
@@ -98,6 +102,7 @@
                     "options": {
                         "required": 1,
                         "index_enabled": 1,
+                        "freeword_search": 1,
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -109,7 +114,8 @@
                     "options": {
                         "required": 1,
                         "use_label_flg": 1,
-                        "index_enabled": 1
+                        "index_enabled": 1,
+                        "freeword_search": 1
                     }
                 }
             ]
@@ -135,6 +141,7 @@
                     "options": {
                         "required": 1,
                         "index_enabled": 1,
+                        "freeword_search": 1,
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -146,7 +153,8 @@
                     "options": {
                         "required": 1,
                         "use_label_flg": 1,
-                        "index_enabled": 1
+                        "index_enabled": 1,
+                        "freeword_search": 1
                     }
                 },
                 {
@@ -180,6 +188,7 @@
                         "required": 1,
                         "use_label_flg": 1,
                         "index_enabled": 1,
+                        "freeword_search": 1,
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -191,6 +200,7 @@
                     "options": {
                         "required": 1,
                         "index_enabled": 1,
+                        "freeword_search": 1,
                         "select_target_table_name": "client"
                     }
                 },
@@ -202,7 +212,8 @@
                     "options": {
                         "required": 1,
                         "select_item_valtext": "1,inquiry\n2,trial\n3,quotation\n4,charge\n5,maintenance\n6,completion",
-                        "index_enabled": 1
+                        "index_enabled": 1,
+                        "freeword_search": 1
                     }
                 },
                 {

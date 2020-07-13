@@ -67,13 +67,12 @@ class InitializeForm
             System::initialized(1);
 
             // write env
-            try{
+            try {
                 EnvService::setEnv(['EXMENT_INITIALIZE' => 1]);
             }
             // if cannot write, nothing do
-            catch(\Exception $ex){
-            }
-            catch(\Throwable $ex){
+            catch (\Exception $ex) {
+            } catch (\Throwable $ex) {
             }
 
             \DB::commit();
