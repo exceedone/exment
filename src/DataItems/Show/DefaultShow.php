@@ -593,7 +593,7 @@ EOT;
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
     }
     
-    protected function getWorkflowHistory()
+    public function getWorkflowHistory()
     {
         $workflows = $this->custom_value->getWorkflowHistories(true)->toArray();
         if (count($workflows) == 0) {

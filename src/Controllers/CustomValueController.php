@@ -31,7 +31,7 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceTableActions, CustomValueForm, CustomValueShow;
+    use HasResourceTableActions, CustomValueForm;
 
     const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
     const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
@@ -386,9 +386,14 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function workflowHistoryModal(Request $request, $tableKey, $id = null)
     {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+
         // execute history
         $custom_value = $this->custom_table->getValueModel($id);
-        $form = $this->getWorkflowHistory($custom_value, $id);
+        $show_item = $this->custom_form->show_item->id($id);
+        $form = $show_item->getWorkflowHistory();
         
         return getAjaxResponse([
             'body'  => $form->render(),
