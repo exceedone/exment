@@ -160,7 +160,7 @@ class LoginUserItem extends ProviderBase
         } catch (\Swift_TransportException $ex) {
             admin_error('Error', exmtrans('error.mailsend_failed'));
             return back()->withInput();
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             throw $ex;
         }
     }
@@ -170,7 +170,7 @@ class LoginUserItem extends ProviderBase
      * Get login user info.
      *
      * @param array $data
-     * @param null_string $id
+     * @param null|string $id
      * @return array|\Illuminate\Http\Response  if error, return redirect. if success, array.
      */
     protected function getLoginUserInfo($data, $id){
