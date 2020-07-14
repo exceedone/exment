@@ -91,6 +91,36 @@ class LoginUserProvider extends ProviderBase
      */
     public function validateDataRow($line_no, $dataAndModel)
     {
+        $data = array_get($dataAndModel, 'data');
+        $model = array_get($dataAndModel, 'model');
+
+        if(!boolval(array_get($data, 'use_loginuser')) || boolval(array_get($data, 'create_password_auto'))){
+            return true;
+        }
+        // if create_password_auto and password are null, nothing
+        if(is_null(array_get($data, 'create_password_auto')) && is_null(array_get($data, 'password'))){
+            return true;
+        }
+
+        $errors = [];
+
+        // execute validation
+        $validator = \Validator::make($data, [
+            // get validate password.
+            // not check history.
+            'password' => \Exment::get_password_rule(true, null, ['confirmed' => false])
+        ]);
+        if ($validator->fails()) {
+            // create error message
+            foreach ($validator->getMessages() as $message) {
+                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), implode(',', $message));
+            }
+            // return $errors;
+        }
+
+        if (!is_nullorempty($errors)) {
+            return $errors;
+        }
         return true;
     }
 

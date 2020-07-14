@@ -53,7 +53,10 @@ class ChangePasswordController extends Controller
      */
     public function change(Request $request)
     {
-        $this->validate($request, $this->rules());
+        $validator = \Validator::make($request->all(), $this->rules());
+        if($validator->fails()){
+            return back()->withErrors($validator);
+        }
 
         $user = \Exment::user();
         $password = $request->get('password');

@@ -13,7 +13,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\ErrorCode;
-use Exceedone\Exment\Validator as ExmentValidator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -965,34 +964,7 @@ if (!function_exists('get_password_rule')) {
      */
     function get_password_rule($required = true, ?LoginUser $login_user = null)
     {
-        $validates = [];
-        if ($required) {
-            $validates[] = 'required';
-        } else {
-            $validates[] = 'nullable';
-        }
-        $validates[] = 'confirmed';
-        $validates[] = 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '32');
-        
-        // check password policy
-        $complex = false;
-        $validates[] = new ExmentValidator\PasswordHistoryRule($login_user);
-
-        if (!is_null($is_complex = System::complex_password()) && boolval($is_complex)) {
-            $validates[] = new ExmentValidator\ComplexPasswordRule;
-            $complex = true;
-        }
-
-        if (!$complex) {
-            $validates[] = 'min:'.(!is_null(config('exment.password_rule.min')) ? config('exment.password_rule.min') : '8');
-        }
-
-        // set regex
-        if (!$complex && !is_null(config('exment.password_rule.rule'))) {
-            $validates[] = 'regex:/'.config('exment.password_rule.rule').'/';
-        }
-        
-        return $validates;
+        return \Exment::get_password_rule($required, $login_user);
     }
 }
 
