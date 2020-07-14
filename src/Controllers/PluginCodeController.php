@@ -138,7 +138,7 @@ class PluginCodeController extends AdminControllerBase
 
             if ($mode !== false) {
                 $filedata = $disk->get($nodepath);
-                $enc = mb_detect_encoding($filedata, mb_list_encodings(), true);
+                $enc = mb_detect_encoding($filedata, ['UTF-8', 'UTF-16', 'ASCII', 'ISO-2022-JP', 'EUC-JP', 'SJIS'], true);
                 if ($enc == 'UTF-8') {
                     return [
                         'editor' => view('exment::plugin.editor.code', [
