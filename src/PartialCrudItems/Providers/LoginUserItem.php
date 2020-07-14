@@ -174,7 +174,7 @@ class LoginUserItem extends ProviderBase
      * @return array|\Illuminate\Http\Response  if error, return redirect. if success, array.
      */
     protected function getLoginUserInfo($data, $id){
-        $user = getModelName(SystemTableName::USER)::findOrFail($id);
+        $user = getModelName(SystemTableName::USER)::find($id);
 
         // get login user
         $login_user = $this->getLoginUser($id);
