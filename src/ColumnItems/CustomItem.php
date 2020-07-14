@@ -432,6 +432,18 @@ abstract class CustomItem implements ItemInterface
     {
     }
 
+    protected function disableEdit($form_column_options){
+        if($this->initonly() && isset($this->value)){
+            return true;
+        }
+
+        if (boolval(array_get($form_column_options, 'view_only'))) {
+            return true;
+        }
+        
+        return false;
+    }
+	
     /**
      * replace value for import
      *
