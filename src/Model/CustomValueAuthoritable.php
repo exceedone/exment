@@ -132,10 +132,19 @@ class CustomValueAuthoritable extends ModelBase
 
         // if sync, not contains
         if ($sync) {
-            $delete_user_organizations = $beforesaved_user_organizations->filter(function ($beforesaved_user_organization) use ($total_user_organizations) {
+            $belong_orgs = \Exment::user()->belong_organizations;
+            $delete_user_organizations = $beforesaved_user_organizations->filter(function ($beforesaved_user_organization) use ($belong_orgs, $total_user_organizations) {
                 // skip self user
                 if (array_get($beforesaved_user_organization, 'authoritable_target_id') == \Exment::user()->getUserId()
                     && array_get($beforesaved_user_organization, 'authoritable_user_org_type') == SystemTableName::USER) {
+                    return false;
+                }
+
+                // skip self organizaions
+                if ($belong_orgs->contains(function($belong_org) use($beforesaved_user_organization){
+                    return array_get($beforesaved_user_organization, 'authoritable_target_id') == $belong_org->id
+                    && array_get($beforesaved_user_organization, 'authoritable_user_org_type') == SystemTableName::ORGANIZATION;
+                })){
                     return false;
                 }
                 
