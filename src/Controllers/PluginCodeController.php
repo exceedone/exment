@@ -35,10 +35,15 @@ class PluginCodeController extends AdminControllerBase
     {
         $this->AdminContent($content);
 
+        $plugin = Plugin::getEloquent($id);
+        $folder = $plugin->getPath();
+
         return
-            $content->row(function (Row $row) use($id) {
-                $row->column(9, view('exment::plugin.editor.info', [
-                    'message' => exmtrans('plugincode.message.select_file'),
+            $content->row(function (Row $row) use($id, $folder) {
+                $row->column(9, view('exment::plugin.editor.upload', [
+                    'url' => admin_url("plugin/edit_code/$id/fileupload"),
+                    'filepath' => $folder,
+                    'message' => exmtrans('plugincode.message.upload_file'),
                 ]));
 
                 $row->column(3, view('exment::widgets.jstree', [
@@ -202,7 +207,8 @@ class PluginCodeController extends AdminControllerBase
             'parent' => $parent,
             'text' => basename($folder),
             'state' => [
-                'opened' => $parent == '#'
+                'opened' => $parent == '#',
+                'selected' => $node_idx == 1
             ]
         ];
 
