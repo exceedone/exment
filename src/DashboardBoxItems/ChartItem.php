@@ -373,7 +373,9 @@ EOT;
      */
     protected function getChartColor($datacnt)
     {
-        $chart_color = config('exment.chart_backgroundColor', ['red']);
+        $chart_color = config('exment.chart_backgroundColor');
+        $chart_color = stringToArray(empty($chart_color)? 'red': $chart_color);
+
         if ($this->chart_type == ChartType::PIE) {
             $colors = [];
             for ($i = 0; $i < $datacnt; $i++) {

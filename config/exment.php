@@ -306,14 +306,7 @@ return [
     | The colors showing chart background
     |
     */
-    'chart_backgroundColor' => [
-        "#FF6384",
-        "#36A2EB",
-        "#FFCE56",
-        "#339900",
-        "#ff6633",
-        "#cc0099"
-    ],
+    'chart_backgroundColor' => env('EXMENT_CHART_BG_COLOR', '#FF6384,#36A2EB,#FFCE56,#339900,#ff6633,#cc0099'),
 
     /*
     |--------------------------------------------------------------------------
