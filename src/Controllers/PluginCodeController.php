@@ -134,7 +134,9 @@ class PluginCodeController extends AdminControllerBase
                 ];
             } 
 
-            $mode = $this->getCodeMirrorMode($nodepath);
+            list($mode, $can_delete) = $this->getCodeMirrorMode($nodepath);
+
+            $message = exmtrans('plugincode.message.irregular_ext');
 
             if ($mode !== false) {
                 $filedata = $disk->get($nodepath);
@@ -148,6 +150,8 @@ class PluginCodeController extends AdminControllerBase
                             'mode' => $mode,
                         ])->render(),
                     ];
+                } else {
+                    $message = exmtrans('plugincode.message.irregular_enc');
                 }
             }
 
@@ -155,6 +159,8 @@ class PluginCodeController extends AdminControllerBase
                 'editor' => view('exment::plugin.editor.other', [
                     'url' => admin_url("plugin/edit_code/$id"),
                     'filepath' => $nodepath,
+                    'can_delete' => $can_delete,
+                    'message' => $message
                 ])->render(),
             ];
         }
@@ -169,24 +175,24 @@ class PluginCodeController extends AdminControllerBase
     protected function getCodeMirrorMode($nodepath) {
         // exclude config.json
         if (mb_strtolower(basename($nodepath)) === 'config.json') {
-            return false;
+            return [false, false];
         }
 
         // check extension
         $ext = \File::extension($nodepath);
+        $mode = false;
         switch ($ext) {
             case 'php':
             case 'css':
-                return $ext;
+                $mode = $ext;
             case 'js':
-                return 'javascript';
+                $mode = 'javascript';
             case 'json':
-                return "{ name: 'javascript', json: true}";
+                $mode = "{ name: 'javascript', json: true}";
             case 'txt':
-                return null;
-            default;
-                return false;
+                $mode = null;
         }
+        return [$mode, true];
     }
 
     /**

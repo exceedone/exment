@@ -1,14 +1,15 @@
 <div class="alert alert-warning">
     <button type="button" class="close" aria-hidden="true">×</button>
-    <h4><i class="icon fa fa-ban"></i>{{ exmtrans('plugincode.message.irregular_ext') }}</h4>
+    <h4><i class="icon fa fa-ban"></i>{{ $message }}</h4>
     <p>({{$filepath}})</p>
 </div>
+<input type="hidden" id="plugin_file_path" value="{{ $filepath }}">
+@if(isset($can_delete) && boolval($can_delete))
 <div class="col-md-12">
     <div class="btn-group pull-right">
         <button id="delete_plugin_file" class="btn btn-danger">{{ exmtrans('common.deleted') }}</button>
     </div>
 </div>
-<input type="hidden" id="plugin_file_path" value="{{ $filepath }}">
 
 <script type="text/javascript">
     $('#delete_plugin_file').off('click').on('click', function() {
@@ -24,3 +25,4 @@
         });
     });
 </script>
+@endif

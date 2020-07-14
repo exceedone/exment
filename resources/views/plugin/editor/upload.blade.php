@@ -22,6 +22,9 @@
                         <i class="fa fa-info-circle"></i>&nbsp;{{ exmtrans('plugincode.message.upload_file', $filepath) }}
                     </span>
                     <span class="help-block">
+                        <i class="fa fa-info-circle"></i>&nbsp;{{ exmtrans('plugincode.message.file_edit') }}
+                    </span>
+                    <span class="help-block">
                         <i class="fa fa-warning"></i>&nbsp;{{ exmtrans('plugincode.message.force_updated') }}
                     </span>
                 </div>
