@@ -250,7 +250,7 @@ class ChartItem implements ItemInterface
                         return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
                     })
                     ->filter(function ($value) use ($dashboard) {
-                        if (array_get($dashboard, 'dashboard_type') != DashBoardType::SYSTEM) {
+                        if (array_get($dashboard, 'dashboard_type') != DashboardType::SYSTEM) {
                             return true;
                         }
                         return array_get($value, 'view_type') == ViewType::SYSTEM;
