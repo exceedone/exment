@@ -60,9 +60,20 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function index(Request $request, Content $content)
     {
-        if (($response = $this->firstFlow($request, CustomValuePageType::GRID, null)) instanceof Response) {
-            return $response;
+        $modal = $request->has('modal');
+        $modalframe = $request->has('modalframe');
+
+        if($modalframe){
+            if (($response = $this->firstFlow($request, CustomValuePageType::GRIDMODAL, null)) instanceof Response) {
+                return $response;
+            }
         }
+        else{
+            if (($response = $this->firstFlow($request, CustomValuePageType::GRID, null)) instanceof Response) {
+                return $response;
+            }    
+        }
+
         // checking export
         if ($request->get('action') == 'export') {
             if (($response = $this->firstFlow($request, CustomValuePageType::EXPORT)) instanceof Response) {
@@ -71,8 +82,6 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->AdminContent($content);
-
-        $modal = $request->has('modal');
 
         // if table setting is "one_record_flg" (can save only one record)
         if ($this->custom_table->isOneRecord()) {
@@ -119,7 +128,7 @@ class CustomValueController extends AdminControllerTableBase
                 $this->custom_view = CustomView::getAllData($this->custom_table);
             }
             // if modal, set alldata view
-            if ($request->has('modalframe')){
+            if ($modalframe){
                 $this->custom_view = CustomView::getAllData($this->custom_table);
             }
 
@@ -135,7 +144,7 @@ class CustomValueController extends AdminControllerTableBase
 
             if ($modal) {
                 return $grid_item->renderModal($grid);
-            } elseif ($request->has('modalframe')) {
+            } elseif ($modalframe) {
                 return $grid_item->renderModalFrame();
             }
 
@@ -744,6 +753,8 @@ class CustomValueController extends AdminControllerTableBase
             $code = $custom_value ? $custom_value->enableAccess(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::GRID) {
             $code = $this->custom_table->enableView();
+        } elseif ($formActionType == CustomValuePageType::GRIDMODAL) {
+            $code = $this->custom_table->enableAccess();
         } elseif ($formActionType == CustomValuePageType::DELETE) {
             $custom_value = $this->custom_table->getValueModel($id);
             $code = $custom_value ? $custom_value->enableDelete(true) : $this->custom_table->getNoDataErrorCode($id);

@@ -13,4 +13,6 @@ class CustomValuePageType extends EnumBase
     // For page validation ----------------------------------------------------
     const EXPORT = 'export';
     const IMPORT = 'import';
+    
+    const GRIDMODAL = 'gridmodal';
 }
