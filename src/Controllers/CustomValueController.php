@@ -63,15 +63,14 @@ class CustomValueController extends AdminControllerTableBase
         $modal = $request->has('modal');
         $modalframe = $request->has('modalframe');
 
-        if($modalframe){
+        if ($modalframe) {
             if (($response = $this->firstFlow($request, CustomValuePageType::GRIDMODAL, null)) instanceof Response) {
                 return $response;
             }
-        }
-        else{
+        } else {
             if (($response = $this->firstFlow($request, CustomValuePageType::GRID, null)) instanceof Response) {
                 return $response;
-            }    
+            }
         }
 
         // checking export
@@ -128,7 +127,7 @@ class CustomValueController extends AdminControllerTableBase
                 $this->custom_view = CustomView::getAllData($this->custom_table);
             }
             // if modal, set alldata view
-            if ($modalframe){
+            if ($modalframe) {
                 $this->custom_view = CustomView::getAllData($this->custom_table);
             }
 
