@@ -40,7 +40,7 @@ class ChangePasswordController extends Controller
         if ($request->session()->has(Define::SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD)) {
             $data['caption'] = exmtrans('user.help.first_change_password');
         } else {
-            $data['caption'] = exmtrans('user.help.password_change');
+            $data['caption'] = \Exment::get_password_help();
         }
         return view('exment::auth.change')->with($data);
     }

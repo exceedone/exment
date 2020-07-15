@@ -190,4 +190,17 @@ class Exment
         return $validates;
     }
 
+    /**
+     * get_password_help
+     * @return string
+     */
+    public function get_password_help()
+    {
+        $is_complex = System::complex_password() ?? false;
+        if(boolval($is_complex)){
+            return exmtrans('validation.complex_password');
+        }
+        return exmtrans('user.help.password');
+    }
+
 }

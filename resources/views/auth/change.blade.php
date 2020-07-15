@@ -22,6 +22,10 @@
                             <input type="password" class="form-control" placeholder="{{ exmtrans('user.new_password') }}" name="password" value="{{ old('password') }}" required>
                             <span class="glyphicon glyphicon-lock form-control-feedback"></span>
                         </div>
+
+                        <span class="help-block">
+                            <i class="fa fa-info-circle"></i>&nbsp;{{\Exment::get_password_help()}}
+                        </span>
                     </div>
                     <div class="form-group has-feedback {!! !$errors->has('password_confirmation') ?: 'has-error' !!}">
                         @if($errors->has('password_confirmation')) @foreach($errors->get('password_confirmation') as $message)

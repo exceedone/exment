@@ -55,7 +55,7 @@ class LoginUserItem extends ProviderBase
                 ])]);
 
         $form->password('password', exmtrans('user.password'))->default('')
-                ->help(exmtrans('user.help.password'))
+                ->help(\Exment::get_password_help())
                 ->attribute(['data-filter' => json_encode([
                     ['key' => 'use_loginuser', 'value' => '1']
                     , ['key' => 'reset_password', 'value' => "1"]
