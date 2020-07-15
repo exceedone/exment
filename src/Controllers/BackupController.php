@@ -245,7 +245,7 @@ class BackupController extends AdminControllerBase
      *
      * @return Content
      */
-    protected function importModal()
+    protected function importModal($file_key = null)
     {
         $import_path = admin_url(url_join('backup', 'import'));
         // create form fields
@@ -255,18 +255,30 @@ class BackupController extends AdminControllerBase
         $fileOption = Define::FILE_OPTION();
         $form->action($import_path);
 
-        $form->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
+        if (isset($file_key)) {
+            $form->display('restore_zipfile', exmtrans('backup.restore_zipfile'))
+                ->setWidth(8, 3)
+                ->displayText("$file_key.zip");
+            $form->hidden('restore_zipfile')->default($file_key);
+        } else {
+            $form->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
             ->rules('mimes:zip')->setWidth(8, 3)->addElementClass('custom_table_file')
             ->attribute(['accept' => ".zip"])
             ->removable()
             ->required()
             ->options($fileOption)
-            ->help(exmtrans('backup.help.file_name') . array_get($fileOption, 'maxFileSizeHelp'));
+            ->help(exmtrans('backup.help.file_name', array_get($fileOption, 'maxFileSizeHelp'), 
+                getManualUrl('backup#'.exmtrans('backup.filesize_over'))));
+        }
 
         $form->text('restore_keyword', exmtrans('common.keyword'))
             ->required()
             ->setWidth(8, 3)
             ->help(exmtrans('common.message.input_keyword', Define::RESTORE_CONFIRM_KEYWORD));
+
+        $form->display('restore_caution', exmtrans('backup.restore_caution'))
+            ->setWidth(8, 3)
+            ->displayText(exmtrans('backup.message.restore_caution'));
 
         return getAjaxResponse([
             'body'  => $form->render(),
@@ -284,7 +296,8 @@ class BackupController extends AdminControllerBase
 
         // validation
         $validator = Validator::make($request->all(), [
-            'upload_zipfile' => 'required|file',
+            'upload_zipfile' => 'required_without:restore_zipfile|file',
+            'restore_zipfile' => 'required_without:upload_zipfile',
         ]);
 
         if (!$validator->passes()) {
@@ -308,7 +321,13 @@ class BackupController extends AdminControllerBase
             ]);
         }
 
-        if ($request->has('upload_zipfile')) {
+        if ($request->has('restore_zipfile')) {
+            $filename = $request->get('restore_zipfile');
+            try {
+                $result = $this->restore->execute($filename);
+            } finally {
+            }
+        } else if ($request->has('upload_zipfile')) {
             // get upload file
             $file = $request->file('upload_zipfile');
             // store uploaded file

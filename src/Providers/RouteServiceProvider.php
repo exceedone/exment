@@ -139,6 +139,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('backup/import', 'BackupController@import');
             $router->post('backup/editname', 'BackupController@editname');
             $router->get('backup/importModal', 'BackupController@importModal');
+            $router->get('backup/importModal/{file_key}', 'BackupController@importModal');
             $router->get('backup/download/{ymdhms}', 'BackupController@download');
         
             $router->get("data/{tableKey}/importModal", 'CustomValueController@importModal');
