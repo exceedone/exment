@@ -38,4 +38,14 @@ trait PluginButtonTrait
             return $this->plugin->plugin_view_name;
         }
     }
+
+    /**
+     * Check if the button is displayed or not.
+     *
+     * @return boolean
+     */
+    public function enableRender()
+    {
+        return true;
+    }
 }
