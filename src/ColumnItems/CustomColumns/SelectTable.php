@@ -180,8 +180,9 @@ class SelectTable extends CustomItem
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
 
         // set buttons
-        $field->buttons([
-            [
+        $buttons = [];
+        if (!$this->disableEdit($form_column_options) && !boolval(config('exment.select_table_modal_search_disabled', false))) {
+            $buttons[] = [
                 'label' => trans('admin.search'),
                 'btn_class' => 'btn-info',
                 'icon' => 'fa-search',
@@ -195,8 +196,9 @@ class SelectTable extends CustomItem
                     ]),
                     'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'value_' . $this->name()]),
                 ],
-            ],
-        ]);
+            ];
+        }
+        $field->buttons($buttons);
 
         // add view info
         $callback = $this->getRelationFilterCallback($linkage);

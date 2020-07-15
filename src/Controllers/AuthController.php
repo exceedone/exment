@@ -289,7 +289,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
             if (\Exment::user()->login_type == LoginType::PURE) {
                 $form->password('current_password', exmtrans('user.current_password'))->rules(['required_with:password', new ExmentValidator\CurrentPasswordRule])->help(exmtrans('user.help.change_only'));
-                $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false, \Exment::user()))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
+                $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false, \Exment::user()))->help(exmtrans('user.help.change_only') . \Exment::get_password_help());
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
 
