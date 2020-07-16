@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Notify;
@@ -386,6 +387,36 @@ class CustomValueController extends AdminControllerTableBase
         } elseif (is_array($response)) {
             return getAjaxResponse($response);
         }
+        return getAjaxResponse([
+            'result' => true,
+            'toastr' => exmtrans('common.message.success_execute'),
+        ]);
+    }
+    
+    //Function handle operation button click event
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function operationClick(Request $request, $tableKey, $id = null)
+    {
+        if ($request->input('suuid') === null) {
+            abort(404);
+        }
+        // get custom operation
+        $operation = CustomOperation::where('suuid', $request->input('suuid'))->first();
+        if (!isset($operation)) {
+            abort(404);
+        }
+        
+        setTimeLimitLong();
+
+        $response = $operation->execute($this->custom_table, $id);
+        
+        if ($response === false) {
+            return getAjaxResponse(false);
+        }
+
         return getAjaxResponse([
             'result' => true,
             'toastr' => exmtrans('common.message.success_execute'),

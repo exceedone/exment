@@ -101,6 +101,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->hasMany(Notify::class, 'custom_table_id');
     }
     
+    public function operations()
+    {
+        return $this->hasMany(CustomOperation::class, 'custom_table_id');
+    }
+    
     public function custom_form_block_target_tables()
     {
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');

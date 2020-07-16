@@ -16,7 +16,7 @@ use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Field\ChangeField;
 
-class CustomOperationController extends AdminControllerTableBase
+class CustomOperationDataController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
 
@@ -24,7 +24,7 @@ class CustomOperationController extends AdminControllerTableBase
     {
         parent::__construct($custom_table, $request);
         
-        $this->setPageInfo(exmtrans("custom_operation.header"), exmtrans("custom_operation.header"), exmtrans("custom_operation.description"), 'fa-th-list');
+        $this->setPageInfo(exmtrans("custom_operation_data.header"), exmtrans("custom_operation_data.header"), exmtrans("custom_operation_data.description"), 'fa-th-list');
     }
 
     /**
@@ -78,10 +78,6 @@ class CustomOperationController extends AdminControllerTableBase
             return;
         }
 
-        if (!is_null($copy_id = $request->get('copy_id'))) {
-            return $this->AdminContent($content)->body($this->form(null, $copy_id)->replicate($copy_id, ['operation_name']));
-        }
-
         return parent::create($request, $content);
     }
 
@@ -95,10 +91,13 @@ class CustomOperationController extends AdminControllerTableBase
         $grid = new Grid(new CustomOperation);
         $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
-        $grid->column('operation_name', exmtrans("custom_operation.operation_name"))->sortable();
+        $grid->column('operation_name', exmtrans("custom_operation_data.operation_name"))->sortable();
+        $grid->column('operation_type', exmtrans("custom_operation_data.operation_type"))->sortable()->displayEscape(function ($val) {
+            return array_get(CustomOperationType::transArray("custom_operation_data.operation_type_options"), $val);
+        });
         
         $grid->model()->where('custom_table_id', $this->custom_table->id)
-            ->where('operation_type', CustomOperationType::BULK_UPDATE);
+            ->where('operation_type', '<>', CustomOperationType::BULK_UPDATE);
 
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
@@ -119,11 +118,10 @@ class CustomOperationController extends AdminControllerTableBase
      *
      * @return Form
      */
-    protected function form($id = null, $copy_id = null)
+    protected function form($id = null)
     {
         // get request
         $request = Request::capture();
-        $copy_custom_operation = CustomOperation::getEloquent($copy_id);
         
         $form = new Form(new CustomOperation);
 
@@ -144,16 +142,33 @@ class CustomOperationController extends AdminControllerTableBase
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
 
-        $form->text('operation_name', exmtrans("custom_operation.operation_name"))->required()->rules("max:40");
+        $form->text('operation_name', exmtrans("custom_operation_data.operation_name"))->required()->rules("max:40");
         
+        $form->select('operation_type', exmtrans("custom_operation_data.operation_type"))
+            ->help(exmtrans("custom_operation_data.help.operation_type"))
+            ->options(function () {
+                return getTransArray(CustomOperationType::OPERATION_TYPE_DATA(), "custom_operation_data.operation_type_options");
+            })->required()
+            ->attribute(['data-filtertrigger' =>true]);
+
+        $form->embeds('options', null, function ($form) use ($id) {
+            $form->text('button_label', exmtrans("custom_operation_data.options.button_label"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => CustomOperationType::BUTTON])]);
+            $form->icon('button_icon', exmtrans("custom_operation_data.options.button_icon"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => CustomOperationType::BUTTON])])
+                ->help(exmtrans("custom_operation_data.help.button_icon"));
+            $form->text('button_class', exmtrans("custom_operation_data.options.button_class"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => CustomOperationType::BUTTON])])
+                ->help(exmtrans("custom_operation_data.help.button_class"));
+        })->disableHeader();
+
         $custom_table = $this->custom_table;
         
-        // filter setting
+        // update column setting
         $hasManyTable = new Tools\ConditionHasManyTable($form, [
             'name' => 'custom_operation_columns',
             'showConditionKey' => false,
             'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
-            //'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
             'targetOptions' => $this->custom_table->getColumnsSelectOptions([
                 'append_table' => true,
                 'index_enabled_only' => false,
@@ -167,18 +182,37 @@ class CustomOperationController extends AdminControllerTableBase
             'condition_target_name' => 'view_column_target',
             'condition_key_name' => 'view_column_target',
             'condition_value_name' => 'update_value',
-            'condition_target_label' => exmtrans('custom_operation.view_column_target'),
-            'condition_value_label' => exmtrans('custom_operation.update_value_text'),
+            'label' => exmtrans('custom_operation_data.custom_operation_columns'),
+            'condition_target_label' => exmtrans('custom_operation_data.view_column_target'),
+            'condition_value_label' => exmtrans('custom_operation_data.update_value_text'),
         ]);
 
         $hasManyTable->callbackField(function ($field) {
             $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
-            $field->description(sprintf(exmtrans("custom_operation.description_custom_operation_columns"), $manualUrl));
+            $field->description(sprintf(exmtrans("custom_operation_data.description_custom_operation_columns"), $manualUrl));
         });
 
         $hasManyTable->render();
-        
-        $custom_table = $this->custom_table;
+
+        // filter setting
+        $filterTable = new Tools\ConditionHasManyTable($form, [
+            'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
+            'name' => 'custom_operation_conditions',
+            'linkage' => json_encode(['condition_key' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
+            'targetOptions' => $custom_table->getColumnsSelectOptions([
+                'index_enabled_only' => true,
+                'ignore_attachment' => true,
+            ]),
+            'custom_table' => $custom_table,
+            'filterKind' => FilterKind::VIEW,
+            'label' => exmtrans('custom_operation_data.custom_operation_conditions'),
+        ]);
+
+        $filterTable->render();
+
+        $form->radio('condition_join', exmtrans("condition.condition_join"))
+            ->options(exmtrans("condition.condition_join_options"))
+            ->default('and');
 
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('operation', $custom_table));
@@ -205,7 +239,7 @@ class CustomOperationController extends AdminControllerTableBase
         }
 
         $columnname = 'update_value';
-        $label = exmtrans('custom_operation.'.$columnname.'_text');
+        $label = exmtrans('custom_operation_data.'.$columnname.'_text');
 
         $field = new ChangeField($columnname, $label);
         $field->required()

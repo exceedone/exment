@@ -144,10 +144,12 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("data/{tableKey}/importModal", 'CustomValueController@importModal');
             $router->post("data/{tableKey}/import", 'CustomValueController@import');
             $router->post("data/{tableKey}/pluginClick", 'CustomValueController@pluginClick');
+            $router->post("data/{tableKey}/operationClick", 'CustomValueController@operationClick');
             $router->get("data/{tableKey}/{id}/compare", 'CustomValueController@compare');
             $router->get("data/{tableKey}/{id}/compareitem", 'CustomValueController@compareitem');
             $router->post("data/{tableKey}/{id}/compare", 'CustomValueController@restoreRevision');
             $router->post("data/{tableKey}/{id}/pluginClick", 'CustomValueController@pluginClick');
+            $router->post("data/{tableKey}/{id}/operationClick", 'CustomValueController@operationClick');
             $router->get("data/{tableKey}/{id}/actionModal", 'CustomValueController@actionModal');
             $router->post("data/{tableKey}/{id}/actionClick", 'CustomValueController@actionClick');
             $router->get("data/{tableKey}/{id}/notifyClick", 'CustomValueController@notifyClick');
@@ -193,6 +195,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'relation', 'CustomRelationController');
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
             $this->setTableResouce($router, 'operation', 'CustomOperationController');
+            $this->setTableResouce($router, 'operationdata', 'CustomOperationDataController');
 
             // only webapi api function
             $router->get('webapi/menu/menutype', 'MenuController@menutype');

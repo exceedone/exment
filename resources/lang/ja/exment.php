@@ -820,6 +820,7 @@ return [
         'custom_relation' => 'リレーション設定',
         'custom_copy' => 'データコピー設定',
         'custom_operation' => '一括更新設定',
+        'custom_operation_data' => 'データ更新設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
     ],
@@ -1265,6 +1266,37 @@ return [
         'description_custom_operation_columns' => '一括更新の対象列と更新値を設定します。',
         'view_column_target' => '対象列',
         'update_value_text' => '更新値',
+    ],
+
+    'custom_operation_data' => [
+        'header' => 'データ更新設定',
+        'description' => 'データの新規作成時や更新時、通知の送信時などに列の値を更新します。',
+        'operation_name' => '処理の名前',
+        'operation_type' => '更新のタイミング',
+        'custom_operation_button_label' => '一括更新設定',
+        'custom_operation_columns' => '更新列設定',
+        'custom_operation_conditions' => '更新条件',
+        'description_custom_operation_columns' => 'データ更新の対象列と更新値を設定します。',
+        'view_column_target' => '対象列',
+        'update_value_text' => '更新値',
+
+        'operation_type_options' => [
+            'bulk_update' => '一括更新時',
+            'button' => 'ボタン押下時',
+            'create' => '新規作成時',
+            'update' => '更新時',
+            'notified' => '通知送信時',
+        ],
+        'options' => [
+            'button_label' => 'ボタンのラベル',
+            'button_class' => 'ボタンのHTML class',
+            'button_icon' => 'ボタンのアイコン',
+        ],
+        'help' => [
+            'operation_type' => 'データ更新を行うタイミングを指定します。',
+            'button_icon' => 'ボタンのHTMLに付加するアイコンです。',
+            'button_class' => 'ボタンのHTMLに付加するclassです。',
+        ],
     ],
 
     'custom_view' => [

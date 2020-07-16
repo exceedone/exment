@@ -55,6 +55,7 @@ class Morph
         $morphMaps = [
             "table" => Model\CustomTable::class,
             "custom_form_priority" => Model\CustomFormPriority::class,
+            "custom_operation" => Model\CustomOperation::class,
             "workflow_condition_header" => Model\WorkflowConditionHeader::class,
             "_custom_view" => Model\CustomView::class,
             "_dashboard" => Model\Dashboard::class,

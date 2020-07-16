@@ -159,6 +159,9 @@ class PatchDataCommand extends Command
             case 'patch_freeword_search':
                 $this->setFreewordSearchOption();
                 return;
+            case 'init_custom_operation_type':
+                $this->initCustomOperationType();
+                return;
             case 'set_env':
                 $this->setEnv();
                 return;
@@ -1168,5 +1171,20 @@ class PatchDataCommand extends Command
         catch (\Exception $ex) {
         } catch (\Throwable $ex) {
         }
+    }
+
+    /**
+     * Initialize operation_type in custom_operations.
+     *
+     * @return void
+     */
+    protected function initCustomOperationType()
+    {
+        // remove "role" menu
+        \DB::table('custom_operations')
+            ->whereNull('operation_type')
+            ->update([
+                'operation_type' => Enums\CustomOperationType::BULK_UPDATE,
+            ]);
     }
 }

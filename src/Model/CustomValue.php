@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\UrlTagType;
+use Exceedone\Exment\Enums\CustomOperationType;
 
 abstract class CustomValue extends ModelBase
 {
@@ -345,6 +346,10 @@ abstract class CustomValue extends ModelBase
                 'custom_table' => $model->custom_table,
                 'custom_value' => $model,
             ]);
+
+            $events = $model->exists? CustomOperationType::UPDATE: CustomOperationType::CREATE;
+            // call create or update trigger operations
+            CustomOperation::operationExecuteEvent($events, $model);
 
             // prepare revision
             $model->preSave();
