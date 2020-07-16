@@ -99,6 +99,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
     }
 
+    public function custom_view_priorities()
+    {
+        return $this->hasMany(CustomViewPriority::class, 'morph_id')
+            ->where('morph_type', 'custom_view');
+    }
+    
     /**
      * get Custom columns using cache
      */
@@ -147,17 +153,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             return $this->_grid_item;
         }
 
-        switch ($this->view_kind_type) {
-            case ViewKindType::AGGREGATE:
-                $this->_grid_item = GridItem\SummaryGrid::getItem($this->custom_table, $this);
-                break;
-            case ViewKindType::CALENDAR:
-                $this->_grid_item = GridItem\CalendarGrid::getItem($this->custom_table, $this);
-                break;
-            default:
-                $this->_grid_item = GridItem\DefaultGrid::getItem($this->custom_table, $this);
-                break;
-        }
+        $classname = ViewKindType::getGridItemClassName($this->view_kind_type);
+        $this->_grid_item = $classname::getItem($this->custom_table, $this);
 
         return $this->_grid_item;
     }

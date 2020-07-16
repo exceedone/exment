@@ -3,12 +3,18 @@
 namespace Exceedone\Exment\DataItems\Grid;
 
 use Encore\Admin\Grid;
+use Encore\Admin\Form;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Enums;
+use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
+
 
 class SummaryGrid extends GridBase
 {
@@ -117,5 +123,97 @@ class SummaryGrid extends GridBase
         }) && !$this->custom_view->custom_view_filters->contains(function ($custom_view_filter) {
             return $this->custom_table->id != $custom_view_filter->view_column_table_id;
         });
+    }
+
+
+    /**
+     * Set custom view columns( group columns )form. For controller.
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @return void
+     */
+    public static function setViewForm($view_kind_type, $form, $custom_table){
+        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+        
+        // group columns setting
+        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
+            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                ->options($custom_table->getColumnsSelectOptions([
+                    'append_table' => true,
+                    'index_enabled_only' => true,
+                    'include_parent' => true,
+                    'include_child' => true,
+                    'include_workflow' => true,
+                ]))
+                ->attribute([
+                    'data-linkage' => json_encode(['view_group_condition' => admin_urls('view', $custom_table->table_name, 'group-condition')]),
+                    'data-change_field_target' => 'view_column_target',
+                ]);
+            
+            $form->text('view_column_name', exmtrans("custom_view.view_column_name"))->icon(null);
+
+            $form->select('view_group_condition', exmtrans("custom_view.view_group_condition"))
+                ->options(function ($val, $form) {
+                    if (is_null($data = $form->data())) {
+                        return [];
+                    }
+                    if (is_null($view_column_target = array_get($data, 'view_column_target'))) {
+                        return [];
+                    }
+                    return collect($controller->_getGroupCondition($view_column_target))->pluck('text', 'id')->toArray();
+                });
+
+            $form->select('sort_order', exmtrans("custom_view.sort_order"))
+                ->options(array_merge([''], range(1, 5)))
+                ->help(exmtrans('custom_view.help.sort_order_summaries'));
+            $form->select('sort_type', exmtrans("custom_view.sort"))
+            ->help(exmtrans('custom_view.help.sort_type'))
+                ->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
+                ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
+                
+            $form->hidden('order')->default(0);
+        })->required()->rowUpDown('order')->setTableColumnWidth(4, 2, 2, 1, 2, 1)
+        ->description(sprintf(exmtrans("custom_view.description_custom_view_groups"), $manualUrl));
+
+        // summary columns setting
+        $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
+            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                ->options($custom_table->getSummaryColumnsSelectOptions())
+                ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
+            $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
+                ->options(function ($val, $form) {
+                    $view_column_target = array_get($form->data(), 'view_column_target');
+                    if (isset($view_column_target)) {
+                        $columnItem = CustomViewColumn::getColumnItem($view_column_target);
+                        if (isset($columnItem)) {
+                            // only numeric
+                            if ($columnItem->isNumeric()) {
+                                $options = SummaryCondition::getOptions();
+                            } else {
+                                $options = SummaryCondition::getOptions(['numeric' => false]);
+                            }
+
+                            return array_map(function ($array) {
+                                return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
+                            }, $options);
+                        }
+                    }
+                    return [];
+                })
+                ->required()->rules('summaryCondition');
+            $form->text('view_column_name', exmtrans("custom_view.view_column_name"))->icon(null);
+            $form->select('sort_order', exmtrans("custom_view.sort_order"))
+                ->help(exmtrans('custom_view.help.sort_order_summaries'))
+                ->options(array_merge([''], range(1, 5)));
+            $form->select('sort_type', exmtrans("custom_view.sort"))
+                ->help(exmtrans('custom_view.help.sort_type'))
+                ->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
+                ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
+        })->setTableColumnWidth(4, 2, 2, 1, 2, 1)
+        ->description(sprintf(exmtrans("custom_view.description_custom_view_summaries"), $manualUrl));
+
+        // filter setting
+        static::setFilterFields($form, $custom_table, true);
     }
 }
