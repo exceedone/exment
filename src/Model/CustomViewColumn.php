@@ -13,7 +13,7 @@ class CustomViewColumn extends ModelBase
     use Traits\CustomViewColumnTrait;
     use Traits\CustomViewColumnOptionTrait;
     use Traits\TemplateTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
 
     protected $guarded = ['id'];
     protected $appends = ['view_column_target', 'view_column_end_date', 'view_group_condition', 'view_column_color', 'view_column_font_color', 'sort_order', 'sort_type'];

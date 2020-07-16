@@ -9,7 +9,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
 {
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
     use Traits\UniqueKeyCustomColumnTrait;
     
@@ -90,23 +90,6 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     public function custom_column()
     {
         return $this->belongsTo(CustomColumn::class, 'form_column_target_id');
-    }
-    
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-    public function forgetOption($key)
-    {
-        return $this->forgetJson('options', $key);
-    }
-    public function clearOption()
-    {
-        return $this->clearJson('options');
     }
     
     protected function getFormColumnTargetAttribute()

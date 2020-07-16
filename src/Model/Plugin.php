@@ -16,7 +16,7 @@ class Plugin extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
 
     protected $casts = ['options' => 'json', 'custom_options' => 'json'];
 
@@ -662,15 +662,6 @@ class Plugin extends ModelBase
         return $obj;
     }
     
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-        
     public function getCustomOption($key, $default = null)
     {
         return $this->getJson('custom_options', $key, $default);

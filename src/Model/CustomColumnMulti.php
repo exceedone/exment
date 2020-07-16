@@ -11,7 +11,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
 {
     use Traits\AutoSUuidTrait;
     use Traits\UseRequestSessionTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
     use Traits\UniqueKeyCustomColumnTrait;
 
@@ -125,15 +125,6 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         ]
     ];
 
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-    
     public function getUnique1Attribute()
     {
         return $this->getOption('unique1_id');
