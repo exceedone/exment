@@ -263,7 +263,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     
     public static function hasPermission()
     {
-        return !boolval(config('exment.userdashboard_disabled', false)) || static::hasSystemPermission();
+        return System::userdashboard_available() || static::hasSystemPermission();
     }
 
     public function deletingChildren()

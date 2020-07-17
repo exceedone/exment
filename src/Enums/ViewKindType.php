@@ -55,6 +55,10 @@ class ViewKindType extends EnumBase
                 return GridItem\SummaryGrid::class;
             case static::CALENDAR:
                 return GridItem\CalendarGrid::class;
+            case static::ALLDATA:
+                return GridItem\AllDataGrid::class;
+            case static::FILTER:
+                return GridItem\FilterGrid::class;
             default:
                 return GridItem\DefaultGrid::class;
         }

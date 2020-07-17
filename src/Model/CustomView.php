@@ -99,10 +99,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
     }
 
-    public function custom_view_priorities()
+    public function custom_view_conditions()
     {
-        return $this->hasMany(CustomViewPriority::class, 'morph_id')
-            ->where('morph_type', 'custom_view');
+        return $this->hasMany(Condition::class, 'morph_id')
+            ->where('morph_type', '_custom_view');
     }
     
     /**

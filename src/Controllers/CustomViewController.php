@@ -9,6 +9,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
@@ -238,7 +239,7 @@ class CustomViewController extends AdminControllerTableBase
             });
 
         $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
-        if (boolval(config('exment.userview_disabled', false)) || intval($view_kind_type) == Enums\ViewKindType::FILTER) {
+        if (!System::userview_available() || intval($view_kind_type) == Enums\ViewKindType::FILTER) {
             $form->hidden('view_type')->default(Enums\ViewType::SYSTEM);
         } else {
             // select view type
@@ -263,6 +264,9 @@ class CustomViewController extends AdminControllerTableBase
         $classname::setViewForm($view_kind_type, $form, $this->custom_table);
 
         $custom_table = $this->custom_table;
+
+        // set view condition
+        $this->setViewConditionFields($form, $model, $view_kind_type);
 
         // check filters and sorts count before save
         $form->saving(function (Form $form) {
@@ -318,6 +322,39 @@ class CustomViewController extends AdminControllerTableBase
         });
         
         return $form;
+    }
+
+
+    protected function setViewConditionFields($form, $model, $view_kind_type){
+        // set view condition
+        // if (!System::systemview_condition_available()) {
+        //     return;
+        // }
+        if(!$this->custom_table->hasSystemViewPermission()){
+            return;
+        }
+        if(!isset($model)){
+            return;
+        }
+
+
+        // filter setting
+        $hasManyTable = new Tools\ConditionHasManyTable($form, [
+            'ajax' => admin_urls('webapi', $this->custom_table->table_name, 'filter-value'),
+            'name' => "custom_view_conditions",
+            'linkage' => json_encode(['condition_key' => admin_urls('webapi', $this->custom_table->table_name, 'filter-condition')]),
+            'targetOptions' => $this->custom_table->getColumnsSelectOptions([
+                'include_condition' => true,
+                'include_system' => false,
+                'include_column' => false,
+                'ignore_attachment' => true,
+            ]),
+            'custom_table' => $this->custom_table,
+            'filterKind' => Enums\FilterKind::VIEW,
+        ]);
+        $hasManyTable->render();
+
+
     }
 
     /**

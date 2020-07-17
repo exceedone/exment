@@ -424,6 +424,22 @@ HTML;
                 ->rules("max:200")
                 ->help(sprintf(exmtrans("custom_table.custom_column_multi.help.table_label_format"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_label_format'))));
             }
+
+
+
+            $form->switchbool('systemview_condition_available', exmtrans("custom_table.custom_column_multi.systemview_condition_available"))
+                ->help(exmtrans("custom_table.custom_column_multi.help.systemview_condition_available"))
+                ->default(0)
+            ;
+            $form->switchbool('alldataview_disabled', exmtrans("custom_table.custom_column_multi.alldataview_disabled"))
+                ->help(exmtrans("custom_table.custom_column_multi.help.alldataview_disabled"))
+                ->default(0)
+            ;
+            $form->switchbool('condition_nothing_type', exmtrans("custom_table.custom_column_multi.condition_nothing_type"))
+                ->help(exmtrans("custom_table.custom_column_multi.help.condition_nothing_type"))
+                ->default(0)
+            ;
+
         });
 
         $form->tools(function (Form\Tools $tools) use ($id) {
