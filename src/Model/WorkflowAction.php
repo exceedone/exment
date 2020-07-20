@@ -15,7 +15,7 @@ use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 class WorkflowAction extends ModelBase
 {
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\ClearCacheTrait;
@@ -161,15 +161,6 @@ class WorkflowAction extends ModelBase
     {
         $this->setOption('flow_next_count', $flow_next_count);
         return $this;
-    }
-
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
     }
 
     /**

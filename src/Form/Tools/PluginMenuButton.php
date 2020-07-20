@@ -70,6 +70,10 @@ EOT;
             'id' => $this->id,
         ]);
 
+        if (method_exists($pluginClass, 'enableRender') && !$pluginClass->enableRender()) {
+            return null;
+        }
+
         // if render method has and not null, return.
         $render = method_exists($pluginClass, 'render') ? $pluginClass->render() : null;
         if (!is_null($render)) {
@@ -105,6 +109,7 @@ EOT;
      */
     public function __toString()
     {
-        return $this->render()->render() ?? '';
+        $render = $this->render();
+        return $render ? $render->render() : '';
     }
 }

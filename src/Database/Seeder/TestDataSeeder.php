@@ -57,6 +57,8 @@ class TestDataSeeder extends Seeder
 
         $this->createRelationTables($users);
 
+        $this->createAllColumnsTable($menu);
+
         $this->createApiSetting();
     }
 
@@ -364,6 +366,54 @@ class TestDataSeeder extends Seeder
         foreach ($selectRelations as $selectRelation) {
             $this->createRelationFilter($selectRelation, $pivot_table);
         }
+    }
+
+
+    protected function createAllColumnsTable($menu)
+    {
+        $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
+        // cerate table
+        $custom_table = $this->createTable('all_columns_table', [
+                'menuParentId' => $menu->id,
+                'count' => 0,
+                'createColumnCallback' => function ($custom_table, &$custom_columns) use ($custom_table_view_all) {
+                    // creating relation column
+                    $columns = [
+                        ['column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
+                        ['column_type' => ColumnType::TEXTAREA, 'options' => []],
+                        ['column_type' => ColumnType::EDITOR, 'options' => []],
+                        ['column_type' => ColumnType::URL, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
+                        ['column_type' => ColumnType::EMAIL, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
+                        ['column_type' => ColumnType::INTEGER, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::DECIMAL, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::CURRENCY, 'options' => ['index_enabled' => '1', 'currency_symbol' => 'JPY1']],
+                        ['column_type' => ColumnType::DATE, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::TIME, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::DATETIME, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::SELECT, 'options' => ['index_enabled' => '1', 'select_item' => "foo\r\nbar\r\nbaz"]],
+                        ['column_type' => ColumnType::SELECT_VALTEXT, 'options' => ['index_enabled' => '1', 'select_item_valtext' => "foo,FOO\r\nbar,BAR\r\nbaz,BAZ"]],
+                        ['column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_view_all->id]],
+                        ['column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::BOOLEAN, 'options' => ['index_enabled' => '1', 'true_value' => 'ok', 'true_label' => 'OK', 'false_value' => 'ng', 'false_label' => 'NG']],
+                        ['column_type' => ColumnType::IMAGE, 'options' => []],
+                        ['column_type' => ColumnType::FILE, 'options' => []],
+                        ['column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1']],
+                    ];
+
+                    foreach ($columns as $column) {
+                        $custom_column = CustomColumn::create([
+                            'custom_table_id' => $custom_table->id,
+                            'column_name' => $column['column_type'],
+                            'column_view_name' => $column['column_type'],
+                            'column_type' => $column['column_type'],
+                            'options' => $column['options'],
+                        ]);
+                        $custom_columns[] = $custom_column;
+                    }
+                }
+            ]);
+        $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $custom_table]);
     }
 
     /**

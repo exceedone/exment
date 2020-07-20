@@ -14,9 +14,9 @@ class TimeRule implements Rule
 {
     protected const TIME_FORMATS = [
         '^(0[0-9]|1[0-9]|2[0-3]|[0-9]):[0-5][0-9]$',
-        '^(0[0-9]|1[0-9]|2[0-3]|[0-9])[0-5][0-9]$',
+        '^(0[0-9]|1[0-9]|2[0-3])[0-5][0-9]$',
         '^(0[0-9]|1[0-9]|2[0-3]|[0-9]):[0-5][0-9]:[0-5][0-9]$',
-        '^(0[0-9]|1[0-9]|2[0-3]|[0-9])[0-5][0-9][0-5][0-9]$',
+        '^(0[0-9]|1[0-9]|2[0-3])[0-5][0-9][0-5][0-9]$',
     ];
     
     public function __construct()
@@ -35,7 +35,10 @@ class TimeRule implements Rule
         if (is_null($value)) {
             return true;
         }
-
+        if (is_list($value)) {
+            return false;
+        }
+        
         foreach (static::TIME_FORMATS as $time_format) {
             if (preg_match("/{$time_format}/u", $value)) {
                 return true;

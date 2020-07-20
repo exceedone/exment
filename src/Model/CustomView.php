@@ -25,7 +25,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
 
     //protected $appends = ['view_calendar_target', 'pager_count'];
     protected $appends = ['pager_count', 'condition_join'];
@@ -160,15 +160,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         return $this->_grid_item;
-    }
-
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
     }
 
     public function deletingChildren()

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Validator;
 use Encore\Admin\Grid\Filter;
 
 class Yesno extends CustomItem
@@ -49,7 +50,12 @@ class Yesno extends CustomItem
     {
         $filter->radio(Define::YESNO_RADIO);
     }
-    
+        
+    protected function setValidates(&$validates, $form_column_options)
+    {
+        $validates[] = new Validator\YesNoRule();
+    }
+
     /**
      * replace value for import
      *
