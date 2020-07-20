@@ -140,6 +140,7 @@ return [
         'ie_not_supported' => 'Internet ExplorerではExmentを使用できません。',
         'support_browser' => '対応ブラウザ',
         'ip_address_filtered' => '許可されていないIPアドレスです。',
+        'not_contains_column' => 'カスタム列に設定されていない項目が含まれています。',
     ],
 
     'install' => [

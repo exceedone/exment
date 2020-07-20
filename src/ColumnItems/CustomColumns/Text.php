@@ -20,5 +20,8 @@ class Text extends CustomItem
         if (array_get($options, 'string_length')) {
             $validates[] = 'max:'.array_get($options, 'string_length');
         }
+        
+        // value type
+        $validates[] = 'string';
     }
 }
