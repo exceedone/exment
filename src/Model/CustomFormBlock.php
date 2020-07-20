@@ -8,7 +8,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
 {
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
     
     protected $casts = ['options' => 'json'];
@@ -58,23 +58,6 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     public function target_table()
     {
         return $this->belongsTo(CustomTable::class, 'form_block_target_table_id');
-    }
-    
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-    public function forgetOption($key)
-    {
-        return $this->forgetJson('options', $key);
-    }
-    public function clearOption()
-    {
-        return $this->clearJson('options');
     }
     
     public function isMultipleColumn()
