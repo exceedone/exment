@@ -13,6 +13,7 @@ class TestDefine
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE_MANY_TO_MANY = 'pivot_table_n_n';
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE_SELECT = 'pivot_table_select';
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG = 'pivot_table_user_org';
+    public const TESTDATA_TABLE_NAME_ALL_COLUMNS = 'all_columns_table';
 
     public const TESTDATA_COLUMN_NAME_PARENT = 'parent';
     public const TESTDATA_COLUMN_NAME_CHILD = 'child';

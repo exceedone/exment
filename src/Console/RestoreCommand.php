@@ -48,6 +48,11 @@ class RestoreCommand extends Command
      */
     public function handle()
     {
+        $message = preg_replace('/<br>/u', '', exmtrans('backup.message.restore_caution'));
+        if (!$this->confirm($message)) {
+            return;
+        }
+
         try {
             $this->restore->initBackupRestore();
 

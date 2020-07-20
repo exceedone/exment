@@ -117,7 +117,7 @@ class Exment
         if (boolval(System::requestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG))) {
             return view('exment::widgets.url-nottag', [
                 'label' => $label,
-            ]);
+            ])->render();
         }
 
         $href = $url;
@@ -142,7 +142,7 @@ class Exment
             'href' => $href,
             'label' => $label,
             'attributes' => formatAttributes($attributes),
-        ]);
+        ])->render();
     }
 
     
