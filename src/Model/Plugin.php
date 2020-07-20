@@ -378,6 +378,10 @@ class Plugin extends ModelBase
                             break;
                         }
 
+                        if ($plugin_type == PluginType::BUTTON && !$class->enableRender()) {
+                            break;
+                        }
+            
                         $buttonList[] = [
                             'plugin_type' => $plugin_type,
                             'plugin' => $plugin,
