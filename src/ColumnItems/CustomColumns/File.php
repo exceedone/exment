@@ -119,7 +119,8 @@ class File extends CustomItem
                     Field::FILE_DELETE_FLAG         => $custom_column->column_name,
                     '_token'                         => csrf_token(),
                     '_method'                        => 'PUT',
-                ]
+                ],
+                'deletedEvent' => 'Exment.CommonEvent.CallbackExmentAjax(jqXHR.responseJSON);',
             ]
         );
     }

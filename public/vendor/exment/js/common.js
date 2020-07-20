@@ -109,6 +109,13 @@ var Exment;
                 res = res.responseJSON;
             }
             if (res.result === true || res.status === true) {
+                // update value
+                if (hasValue(res.updateValue)) {
+                    for (let key in res.updateValue) {
+                        let updatevalue = res.updateValue[key];
+                        $('.' + key).val(updatevalue);
+                    }
+                }
                 if ($(".modal:visible").length > 0) {
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
                         // put your default event here

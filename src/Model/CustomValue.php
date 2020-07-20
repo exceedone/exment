@@ -1442,9 +1442,9 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::PERMISSION_DENY();
         }
         
-        if ($this->custom_table->isOneRecord()) {
-            return ErrorCode::PERMISSION_DENY();
-        }
+        // if ($this->custom_table->isOneRecord()) {
+        //     return ErrorCode::PERMISSION_DENY();
+        // }
 
         // check workflow
         if ($this->lockedWorkflow()) {
