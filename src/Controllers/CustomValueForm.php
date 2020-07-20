@@ -338,12 +338,12 @@ EOT;
             // create
             if (!isset($id)) {
                 $isButtonCreate = true;
-                $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_CREATE, $custom_table, $custom_value);
+                $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_CREATE, $custom_table);
             }
             // edit
             else {
                 $isButtonCreate = false;
-                $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_EDIT, $custom_table, $custom_value);
+                $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_EDIT, $custom_table);
             }
             
             $tools->disableView(false);

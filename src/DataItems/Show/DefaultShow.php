@@ -172,7 +172,7 @@ class DefaultShow extends ShowBase
                         $tools->append((new Tools\CustomTableMenuButton('data', $this->custom_table)));
                     }
 
-                    $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_SHOW, $this->custom_table, $this->custom_value);
+                    $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_SHOW, $this->custom_table);
                     $copyButtons = $this->custom_table->from_custom_copies;
                     $notifies = $this->custom_table->notifies;
      
