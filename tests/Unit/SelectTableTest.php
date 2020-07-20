@@ -340,6 +340,10 @@ class SelectTableTest extends UnitTestBase
 
         // get callback
         $callback = function (&$query) use ($linkage, $parentValue) {
+            if(!$linkage){
+                return;
+            }
+            
             return $linkage->setQueryFilter($query, $parentValue);
         };
         $selectOption = $this->callProtectedMethod($column_item, 'getSelectFieldOptions', $callback);

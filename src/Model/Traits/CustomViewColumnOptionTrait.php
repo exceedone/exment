@@ -32,13 +32,4 @@ trait CustomViewColumnOptionTrait
     {
         return $this->setOption('sort_type', $sort_order);
     }
-
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
 }

@@ -141,10 +141,10 @@ class CustomValueAuthoritable extends ModelBase
                 }
 
                 // skip self organizaions
-                if ($belong_orgs->contains(function($belong_org) use($beforesaved_user_organization){
+                if ($belong_orgs->contains(function ($belong_org) use ($beforesaved_user_organization) {
                     return array_get($beforesaved_user_organization, 'authoritable_target_id') == $belong_org->id
                     && array_get($beforesaved_user_organization, 'authoritable_user_org_type') == SystemTableName::ORGANIZATION;
-                })){
+                })) {
                     return false;
                 }
                 

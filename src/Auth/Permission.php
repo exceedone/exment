@@ -416,13 +416,14 @@ class Permission
      * @param string $endpoint
      * @return bool if true, check as AVAILABLE_ACCESS_CUSTOM_VALUE. else, AVAILABLE_VIEW_CUSTOM_VALUE
      */
-    protected function checkAsAccessCustomValue($endpoint){
+    protected function checkAsAccessCustomValue($endpoint)
+    {
         // if request has id, permission contains CUSTOM_VALUE_ACCESS
         if (!is_null($id = request()->id) && request()->is(trim(admin_base_path("data/$endpoint/*"), '/'))) {
             return true;
-        } 
+        }
         // if modalframe, return true
-        elseif(request()->has('modalframe')) {
+        elseif (request()->has('modalframe')) {
             return true;
         }
 

@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Model;
 class CustomFormPriority extends ModelBase
 {
     use Traits\ClearCacheTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
 
     protected $guarded = ['id'];
     protected $appends = ['form_priority_text', 'condition_join'];
@@ -57,15 +57,6 @@ class CustomFormPriority extends ModelBase
         return '';
     }
 
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-    
     public function getConditionJoinAttribute()
     {
         return $this->getOption('condition_join');

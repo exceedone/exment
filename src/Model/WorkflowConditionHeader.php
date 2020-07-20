@@ -6,7 +6,7 @@ class WorkflowConditionHeader extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
 
     protected $appends = ['condition_join'];
     protected $casts = ['options' => 'json'];
@@ -59,15 +59,6 @@ class WorkflowConditionHeader extends ModelBase
         }
     }
 
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-    
     public function getConditionJoinAttribute()
     {
         return $this->getOption('condition_join');

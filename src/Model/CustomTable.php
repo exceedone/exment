@@ -32,7 +32,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 {
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
     use Traits\ColumnOptionQueryTrait;
@@ -380,24 +380,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return true;
         }, false);
     }
-
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-    public function forgetOption($key)
-    {
-        return $this->forgetJson('options', $key);
-    }
-    public function clearOption()
-    {
-        return $this->clearJson('options');
-    }
-    
+   
     
     /**
      * Delete children items

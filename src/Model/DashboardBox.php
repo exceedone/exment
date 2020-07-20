@@ -11,7 +11,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\AutoSUuidTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
     
@@ -97,23 +97,6 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     public function dashboard()
     {
         return $this->belongsTo(Dashboard::class, 'dashboard_id');
-    }
-    
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-    public function forgetOption($key)
-    {
-        return $this->forgetJson('options', $key);
-    }
-    public function clearOption()
-    {
-        return $this->clearJson('options');
     }
     
     public function getDashboardBoxItemAttribute()

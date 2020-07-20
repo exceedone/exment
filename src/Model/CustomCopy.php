@@ -11,7 +11,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
 {
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
     
     protected $casts = ['options' => 'json'];
@@ -68,23 +68,6 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
         ->where('copy_column_type', CopyColumnType::INPUT);
-    }
-
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-    public function forgetOption($key)
-    {
-        return $this->forgetJson('options', $key);
-    }
-    public function clearOption()
-    {
-        return $this->clearJson('options');
     }
     
     /**

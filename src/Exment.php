@@ -2,10 +2,12 @@
 
 namespace Exceedone\Exment;
 
+use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\LoginUser;
 use Illuminate\Support\Facades\Auth;
 use Encore\Admin\Admin;
 
@@ -142,4 +144,63 @@ class Exment
             'attributes' => formatAttributes($attributes),
         ]);
     }
+
+    
+    /**
+     * get_password_rule(for validation)
+     * @return string
+     */
+    public function get_password_rule($required = true, ?LoginUser $login_user = null, array $options = [])
+    {
+        $options = array_merge([
+            'confirmed' => true,
+        ], $options);
+
+        $validates = [];
+        if ($required) {
+            $validates[] = 'required';
+        } else {
+            $validates[] = 'nullable';
+        }
+
+        if(boolval($options['confirmed'])){
+            $validates[] = 'confirmed';
+        }
+
+        $validates[] = 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '32');
+        
+        // check password policy
+        $complex = false;
+        $validates[] = new ExmentValidator\PasswordHistoryRule($login_user);
+
+        if (!is_null($is_complex = System::complex_password()) && boolval($is_complex)) {
+            $validates[] = new ExmentValidator\ComplexPasswordRule;
+            $complex = true;
+        }
+
+        if (!$complex) {
+            $validates[] = 'min:'.(!is_null(config('exment.password_rule.min')) ? config('exment.password_rule.min') : '8');
+        }
+
+        // set regex
+        if (!$complex && !is_null(config('exment.password_rule.rule'))) {
+            $validates[] = 'regex:/'.config('exment.password_rule.rule').'/';
+        }
+        
+        return $validates;
+    }
+
+    /**
+     * get_password_help
+     * @return string
+     */
+    public function get_password_help()
+    {
+        $is_complex = System::complex_password() ?? false;
+        if(boolval($is_complex)){
+            return exmtrans('validation.complex_password');
+        }
+        return exmtrans('user.help.password');
+    }
+
 }
