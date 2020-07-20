@@ -333,18 +333,18 @@ EOT;
         $form->disableViewCheck(false);
         
         $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
+            $custom_value = $custom_table->getValueModel($id);
+
             // create
             if (!isset($id)) {
                 $isButtonCreate = true;
-                $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_CREATE, $custom_table);
+                $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_CREATE, $custom_table, $custom_value);
             }
             // edit
             else {
                 $isButtonCreate = false;
-                $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_EDIT, $custom_table);
+                $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_EDIT, $custom_table, $custom_value);
             }
-
-            $custom_value = $custom_table->getValueModel($id);
             
             $tools->disableView(false);
             $tools->setListPath($custom_table->getGridUrl(true));

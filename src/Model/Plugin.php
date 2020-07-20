@@ -336,7 +336,7 @@ class Plugin extends ModelBase
      * @param null $event
      * @return array
      */
-    public static function pluginPreparingButton($event = null, $custom_table = null)
+    public static function pluginPreparingButton($event = null, $custom_table = null, $custom_value = null)
     {
         $plugins = static::getPluginsByTable($custom_table, true);
 
@@ -344,6 +344,8 @@ class Plugin extends ModelBase
             return [];
         }
 
+        $options = ['throw_ex' => false, 'custom_table' => $custom_table, 'custom_value' => $custom_value];
+                        
         $buttonList = [];
         foreach ($plugins as $plugin) {
             if (!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_BUTTON())) {
@@ -355,12 +357,21 @@ class Plugin extends ModelBase
             foreach ($plugin_types as $plugin_type) {
                 switch ($plugin_type) {
                     case PluginType::DOCUMENT:
-                        if (in_array($event, [PluginButtonType::FORM_MENUBUTTON_SHOW])) {
-                            $buttonList[] = [
-                                'plugin_type' => $plugin_type,
-                                'plugin' => $plugin,
-                            ];
+                        if (!in_array($event, [PluginButtonType::FORM_MENUBUTTON_SHOW])) {
+                            break;
                         }
+
+                        // call PluginType::BUTTON as throw_ex is false
+                        $class = $plugin->getClass(PluginType::DOCUMENT, $options);
+                        if (!isset($class)) {
+                            admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                            break;
+                        }
+
+                        $buttonList[] = [
+                            'plugin_type' => $plugin_type,
+                            'plugin' => $plugin,
+                        ];
                         break;
                     case PluginType::TRIGGER:
                     case PluginType::BUTTON:
@@ -370,7 +381,6 @@ class Plugin extends ModelBase
                         }
                         
                         // call PluginType::BUTTON as throw_ex is false
-                        $options = ['throw_ex' => false];
                         $class = $plugin->getClass(PluginType::BUTTON, $options);
                         $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
                         if (!isset($class)) {
@@ -378,10 +388,6 @@ class Plugin extends ModelBase
                             break;
                         }
 
-                        if ($plugin_type == PluginType::BUTTON && !$class->enableRender()) {
-                            break;
-                        }
-            
                         $buttonList[] = [
                             'plugin_type' => $plugin_type,
                             'plugin' => $plugin,
