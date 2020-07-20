@@ -21,7 +21,7 @@ class YesNoRule implements Rule
             return true;
         }
 
-        if($value === true || $value === false){
+        if ($value === true || $value === false) {
             return true;
         }
 

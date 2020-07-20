@@ -14,7 +14,7 @@ class IntegerCommaRule implements Rule
     */
     public function passes($attribute, $value)
     {
-        if(is_list($value)){
+        if (is_list($value)) {
             return false;
         }
         return preg_match('/^[-]?[\d\s,]*$/', $value);

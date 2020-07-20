@@ -369,13 +369,14 @@ class TestDataSeeder extends Seeder
     }
 
 
-    protected function createAllColumnsTable($menu){
-            $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
-            // cerate table
-            $custom_table = $this->createTable('all_columns_table', [
+    protected function createAllColumnsTable($menu)
+    {
+        $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
+        // cerate table
+        $custom_table = $this->createTable('all_columns_table', [
                 'menuParentId' => $menu->id,
                 'count' => 0,
-                'createColumnCallback' => function ($custom_table, &$custom_columns) use($custom_table_view_all) {
+                'createColumnCallback' => function ($custom_table, &$custom_columns) use ($custom_table_view_all) {
                     // creating relation column
                     $columns = [
                         ['column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
@@ -412,7 +413,7 @@ class TestDataSeeder extends Seeder
                     }
                 }
             ]);
-            $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $custom_table]);
+        $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $custom_table]);
     }
 
     /**

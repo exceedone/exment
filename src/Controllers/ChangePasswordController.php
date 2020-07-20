@@ -54,7 +54,7 @@ class ChangePasswordController extends Controller
     public function change(Request $request)
     {
         $validator = \Validator::make($request->all(), $this->rules());
-        if($validator->fails()){
+        if ($validator->fails()) {
             return back()->withErrors($validator);
         }
 

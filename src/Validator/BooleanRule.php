@@ -28,8 +28,8 @@ class BooleanRule implements Rule
             return true;
         }
 
-        foreach($this->options as $k => $v){
-            if(isMatchString($value, $k) || isMatchString($value, $v)){
+        foreach ($this->options as $k => $v) {
+            if (isMatchString($value, $k) || isMatchString($value, $v)) {
                 return true;
             }
         }
@@ -46,7 +46,7 @@ class BooleanRule implements Rule
     {
         $values = [];
         
-        foreach($this->options as $k => $v){
+        foreach ($this->options as $k => $v) {
             $values[] = $k;
             $values[] = $v;
         }

@@ -623,18 +623,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ], $options)
         );
 
-        if(!$checkUnnecessaryColumn){
+        if (!$checkUnnecessaryColumn) {
             return [];
         }
 
         $errors = [];
         
-        $custom_column_names = $this->custom_columns_cache->map(function($custom_column){
+        $custom_column_names = $this->custom_columns_cache->map(function ($custom_column) {
             return $custom_column->column_name;
         });
 
-        foreach($input as $key => $value){
-            if(!$custom_column_names->contains($key)){
+        foreach ($input as $key => $value) {
+            if (!$custom_column_names->contains($key)) {
                 $errors[$column_name_prefix . $key][] = exmtrans('error.not_contains_column');
             }
         }

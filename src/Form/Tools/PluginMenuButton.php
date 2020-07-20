@@ -70,7 +70,7 @@ EOT;
             'id' => $this->id,
         ]);
 
-        if(method_exists($pluginClass, 'enableRender') && !$pluginClass->enableRender()){
+        if (method_exists($pluginClass, 'enableRender') && !$pluginClass->enableRender()) {
             return null;
         }
 

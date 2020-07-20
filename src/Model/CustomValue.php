@@ -721,7 +721,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Set value for custom column.
      *
-     * @param string|array|Collection $key 
+     * @param string|array|Collection $key
      * @param mixed $val if $key is string, set value
      * @param boolean $forgetIfNull if true, and val is null, remove DB's column from "value".
      * @return $this
@@ -768,7 +768,7 @@ abstract class CustomValue extends ModelBase
             'checkUnnecessaryColumn' => true,
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             throw new ValidationException($validator);
         }
         

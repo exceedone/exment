@@ -267,8 +267,11 @@ class BackupController extends AdminControllerBase
             ->removable()
             ->required()
             ->options($fileOption)
-            ->help(exmtrans('backup.help.file_name', array_get($fileOption, 'maxFileSizeHelp'), 
-                getManualUrl('backup#'.exmtrans('backup.filesize_over'))));
+            ->help(exmtrans(
+                'backup.help.file_name',
+                array_get($fileOption, 'maxFileSizeHelp'),
+                getManualUrl('backup#'.exmtrans('backup.filesize_over'))
+            ));
         }
 
         $form->text('restore_keyword', exmtrans('common.keyword'))
@@ -327,7 +330,7 @@ class BackupController extends AdminControllerBase
                 $result = $this->restore->execute($filename);
             } finally {
             }
-        } else if ($request->has('upload_zipfile')) {
+        } elseif ($request->has('upload_zipfile')) {
             // get upload file
             $file = $request->file('upload_zipfile');
             // store uploaded file

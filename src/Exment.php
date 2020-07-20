@@ -163,7 +163,7 @@ class Exment
             $validates[] = 'nullable';
         }
 
-        if(boolval($options['confirmed'])){
+        if (boolval($options['confirmed'])) {
             $validates[] = 'confirmed';
         }
 
@@ -197,10 +197,9 @@ class Exment
     public function get_password_help()
     {
         $is_complex = System::complex_password() ?? false;
-        if(boolval($is_complex)){
+        if (boolval($is_complex)) {
             return exmtrans('validation.complex_password');
         }
         return exmtrans('user.help.password');
     }
-
 }

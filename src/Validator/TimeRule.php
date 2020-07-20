@@ -35,7 +35,7 @@ class TimeRule implements Rule
         if (is_null($value)) {
             return true;
         }
-        if(is_list($value)){
+        if (is_list($value)) {
             return false;
         }
         
