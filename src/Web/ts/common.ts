@@ -125,6 +125,14 @@ namespace Exment {
             }
             
             if (res.result === true || res.status === true) {
+                // update value
+                if(hasValue(res.updateValue)){
+                    for(let key in res.updateValue){
+                        let updatevalue = res.updateValue[key];
+                        $('.' + key).val(updatevalue);
+                    }
+                }
+
                 if ($(".modal:visible").length > 0) {
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
                         // put your default event here
@@ -156,7 +164,7 @@ namespace Exment {
                 // show toastr
                 if (hasValue(res.toastr)) {
                     toastr.error(res.toastr);
-                } 
+                }
                 // show swal
                 else if(hasValue(res.swal)){
                     swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'error');
