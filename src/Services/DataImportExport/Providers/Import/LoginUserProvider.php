@@ -94,11 +94,11 @@ class LoginUserProvider extends ProviderBase
         $data = array_get($dataAndModel, 'data');
         $model = array_get($dataAndModel, 'model');
 
-        if(!boolval(array_get($data, 'use_loginuser')) || boolval(array_get($data, 'create_password_auto'))){
+        if (!boolval(array_get($data, 'use_loginuser')) || boolval(array_get($data, 'create_password_auto'))) {
             return true;
         }
         // if create_password_auto and password are null, nothing
-        if(is_null(array_get($data, 'create_password_auto')) && is_null(array_get($data, 'password'))){
+        if (is_null(array_get($data, 'create_password_auto')) && is_null(array_get($data, 'password'))) {
             return true;
         }
 

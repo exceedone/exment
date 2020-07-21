@@ -100,13 +100,13 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->displayEscape(function ($val) {
             return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
         });
-        $grid->column('required', exmtrans("common.required"))->sortable()->display(function ($val) {
+        $grid->column('required', exmtrans("common.required"))->display(function ($val) {
             return getTrueMark($val);
         });
-        $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->sortable()->display(function ($val) {
+        $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->display(function ($val) {
             return getTrueMark($val);
         });
-        $grid->column('unique', exmtrans("custom_column.options.unique"))->sortable()->display(function ($val) {
+        $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
             return getTrueMark($val);
         });
         $grid->column('order', exmtrans("custom_column.order"))->editable('number')->sortable();

@@ -32,4 +32,10 @@ class Editor extends CustomItem
         $options = $this->custom_column->options;
         $field->rows(array_get($options, 'rows', 6));
     }
+    
+    protected function setValidates(&$validates, $form_column_options)
+    {
+        // value size
+        $validates[] = 'string';
+    }
 }

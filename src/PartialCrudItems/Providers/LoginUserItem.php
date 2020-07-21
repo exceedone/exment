@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\LoginType;
+
 /**
  * Login User item
  */
@@ -112,7 +113,7 @@ class LoginUserItem extends ProviderBase
 
         $data = request()->all();
         $info = $this->getLoginUserInfo($data, $id);
-        if($info instanceof \Symfony\Component\HttpFoundation\Response){
+        if ($info instanceof \Symfony\Component\HttpFoundation\Response) {
             return $info;
         }
 
@@ -134,7 +135,7 @@ class LoginUserItem extends ProviderBase
 
         $data = request()->all();
         $info = $this->getLoginUserInfo($data, $id);
-        if($info instanceof \Symfony\Component\HttpFoundation\Response){
+        if ($info instanceof \Symfony\Component\HttpFoundation\Response) {
             return $info;
         }
 
@@ -173,7 +174,8 @@ class LoginUserItem extends ProviderBase
      * @param null|string $id
      * @return array|\Illuminate\Http\Response  if error, return redirect. if success, array.
      */
-    protected function getLoginUserInfo($data, $id){
+    protected function getLoginUserInfo($data, $id)
+    {
         $user = getModelName(SystemTableName::USER)::find($id);
 
         // get login user

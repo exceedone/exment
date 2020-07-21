@@ -459,6 +459,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'column_name_prefix' => null,  // appending error key's prefix, and value prefix
                 'appendKeyName' => true, // whether appending key name if eror
                 'checkCustomValueExists' => true, // whether checking require custom column
+                'checkUnnecessaryColumn' => false, // check unnecessaly column contains
                 'asApi' => false, // calling as api
                 'appendErrorAllColumn' => false, // if error, append error message for all column
                 'validateLock' => true, // whether validate update lock
@@ -475,6 +476,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
         $errors = $this->validatorMultiUniques($value, $custom_value, $options);
+        
+        $errors = $this->validatorUnnecessaryColumn($value, $options);
         
         $errors = array_merge(
             $this->validatorCompareColumns($value, $custom_value, $options),
@@ -556,7 +559,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // if not contains $value[$custom_column->column_name], set as null.
             // if not set, we cannot validate null check because $field->getValidator returns false.
-            if (is_null($custom_value) && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
+            $isNew = (is_null($custom_value) || !$custom_value->exists);
+            if ($isNew && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
                 array_set($value, $column_name_prefix.$custom_column->column_name, null);
             }
         }
@@ -602,6 +606,40 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return $rules;
+    }
+    
+    /**
+     * Validation whether input contains unnecessary column
+     *
+     * @param array $input
+     * @return array error messages
+     */
+    public function validatorUnnecessaryColumn($input, array $options = [])
+    {
+        extract(
+            array_merge([
+                'column_name_prefix' => null,  // appending error key's prefix, and value prefix
+                'checkUnnecessaryColumn' => false, // whether checking unnecessary custom column
+            ], $options)
+        );
+
+        if (!$checkUnnecessaryColumn) {
+            return [];
+        }
+
+        $errors = [];
+        
+        $custom_column_names = $this->custom_columns_cache->map(function ($custom_column) {
+            return $custom_column->column_name;
+        });
+
+        foreach ($input as $key => $value) {
+            if (!$custom_column_names->contains($key)) {
+                $errors[$column_name_prefix . $key][] = exmtrans('error.not_contains_column');
+            }
+        }
+
+        return $errors;
     }
     
     public function validatorMultiUniques($input, $custom_value = null, array $options = [])

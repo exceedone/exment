@@ -723,9 +723,15 @@ EOT;
             });
         });
 
+        // reget custom value
+        $updated_value = getModelName($this->custom_table)::find($this->custom_value->id);
         return getAjaxResponse([
             'result'  => true,
             'message' => trans('admin.delete_succeeded'),
+            'reload' => false,
+            'updateValue' => [
+                'updated_at' => $updated_value->updated_at->format('Y-m-d H:i:s'),
+            ],
         ]);
     }
  

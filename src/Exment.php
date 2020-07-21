@@ -117,7 +117,7 @@ class Exment
         if (boolval(System::requestSession(Define::SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG))) {
             return view('exment::widgets.url-nottag', [
                 'label' => $label,
-            ]);
+            ])->render();
         }
 
         $href = $url;
@@ -142,7 +142,7 @@ class Exment
             'href' => $href,
             'label' => $label,
             'attributes' => formatAttributes($attributes),
-        ]);
+        ])->render();
     }
 
     
@@ -163,7 +163,7 @@ class Exment
             $validates[] = 'nullable';
         }
 
-        if(boolval($options['confirmed'])){
+        if (boolval($options['confirmed'])) {
             $validates[] = 'confirmed';
         }
 
@@ -197,10 +197,9 @@ class Exment
     public function get_password_help()
     {
         $is_complex = System::complex_password() ?? false;
-        if(boolval($is_complex)){
+        if (boolval($is_complex)) {
             return exmtrans('validation.complex_password');
         }
         return exmtrans('user.help.password');
     }
-
 }

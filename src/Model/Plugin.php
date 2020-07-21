@@ -125,16 +125,18 @@ class Plugin extends ModelBase
         });
     }
 
-    //Get plugin by custom_table name
-    //Where active_flg = 1 and target_tables contains custom_table id
-    // *Filtering only accessible.
     /**
-     * @param $id
+     * Get plugin by custom_table name
+     * Where active_flg = 1 and target_tables contains custom_table id
+     * Filtering only accessible.
+     * 
+     * @param CustomTable $custom_table
+     * @param bool $filterAccessible 
      * @return mixed
      */
     public static function getPluginsByTable($custom_table, $filterAccessible = true)
     {
-        if (!isset($custom_table)) {
+        if (is_null($custom_table)) {
             return [];
         }
 
@@ -269,7 +271,7 @@ class Plugin extends ModelBase
     /**
      * call require
      *
-     * @param [type] $pathDir
+     * @param string $fullPathDir
      * @return void
      */
     public function requirePlugin($fullPathDir)
@@ -344,6 +346,7 @@ class Plugin extends ModelBase
             return [];
         }
 
+        $options = ['throw_ex' => false];
         $buttonList = [];
         foreach ($plugins as $plugin) {
             if (!$plugin->matchPluginType(PluginType::PLUGIN_TYPE_BUTTON())) {
@@ -355,22 +358,30 @@ class Plugin extends ModelBase
             foreach ($plugin_types as $plugin_type) {
                 switch ($plugin_type) {
                     case PluginType::DOCUMENT:
-                        if (in_array($event, [PluginButtonType::FORM_MENUBUTTON_SHOW])) {
-                            $buttonList[] = [
-                                'plugin_type' => $plugin_type,
-                                'plugin' => $plugin,
-                            ];
+                        if (!in_array($event, [PluginButtonType::FORM_MENUBUTTON_SHOW])) {
+                            break;
                         }
+
+                        // call PluginType::BUTTON as throw_ex is false
+                        $class = $plugin->getClass(PluginType::DOCUMENT, $options);
+                        if (!isset($class)) {
+                            admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                            break;
+                        }
+
+                        $buttonList[] = [
+                            'plugin_type' => $plugin_type,
+                            'plugin' => $plugin,
+                        ];
                         break;
                     case PluginType::TRIGGER:
                     case PluginType::BUTTON:
-                        $event_triggers = toArray($plugin->options['event_triggers']);
+                        $event_triggers = toArray(array_get($plugin->options, 'event_triggers', []));
                         if (!in_array($event, $event_triggers) || is_null(PluginButtonType::getEnum($event))) {
                             break;
                         }
                         
                         // call PluginType::BUTTON as throw_ex is false
-                        $options = ['throw_ex' => false];
                         $class = $plugin->getClass(PluginType::BUTTON, $options);
                         $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
                         if (!isset($class)) {
@@ -391,7 +402,9 @@ class Plugin extends ModelBase
     }
 
     /**
-     * @param $plugins
+     * get plugins for import
+     * 
+     * @param CustomTable $custom_table
      * @return array
      */
     public static function pluginPreparingImport($custom_table)
