@@ -32,11 +32,16 @@ trait ExtendedBuilderTrait
      *
      * @param  array                                          $columns
      * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
+     * @param  bool  $zeroQueryIfEmpty if true and values is empty, set "1 = 0(always false)" query.
      *
      * @return \Illuminate\Database\Query\Builder
      */
-    public function whereInMultiple(array $columns, $values)
+    public function whereInMultiple(array $columns, $values, bool $zeroQueryIfEmpty = false)
     {
+        if(boolval($zeroQueryIfEmpty) && empty($values)){
+            return $this->whereRaw('1 = 0');
+        }
+
         $columns = $this->query->grammar->wrapWhereInMultiple($columns);
         list($bindStrings, $binds) = $this->query->grammar->bindValueWhereInMultiple($values);
 

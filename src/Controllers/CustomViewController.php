@@ -191,9 +191,8 @@ class CustomViewController extends AdminControllerTableBase
         if (!isset($id)) {
             $id = $form->model()->id;
         }
-        if (isset($id)) {
-            $model = CustomView::getEloquent($id);
-        }
+
+        $model = CustomView::getEloquent($id);
         if (isset($model)) {
             $suuid = $model->suuid;
             $view_type = $model->view_type;
@@ -265,8 +264,10 @@ class CustomViewController extends AdminControllerTableBase
 
         $custom_table = $this->custom_table;
 
-        // set view condition
-        $this->setViewConditionFields($form, $model, $view_kind_type);
+        // append model for getting from options
+        $form->editing(function($form){
+            $form->model()->append(['pager_count', 'condition_join']);
+        });
 
         // check filters and sorts count before save
         $form->saving(function (Form $form) {
@@ -291,6 +292,10 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $form->saved(function (Form $form) use ($from_data, $custom_table) {
+            if(!is_nullorempty(request()->get('after-save'))){
+                return;
+            }
+
             if (boolval($from_data) && $form->model()->view_kind_type != Enums\ViewKindType::FILTER) {
                 // get view suuid
                 $suuid = $form->model()->suuid;
@@ -320,42 +325,11 @@ class CustomViewController extends AdminControllerTableBase
                 ]));
             }
         });
-        
+        $form->disableEditingCheck(false);
+
         return $form;
     }
 
-
-    protected function setViewConditionFields($form, $model, $view_kind_type){
-        // set view condition
-        // if (!System::systemview_condition_available()) {
-        //     return;
-        // }
-        if(!$this->custom_table->hasSystemViewPermission()){
-            return;
-        }
-        if(!isset($model)){
-            return;
-        }
-
-
-        // filter setting
-        $hasManyTable = new Tools\ConditionHasManyTable($form, [
-            'ajax' => admin_urls('webapi', $this->custom_table->table_name, 'filter-value'),
-            'name' => "custom_view_conditions",
-            'linkage' => json_encode(['condition_key' => admin_urls('webapi', $this->custom_table->table_name, 'filter-condition')]),
-            'targetOptions' => $this->custom_table->getColumnsSelectOptions([
-                'include_condition' => true,
-                'include_system' => false,
-                'include_column' => false,
-                'ignore_attachment' => true,
-            ]),
-            'custom_table' => $this->custom_table,
-            'filterKind' => Enums\FilterKind::VIEW,
-        ]);
-        $hasManyTable->render();
-
-
-    }
 
     /**
      * get filter condition

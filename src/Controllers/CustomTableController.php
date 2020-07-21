@@ -246,6 +246,9 @@ class CustomTableController extends AdminControllerBase
             $this->addNotifyAfterSaved($model);
         });
 
+        if($id != null){
+            $form->disableEditingCheck(false);
+        }
         $form->saved(function (Form $form) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
@@ -424,22 +427,6 @@ HTML;
                 ->rules("max:200")
                 ->help(sprintf(exmtrans("custom_table.custom_column_multi.help.table_label_format"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_label_format'))));
             }
-
-
-
-            $form->switchbool('systemview_condition_available', exmtrans("custom_table.custom_column_multi.systemview_condition_available"))
-                ->help(exmtrans("custom_table.custom_column_multi.help.systemview_condition_available"))
-                ->default(0)
-            ;
-            $form->switchbool('alldataview_disabled', exmtrans("custom_table.custom_column_multi.alldataview_disabled"))
-                ->help(exmtrans("custom_table.custom_column_multi.help.alldataview_disabled"))
-                ->default(0)
-            ;
-            $form->switchbool('condition_nothing_type', exmtrans("custom_table.custom_column_multi.condition_nothing_type"))
-                ->help(exmtrans("custom_table.custom_column_multi.help.condition_nothing_type"))
-                ->default(0)
-            ;
-
         });
 
         $form->tools(function (Form\Tools $tools) use ($id) {
@@ -450,6 +437,17 @@ HTML;
                 $model = CustomTable::getEloquent($id);
                 $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
             }
+        });
+
+        $form->disableEditingCheck(false);
+        $form->saved(function (Form $form) {
+            if(request()->get('after-save') != '1'){
+                return;
+            }
+
+            $model = $form->model();
+            admin_toastr(trans('admin.update_succeeded'));
+            return redirect(admin_urls_query('table', $model->id, 'edit', ['columnmulti' => 1, 'after-save' => 1]));
         });
 
         return $form;

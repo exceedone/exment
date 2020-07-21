@@ -75,7 +75,6 @@ class Define
 
         'userview_available' => ['type' => 'boolean', 'default' => true, 'group' => 'advanced'],
         'userdashboard_available' => ['type' => 'boolean', 'default' => true, 'group' => 'advanced'],
-        'systemview_condition_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
 
         'complex_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
