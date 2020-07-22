@@ -9,11 +9,15 @@ namespace Exment {
         /**
          * toggle right-top help link and color
          */
-        public static ChangeFieldEvent(ajax, eventTriggerSelector, eventTargetSelector, replaceSearch, replaceWord, showConditionKey){
+        public static ChangeFieldEvent(ajax, eventTriggerSelector, eventTargetSelector, replaceSearch, replaceWord, showConditionKey, $hasManyTableClass){
             if(!hasValue(ajax)){
                 return;
             }
-            $('.has-many-table').off('change').on('change', eventTriggerSelector, function (ev) {
+            if(!hasValue($hasManyTableClass)){
+                $hasManyTableClass = 'has-many-table';
+            }
+
+            $('.' + $hasManyTableClass).off('change').on('change', eventTriggerSelector, function (ev) {
                 var changeTd = $(ev.target).closest('tr').find('.changefield-div');
                 if(!hasValue($(ev.target).val())){
                     changeTd.html('');

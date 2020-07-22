@@ -132,8 +132,9 @@ class ConditionHasManyTable
         $condition_key_name = $this->condition_key_name;
         $condition_value_name = $this->condition_value_name;
         $filterKind = $this->filterKind;
+        $hasManyTableClass = "has-many-table-{$this->name}-table";
 
-        $field = $this->form->hasManyTable($this->name, $this->label, function ($form) use ($condition_target_name, $condition_key_name, $condition_value_name, $filterKind) {
+        $field = $this->form->hasManyTable($this->name, $this->label, function ($form) use ($condition_target_name, $condition_key_name, $condition_value_name, $filterKind, $hasManyTableClass) {
             $field = $form->select($condition_target_name, $this->condition_target_label)->required()
                 ->options($this->targetOptions);
             if (isset($this->linkage)) {
@@ -174,6 +175,7 @@ class ConditionHasManyTable
                 ->replaceSearch($condition_key_name)
                 ->replaceWord($condition_value_name)
                 ->showConditionKey($this->showConditionKey)
+                ->hasManyTableClass($hasManyTableClass)
                 ->adminField(function ($data, $field) use ($label, $condition_target_name, $condition_key_name, $condition_value_name) {
                     if (is_null($data)) {
                         return null;
