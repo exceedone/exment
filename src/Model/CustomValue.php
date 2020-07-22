@@ -198,6 +198,13 @@ abstract class CustomValue extends ModelBase
         })->implode('');
     }
 
+    // value_authoritable. it's all role data.
+    public function custom_value_authoritables()
+    {
+        return $this->hasMany(CustomValueAuthoritable::class, 'parent_id')
+            ->where('parent_type', $this->custom_table_name);
+    }
+
     // user value_authoritable. it's all role data. only filter morph_type
     public function value_authoritable_users()
     {
