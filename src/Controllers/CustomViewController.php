@@ -115,9 +115,10 @@ class CustomViewController extends AdminControllerTableBase
             });
         }
 
-        if (!$this->custom_table->hasSystemViewPermission()) {
-            $grid->model()->where('view_type', Enums\ViewType::USER);
-        }
+        // remove filtering system view(for copy)
+        // if (!$this->custom_table->hasSystemViewPermission()) {
+        //     $grid->model()->where('view_type', Enums\ViewType::USER);
+        // }
         
         $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->displayEscape(function ($view_kind_type) {
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");

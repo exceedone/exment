@@ -235,7 +235,8 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         // check if editable user exists
         $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
         $hasEdit = $this->data_share_authoritables()
-            ->whereInMultiple(['authoritable_type', 'authoritable_target_id'], $login_user->getUserAndOrganizationIds($enum))
+            ->where('authoritable_type', 'data_share_edit')
+            ->whereInMultiple(['authoritable_user_org_type', 'authoritable_target_id'], $login_user->getUserAndOrganizationIds($enum))
             ->exists();
 
         return $hasEdit;
