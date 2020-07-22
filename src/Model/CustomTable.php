@@ -1795,7 +1795,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * 'include_parent': whether getting parent table's column and select table's column
      * 'include_child': whether getting child table's column
      * 'include_system': whether getting system column
-     * * 'include_system': whether getting workflow column
+     * 'include_workflow': whether getting workflow column
+     * 'include_form_type': whether getting form type(show, create, edit)
      * @param array $selectOptions
      * @param option items
      */
@@ -1832,8 +1833,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 ]
             );
         }
-
-
         // getting this table's column options
         if ($include_column) {
             $this->setColumnOptions(
@@ -2265,7 +2264,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasViewPermission()
     {
-        return !boolval(config('exment.userview_disabled', false)) || $this->hasSystemViewPermission();
+        return System::userview_available() || $this->hasSystemViewPermission();
     }
     
     /**

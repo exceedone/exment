@@ -8,8 +8,10 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
 
 abstract class GridBase
 {
@@ -91,5 +93,47 @@ abstract class GridBase
         return $filter_func;
     }
 
+    
+    protected static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
+    {
+        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+
+        // filter setting
+        $hasManyTable = new ConditionHasManyTable($form, [
+            'ajax' => admin_url("view/{$custom_table->table_name}/filter-value"),
+            'name' => "custom_view_filters",
+            'linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
+            'targetOptions' => $custom_table->getColumnsSelectOptions(
+                [
+                    'append_table' => true,
+                    'index_enabled_only' => true,
+                    'include_parent' => $is_aggregate,
+                    'include_child' => $is_aggregate,
+                    'include_workflow' => true,
+                    'include_workflow_work_users' => true,
+                    'ignore_attachment' => true,
+                ]
+            ),
+            'custom_table' => $custom_table,
+            'filterKind' => Enums\FilterKind::VIEW,
+            'condition_target_name' => 'view_column_target',
+            'condition_key_name' => 'view_filter_condition',
+            'condition_value_name' => 'view_filter_condition_value',
+        ]);
+
+        $hasManyTable->callbackField(function ($field) use ($manualUrl) {
+            $field->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
+        });
+
+        $hasManyTable->render();
+
+        $form->radio('condition_join', exmtrans("condition.condition_join"))
+            ->options(exmtrans("condition.condition_join_options"))
+            ->default('and');
+    }
+
+
     abstract public function grid();
+
+
 }

@@ -16,7 +16,6 @@ use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Notify;
-use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums;
@@ -162,7 +161,10 @@ class PatchDataCommand extends Command
             case 'set_env':
                 $this->setEnv();
                 return;
-            }
+            case 'patch_view_dashboard':
+                $this->patchViewDashboard();
+                return;
+        }
 
         $this->error('patch name not found.');
     }
@@ -1169,4 +1171,23 @@ class PatchDataCommand extends Command
         } catch (\Throwable $ex) {
         }
     }
+
+        
+    /**
+     * setLoginType
+     *
+     * @return void
+     */
+    protected function patchViewDashboard()
+    {
+        if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
+            return;
+        }
+
+        // update system value
+        System::userdashboard_available(!boolval(config('exment.userdashboard_disabled', false)));
+        System::userview_available(!boolval(config('exment.userview_disabled', false)));
+
+    }
+    
 }
