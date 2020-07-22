@@ -235,7 +235,13 @@ class FilterOption extends EnumBase
             case static::SELECT_NOT_EXISTS:
             case static::USER_NE:
                 return static::NE;
-        }
+            case static::DAY_NULL:
+            case static::USER_NULL:
+                return static::NULL;
+            case static::DAY_NOT_NULL:
+            case static::USER_NOT_NULL:
+                return static::NOT_NULL;
+            }
 
         return $enum;
     }

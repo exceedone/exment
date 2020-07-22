@@ -116,6 +116,7 @@ class CustomOperationDataController extends AdminControllerTableBase
     /**
      * Make a form builder.
      *
+     * @param int|null $id
      * @return Form
      */
     protected function form($id = null)
@@ -200,7 +201,7 @@ class CustomOperationDataController extends AdminControllerTableBase
             'name' => 'custom_operation_conditions',
             'linkage' => json_encode(['condition_key' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
             'targetOptions' => $custom_table->getColumnsSelectOptions([
-                'index_enabled_only' => true,
+                'include_system' => false,
                 'ignore_attachment' => true,
             ]),
             'custom_table' => $custom_table,

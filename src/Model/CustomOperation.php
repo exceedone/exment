@@ -139,21 +139,28 @@ class CustomOperation extends ModelBase
      *
      * @param CustomOperationType|array $operation_types
      * @param CustomValue $custom_value
+     * @param boolean $is_save
      */
-    public static function operationExecuteEvent($operation_types, &$custom_value)
+    public static function operationExecuteEvent($operation_types, &$custom_value, $is_save = false)
     {
         $custom_table = $custom_value->custom_table;
         $operations = $custom_table->operations;
+        $update_flg = false;
 
         if (count($operations) > 0) {
             foreach ($operations as $operation) {
                 // if $operation_type is trigger and custom-value is match for conditions, execute
                 if ($operation->isOperationTarget($custom_value, $operation_types)) {
-                    collect($operation->custom_operation_columns)->each(function ($operation_column) use(&$custom_value) {
+                    collect($operation->custom_operation_columns)->each(function ($operation_column) use(&$custom_value, &$update_flg) {
                         $custom_value->setValue($operation_column->custom_column->column_name, $operation_column['update_value_text']);
+                        $update_flg = true;
                     });
                 }
             }
+        }
+
+        if ($is_save && $update_flg) {
+            $custom_value->save();
         }
     }
 
