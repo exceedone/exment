@@ -202,4 +202,43 @@ class Exment
         }
         return exmtrans('user.help.password');
     }
+
+    /**
+     * get Data from excel sheet
+     */
+    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
+    {
+        $data = [];
+        foreach ($sheet->getRowIterator() as $row_no => $row) {
+            // if index < $skip_excel_row_no, conitnue
+            if ($row_no <= $skip_excel_row_no) {
+                continue;
+            }
+
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(false); // This loops through all cells,
+            $cells = [];
+            foreach ($cellIterator as $column_no => $cell) {
+                $value = getCellValue($cell, $sheet, $isGetMerge);
+
+                // if keyvalue, set array as key value
+                if ($keyvalue) {
+                    $key = getCellValue($column_no."1", $sheet, $isGetMerge);
+                    $cells[$key] = mbTrim($value);
+                }
+                // if false, set as array
+                else {
+                    $cells[] = mbTrim($value);
+                }
+            }
+            if (collect($cells)->filter(function ($v) {
+                return !is_nullorempty($v);
+            })->count() == 0) {
+                break;
+            }
+            $data[] = $cells;
+        }
+
+        return $data;
+    }
 }

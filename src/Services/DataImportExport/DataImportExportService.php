@@ -231,6 +231,48 @@ class DataImportExportService extends AbstractExporter
         return $response;
     }
 
+    
+    /**
+     * @param $request
+     * @return mixed|void error message or success message etc...
+     */
+    public function importBackground($request, int $page)
+    {
+        setTimeLimitLong();
+        // // validate request
+        // if (!($errors = $this->validateRequest($request))) {
+        //     return [
+        //         'result' => false,
+        //         //'toastr' => exmtrans('common.message.import_error'),
+        //         'errors' => $errors,
+        //     ];
+        // }
+
+        $this->format->filebasename($this->filebasename);
+
+        // get table data
+        if (method_exists($this->importAction, 'getDataTable')) {
+            $datalist = $this->importAction->getDataTable($request);
+        } else {
+            $datalist = $this->format->getDataTable($request);
+        }
+
+        // filter data
+        $datalist = $this->importAction->filterDatalist($datalist);
+        
+        if (count($datalist) == 0) {
+            return [
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error'),
+                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.failure_import_file')]],
+            ];
+        }
+
+        $response = $this->importAction->import($datalist);
+
+        return $response;
+    }
+
     /**
      * import data by custom logic
      * @param $import_plugin
@@ -251,6 +293,44 @@ class DataImportExportService extends AbstractExporter
                 'toastr' => exmtrans('common.message.import_success')
             ];
         }
+    }
+
+    /**
+     * Set data count for background
+     * 
+     * @param $request
+     * @return mixed|void error message or success message etc...
+     */
+    public function setDataCountForBackground($request)
+    {
+        setTimeLimitLong();
+        // validate request
+        if (!($errors = $this->validateRequest($request))) {
+            return [
+                'result' => false,
+                'errors' => $errors,
+            ];
+        }
+
+        $this->format->filebasename($this->filebasename);
+
+        // get data count
+        if (method_exists($this->importAction, 'getDataTable')) {
+            $count = $this->importAction->getDataTable($request, true);
+        } else {
+            $count = $this->format->getDataCount($request);
+        }
+
+        if ($count == 0) {
+            return [
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error'),
+                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.failure_import_file')]],
+            ];
+        }
+
+        // save job table
+        return $response;
     }
 
     /**
