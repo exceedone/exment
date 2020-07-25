@@ -103,6 +103,13 @@ class ConditionHasManyTable
      */
     protected $showConditionKey = true;
 
+    /**
+     * callback about closure.
+     *
+     * @var \Closure
+     */
+    protected $conditionCallback = null;
+
     public function __construct(&$form, $options = [])
     {
         $this->form = $form;
@@ -164,6 +171,11 @@ class ConditionHasManyTable
                         return [$item['id'] => $item['text']];
                     });
                 });
+            }
+            // call closure about condition. Almost use as operation update value. 
+            elseif(!is_null($this->conditionCallback)){
+                $func = $this->conditionCallback;
+                $func($form);
             }
 
             $label = $this->condition_value_label;

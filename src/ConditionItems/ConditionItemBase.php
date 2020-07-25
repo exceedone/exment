@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\WorkflowAuthority;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterOption;
@@ -128,6 +129,24 @@ abstract class ConditionItemBase
         return collect($options)->map(function ($array) {
             return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.filter_condition_options.'.array_get($array, 'name'))];
         });
+    }
+    
+    /**
+     * get Update Type Condition
+     */
+    public function getOperationUpdateType()
+    {
+        return collect([Enums\OperationUpdateType::DEFAULT])->map(function ($val) {
+            return ['id' => $val, 'text' => exmtrans('custom_operation_data.operation_update_type_options.'.$val)];
+        });
+    }
+    
+    /**
+     * get Update Type Condition
+     */
+    public function getOperationFilterValue($target_key, $target_name, $show_condition_key = true)
+    {
+        return $this->getFilterValue($target_key, $target_name, $show_condition_key);
     }
     
     /**

@@ -1287,6 +1287,14 @@ return [
             'update' => '更新時',
             'notified' => '通知送信時',
         ],
+        'operation_update_type_options' => [
+            'default' => '固定値',
+            'system' => 'システム値',
+        ],
+        'operation_value_type_options' => [
+            'execute_datetime' => '実行日時',
+            'login_user' => 'ログインユーザー',
+        ],
         'options' => [
             'button_label' => 'ボタンのラベル',
             'button_class' => 'ボタンのHTML class',

@@ -185,6 +185,11 @@ abstract class CustomItem implements ItemInterface
         return $this->custom_table;
     }
 
+    public function getCustomColumn()
+    {
+        return $this->custom_column;
+    }
+
     protected function getTargetValue($custom_value)
     {
         // if options has "summary" (for summary view)

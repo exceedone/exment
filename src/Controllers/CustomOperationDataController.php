@@ -15,6 +15,7 @@ use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Field\ChangeField;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 class CustomOperationDataController extends AdminControllerTableBase
 {
@@ -169,7 +170,8 @@ class CustomOperationDataController extends AdminControllerTableBase
         $hasManyTable = new Tools\ConditionHasManyTable($form, [
             'name' => 'custom_operation_columns',
             'showConditionKey' => false,
-            'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
+            'linkage' => json_encode(['operation_update_type' => admin_urls('webapi', $custom_table->table_name, 'operation-update-type')]),
+            'ajax' => admin_urls('webapi', $custom_table->table_name, 'operation-filter-value'),
             'targetOptions' => $this->custom_table->getColumnsSelectOptions([
                 'append_table' => true,
                 'index_enabled_only' => false,
@@ -181,25 +183,38 @@ class CustomOperationDataController extends AdminControllerTableBase
             'custom_table' => $custom_table,
             'filterKind' => FilterKind::OPERATION,
             'condition_target_name' => 'view_column_target',
-            'condition_key_name' => 'view_column_target',
+            'condition_key_name' => 'operation_update_type',
             'condition_value_name' => 'update_value',
             'label' => exmtrans('custom_operation_data.custom_operation_columns'),
             'condition_target_label' => exmtrans('custom_operation_data.view_column_target'),
             'condition_value_label' => exmtrans('custom_operation_data.update_value_text'),
+            'conditionCallback' => function($form) use($custom_table) {
+                $form->select('operation_update_type', 'operation_update_type')->required()
+                    ->options(function ($val, $select, $model) use($custom_table) {
+                        $data = $select->data();
+                        $condition_target = array_get($data, 'view_column_target');
+
+                        $item = ConditionItemBase::getItem($custom_table, $condition_target);
+                        if (!isset($item)) {
+                            return null;
+                        }
+                    });
+            },
         ]);
+        
 
         $hasManyTable->callbackField(function ($field) {
             $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
             $field->description(sprintf(exmtrans("custom_operation_data.description_custom_operation_columns"), $manualUrl));
+            $field->setTableColumnWidth(4, 3, 4, 1);
         });
-
         $hasManyTable->render();
 
         // filter setting
         $filterTable = new Tools\ConditionHasManyTable($form, [
             'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
             'name' => 'custom_operation_conditions',
-            'linkage' => json_encode(['condition_key' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
+            'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
             'targetOptions' => $custom_table->getColumnsSelectOptions([
                 'include_system' => false,
                 'ignore_attachment' => true,
