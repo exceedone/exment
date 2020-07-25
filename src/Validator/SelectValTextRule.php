@@ -4,11 +4,11 @@ namespace Exceedone\Exment\Validator;
 use Illuminate\Contracts\Validation\Rule;
 
 /**
- * Select Rule.
+ * Select_valtext Rule.
  * numeric or array.
  * *not consider allow multiple.
  */
-class SelectRule implements Rule
+class SelectValTextRule implements Rule
 {
     protected $keys;
 
@@ -34,15 +34,12 @@ class SelectRule implements Rule
             return true;
         }
 
-        if (is_string($value)) {
-            $value = explode(',', $value);
-        }
-
+        $value = stringToArray($value);
         $value = array_filter($value);
 
         if (is_array($value)) {
             foreach ($value as $v) {
-                if (!in_array($v, $this->keys)) {
+                if (!in_array($v, $this->keys) && !array_key_exists($v, $this->keys)) {
                     return false;
                 }
             }

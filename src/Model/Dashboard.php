@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\AutoSUuidTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
@@ -68,25 +68,13 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             return true;
         }, false)->sortBy('column_no');
     }
-
-    // user data_authoritable. it's all role data. only filter morph_type
-    public function data_authoritable_users()
+        
+    public function data_share_authoritables()
     {
-        return $this->morphToMany(getModelName(SystemTableName::USER), 'parent', 'data_share_authoritables', 'parent_id', 'authoritable_target_id')
-            ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
-            ->wherePivot('authoritable_user_org_type', SystemTableName::USER)
-            ;
+        return $this->hasMany(DataShareAuthoritable::class, 'parent_id')
+            ->where('parent_type', '_dashboard');
     }
 
-    // user data_authoritable. it's all role data. only filter morph_type
-    public function data_authoritable_organizations()
-    {
-        return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'parent', 'data_share_authoritables', 'parent_id', 'authoritable_target_id')
-            ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
-            ->wherePivot('authoritable_user_org_type', SystemTableName::ORGANIZATION)
-            ;
-    }
-    
     /**
      * get default dashboard
      */
@@ -140,23 +128,6 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentDefault($id, $withs);
-    }
-
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-    public function forgetOption($key)
-    {
-        return $this->forgetJson('options', $key);
-    }
-    public function clearOption()
-    {
-        return $this->clearJson('options');
     }
     
     protected static function boot()
@@ -224,20 +195,25 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             return;
         }
 
-        if (hasTable(getDBTableName(SystemTableName::USER))) {
-            $query->orWhere(function ($qry) use ($user) {
-                $qry->where('dashboard_type', DashboardType::USER)
-                    ->where('created_user_id', $user->getUserId());
-            })->orWhereHas('data_authoritable_users', function ($qry) use ($user) {
-                $qry->where('authoritable_target_id', $user->getUserId());
-            });
+        if(!hasTable(getDBTableName(SystemTableName::USER, false)) || !hasTable(getDBTableName(SystemTableName::ORGANIZATION, false))){
+            return;
         }
-        if (hasTable(getDBTableName(SystemTableName::ORGANIZATION))) {
-            $query->orWhereHas('data_authoritable_organizations', function ($qry) use ($user) {
+
+        $query->orWhere(function ($query) use ($user) {
+            $query->where('dashboard_type', DashboardType::USER);
+
+            // filtered created_user, and shared others.
+            $query->where(function ($query) use ($user) {
+                $query->where('created_user_id', $user->getUserId());
+            })->orWhereHas('data_share_authoritables', function ($query) use ($user) {
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
-                $qry->whereIn('authoritable_target_id', $user->getOrganizationIds($enum));
+                $query->whereInMultiple(
+                    ['authoritable_user_org_type', 'authoritable_target_id'], 
+                    $user->getUserAndOrganizationIds($enum),
+                    true
+                );
             });
-        }
+        });
     }
 
     /**
@@ -251,24 +227,18 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         $login_user = \Exment::user();
         if ($this->dashboard_type == DashboardType::SYSTEM) {
             return static::hasSystemPermission();
-        } elseif ($this->created_user_id == $login_user->getUserId()) {
+        } 
+        elseif ($this->created_user_id == $login_user->getUserId()) {
             return true;
         };
 
+        
         // check if editable user exists
-        $hasEdit = $this->data_authoritable_users()
+        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+        $hasEdit = $this->data_share_authoritables()
             ->where('authoritable_type', 'data_share_edit')
-            ->where('authoritable_target_id', $login_user->getUserId())
+            ->whereInMultiple(['authoritable_user_org_type', 'authoritable_target_id'], $login_user->getUserAndOrganizationIds($enum), true)
             ->exists();
-
-        if (!$hasEdit && System::organization_available()) {
-            $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
-            // check if editable organization exists
-            $hasEdit = $this->data_authoritable_organizations()
-                ->where('authoritable_type', 'data_share_edit')
-                ->whereIn('authoritable_target_id', $login_user->getOrganizationIds($enum))
-                ->exists();
-        }
 
         return $hasEdit;
     }
@@ -280,7 +250,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     
     public static function hasPermission()
     {
-        return !boolval(config('exment.userdashboard_disabled', false)) || static::hasSystemPermission();
+        return System::userdashboard_available() || static::hasSystemPermission();
     }
 
     public function deletingChildren()

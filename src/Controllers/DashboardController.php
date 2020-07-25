@@ -6,8 +6,8 @@ use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
-use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DataShareAuthoritable;
@@ -255,7 +255,7 @@ EOT;
             ->required()
             ->rules("max:40");
 
-        if (boolval(config('exment.userdashboard_disabled', false))) {
+        if (!System::userdashboard_available()) {
             $form->hidden('dashboard_type')->default(DashboardType::SYSTEM);
         } elseif (Dashboard::hasSystemPermission() && (is_null($dashboard_type) || $dashboard_type == DashboardType::USER)) {
             $form->select('dashboard_type', exmtrans('dashboard.dashboard_type'))

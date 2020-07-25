@@ -56,7 +56,7 @@ class LoginUserItem extends ProviderBase
                 ])]);
 
         $form->password('password', exmtrans('user.password'))->default('')
-                ->help(exmtrans('user.help.password'))
+                ->help(\Exment::get_password_help())
                 ->attribute(['data-filter' => json_encode([
                     ['key' => 'use_loginuser', 'value' => '1']
                     , ['key' => 'reset_password', 'value' => "1"]
@@ -99,6 +99,28 @@ class LoginUserItem extends ProviderBase
     }
 
     /**
+     * saving event
+     */
+    public function saving($form, $id = null)
+    {
+        if (!\Exment::user()->hasPermission(Permission::LOGIN_USER)) {
+            return;
+        }
+        
+        if (!LoginSetting::isUseDefaultLoginForm()) {
+            return;
+        }
+
+        $data = request()->all();
+        $info = $this->getLoginUserInfo($data, $id);
+        if ($info instanceof \Symfony\Component\HttpFoundation\Response) {
+            return $info;
+        }
+
+        return true;
+    }
+    
+    /**
      * saved event
      */
     public function saved($form, $id)
@@ -112,58 +134,19 @@ class LoginUserItem extends ProviderBase
         }
 
         $data = request()->all();
-        $user = getModelName(SystemTableName::USER)::findOrFail($id);
+        $info = $this->getLoginUserInfo($data, $id);
+        if ($info instanceof \Symfony\Component\HttpFoundation\Response) {
+            return $info;
+        }
+
+        // return [$login_user, $has_change, $send_password, boolval(array_get($data, 'password_reset_flg'))];
+        list($login_user, $password, $has_change, $send_password, $password_reset_flg) = $info;
 
         try {
-            // get login user
-            $login_user = $this->getLoginUser($id);
-            // if "$user" has "login_user" obj and unchecked "use_loginuser", delete login user object.
-            if (!boolval(array_get($data, 'use_loginuser'))) {
-                if (!is_null($login_user)) {
-                    $login_user->delete();
-                }
-                return;
-            }
-            
-            // if "$user" doesn't have "login_user" obj and checked "use_loginuser", create login user object.
-            $has_change = false;
-            $is_newuser = false;
-            $password = null;
-            if (is_null($login_user) && boolval(array_get($data, 'use_loginuser'))) {
-                $login_user = new LoginUser;
-                $is_newuser = true;
-                $login_user->base_user_id = $user->getUserId();
-                $has_change = true;
-            }
-
-            // if user select "reset_password" (or new create)
-            if (boolval(array_get($data, 'reset_password'))) {
-                // user select "create_password_auto"
-                if (boolval(array_get($data, 'create_password_auto'))) {
-                    $password = make_password();
-                    $login_user->password = $password;
-                    $has_change = true;
-                } elseif (boolval(array_get($data, 'password'))) {
-                    $rules = [
-                    'password' => get_password_rule(true, $login_user),
-                    ];
-                    $validation = \Validator::make($data, $rules);
-                    if ($validation->fails()) {
-                        return back()->withInput()->withErrors($validation);
-                    }
-                    $password = array_get($data, 'password');
-                    $login_user->password = $password;
-                    $has_change = true;
-                } else {
-                    return back()->withInput()->withErrors([
-                        'create_password_auto' => exmtrans('user.message.required_password')]);
-                }
-            }
-
             if ($has_change) {
-                $login_user->password_reset_flg = boolval(array_get($data, 'password_reset_flg'));
+                $login_user->password_reset_flg = $password_reset_flg;
                 // mailsend
-                if (boolval(array_get($data, 'send_password')) || boolval(array_get($data, 'create_password_auto'))) {
+                if (boolval($send_password)) {
                     try {
                         $login_user->sendPassword($password);
                     }
@@ -178,9 +161,70 @@ class LoginUserItem extends ProviderBase
         } catch (\Swift_TransportException $ex) {
             admin_error('Error', exmtrans('error.mailsend_failed'));
             return back()->withInput();
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             throw $ex;
         }
+    }
+
+
+    /**
+     * Get login user info.
+     *
+     * @param array $data
+     * @param null|string $id
+     * @return array|\Illuminate\Http\Response  if error, return redirect. if success, array.
+     */
+    protected function getLoginUserInfo($data, $id)
+    {
+        $user = getModelName(SystemTableName::USER)::find($id);
+
+        // get login user
+        $login_user = $this->getLoginUser($id);
+        // if "$user" has "login_user" obj and unchecked "use_loginuser", delete login user object.
+        if (!boolval(array_get($data, 'use_loginuser'))) {
+            if (!is_null($login_user)) {
+                $login_user->delete();
+            }
+            return;
+        }
+        
+        // if "$user" doesn't have "login_user" obj and checked "use_loginuser", create login user object.
+        $has_change = false;
+        $is_newuser = false;
+        $password = null;
+        if (is_null($login_user) && boolval(array_get($data, 'use_loginuser'))) {
+            $login_user = new LoginUser;
+            $is_newuser = true;
+            $login_user->base_user_id = $user ? $user->getUserId() : null;
+            $has_change = true;
+        }
+
+        // if user select "reset_password" (or new create)
+        if (boolval(array_get($data, 'reset_password'))) {
+            // user select "create_password_auto"
+            if (boolval(array_get($data, 'create_password_auto'))) {
+                $password = make_password();
+                $login_user->password = $password;
+                $has_change = true;
+            } elseif (boolval(array_get($data, 'password'))) {
+                $rules = [
+                'password' => get_password_rule(true, $login_user),
+                ];
+                $validation = \Validator::make($data, $rules);
+                if ($validation->fails()) {
+                    return back()->withInput()->withErrors($validation);
+                }
+                $password = array_get($data, 'password');
+                $login_user->password = $password;
+                $has_change = true;
+            } else {
+                return back()->withInput()->withErrors([
+                    'create_password_auto' => exmtrans('user.message.required_password')]);
+            }
+        }
+
+        $send_password = boolval(array_get($data, 'send_password')) || boolval(array_get($data, 'create_password_auto'));
+        return [$login_user, $password, $has_change, $send_password, boolval(array_get($data, 'password_reset_flg'))];
     }
 
     /**

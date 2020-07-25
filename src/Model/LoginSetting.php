@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\LoginProviderType;
 
 class LoginSetting extends ModelBase
 {
-    use Traits\DatabaseJsonTrait;
     use Traits\DatabaseJsonOptionTrait;
     use Traits\UseRequestSessionTrait;
 

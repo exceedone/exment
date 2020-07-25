@@ -320,6 +320,25 @@ trait HasPermissions
         });
     }
 
+
+    /**
+     * Get user and organization ids for query whereInMultiple.
+     *
+     * @param string $filterType
+     * @return array offset 0 : type, 1 : user or organization id.
+     */
+    public function getUserAndOrganizationIds($filterType = JoinedOrgFilterType::ALL){
+        $results = [[SystemTableName::USER, $this->getUserId()]];
+
+        if(System::organization_available()){
+            collect($this->getOrganizationIds($filterType))->each(function($id) use(&$results){
+                $results[] = [SystemTableName::ORGANIZATION, $id];
+            });
+        }
+        
+        return $results;
+    }
+
     /**
      * get permisson array.
      */

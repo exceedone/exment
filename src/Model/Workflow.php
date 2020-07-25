@@ -7,7 +7,7 @@ use Exceedone\Exment\Enums\WorkflowType;
 class Workflow extends ModelBase
 {
     use Traits\AutoSUuidTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
 
@@ -86,14 +86,6 @@ class Workflow extends ModelBase
         return $this;
     }
 
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
 
     /**
      * get workflow statuses using cache

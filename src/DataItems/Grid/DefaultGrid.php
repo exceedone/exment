@@ -19,11 +19,13 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
+use Encore\Admin\Form;
 
 class DefaultGrid extends GridBase
 {
@@ -596,5 +598,60 @@ class DefaultGrid extends GridBase
                 'target_selectitem' => 'select',
             ])->render();
         });
+    }
+
+    /**
+     * Set custom view columns form. For controller.
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @return void
+     */
+    public static function setViewForm($view_kind_type, $form, $custom_table){
+        if (in_array($view_kind_type, [Enums\ViewKindType::DEFAULT, Enums\ViewKindType::ALLDATA])) {
+            $form->select('pager_count', exmtrans("common.pager_count"))
+                ->required()
+                ->options(getPagerOptions(true))
+                ->config('allowClear', false)
+                ->default(0);
+        }
+
+        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+        if ($view_kind_type != Enums\ViewKindType::FILTER) {
+            // columns setting
+            $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use($custom_table) {
+                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                    ->options($custom_table->getColumnsSelectOptions([
+                        'append_table' => true,
+                        'include_parent' => true,
+                        'include_workflow' => true,
+                    ]));
+                $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+                $form->hidden('order')->default(0);
+            })->required()->setTableColumnWidth(7, 3, 2)
+            ->rowUpDown('order', 10)
+            ->description(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
+        }
+
+        // filter setting
+        if ($view_kind_type != Enums\ViewKindType::ALLDATA) {
+            static::setFilterFields($form, $custom_table);
+        }
+
+        // sort setting
+        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use($custom_table){
+            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+            ->options($custom_table->getColumnsSelectOptions([
+                'append_table' => true,
+                'index_enabled_only' => true,
+            ]));
+            $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
+                ->required()
+                ->default(1)
+                ->help(exmtrans('custom_view.help.sort_type'));
+            $form->hidden('priority')->default(0);
+        })->setTableColumnWidth(7, 3, 2)
+        ->rowUpDown('priority')
+        ->description(sprintf(exmtrans("custom_view.description_custom_view_sorts"), $manualUrl));
     }
 }

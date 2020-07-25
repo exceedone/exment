@@ -246,6 +246,9 @@ class CustomTableController extends AdminControllerBase
             $this->addNotifyAfterSaved($model);
         });
 
+        if($id != null){
+            $form->disableEditingCheck(false);
+        }
         $form->saved(function (Form $form) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
@@ -434,6 +437,17 @@ HTML;
                 $model = CustomTable::getEloquent($id);
                 $tools->append((new Tools\CustomTableMenuButton('table', $model, 'expand_setting')));
             }
+        });
+
+        $form->disableEditingCheck(false);
+        $form->saved(function (Form $form) {
+            if(request()->get('after-save') != '1'){
+                return;
+            }
+
+            $model = $form->model();
+            admin_toastr(trans('admin.update_succeeded'));
+            return redirect(admin_urls_query('table', $model->id, 'edit', ['columnmulti' => 1, 'after-save' => 1]));
         });
 
         return $form;

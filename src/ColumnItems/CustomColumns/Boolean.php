@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Form\Field;
+use Exceedone\Exment\Validator;
 use Encore\Admin\Grid\Filter;
 
 class Boolean extends CustomItem
@@ -40,6 +41,12 @@ class Boolean extends CustomItem
     protected function getAdminFilterClass()
     {
         return Filter\Equal::class;
+    }
+ 
+    protected function setValidates(&$validates, $form_column_options)
+    {
+        $option = $this->getImportValueOption();
+        $validates[] = new Validator\BooleanRule($option);
     }
 
     protected function setAdminOptions(&$field, $form_column_options)

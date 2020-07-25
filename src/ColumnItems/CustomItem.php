@@ -437,8 +437,9 @@ abstract class CustomItem implements ItemInterface
     {
     }
 
-    protected function disableEdit($form_column_options){
-        if($this->initonly() && isset($this->value)){
+    protected function disableEdit($form_column_options)
+    {
+        if ($this->initonly() && isset($this->value)) {
             return true;
         }
 
@@ -448,7 +449,7 @@ abstract class CustomItem implements ItemInterface
         
         return false;
     }
-	
+    
     /**
      * replace value for import
      *

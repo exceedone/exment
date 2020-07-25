@@ -27,7 +27,7 @@ class InitializeForm
         $form->text('user_code', exmtrans('user.user_code'))->required()->help(exmtrans('common.help_code'));
         $form->text('user_name', exmtrans('user.user_name'))->required()->help(exmtrans('user.help.user_name'));
         $form->text('email', exmtrans('user.email'))->required()->help(exmtrans('user.help.email'));
-        $form->password('password', exmtrans('user.password'))->required()->help(exmtrans('user.help.password'));
+        $form->password('password', exmtrans('user.password'))->required()->help(\Exment::get_password_help());
         $form->password('password_confirmation', exmtrans('user.password_confirmation'))->required();
         return view('exment::initialize.content', [
             'content'=> $form->render(),

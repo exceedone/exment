@@ -20,7 +20,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 {
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
-    use Traits\DatabaseJsonTrait;
+    use Traits\DatabaseJsonOptionTrait;
     
     /**
      * @var string
@@ -75,15 +75,6 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     public function setMenuTargetViewAttribute($value)
     {
         return $this->setOption('menu_target_view', $value);
-    }
-
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
     }
 
     /**

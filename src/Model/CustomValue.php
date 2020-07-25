@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Collection;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -195,6 +197,13 @@ abstract class CustomValue extends ModelBase
             }
             return getUserName($user, true, true);
         })->implode('');
+    }
+
+    // value_authoritable. it's all role data.
+    public function custom_value_authoritables()
+    {
+        return $this->hasMany(CustomValueAuthoritable::class, 'parent_id')
+            ->where('parent_type', $this->custom_table_name);
     }
 
     // user value_authoritable. it's all role data. only filter morph_type
@@ -721,6 +730,14 @@ abstract class CustomValue extends ModelBase
         return $query->get();
     }
 
+    /**
+     * Set value for custom column.
+     *
+     * @param string|array|Collection $key
+     * @param mixed $val if $key is string, set value
+     * @param boolean $forgetIfNull if true, and val is null, remove DB's column from "value".
+     * @return $this
+     */
     public function setValue($key, $val = null, $forgetIfNull = false)
     {
         $custom_columns = $this->custom_table->custom_columns_cache;
@@ -739,7 +756,35 @@ abstract class CustomValue extends ModelBase
                 return $this;
             }
         }
+        
         return $this->setJson('value', $key, $val, $forgetIfNull);
+    }
+
+    /**
+     * Set value for custom column, strictly.
+     * (1) Execute validation before set value.
+     * If validate is failed, throw exception.
+     * (2) Set value.
+     *
+     * @param array|Collection $list custom value's list(array or collection)
+     * @param boolean $forgetIfNull if true, and val is null, remove DB's column from "value".
+     * @throws ValidationException validation error
+     * @return $this
+     */
+    public function setValueStrictly($list, $forgetIfNull = false)
+    {
+        // validation value
+        $validator = $this->custom_table->validateValue(toArray($list), $this, [
+            'appendKeyName' => false,
+            'checkCustomValueExists' => true,
+            'checkUnnecessaryColumn' => true,
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+        
+        return $this->setValue($list, null, $forgetIfNull);
     }
 
     /**
@@ -1409,9 +1454,9 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::PERMISSION_DENY();
         }
         
-        if ($this->custom_table->isOneRecord()) {
-            return ErrorCode::PERMISSION_DENY();
-        }
+        // if ($this->custom_table->isOneRecord()) {
+        //     return ErrorCode::PERMISSION_DENY();
+        // }
 
         // check workflow
         if ($this->lockedWorkflow()) {
