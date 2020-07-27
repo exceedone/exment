@@ -11,7 +11,7 @@ class CustomOperation extends ModelBase
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonOptionTrait;
     
-    protected $casts = ['options' => 'json'];
+    protected $casts = ['options' => 'json', 'operation_type' => 'array'];
     protected $appends = ['condition_join'];
 
    

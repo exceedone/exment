@@ -94,7 +94,9 @@ class CustomOperationController extends AdminControllerTableBase
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('operation_name', exmtrans("custom_operation.operation_name"))->sortable();
         $grid->column('operation_type', exmtrans("custom_operation.operation_type"))->sortable()->displayEscape(function ($val) {
-            return array_get(CustomOperationType::transArray("custom_operation.operation_type_options"), $val);
+            return collect(toArray($val))->map(function($v){
+                return array_get(CustomOperationType::transArray("custom_operation.operation_type_options"), $v);
+            })->implode(exmtrans('common.separate_word'));
         });
         
         $grid->model()->where('custom_table_id', $this->custom_table->id);
@@ -145,7 +147,7 @@ class CustomOperationController extends AdminControllerTableBase
 
         $form->text('operation_name', exmtrans("custom_operation.operation_name"))->required()->rules("max:40");
         
-        $form->select('operation_type', exmtrans("custom_operation.operation_type"))
+        $form->multipleSelect('operation_type', exmtrans("custom_operation.operation_type"))
             ->help(exmtrans("custom_operation.help.operation_type"))
             ->options(function () {
                 return CustomOperationType::transArray("custom_operation.operation_type_options");
@@ -161,6 +163,7 @@ class CustomOperationController extends AdminControllerTableBase
             $form->text('button_class', exmtrans("custom_operation.options.button_class"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => CustomOperationType::BUTTON])])
                 ->help(exmtrans("custom_operation.help.button_class"));
+
         })->disableHeader();
 
         $custom_table = $this->custom_table;
