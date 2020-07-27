@@ -30,7 +30,7 @@ class BatchUpdate extends BatchAction
         $cancel = trans('admin.cancel');
 
         $label = $this->operation->getOption('button_label') ?? $this->operation->operation_name;
-        $text = exmtrans('common.message.confirm_execute', exmtrans('custom_operation.custom_operation'));
+        $text = exmtrans('common.message.confirm_execute', $label);
 
         return <<<EOT
 

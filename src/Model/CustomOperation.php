@@ -139,10 +139,9 @@ class CustomOperation extends ModelBase
             foreach ($operations as $operation) {
                 // if $operation_type is trigger and custom-value is match for conditions, execute
                 if ($operation->isOperationTarget($custom_value, $operation_types)) {
-                    collect($operation->custom_operation_columns)->each(function ($operation_column) use(&$custom_value, &$update_flg) {
-                        $custom_value->setValue($operation_column->custom_column->column_name, $operation_column['update_value_text']);
-                        $update_flg = true;
-                    });
+                    $updates = $operation->getUpdateValues($custom_value);
+                    $custom_value->setValue($updates);
+                    $update_flg = true;
                 }
             }
         }
@@ -183,7 +182,7 @@ class CustomOperation extends ModelBase
         \DB::transaction(function () use($custom_values) {
             foreach ($custom_values as $custom_value) {
                 $updates = $this->getUpdateValues($custom_value);
-                $custom_value->update($updates);
+                $custom_value->setValueStrictly($updates)->save();
             }
         });
 
@@ -202,8 +201,8 @@ class CustomOperation extends ModelBase
             if(is_nullorempty($custom_column)){
                 return null;
             }
-            $column_name = 'value->'.$custom_column->column_name;
 
+            $column_name = $custom_column->column_name;
             // if update as system value, set system
             if(Enums\ColumnType::isOperationEnableSystem($custom_column->column_type) && isMatchString($operation_column->operation_update_type, Enums\OperationUpdateType::SYSTEM)){
                 return [$column_name => Enums\OperationValueType::getOperationValue($operation_column['update_value_text'])];
