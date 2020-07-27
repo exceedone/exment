@@ -1,12 +1,14 @@
 <?php
 namespace Exceedone\Exment\Services;
 
+use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\PluginEventTrigger;
@@ -403,6 +405,8 @@ class NotifyService
                 'custom_value' => $custom_value,
                 'notify' => $notify,
             ]);
+            // call notified trigger operations
+            CustomOperation::operationExecuteEvent(CustomOperationType::NOTIFIED, $custom_value, true);
         }
     }
 

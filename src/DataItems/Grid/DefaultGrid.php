@@ -337,7 +337,9 @@ class DefaultGrid extends GridBase
                 // if cannot edit, disable delete and update operations
                 if ($this->custom_table->enableEdit() === true) {
                     foreach ($this->custom_table->custom_operations as $custom_operation) {
-                        $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                        if($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)){
+                            $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                        }
                     }
                 } else {
                     $batch->disableDelete();
@@ -503,41 +505,6 @@ class DefaultGrid extends GridBase
         return $service;
     }
 
-    /**
-     * update read_flg when row checked
-     *
-     * @param mixed   $id
-     */
-    public function rowUpdate(Request $request, $tableKey = null, $id = null, $rowid = null)
-    {
-        if (!isset($id) || !isset($rowid)) {
-            abort(404);
-        }
-
-        $operation = CustomOperation::with(['custom_operation_columns'])->find($id);
-
-        $models = $this->custom_table->getValueModel()->query()->whereIn('id', explode(',', $rowid));
-
-        if (!isset($models) || $models->count() == 0) {
-            return getAjaxResponse([
-                'result'  => false,
-                'toastr' => exmtrans('custom_value.message.operation_notfound'),
-            ]);
-        }
-
-        $updates = collect($operation->custom_operation_columns)->mapWithKeys(function ($operation_column) {
-            $column_name= 'value->'.$operation_column->custom_column->column_name;
-            return [$column_name => $operation_column['update_value_text']];
-        })->toArray();
-
-        $models->update($updates);
-        
-        return getAjaxResponse([
-            'result'  => true,
-            'toastr' => exmtrans('custom_value.message.operation_succeeded'),
-        ]);
-    }
-    
     public function renderModalFrame()
     {
         // get target column id or class

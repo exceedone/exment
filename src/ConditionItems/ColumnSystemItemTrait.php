@@ -21,7 +21,7 @@ trait ColumnSystemItemTrait
             return [];
         }
 
-        return array_get($this->filterKind == FilterKind::VIEW ? FilterOption::FILTER_OPTIONS() : FilterOption::FILTER_CONDITION_OPTIONS(), $column_type);
+        return array_get(FilterOption::FILTER_OPTIONS(), $column_type);
     }
 
     /**

@@ -158,6 +158,9 @@ class PatchDataCommand extends Command
             case 'patch_freeword_search':
                 $this->setFreewordSearchOption();
                 return;
+            case 'init_custom_operation_type':
+                $this->initCustomOperationType();
+                return;
             case 'set_env':
                 $this->setEnv();
                 return;
@@ -1172,6 +1175,28 @@ class PatchDataCommand extends Command
         }
     }
 
+    /**
+     * Initialize operation_type in custom_operations.
+     *
+     * @return void
+     */
+    protected function initCustomOperationType()
+    {
+        // remove "role" menu
+        Model\CustomOperation::whereNull('operation_type')
+            ->get()
+            ->each(function($custom_operation){
+                $custom_operation->update([
+                    'operation_type' => [Enums\CustomOperationType::BULK_UPDATE],
+                    'options' => ['button_label' => $custom_operation->operation_name],
+                ]);
+
+                $custom_operation->custom_operation_columns->each(function($custom_operation_column){
+                    $custom_operation_column->setOption('operation_update_type', Enums\OperationUpdateType::DEFAULT)
+                        ->save();
+                });
+            });
+    }
         
     /**
      * setLoginType

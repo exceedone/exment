@@ -107,13 +107,13 @@ class ApiTableController extends AdminControllerTableBase
         if (!isset($item)) {
             return [];
         }
-        return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
+        return $item->getFilterValueAjax($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
     }
 
     protected function getConditionItem(Request $request, $target, $filterKind = null)
     {
         $item = ConditionItemBase::getItem($this->custom_table, $target);
-        if (!isset($item)) {
+        if (is_null($item)) {
             return null;
         }
 
@@ -126,4 +126,29 @@ class ApiTableController extends AdminControllerTableBase
 
         return $item;
     }
+
+    /**
+     * get updateTypeCondition condition
+     */
+    public function getOperationUpdateType(Request $request)
+    {
+        $item = $this->getConditionItem($request, $request->get('q'));
+        if (!isset($item)) {
+            return [];
+        }
+        return $item->getOperationUpdateType();
+    }
+    
+    /**
+     * get filter condition
+     */
+    public function getOperationFilterValue(Request $request)
+    {
+        $item = $this->getConditionItem($request, $request->get('target'), $request->get('filter_kind'));
+        if (!isset($item)) {
+            return [];
+        }
+        return $item->getOperationFilterValueAjax($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
+    }
+
 }

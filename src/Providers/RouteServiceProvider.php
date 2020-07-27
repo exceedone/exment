@@ -145,10 +145,12 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("data/{tableKey}/importModal", 'CustomValueController@importModal');
             $router->post("data/{tableKey}/import", 'CustomValueController@import');
             $router->post("data/{tableKey}/pluginClick", 'CustomValueController@pluginClick');
+            $router->post("data/{tableKey}/operationClick", 'CustomValueController@operationClick');
             $router->get("data/{tableKey}/{id}/compare", 'CustomValueController@compare');
             $router->get("data/{tableKey}/{id}/compareitem", 'CustomValueController@compareitem');
             $router->post("data/{tableKey}/{id}/compare", 'CustomValueController@restoreRevision');
             $router->post("data/{tableKey}/{id}/pluginClick", 'CustomValueController@pluginClick');
+            $router->post("data/{tableKey}/{id}/operationClick", 'CustomValueController@operationClick');
             $router->get("data/{tableKey}/{id}/actionModal", 'CustomValueController@actionModal');
             $router->post("data/{tableKey}/{id}/actionClick", 'CustomValueController@actionClick');
             $router->get("data/{tableKey}/{id}/notifyClick", 'CustomValueController@notifyClick');
@@ -164,12 +166,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
-            $router->post("data/{tableKey}/{id}/rowUpdate/{rowid}", 'CustomValueController@rowUpdate');
 
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
-            $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
             $router->get("view/{tableKey}/{id}/shareClick", 'CustomViewController@shareClick');
             $router->post("view/{tableKey}/{id}/sendShares", 'CustomViewController@sendShares');
 
@@ -202,6 +202,8 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->get("webapi/{tableKey}/filter-condition", 'ApiTableController@getFilterCondition');
             $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
+            $router->get("webapi/{tableKey}/operation-update-type", 'ApiTableController@getOperationUpdateType');
+            $router->get("webapi/{tableKey}/operation-filter-value", 'ApiTableController@getOperationFilterValue');
         });
     }
 

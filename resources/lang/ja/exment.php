@@ -829,7 +829,7 @@ return [
         'custom_form' => 'フォーム設定',
         'custom_relation' => 'リレーション設定',
         'custom_copy' => 'データコピー設定',
-        'custom_operation' => '一括更新設定',
+        'custom_operation' => 'データ更新設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
     ],
@@ -1266,15 +1266,44 @@ return [
     ],
 
     'custom_operation' => [
-        'custom_operation' => '一括更新',
-        'header' => '一括更新設定',
-        'description' => '選択データを一括更新するための設定を行います。',
-        'operation_name' => '一括更新文言',
+        'header' => 'データ更新設定',
+        'description' => 'データの新規作成時や更新時、ボタンをクリック時などに、列の値を更新します。',
+        'operation_name' => '処理の名前',
+        'operation_type' => '更新のタイミング',
         'custom_operation_button_label' => '一括更新設定',
         'custom_operation_columns' => '更新列設定',
-        'description_custom_operation_columns' => '一括更新の対象列と更新値を設定します。',
+        'custom_operation_conditions' => '更新条件',
         'view_column_target' => '対象列',
+        'operation_update_type' => '更新の種類',
         'update_value_text' => '更新値',
+
+        'operation_type_options' => [
+            'bulk_update' => '一覧画面のチェックボタン選択時',
+            'button' => 'データ詳細画面のボタン押下時',
+            'create' => 'データ新規作成時',
+            'update' => 'データ更新時',
+            //'notified' => '通知送信時',
+        ],
+        'operation_update_type_options' => [
+            'default' => '固定値',
+            'system' => 'システム値',
+        ],
+        'operation_value_type_options' => [
+            'execute_datetime' => '実行日時',
+            'login_user' => 'ログインユーザー',
+        ],
+        'options' => [
+            'button_label' => 'ボタンのラベル',
+            'button_class' => 'ボタンのHTML class',
+            'button_icon' => 'ボタンのアイコン',
+        ],
+        'help' => [
+            'operation_type' => 'データ更新を行うタイミングを指定します。',
+            'button_icon' => 'ボタンのHTMLに付加するアイコンです。',
+            'button_class' => 'ボタンのHTMLに付加するclassです。',
+            'custom_operation_columns' => 'データ更新の対象列と、更新値を設定します。',
+            'custom_operation_conditions' => '登録した更新設定を実行することができるデータの、条件を指定します。',
+        ],
     ],
 
     'custom_view' => [
@@ -1720,6 +1749,7 @@ return [
     ],
         'message' => [
             'operation_notfound' => '更新対象のデータが見つかりませんでした。',
+            'operation_contains_notmatch_condition' => '更新できないデータ %s が選択されています。',
             'operation_succeeded' => '一括更新を実行しました！',
             'action_disabled' => '画面からの操作が制限されています。',
             'restore' => '復元しますか？',
