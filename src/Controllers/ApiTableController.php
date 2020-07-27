@@ -107,7 +107,7 @@ class ApiTableController extends AdminControllerTableBase
         if (!isset($item)) {
             return [];
         }
-        return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
+        return $item->getFilterValueAjax($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
     }
 
     protected function getConditionItem(Request $request, $target, $filterKind = null)
@@ -148,7 +148,7 @@ class ApiTableController extends AdminControllerTableBase
         if (!isset($item)) {
             return [];
         }
-        return $item->getOperationFilterValue($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
+        return $item->getOperationFilterValueAjax($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
     }
 
 }

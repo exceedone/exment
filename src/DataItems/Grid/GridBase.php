@@ -100,7 +100,7 @@ abstract class GridBase
 
         // filter setting
         $hasManyTable = new ConditionHasManyTable($form, [
-            'ajax' => admin_url("view/{$custom_table->table_name}/filter-value"),
+            'ajax' => admin_url("webapi/{$custom_table->table_name}/filter-value"),
             'name' => "custom_view_filters",
             'linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
             'targetOptions' => $custom_table->getColumnsSelectOptions(

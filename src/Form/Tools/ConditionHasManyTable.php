@@ -110,6 +110,13 @@ class ConditionHasManyTable
      */
     protected $conditionCallback = null;
 
+    /**
+     * callback about value closure.
+     *
+     * @var \Closure
+     */
+    protected $valueCallback = null;
+
     public function __construct(&$form, $options = [])
     {
         $this->form = $form;
@@ -189,17 +196,25 @@ class ConditionHasManyTable
                 ->showConditionKey($this->showConditionKey)
                 ->hasManyTableClass($hasManyTableClass)
                 ->adminField(function ($data, $field) use ($label, $condition_target_name, $condition_key_name, $condition_value_name) {
-                    if (is_null($data)) {
-                        return null;
+                    // call closure about value. Almost use as operation update value. 
+                    if(!is_null($this->valueCallback)){
+                        $func = $this->valueCallback;
+                        return $func($data, $field);
                     }
-                    $item = ConditionItemBase::getItem($this->custom_table, array_get($data, $condition_target_name));
-                    $item->filterKind($this->filterKind);
+                    else{
+                        if (is_null($data)) {
+                            return null;
+                        }
+                        $item = ConditionItemBase::getItem($this->custom_table, array_get($data, $condition_target_name));
+                        $item->filterKind($this->filterKind);
 
-                    $item->setElement($field->getElementName(), $condition_value_name, $label);
+                        $item->setElement($field->getElementName(), $condition_value_name, $label);
 
-                    return $item->getChangeField(array_get($data, $condition_key_name), $this->showConditionKey);
+                        return $item->getChangeField(array_get($data, $condition_key_name), $this->showConditionKey);
+                    }
                 });
             ;
+
         })->setTableWidth(10, 1);
 
         if ($this->showConditionKey) {

@@ -184,12 +184,12 @@ class CustomOperationDataController extends AdminControllerTableBase
             'filterKind' => FilterKind::OPERATION,
             'condition_target_name' => 'view_column_target',
             'condition_key_name' => 'operation_update_type',
-            'condition_value_name' => 'update_value',
+            'condition_value_name' => 'update_value_text',
             'label' => exmtrans('custom_operation_data.custom_operation_columns'),
             'condition_target_label' => exmtrans('custom_operation_data.view_column_target'),
             'condition_value_label' => exmtrans('custom_operation_data.update_value_text'),
             'conditionCallback' => function($form) use($custom_table) {
-                $form->select('operation_update_type', 'operation_update_type')->required()
+                $form->select('operation_update_type', exmtrans('custom_operation_data.operation_update_type'))->required()
                     ->options(function ($val, $select, $model) use($custom_table) {
                         $data = $select->data();
                         $condition_target = array_get($data, 'view_column_target');
@@ -198,7 +198,21 @@ class CustomOperationDataController extends AdminControllerTableBase
                         if (!isset($item)) {
                             return null;
                         }
+
+                        return collect($item->getOperationUpdateType())->mapWithKeys(function($item){
+                            return [$item['id'] => $item['text']];
+                        });
                     });
+            },
+            'valueCallback' => function($data, $field) use($custom_table) {
+                $condition_target = array_get($data, 'view_column_target');
+
+                $item = ConditionItemBase::getItem($custom_table, $condition_target);
+                if (!isset($item)) {
+                    return null;
+                }
+
+                return $item->getOperationFilterValueChangeField(array_get($data, 'operation_update_type'), $field->getElementName());
             },
         ]);
         

@@ -414,18 +414,6 @@ class CustomViewController extends AdminControllerTableBase
         return $item->getFilterCondition();
     }
     
-    /**
-     * get filter condition
-     */
-    public function getFilterValue(Request $request)
-    {
-        $item = $this->getConditionItem($request, $request->get('target'));
-        if (!isset($item)) {
-            return [];
-        }
-        return $item->getFilterValue($request->get('cond_key'), $request->get('cond_name'));
-    }
-
     protected function getConditionItem(Request $request, $target)
     {
         $item = ConditionItemBase::getItem($this->custom_table, $target);

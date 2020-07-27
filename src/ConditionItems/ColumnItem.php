@@ -55,30 +55,51 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     }
     
     /**
-     * get Update Type Condition
+     * get Operation filter value for field, Call as Ajax
+     */
+    public function getOperationFilterValueAjax($target_key, $target_name, $show_condition_key = true)
+    {
+        $field = $this->getOperationFilterValue($target_key, $target_name, $show_condition_key);
+        if(is_null($field)){
+            return [];
+        }
+        
+        $view = $field->render();
+        return json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
+    }
+    
+    /**
+     * get Operation filter value for field
      */
     public function getOperationFilterValue($target_key, $target_name, $show_condition_key = true)
+    {
+        $field = new ChangeField($this->className, $this->label);
+        $field->rules([new ChangeFieldRule($this->custom_table, $this->label, $this->target)]);
+        $field->adminField(function ($data, $field) use ($target_key, $target_name, $show_condition_key) {
+            return $this->getOperationFilterValueChangeField($target_key, $target_name, $show_condition_key);
+        });
+        $field->setElementName($this->elementName);
+
+        return $field;
+    }
+
+    
+    /**
+     * get Operation filter value for field
+     */
+    public function getOperationFilterValueChangeField($target_key, $target_name, $show_condition_key = true)
     {
         $item = $this->getFormColumnItem();
         $options = Enums\OperationValueType::getOperationValueOptions($target_key, $item->getCustomColumn());
         
         if(empty($options)){
-            return $this->getFilterValue($target_key, $target_name, $show_condition_key);
+            return $this->getChangeField($target_key, $show_condition_key);
         }
 
-        // system update, set select items
-        $field = new ChangeField($this->className, $this->label);
-        $field->rules([new ChangeFieldRule($this->custom_table, $this->label, $this->target)]);
-        $field->adminField(function () use ($target_key, $show_condition_key, $options) {
-            $field = new Field\Select($this->elementName, [$this->label]);
-            $field->options($options);
-            
-            return $field;
-        });
-        $field->setElementName($this->elementName);
+        $field = new Field\Select($this->elementName, [$this->label]);
+        $field->options($options);
 
-        $view = $field->render();
-        return json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
+        return $field;
     }
     
     /**

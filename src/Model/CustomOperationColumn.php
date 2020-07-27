@@ -8,9 +8,11 @@ class CustomOperationColumn extends ModelBase
     use Traits\ClearCacheTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+    use Traits\DatabaseJsonOptionTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target', 'update_value'];
+    protected $appends = ['view_column_target', 'update_value', 'operation_update_type'];
+    protected $casts = ['options' => 'json'];
     
     public function custom_operation()
     {
@@ -64,6 +66,16 @@ class CustomOperationColumn extends ModelBase
         } else {
             $this->update_value_text = $update_value;
         }
+    }
+
+    public function getOperationUpdateTypeAttribute()
+    {
+        return $this->getOption('operation_update_type');
+    }
+    
+    public function setOperationUpdateTypeAttribute($operation_update_type)
+    {
+        return $this->setOption('operation_update_type', $operation_update_type);
     }
 
     /**

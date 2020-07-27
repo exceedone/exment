@@ -152,10 +152,24 @@ abstract class ConditionItemBase
     /**
      * get filter value
      */
+    public function getFilterValueAjax($target_key, $target_name, $show_condition_key = true)
+    {
+        $field = $this->getFilterValue($target_key, $target_name, $show_condition_key);
+        if(is_null($field)){
+            return [];
+        }
+        
+        $view = $field->render();
+        return json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
+    }
+
+    /**
+     * get filter value
+     */
     public function getFilterValue($target_key, $target_name, $show_condition_key = true)
     {
         if (is_nullorempty($this->target) || is_nullorempty($target_key) || is_nullorempty($target_name)) {
-            return [];
+            return null;
         }
 
         $field = new ChangeField($this->className, $this->label);
@@ -165,8 +179,7 @@ abstract class ConditionItemBase
         });
         $field->setElementName($this->elementName);
 
-        $view = $field->render();
-        return json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
+        return $field;
     }
 
     protected function getFilterOptionConditon()

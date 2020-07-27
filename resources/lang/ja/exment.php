@@ -1288,14 +1288,15 @@ return [
         'custom_operation_conditions' => '更新条件',
         'description_custom_operation_columns' => 'データ更新の対象列と更新値を設定します。',
         'view_column_target' => '対象列',
+        'operation_update_type' => '更新の種類',
         'update_value_text' => '更新値',
 
         'operation_type_options' => [
             'bulk_update' => '一括更新時',
             'button' => 'ボタン押下時',
-            'create' => '新規作成時',
-            'update' => '更新時',
-            'notified' => '通知送信時',
+            'create' => 'データ新規作成時',
+            'update' => 'データ更新時',
+            //'notified' => '通知送信時',
         ],
         'operation_update_type_options' => [
             'default' => '固定値',
