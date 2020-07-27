@@ -197,7 +197,7 @@ class CustomOperationController extends AdminControllerTableBase
                         $condition_target = array_get($data, 'view_column_target');
 
                         $item = ConditionItemBase::getItem($custom_table, $condition_target);
-                        if (!isset($item)) {
+                        if (is_null($item)) {
                             return null;
                         }
 
@@ -210,7 +210,7 @@ class CustomOperationController extends AdminControllerTableBase
                 $condition_target = array_get($data, 'view_column_target');
 
                 $item = ConditionItemBase::getItem($custom_table, $condition_target);
-                if (!isset($item)) {
+                if (is_null($item)) {
                     return null;
                 }
 

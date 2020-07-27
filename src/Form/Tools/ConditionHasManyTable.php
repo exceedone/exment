@@ -169,7 +169,7 @@ class ConditionHasManyTable
                     $condition_target = array_get($data, $condition_target_name);
 
                     $item = ConditionItemBase::getItem($this->custom_table, $condition_target);
-                    if (!isset($item)) {
+                    if (is_null($item)) {
                         return null;
                     }
                     $item->filterKind($filterKind);
@@ -206,6 +206,9 @@ class ConditionHasManyTable
                             return null;
                         }
                         $item = ConditionItemBase::getItem($this->custom_table, array_get($data, $condition_target_name));
+                        if (is_null($item)) {
+                            return null;
+                        }
                         $item->filterKind($this->filterKind);
 
                         $item->setElement($field->getElementName(), $condition_value_name, $label);

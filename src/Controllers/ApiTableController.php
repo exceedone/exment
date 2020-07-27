@@ -113,7 +113,7 @@ class ApiTableController extends AdminControllerTableBase
     protected function getConditionItem(Request $request, $target, $filterKind = null)
     {
         $item = ConditionItemBase::getItem($this->custom_table, $target);
-        if (!isset($item)) {
+        if (is_null($item)) {
             return null;
         }
 
