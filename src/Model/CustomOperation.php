@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums;
+
 class CustomOperation extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
@@ -151,19 +153,58 @@ class CustomOperation extends ModelBase
      * execute update operation 
      *
      * @param CustomTable $custom_table
-     * @param int $id
+     * @param int|string $id signle id or id string
      * @return bool success or not
      */
     public function execute($custom_table, $id) {
-        $model = $custom_table->getValueModel()->find($id);
+        $ids = stringToArray($id);
+        $custom_values = $custom_table->getValueModel()->find($ids);
 
-        $updates = collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) {
-            $column_name= 'value->'.$operation_column->custom_column->column_name;
-            return [$column_name => $operation_column['update_value_text']];
-        })->toArray();
+        // check isMatchCondition
+        $notMatchConditions = $custom_values->filter(function($custom_value){
+            return !$this->isMatchCondition($custom_value);
+        });
+        if($notMatchConditions->count() > 0){
+            $label = $notMatchConditions->map(function($notMatchCondition){
+                return $notMatchCondition->getLabel();
+            })->implode(exmtrans('common.separate_word'));
 
-        $model->update($updates);
+            return getAjaxResponse([
+                'result'  => false,
+                'swal' => exmtrans('common.error'),
+                'swaltext' => exmtrans('custom_value.message.operation_contains_notmatch_condition', $label),
+            ]);
+        }
+
+        // Update value
+        foreach($custom_values as $custom_value){
+            $updates = $this->getUpdateValues($custom_value);
+            $custom_value->update($updates);    
+        }
 
         return true;
+    }
+
+    /**
+     * Get update values. Convert update_value, or set system value.
+     *
+     * @param CustomValue $model
+     * @return array "value"'s array.
+     */
+    protected function getUpdateValues($model){
+        return collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) {
+            $custom_column = $operation_column->custom_column;
+            if(is_nullorempty($custom_column)){
+                return null;
+            }
+            $column_name = 'value->'.$custom_column->column_name;
+
+            // if update as system value, set system
+            if(Enums\ColumnType::isOperationEnableSystem($custom_column->column_type) && isMatchString($operation_column->operation_update_type, Enums\OperationUpdateType::SYSTEM)){
+                return [$column_name => Enums\OperationValueType::getOperationValue($operation_column['update_value_text'])];
+            }
+
+            return [$column_name => $operation_column['update_value_text']];
+        })->toArray();
     }
 }

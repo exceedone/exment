@@ -137,7 +137,7 @@ abstract class ConditionItemBase
     public function getOperationUpdateType()
     {
         return collect([Enums\OperationUpdateType::DEFAULT])->map(function ($val) {
-            return ['id' => $val, 'text' => exmtrans('custom_operation_data.operation_update_type_options.'.$val)];
+            return ['id' => $val, 'text' => exmtrans('custom_operation.operation_update_type_options.'.$val)];
         });
     }
     
@@ -184,7 +184,7 @@ abstract class ConditionItemBase
 
     protected function getFilterOptionConditon()
     {
-        return array_get($this->filterKind == FilterKind::VIEW ? FilterOption::FILTER_OPTIONS() : FilterOption::FILTER_CONDITION_OPTIONS(), FilterType::CONDITION);
+        return array_get(FilterOption::FILTER_OPTIONS(), FilterType::CONDITION);
     }
 
     /**

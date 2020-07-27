@@ -84,6 +84,13 @@ class FilterOption extends EnumBase
         }
     }
 
+    
+    /**
+     * Get option for condition.
+     * For use view.
+     *
+     * @return array
+     */
     public static function FILTER_OPTIONS()
     {
         return [
@@ -154,62 +161,6 @@ class FilterOption extends EnumBase
             FilterType::WORKFLOW_WORK_USER => [
                 ['id' => static::USER_EQ_USER, 'name' => 'eq-user'],
                 ['id' => static::USER_EQ, 'name' => 'eq'],
-            ],
-            FilterType::CONDITION => [
-                ['id' => static::EQ, 'name' => 'eq'],
-            ],
-            FilterType::COMPARE => [
-                ['id' => static::EQ, 'name' => 'eq'],
-                ['id' => static::NE, 'name' => 'ne'],
-                ['id' => static::COMPARE_GT, 'name' => 'gt'],
-                ['id' => static::COMPARE_LT, 'name' => 'lt'],
-                ['id' => static::COMPARE_GTE, 'name' => 'gte'],
-                ['id' => static::COMPARE_LTE, 'name' => 'lte'],
-            ],
-        ];
-    }
-    
-    /**
-     * Get option for condition
-     *
-     * @return array
-     */
-    public static function FILTER_CONDITION_OPTIONS()
-    {
-        return [
-            FilterType::DEFAULT => [
-                ['id' => static::EQ, 'name' => 'eq'],
-                ['id' => static::NE, 'name' => 'ne'],
-            ],
-            FilterType::NUMBER => [
-                ['id' => static::EQ, 'name' => 'eq'],
-                ['id' => static::NE, 'name' => 'ne'],
-                ['id' => static::NUMBER_GT, 'name' => 'gt'],
-                ['id' => static::NUMBER_LT, 'name' => 'lt'],
-                ['id' => static::NUMBER_GTE, 'name' => 'gte'],
-                ['id' => static::NUMBER_LTE, 'name' => 'lte'],
-            ],
-            FilterType::SELECT => [
-                ['id' => static::SELECT_EXISTS, 'name' => 'select-eq'],
-                ['id' => static::SELECT_NOT_EXISTS, 'name' => 'select-ne'],
-            ],
-            FilterType::FILE => [
-            ],
-            FilterType::DAY => [
-                ['id' => static::DAY_ON, 'name' => 'on'],
-                ['id' => static::DAY_ON_OR_AFTER, 'name' => 'on-or-after'],
-                ['id' => static::DAY_ON_OR_BEFORE, 'name' => 'on-or-before'],
-            ],
-            FilterType::USER => [
-                ['id' => static::USER_EQ, 'name' => 'eq'],
-                ['id' => static::USER_NE, 'name' => 'ne'],
-            ],
-            FilterType::WORKFLOW => [
-                ['id' => static::EQ, 'name' => 'eq'],
-                ['id' => static::NE, 'name' => 'ne'],
-            ],
-            FilterType::WORKFLOW_WORK_USER => [
-                ['id' => static::USER_EQ_USER, 'name' => 'eq-user'],
             ],
             FilterType::CONDITION => [
                 ['id' => static::EQ, 'name' => 'eq'],

@@ -50,7 +50,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         }
         
         return collect(Enums\OperationUpdateType::values())->map(function ($val) {
-            return ['id' => $val->lowerkey(), 'text' => exmtrans('custom_operation_data.operation_update_type_options.'.$val->lowerkey())];
+            return ['id' => $val->lowerkey(), 'text' => exmtrans('custom_operation.operation_update_type_options.'.$val->lowerkey())];
         });
     }
     
@@ -93,10 +93,10 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         $options = Enums\OperationValueType::getOperationValueOptions($target_key, $item->getCustomColumn());
         
         if(empty($options)){
-            return $this->getChangeField($target_key, $show_condition_key);
+            return $this->getChangeField(null, $show_condition_key);
         }
 
-        $field = new Field\Select($this->elementName, [$this->label]);
+        $field = new Field\Select($this->elementName, [exmtrans('custom_operation.update_value_text')]);
         $field->options($options);
 
         return $field;

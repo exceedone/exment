@@ -399,9 +399,11 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function operationClick(Request $request, $tableKey, $id = null)
     {
+        $id = !is_nullorempty($id) ? $id : $request->input('id');
         if ($request->input('suuid') === null) {
             abort(404);
         }
+
         // get custom operation
         $operation = CustomOperation::where('suuid', $request->input('suuid'))->first();
         if (!isset($operation)) {
@@ -414,6 +416,9 @@ class CustomValueController extends AdminControllerTableBase
         
         if ($response === false) {
             return getAjaxResponse(false);
+        }
+        elseif ($response instanceof Response) {
+            return $response;
         }
 
         return getAjaxResponse([

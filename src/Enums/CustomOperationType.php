@@ -9,14 +9,4 @@ class CustomOperationType extends EnumBase
     public const CREATE = 'create';
     public const UPDATE = 'update';
     //public const NOTIFIED = 'notified';
-
-    public static function OPERATION_TYPE_DATA()
-    {
-        return [
-            CustomOperationType::BUTTON,
-            CustomOperationType::CREATE,
-            CustomOperationType::UPDATE,
-            //CustomOperationType::NOTIFIED,
-        ];
-    }
 }

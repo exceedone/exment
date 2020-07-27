@@ -24,18 +24,18 @@ class BatchUpdate extends BatchAction
     public function script()
     {
         $url = url($this->resource);
-        $operation_id = $this->operation->id;
+        $suuid = $this->operation->suuid;
 
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
 
-        $label = $this->operation->operation_name;
+        $label = $this->operation->getOption('button_label') ?? $this->operation->operation_name;
         $text = exmtrans('common.message.confirm_execute', exmtrans('custom_operation.custom_operation'));
 
         return <<<EOT
 
 $('{$this->getElementClass()}').on('click', function() {
-    var url = '{$url}/{$operation_id}/rowUpdate/' + $.admin.grid.selected().join();
+    var url = '{$url}/operationClick';
     Exment.CommonEvent.ShowSwal(url, {
         title: "$label",
         confirm:"$confirm",
@@ -43,7 +43,9 @@ $('{$this->getElementClass()}').on('click', function() {
         text:"$text",
         data: {
             _method:'post',
-            _token:'{$this->getToken()}'
+            _token:'{$this->getToken()}',
+            suuid: '$suuid',
+            id: $.admin.grid.selected().join(),
         },
     });
 });

@@ -41,7 +41,7 @@ class OperationButton
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
 
-        $text = esc_html(sprintf(exmtrans('common.message.confirm_execute'), ($label ?? exmtrans('change_page_menu.custom_operation_data'))));
+        $text = esc_html(sprintf(exmtrans('common.message.confirm_execute'), ($label ?? exmtrans('change_page_menu.custom_operation'))));
         $operation_type = $this->operation_type;
         return <<<EOT
 

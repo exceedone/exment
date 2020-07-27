@@ -23,7 +23,7 @@ class ExternalCustomOperation extends Migration
         if(Schema::hasTable('custom_operation_columns')){
             Schema::table('custom_operation_columns', function (Blueprint $table) {
                 if (!Schema::hasColumn('custom_operation_columns', 'options')) {
-                    $table->json('options')->nullable();
+                    $table->json('options')->after('update_value_text')->nullable();
                 }
             });
         }

@@ -503,41 +503,6 @@ class DefaultGrid extends GridBase
         return $service;
     }
 
-    /**
-     * update read_flg when row checked
-     *
-     * @param mixed   $id
-     */
-    public function rowUpdate(Request $request, $tableKey = null, $id = null, $rowid = null)
-    {
-        if (!isset($id) || !isset($rowid)) {
-            abort(404);
-        }
-
-        $operation = CustomOperation::with(['custom_operation_columns'])->find($id);
-
-        $models = $this->custom_table->getValueModel()->query()->whereIn('id', explode(',', $rowid));
-
-        if (!isset($models) || $models->count() == 0) {
-            return getAjaxResponse([
-                'result'  => false,
-                'toastr' => exmtrans('custom_value.message.operation_notfound'),
-            ]);
-        }
-
-        $updates = collect($operation->custom_operation_columns)->mapWithKeys(function ($operation_column) {
-            $column_name= 'value->'.$operation_column->custom_column->column_name;
-            return [$column_name => $operation_column['update_value_text']];
-        })->toArray();
-
-        $models->update($updates);
-        
-        return getAjaxResponse([
-            'result'  => true,
-            'toastr' => exmtrans('custom_value.message.operation_succeeded'),
-        ]);
-    }
-    
     public function renderModalFrame()
     {
         // get target column id or class
