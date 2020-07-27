@@ -251,7 +251,8 @@ class CustomOperationController extends AdminControllerTableBase
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('operation', $custom_table));
         });
-        
+        $form->disableEditingCheck(false);
+
         return $form;
     }
 

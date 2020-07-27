@@ -169,7 +169,7 @@ class ChangeField extends Field
     protected function script()
     {
         $ajax = $this->ajax;
-        $filterKind = $this->filterKind?? FilterKind::VIEW;
+        $filterKind = $this->filterKind ?? FilterKind::VIEW;
         $eventTriggerSelector = $this->eventTriggerSelector;
         $eventTargetSelector = $this->eventTargetSelector;
         $showConditionKey = $this->showConditionKey;

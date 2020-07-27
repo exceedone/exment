@@ -347,8 +347,9 @@ abstract class CustomValue extends ModelBase
         parent::boot();
 
         static::saving(function ($model) {
-            // re-get field data --------------------------------------------------
-            $model->prepareValue();
+            $events = $model->exists ? CustomOperationType::UPDATE : CustomOperationType::CREATE;
+            // call create or update trigger operations
+            CustomOperation::operationExecuteEvent($events, $model);
 
             // call saving trigger plugins
             Plugin::pluginExecuteEvent(PluginEventTrigger::SAVING, $model->custom_table, [
@@ -356,9 +357,8 @@ abstract class CustomValue extends ModelBase
                 'custom_value' => $model,
             ]);
 
-            $events = $model->exists? CustomOperationType::UPDATE: CustomOperationType::CREATE;
-            // call create or update trigger operations
-            CustomOperation::operationExecuteEvent($events, $model);
+            // re-get field data --------------------------------------------------
+            $model->prepareValue();
 
             // prepare revision
             $model->preSave();

@@ -1278,7 +1278,7 @@ return [
         'update_value_text' => '更新値',
 
         'operation_type_options' => [
-            'bulk_update' => '一覧画面のチェック選択時',
+            'bulk_update' => '一覧画面のチェックボタン選択時',
             'button' => 'データ詳細画面のボタン押下時',
             'create' => 'データ新規作成時',
             'update' => 'データ更新時',
