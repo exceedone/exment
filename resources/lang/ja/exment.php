@@ -1246,6 +1246,7 @@ return [
 
         'message' => [
             'no_exists_column' => '必須項目が設定されていません。',
+            'confirm_required' => '必須項目が設定されていません。このまま保存してもよろしいでしょうか？',
         ],
     ],
 
