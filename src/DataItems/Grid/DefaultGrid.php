@@ -337,7 +337,9 @@ class DefaultGrid extends GridBase
                 // if cannot edit, disable delete and update operations
                 if ($this->custom_table->enableEdit() === true) {
                     foreach ($this->custom_table->custom_operations as $custom_operation) {
-                        $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                        if($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)){
+                            $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                        }
                     }
                 } else {
                     $batch->disableDelete();

@@ -42,7 +42,7 @@ class OperationButton
         $cancel = trans('admin.cancel');
 
         $text = esc_html(sprintf(exmtrans('common.message.confirm_execute'), ($label ?? exmtrans('change_page_menu.custom_operation'))));
-        $operation_type = $this->operation_type;
+        $operation_type = arrayToString($this->operation_type);
         return <<<EOT
 
         $('#menu_button_$suuid').off('click').on('click', function(){

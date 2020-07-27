@@ -180,7 +180,7 @@ class CustomOperation extends ModelBase
         }
 
         // Update value
-        \DB::transaction(function () {
+        \DB::transaction(function () use($custom_values) {
             foreach ($custom_values as $custom_value) {
                 $updates = $this->getUpdateValues($custom_value);
                 $custom_value->update($updates);
