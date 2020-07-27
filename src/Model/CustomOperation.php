@@ -91,8 +91,11 @@ class CustomOperation extends ModelBase
     {
         $operation_types = toArray($operation_types);
 
+        // if contains setting's $this->operation_type
         return collect($operation_types)->contains(function ($value, $key) {
-            return $value == $this->operation_type;
+            return collect($this->operation_type)->contains(function($o) use($value){
+                return isMatchString($value, $o);
+            });
         });
     }
 

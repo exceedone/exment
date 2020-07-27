@@ -14,7 +14,7 @@ class OperationValueType extends EnumBase
             return [];
         }
 
-        if(ColumnType::isDate($custom_column->column_type)){
+        if(ColumnType::isDateTime($custom_column->column_type)){
             return [static::EXECUTE_DATETIME => exmtrans('custom_operation.operation_value_type_options.execute_datetime')];
         }
         if(isMatchString($custom_column->column_type, ColumnType::USER)){
