@@ -49,6 +49,7 @@ class CustomFormPriorityController extends AdminControllerTableBase
                 'include_condition' => true,
                 'include_system' => false,
                 'ignore_attachment' => true,
+                'include_form_type' => true,
             ]),
             'custom_table' => $custom_table,
             'filterKind' => FilterKind::FORM,

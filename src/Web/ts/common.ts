@@ -229,6 +229,7 @@ namespace Exment {
                     redirect: null,
                     preConfirmValidate: null,
                     showCancelButton: true,
+                    confirmCallback: null,
                 },
                 options
             );
@@ -298,6 +299,10 @@ namespace Exment {
 
             swal(swalOptions)
                 .then(function(result) {
+                    if(hasValue(options.confirmCallback)){
+                        options.confirmCallback(result);
+                        return;
+                    }
                     var data = result.value;
                     if (typeof data === 'object' && hasValue(data.message)) {
                         let message = data.message;

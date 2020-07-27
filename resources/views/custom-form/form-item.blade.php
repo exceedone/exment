@@ -115,6 +115,6 @@
         {{ Form::hidden("", $custom_form_column['form_column_type'], ['class' => 'form_column_type', 'disabled' => 'disabled']) }}
         {{ Form::hidden("", $custom_form_column['form_column_target_id'], ['class' => 'form_column_target_id', 'disabled' => 'disabled']) }}
         {{ Form::hidden("", $custom_form_column['header_column_name'], ['class' => 'header_column_name', 'disabled' => 'disabled']) }}
-        {{ Form::hidden("", $custom_form_column['required'], ['class' => 'header_column_name', 'disabled' => 'disabled']) }}
+        {{ Form::hidden("", $custom_form_column['required'], ['class' => 'required', 'disabled' => 'disabled']) }}
     </li>    
 @endif

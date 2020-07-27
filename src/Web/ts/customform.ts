@@ -18,7 +18,7 @@ namespace Exment {
             CustomFromEvent.addCollapseEvent();
             CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
             CustomFromEvent.appendIcheckEvent($('.icheck:visible,.icheck.icheck_hasmany_type'));
-            $('form').on('submit', CustomFromEvent.ignoreSuggests);
+            $('form').on('submit', CustomFromEvent.formSubmitEvent);
         }
 
         public static AddEventOnce() {
@@ -252,6 +252,43 @@ namespace Exment {
             var header_column_name = $li.find('.header_column_name').val() as string;
             return header_name + header_column_name;
         }
+
+        private static formSubmitEvent = () => {
+            // loop "custom_form_block_available" is 1
+            let hasRequire = false;
+            if(!$('form.custom_form_form').hasClass('confirmed')){
+                $('.custom_form_block_available').filter('[value="1"]').each(function(index, elem){
+                    let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests li');
+                    // if required value is 1, hasRequire is true and break
+                    $suggests.each(function(i, e){
+                        if($(e).find('.required').val() == '1'){
+                            hasRequire = true;
+                            return false;
+                        }
+                    })
+                });
+            }
+
+            if(!hasRequire){
+                CustomFromEvent.ignoreSuggests();
+                return true;
+            }
+
+            // if has require, show swal
+            CommonEvent.ShowSwal(null, {
+                title: $('#cofirm_required_title').val(),
+                text: $('#cofirm_required_text').val(),
+                confirmCallback: function(result){
+                    console.log(result);
+                    if(pBool(result.value)){
+                        $('form.custom_form_form').addClass('confirmed').submit();
+                    }
+                },
+            });
+
+            return false;
+        }
+        
 
         private static ignoreSuggests = () => {
             $('.custom_form_column_suggests,.template_item_block').find('input,textarea,select').attr('disabled', 'disabled');
