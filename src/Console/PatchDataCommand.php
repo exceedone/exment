@@ -1187,7 +1187,7 @@ class PatchDataCommand extends Command
             ->get()
             ->each(function($custom_operation){
                 $custom_operation->update([
-                    'operation_type' => Enums\CustomOperationType::BULK_UPDATE,
+                    'operation_type' => [Enums\CustomOperationType::BULK_UPDATE],
                     'options' => ['button_label' => $custom_operation->operation_name],
                 ]);
 
