@@ -31,7 +31,13 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceTableActions, CustomValueForm;
+    use CustomValueForm;
+
+    use HasResourceTableActions{
+        HasResourceTableActions::update as updateTrait;
+        HasResourceTableActions::store as storeTrait;
+        HasResourceTableActions::destroy as destroyTrait;
+    }
 
     const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
     const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
@@ -51,6 +57,36 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
+    }
+    
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update($tableKey, $id)
+    {
+        $request = request();  
+        if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
+            return $response;
+        }
+        return $this->updateTrait($tableKey, $id);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @return mixed
+     */
+    public function store()
+    {
+        $request = request();
+        if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
+            return $response;
+        }
+        return $this->storeTrait();
     }
 
     /**
