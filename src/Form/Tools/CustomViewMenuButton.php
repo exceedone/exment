@@ -12,6 +12,9 @@ class CustomViewMenuButton extends ModalTileMenuButton
 
     protected $addMenuList = true;
 
+    // this views items, if already get, set this params. if this value is null, not init items.
+    protected $items = null;
+
     public function __construct($custom_table, $current_custom_view = null, $addMenuList = true)
     {
         $this->custom_table = $custom_table;
@@ -110,15 +113,17 @@ class CustomViewMenuButton extends ModalTileMenuButton
         $setMenuFunc(exmtrans('custom_view.custom_view_type_options.system'), $systemviews, $menulist);
         $setMenuFunc(exmtrans('custom_view.custom_view_type_options.user'), $userviews, $menulist);
 
-
-        $menulist[] = [
-            'header' => true,
-            'label' => trans('admin.setting'),
-        ];
-        $menulist[] = [
-            'label' => exmtrans('custom_view.custom_view_menulist.setting'),
-            'isHtml' => true,
-        ];
+        // get menu setting only has items.
+        if(!is_nullorempty($this->getItems())){
+            $menulist[] = [
+                'header' => true,
+                'label' => trans('admin.setting'),
+            ];
+            $menulist[] = [
+                'label' => exmtrans('custom_view.custom_view_menulist.setting'),
+                'isHtml' => true,
+            ];
+        }
 
         $this->menulist = $menulist;
 
@@ -144,6 +149,10 @@ class CustomViewMenuButton extends ModalTileMenuButton
 
     protected function getItems()
     {
+        if(!is_null($this->items)){
+            return $this->items;
+        }
+
         $items = [];
 
         //role check
@@ -197,6 +206,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
             }
         }
 
+        $this->items = $items;
         return $items;
     }
 }
