@@ -175,6 +175,7 @@ class Define
     public const SYSTEM_KEY_SESSION_GRID_AUTHORITABLE = "grid_authoritable_%s";
     public const SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE = "accessible_table_%s_%s";
     public const SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG = "disable_data_url_tag";
+    public const SYSTEM_KEY_SESSION_FORM_DATA_TYPE = "form_data_type";
 
     /**
      * MENU SYSTEM DIFINITION

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -1814,6 +1815,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_workflow' => false,
                 'include_workflow_work_users' => false,
                 'include_condition' => false,
+                'include_form_type' => false,
                 'ignore_attachment' => false,
             ],
             $selectOptions
@@ -1822,6 +1824,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $options = [];
         
+        if ($include_form_type) {
+            $this->setColumnOptions(
+                $options,
+                [],
+                null,
+                [
+                    'include_system' => false,
+                    'include_form_type' => true,
+                ]
+            );
+        }
         if ($include_condition) {
             $this->setColumnOptions(
                 $options,
@@ -1957,6 +1970,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_workflow' => false,
                 'include_workflow_work_users' => false,
                 'include_condition' => false,
+                'include_form_type' => false,
                 'table_view_name' => null,
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
@@ -1996,13 +2010,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         if ($include_condition) {
-            foreach (ConditionTypeDetail::toArray() as $key => $value) {
-                if (in_array($value, [ConditionTypeDetail::COLUMN, ConditionTypeDetail::SYSTEM])) {
-                    continue;
-                }
-                $array[$key] = strtolower($key);
+            foreach (ConditionTypeDetail::CONDITION_OPTIONS() as $key => $enum) {
+                $array[$enum->getKey()] = $enum->lowerKey();
             }
-            $options = getTransArrayValue($array, 'condition.condition_type_options');
+            $options = array_merge(getTransArrayValue($array, 'condition.condition_type_options'), $options);
+        }
+        if ($include_form_type) {
+            $options = array_merge([ConditionTypeDetail::FORM()->getKey() => exmtrans('condition.condition_type_options.form')], $options);
         }
 
         if ($include_column) {

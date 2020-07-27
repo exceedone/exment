@@ -8,6 +8,8 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
@@ -737,7 +739,7 @@ class CustomValueController extends AdminControllerTableBase
             return back();
         }
 
-        $this->setFormViewInfo($request, $id);
+        $this->setFormViewInfo($request, $formActionType, $id);
  
         // id set, checking as update.
         // check for update
@@ -822,10 +824,16 @@ class CustomValueController extends AdminControllerTableBase
      * set view and form info.
      * use session etc
      */
-    protected function setFormViewInfo(Request $request, $id = null)
+    protected function setFormViewInfo(Request $request, $formActionType, $id = null)
     {
         // set view
         $this->custom_view = CustomView::getDefault($this->custom_table);
+
+        // set form data type for form priority
+        $form_data_type = CustomValuePageType::getFormDataType($formActionType);
+        if(isset($form_data_type)){
+            System::setRequestSession(Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, $form_data_type);
+        }
 
         // set form
         $this->custom_form = $this->custom_table->getPriorityForm($id);

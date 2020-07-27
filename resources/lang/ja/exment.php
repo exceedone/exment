@@ -1950,6 +1950,7 @@ return [
             'role' => '役割グループ',
             'system' => 'システム',
             'column' => '列の値',
+            'form' => '画面の種類',
         ],
         'condition_key_options' => [
             'eq' => '',
@@ -1962,6 +1963,11 @@ return [
             'day_on_or_before' => '以前',
         ],
 
+        'form_data_type_options' => [
+            'show' => 'データ詳細画面',
+            'create' => 'データ新規作成画面',
+            'edit' => 'データ編集画面',
+        ],
         'condition_join_options' => [
             'and' => 'すべての条件に一致',
             'or' => 'いずれかの条件に一致',
