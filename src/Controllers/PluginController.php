@@ -145,6 +145,12 @@ class PluginController extends AdminControllerBase
     //Check request when edit record to delete null values in event_triggers
     protected function update(Request $request, $id)
     {
+        $plugin = Plugin::getEloquent($id);
+        if (!$plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+            Checker::error();
+            return false;
+        }
+        
         if (isset($request->get('options')['event_triggers']) === true) {
             $event_triggers = $request->get('options')['event_triggers'];
             $options = $request->get('options');
