@@ -13,6 +13,7 @@ use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 
 class SummaryGrid extends GridBase
@@ -161,7 +162,7 @@ class SummaryGrid extends GridBase
                     if (is_null($view_column_target = array_get($data, 'view_column_target'))) {
                         return [];
                     }
-                    return collect($controller->_getGroupCondition($view_column_target))->pluck('text', 'id')->toArray();
+                    return collect(SummaryGrid::getGroupCondition($view_column_target))->pluck('text', 'id')->toArray();
                 });
 
             $form->select('sort_order', exmtrans("custom_view.sort_order"))
@@ -216,4 +217,32 @@ class SummaryGrid extends GridBase
         // filter setting
         static::setFilterFields($form, $custom_table, true);
     }
+
+    
+    /**
+     * get group condition
+     */
+    public static function getGroupCondition($view_column_target = null)
+    {
+        if (!isset($view_column_target)) {
+            return [];
+        }
+
+        // get column item from $view_column_target
+        $columnItem = CustomViewColumn::getColumnItem($view_column_target);
+        if (!isset($columnItem)) {
+            return [];
+        }
+
+        if (!$columnItem->isDate()) {
+            return [];
+        }
+
+        // if date, return option
+        $options = GroupCondition::getOptions();
+        return collect($options)->map(function ($array) {
+            return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.group_condition_options.'.array_get($array, 'name'))];
+        });
+    }
+
 }
