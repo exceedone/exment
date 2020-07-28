@@ -38,7 +38,7 @@ trait ExtendedBuilderTrait
      */
     public function whereInMultiple(array $columns, $values, bool $zeroQueryIfEmpty = false)
     {
-        if(boolval($zeroQueryIfEmpty) && empty($values)){
+        if (boolval($zeroQueryIfEmpty) && empty($values)) {
             return $this->whereRaw('1 = 0');
         }
 

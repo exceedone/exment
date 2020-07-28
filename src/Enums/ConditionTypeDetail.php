@@ -25,7 +25,8 @@ class ConditionTypeDetail extends EnumBase
     const FORM = "5";
     const COLUMN = "9";
 
-    public static function CONDITION_OPTIONS(){
+    public static function CONDITION_OPTIONS()
+    {
         return [
             static::USER(),
             static::ORGANIZATION(),

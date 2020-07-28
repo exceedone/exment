@@ -71,7 +71,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function update($tableKey, $id)
     {
-        $request = request();  
+        $request = request();
         if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
             return $response;
         }
@@ -454,8 +454,7 @@ class CustomValueController extends AdminControllerTableBase
         
         if ($response === false) {
             return getAjaxResponse(false);
-        }
-        elseif ($response instanceof Response) {
+        } elseif ($response instanceof Response) {
             return $response;
         }
 
@@ -903,7 +902,7 @@ class CustomValueController extends AdminControllerTableBase
 
         // set form data type for form priority
         $form_data_type = CustomValuePageType::getFormDataType($formActionType);
-        if(isset($form_data_type)){
+        if (isset($form_data_type)) {
             System::setRequestSession(Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, $form_data_type);
         }
 

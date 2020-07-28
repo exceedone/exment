@@ -129,9 +129,9 @@ class Plugin extends ModelBase
      * Get plugin by custom_table name
      * Where active_flg = 1 and target_tables contains custom_table id
      * Filtering only accessible.
-     * 
+     *
      * @param CustomTable $custom_table
-     * @param bool $filterAccessible 
+     * @param bool $filterAccessible
      * @return mixed
      */
     public static function getPluginsByTable($custom_table, $filterAccessible = true)
@@ -403,7 +403,7 @@ class Plugin extends ModelBase
 
     /**
      * get plugins for import
-     * 
+     *
      * @param CustomTable $custom_table
      * @return array
      */

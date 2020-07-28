@@ -1248,6 +1248,7 @@ return [
 
         'message' => [
             'no_exists_column' => 'Required items have not been set.',
+            'confirm_required' => 'Required items are not set. Are you sure you want to save it as it is?',
         ],
     ],
 
@@ -1984,6 +1985,7 @@ return [
             'role' => 'Role',
             'system' => 'System',
             'column' => 'Custom Column',
+            'form' => 'Display type',
         ],
         'condition_key_options' => [
             'eq' => '',
@@ -1994,6 +1996,12 @@ return [
             'number_lte' => 'Less Than or Equal',
             'day_on_or_after' => 'After',
             'day_on_or_before' => 'Before',
+        ],
+
+        'form_data_type_options' => [
+            'show' => 'Data Detail',
+            'create' => 'Data Creation',
+            'edit' => 'Data Edit',
         ],
 
         'condition_join_options' => [

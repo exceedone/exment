@@ -44,11 +44,12 @@ class CalendarGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
-    public static function setViewForm($view_kind_type, $form, $custom_table){
+    public static function setViewForm($view_kind_type, $form, $custom_table)
+    {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
         
         // columns setting
-        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use($custom_table) {
+        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_start_date"))
                 ->required()
                 ->options($custom_table->getDateColumnsSelectOptions());

@@ -11,7 +11,6 @@ use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
@@ -337,7 +336,7 @@ class DefaultGrid extends GridBase
                 // if cannot edit, disable delete and update operations
                 if ($this->custom_table->enableEdit() === true) {
                     foreach ($this->custom_table->custom_operations as $custom_operation) {
-                        if($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)){
+                        if ($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)) {
                             $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
                         }
                     }
@@ -574,7 +573,8 @@ class DefaultGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
-    public static function setViewForm($view_kind_type, $form, $custom_table){
+    public static function setViewForm($view_kind_type, $form, $custom_table)
+    {
         if (in_array($view_kind_type, [Enums\ViewKindType::DEFAULT, Enums\ViewKindType::ALLDATA])) {
             $form->select('pager_count', exmtrans("common.pager_count"))
                 ->required()
@@ -586,7 +586,7 @@ class DefaultGrid extends GridBase
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
         if ($view_kind_type != Enums\ViewKindType::FILTER) {
             // columns setting
-            $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use($custom_table) {
+            $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                     ->options($custom_table->getColumnsSelectOptions([
                         'append_table' => true,
@@ -606,7 +606,7 @@ class DefaultGrid extends GridBase
         }
 
         // sort setting
-        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use($custom_table){
+        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
             ->options($custom_table->getColumnsSelectOptions([
                 'append_table' => true,

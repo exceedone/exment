@@ -266,7 +266,7 @@ class CustomViewController extends AdminControllerTableBase
         $custom_table = $this->custom_table;
 
         // append model for getting from options
-        $form->editing(function($form){
+        $form->editing(function ($form) {
             $form->model()->append(['pager_count', 'condition_join']);
         });
 
@@ -293,7 +293,7 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $form->saved(function (Form $form) use ($from_data, $custom_table) {
-            if(!is_nullorempty(request()->get('after-save'))){
+            if (!is_nullorempty(request()->get('after-save'))) {
                 return;
             }
 

@@ -15,7 +15,6 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 
-
 class SummaryGrid extends GridBase
 {
     public function __construct($custom_table, $custom_view)
@@ -133,7 +132,8 @@ class SummaryGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
-    public static function setViewForm($view_kind_type, $form, $custom_table){
+    public static function setViewForm($view_kind_type, $form, $custom_table)
+    {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
         
         // group columns setting

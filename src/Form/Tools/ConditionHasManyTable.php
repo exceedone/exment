@@ -179,8 +179,8 @@ class ConditionHasManyTable
                     });
                 });
             }
-            // call closure about condition. Almost use as operation update value. 
-            elseif(!is_null($this->conditionCallback)){
+            // call closure about condition. Almost use as operation update value.
+            elseif (!is_null($this->conditionCallback)) {
                 $func = $this->conditionCallback;
                 $func($form);
             }
@@ -196,12 +196,11 @@ class ConditionHasManyTable
                 ->showConditionKey($this->showConditionKey)
                 ->hasManyTableClass($hasManyTableClass)
                 ->adminField(function ($data, $field) use ($label, $condition_target_name, $condition_key_name, $condition_value_name) {
-                    // call closure about value. Almost use as operation update value. 
-                    if(!is_null($this->valueCallback)){
+                    // call closure about value. Almost use as operation update value.
+                    if (!is_null($this->valueCallback)) {
                         $func = $this->valueCallback;
                         return $func($data, $field);
-                    }
-                    else{
+                    } else {
                         if (is_null($data)) {
                             return null;
                         }
@@ -217,7 +216,6 @@ class ConditionHasManyTable
                     }
                 });
             ;
-
         })->setTableWidth(10, 1);
 
         if ($this->showConditionKey) {

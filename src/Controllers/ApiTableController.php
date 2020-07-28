@@ -150,5 +150,4 @@ class ApiTableController extends AdminControllerTableBase
         }
         return $item->getOperationFilterValueAjax($request->get('cond_key'), $request->get('cond_name'), boolval($request->get('show_condition_key')));
     }
-
 }

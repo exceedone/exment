@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;

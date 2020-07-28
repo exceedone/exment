@@ -41,11 +41,11 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         $isEnableSystem = false;
 
         $item = $this->getFormColumnItem();
-        if(isset($item)){
+        if (isset($item)) {
             $isEnableSystem = ColumnType::isOperationEnableSystem($item->getCustomColumn()->column_type);
         }
 
-        if(!$isEnableSystem){
+        if (!$isEnableSystem) {
             return parent::getOperationUpdateType();
         }
         
@@ -60,7 +60,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     public function getOperationFilterValueAjax($target_key, $target_name, $show_condition_key = true)
     {
         $field = $this->getOperationFilterValue($target_key, $target_name, $show_condition_key);
-        if(is_null($field)){
+        if (is_null($field)) {
             return [];
         }
         
@@ -92,7 +92,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         $item = $this->getFormColumnItem();
         $options = Enums\OperationValueType::getOperationValueOptions($target_key, $item->getCustomColumn());
         
-        if(empty($options)){
+        if (empty($options)) {
             return $this->getChangeField(null, $show_condition_key);
         }
 

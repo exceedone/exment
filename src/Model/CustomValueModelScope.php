@@ -63,7 +63,7 @@ class CustomValueModelScope implements Scope
                 // get only has role
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                 $builder->whereInMultiple(
-                    ['authoritable_user_org_type', 'authoritable_target_id'], 
+                    ['authoritable_user_org_type', 'authoritable_target_id'],
                     $user->getUserAndOrganizationIds($enum),
                     true
                 );

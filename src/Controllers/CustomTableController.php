@@ -246,7 +246,7 @@ class CustomTableController extends AdminControllerBase
             $this->addNotifyAfterSaved($model);
         });
 
-        if($id != null){
+        if ($id != null) {
             $form->disableEditingCheck(false);
         }
         $form->saved(function (Form $form) {
@@ -441,7 +441,7 @@ HTML;
 
         $form->disableEditingCheck(false);
         $form->saved(function (Form $form) {
-            if(request()->get('after-save') != '1'){
+            if (request()->get('after-save') != '1') {
                 return;
             }
 

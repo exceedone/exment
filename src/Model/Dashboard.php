@@ -195,7 +195,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             return;
         }
 
-        if(!hasTable(getDBTableName(SystemTableName::USER, false)) || !hasTable(getDBTableName(SystemTableName::ORGANIZATION, false))){
+        if (!hasTable(getDBTableName(SystemTableName::USER, false)) || !hasTable(getDBTableName(SystemTableName::ORGANIZATION, false))) {
             return;
         }
 
@@ -208,7 +208,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             })->orWhereHas('data_share_authoritables', function ($query) use ($user) {
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                 $query->whereInMultiple(
-                    ['authoritable_user_org_type', 'authoritable_target_id'], 
+                    ['authoritable_user_org_type', 'authoritable_target_id'],
                     $user->getUserAndOrganizationIds($enum),
                     true
                 );
@@ -227,8 +227,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         $login_user = \Exment::user();
         if ($this->dashboard_type == DashboardType::SYSTEM) {
             return static::hasSystemPermission();
-        } 
-        elseif ($this->created_user_id == $login_user->getUserId()) {
+        } elseif ($this->created_user_id == $login_user->getUserId()) {
             return true;
         };
 

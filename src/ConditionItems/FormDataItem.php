@@ -25,11 +25,11 @@ class FormDataItem extends ConditionItemBase implements ConditionItemInterface
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
         $form_data_type = System::requestSession(Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE);
-        if(is_null($form_data_type)){
+        if (is_null($form_data_type)) {
             return false;
         }
 
-        return collect(toArray($condition->condition_value))->contains(function($value) use($form_data_type){
+        return collect(toArray($condition->condition_value))->contains(function ($value) use ($form_data_type) {
             return isMatchString($form_data_type, $value);
         });
     }
@@ -44,7 +44,7 @@ class FormDataItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function getText($key, $value, $showFilter = true)
     {
-        return collect($value)->map(function($v){
+        return collect($value)->map(function ($v) {
             return exmtrans("condition.form_data_type_options.$v");
         })->implode(",");
     }

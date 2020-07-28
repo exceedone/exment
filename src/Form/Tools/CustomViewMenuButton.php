@@ -114,7 +114,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
         $setMenuFunc(exmtrans('custom_view.custom_view_type_options.user'), $userviews, $menulist);
 
         // get menu setting only has items.
-        if(!is_nullorempty($this->getItems())){
+        if (!is_nullorempty($this->getItems())) {
             $menulist[] = [
                 'header' => true,
                 'label' => trans('admin.setting'),
@@ -149,7 +149,7 @@ class CustomViewMenuButton extends ModalTileMenuButton
 
     protected function getItems()
     {
-        if(!is_null($this->items)){
+        if (!is_null($this->items)) {
             return $this->items;
         }
 
