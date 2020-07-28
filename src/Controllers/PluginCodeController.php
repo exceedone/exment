@@ -108,6 +108,7 @@ class PluginCodeController extends AdminControllerBase
             $filename = $upload_file->getClientOriginalName();
 
             $this->plugin->putAsPluginFile($folder_path, $filename, $upload_file);
+            $this->updatePluginDatetime();
             admin_toastr(exmtrans('common.message.success_execute'));
             return back();
         }
@@ -280,6 +281,8 @@ class PluginCodeController extends AdminControllerBase
 
         $this->plugin->deletePluginFile($file_path);
 
+        $this->updatePluginDatetime();
+
         return getAjaxResponse([
             'result'  => true,
             'toastr' => trans('admin.delete_succeeded'),
@@ -320,10 +323,23 @@ class PluginCodeController extends AdminControllerBase
 
         $this->plugin->putPluginFile($file_path, $edit_file);
 
+        $this->updatePluginDatetime();
+
         return getAjaxResponse([
             'result'  => true,
             'toastr' => trans('admin.save_succeeded'),
             'reload' => false,
+        ]);
+    }
+
+    /**
+     * Update plugin's updated_at. Because sync files from crowd. 
+     *
+     * @return void
+     */
+    protected function updatePluginDatetime(){
+        $this->plugin->update([
+            'updated_at' => \Carbon\Carbon::now(),
         ]);
     }
 }
