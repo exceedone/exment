@@ -387,7 +387,7 @@ class Define
         ['uri'=> 'form', 'help_uri'=> 'form'],
         ['uri'=> 'view', 'help_uri'=> 'view'],
         ['uri'=> 'relation', 'help_uri'=> 'relation'],
-        ['uri'=> 'operation', 'help_uri'=> 'data_operation'],
+        ['uri'=> 'operation', 'help_uri'=> 'operation'],
         ['uri'=> 'plugin', 'help_uri'=> 'plugin'],
         ['uri'=> 'api_setting', 'help_uri'=> 'api'],
         ['uri'=> 'backup', 'help_uri'=> 'backup'],
