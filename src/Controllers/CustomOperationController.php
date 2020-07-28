@@ -95,7 +95,7 @@ class CustomOperationController extends AdminControllerTableBase
         $grid->column('operation_name', exmtrans("custom_operation.operation_name"))->sortable();
         $grid->column('operation_type', exmtrans("custom_operation.operation_type"))->sortable()->displayEscape(function ($val) {
             return collect(toArray($val))->map(function($v){
-                return array_get(CustomOperationType::transArray("custom_operation.operation_type_options"), $v);
+                return array_get(CustomOperationType::transArray("custom_operation.operation_type_options_short"), $v);
             })->implode(exmtrans('common.separate_word'));
         });
         
