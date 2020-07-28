@@ -134,6 +134,4 @@ abstract class GridBase
 
 
     abstract public function grid();
-
-
 }

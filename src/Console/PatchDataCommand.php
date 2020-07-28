@@ -1185,13 +1185,13 @@ class PatchDataCommand extends Command
         // remove "role" menu
         Model\CustomOperation::whereNull('operation_type')
             ->get()
-            ->each(function($custom_operation){
+            ->each(function ($custom_operation) {
                 $custom_operation->update([
                     'operation_type' => [Enums\CustomOperationType::BULK_UPDATE],
                     'options' => ['button_label' => $custom_operation->operation_name],
                 ]);
 
-                $custom_operation->custom_operation_columns->each(function($custom_operation_column){
+                $custom_operation->custom_operation_columns->each(function ($custom_operation_column) {
                     $custom_operation_column->setOption('operation_update_type', Enums\OperationUpdateType::DEFAULT)
                         ->save();
                 });
@@ -1212,7 +1212,5 @@ class PatchDataCommand extends Command
         // update system value
         System::userdashboard_available(!boolval(config('exment.userdashboard_disabled', false)));
         System::userview_available(!boolval(config('exment.userview_disabled', false)));
-
     }
-    
 }

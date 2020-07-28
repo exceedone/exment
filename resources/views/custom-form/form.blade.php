@@ -1,7 +1,10 @@
 <link rel="stylesheet" type="text/css" href="{{$css}}" />
 <input type="hidden" id="relationFilterUrl" value="{{$relationFilterUrl}}">
+<input type="hidden" id="cofirm_required_title" value="{{trans('admin.confirm')}}">
+<input type="hidden" id="cofirm_required_text" value="{{exmtrans('custom_form.message.confirm_required')}}">
 
-<form method="POST" action="{{$endpoint}}" accept-charset="UTF-8" pjax-container>
+
+<form method="POST" action="{{$endpoint}}" accept-charset="UTF-8" pjax-container class="custom_form_form">
     {{-- Form basic setting --}}
     <div class="box box-info box-custom_form_block">
         <div class="box-header with-border">
@@ -53,11 +56,11 @@
             @if($custom_form_block['form_block_type'] != '0')
             <div class="custom_form_block_available">
                 {{ Form::checkbox("{$custom_form_block['header_name']}[available]", 1, $custom_form_block['available'], ['id' => "custom_form_block_{$custom_form_block['id']}__available_",
-                'class' => 'icheck icheck_toggleblock']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__available_",
+                'class' => 'icheck icheck_toggleblock custom_form_block_available']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__available_",
                 exmtrans('common.available')) }}
             </div>
             @else 
-            {{ Form::hidden("{$custom_form_block['header_name']}[available]", $custom_form_block['available']) }} 
+            {{ Form::hidden("{$custom_form_block['header_name']}[available]", $custom_form_block['available'], ['class' => 'custom_form_block_available']) }} 
             @endif
 
             <div class="custom_form_block" style="display:{{ boolval($custom_form_block['available']) ? 'block' : 'none' }}">

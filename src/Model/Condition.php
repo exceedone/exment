@@ -114,7 +114,7 @@ class Condition extends ModelBase
     public function isMatchCondition($custom_value)
     {
         $item = ConditionItemBase::getItem($custom_value->custom_table, $this->condition_target);
-        if(is_null($item)){
+        if (is_null($item)) {
             return false;
         }
         

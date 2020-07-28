@@ -7,7 +7,6 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
-//use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
@@ -16,11 +15,11 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\DataShareAuthoritable;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums;
-use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
+use Exceedone\Exment\DataItems\Grid as DataGrid;
 
 class CustomViewController extends AdminControllerTableBase
 {
@@ -255,9 +254,9 @@ class CustomViewController extends AdminControllerTableBase
         }
         
         // remove default
-        // if (intval($view_kind_type) != Enums\ViewKindType::FILTER) {
-        //     $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
-        // }
+        if (intval($view_kind_type) != Enums\ViewKindType::FILTER) {
+            $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
+        }
         
         // set column' s form
         $classname = ViewKindType::getGridItemClassName($view_kind_type);
@@ -266,7 +265,7 @@ class CustomViewController extends AdminControllerTableBase
         $custom_table = $this->custom_table;
 
         // append model for getting from options
-        $form->editing(function($form){
+        $form->editing(function ($form) {
             $form->model()->append(['pager_count', 'condition_join']);
         });
 
@@ -293,7 +292,7 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $form->saved(function (Form $form) use ($from_data, $custom_table) {
-            if(!is_nullorempty(request()->get('after-save'))){
+            if (!is_nullorempty(request()->get('after-save'))) {
                 return;
             }
 
@@ -360,33 +359,7 @@ class CustomViewController extends AdminControllerTableBase
 
     public function getGroupCondition(Request $request)
     {
-        return $this->_getGroupCondition($request->get('q'));
-    }
-
-    /**
-     * get group condition
-     */
-    protected function _getGroupCondition($view_column_target = null)
-    {
-        if (!isset($view_column_target)) {
-            return [];
-        }
-
-        // get column item from $view_column_target
-        $columnItem = CustomViewColumn::getColumnItem($view_column_target);
-        if (!isset($columnItem)) {
-            return [];
-        }
-
-        if (!$columnItem->isDate()) {
-            return [];
-        }
-
-        // if date, return option
-        $options = GroupCondition::getOptions();
-        return collect($options)->map(function ($array) {
-            return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.group_condition_options.'.array_get($array, 'name'))];
-        });
+        return DataGrid\SummaryGrid::getGroupCondition($request->get('q'));
     }
 
     /**

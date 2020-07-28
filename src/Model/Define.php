@@ -175,6 +175,7 @@ class Define
     public const SYSTEM_KEY_SESSION_GRID_AUTHORITABLE = "grid_authoritable_%s";
     public const SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE = "accessible_table_%s_%s";
     public const SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG = "disable_data_url_tag";
+    public const SYSTEM_KEY_SESSION_FORM_DATA_TYPE = "form_data_type";
 
     /**
      * MENU SYSTEM DIFINITION
@@ -369,6 +370,8 @@ class Define
         return [
             'showPreview' => false,
             'showCancel' => false,
+            'dropZoneEnabled' => !boolval(config('exment.file_drag_drop_disabled', false)),
+            'dropZoneTitle' => exmtrans('common.message.file_drag_drop'),
             'browseLabel' => trans('admin.browse'),
             'maxFileSize' => $maxSize / 1024,
             'maxFileSizeHuman' => bytesToHuman($maxSize),
@@ -386,7 +389,7 @@ class Define
         ['uri'=> 'form', 'help_uri'=> 'form'],
         ['uri'=> 'view', 'help_uri'=> 'view'],
         ['uri'=> 'relation', 'help_uri'=> 'relation'],
-        ['uri'=> 'operation', 'help_uri'=> 'data_operation'],
+        ['uri'=> 'operation', 'help_uri'=> 'operation'],
         ['uri'=> 'plugin', 'help_uri'=> 'plugin'],
         ['uri'=> 'api_setting', 'help_uri'=> 'api'],
         ['uri'=> 'backup', 'help_uri'=> 'backup'],

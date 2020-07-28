@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomViewFilter;
-use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterOption;
 
 trait ColumnSystemItemTrait

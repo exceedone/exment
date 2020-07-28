@@ -529,7 +529,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             return;
         }
 
-        if(!hasTable(getDBTableName(SystemTableName::USER, false)) || !hasTable(getDBTableName(SystemTableName::ORGANIZATION, false))){
+        if (!hasTable(getDBTableName(SystemTableName::USER, false)) || !hasTable(getDBTableName(SystemTableName::ORGANIZATION, false))) {
             return;
         }
 
@@ -542,7 +542,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             })->orWhereHas('data_share_authoritables', function ($query) use ($user) {
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                 $query->whereInMultiple(
-                    ['authoritable_user_org_type', 'authoritable_target_id'], 
+                    ['authoritable_user_org_type', 'authoritable_target_id'],
                     $user->getUserAndOrganizationIds($enum),
                     true
                 );
@@ -1164,8 +1164,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $login_user = \Exment::user();
         if ($this->view_type == ViewType::SYSTEM) {
             return $this->custom_table->hasSystemViewPermission();
-        } 
-        elseif ($this->created_user_id == $login_user->getUserId()) {
+        } elseif ($this->created_user_id == $login_user->getUserId()) {
             return true;
         };
 

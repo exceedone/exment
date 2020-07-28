@@ -93,7 +93,7 @@ class CustomOperation extends ModelBase
 
         // if contains setting's $this->operation_type
         return collect($operation_types)->contains(function ($value, $key) {
-            return collect($this->operation_type)->contains(function($o) use($value){
+            return collect($this->operation_type)->contains(function ($o) use ($value) {
                 return isMatchString($value, $o);
             });
         });
@@ -152,22 +152,23 @@ class CustomOperation extends ModelBase
     }
 
     /**
-     * execute update operation 
+     * execute update operation
      *
      * @param CustomTable $custom_table
      * @param int|string $id signle id or id string
      * @return bool success or not
      */
-    public function execute($custom_table, $id) {
+    public function execute($custom_table, $id)
+    {
         $ids = stringToArray($id);
         $custom_values = $custom_table->getValueModel()->find($ids);
 
         // check isMatchCondition
-        $notMatchConditions = $custom_values->filter(function($custom_value){
+        $notMatchConditions = $custom_values->filter(function ($custom_value) {
             return !$this->isMatchCondition($custom_value);
         });
-        if($notMatchConditions->count() > 0){
-            $label = $notMatchConditions->map(function($notMatchCondition){
+        if ($notMatchConditions->count() > 0) {
+            $label = $notMatchConditions->map(function ($notMatchCondition) {
                 return $notMatchCondition->getLabel();
             })->implode(exmtrans('common.separate_word'));
 
@@ -179,7 +180,7 @@ class CustomOperation extends ModelBase
         }
 
         // Update value
-        \DB::transaction(function () use($custom_values) {
+        \DB::transaction(function () use ($custom_values) {
             foreach ($custom_values as $custom_value) {
                 $updates = $this->getUpdateValues($custom_value);
                 $custom_value->setValueStrictly($updates)->save();
@@ -195,16 +196,17 @@ class CustomOperation extends ModelBase
      * @param CustomValue $model
      * @return array "value"'s array.
      */
-    protected function getUpdateValues($model){
+    protected function getUpdateValues($model)
+    {
         return collect($this->custom_operation_columns)->mapWithKeys(function ($operation_column) {
             $custom_column = $operation_column->custom_column;
-            if(is_nullorempty($custom_column)){
+            if (is_nullorempty($custom_column)) {
                 return null;
             }
 
             $column_name = $custom_column->column_name;
             // if update as system value, set system
-            if(Enums\ColumnType::isOperationEnableSystem($custom_column->column_type) && isMatchString($operation_column->operation_update_type, Enums\OperationUpdateType::SYSTEM)){
+            if (Enums\ColumnType::isOperationEnableSystem($custom_column->column_type) && isMatchString($operation_column->operation_update_type, Enums\OperationUpdateType::SYSTEM)) {
                 return [$column_name => Enums\OperationValueType::getOperationValue($operation_column['update_value_text'])];
             }
 

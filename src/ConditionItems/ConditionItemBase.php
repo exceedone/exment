@@ -155,7 +155,7 @@ abstract class ConditionItemBase
     public function getFilterValueAjax($target_key, $target_name, $show_condition_key = true)
     {
         $field = $this->getFilterValue($target_key, $target_name, $show_condition_key);
-        if(is_null($field)){
+        if (is_null($field)) {
             return [];
         }
         
@@ -270,6 +270,7 @@ abstract class ConditionItemBase
                             case FilterOption::DAY_TODAY_OR_BEFORE:
                                 return Carbon::parse($v)->lte($today);
                         }
+                        // no break
                     case FilterOption::DAY_TODAY:
                         return Carbon::parse($v)->isToday();
                     case FilterOption::DAY_YESTERDAY:

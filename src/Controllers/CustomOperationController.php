@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 use Illuminate\Http\Request;
@@ -94,7 +93,7 @@ class CustomOperationController extends AdminControllerTableBase
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('operation_name', exmtrans("custom_operation.operation_name"))->sortable();
         $grid->column('operation_type', exmtrans("custom_operation.operation_type"))->sortable()->displayEscape(function ($val) {
-            return collect(toArray($val))->map(function($v){
+            return collect(toArray($val))->map(function ($v) {
                 return array_get(CustomOperationType::transArray("custom_operation.operation_type_options_short"), $v);
             })->implode(exmtrans('common.separate_word'));
         });
@@ -163,7 +162,6 @@ class CustomOperationController extends AdminControllerTableBase
             $form->text('button_class', exmtrans("custom_operation.options.button_class"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => CustomOperationType::BUTTON])])
                 ->help(exmtrans("custom_operation.help.button_class"));
-
         })->disableHeader();
 
         $custom_table = $this->custom_table;
@@ -190,9 +188,9 @@ class CustomOperationController extends AdminControllerTableBase
             'label' => exmtrans('custom_operation.custom_operation_columns'),
             'condition_target_label' => exmtrans('custom_operation.view_column_target'),
             'condition_value_label' => exmtrans('custom_operation.update_value_text'),
-            'conditionCallback' => function($form) use($custom_table) {
+            'conditionCallback' => function ($form) use ($custom_table) {
                 $form->select('operation_update_type', exmtrans('custom_operation.operation_update_type'))->required()
-                    ->options(function ($val, $select, $model) use($custom_table) {
+                    ->options(function ($val, $select, $model) use ($custom_table) {
                         $data = $select->data();
                         $condition_target = array_get($data, 'view_column_target');
 
@@ -201,12 +199,12 @@ class CustomOperationController extends AdminControllerTableBase
                             return null;
                         }
 
-                        return collect($item->getOperationUpdateType())->mapWithKeys(function($item){
+                        return collect($item->getOperationUpdateType())->mapWithKeys(function ($item) {
                             return [$item['id'] => $item['text']];
                         });
                     });
             },
-            'valueCallback' => function($data, $field) use($custom_table) {
+            'valueCallback' => function ($data, $field) use ($custom_table) {
                 $condition_target = array_get($data, 'view_column_target');
 
                 $item = ConditionItemBase::getItem($custom_table, $condition_target);
