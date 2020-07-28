@@ -44,20 +44,23 @@ class PluginCodeController extends AdminControllerBase
             Checker::error();
             return false;
         }
+        $content->row(view('exment::plugin.editor.buttons', [
+            'id' => $id,
+        ]));
+        $content->row(function (Row $row) use($id) {
+            $row->column(9, view('exment::plugin.editor.upload', [
+                'url' => admin_url("plugin/edit_code/$id/fileupload"),
+                'filepath' => '/',
+                'message' => exmtrans('plugincode.message.upload_file'),
+            ]));
 
-        return
-            $content->row(function (Row $row) use($id) {
-                $row->column(9, view('exment::plugin.editor.upload', [
-                    'url' => admin_url("plugin/edit_code/$id/fileupload"),
-                    'filepath' => '/',
-                    'message' => exmtrans('plugincode.message.upload_file'),
-                ]));
+            $row->column(3, view('exment::widgets.jstree', [
+                'data_get_url' => "$id/getTree",
+                'file_get_url' => "$id/selectFile",
+            ]));
+        });
 
-                $row->column(3, view('exment::widgets.jstree', [
-                    'data_get_url' => "$id/getTree",
-                    'file_get_url' => "$id/selectFile",
-                ]));
-            });
+        return $content;
     }
 
     /**
@@ -146,11 +149,22 @@ class PluginCodeController extends AdminControllerBase
                 ];
             } 
 
-            list($mode, $can_delete) = $this->getCodeMirrorMode($nodepath);
+            list($mode, $image, $can_delete) = $this->getPluginFileType($nodepath);
 
             $message = exmtrans('plugincode.message.irregular_ext');
 
-            if ($mode !== false) {
+            if (isset($image)) {
+                $filedata = $this->plugin->getPluginFiledata($nodepath);
+                return [
+                    'editor' => view('exment::plugin.editor.image', [
+                        'image' => base64_encode($filedata),
+                        'url' => admin_url("plugin/edit_code/$id"),
+                        'ext' => $image,
+                        'filepath' => $nodepath,
+                        'can_delete' => $can_delete,
+                    ])->render(),
+                ];
+            } else if ($mode !== false) {
                 $filedata = $this->plugin->getPluginFiledata($nodepath);
                 $enc = mb_detect_encoding($filedata, ['UTF-8', 'UTF-16', 'ASCII', 'ISO-2022-JP', 'EUC-JP', 'SJIS'], true);
                 if ($enc == 'UTF-8') {
@@ -182,32 +196,48 @@ class PluginCodeController extends AdminControllerBase
     }
 
     /**
-     * Get CodeMirror mode for file
+     * Get CodeMirror mode and image type of file
      * 
      * @param string $nodepath
-     * @return string|boolean
+     * @return array [CodeMirror mode, image extension, deletable flg]
      */
-    protected function getCodeMirrorMode($nodepath) {
+    protected function getPluginFileType($nodepath) {
         // exclude config.json
         if (mb_strtolower(basename($nodepath)) === 'config.json') {
-            return [false, false];
+            return [false, null, false];
         }
 
         // check extension
         $ext = \File::extension($nodepath);
         $mode = false;
+        $image = null;
+
         switch ($ext) {
             case 'php':
             case 'css':
                 $mode = $ext;
+                break;
             case 'js':
                 $mode = 'javascript';
+                break;
             case 'json':
                 $mode = "{ name: 'javascript', json: true}";
+                break;
             case 'txt':
                 $mode = null;
+                break;
+            case 'jpg':
+            case 'jpeg':
+                $image = 'jpeg';
+                break;
+            case 'gif':
+                $image = 'gif';
+                break;
+            case 'png':
+                $image = 'png';
+                break;
         }
-        return [$mode, true];
+        return [$mode, $image, true];
     }
 
     /**
