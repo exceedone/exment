@@ -366,6 +366,8 @@ class Define
         return [
             'showPreview' => false,
             'showCancel' => false,
+            'dropZoneEnabled' => !boolval(config('exment.file_drag_drop_disabled', false)),
+            'dropZoneTitle' => exmtrans('common.message.file_drag_drop'),
             'browseLabel' => trans('admin.browse'),
             'maxFileSize' => $maxSize / 1024,
             'maxFileSizeHuman' => bytesToHuman($maxSize),

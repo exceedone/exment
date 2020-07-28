@@ -1,4 +1,7 @@
 <div class="form-group ">
+    <span>{{$filepath}}</span>
+</div>
+<div class="form-group ">
     <div class="box box-solid box-default no-margin box-show">
         <div class="box-body">
             <img src="data:image/{{$ext}};base64, {{$image}}" class="image_html">

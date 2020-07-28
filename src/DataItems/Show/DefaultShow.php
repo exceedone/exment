@@ -17,6 +17,7 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
@@ -511,15 +512,16 @@ EOT;
 
         // add file uploader
         if ($useFileUpload) {
-            $options = [
+            $options = array_merge(Define::FILE_OPTION(), [
                 'showUpload' => true,
-                'showPreview' => false,
+                'showPreview' => true,
                 'showCancel' => false,
                 'uploadUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'fileupload'),
                 'uploadExtraData'=> [
                     '_token' => csrf_token()
                 ],
-            ];
+            ]);
+
             $options_json = json_encode($options);
 
             $input_id = 'file_data';

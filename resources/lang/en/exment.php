@@ -86,6 +86,7 @@ return [
             'sendmail_succeeded' => 'E-mail transmission succeeded.',
             'input_keyword' => 'Please input "%s".',
             'no_permission' => '(No Permission)',
+            'file_drag_drop' => 'Drag & drop files here …',
         ],
 
         'help' =>[

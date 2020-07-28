@@ -86,6 +86,7 @@ return [
             'sendmail_succeeded' => 'メールを送信しました。',
             'input_keyword' => '「%s」と入力してください。',
             'no_permission' => '(権限がありません)',
+            'file_drag_drop' => 'ファイルをドラッグ＆ドロップしてください',
         ],
 
         'help' =>[

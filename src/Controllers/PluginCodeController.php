@@ -6,6 +6,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Row;
+use Encore\Admin\Widgets\Box;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\Permission;
@@ -44,9 +45,6 @@ class PluginCodeController extends AdminControllerBase
             Checker::error();
             return false;
         }
-        $content->row(view('exment::plugin.editor.buttons', [
-            'id' => $id,
-        ]));
         $content->row(function (Row $row) use($id) {
             $row->column(9, view('exment::plugin.editor.upload', [
                 'url' => admin_url("plugin/edit_code/$id/fileupload"),
@@ -54,13 +52,24 @@ class PluginCodeController extends AdminControllerBase
                 'message' => exmtrans('plugincode.message.upload_file'),
             ]));
 
-            $row->column(3, view('exment::widgets.jstree', [
-                'data_get_url' => "$id/getTree",
-                'file_get_url' => "$id/selectFile",
-            ]));
+            $row->column(3, $this->getJsTreeBox($id));
         });
 
         return $content;
+    }
+
+    protected function getJsTreeBox($id)
+    {
+        $view = view('exment::widgets.jstree', [
+            'data_get_url' => "$id/getTree",
+            'file_get_url' => "$id/selectFile",
+        ]);
+        $box = new Box('', $view);
+        $box->tools(view('exment::plugin.editor.buttons', [
+            'id' => $id,
+        ]))->style('info');
+
+        return $box->render();
     }
 
     /**
@@ -107,10 +116,14 @@ class PluginCodeController extends AdminControllerBase
 
         if ($request->hasfile('fileUpload')) {
             $folder_path = str_replace('//', '/', $request->get('plugin_file_path'));
-            $upload_file = $request->file('fileUpload');
-            $filename = $upload_file->getClientOriginalName();
+            $upload_files = $request->file('fileUpload');
 
-            $this->plugin->putAsPluginFile($folder_path, $filename, $upload_file);
+            foreach($upload_files as $upload_file){
+                $filename = $upload_file->getClientOriginalName();
+
+                $this->plugin->putAsPluginFile($folder_path, $filename, $upload_file);
+            }
+            
             $this->updatePluginDatetime();
             admin_toastr(exmtrans('common.message.success_execute'));
             return back();
@@ -129,25 +142,42 @@ class PluginCodeController extends AdminControllerBase
     public function getFileEditForm(Request $request, $id) {
         $this->plugin = Plugin::getEloquent($id);
         
+        list($view, $isBox) = $this->getFileEditFormView($request, $id);
+
+        if($isBox){
+            $box = new Box('', $view);
+            $view = $box->style('info');
+        }
+        return [
+            'editor' => $view->render()
+        ];
+    }
+
+    
+    /**
+     * Get child form html for selected file
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return array
+     */
+    protected function getFileEditFormView(Request $request, $id) 
+    {
         $validator = \Validator::make($request->all(), [
             'nodepath' => 'required',
         ]);
         if ($validator->fails()) {
-            return [
-                'editor' => view('exment::plugin.editor.info')->render(),
-            ];
+            return [view('exment::plugin.editor.info'), false];
         }
 
         $nodepath = str_replace('//', '/', $request->get('nodepath'));
         try{
             if ($this->plugin->isPathDir($nodepath)) {
-                return [
-                    'editor' => view('exment::plugin.editor.upload', [
-                        'url' => admin_url("plugin/edit_code/$id/fileupload"),
-                        'filepath' => $nodepath,
-                        'message' => exmtrans('plugincode.message.upload_file'),
-                    ])->render(),
-                ];
+                return [view('exment::plugin.editor.upload', [
+                    'url' => admin_url("plugin/edit_code/$id/fileupload"),
+                    'filepath' => $nodepath,
+                    'message' => exmtrans('plugincode.message.upload_file'),
+                ]), false];
             } 
 
             list($mode, $image, $can_delete) = $this->getPluginFileType($nodepath);
@@ -156,40 +186,34 @@ class PluginCodeController extends AdminControllerBase
 
             if (isset($image)) {
                 $filedata = $this->plugin->getPluginFiledata($nodepath);
-                return [
-                    'editor' => view('exment::plugin.editor.image', [
-                        'image' => base64_encode($filedata),
-                        'url' => admin_url("plugin/edit_code/$id"),
-                        'ext' => $image,
-                        'filepath' => $nodepath,
-                        'can_delete' => $can_delete,
-                    ])->render(),
-                ];
+                return [view('exment::plugin.editor.image', [
+                    'image' => base64_encode($filedata),
+                    'url' => admin_url("plugin/edit_code/$id"),
+                    'ext' => $image,
+                    'filepath' => $nodepath,
+                    'can_delete' => $can_delete,
+                ]), true];
             } else if ($mode !== false) {
                 $filedata = $this->plugin->getPluginFiledata($nodepath);
                 $enc = mb_detect_encoding($filedata, ['UTF-8', 'UTF-16', 'ASCII', 'ISO-2022-JP', 'EUC-JP', 'SJIS'], true);
                 if ($enc == 'UTF-8') {
-                    return [
-                        'editor' => view('exment::plugin.editor.code', [
-                            'url' => admin_url("plugin/edit_code/$id"),
-                            'filepath' => $nodepath,
-                            'filedata' => $filedata,
-                            'mode' => $mode,
-                        ])->render(),
-                    ];
+                    return [view('exment::plugin.editor.code', [
+                        'url' => admin_url("plugin/edit_code/$id"),
+                        'filepath' => $nodepath,
+                        'filedata' => $filedata,
+                        'mode' => $mode,
+                    ]), true];
                 } else {
                     $message = exmtrans('plugincode.message.irregular_enc');
                 }
             }
 
-            return [
-                'editor' => view('exment::plugin.editor.other', [
-                    'url' => admin_url("plugin/edit_code/$id"),
-                    'filepath' => $nodepath,
-                    'can_delete' => $can_delete,
-                    'message' => $message
-                ])->render(),
-            ];
+            return [view('exment::plugin.editor.other', [
+                'url' => admin_url("plugin/edit_code/$id"),
+                'filepath' => $nodepath,
+                'can_delete' => $can_delete,
+                'message' => $message
+            ]), false];
         }
         catch(\League\Flysystem\FileNotFoundException $ex){
             //Todo:FileNotFoundException

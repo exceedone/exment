@@ -17,7 +17,7 @@
         <div class="box-body">
             <div class="fields-group">
                 <div class="form-group">
-                    <input class="" required type="file" name="fileUpload" /><br/>
+                    <input class="" required type="file" name="fileUpload[]" multiple /><br/>
                     <span class="help-block">
                         <i class="fa fa-info-circle"></i>&nbsp;{{ exmtrans('plugincode.message.upload_file', $filepath) }}
                     </span>
