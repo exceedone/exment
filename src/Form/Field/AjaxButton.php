@@ -13,6 +13,8 @@ class AjaxButton extends Field
     protected $button_label;
     
     protected $button_class;
+    
+    protected $beforesubmit_events;
 
     protected $send_params;
 
@@ -33,6 +35,13 @@ class AjaxButton extends Field
     public function button_class($button_class)
     {
         $this->button_class = $button_class;
+
+        return $this;
+    }
+
+    public function beforesubmit_events($beforesubmit_events)
+    {
+        $this->beforesubmit_events = $beforesubmit_events;
 
         return $this;
     }
@@ -71,6 +80,13 @@ class AjaxButton extends Field
                 }
             }
 
+            var beforesubmit_events = button.data('beforesubmit-events');
+            if (beforesubmit_events) {
+                beforesubmit_events.split(',').forEach(function(key) {
+                    $('#' + key).trigger('ajaxbutton-beforesubmit');
+                })
+            }
+
             send_data['_token'] = LA.token;
             var send_params = button.data('send-params');
             if (send_params) {
@@ -101,6 +117,7 @@ EOT;
             'button_label' => $this->button_label,
             'button_class' => $this->button_class,
             'send_params' => $this->send_params,
+            'beforesubmit_events' => $this->beforesubmit_events,
         ]);
     }
 }

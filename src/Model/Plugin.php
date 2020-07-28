@@ -261,22 +261,133 @@ class Plugin extends ModelBase
         $diskService = new PluginDiskService($this);
         // sync from crowd.
         $diskService->syncFromDisk();
+        $this->requirePlugin($diskService);
 
         $plugin_fullpath = $diskService->localSyncDiskItem()->dirFullPath();
-        $this->requirePlugin($plugin_fullpath);
-
         return path_join($plugin_fullpath, ...$pass_array);
+    }
+
+    /**
+     * Get plugin file paths. relative path, not fullpath
+     */
+    public function getPluginFilePaths($dirPath = null, $subdir = true, ?PluginDiskService $diskService = null)
+    {
+        list($diskService, $disk, $dirName, $dirPath) = $this->initPluginDisk($dirPath, $diskService);
+
+        $func = $subdir ? 'allFiles' : 'files';
+        $files = $disk->{$func}($dirPath);
+
+        // remove "(pluginname)/"
+        $files = collect($files)->map(function($file) use($dirName){
+            return ltrim(ltrim($file, $dirName), '/');
+        })->toArray();
+
+        return $files;
+    }
+
+    /**
+     * Get plugin directories paths. relative path, not fullpath
+     */
+    public function getPluginDirPaths($dirPath = null, $subdir = true, ?PluginDiskService $diskService = null)
+    {
+        list($diskService, $disk, $dirName, $dirPath) = $this->initPluginDisk($dirPath, $diskService);
+
+        $func = $subdir ? 'allDirectories' : 'directories';
+        $dirs = $disk->{$func}($dirPath);
+
+        // remove "(pluginname)/"
+        $dirs = collect($dirs)->map(function($dir) use($dirName){
+            return ltrim(ltrim($dir, $dirName), '/');
+        })->toArray();
+
+        return $dirs;
+    }
+
+    /**
+     * Get plugin file data
+     *
+     * @param string $path file relative path
+     * @param PluginDiskService|null $diskService
+     * @return void
+     */
+    public function getPluginFiledata(string $path, ?PluginDiskService $diskService = null)
+    {
+        list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk($path, $diskService);
+
+        return $disk->get($filePath);
+    }
+
+    /**
+     * Put plugin file. upload to crowd.
+     *
+     * @param string $path file relative path
+     * @param PluginDiskService|null $diskService
+     * @return void
+     */
+    public function putPluginFile(string $path, $file, ?PluginDiskService $diskService = null)
+    {
+        list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk($path, $diskService, ['exceptionFileNotFound' => false]);
+
+        return $disk->put($filePath, $file);
+    }
+
+    /**
+     * Putasfile plugin file. upload to crowd.
+     *
+     * @param string|null $path file relative path
+     * @param PluginDiskService|null $diskService
+     * @return void
+     */
+    public function putAsPluginFile(?string $dirPath, string $fileName, $file, ?PluginDiskService $diskService = null)
+    {
+        list($diskService, $disk, $dirName, $dirPath) = $this->initPluginDisk($dirPath, $diskService, ['exceptionFileNotFound' => false]);
+
+        return $disk->putFileAs($dirPath, $file, $fileName);
+    }
+
+    /**
+     * Delete plugin file. upload to crowd.
+     *
+     * @param string $path file relative path
+     * @param PluginDiskService|null $diskService
+     * @return void
+     */
+    public function deletePluginFile(string $path, ?PluginDiskService $diskService = null)
+    {
+        list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk($path, $diskService, ['exceptionFileNotFound' => false]);
+
+        // delete local disk
+        $diskService->localSyncDiskItem()->disk()->delete($filePath);
+        return $disk->delete($filePath);
+    }
+
+    /**
+     * is this path is directory or not
+     *
+     * @param string|null $path
+     * @param PluginDiskService|null $diskService
+     * @return boolean
+     */
+    public function isPathDir(?string $path, ?PluginDiskService $diskService = null)
+    {
+        list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk($path, $diskService);
+
+        $meta = $disk->getDriver()->getMetadata($filePath);
+        return isMatchString(array_get($meta, 'type'), 'dir');
     }
 
     /**
      * call require
      *
-     * @param string $fullPathDir
+     * @param PluginDiskService $diskService
      * @return void
      */
-    public function requirePlugin($fullPathDir)
+    public function requirePlugin(?PluginDiskService $diskService = null)
     {
+        list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk(null, $diskService, ['sync' => true]);
+
         // call plugin
+        $fullPathDir = $diskService->localSyncDiskItem()->dirFullPath();
         $plugin_paths = \File::allFiles($fullPathDir);
         foreach ($plugin_paths as $plugin_path) {
             $pathinfo = pathinfo($plugin_path);
@@ -291,6 +402,45 @@ class Plugin extends ModelBase
         }
     }
     
+    /**
+     * Initialize plugin disk.
+     *
+     * @param string $path
+     * @param PluginDiskService|null $diskService
+     * @param array $options
+     * @return array offset 0:PluginDiskService, 1:disk, 2: root dir name, 3: joined path.
+     */
+    protected function initPluginDisk(string $path = null, ?PluginDiskService $diskService = null, array $options = []){
+        $options = array_merge([
+            'sync' => false,
+            'exceptionFileNotFound' => true,
+        ], $options);
+
+        if(!isset($diskService)){
+            $diskService = new PluginDiskService($this);
+            if(boolval($options['sync'])){
+                $diskService->syncFromDisk();
+            }
+        }
+
+        $disk = $diskService->diskItem()->disk();
+        $dirName = $diskService->diskItem()->dirName();
+        
+        if(!$disk->exists($dirName)){
+            throw new \League\Flysystem\FileNotFoundException($dirName);
+        }
+
+        $filePath = path_join($dirName, $path);
+        if(!$disk->exists($filePath) && boolval($options['exceptionFileNotFound'])){
+            throw new \League\Flysystem\FileNotFoundException($filePath);
+        }
+
+        return [$diskService, $disk, $dirName, $filePath];
+    }
+
+
+
+
     //Check all plugins satisfied take out from function getPluginByTableId
     //If calling event is not button, then call execute function of this plugin
     //Because namspace can't contains specifies symbol

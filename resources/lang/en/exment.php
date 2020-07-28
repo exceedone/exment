@@ -86,6 +86,7 @@ return [
             'sendmail_succeeded' => 'E-mail transmission succeeded.',
             'input_keyword' => 'Please input "%s".',
             'no_permission' => '(No Permission)',
+            'file_drag_drop' => 'Drag & drop files here …',
         ],
 
         'help' =>[
@@ -460,6 +461,7 @@ return [
         'active_flg' => 'Active Flg',
         'select_plugin_file' => 'Select Plugin File',
         'show_plugin_page' => 'Show Plugin Page',
+        'edit_plugin' => 'Edit Plugin',
         'options' => [
             'header' => 'Option Setting',
             'custom_options_header' => 'Custom Options',
@@ -527,6 +529,25 @@ return [
             'api' => 'API',
             'event' => 'Event',
             'button' => 'Button',
+        ],
+    ],
+
+    'plugincode' => [
+        'header' => 'Edit Plugin',
+        'upload_header' => 'Upload Files',
+        'description' => 'You can directly edit installed plugins.',
+        'error' => [
+            'folder_notfound' => 'No folder is selected.',
+            'plugin_notfound' => 'The plugin does not exist.',
+            'file_notfound' => 'The plugin file may have been deleted. Please contact your system administrator.',
+        ],
+        'message' => [
+            'file_edit' => 'To edit the file, click the file name in the tree on the right.',
+            'select_file' => 'Please select target file.',
+            'irregular_ext' => 'This is a type of file that cannot be edited.',
+            'irregular_enc' => 'Only the UTF-8 character code is supported.',
+            'upload_file' => 'You can upload files to the selected folder (%s).',
+            'force_updated' => 'If a file with the same name exists in the folder, it will be overwritten. Please be careful.',
         ],
     ],
 

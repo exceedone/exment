@@ -86,6 +86,7 @@ return [
             'sendmail_succeeded' => 'メールを送信しました。',
             'input_keyword' => '「%s」と入力してください。',
             'no_permission' => '(権限がありません)',
+            'file_drag_drop' => 'ファイルをドラッグ＆ドロップしてください',
         ],
 
         'help' =>[
@@ -458,6 +459,7 @@ return [
         'active_flg' => '有効フラグ',
         'select_plugin_file' => 'プラグインを選択',
         'show_plugin_page' => 'プラグインページを表示',
+        'edit_plugin' => 'プラグイン編集',
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',
@@ -525,6 +527,25 @@ return [
             'api' => 'API',
             'event' => 'イベント',
             'button' => 'ボタン',
+        ],
+    ],
+
+    'plugincode' => [
+        'header' => 'プラグイン編集',
+        'upload_header' => 'ファイルアップロード',
+        'description' => 'インストールされているプラグインを直接編集することができます。',
+        'error' => [
+            'folder_notfound' => 'フォルダが選択されていません。',
+            'plugin_notfound' => 'プラグインが存在しません。',
+            'file_notfound' => 'プラグインファイルが削除された可能性があります。システム管理者にお問い合わせください。',
+        ],
+        'message' => [
+            'file_edit' => 'ファイルを編集する場合は、右側のツリーでファイル名をクリックしてください。',
+            'select_file' => 'ファイルを選択してください。',
+            'irregular_ext' => '編集できない種類のファイルです。',
+            'irregular_enc' => '文字コードはUTF-8のみサポートしています。',
+            'upload_file' => '選択したフォルダ(%s)にファイルをアップロードできます。',
+            'force_updated' => 'フォルダ内に同じ名前のファイルが存在する場合は上書きされます。ご注意ください。',
         ],
     ],
 

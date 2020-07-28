@@ -99,6 +99,13 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('login_setting/2factor', 'LoginSettingController@post2factor')->name('exment.post2factor');
             $router->post('login_setting/postglobal', 'LoginSettingController@postGlobal')->name('exment.postglobal');
 
+            $router->get('plugin/edit_code/{id}/getTree', 'PluginCodeController@getTreeData');
+            $router->get('plugin/edit_code/{id}/selectFile', 'PluginCodeController@getFileEditForm');
+            $router->post('plugin/edit_code/{id}/fileupload', 'PluginCodeController@fileupload');
+            $router->get('plugin/edit_code/{id}', 'PluginCodeController@edit');
+            $router->post('plugin/edit_code/{id}', 'PluginCodeController@store');
+            $router->delete('plugin/edit_code/{id}', 'PluginCodeController@delete');
+
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
 
             $router->get("workflow/beginning", 'WorkflowController@beginningForm');
