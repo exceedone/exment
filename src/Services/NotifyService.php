@@ -406,7 +406,7 @@ class NotifyService
                 'notify' => $notify,
             ]);
             // call notified trigger operations
-            CustomOperation::operationExecuteEvent(CustomOperationType::NOTIFIED, $custom_value, true);
+            //CustomOperation::operationExecuteEvent(CustomOperationType::NOTIFIED, $custom_value, true);
         }
     }
 
