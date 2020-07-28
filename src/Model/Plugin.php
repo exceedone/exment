@@ -370,7 +370,8 @@ class Plugin extends ModelBase
     {
         list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk($path, $diskService);
 
-        return isMatchString($disk->mimeType($filePath), 'directory');
+        $meta = $disk->getDriver()->getMetadata($filePath);
+        return isMatchString(array_get($meta, 'type'), 'dir');
     }
 
     /**
