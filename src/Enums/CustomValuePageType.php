@@ -15,4 +15,16 @@ class CustomValuePageType extends EnumBase
     const IMPORT = 'import';
     
     const GRIDMODAL = 'gridmodal';
+
+    public static function getFormDataType($pageType)
+    {
+        switch ($pageType) {
+            case static::CREATE:
+                return FormDataType::CREATE;
+            case static::EDIT:
+                return FormDataType::EDIT;
+            case static::SHOW:
+                return FormDataType::SHOW;
+        }
+    }
 }

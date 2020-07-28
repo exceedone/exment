@@ -130,6 +130,16 @@ class ColumnType extends EnumBase
         ];
     }
 
+    public static function COLUMN_TYPE_OPERATION_ENABLE_SYSTEM()
+    {
+        return [
+            ColumnType::DATE,
+            ColumnType::TIME,
+            ColumnType::DATETIME,
+            ColumnType::USER,
+        ];
+    }
+
     public static function isCalc($column_type)
     {
         return in_array($column_type, static::COLUMN_TYPE_CALC());
@@ -174,6 +184,10 @@ class ColumnType extends EnumBase
     public static function isSelectForm($column_type)
     {
         return in_array($column_type, static::COLUMN_TYPE_SELECT_FORM());
+    }
+    public static function isOperationEnableSystem($column_type)
+    {
+        return in_array($column_type, static::COLUMN_TYPE_OPERATION_ENABLE_SYSTEM());
     }
 
     /**

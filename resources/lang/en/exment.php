@@ -86,6 +86,7 @@ return [
             'sendmail_succeeded' => 'E-mail transmission succeeded.',
             'input_keyword' => 'Please input "%s".',
             'no_permission' => '(No Permission)',
+            'file_drag_drop' => 'Drag & drop files here …',
         ],
 
         'help' =>[
@@ -141,6 +142,7 @@ return [
         'ie_not_supported' => 'Exment cannot be used with Internet Explorer.',
         'support_browser' => 'Support Browser',
         'ip_address_filtered' => 'Unauthorized IP address.',
+        'not_contains_column' => 'Some items are not set in the custom column.',
     ],
 
     'install' => [
@@ -233,6 +235,8 @@ return [
         'submit_test_mail' => 'Send TestMail',
         'grid_pager_count' => 'Number of displayed data list',
         'datalist_pager_count' => 'Number of displayed search and dashboard',
+        'userdashboard_available' => 'Use User Dashboard',
+        'userview_available' => 'Use User View',
         'template' => 'Install Template',
         'version_header' => 'System version infomation',
         'version_progress' => 'Checking system version...',
@@ -247,6 +251,7 @@ return [
         'first_change_password' => 'Change Password at First Login',
         'password_expiration_days' => 'Password Expiration Days',
         'password_history_cnt' => 'Number of Password History',
+        'view_dashboard_header' => 'View/Dashboard Setting',
         'organization_header' => 'Organization Setting',
         'org_joined_type_role_group' => 'Organization Tree Setting(Role Group)',
         'org_joined_type_custom_value' => 'Organization Tree Setting(Data)',
@@ -350,6 +355,8 @@ return [
             'test_mail' => 'Send a test email to the destination you entered. <br /> <b>*Be sure to save the above email settings before executing. The settings during input are invalid. </b>',
             'template' => 'If select these templates, install tables, columns and forms.',
             'role_one_user_organization' => 'Please register one or more users or organizations for permission.',
+            'userdashboard_available' => 'If set to YES, the user dashboard function will be used, which allows logged-in users to create their own dashboards.',
+            'userview_available' => 'If set to YES, the user view function will be used so that the logged-in user can create their own view.',
             'default_date_format' => 'Sets the display format for the date and time.',
             'password_policy' => 'Set the login password policy.',
             'complex_password' => 'If set to YES, the password must be at least 12 characters long and must include three types of characters (uppercase letters, lowercase letters, numbers, and symbols).',
@@ -454,6 +461,7 @@ return [
         'active_flg' => 'Active Flg',
         'select_plugin_file' => 'Select Plugin File',
         'show_plugin_page' => 'Show Plugin Page',
+        'edit_plugin' => 'Edit Plugin',
         'options' => [
             'header' => 'Option Setting',
             'custom_options_header' => 'Custom Options',
@@ -521,6 +529,25 @@ return [
             'api' => 'API',
             'event' => 'Event',
             'button' => 'Button',
+        ],
+    ],
+
+    'plugincode' => [
+        'header' => 'Edit Plugin',
+        'upload_header' => 'Upload Files',
+        'description' => 'You can directly edit installed plugins.',
+        'error' => [
+            'folder_notfound' => 'No folder is selected.',
+            'plugin_notfound' => 'The plugin does not exist.',
+            'file_notfound' => 'The plugin file may have been deleted. Please contact your system administrator.',
+        ],
+        'message' => [
+            'file_edit' => 'To edit the file, click the file name in the tree on the right.',
+            'select_file' => 'Please select target file.',
+            'irregular_ext' => 'This is a type of file that cannot be edited.',
+            'irregular_enc' => 'Only the UTF-8 character code is supported.',
+            'upload_file' => 'You can upload files to the selected folder (%s).',
+            'force_updated' => 'If a file with the same name exists in the folder, it will be overwritten. Please be careful.',
         ],
     ],
 
@@ -1242,6 +1269,7 @@ return [
 
         'message' => [
             'no_exists_column' => 'Required items have not been set.',
+            'confirm_required' => 'Required items are not set. Are you sure you want to save it as it is?',
         ],
     ],
 
@@ -1266,11 +1294,42 @@ return [
         'header' => 'Mass Update Setting',
         'description' => 'Make settings to update selected data collectively.',
         'operation_name' => 'Mass Update Label',
+        'operation_type' => 'Update timing',
         'custom_operation_button_label' => 'Mass Update Setting',
         'custom_operation_columns' => 'Update Column Setting',
+        'custom_operation_conditions' => 'Update Condition',
         'description_custom_operation_columns' => 'Set the target column and update value for mass update.',
         'view_column_target' => 'Target Column',
+        'operation_update_type' => 'Update Type',
         'update_value_text' => 'Update Value',
+        
+        'operation_type_options' => [
+            'bulk_update' => 'Pressing button on the list screen',
+            'button' => 'Pressing the button on the data details',
+            'create' => 'Creating new data',
+            'update' => 'Updating data',
+            //'notified' => 'Sending notification',
+        ],
+        'operation_update_type_options' => [
+            'default' => 'Fixed Value',
+            'system' => 'System Value',
+        ],
+        'operation_value_type_options' => [
+            'execute_datetime' => 'Execute Datetime',
+            'login_user' => 'Login User',
+        ],
+        'options' => [
+            'button_label' => 'Button Label',
+            'button_class' => 'Button HTML class',
+            'button_icon' => 'Button Icon',
+        ],
+        'help' => [
+            'operation_type' => 'Specify the timing to update the data.',
+            'button_icon' => 'The icon to add to the button HTML.',
+            'button_class' => 'The class to add to the button HTML.',
+            'custom_operation_columns' => 'Set the target column of data update and update value.',
+            'custom_operation_conditions' => 'Specify the condition of the data that can execute the registered update settings.',
+        ],
     ],
 
     'custom_view' => [
@@ -1715,6 +1774,7 @@ return [
         ],
         'message' => [
             'operation_notfound' => 'The data to be updated was not found.',
+            'operation_contains_notmatch_condition' => 'The data %s that cannot be updated is selected.',
             'operation_succeeded' => 'Batch update was performed.',
             'action_disabled' => 'Operations from the screen are restricted.',
             'restore' => 'Are you sure to restore this item ?',
@@ -1946,6 +2006,7 @@ return [
             'role' => 'Role',
             'system' => 'System',
             'column' => 'Custom Column',
+            'form' => 'Display type',
         ],
         'condition_key_options' => [
             'eq' => '',
@@ -1956,6 +2017,12 @@ return [
             'number_lte' => 'Less Than or Equal',
             'day_on_or_after' => 'After',
             'day_on_or_before' => 'Before',
+        ],
+
+        'form_data_type_options' => [
+            'show' => 'Data Detail',
+            'create' => 'Data Creation',
+            'edit' => 'Data Edit',
         ],
 
         'condition_join_options' => [

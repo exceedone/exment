@@ -16,7 +16,6 @@ use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Notify;
-use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums;
@@ -159,10 +158,16 @@ class PatchDataCommand extends Command
             case 'patch_freeword_search':
                 $this->setFreewordSearchOption();
                 return;
+            case 'init_custom_operation_type':
+                $this->initCustomOperationType();
+                return;
             case 'set_env':
                 $this->setEnv();
                 return;
-            }
+            case 'patch_view_dashboard':
+                $this->patchViewDashboard();
+                return;
+        }
 
         $this->error('patch name not found.');
     }
@@ -1168,5 +1173,44 @@ class PatchDataCommand extends Command
         catch (\Exception $ex) {
         } catch (\Throwable $ex) {
         }
+    }
+
+    /**
+     * Initialize operation_type in custom_operations.
+     *
+     * @return void
+     */
+    protected function initCustomOperationType()
+    {
+        // remove "role" menu
+        Model\CustomOperation::whereNull('operation_type')
+            ->get()
+            ->each(function ($custom_operation) {
+                $custom_operation->update([
+                    'operation_type' => [Enums\CustomOperationType::BULK_UPDATE],
+                    'options' => ['button_label' => $custom_operation->operation_name],
+                ]);
+
+                $custom_operation->custom_operation_columns->each(function ($custom_operation_column) {
+                    $custom_operation_column->setOption('operation_update_type', Enums\OperationUpdateType::DEFAULT)
+                        ->save();
+                });
+            });
+    }
+        
+    /**
+     * setLoginType
+     *
+     * @return void
+     */
+    protected function patchViewDashboard()
+    {
+        if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
+            return;
+        }
+
+        // update system value
+        System::userdashboard_available(!boolval(config('exment.userdashboard_disabled', false)));
+        System::userview_available(!boolval(config('exment.userview_disabled', false)));
     }
 }

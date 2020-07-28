@@ -8,10 +8,13 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Notify;
@@ -31,7 +34,13 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceTableActions, CustomValueForm;
+    use CustomValueForm;
+
+    use HasResourceTableActions{
+        HasResourceTableActions::update as updateTrait;
+        HasResourceTableActions::store as storeTrait;
+        HasResourceTableActions::destroy as destroyTrait;
+    }
 
     const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
     const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
@@ -51,6 +60,36 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
+    }
+    
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update($tableKey, $id)
+    {
+        $request = request();
+        if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
+            return $response;
+        }
+        return $this->updateTrait($tableKey, $id);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @return mixed
+     */
+    public function store()
+    {
+        $request = request();
+        if (($response = $this->firstFlow($request, CustomValuePageType::CREATE)) instanceof Response) {
+            return $response;
+        }
+        return $this->storeTrait();
     }
 
     /**
@@ -385,6 +424,40 @@ class CustomValueController extends AdminControllerTableBase
         } elseif (is_array($response)) {
             return getAjaxResponse($response);
         }
+        return getAjaxResponse([
+            'result' => true,
+            'toastr' => exmtrans('common.message.success_execute'),
+        ]);
+    }
+    
+    //Function handle operation button click event
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function operationClick(Request $request, $tableKey, $id = null)
+    {
+        $id = !is_nullorempty($id) ? $id : $request->input('id');
+        if ($request->input('suuid') === null) {
+            abort(404);
+        }
+
+        // get custom operation
+        $operation = CustomOperation::where('suuid', $request->input('suuid'))->first();
+        if (!isset($operation)) {
+            abort(404);
+        }
+        
+        setTimeLimitLong();
+
+        $response = $operation->execute($this->custom_table, $id);
+        
+        if ($response === false) {
+            return getAjaxResponse(false);
+        } elseif ($response instanceof Response) {
+            return $response;
+        }
+
         return getAjaxResponse([
             'result' => true,
             'toastr' => exmtrans('common.message.success_execute'),
@@ -737,7 +810,7 @@ class CustomValueController extends AdminControllerTableBase
             return back();
         }
 
-        $this->setFormViewInfo($request, $id);
+        $this->setFormViewInfo($request, $formActionType, $id);
  
         // id set, checking as update.
         // check for update
@@ -822,10 +895,16 @@ class CustomValueController extends AdminControllerTableBase
      * set view and form info.
      * use session etc
      */
-    protected function setFormViewInfo(Request $request, $id = null)
+    protected function setFormViewInfo(Request $request, $formActionType, $id = null)
     {
         // set view
         $this->custom_view = CustomView::getDefault($this->custom_table);
+
+        // set form data type for form priority
+        $form_data_type = CustomValuePageType::getFormDataType($formActionType);
+        if (isset($form_data_type)) {
+            System::setRequestSession(Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, $form_data_type);
+        }
 
         // set form
         $this->custom_form = $this->custom_table->getPriorityForm($id);

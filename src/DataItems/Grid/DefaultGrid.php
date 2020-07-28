@@ -11,7 +11,6 @@ use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
@@ -19,11 +18,13 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
+use Encore\Admin\Form;
 
 class DefaultGrid extends GridBase
 {
@@ -335,7 +336,9 @@ class DefaultGrid extends GridBase
                 // if cannot edit, disable delete and update operations
                 if ($this->custom_table->enableEdit() === true) {
                     foreach ($this->custom_table->custom_operations as $custom_operation) {
-                        $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                        if ($custom_operation->matchOperationType(Enums\CustomOperationType::BULK_UPDATE)) {
+                            $batch->add($custom_operation->operation_name, new GridTools\BatchUpdate($custom_operation));
+                        }
                     }
                 } else {
                     $batch->disableDelete();
@@ -501,41 +504,6 @@ class DefaultGrid extends GridBase
         return $service;
     }
 
-    /**
-     * update read_flg when row checked
-     *
-     * @param mixed   $id
-     */
-    public function rowUpdate(Request $request, $tableKey = null, $id = null, $rowid = null)
-    {
-        if (!isset($id) || !isset($rowid)) {
-            abort(404);
-        }
-
-        $operation = CustomOperation::with(['custom_operation_columns'])->find($id);
-
-        $models = $this->custom_table->getValueModel()->query()->whereIn('id', explode(',', $rowid));
-
-        if (!isset($models) || $models->count() == 0) {
-            return getAjaxResponse([
-                'result'  => false,
-                'toastr' => exmtrans('custom_value.message.operation_notfound'),
-            ]);
-        }
-
-        $updates = collect($operation->custom_operation_columns)->mapWithKeys(function ($operation_column) {
-            $column_name= 'value->'.$operation_column->custom_column->column_name;
-            return [$column_name => $operation_column['update_value_text']];
-        })->toArray();
-
-        $models->update($updates);
-        
-        return getAjaxResponse([
-            'result'  => true,
-            'toastr' => exmtrans('custom_value.message.operation_succeeded'),
-        ]);
-    }
-    
     public function renderModalFrame()
     {
         // get target column id or class
@@ -596,5 +564,61 @@ class DefaultGrid extends GridBase
                 'target_selectitem' => 'select',
             ])->render();
         });
+    }
+
+    /**
+     * Set custom view columns form. For controller.
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @return void
+     */
+    public static function setViewForm($view_kind_type, $form, $custom_table)
+    {
+        if (in_array($view_kind_type, [Enums\ViewKindType::DEFAULT, Enums\ViewKindType::ALLDATA])) {
+            $form->select('pager_count', exmtrans("common.pager_count"))
+                ->required()
+                ->options(getPagerOptions(true))
+                ->config('allowClear', false)
+                ->default(0);
+        }
+
+        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+        if ($view_kind_type != Enums\ViewKindType::FILTER) {
+            // columns setting
+            $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
+                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                    ->options($custom_table->getColumnsSelectOptions([
+                        'append_table' => true,
+                        'include_parent' => true,
+                        'include_workflow' => true,
+                    ]));
+                $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+                $form->hidden('order')->default(0);
+            })->required()->setTableColumnWidth(7, 3, 2)
+            ->rowUpDown('order', 10)
+            ->description(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
+        }
+
+        // filter setting
+        if ($view_kind_type != Enums\ViewKindType::ALLDATA) {
+            static::setFilterFields($form, $custom_table);
+        }
+
+        // sort setting
+        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
+            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+            ->options($custom_table->getColumnsSelectOptions([
+                'append_table' => true,
+                'index_enabled_only' => true,
+            ]));
+            $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
+                ->required()
+                ->default(1)
+                ->help(exmtrans('custom_view.help.sort_type'));
+            $form->hidden('priority')->default(0);
+        })->setTableColumnWidth(7, 3, 2)
+        ->rowUpDown('priority')
+        ->description(sprintf(exmtrans("custom_view.description_custom_view_sorts"), $manualUrl));
     }
 }

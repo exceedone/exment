@@ -5,11 +5,15 @@ namespace Exceedone\Exment\ConditionItems;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Form\Field\ChangeField;
+use Exceedone\Exment\Validator\ChangeFieldRule;
+use Encore\Admin\Form\Field;
 
 class ColumnItem extends ConditionItemBase implements ConditionItemInterface
 {
@@ -27,6 +31,75 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         $value = array_get($custom_value, 'value.' . $custom_column->column_name);
 
         return $this->compareValue($condition, $value);
+    }
+    
+    /**
+     * get Update Type Condition
+     */
+    public function getOperationUpdateType()
+    {
+        $isEnableSystem = false;
+
+        $item = $this->getFormColumnItem();
+        if (isset($item)) {
+            $isEnableSystem = ColumnType::isOperationEnableSystem($item->getCustomColumn()->column_type);
+        }
+
+        if (!$isEnableSystem) {
+            return parent::getOperationUpdateType();
+        }
+        
+        return collect(Enums\OperationUpdateType::values())->map(function ($val) {
+            return ['id' => $val->lowerkey(), 'text' => exmtrans('custom_operation.operation_update_type_options.'.$val->lowerkey())];
+        });
+    }
+    
+    /**
+     * get Operation filter value for field, Call as Ajax
+     */
+    public function getOperationFilterValueAjax($target_key, $target_name, $show_condition_key = true)
+    {
+        $field = $this->getOperationFilterValue($target_key, $target_name, $show_condition_key);
+        if (is_null($field)) {
+            return [];
+        }
+        
+        $view = $field->render();
+        return json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
+    }
+    
+    /**
+     * get Operation filter value for field
+     */
+    public function getOperationFilterValue($target_key, $target_name, $show_condition_key = true)
+    {
+        $field = new ChangeField($this->className, $this->label);
+        $field->rules([new ChangeFieldRule($this->custom_table, $this->label, $this->target)]);
+        $field->adminField(function ($data, $field) use ($target_key, $target_name, $show_condition_key) {
+            return $this->getOperationFilterValueChangeField($target_key, $target_name, $show_condition_key);
+        });
+        $field->setElementName($this->elementName);
+
+        return $field;
+    }
+
+    
+    /**
+     * get Operation filter value for field
+     */
+    public function getOperationFilterValueChangeField($target_key, $target_name, $show_condition_key = true)
+    {
+        $item = $this->getFormColumnItem();
+        $options = Enums\OperationValueType::getOperationValueOptions($target_key, $item->getCustomColumn());
+        
+        if (empty($options)) {
+            return $this->getChangeField(null, $show_condition_key);
+        }
+
+        $field = new Field\Select($this->elementName, [exmtrans('custom_operation.update_value_text')]);
+        $field->options($options);
+
+        return $field;
     }
     
     /**

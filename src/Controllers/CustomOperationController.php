@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 use Illuminate\Http\Request;
@@ -12,8 +11,10 @@ use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\FilterKind;
+use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Field\ChangeField;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 
 class CustomOperationController extends AdminControllerTableBase
 {
@@ -77,10 +78,6 @@ class CustomOperationController extends AdminControllerTableBase
             return;
         }
 
-        if (!is_null($copy_id = $request->get('copy_id'))) {
-            return $this->AdminContent($content)->body($this->form(null, $copy_id)->replicate($copy_id, ['operation_name']));
-        }
-
         return parent::create($request, $content);
     }
 
@@ -95,8 +92,14 @@ class CustomOperationController extends AdminControllerTableBase
         $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('operation_name', exmtrans("custom_operation.operation_name"))->sortable();
+        $grid->column('operation_type', exmtrans("custom_operation.operation_type"))->sortable()->displayEscape(function ($val) {
+            return collect(toArray($val))->map(function ($v) {
+                return array_get(CustomOperationType::transArray("custom_operation.operation_type_options"), $v);
+            })->implode(exmtrans('common.separate_word'));
+        });
         
         $grid->model()->where('custom_table_id', $this->custom_table->id);
+
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             if (boolval($actions->row->disabled_delete)) {
@@ -114,13 +117,13 @@ class CustomOperationController extends AdminControllerTableBase
     /**
      * Make a form builder.
      *
+     * @param int|null $id
      * @return Form
      */
-    protected function form($id = null, $copy_id = null)
+    protected function form($id = null)
     {
         // get request
         $request = Request::capture();
-        $copy_custom_operation = CustomOperation::getEloquent($copy_id);
         
         $form = new Form(new CustomOperation);
 
@@ -143,14 +146,32 @@ class CustomOperationController extends AdminControllerTableBase
 
         $form->text('operation_name', exmtrans("custom_operation.operation_name"))->required()->rules("max:40");
         
+        $form->multipleSelect('operation_type', exmtrans("custom_operation.operation_type"))
+            ->help(exmtrans("custom_operation.help.operation_type"))
+            ->options(function () {
+                return CustomOperationType::transArray("custom_operation.operation_type_options");
+            })->required()
+            ->attribute(['data-filtertrigger' =>true]);
+
+        $form->embeds('options', null, function ($form) use ($id) {
+            $form->text('button_label', exmtrans("custom_operation.options.button_label"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => [CustomOperationType::BUTTON, CustomOperationType::BULK_UPDATE]])]);
+            $form->icon('button_icon', exmtrans("custom_operation.options.button_icon"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => CustomOperationType::BUTTON])])
+                ->help(exmtrans("custom_operation.help.button_icon"));
+            $form->text('button_class', exmtrans("custom_operation.options.button_class"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => CustomOperationType::BUTTON])])
+                ->help(exmtrans("custom_operation.help.button_class"));
+        })->disableHeader();
+
         $custom_table = $this->custom_table;
         
-        // filter setting
+        // update column setting
         $hasManyTable = new Tools\ConditionHasManyTable($form, [
             'name' => 'custom_operation_columns',
             'showConditionKey' => false,
-            'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
-            //'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
+            'linkage' => json_encode(['operation_update_type' => admin_urls('webapi', $custom_table->table_name, 'operation-update-type')]),
+            'ajax' => admin_urls('webapi', $custom_table->table_name, 'operation-filter-value'),
             'targetOptions' => $this->custom_table->getColumnsSelectOptions([
                 'append_table' => true,
                 'index_enabled_only' => false,
@@ -162,25 +183,77 @@ class CustomOperationController extends AdminControllerTableBase
             'custom_table' => $custom_table,
             'filterKind' => FilterKind::OPERATION,
             'condition_target_name' => 'view_column_target',
-            'condition_key_name' => 'view_column_target',
-            'condition_value_name' => 'update_value',
+            'condition_key_name' => 'operation_update_type',
+            'condition_value_name' => 'update_value_text',
+            'label' => exmtrans('custom_operation.custom_operation_columns'),
             'condition_target_label' => exmtrans('custom_operation.view_column_target'),
             'condition_value_label' => exmtrans('custom_operation.update_value_text'),
-        ]);
+            'conditionCallback' => function ($form) use ($custom_table) {
+                $form->select('operation_update_type', exmtrans('custom_operation.operation_update_type'))->required()
+                    ->options(function ($val, $select, $model) use ($custom_table) {
+                        $data = $select->data();
+                        $condition_target = array_get($data, 'view_column_target');
 
+                        $item = ConditionItemBase::getItem($custom_table, $condition_target);
+                        if (is_null($item)) {
+                            return null;
+                        }
+
+                        return collect($item->getOperationUpdateType())->mapWithKeys(function ($item) {
+                            return [$item['id'] => $item['text']];
+                        });
+                    });
+            },
+            'valueCallback' => function ($data, $field) use ($custom_table) {
+                $condition_target = array_get($data, 'view_column_target');
+
+                $item = ConditionItemBase::getItem($custom_table, $condition_target);
+                if (is_null($item)) {
+                    return null;
+                }
+
+                return $item->getOperationFilterValueChangeField(array_get($data, 'operation_update_type'), $field->getElementName());
+            },
+        ]);
+        
         $hasManyTable->callbackField(function ($field) {
             $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
-            $field->description(sprintf(exmtrans("custom_operation.description_custom_operation_columns"), $manualUrl));
+            $field->description(sprintf(exmtrans("custom_operation.help.custom_operation_columns"), $manualUrl));
+            $field->setTableColumnWidth(4, 3, 4, 1);
         });
-
         $hasManyTable->render();
+
+
+
+        // filter setting
+        $filterTable = new Tools\ConditionHasManyTable($form, [
+            'ajax' => admin_urls('webapi', $custom_table->table_name, 'filter-value'),
+            'name' => 'custom_operation_conditions',
+            'linkage' => json_encode(['condition_key' => admin_urls('webapi', $custom_table->table_name, 'filter-condition')]),
+            'targetOptions' => $custom_table->getColumnsSelectOptions([
+                'include_system' => false,
+                'include_condition' => true,
+                'ignore_attachment' => true,
+            ]),
+            'custom_table' => $custom_table,
+            'filterKind' => FilterKind::OPERATION,
+            'label' => exmtrans('custom_operation.custom_operation_conditions'),
+        ]);
         
-        $custom_table = $this->custom_table;
+        $filterTable->callbackField(function ($field) {
+            $field->description(sprintf(exmtrans("custom_operation.help.custom_operation_conditions")));
+        });
+        $filterTable->render();
+
+        $form->radio('condition_join', exmtrans("condition.condition_join"))
+            ->options(exmtrans("condition.condition_join_options"))
+            ->default('and');
 
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('operation', $custom_table));
         });
-        
+        $form->disableEditingCheck(false);
+
         return $form;
     }
 
