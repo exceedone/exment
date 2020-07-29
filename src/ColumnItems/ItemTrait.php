@@ -144,6 +144,14 @@ trait ItemTrait
     }
 
     /**
+     * get cast column name as SQL
+     */
+    public function getCastColumn()
+    {
+        return $this->getSortColumn();
+    }
+
+    /**
      * get style string from key-values
      *
      * @param array $array
