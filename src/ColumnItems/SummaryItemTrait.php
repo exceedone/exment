@@ -29,11 +29,9 @@ trait SummaryItemTrait
             // get cast
             $castColumn = $this->getCastColumn();
             $raw = "$summary_condition($castColumn) AS ".$this->sqlAsName();
-        }
-        elseif (isset($group_condition)) {
+        } elseif (isset($group_condition)) {
             $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, false) . " AS ".$this->sqlAsName();
-        }
-        else {
+        } else {
             $raw = "$value_column AS ".$this->sqlAsName();
         }
 

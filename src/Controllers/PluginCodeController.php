@@ -2,12 +2,10 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Widgets\Box;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\Permission;
 use Illuminate\Http\Request;
@@ -29,7 +27,7 @@ class PluginCodeController extends AdminControllerBase
 
     /**
      * Showing code edit page
-     * 
+     *
      * @param Request $request
      * @param Content $content
      * @param int $id
@@ -45,7 +43,7 @@ class PluginCodeController extends AdminControllerBase
             Checker::error();
             return false;
         }
-        $content->row(function (Row $row) use($id) {
+        $content->row(function (Row $row) use ($id) {
             $row->column(9, view('exment::plugin.editor.upload', [
                 'url' => admin_url("plugin/edit_code/$id/fileupload"),
                 'filepath' => '/',
@@ -74,12 +72,13 @@ class PluginCodeController extends AdminControllerBase
 
     /**
      * Get file tree data
-     * 
+     *
      * @param Request $request
      * @param int $id
      * @return Response
      */
-    public function getTreeData(Request $request, $id) {
+    public function getTreeData(Request $request, $id)
+    {
         $json = [];
         $this->plugin = Plugin::getEloquent($id);
         if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
@@ -94,12 +93,13 @@ class PluginCodeController extends AdminControllerBase
 
     /**
      * Upload file to target folder
-     * 
+     *
      * @param Request $request
      * @param int $id
      * @return Response
      */
-    public function fileupload(Request $request, $id) {
+    public function fileupload(Request $request, $id)
+    {
         $this->plugin = Plugin::getEloquent($id);
         
         if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
@@ -118,7 +118,7 @@ class PluginCodeController extends AdminControllerBase
             $folder_path = str_replace('//', '/', $request->get('plugin_file_path'));
             $upload_files = $request->file('fileUpload');
 
-            foreach($upload_files as $upload_file){
+            foreach ($upload_files as $upload_file) {
                 $filename = $upload_file->getClientOriginalName();
 
                 $this->plugin->putAsPluginFile($folder_path, $filename, $upload_file);
@@ -134,17 +134,18 @@ class PluginCodeController extends AdminControllerBase
 
     /**
      * Get child form html for selected file
-     * 
+     *
      * @param Request $request
      * @param int $id
      * @return array
      */
-    public function getFileEditForm(Request $request, $id) {
+    public function getFileEditForm(Request $request, $id)
+    {
         $this->plugin = Plugin::getEloquent($id);
         
         list($view, $isBox) = $this->getFileEditFormView($request, $id);
 
-        if($isBox){
+        if ($isBox) {
             $box = new Box('', $view);
             $view = $box->style('info');
         }
@@ -156,12 +157,12 @@ class PluginCodeController extends AdminControllerBase
     
     /**
      * Get child form html for selected file
-     * 
+     *
      * @param Request $request
      * @param int $id
      * @return array
      */
-    protected function getFileEditFormView(Request $request, $id) 
+    protected function getFileEditFormView(Request $request, $id)
     {
         $validator = \Validator::make($request->all(), [
             'nodepath' => 'required',
@@ -171,14 +172,14 @@ class PluginCodeController extends AdminControllerBase
         }
 
         $nodepath = str_replace('//', '/', $request->get('nodepath'));
-        try{
+        try {
             if ($this->plugin->isPathDir($nodepath)) {
                 return [view('exment::plugin.editor.upload', [
                     'url' => admin_url("plugin/edit_code/$id/fileupload"),
                     'filepath' => $nodepath,
                     'message' => exmtrans('plugincode.message.upload_file'),
                 ]), false];
-            } 
+            }
 
             list($mode, $image, $can_delete) = $this->getPluginFileType($nodepath);
 
@@ -193,7 +194,7 @@ class PluginCodeController extends AdminControllerBase
                     'filepath' => $nodepath,
                     'can_delete' => $can_delete,
                 ]), true];
-            } else if ($mode !== false) {
+            } elseif ($mode !== false) {
                 $filedata = $this->plugin->getPluginFiledata($nodepath);
                 $enc = mb_detect_encoding($filedata, ['UTF-8', 'UTF-16', 'ASCII', 'ISO-2022-JP', 'EUC-JP', 'SJIS'], true);
                 if ($enc == 'UTF-8') {
@@ -214,19 +215,19 @@ class PluginCodeController extends AdminControllerBase
                 'can_delete' => $can_delete,
                 'message' => $message
             ]), false];
-        }
-        catch(\League\Flysystem\FileNotFoundException $ex){
+        } catch (\League\Flysystem\FileNotFoundException $ex) {
             //Todo:FileNotFoundException
         }
     }
 
     /**
      * Get CodeMirror mode and image type of file
-     * 
+     *
      * @param string $nodepath
      * @return array [CodeMirror mode, image extension, deletable flg]
      */
-    protected function getPluginFileType($nodepath) {
+    protected function getPluginFileType($nodepath)
+    {
         // exclude config.json
         if (mb_strtolower(basename($nodepath)) === 'config.json') {
             return [false, null, false];
@@ -267,14 +268,15 @@ class PluginCodeController extends AdminControllerBase
 
     /**
      * Get and set file and directory nodes in target folder
-     * 
+     *
      * @param string $folder
      * @param string $parent
      * @param int &$node_idx
      * @param array &$json
      * @param string $folderName root folder name.
      */
-    protected function setDirectoryNodes($folder, $parent, &$node_idx, &$json) {
+    protected function setDirectoryNodes($folder, $parent, &$node_idx, &$json)
+    {
         $node_idx++;
         $directory_node = "node_$node_idx";
         $json[] = [
@@ -306,7 +308,7 @@ class PluginCodeController extends AdminControllerBase
 
     /**
      * delete target file from plugin folder
-     * 
+     *
      * @param Request $request
      * @param int $id
      * @return Response
@@ -346,7 +348,7 @@ class PluginCodeController extends AdminControllerBase
 
     /**
      * update file in plugin folder
-     * 
+     *
      * @param Request $request
      * @param int $id
      * @return Response
@@ -387,11 +389,12 @@ class PluginCodeController extends AdminControllerBase
     }
 
     /**
-     * Update plugin's updated_at. Because sync files from crowd. 
+     * Update plugin's updated_at. Because sync files from crowd.
      *
      * @return void
      */
-    protected function updatePluginDatetime(){
+    protected function updatePluginDatetime()
+    {
         $this->plugin->update([
             'updated_at' => \Carbon\Carbon::now(),
         ]);
