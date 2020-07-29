@@ -32,6 +32,20 @@ class SelectTable extends CustomItem
         $this->target_view = CustomView::getEloquent(array_get($custom_column, 'options.select_target_view'));
     }
 
+    public function saving()
+    {
+        if (is_nullorempty($this->value)) {
+            return;
+        }
+
+        // convert array or not, using multiple_enabled
+        $v = toArray($this->value);
+        if (boolval(array_get($this->custom_column, 'options.multiple_enabled', false))) {
+            return $v;
+        }
+        return count($v) == 0 ? null : $v[0];
+    }
+
     /**
      * sortable for grid
      */

@@ -1320,6 +1320,7 @@ return [
         'operation_value_type_options' => [
             'execute_datetime' => '実行日時',
             'login_user' => 'ログインユーザー',
+            'berong_organizations' => '所属組織',
         ],
         'options' => [
             'button_label' => 'ボタンのラベル',
