@@ -186,9 +186,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      */
     protected static function showableDashboards($query)
     {
-        $query = $query->where(function ($qry) {
-            $qry->where('dashboard_type', DashboardType::SYSTEM);
-        });
+        $query->where('dashboard_type', DashboardType::SYSTEM);
 
         $user = \Exment::user();
         if (!isset($user)) {
@@ -204,14 +202,15 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
 
             // filtered created_user, and shared others.
             $query->where(function ($query) use ($user) {
-                $query->where('created_user_id', $user->getUserId());
-            })->orWhereHas('data_share_authoritables', function ($query) use ($user) {
-                $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
-                $query->whereInMultiple(
-                    ['authoritable_user_org_type', 'authoritable_target_id'],
-                    $user->getUserAndOrganizationIds($enum),
-                    true
-                );
+                $query->where('created_user_id', $user->getUserId())
+                    ->orWhereHas('data_share_authoritables', function ($query) use ($user) {
+                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                        $query->whereInMultiple(
+                            ['authoritable_user_org_type', 'authoritable_target_id'],
+                            $user->getUserAndOrganizationIds($enum),
+                            true
+                        );
+                    });
             });
         });
     }

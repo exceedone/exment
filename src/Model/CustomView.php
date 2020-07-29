@@ -520,9 +520,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     protected static function showableViews($query)
     {
-        $query = $query->where(function ($qry) {
-            $qry->where('view_type', ViewType::SYSTEM);
-        });
+        $query->where('view_type', ViewType::SYSTEM);
 
         $user = \Exment::user();
         if (!isset($user)) {
@@ -538,14 +536,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
             // filtered created_user, and shared others.
             $query->where(function ($query) use ($user) {
-                $query->where('created_user_id', $user->getUserId());
-            })->orWhereHas('data_share_authoritables', function ($query) use ($user) {
-                $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
-                $query->whereInMultiple(
-                    ['authoritable_user_org_type', 'authoritable_target_id'],
-                    $user->getUserAndOrganizationIds($enum),
-                    true
-                );
+                $query->where('created_user_id', $user->getUserId())
+                    ->orWhereHas('data_share_authoritables', function ($query) use ($user) {
+                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                        $query->whereInMultiple(
+                            ['authoritable_user_org_type', 'authoritable_target_id'],
+                            $user->getUserAndOrganizationIds($enum),
+                            true
+                        );
+                    });
             });
         });
     }
