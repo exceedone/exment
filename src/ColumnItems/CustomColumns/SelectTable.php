@@ -247,10 +247,11 @@ class SelectTable extends CustomItem
 
     public function getSelectOptions($value, $field, array $selectOption = [])
     {
-        if (empty($selectOption)) {
-            $selectOption = $this->getSelectFieldOptions();
-        }
-        $selectOption['selected_value'] = $field->getOld() ?? $value;
+        $selectOption = array_merge(
+            $this->getSelectFieldOptions(),
+            $selectOption
+        );
+        $selectOption['selected_value'] = (!empty($field) ? $field->getOld() : null) ?? $value;
 
         // get DB option value
         return $this->target_table->getSelectOptions($selectOption);

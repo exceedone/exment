@@ -207,7 +207,7 @@ class CustomOperation extends ModelBase
             $column_name = $custom_column->column_name;
             // if update as system value, set system
             if (Enums\ColumnType::isOperationEnableSystem($custom_column->column_type) && isMatchString($operation_column->operation_update_type, Enums\OperationUpdateType::SYSTEM)) {
-                return [$column_name => Enums\OperationValueType::getOperationValue($operation_column['update_value_text'])];
+                return [$column_name => Enums\OperationValueType::getOperationValue($custom_column, $operation_column['update_value_text'])];
             }
 
             return [$column_name => $operation_column['update_value_text']];

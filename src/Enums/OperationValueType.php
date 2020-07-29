@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Enums;
 
+use Exceedone\Exment\Model\CustomColumn;
+
 class OperationValueType extends EnumBase
 {
     public const EXECUTE_DATETIME = 'execute_datetime';
@@ -29,10 +31,11 @@ class OperationValueType extends EnumBase
     /**
      * Get operation value. For execute operation.
      *
+     * @param CustomColumn  $custom_column
      * @param mixed  $operation_update_type
      * @return mixed
      */
-    public static function getOperationValue($operation_update_type)
+    public static function getOperationValue(CustomColumn $custom_column, $operation_update_type)
     {
         switch ($operation_update_type) {
             case static::EXECUTE_DATETIME:
@@ -44,7 +47,19 @@ class OperationValueType extends EnumBase
                 
             case static::BERONG_ORGANIZATIONS:
                 $login_user = \Exment::user();
-                return $login_user ? $login_user->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN) : null;
+                if(is_null($login_user)){
+                    return null;
+                }
+
+                // get joined user's id
+                $ids = $login_user->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN);
+                // get enable select organizations
+                $selectIds = $custom_column->column_item->getSelectOptions(null, null, ['notAjax' => true])->keys();
+
+                // filter organizaions
+                return collect($ids)->filter(function($id) use($selectIds){
+                    return $selectIds->contains($id);
+                })->toArray();
         }
     }
 }
