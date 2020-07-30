@@ -244,5 +244,4 @@ class SummaryGrid extends GridBase
             return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.group_condition_options.'.array_get($array, 'name'))];
         });
     }
-
 }

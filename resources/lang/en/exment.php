@@ -1310,6 +1310,12 @@ return [
             'update' => 'Updating data',
             //'notified' => 'Sending notification',
         ],
+        'operation_type_options_short' => [
+            'bulk_update' => 'List Button',
+            'button' => 'Detail Button',
+            'create' => 'Creating data',
+            'update' => 'Updating data',
+        ],
         'operation_update_type_options' => [
             'default' => 'Fixed Value',
             'system' => 'System Value',
@@ -1317,6 +1323,7 @@ return [
         'operation_value_type_options' => [
             'execute_datetime' => 'Execute Datetime',
             'login_user' => 'Login User',
+            'berong_organizations' => 'Berong Organizations',
         ],
         'options' => [
             'button_label' => 'Button Label',

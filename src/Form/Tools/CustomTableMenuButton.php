@@ -27,8 +27,8 @@ class CustomTableMenuButton extends ModalTileMenuButton
     {
         $items = $this->getItems();
         
-        // if no menu, return
-        if (count($items) == 0) {
+        // if no menu or only 1 item, return
+        if (count($items) <= 1) {
             return null;
         }
 

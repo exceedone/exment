@@ -278,7 +278,7 @@ class Plugin extends ModelBase
         $files = $disk->{$func}($dirPath);
 
         // remove "(pluginname)/"
-        $files = collect($files)->map(function($file) use($dirName){
+        $files = collect($files)->map(function ($file) use ($dirName) {
             return ltrim(ltrim($file, $dirName), '/');
         })->toArray();
 
@@ -296,7 +296,7 @@ class Plugin extends ModelBase
         $dirs = $disk->{$func}($dirPath);
 
         // remove "(pluginname)/"
-        $dirs = collect($dirs)->map(function($dir) use($dirName){
+        $dirs = collect($dirs)->map(function ($dir) use ($dirName) {
             return ltrim(ltrim($dir, $dirName), '/');
         })->toArray();
 
@@ -410,15 +410,16 @@ class Plugin extends ModelBase
      * @param array $options
      * @return array offset 0:PluginDiskService, 1:disk, 2: root dir name, 3: joined path.
      */
-    protected function initPluginDisk(string $path = null, ?PluginDiskService $diskService = null, array $options = []){
+    protected function initPluginDisk(string $path = null, ?PluginDiskService $diskService = null, array $options = [])
+    {
         $options = array_merge([
             'sync' => false,
             'exceptionFileNotFound' => true,
         ], $options);
 
-        if(!isset($diskService)){
+        if (!isset($diskService)) {
             $diskService = new PluginDiskService($this);
-            if(boolval($options['sync'])){
+            if (boolval($options['sync'])) {
                 $diskService->syncFromDisk();
             }
         }
@@ -426,12 +427,12 @@ class Plugin extends ModelBase
         $disk = $diskService->diskItem()->disk();
         $dirName = $diskService->diskItem()->dirName();
         
-        if(!$disk->exists($dirName)){
+        if (!$disk->exists($dirName)) {
             throw new \League\Flysystem\FileNotFoundException($dirName);
         }
 
         $filePath = path_join($dirName, $path);
-        if(!$disk->exists($filePath) && boolval($options['exceptionFileNotFound'])){
+        if (!$disk->exists($filePath) && boolval($options['exceptionFileNotFound'])) {
             throw new \League\Flysystem\FileNotFoundException($filePath);
         }
 

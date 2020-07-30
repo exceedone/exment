@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomTable;

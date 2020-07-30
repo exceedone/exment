@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Relation Pivot table (n:n)
