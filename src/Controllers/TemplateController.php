@@ -241,6 +241,8 @@ class TemplateController extends AdminControllerBase
      */
     public function import(Request $request)
     {
+        setTimeLimitLong();
+        
         // upload template file and install
         $this->uploadTemplate($request);
 

@@ -137,6 +137,7 @@ class ColumnType extends EnumBase
             ColumnType::TIME,
             ColumnType::DATETIME,
             ColumnType::USER,
+            ColumnType::ORGANIZATION,
         ];
     }
 

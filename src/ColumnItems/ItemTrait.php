@@ -133,6 +133,14 @@ trait ItemTrait
      */
     public function getSortColumn()
     {
+        return $this->getCastColumn();
+    }
+
+    /**
+     * get cast column name as SQL
+     */
+    public function getCastColumn()
+    {
         $cast = $this->getCastName();
         $index = $this->index();
         

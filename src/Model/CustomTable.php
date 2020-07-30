@@ -226,8 +226,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $list = $this->custom_columns_cache->mapWithKeys(function ($item) {
             $key = $item->getIndexColumnName();
-            $val = array_get($item->options, 'select_target_table');
-            return [$key => (is_numeric($val)? intval($val): null)];
+            $select_target_table = $item->select_target_table;
+            return [$key => (!is_null($select_target_table) ? $select_target_table->id : null)];
         });
         $list = $list->filter()->toArray();
         return $list;

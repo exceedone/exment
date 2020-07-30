@@ -32,6 +32,20 @@ class SelectTable extends CustomItem
         $this->target_view = CustomView::getEloquent(array_get($custom_column, 'options.select_target_view'));
     }
 
+    public function saving()
+    {
+        if (is_nullorempty($this->value)) {
+            return;
+        }
+
+        // convert array or not, using multiple_enabled
+        $v = toArray($this->value);
+        if (boolval(array_get($this->custom_column, 'options.multiple_enabled', false))) {
+            return $v;
+        }
+        return count($v) == 0 ? null : $v[0];
+    }
+
     /**
      * sortable for grid
      */
@@ -233,10 +247,11 @@ class SelectTable extends CustomItem
 
     public function getSelectOptions($value, $field, array $selectOption = [])
     {
-        if (empty($selectOption)) {
-            $selectOption = $this->getSelectFieldOptions();
-        }
-        $selectOption['selected_value'] = $field->getOld() ?? $value;
+        $selectOption = array_merge(
+            $this->getSelectFieldOptions(),
+            $selectOption
+        );
+        $selectOption['selected_value'] = (!empty($field) ? $field->getOld() : null) ?? $value;
 
         // get DB option value
         return $this->target_table->getSelectOptions($selectOption);

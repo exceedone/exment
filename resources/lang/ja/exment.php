@@ -1306,6 +1306,13 @@ return [
             'update' => 'データ更新時',
             //'notified' => '通知送信時',
         ],
+
+        'operation_type_options_short' => [
+            'bulk_update' => '一覧ボタン',
+            'button' => '詳細ボタン',
+            'create' => '新規作成時',
+            'update' => '更新時',
+        ],
         'operation_update_type_options' => [
             'default' => '固定値',
             'system' => 'システム値',
@@ -1313,6 +1320,7 @@ return [
         'operation_value_type_options' => [
             'execute_datetime' => '実行日時',
             'login_user' => 'ログインユーザー',
+            'berong_organizations' => '所属組織',
         ],
         'options' => [
             'button_label' => 'ボタンのラベル',
