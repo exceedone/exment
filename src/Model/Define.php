@@ -73,6 +73,9 @@ class Define
         'web_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
         'api_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
 
+        'userview_available' => ['type' => 'boolean', 'default' => true, 'group' => 'advanced'],
+        'userdashboard_available' => ['type' => 'boolean', 'default' => true, 'group' => 'advanced'],
+
         'complex_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
         'first_change_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
@@ -172,6 +175,7 @@ class Define
     public const SYSTEM_KEY_SESSION_GRID_AUTHORITABLE = "grid_authoritable_%s";
     public const SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE = "accessible_table_%s_%s";
     public const SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG = "disable_data_url_tag";
+    public const SYSTEM_KEY_SESSION_FORM_DATA_TYPE = "form_data_type";
 
     /**
      * MENU SYSTEM DIFINITION
@@ -364,8 +368,10 @@ class Define
         $maxSize = getUploadMaxFileSize();
 
         return [
-            'showPreview' => false,
+            'showPreview' => true,
             'showCancel' => false,
+            'dropZoneEnabled' => !boolval(config('exment.file_drag_drop_disabled', false)),
+            'dropZoneTitle' => exmtrans('common.message.file_drag_drop'),
             'browseLabel' => trans('admin.browse'),
             'maxFileSize' => $maxSize / 1024,
             'maxFileSizeHuman' => bytesToHuman($maxSize),
@@ -382,7 +388,8 @@ class Define
         ['uri'=> 'relation', 'help_uri'=> 'relation'],
         ['uri'=> 'form', 'help_uri'=> 'form'],
         ['uri'=> 'view', 'help_uri'=> 'view'],
-        ['uri'=> 'template', 'help_uri'=> 'template'],
+        ['uri'=> 'relation', 'help_uri'=> 'relation'],
+        ['uri'=> 'operation', 'help_uri'=> 'operation'],
         ['uri'=> 'plugin', 'help_uri'=> 'plugin'],
         ['uri'=> 'api_setting', 'help_uri'=> 'api'],
         ['uri'=> 'backup', 'help_uri'=> 'backup'],

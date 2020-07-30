@@ -145,6 +145,12 @@ class PluginController extends AdminControllerBase
     //Check request when edit record to delete null values in event_triggers
     protected function update(Request $request, $id)
     {
+        $plugin = Plugin::getEloquent($id);
+        if (!$plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+            Checker::error();
+            return false;
+        }
+        
         if (isset($request->get('options')['event_triggers']) === true) {
             $event_triggers = $request->get('options')['event_triggers'];
             $options = $request->get('options');
@@ -260,10 +266,17 @@ class PluginController extends AdminControllerBase
             $this->setCustomOptionForm($plugin, $form);
         }
 
-        $form->tools(function (Form\Tools $tools) use ($plugin) {
+        $form->tools(function (Form\Tools $tools) use ($plugin, $id) {
             if ($plugin->disabled_delete) {
                 $tools->disableDelete();
             }
+
+            $tools->append(view('exment::tools.button', [
+                'href' => admin_url("plugin/edit_code/$id"),
+                'label' => exmtrans('plugin.edit_plugin'),
+                'icon' => 'fa-edit',
+                'btn_class' => 'btn-warning',
+            ]));
 
             if ($plugin->matchPluginType(PluginType::PAGE)) {
                 $tools->append(view('exment::tools.button', [

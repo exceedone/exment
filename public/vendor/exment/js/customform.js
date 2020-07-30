@@ -7,16 +7,16 @@ var Exment;
             $('.box-custom_form_block').on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
             $('.box-custom_form_block').on('click', '.changedata-modal', {}, CustomFromEvent.changedataModalEvent);
             $('.box-custom_form_block').on('click', '.relation_filter-modal', {}, CustomFromEvent.relationfilterModalEvent);
-            $(document).off('change', '.changedata_target_column').on('change', '.changedata_target_column', {}, CustomFromEvent.changedataColumnEvent);
-            $(document).off('click', '#changedata-button-setting').on('click', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
-            $(document).off('click', '#changedata-button-reset').on('click', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
-            $(document).off('click', '#relation_filter-button-setting').on('click', '#relation_filter-button-setting', {}, CustomFromEvent.relationfilterSetting);
-            $(document).off('click', '#relation_filter-button-reset').on('click', '#relation_filter-button-reset', {}, CustomFromEvent.relationfilterReset);
+            $(document).off('change.custom_form', '.changedata_target_column').on('change.custom_form', '.changedata_target_column', {}, CustomFromEvent.changedataColumnEvent);
+            $(document).off('click.custom_form', '#changedata-button-setting').on('click.custom_form', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
+            $(document).off('click.custom_form', '#changedata-button-reset').on('click.custom_form', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
+            $(document).off('click.custom_form', '#relation_filter-button-setting').on('click.custom_form', '#relation_filter-button-setting', {}, CustomFromEvent.relationfilterSetting);
+            $(document).off('click.custom_form', '#relation_filter-button-reset').on('click.custom_form', '#relation_filter-button-reset', {}, CustomFromEvent.relationfilterReset);
             CustomFromEvent.addDragEvent();
             CustomFromEvent.addCollapseEvent();
             CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
-            CustomFromEvent.appendIcheckEvent($('.icheck:visible,.icheck.icheck_hasmany_type'));
-            $('form').on('submit', CustomFromEvent.ignoreSuggests);
+            CustomFromEvent.appendIcheckEvent($('.box-custom_form_block .icheck:visible, .box-custom_form_block .icheck.icheck_hasmany_type'));
+            $('form').on('submit', CustomFromEvent.formSubmitEvent);
         }
         static AddEventOnce() {
             $(document).on('pjax:complete', function (event) {
@@ -290,6 +290,38 @@ var Exment;
                 CustomFromEvent.addDragEvent($clone);
             }
         }
+    };
+    CustomFromEvent.formSubmitEvent = () => {
+        // loop "custom_form_block_available" is 1
+        let hasRequire = false;
+        if (!$('form.custom_form_form').hasClass('confirmed')) {
+            $('.custom_form_block_available').filter('[value="1"]').each(function (index, elem) {
+                let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests li');
+                // if required value is 1, hasRequire is true and break
+                $suggests.each(function (i, e) {
+                    if ($(e).find('.required').val() == '1') {
+                        hasRequire = true;
+                        return false;
+                    }
+                });
+            });
+        }
+        if (!hasRequire) {
+            CustomFromEvent.ignoreSuggests();
+            return true;
+        }
+        // if has require, show swal
+        Exment.CommonEvent.ShowSwal(null, {
+            title: $('#cofirm_required_title').val(),
+            text: $('#cofirm_required_text').val(),
+            confirmCallback: function (result) {
+                console.log(result);
+                if (pBool(result.value)) {
+                    $('form.custom_form_form').addClass('confirmed').submit();
+                }
+            },
+        });
+        return false;
     };
     CustomFromEvent.ignoreSuggests = () => {
         $('.custom_form_column_suggests,.template_item_block').find('input,textarea,select').attr('disabled', 'disabled');

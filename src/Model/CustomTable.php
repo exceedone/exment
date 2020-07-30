@@ -101,6 +101,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->hasMany(Notify::class, 'custom_table_id');
     }
     
+    public function operations()
+    {
+        return $this->hasMany(CustomOperation::class, 'custom_table_id');
+    }
+    
     public function custom_form_block_target_tables()
     {
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
@@ -221,8 +226,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $list = $this->custom_columns_cache->mapWithKeys(function ($item) {
             $key = $item->getIndexColumnName();
-            $val = array_get($item->options, 'select_target_table');
-            return [$key => (is_numeric($val)? intval($val): null)];
+            $select_target_table = $item->select_target_table;
+            return [$key => (!is_null($select_target_table) ? $select_target_table->id : null)];
         });
         $list = $list->filter()->toArray();
         return $list;
@@ -1795,7 +1800,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * 'include_parent': whether getting parent table's column and select table's column
      * 'include_child': whether getting child table's column
      * 'include_system': whether getting system column
-     * * 'include_system': whether getting workflow column
+     * 'include_workflow': whether getting workflow column
+     * 'include_form_type': whether getting form type(show, create, edit)
      * @param array $selectOptions
      * @param option items
      */
@@ -1813,6 +1819,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_workflow' => false,
                 'include_workflow_work_users' => false,
                 'include_condition' => false,
+                'include_form_type' => false,
                 'ignore_attachment' => false,
             ],
             $selectOptions
@@ -1821,6 +1828,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $options = [];
         
+        if ($include_form_type) {
+            $this->setColumnOptions(
+                $options,
+                [],
+                null,
+                [
+                    'include_system' => false,
+                    'include_form_type' => true,
+                ]
+            );
+        }
         if ($include_condition) {
             $this->setColumnOptions(
                 $options,
@@ -1832,8 +1850,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 ]
             );
         }
-
-
         // getting this table's column options
         if ($include_column) {
             $this->setColumnOptions(
@@ -1958,6 +1974,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_workflow' => false,
                 'include_workflow_work_users' => false,
                 'include_condition' => false,
+                'include_form_type' => false,
                 'table_view_name' => null,
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
@@ -1997,13 +2014,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         if ($include_condition) {
-            foreach (ConditionTypeDetail::toArray() as $key => $value) {
-                if (in_array($value, [ConditionTypeDetail::COLUMN, ConditionTypeDetail::SYSTEM])) {
-                    continue;
-                }
-                $array[$key] = strtolower($key);
+            foreach (ConditionTypeDetail::CONDITION_OPTIONS() as $key => $enum) {
+                $array[$enum->getKey()] = $enum->lowerKey();
             }
-            $options = getTransArrayValue($array, 'condition.condition_type_options');
+            $options = array_merge(getTransArrayValue($array, 'condition.condition_type_options'), $options);
+        }
+        if ($include_form_type) {
+            $options = array_merge([ConditionTypeDetail::FORM()->getKey() => exmtrans('condition.condition_type_options.form')], $options);
         }
 
         if ($include_column) {
@@ -2265,7 +2282,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasViewPermission()
     {
-        return !boolval(config('exment.userview_disabled', false)) || $this->hasSystemViewPermission();
+        return System::userview_available() || $this->hasSystemViewPermission();
     }
     
     /**

@@ -173,6 +173,20 @@ class SystemController extends AdminControllerBase
             ->default(JoinedMultiUserFilterType::NOT_FILTER)
         ;
 
+        
+
+        // View and dashbaord ----------------------------------------------------
+        $form->exmheader(exmtrans('system.view_dashboard_header'))->hr();
+
+        $form->switchbool('userdashboard_available', exmtrans("system.userdashboard_available"))
+            ->default(1)
+            ->help(exmtrans("system.help.userdashboard_available"));
+
+        $form->switchbool('userview_available', exmtrans("system.userview_available"))
+            ->default(1)
+            ->help(exmtrans("system.help.userview_available"));
+
+
         // use mail setting
         if (!boolval(config('exment.mail_setting_env_force', false))) {
             $form->exmheader(exmtrans('system.system_mail'))->hr();

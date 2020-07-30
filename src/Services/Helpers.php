@@ -806,6 +806,31 @@ if (!function_exists('toArray')) {
     }
 }
 
+if (!function_exists('arrayToString')) {
+    /**
+     * array to string(comma) string
+     *
+     * @param mixed $value
+     * @return string
+     */
+    function arrayToString($value)
+    {
+        if (is_null($value)) {
+            return null;
+        }
+        
+        // convert json to array
+        if (is_array($value)) {
+            return implode(',', $value);
+        }
+        if ($value instanceof \Illuminate\Support\Collection) {
+            return $value->implode(',');
+        }
+
+        return (string)$value;
+    }
+}
+
 if (!function_exists('is_json')) {
     function is_json($string)
     {

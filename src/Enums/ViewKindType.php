@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Enums;
 
+use Exceedone\Exment\DataItems\Grid as GridItem;
+
 /**
  * view kind type. default, Aggregate...
  */
@@ -43,5 +45,22 @@ class ViewKindType extends EnumBase
         }
 
         return in_array($enum, $acceptTypes);
+    }
+
+    
+    public static function getGridItemClassName($view_kind_type)
+    {
+        switch ($view_kind_type) {
+            case static::AGGREGATE:
+                return GridItem\SummaryGrid::class;
+            case static::CALENDAR:
+                return GridItem\CalendarGrid::class;
+            case static::ALLDATA:
+                return GridItem\AllDataGrid::class;
+            case static::FILTER:
+                return GridItem\FilterGrid::class;
+            default:
+                return GridItem\DefaultGrid::class;
+        }
     }
 }

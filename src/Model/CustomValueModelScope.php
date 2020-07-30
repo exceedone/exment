@@ -59,16 +59,15 @@ class CustomValueModelScope implements Scope
         }
         // if user has edit or view table
         elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            // get only has role
-            $builder
-                ->where(function ($builder) use ($user) {
-                    $builder->whereHas('value_authoritable_users', function ($q) use ($user) {
-                        $q->where('authoritable_target_id', $user->getUserId());
-                    })->orWhereHas('value_authoritable_organizations', function ($q) use ($user) {
-                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
-                        $q->whereIn('authoritable_target_id', $user->getOrganizationIds($enum));
-                    });
-                });
+            $builder->whereHas('custom_value_authoritables', function ($builder) use ($user) {
+                // get only has role
+                $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
+                $builder->whereInMultiple(
+                    ['authoritable_user_org_type', 'authoritable_target_id'],
+                    $user->getUserAndOrganizationIds($enum),
+                    true
+                );
+            });
         }
         // if not role, set always false result.
         else {

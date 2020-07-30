@@ -17,6 +17,7 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
@@ -29,6 +30,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\DataItems\DataTrait;
 
@@ -175,6 +177,7 @@ class DefaultShow extends ShowBase
                     $listButtons = Plugin::pluginPreparingButton(PluginEventTrigger::FORM_MENUBUTTON_SHOW, $this->custom_table);
                     $copyButtons = $this->custom_table->from_custom_copies;
                     $notifies = $this->custom_table->notifies;
+                    $operations = $this->custom_table->operations;
      
                     // only not trashed
                     if (!$this->custom_value->trashed()) {
@@ -202,6 +205,11 @@ class DefaultShow extends ShowBase
                         foreach ($notifies as $notify) {
                             if ($notify->isNotifyTarget($this->custom_value, NotifyTrigger::BUTTON)) {
                                 $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $this->custom_value->id));
+                            }
+                        }
+                        foreach ($operations as $operation) {
+                            if ($operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
+                                $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
                             }
                         }
 
@@ -511,15 +519,16 @@ EOT;
 
         // add file uploader
         if ($useFileUpload) {
-            $options = [
+            $options = array_merge(Define::FILE_OPTION(), [
                 'showUpload' => true,
-                'showPreview' => false,
+                'showPreview' => true,
                 'showCancel' => false,
                 'uploadUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'fileupload'),
                 'uploadExtraData'=> [
                     '_token' => csrf_token()
                 ],
-            ];
+            ]);
+
             $options_json = json_encode($options);
 
             $input_id = 'file_data';

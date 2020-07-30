@@ -383,8 +383,14 @@ class DataImportExportService extends AbstractExporter
         // create form fields
         $form = new ModalForm();
 
-        $fileOption = Define::FILE_OPTION();
-        
+        $fileOption = array_merge(
+            Define::FILE_OPTION(),
+            [
+                'showPreview' => false,
+                'dropZoneEnabled' => false,
+            ]
+        );
+
         // import formats
         $formats = [];
         // check config value

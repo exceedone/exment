@@ -86,6 +86,7 @@ return [
             'sendmail_succeeded' => 'メールを送信しました。',
             'input_keyword' => '「%s」と入力してください。',
             'no_permission' => '(権限がありません)',
+            'file_drag_drop' => 'ファイルをドラッグ＆ドロップしてください',
         ],
 
         'help' =>[
@@ -232,6 +233,8 @@ return [
         'submit_test_mail' => 'テストメール送信',
         'grid_pager_count' => 'データ一覧の表示件数',
         'datalist_pager_count' => '検索・ダッシュボードの表示件数',
+        'userdashboard_available' => 'ユーザーダッシュボードを使用する',
+        'userview_available' => 'ユーザービューを使用する',
         'template' => 'インストールテンプレート',
         'version_header' => 'システムのバージョン情報',
         'version_progress' => 'バージョン情報を取得しています。',
@@ -246,6 +249,7 @@ return [
         'first_change_password' => '初回ログイン時にパスワードを変更させる',
         'password_expiration_days' => '有効日数',
         'password_history_cnt' => 'パスワードの履歴件数',
+        'view_dashboard_header' => 'ビュー・ダッシュボード設定',
         'organization_header' => '組織設定',
         'org_joined_type_role_group' => '組織階層設定(役割グループ)',
         'org_joined_type_custom_value' => '組織階層設定(データ)',
@@ -349,6 +353,8 @@ return [
             'test_mail' => '入力した送信先にテストメールを送ります。<br /><b>※上記のメール設定を必ず保存してから実行してください。入力途中の設定は無効になります。</b>',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
+            'userdashboard_available' => 'YESにすることで、ログインユーザーが各自でダッシュボードを作成できる、ユーザーダッシュボード機能を使用します。',
+            'userview_available' => 'YESにすることで、ログインユーザーが各自でビューを作成できる、ユーザービュー機能を使用します。',
             'default_date_format' => '日付と時刻の表示書式を設定します。',
             'password_policy' => 'ログインパスワードのポリシーを設定します。',
             'complex_password' => 'YESにした場合、パスワードは12文字以上で、必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
@@ -453,6 +459,7 @@ return [
         'active_flg' => '有効フラグ',
         'select_plugin_file' => 'プラグインを選択',
         'show_plugin_page' => 'プラグインページを表示',
+        'edit_plugin' => 'プラグイン編集',
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',
@@ -520,6 +527,25 @@ return [
             'api' => 'API',
             'event' => 'イベント',
             'button' => 'ボタン',
+        ],
+    ],
+
+    'plugincode' => [
+        'header' => 'プラグイン編集',
+        'upload_header' => 'ファイルアップロード',
+        'description' => 'インストールされているプラグインを直接編集することができます。',
+        'error' => [
+            'folder_notfound' => 'フォルダが選択されていません。',
+            'plugin_notfound' => 'プラグインが存在しません。',
+            'file_notfound' => 'プラグインファイルが削除された可能性があります。システム管理者にお問い合わせください。',
+        ],
+        'message' => [
+            'file_edit' => 'ファイルを編集する場合は、右側のツリーでファイル名をクリックしてください。',
+            'select_file' => 'ファイルを選択してください。',
+            'irregular_ext' => '編集できない種類のファイルです。',
+            'irregular_enc' => '文字コードはUTF-8のみサポートしています。',
+            'upload_file' => '選択したフォルダ(%s)にファイルをアップロードできます。',
+            'force_updated' => 'フォルダ内に同じ名前のファイルが存在する場合は上書きされます。ご注意ください。',
         ],
     ],
 
@@ -824,7 +850,7 @@ return [
         'custom_form' => 'フォーム設定',
         'custom_relation' => 'リレーション設定',
         'custom_copy' => 'データコピー設定',
-        'custom_operation' => '一括更新設定',
+        'custom_operation' => 'データ更新設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
     ],
@@ -1241,6 +1267,7 @@ return [
 
         'message' => [
             'no_exists_column' => '必須項目が設定されていません。',
+            'confirm_required' => '必須項目が設定されていません。このまま保存してもよろしいでしょうか？',
         ],
     ],
 
@@ -1261,15 +1288,52 @@ return [
     ],
 
     'custom_operation' => [
-        'custom_operation' => '一括更新',
-        'header' => '一括更新設定',
-        'description' => '選択データを一括更新するための設定を行います。',
-        'operation_name' => '一括更新文言',
+        'header' => 'データ更新設定',
+        'description' => 'データの新規作成時や更新時、ボタンをクリック時などに、列の値を更新します。',
+        'operation_name' => '処理の名前',
+        'operation_type' => '更新のタイミング',
         'custom_operation_button_label' => '一括更新設定',
         'custom_operation_columns' => '更新列設定',
-        'description_custom_operation_columns' => '一括更新の対象列と更新値を設定します。',
+        'custom_operation_conditions' => '更新条件',
         'view_column_target' => '対象列',
+        'operation_update_type' => '更新の種類',
         'update_value_text' => '更新値',
+
+        'operation_type_options' => [
+            'bulk_update' => '一覧画面のチェックボタン選択時',
+            'button' => 'データ詳細画面のボタン押下時',
+            'create' => 'データ新規作成時',
+            'update' => 'データ更新時',
+            //'notified' => '通知送信時',
+        ],
+
+        'operation_type_options_short' => [
+            'bulk_update' => '一覧ボタン',
+            'button' => '詳細ボタン',
+            'create' => '新規作成時',
+            'update' => '更新時',
+        ],
+        'operation_update_type_options' => [
+            'default' => '固定値',
+            'system' => 'システム値',
+        ],
+        'operation_value_type_options' => [
+            'execute_datetime' => '実行日時',
+            'login_user' => 'ログインユーザー',
+            'berong_organizations' => '所属組織',
+        ],
+        'options' => [
+            'button_label' => 'ボタンのラベル',
+            'button_class' => 'ボタンのHTML class',
+            'button_icon' => 'ボタンのアイコン',
+        ],
+        'help' => [
+            'operation_type' => 'データ更新を行うタイミングを指定します。',
+            'button_icon' => 'ボタンのHTMLに付加するアイコンです。',
+            'button_class' => 'ボタンのHTMLに付加するclassです。',
+            'custom_operation_columns' => 'データ更新の対象列と、更新値を設定します。',
+            'custom_operation_conditions' => '登録した更新設定を実行することができるデータの、条件を指定します。',
+        ],
     ],
 
     'custom_view' => [
@@ -1294,7 +1358,7 @@ return [
         'sort' => '並べ替え',
         'priority' => '優先順位',
         'pager_count_default' => 'システム設定に合わせる',
-        'custom_view_filters' => '表示条件',
+        'custom_view_filters' => 'データ表示条件',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
         'view_group_condition' => '列タイプ',
@@ -1715,6 +1779,7 @@ return [
     ],
         'message' => [
             'operation_notfound' => '更新対象のデータが見つかりませんでした。',
+            'operation_contains_notmatch_condition' => '更新できないデータ %s が選択されています。',
             'operation_succeeded' => '一括更新を実行しました！',
             'action_disabled' => '画面からの操作が制限されています。',
             'restore' => '復元しますか？',
@@ -1945,6 +2010,7 @@ return [
             'role' => '役割グループ',
             'system' => 'システム',
             'column' => '列の値',
+            'form' => '画面の種類',
         ],
         'condition_key_options' => [
             'eq' => '',
@@ -1957,6 +2023,11 @@ return [
             'day_on_or_before' => '以前',
         ],
 
+        'form_data_type_options' => [
+            'show' => 'データ詳細画面',
+            'create' => 'データ新規作成画面',
+            'edit' => 'データ編集画面',
+        ],
         'condition_join_options' => [
             'and' => 'すべての条件に一致',
             'or' => 'いずれかの条件に一致',

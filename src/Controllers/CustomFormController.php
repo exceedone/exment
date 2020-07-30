@@ -6,16 +6,13 @@ use App\Http\Controllers\Controller;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Layout\Column;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Widgets\Table;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\ColumnType;
@@ -328,13 +325,13 @@ class CustomFormController extends AdminControllerTableBase
                 if (!isset($custom_form_column_array['column_no'])) {
                     $custom_form_column_array['column_no'] = 1;
                 }
-                $custom_form_column_array['required'] = boolval(array_get($custom_form_column, 'required')) || boolval(array_get($custom_form_column, 'custom_column.required'));
+                $custom_column = $custom_form_column->custom_column_cache;
+                $custom_form_column_array['required'] = boolval(array_get($custom_form_column, 'required')) || boolval(array_get($custom_column, 'required'));
 
                 // get column view name
                 $column_view_name = null;
                 switch (array_get($custom_form_column, 'form_column_type')) {
                     case FormColumnType::COLUMN:
-                        $custom_column = array_get($custom_form_column, 'custom_column');
                         if (!isset($custom_column)) {
                             // get from form_column_target_id
                             $custom_column = CustomColumn::getEloquent(array_get($custom_form_column, 'form_column_target_id'));
@@ -603,39 +600,40 @@ class CustomFormController extends AdminControllerTableBase
      */
     protected function saveformValidate($request, $id = null)
     {
-        $inputs = $request->input('custom_form_blocks');
-        foreach ($inputs as $key => $value) {
-            $columns = [];
-            if (!isset($value['form_block_target_table_id'])) {
-                continue;
-            }
-            if (!boolval(array_get($value, 'available'))) {
-                continue;
-            }
-            if (array_get($value, 'form_block_type') == FormBlockType::MANY_TO_MANY) {
-                continue;
-            }
-            // get column id for registration
-            if (is_array(array_get($value, 'custom_form_columns'))) {
-                foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {
-                    if (!isset($column_value['form_column_type']) || $column_value['form_column_type'] != FormColumnType::COLUMN) {
-                        continue;
-                    }
-                    if (boolval(array_get($column_value, 'delete_flg'))) {
-                        continue;
-                    }
-                    if (isset($column_value['form_column_target_id'])) {
-                        $columns[] = array_get($column_value, 'form_column_target_id');
-                    }
-                }
-            }
-            $table_id = array_get($value, 'form_block_target_table_id');
-            // check if required column not for registration exist
-            if (CustomColumn::where('custom_table_id', $table_id)
-                    ->required()->whereNotIn('id', $columns)->exists()) {
-                return false;
-            }
-        }
+        //not required check, confirm on display.
+        // $inputs = $request->input('custom_form_blocks');
+        // foreach ($inputs as $key => $value) {
+        //     $columns = [];
+        //     if (!isset($value['form_block_target_table_id'])) {
+        //         continue;
+        //     }
+        //     if (!boolval(array_get($value, 'available'))) {
+        //         continue;
+        //     }
+        //     if (array_get($value, 'form_block_type') == FormBlockType::MANY_TO_MANY) {
+        //         continue;
+        //     }
+        //     // get column id for registration
+        //     if (is_array(array_get($value, 'custom_form_columns'))) {
+        //         foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {
+        //             if (!isset($column_value['form_column_type']) || $column_value['form_column_type'] != FormColumnType::COLUMN) {
+        //                 continue;
+        //             }
+        //             if (boolval(array_get($column_value, 'delete_flg'))) {
+        //                 continue;
+        //             }
+        //             if (isset($column_value['form_column_target_id'])) {
+        //                 $columns[] = array_get($column_value, 'form_column_target_id');
+        //             }
+        //         }
+        //     }
+        //     $table_id = array_get($value, 'form_block_target_table_id');
+        //     // check if required column not for registration exist
+        //     // if (CustomColumn::where('custom_table_id', $table_id)
+        //     //         ->required()->whereNotIn('id', $columns)->exists()) {
+        //     //     return false;
+        //     // }
+        // }
         return true;
     }
 

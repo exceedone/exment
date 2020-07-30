@@ -204,6 +204,7 @@ var Exment;
                 redirect: null,
                 preConfirmValidate: null,
                 showCancelButton: true,
+                confirmCallback: null,
             }, options);
             let data = $.extend({
                 _pjax: true,
@@ -243,6 +244,9 @@ var Exment;
                             //container: "#pjax-container",
                             data: data,
                             success: function (repsonse) {
+                                if (hasValue(options.reload)) {
+                                    repsonse.reload = options.reload;
+                                }
                                 if (hasValue(options.redirect)) {
                                     repsonse.redirect = options.redirect;
                                 }
@@ -267,6 +271,10 @@ var Exment;
             }
             swal(swalOptions)
                 .then(function (result) {
+                if (hasValue(options.confirmCallback)) {
+                    options.confirmCallback(result);
+                    return;
+                }
                 var data = result.value;
                 if (typeof data === 'object' && hasValue(data.message)) {
                     let message = data.message;
