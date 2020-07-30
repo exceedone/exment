@@ -328,13 +328,13 @@ class CustomFormController extends AdminControllerTableBase
                 if (!isset($custom_form_column_array['column_no'])) {
                     $custom_form_column_array['column_no'] = 1;
                 }
-                $custom_form_column_array['required'] = boolval(array_get($custom_form_column, 'required')) || boolval(array_get($custom_form_column, 'custom_column.required'));
+                $custom_column = $custom_form_column->custom_column_cache;
+                $custom_form_column_array['required'] = boolval(array_get($custom_form_column, 'required')) || boolval(array_get($custom_column, 'required'));
 
                 // get column view name
                 $column_view_name = null;
                 switch (array_get($custom_form_column, 'form_column_type')) {
                     case FormColumnType::COLUMN:
-                        $custom_column = array_get($custom_form_column, 'custom_column');
                         if (!isset($custom_column)) {
                             // get from form_column_target_id
                             $custom_column = CustomColumn::getEloquent(array_get($custom_form_column, 'form_column_target_id'));
