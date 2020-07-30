@@ -252,7 +252,14 @@ class BackupController extends AdminControllerBase
         $form = new ModalForm();
         $form->modalAttribute('id', 'data_import_modal');
 
-        $fileOption = Define::FILE_OPTION();
+        $fileOption = array_merge(
+            Define::FILE_OPTION(),
+            [
+                'showPreview' => false,
+                'dropZoneEnabled' => false,
+            ]
+        );
+
         $form->action($import_path);
 
         if (isset($file_key)) {
