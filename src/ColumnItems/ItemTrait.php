@@ -139,16 +139,19 @@ trait ItemTrait
     /**
      * get cast column name as SQL
      */
-    public function getCastColumn()
+    public function getCastColumn($column_name = null)
     {
         $cast = $this->getCastName();
-        $index = $this->index();
+
+        if (is_nullorempty($column_name)) {
+            $column_name = $this->indexEnabled() ? $this->index() : $this->sqlname();
+        }
         
         if (!isset($cast)) {
-            return $index;
+            return $column_name;
         }
 
-        return "CAST($index AS $cast)";
+        return "CAST($column_name AS $cast)";
     }
 
     /**
