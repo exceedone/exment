@@ -169,8 +169,6 @@ class DataImportExportService extends AbstractExporter
         $response->send();
         exit;
     }
-
-
     
     /**
      * @param $request
@@ -236,17 +234,9 @@ class DataImportExportService extends AbstractExporter
      * @param $request
      * @return mixed|void error message or success message etc...
      */
-    public function importBackground($request, int $page)
+    public function importBackground($request, array $options = [])
     {
         setTimeLimitLong();
-        // // validate request
-        // if (!($errors = $this->validateRequest($request))) {
-        //     return [
-        //         'result' => false,
-        //         //'toastr' => exmtrans('common.message.import_error'),
-        //         'errors' => $errors,
-        //     ];
-        // }
 
         $this->format->filebasename($this->filebasename);
 
@@ -254,12 +244,11 @@ class DataImportExportService extends AbstractExporter
         if (method_exists($this->importAction, 'getDataTable')) {
             $datalist = $this->importAction->getDataTable($request);
         } else {
-            $datalist = $this->format->getDataTable($request);
+            $datalist = $this->format->getDataTable($request, $options);
         }
-
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
-        
+
         if (count($datalist) == 0) {
             return [
                 'result' => false,
@@ -268,9 +257,22 @@ class DataImportExportService extends AbstractExporter
             ];
         }
 
-        $response = $this->importAction->import($datalist);
+        while (true) {
+            $response = $this->importAction->import($datalist);
 
-        return $response;
+            if ($response instanceof \Illuminate\Http\Response) {
+                $response = json_decode($response->content(), true);
+            }
+
+            if (array_get($response, 'result') === false) {
+                break;
+            }
+        }
+
+        if (isset($response)) {
+            return $response;
+        }
+
     }
 
     /**
