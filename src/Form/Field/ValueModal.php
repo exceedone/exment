@@ -261,6 +261,9 @@ EOT;
             $this->text = esc_html($this->text);
         }
 
+        // convert value
+        $this->value = $this->convertString($this->value);
+
         // set hidden
         $hidden = $this->value;
         if ($this->hiddenFormat instanceof \Closure) {
@@ -282,11 +285,6 @@ EOT;
             $this->buttonClass = 'btn-default';
         }
  
-        // set button label
-        if (is_array($this->value)) {
-            $this->value = json_encode($this->value);
-        }
-
         // set script
         $this->script();
 
@@ -300,5 +298,18 @@ EOT;
             'ajax' => $this->ajax,
             'modalContentname' => $this->modalContentname,
         ]);
+    }
+
+    /**
+     * convert string if value is array
+     *
+     * @return void
+     */
+    protected function convertString($value){
+        if(is_array($value)){
+            return json_encode($value);
+        }
+
+        return $value;
     }
 }
