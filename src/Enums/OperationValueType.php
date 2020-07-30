@@ -47,7 +47,7 @@ class OperationValueType extends EnumBase
                 
             case static::BERONG_ORGANIZATIONS:
                 $login_user = \Exment::user();
-                if(is_null($login_user)){
+                if (is_null($login_user)) {
                     return null;
                 }
 
@@ -57,7 +57,7 @@ class OperationValueType extends EnumBase
                 $selectIds = $custom_column->column_item->getSelectOptions(null, null, ['notAjax' => true])->keys();
 
                 // filter organizaions
-                return collect($ids)->filter(function($id) use($selectIds){
+                return collect($ids)->filter(function ($id) use ($selectIds) {
                     return $selectIds->contains($id);
                 })->toArray();
         }
