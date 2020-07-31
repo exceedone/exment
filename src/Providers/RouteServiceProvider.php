@@ -134,6 +134,7 @@ class RouteServiceProvider extends ServiceProvider
             });
             
             $router->get('search', 'SearchController@index');
+            $router->get('search/lists', 'SearchController@getLists');
             $router->get('search/list', 'SearchController@getList');
             $router->get('search/header', 'SearchController@header');
             $router->get('search/relation', 'SearchController@getRelationList');
