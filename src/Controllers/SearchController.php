@@ -181,7 +181,7 @@ class SearchController extends AdminControllerBase
      */
     protected function getListItem(Request $request, $q, $table_name)
     {
-        $custom_table = CustomTable::getEloquent($table_name, true);
+        $custom_table = CustomTable::getEloquent($table_name);
         if(empty($custom_table)){
             return [];
         }
@@ -280,10 +280,10 @@ class SearchController extends AdminControllerBase
         // value_id is the id user selected.
         $value_id = $request->input('value_id');
         // value_table is the table user selected.
-        $value_table = CustomTable::getEloquent($request->input('value_table_name'), true);
+        $value_table = CustomTable::getEloquent($request->input('value_table_name'));
 
         /// $search_table is the table for search. it's ex. select_table, relation, ...
-        $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
+        $search_table = CustomTable::getEloquent($request->input('search_table_name'));
         $search_type = $request->input('search_type');
 
         $options = [
