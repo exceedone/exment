@@ -67,11 +67,11 @@ class ImportCommand extends Command
             // get all csv file names in target directory
             $files = $this->getFiles('csv,xlsx');
 
-            $this->line("該当ファイル数：".count($files));
+            $this->line(exmtrans('command.import.file_count').count($files));
 
             foreach ($files as $index => $file) {
                 $file_name = $file->getFileName();
-                $this->line(($index + 1) . "件目 実施開始 ファイル:{$file_name}");
+                $this->line(($index + 1) . exmtrans('command.import.file_info', $file_name));
 
                 $table_name = file_ext_strip($file_name);
                 $format = file_ext($file_name);
@@ -98,7 +98,12 @@ class ImportCommand extends Command
                 if (array_get($result, 'result') === false) {
                     $message = array_get($result, 'errors.import_error_message.message');
                     if (!empty($message)) {
-                        $this->line("エラー情報：");
+                        $this->line(exmtrans('command.import.error_info'));
+                        $this->line($message);
+                    }
+                } else {
+                    $message = array_get($result, 'toastr');
+                    if (!empty($message)) {
                         $this->line($message);
                     }
                 }

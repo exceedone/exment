@@ -231,10 +231,11 @@ class DataImportExportService extends AbstractExporter
 
     
     /**
-     * @param $request
-     * @return mixed|void error message or success message etc...
+     * @param string $file_path
+     * @param array  $options
+     * @return array error message or success message etc...
      */
-    public function importBackground($request, array $options = [])
+    public function importBackground($file_path, array $options = [])
     {
         setTimeLimitLong();
 
@@ -242,9 +243,9 @@ class DataImportExportService extends AbstractExporter
 
         // get table data
         if (method_exists($this->importAction, 'getDataTable')) {
-            $datalist = $this->importAction->getDataTable($request);
+            $datalist = $this->importAction->getDataTable($file_path);
         } else {
-            $datalist = $this->format->getDataTable($request, $options);
+            $datalist = $this->format->getDataTable($file_path, $options);
         }
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
@@ -257,22 +258,13 @@ class DataImportExportService extends AbstractExporter
             ];
         }
 
-        while (true) {
-            $response = $this->importAction->import($datalist);
+        $response = $this->importAction->importChunk($datalist, $options);
 
-            if ($response instanceof \Illuminate\Http\Response) {
-                $response = json_decode($response->content(), true);
-            }
-
-            if (array_get($response, 'result') === false) {
-                break;
-            }
+        if ($response instanceof \Illuminate\Http\Response) {
+            $response = json_decode($response->content(), true);
         }
 
-        if (isset($response)) {
-            return $response;
-        }
-
+        return $response;
     }
 
     /**
