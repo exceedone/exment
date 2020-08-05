@@ -61,6 +61,7 @@ class CustomFormController extends AdminControllerTableBase
     protected function setFormPriorities()
     {
         $grid = new Grid(new CustomFormPriority);
+        $grid->setName('custom_form_priproties');
         $grid->model()->orderBy('order');
         $grid->setTitle(exmtrans("custom_form.priority.title"));
         $grid->setResource(admin_urls('formpriority', $this->custom_table->table_name));
@@ -223,6 +224,7 @@ class CustomFormController extends AdminControllerTableBase
     protected function grid()
     {
         $grid = new Grid(new CustomForm);
+        $grid->setName('custom_forms');
         $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('form_view_name', exmtrans("custom_form.form_view_name"))->sortable();
