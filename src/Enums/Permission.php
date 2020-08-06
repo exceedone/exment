@@ -75,6 +75,7 @@ class Permission extends EnumBase
         self::CUSTOM_VIEW,
         self::CUSTOM_VALUE_EDIT_ALL,
         self::CUSTOM_VALUE_VIEW_ALL,
+        self::CUSTOM_VALUE_ACCESS_ALL,
         self::CUSTOM_VALUE_EDIT,
         self::CUSTOM_VALUE_VIEW,
         self::CUSTOM_VALUE_SHARE,
