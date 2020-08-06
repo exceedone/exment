@@ -227,7 +227,8 @@ class NotifyTarget
      */
     protected static function getModelsAsRole($custom_value)
     {
-        $users = AuthUserOrgHelper::getRoleUserQueryValue($custom_value, [Permission::CUSTOM_VALUE_EDIT_ALL, Permission::CUSTOM_VALUE_VIEW_ALL])->get();
+        //$users = AuthUserOrgHelper::getRoleUserQueryValue($custom_value, [Permission::CUSTOM_VALUE_EDIT_ALL, Permission::CUSTOM_VALUE_VIEW_ALL])->get();
+        $users = AuthUserOrgHelper::getRoleUserQueryValue($custom_value, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)->get();
 
         // get 'email' custom column
         $email_column = CustomColumn::getEloquent('email', SystemTableName::USER);
