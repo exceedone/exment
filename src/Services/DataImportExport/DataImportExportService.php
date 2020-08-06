@@ -253,7 +253,6 @@ class DataImportExportService extends AbstractExporter
         if (count($datalist) == 0) {
             return [
                 'result' => false,
-                'toastr' => exmtrans('common.message.import_error'),
                 'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.failure_import_file')]],
             ];
         }

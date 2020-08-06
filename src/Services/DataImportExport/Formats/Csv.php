@@ -34,10 +34,12 @@ class Csv extends FormatBase
             }
 
             return $datalist;
-        }, function($path){
+        }, function($path) use($options){
             // if over row size, return number
-            if (($count = $this->getRowCount($path)) > (config('exment.import_max_row_count', 1000) + 2)) {
-                return $count;
+            if(boolval($options['checkCount'])){
+                if (($count = $this->getRowCount($path)) > (config('exment.import_max_row_count', 1000) + 2)) {
+                    return $count;
+                }
             }
 
             $basename = $this->filebasename;

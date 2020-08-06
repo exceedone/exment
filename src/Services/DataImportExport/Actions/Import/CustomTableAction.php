@@ -46,6 +46,8 @@ class CustomTableAction implements ActionInterface
      */
     public function importChunk($datalist, $options = [])
     {
+        $messages = [];
+
         foreach ($datalist as $table_name => &$data) {
             if ($table_name == Define::SETTING_SHEET_NAME) {
                 continue;
@@ -63,6 +65,7 @@ class CustomTableAction implements ActionInterface
             }
 
             $get_index = 0;
+            $data_import_cnt = 0;
 
             while (true) {
                 $options = array_merge($options, [
@@ -82,7 +85,6 @@ class CustomTableAction implements ActionInterface
                 if (is_array($error_data) && count($error_data) > 0) {
                     return [
                         'result' => false,
-                        'toastr' => exmtrans('common.message.import_error'),
                         'errors' => ['import_error_message' => ['type' => 'input', 'message' => implode("\r\n", $error_data)]],
                     ];
                 }
@@ -97,12 +99,14 @@ class CustomTableAction implements ActionInterface
                 }
 
                 $get_index++;
+                $data_import_cnt += count($data_import);
             }
+            $messages[] = $table_name.':'.$data_import_cnt;
         }
 
         return [
             'result' => true,
-            'toastr' => exmtrans('common.message.import_success')
+            'message' => exmtrans('command.import.success_message', implode(',', $messages))
         ];
     }
 

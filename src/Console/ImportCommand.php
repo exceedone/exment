@@ -74,6 +74,7 @@ class ImportCommand extends Command
                 $this->line(($index + 1) . exmtrans('command.import.file_info', $file_name));
 
                 $table_name = file_ext_strip($file_name);
+                $table_name = preg_replace('/^\d+#/', '', $table_name);
                 $format = file_ext($file_name);
     
                 $custom_table = CustomTable::getEloquent($table_name);
@@ -102,7 +103,7 @@ class ImportCommand extends Command
                         $this->line($message);
                     }
                 } else {
-                    $message = array_get($result, 'toastr');
+                    $message = array_get($result, 'message');
                     if (!empty($message)) {
                         $this->line($message);
                     }

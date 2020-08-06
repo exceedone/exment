@@ -2005,6 +2005,7 @@ return [
             'file_count' => '該当ファイル数：',
             'file_info' => '件目 実施開始 ファイル:{%s}',
             'error_info' => 'エラー情報：',
+            'success_message' => 'インポートに成功しました。件数：{%s}',
         ]
     ],
 
