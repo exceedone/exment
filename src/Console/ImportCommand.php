@@ -79,6 +79,7 @@ class ImportCommand extends Command
     
                 $custom_table = CustomTable::getEloquent($table_name);
                 if (!isset($custom_table)) {
+                    $this->line(exmtrans('command.import.error_info'));
                     continue;
                 }
     
@@ -96,17 +97,9 @@ class ImportCommand extends Command
                     'take' => 100           // if set, taking data count
                 ]);
 
-                if (array_get($result, 'result') === false) {
-                    $message = array_get($result, 'errors.import_error_message.message');
-                    if (!empty($message)) {
-                        $this->line(exmtrans('command.import.error_info'));
-                        $this->line($message);
-                    }
-                } else {
-                    $message = array_get($result, 'message');
-                    if (!empty($message)) {
-                        $this->line($message);
-                    }
+                $message = array_get($result, 'message');
+                if (!empty($message)) {
+                    $this->line($message);
                 }
             }
         } catch (\Exception $e) {

@@ -253,17 +253,11 @@ class DataImportExportService extends AbstractExporter
         if (count($datalist) == 0) {
             return [
                 'result' => false,
-                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.failure_import_file')]],
+                'message' => exmtrans('error.failure_import_file')
             ];
         }
 
-        $response = $this->importAction->importChunk($datalist, $options);
-
-        if ($response instanceof \Illuminate\Http\Response) {
-            $response = json_decode($response->content(), true);
-        }
-
-        return $response;
+        return $this->importAction->importChunk($datalist, $options);
     }
 
     /**

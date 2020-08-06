@@ -83,9 +83,18 @@ class CustomTableAction implements ActionInterface
             
                 // if has error data, return error data
                 if (is_array($error_data) && count($error_data) > 0) {
+                    $error_msg = [];
+                    if ($data_import_cnt > 0) {
+                        $messages[] = $table_name.':'.$data_import_cnt;
+                    }
+                    if (count($messages) > 0) {
+                        $error_msg[] = exmtrans('command.import.error_info_ex', implode(',', $messages));
+                    }
+                    $error_msg[] = exmtrans('command.import.error_info');
+                    $error_msg[] = implode("\r\n", $error_data);
                     return [
                         'result' => false,
-                        'errors' => ['import_error_message' => ['type' => 'input', 'message' => implode("\r\n", $error_data)]],
+                        'message' => implode("\r\n", $error_msg)
                     ];
                 }
 
