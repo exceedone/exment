@@ -169,8 +169,6 @@ class DataImportExportService extends AbstractExporter
         $response->send();
         exit;
     }
-
-
     
     /**
      * @param $request
@@ -233,33 +231,25 @@ class DataImportExportService extends AbstractExporter
 
     
     /**
-     * @param $request
-     * @return mixed|void error message or success message etc...
+     * @param string $file_path
+     * @param array  $options
+     * @return array error message or success message etc...
      */
-    public function importBackground($request, int $page)
+    public function importBackground($file_path, array $options = [])
     {
         setTimeLimitLong();
-        // // validate request
-        // if (!($errors = $this->validateRequest($request))) {
-        //     return [
-        //         'result' => false,
-        //         //'toastr' => exmtrans('common.message.import_error'),
-        //         'errors' => $errors,
-        //     ];
-        // }
 
         $this->format->filebasename($this->filebasename);
 
         // get table data
         if (method_exists($this->importAction, 'getDataTable')) {
-            $datalist = $this->importAction->getDataTable($request);
+            $datalist = $this->importAction->getDataTable($file_path);
         } else {
-            $datalist = $this->format->getDataTable($request);
+            $datalist = $this->format->getDataTable($file_path, $options);
         }
-
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
-        
+
         if (count($datalist) == 0) {
             return [
                 'result' => false,
@@ -268,7 +258,11 @@ class DataImportExportService extends AbstractExporter
             ];
         }
 
-        $response = $this->importAction->import($datalist);
+        $response = $this->importAction->importChunk($datalist, $options);
+
+        if ($response instanceof \Illuminate\Http\Response) {
+            $response = json_decode($response->content(), true);
+        }
 
         return $response;
     }

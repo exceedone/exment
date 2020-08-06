@@ -37,6 +37,75 @@ class CustomTableAction implements ActionInterface
         $this->primary_key = array_get($args, 'primary_key', 'id');
     }
 
+    /**
+     * Import and validate the divided data 
+     *
+     * @param array $datalist
+     * @param array $options
+     * @return array
+     */
+    public function importChunk($datalist, $options = [])
+    {
+        foreach ($datalist as $table_name => &$data) {
+            if ($table_name == Define::SETTING_SHEET_NAME) {
+                continue;
+            }
+            
+            // get setting info
+            if (array_has($datalist, Define::SETTING_SHEET_NAME)) {
+                $settings = $this->getImportTableSetting($datalist[Define::SETTING_SHEET_NAME], $table_name);
+                $options['setting'] = $settings;
+            }
+ 
+            $provider = $this->getProvider($table_name);
+            if (!isset($provider)) {
+                continue;
+            }
+
+            $get_index = 0;
+
+            while (true) {
+                $options = array_merge($options, [
+                    'get_index' => $get_index,
+                ]);
+                // get target data and model list
+                $dataObject = $provider->getDataObject($data, $options);
+
+                if (empty($dataObject)) {
+                    break;
+                }
+
+                // validate data
+                list($data_import, $error_data) = $provider->validateImportData($dataObject);
+            
+                // if has error data, return error data
+                if (is_array($error_data) && count($error_data) > 0) {
+                    return [
+                        'result' => false,
+                        'toastr' => exmtrans('common.message.import_error'),
+                        'errors' => ['import_error_message' => ['type' => 'input', 'message' => implode("\r\n", $error_data)]],
+                    ];
+                }
+
+                foreach ($data_import as $index => &$row) {
+                    // call dataProcessing if method exists
+                    if (method_exists($provider, 'dataProcessing')) {
+                        $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
+                    }
+
+                    $provider->importData($row);
+                }
+
+                $get_index++;
+            }
+        }
+
+        return [
+            'result' => true,
+            'toastr' => exmtrans('common.message.import_success')
+        ];
+    }
+
     public function import($datalist, $options = [])
     {
         // get target data and model list

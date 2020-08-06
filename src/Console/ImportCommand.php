@@ -4,7 +4,8 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
-use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Services\DataImportExport;
 use \File;
 
 class ImportCommand extends Command
@@ -66,21 +67,47 @@ class ImportCommand extends Command
             // get all csv file names in target directory
             $files = $this->getFiles('csv,xlsx');
 
-            $this->line("該当ファイル数：".count($files));
+            $this->line(exmtrans('command.import.file_count').count($files));
 
-            $path = null;
             foreach ($files as $index => $file) {
-                $this->line(($index + 1) . "件目 実施開始 ファイル:{$file->getFileName()}");
+                $file_name = $file->getFileName();
+                $this->line(($index + 1) . exmtrans('command.import.file_info', $file_name));
 
-                // convert all csv files in target folder
-                $path = $this->convertFile($file);
+                $table_name = file_ext_strip($file_name);
+                $format = file_ext($file_name);
+    
+                $custom_table = CustomTable::getEloquent($table_name);
+                if (!isset($custom_table)) {
+                    continue;
+                }
+    
+                $service = (new DataImportExport\DataImportExportService())
+                    ->filebasename($custom_table->table_name)
+                    ->importAction(new DataImportExport\Actions\Import\CustomTableAction(
+                        [
+                            'custom_table' => $custom_table,
+                        ]
+                    ))
+                    ->format($format);
 
-                // import tsv file to database table
-                $this->importTsv($path);
+                $result = $service->importBackground($file->getRealPath(), [
+                    'checkCount' => false,  // whether checking count
+                    'take' => 100           // if set, taking data count
+                ]);
+
+                if (array_get($result, 'result') === false) {
+                    $message = array_get($result, 'errors.import_error_message.message');
+                    if (!empty($message)) {
+                        $this->line(exmtrans('command.import.error_info'));
+                        $this->line($message);
+                    }
+                } else {
+                    $message = array_get($result, 'toastr');
+                    if (!empty($message)) {
+                        $this->line($message);
+                    }
+                }
             }
-
-            // delete working folder
-            File::deleteDirectory(dirname($path));
         } catch (\Exception $e) {
             $this->error($e->getMessage());
             return -1;
