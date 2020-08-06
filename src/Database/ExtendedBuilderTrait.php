@@ -46,7 +46,7 @@ trait ExtendedBuilderTrait
         list($bindStrings, $binds) = $this->query->grammar->bindValueWhereInMultiple($values);
 
         return $this->whereRaw(
-            '('.implode($columns, ', ').') in ('.implode($bindStrings, ', ').')',
+            '('.implode(', ', $columns).') in ('.implode(', ', $bindStrings).')',
             $binds
         );
     }

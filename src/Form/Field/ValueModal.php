@@ -305,8 +305,9 @@ EOT;
      *
      * @return void
      */
-    protected function convertString($value){
-        if(is_array($value)){
+    protected function convertString($value)
+    {
+        if (is_array($value)) {
             return json_encode($value);
         }
 

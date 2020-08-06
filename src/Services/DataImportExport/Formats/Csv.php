@@ -219,10 +219,22 @@ class Csv extends FormatBase
 
     protected function getCsvArray($file)
     {
+        $original_locale = setlocale(LC_CTYPE, 0);
+
+        // set C locale
+        if(0 === strpos(PHP_OS, 'WIN')) {
+            setlocale(LC_CTYPE, 'C');
+        }
+
         $reader = $this->createReader();
         $reader->setInputEncoding('UTF-8');
         $reader->setDelimiter(",");
         $spreadsheet = $reader->load($file);
-        return $spreadsheet->getActiveSheet()->toArray();
+        $array = $spreadsheet->getActiveSheet()->toArray();
+
+        // revert to original locale
+        setlocale(LC_CTYPE, $original_locale);
+
+        return $array;
     }
 }

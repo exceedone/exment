@@ -26,7 +26,7 @@ trait GrammarTrait
                 return '?';
             //$this->wrapValue($v);
             }, $value);
-            return "(".implode($strs, ", ").")";
+            return "(".implode(", ", $strs).")";
         }, $values);
 
         // set flatten values for binding
