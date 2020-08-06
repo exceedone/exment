@@ -669,7 +669,7 @@ if (!function_exists('array_key_value_exists')) {
             if (!array_has($array, $k)) {
                 continue;
             }
-            if (!empty(array_get($array, $k))) {
+            if (!is_nullorempty(array_get($array, $k))) {
                 return true;
             }
         }
