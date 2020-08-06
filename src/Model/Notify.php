@@ -447,7 +447,7 @@ class Notify extends ModelBase
     {
         // if $user is myself, return false
         $loginuser = \Exment::user();
-        if(boolval(config('exment.notify_skip_self_target', true))){
+        if (boolval(config('exment.notify_skip_self_target', true))) {
             if ($checkHistory && !is_nullorempty($loginuser) && isMatchString($loginuser->email, $user->email())) {
                 return false;
             }

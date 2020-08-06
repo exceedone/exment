@@ -168,7 +168,7 @@ class AuthUserOrgHelper
 
             // get custom table's user ids
             $queryTable = static::getRoleUserQueryTable($custom_value->custom_table, $tablePermission);
-            if($withoutScope){
+            if ($withoutScope) {
                 $queryTable->withoutGlobalScope(CustomValueModelScope::class);
             }
 
@@ -188,7 +188,7 @@ class AuthUserOrgHelper
         }
         $builder->whereIn('id', $target_ids);
         
-        if($withoutScope){
+        if ($withoutScope) {
             $builder->withoutGlobalScope(CustomValueModelScope::class);
         }
         

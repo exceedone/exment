@@ -1011,7 +1011,7 @@ class PatchDataCommand extends Command
                 if (is_nullorempty($json)) {
                     continue;
                 }
-                if(!is_array($json)){
+                if (!is_array($json)) {
                     continue;
                 }
                 foreach ($json as $key => &$value) {

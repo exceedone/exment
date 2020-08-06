@@ -55,11 +55,11 @@ trait MailTemplateTrait
      */
     public function disabled_delete_trait()
     {
-        if(in_array($this->getValue('mail_key_name'), MailKeyName::arrays())){
+        if (in_array($this->getValue('mail_key_name'), MailKeyName::arrays())) {
             return true;
         }
 
-        $notify = Model\Notify::firstRecordCache(function($notify){
+        $notify = Model\Notify::firstRecordCache(function ($notify) {
             return isMatchString(array_get($notify, 'action_settings.mail_template_id'), $this->id);
         });
 
