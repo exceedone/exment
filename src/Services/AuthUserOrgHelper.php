@@ -132,7 +132,7 @@ class AuthUserOrgHelper
      * *key:custom_value
      * @return CustomValue users who can access custom_value.
      */
-    public static function getRoleUserQueryValue($custom_value, $tablePermission = null, $builder = null)
+    public static function getRoleUserQueryValue($custom_value, $tablePermission = null, $builder = null, $withoutScope = false)
     {
         // get custom_value's users
         $target_ids = [];
@@ -167,8 +167,13 @@ class AuthUserOrgHelper
             }
 
             // get custom table's user ids
+            $queryTable = static::getRoleUserQueryTable($custom_value->custom_table, $tablePermission);
+            if($withoutScope){
+                $queryTable->withoutGlobalScope(CustomValueModelScope::class);
+            }
+
             $target_ids = array_merge(
-                static::getRoleUserQueryTable($custom_value->custom_table, $tablePermission)->pluck('id')->toArray(),
+                $queryTable->pluck('id')->toArray(),
                 $target_ids
             );
 
@@ -182,6 +187,11 @@ class AuthUserOrgHelper
             $builder = getModelName(SystemTableName::USER)::query();
         }
         $builder->whereIn('id', $target_ids);
+        
+        if($withoutScope){
+            $builder->withoutGlobalScope(CustomValueModelScope::class);
+        }
+        
         return $builder;
     }
 
