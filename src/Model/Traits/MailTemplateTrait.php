@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -54,6 +55,14 @@ trait MailTemplateTrait
      */
     public function disabled_delete_trait()
     {
-        return in_array($this->getValue('mail_key_name'), MailKeyName::arrays());
+        if(in_array($this->getValue('mail_key_name'), MailKeyName::arrays())){
+            return true;
+        }
+
+        $notify = Model\Notify::firstRecordCache(function($notify){
+            return isMatchString(array_get($notify, 'action_settings.mail_template_id'), $this->id);
+        });
+
+        return !is_nullorempty($notify);
     }
 }
