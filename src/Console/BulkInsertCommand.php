@@ -9,7 +9,7 @@ use \File;
 
 class BulkInsertCommand extends Command
 {
-    use CommandTrait;
+    use CommandTrait, ImportTrait;
 
     /**
      * The name and signature of the console command.
@@ -87,25 +87,6 @@ class BulkInsertCommand extends Command
         }
 
         return 0;
-    }
-
-    /**
-     * get file names in target folder (filter extension)
-     *
-     */
-    private function getFiles($ext = 'tsv', $include_sub = false)
-    {
-        // get files in target folder
-        if ($include_sub) {
-            $files = File::allFiles($this->directory);
-        } else {
-            $files = File::files($this->directory);
-        }
-        // filter files by extension
-        $files = array_filter($files, function ($file) use ($ext) {
-            return preg_match('/.+\.'.$ext.'$/i', $file);
-        });
-        return $files;
     }
 
     /**

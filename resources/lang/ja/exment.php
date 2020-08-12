@@ -128,6 +128,7 @@ return [
         'description' => 'エラーが発生しました。エラー内容をご確認ください。',
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
+        'failure_import_file' => 'インポートファイルの形式が正しくありません。ファイルを確認してください。',
         'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。分割してアップロードをいただくか、大量データ投入を行ってください。',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'disabled_outside_api' => '外部接続が許可されていません。',
@@ -1997,6 +1998,17 @@ return [
         'client_secret' => 'Client Secret',
         'api_key' => 'APIキー',
         'redirect' => 'リダイレクトURL',
+    ],
+
+    'command' => [
+        'import' => [
+            'file_count' => '該当ファイル数：',
+            'file_info' => '件目 実施開始 ファイル:{%s}',
+            'error_info' => 'エラー情報：',
+            'success_message' => 'インポートに成功しました。件数：{%s}',
+            'error_table' => '対象のテーブル{%s}が見つかりません。',
+            'error_info_ex' => '処理の途中でエラーが発生しました。既に取込済のデータが存在します。{%s}',
+        ]
     ],
 
     'condition' => [

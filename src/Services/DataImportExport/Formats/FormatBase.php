@@ -100,6 +100,20 @@ abstract class FormatBase
         return $files;
     }
 
+    /**
+     * Get options for getdatatable or count
+     *
+     * @param array $options
+     * @return array
+     */
+    public function getDataOptions(array $options){
+        return array_merge([
+            'checkCount' => true, // whether checking count
+            'page' => null, // if set, getting target page count
+            'take' => null, // if set, taking data count
+        ], $options);
+    }
+
     abstract public function createResponse($files);
     abstract protected function getDefaultHeaders();
 

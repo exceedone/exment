@@ -16,8 +16,48 @@ class Csv extends FormatBase
         return $this->filebasename.date('YmdHis'). ($this->isOutputAsZip() ? ".zip" : ".csv");
     }
     
-    public function getDataTable($request)
+    public function getDataTable($request, array $options = [])
     {
+        $options = $this->getDataOptions($options);
+        return $this->_getData($request, function($files) use($options){
+            // if over row size, return number
+            if(boolval($options['checkCount'])){
+                if (($count = $this->getRowCount($files)) > (config('exment.import_max_row_count', 1000) + 2)) {
+                    return $count;
+                }
+            }
+
+            $datalist = [];
+            foreach ($files as $csvfile) {
+                $basename = $csvfile->getBasename('.csv');
+                $datalist[$basename] = $this->getCsvArray($csvfile->getRealPath());
+            }
+
+            return $datalist;
+        }, function($path) use($options){
+            // if over row size, return number
+            if(boolval($options['checkCount'])){
+                if (($count = $this->getRowCount($path)) > (config('exment.import_max_row_count', 1000) + 2)) {
+                    return $count;
+                }
+            }
+
+            $basename = $this->filebasename;
+            $datalist[$basename] = $this->getCsvArray($path);
+            return $datalist;
+        });
+    }
+    
+    public function getDataCount($request)
+    {
+        return $this->_getData($request, function($files){
+            return $this->getRowCount($files);
+        }, function($path){
+            return $this->getRowCount($path);
+        });
+    }
+
+    protected function _getData($request, $callbackZip, $callbackDefault){
         // get file
         if ($request instanceof Request) {
             $file = $request->file('custom_table_file');
@@ -41,7 +81,7 @@ class Csv extends FormatBase
             
             $filename = $file->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
             $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
-    
+
             // open zip file
             try {
                 $zip = new \ZipArchive;
@@ -57,18 +97,7 @@ class Csv extends FormatBase
                     return pathinfo($value)['extension'] == 'csv';
                 });
 
-                // if over row size, return number
-                if (($count = $this->getRowCount($files)) > (config('exment.import_max_row_count', 1000) + 2)) {
-                    return $count;
-                }
-
-                $datalist = [];
-                foreach ($files as $csvfile) {
-                    $basename = $csvfile->getBasename('.csv');
-                    $datalist[$basename] = $this->getCsvArray($csvfile->getRealPath());
-                }
-
-                return $datalist;
+                return $callbackZip($files);
             } finally {
                 // delete tmp folder
                 if (isset($zip)) {
@@ -83,19 +112,10 @@ class Csv extends FormatBase
                 }
             }
         } else {
-            // if over row size, return number
-            if (($count = $this->getRowCount($path)) > (config('exment.import_max_row_count', 1000) + 2)) {
-                return $count;
-            }
-
-            $basename = $this->filebasename;
-            $datalist[$basename] = $this->getCsvArray($path);
+            return $callbackDefault($path);
         }
-
-        return $datalist;
     }
 
-    
     /**
      * whether this out is as zip.
      * This table is parent and contains relation 1:n or n:n.
