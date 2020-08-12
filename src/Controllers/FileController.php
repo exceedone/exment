@@ -178,7 +178,7 @@ class FileController extends AdminControllerBase
         // create response
         $response = Response::make($file, 200);
         $response->header("Content-Type", $type);
-        $response->header('Content-Disposition', "inline; filename*=UTF-8''$name");
+        $response->header('Content-Disposition', "attachment; filename*=UTF-8''$name");
 
         return $response;
     }

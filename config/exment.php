@@ -415,7 +415,7 @@ return [
     | session Expire On Close
     |--------------------------------------------------------------------------
     |
-    | If true, if close browser, hold login
+    | If true, if close browser, logout
     |
     */
     'session_expire_on_close' => env('EXMENT_SESSION_EXPIRE_ON_CLOSE', false),
@@ -763,4 +763,14 @@ return [
     |
     */
     'datalist_view_button_disabled_user' => env('EXMENT_VIEW_BUTTON_DISABLED_USER', false),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | html allowed tags(for HTML Purifier)
+    |--------------------------------------------------------------------------
+    |
+    | html allowed tag list. Use default settings if not set
+    |
+    */
+    'html_allowed' => env('EXMENT_HTML_ALLOWED', null),
 ];

@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Carbon\Carbon;
+use Mews\Purifier\Facades\Purifier;
 
 if (!function_exists('exmDebugLog')) {
     /**
@@ -115,6 +116,33 @@ if (!function_exists('esc_script_tag')) {
             $html = preg_replace('/<br>$/u', '', $html);
             
             libxml_use_internal_errors(false);
+        } catch (\Exception $ex) {
+            return $html;
+        }
+        
+        return $html;
+    }
+}
+
+if (!function_exists('html_clean')) {
+    /**
+     * clearn html with HTML Purifier
+     */
+    function html_clean($html)
+    {
+        if (is_nullorempty($html)) {
+            return $html;
+        }
+        
+        try {
+            if (!is_null($html_allowed = config('exment.html_allowed'))) {
+                $config = HTMLPurifier_Config::createDefault();
+                $config->set('HTML.Allowed', $html_allowed);
+                $purifier = new HTMLPurifier($config);
+                $html = $purifier->purify($html);
+            } else {
+                $html = Purifier::clean($html);                
+            }
         } catch (\Exception $ex) {
             return $html;
         }

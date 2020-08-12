@@ -1,5 +1,5 @@
 <div class="form-group">
     <div class="{{$viewClass['field']}} {{$offset}}" {!! $attributes !!} >
-        {!! $label !!}
+        {{ $label }}
     </div>
 </div>
