@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Grid\Linker;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
@@ -146,8 +147,11 @@ class CustomFormController extends AdminControllerTableBase
         if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
+
+        $copy_id = $request->get('copy_id');
+
         $this->AdminContent($content);
-        $this->createForm($content);
+        $this->createForm($content, null, $copy_id);
         return $content;
     }
 
@@ -247,9 +251,16 @@ class CustomFormController extends AdminControllerTableBase
         $grid->disableExport();
         $grid->disableRowSelector();
         // $grid->disableCreateButton();
-        $grid->actions(function ($actions) {
+        $table_name = $this->custom_table->table_name;
+
+        $grid->actions(function ($actions) use($table_name) {
             $actions->disableView();
             // $actions->disableDelete();
+            $linker = (new Linker)
+                ->url(admin_urls('form', $table_name, "create?copy_id={$actions->row->id}"))
+                ->icon('fa-copy')
+                ->tooltip(exmtrans('common.copy_item', exmtrans('custom_form.default_form_name')));
+            $actions->prepend($linker);
         });
         return $grid;
     }
@@ -260,12 +271,18 @@ class CustomFormController extends AdminControllerTableBase
      *
      * @return Form
      */
-    protected function createForm($content, $id = null)
+    protected function createForm($content, $id = null, $copy_id = null)
     {
         // get form
         $form = CustomForm::getEloquent($id);
         if (is_null($form)) {
-            $form = new CustomForm;
+            if (isset($copy_id)) {
+                $form = CustomForm::getEloquent($copy_id);
+                $form->form_view_name = '';
+                $form->default_flg = '0';
+            } else {
+                $form = new CustomForm;
+            }
         }
 
         // get form block list
@@ -647,11 +664,13 @@ class CustomFormController extends AdminControllerTableBase
         DB::beginTransaction();
         try {
             $inputs = $request->input('custom_form_blocks');
+            $is_new = false;
 
             // create form (if new form) --------------------------------------------------
             if (!isset($id)) {
                 $form = new CustomForm;
                 $form->custom_table_id = $this->custom_table->id;
+                $is_new = true;
             } else {
                 $form = CustomForm::getEloquent($id);
             }
@@ -663,7 +682,7 @@ class CustomFormController extends AdminControllerTableBase
             foreach ($inputs as $key => $value) {
                 // create blocks --------------------------------------------------
                 // if key is "NEW_", create new block
-                if (starts_with($key, 'NEW_')) {
+                if (starts_with($key, 'NEW_') || $is_new) {
                     $block = new CustomFormBlock;
                     $block->custom_form_id = $id;
                     $block->form_block_type = array_get($value, 'form_block_type');
@@ -686,7 +705,7 @@ class CustomFormController extends AdminControllerTableBase
                         continue;
                     }
                     // if key is "NEW_", create new column
-                    $new_column = starts_with($column_key, 'NEW_');
+                    $new_column = starts_with($column_key, 'NEW_') || $is_new;
 
                     // if delete flg is true, delete and continue
                     if (boolval(array_get($column_value, 'delete_flg'))) {
