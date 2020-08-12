@@ -22,7 +22,7 @@
         <div class="box-body">
             <div class="form-horizontal">
                 <div class="form-group">
-                    {{ Form::label("", exmtrans('custom_form.form_view_name'), ['class' => 'control-label col-sm-2'])}}
+                    {{ Form::label("", exmtrans('custom_form.form_view_name'), ['class' => 'control-label col-sm-2 asterisk'])}}
                     <div class="col-sm-8">
                         {{ Form::text('form_view_name', $form_view_name, ['class' => 'form-control', 'required' => 'required']) }}
                     </div>
