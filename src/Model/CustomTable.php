@@ -1373,7 +1373,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        $this->getValueModel()->findMany(array_unique($finds))->each(function ($target_value) {
+        $this->getValueModel()->query()->findMany(array_unique($finds))->each(function ($target_value) {
             // set request settion
             $target_value->setValueModel();
         });

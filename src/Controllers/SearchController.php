@@ -16,6 +16,10 @@ use Exceedone\Exment\Enums\SearchType;
 class SearchController extends AdminControllerBase
 {
     protected $custom_table;
+
+    
+    // Search Header ----------------------------------------------------
+    
     /**
      * Rendering search header for adminLTE header
      */
@@ -24,67 +28,10 @@ class SearchController extends AdminControllerBase
         // create searching javascript
         $ajax_url = admin_url("search/header");
         $list_url = admin_url("search");
-        $script = <<<EOT
-    $(function () {
-        if(!hasValue($('.search-form #query'))){
-            return;
-        }
-        var search_suggests = [];
-        $('.search-form #query').autocomplete({
-            source: function (req, res) {
-                $.ajax({
-                    url: "$ajax_url",
-                    data: {
-                        _token: LA.token,
-                        query: req.term
-                    },
-                    dataType: "json",
-                    type: "GET",
-                    success: function (data) {
-                        search_suggests = data;
-                        res(data);
-                    },
-                });
-            },
-            // Search when seleting
-            select : function(e, ui)
-                {
-                    if(ui.item)
-                    {
-                        $.pjax({ container: '#pjax-container', url: '$list_url' + '?table_name=' + ui.item.table_name + '&value_id=' + ui.item.value_id });
-                    }
-                },
-            autoFocus: false,
-            delay: 500,
-            minLength: 2,
-        })
-        .autocomplete("instance")._renderItem = function (ul, item) {
-                    var p = $('<p/>', {
-                        'class': 'search-item-icon',
-                        'html': [
-                            $('<i/>', {
-                                'class': 'fa ' + item.icon
-                            }),
-                            $('<span/>', {
-                                'text': item.table_view_name,
-                                'style': 'background-color:' + item.color,
-                            }),
-                        ]
-                    });
-                    var div = $('<div/>', {
-                        'tabindex' : -1,
-                        'class' : 'ui-menu-item-wrapper',
-                        'html' : [p, $('<span/>', {'text':item.text})]
-                    });
-                    return $('<li class="ui-menu-item-with-icon"></li>')
-                        .data("item.autocomplete", item)
-                        .append(div)
-                        .appendTo(ul);
-                };
-    });
-EOT;
-        Admin::script($script);
-        return view('exment::search.search-bar');
+        return view('exment::search.search-bar', [
+            'ajax_url' => $ajax_url,
+            'list_url' => $list_url,
+        ]);
     }
     /**
      * Get result list when users input search bar, by query
@@ -127,6 +74,13 @@ EOT;
         }
         return $results;
     }
+
+
+
+
+
+    // Search Page ----------------------------------------------------
+
     /**
      * Show search result page.
      */
@@ -151,22 +105,8 @@ EOT;
         $this->AdminContent($content);
         $content->header(exmtrans('search.header_freeword'));
         $content->description(exmtrans('search.description_freeword'));
-        // create searching javascript
-        $script = <<<EOT
-    function getNaviData() {
-        var tables = JSON.parse($('.tables').val());
-        for (var i = 0; i < tables.length; i++) {
-            var table = tables[i];
-            if(!hasValue(table)){
-                continue;
-            }
-            var url = admin_url('search/list?table_name=' + table.table_name + '&query=' + $('.base_query').val());
-            getNaviDataItem(url, table.box_key);
-        }
-    }
-EOT;
-        Admin::script($script);
-        $this->setCommonScript();
+        $this->setCommonScript(true);
+        
         // add header and description
         $title = sprintf(exmtrans("search.result_label"), $request->input('query'));
         $this->setPageInfo($title, $title, exmtrans("plugin.description"));
@@ -203,33 +143,69 @@ EOT;
         }
         return collect($results);
     }
+
+    
+
+
+    // Search list ----------------------------------------------------
+    /**
+     * Get search results using query
+     */
+    public function getLists(Request $request)
+    {
+        $q = $request->input('query');
+        //search each tables
+        $table_names = stringToArray($request->input('table_names', []));
+
+        $results = [];
+        foreach($table_names as $table_name){
+            $results[$table_name] = $this->getListItem($request, $q, $table_name);
+        }
+
+        return $results;
+    }
+
     /**
      * Get search results using query
      */
     public function getList(Request $request)
     {
         $q = $request->input('query');
-        $table = CustomTable::getEloquent($request->input('table_name'), true);
-        $boxHeader = $this->getBoxHeaderHtml($table, ['query' => $q]);
+        $table_name = $request->input('table_name', []);
+
+        return $this->getListItem($request, $q, $table_name);
+    }
+
+    /**
+     * Get search results item using query
+     */
+    protected function getListItem(Request $request, $q, $table_name)
+    {
+        $custom_table = CustomTable::getEloquent($table_name);
+        if(empty($custom_table)){
+            return [];
+        }
+
+        $boxHeader = $this->getBoxHeaderHtml($custom_table, ['query' => $q]);
         // search all data using index --------------------------------------------------
-        $paginate = $table->searchValue($q, [
+        $paginate = $custom_table->searchValue($q, [
             'paginate' => true,
             'maxCount' => System::datalist_pager_count() ?? 5
         ]);
-        $paginate->setPath(admin_urls('search', 'list') . "?query=$q&table_name={$request->input('table_name')}");
+        $paginate->setPath(admin_urls('search', 'list') . "?query=$q&table_name=$table_name");
         $datalist = $paginate->items();
         
         // Get result HTML.
         if (count($datalist) == 0) {
             return [
-                'table_name' => array_get($table, 'table_name'),
+                'table_name' => array_get($custom_table, 'table_name'),
                 'header' => $boxHeader,
                 'body' => exmtrans('search.no_result')
             ];
         }
         $links = $paginate->links('exment::search.links')->toHtml();
         // get headers and bodies
-        $view = CustomView::getAllData($table);
+        $view = CustomView::getAllData($custom_table);
 
         list($headers, $bodies, $columnStyles, $columnClasses) = $view->convertDataTable($datalist, [
             'action_callback' => function (&$link, $custom_table, $data) {
@@ -245,13 +221,18 @@ EOT;
             ->setColumnStyle($columnStyles)
             ->setColumnClasses($columnClasses);
 
+
         return [
-            'table_name' => array_get($table, 'table_name'),
+            'table_name' => array_get($custom_table, 'table_name'),
             'header' => $boxHeader,
             'body' => $table->render(),
             'footer' => $links
         ];
     }
+
+
+
+
     
     // For relation search  --------------------------------------------------
     /**
@@ -281,32 +262,16 @@ EOT;
             'query' => $value,
             'tables' => $this->getSearchTargetRelationTable($table)])
         );
-        // create searching javascript
-        $list_url = admin_url("search/relation");
-        $script = <<<EOT
-function getNaviData() {
-    var tables = JSON.parse($('.tables').val());
-    for (var i = 0; i < tables.length; i++) {
-        var table = tables[i];
-        if(!hasValue(table)){
-            continue;
-        }
-        var url = admin_url('search/relation?search_table_name=' + table.table_name 
-            + '&value_table_name=' + $('.table_name').val() 
-            + '&value_id=' + $('.value_id').val()
-            + '&search_type=' + table.search_type
-        );
-        getNaviDataItem(url, table.box_key);
-    }
-}
-EOT;
-        Admin::script($script);
-        $this->setCommonScript();
+        
+        $this->setCommonScript(false);
+
         // add header and description
         $title = sprintf(exmtrans("search.result_label"), $value);
         $this->setPageInfo($title);
         return $content;
     }
+
+
     /**
      * get query relation value
      */
@@ -315,10 +280,10 @@ EOT;
         // value_id is the id user selected.
         $value_id = $request->input('value_id');
         // value_table is the table user selected.
-        $value_table = CustomTable::getEloquent($request->input('value_table_name'), true);
+        $value_table = CustomTable::getEloquent($request->input('value_table_name'));
 
         /// $search_table is the table for search. it's ex. select_table, relation, ...
-        $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
+        $search_table = CustomTable::getEloquent($request->input('search_table_name'));
         $search_type = $request->input('search_type');
 
         $options = [
@@ -443,40 +408,12 @@ EOT;
     /**
      * set common script for list or relation search
      */
-    protected function setCommonScript()
+    protected function setCommonScript(bool $isList)
     {
         // create searching javascript
         $script = <<<EOT
     $(function () {
-        getNaviData();
-    });
-    function getNaviDataItem(url, box_key){
-        var box = $('[data-box_key="' + box_key + '"]');
-        box.find('.overlay').show();
-        // Get Data
-        $.ajax({
-            url: url,
-            type: 'GET',
-            context: {box: box},
-        })
-        // Execute when success Ajax Request
-        .done(function(data){
-            var box = this.box;
-            box.find('.box-body .box-body-inner-header').html(data.header);
-            box.find('.box-body .box-body-inner-body').html(data.body);
-            box.find('.box-body .box-body-inner-footer').html(data.footer);
-            box.find('.overlay').hide();
-            Exment.CommonEvent.tableHoverLink();
-        })
-        .always(function(data){
-        });
-    }
-    ///// click dashboard link event
-    $(document).off('click', '[data-ajax-link]').on('click', '[data-ajax-link]', [], function(ev){
-        // get link
-        var url = $(ev.target).closest('[data-ajax-link]').data('ajax-link');
-        var box_key = $(ev.target).closest('[data-box_key]').data('box_key');
-        getNaviDataItem(url, box_key);
+        Exment.SearchEvent.getNaviData($isList);
     });
 EOT;
         Admin::script($script);
