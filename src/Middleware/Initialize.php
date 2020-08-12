@@ -95,6 +95,11 @@ class Initialize
 
         ///// set config
 
+        // Only set if expire_on_close is false(default)
+        if(!boolval(Config::get('session.expire_on_close', false))){
+            Config::set('session.expire_on_close', Config::get('exment.session_expire_on_close', false));
+        }
+
         // for password reset
         if (!Config::has('auth.passwords.exment_admins')) {
             Config::set('auth.passwords.exment_admins', [

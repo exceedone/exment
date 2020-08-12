@@ -415,7 +415,7 @@ return [
     | session Expire On Close
     |--------------------------------------------------------------------------
     |
-    | If true, if close browser, hold login
+    | If true, if close browser, logout
     |
     */
     'session_expire_on_close' => env('EXMENT_SESSION_EXPIRE_ON_CLOSE', false),
