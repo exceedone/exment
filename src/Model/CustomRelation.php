@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ConditionType;
+use Encore\Admin\Facades\Admin;
 
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -175,6 +176,56 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
             return null;
         }
         return "pivot__{$parent_suuid}_{$child_suuid}";
+    }
+
+    /**
+     * Get dynamic relation value for custom value.
+     *
+     * @param CustomValue $custom_value
+     * @param boolean $isCallAsParent
+     * @return void
+     */
+    public function getDynamicRelationValue(CustomValue $custom_value, bool $isCallAsParent)
+    {
+        if($isCallAsParent){
+            $child_custom_table = CustomTable::getEloquent($this->child_custom_table_id);
+            $pivot_table_name = $this->getRelationName();
+    
+            // Get Parent and child table Name.
+            // case 1 to many
+            if ($this->relation_type == RelationType::ONE_TO_MANY) {
+                return $custom_value->morphMany(getModelName($child_custom_table), 'parent');
+            }
+            // case many to many
+            else {
+                // Create pivot table
+                if (!hasTable($pivot_table_name)) {
+                    \Schema::createRelationValueTable($pivot_table_name);
+                }
+    
+                return $custom_value->belongsToMany(getModelName($child_custom_table), $pivot_table_name, "parent_id", "child_id")->withPivot("id");
+            }
+        }
+
+        else{
+            $parent_custom_table = CustomTable::getEloquent($this->parent_custom_table_id);
+            $pivot_table_name = $this->getRelationName();
+
+            // Get Parent and child table Name.
+            // case 1 to many
+            if ($this->relation_type == RelationType::ONE_TO_MANY) {
+                return $custom_value->belongsTo(getModelName($parent_custom_table, true), "parent_id");
+            }
+            // case many to many
+            else {
+                // Create pivot table
+                if (!hasTable($pivot_table_name)) {
+                    \Schema::createRelationValueTable($pivot_table_name);
+                }
+
+                return $custom_value->belongsToMany(getModelName($parent_custom_table, true), $pivot_table_name, "child_id", "parent_id")->withPivot("id");
+            }
+        }
     }
 
     /**

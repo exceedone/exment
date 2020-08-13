@@ -25,7 +25,6 @@ abstract class CustomValue extends ModelBase
 {
     use Traits\AutoSUuidTrait,
     Traits\DatabaseJsonTrait,
-    Traits\HasDynamicRelationTrait,
     \Illuminate\Database\Eloquent\SoftDeletes,
     \Exceedone\Exment\Revisionable\RevisionableTrait;
 
@@ -222,6 +221,20 @@ abstract class CustomValue extends ModelBase
             ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
             ->wherePivot('authoritable_user_org_type', SystemTableName::ORGANIZATION)
             ;
+    }
+
+
+    /**
+     * Get dynamic relation value for custom value.
+     *
+     * @param CustomValue $custom_value
+     * @param boolean $isCallAsParent
+     * @return void
+     */
+    public function getDynamicRelationValue(int $custom_relation_id, bool $isCallAsParent)
+    {
+        $relation = CustomRelation::getEloquent($custom_relation_id);
+        return $relation->getDynamicRelationValue($this, $isCallAsParent);
     }
 
 
