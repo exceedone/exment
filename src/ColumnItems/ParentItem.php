@@ -137,6 +137,16 @@ class ParentItem implements ItemInterface
         return $this->custom_table;
     }
 
+    /**
+     * Get relation.
+     *
+     * @return CustomRelation|null
+     */
+    public function getRelation()
+    {
+        return $this->custom_relation;
+    }
+
     protected function getTargetValue($custom_value)
     {
         if (is_null($custom_value)) {

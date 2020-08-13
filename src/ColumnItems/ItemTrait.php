@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
+use Exceedone\Exment\Model\CustomRelation;
+
 trait ItemTrait
 {
     /**
@@ -230,6 +232,16 @@ trait ItemTrait
         return implode('; ', collect($array)->map(function ($value, $key) {
             return "$key:$value";
         })->toArray());
+    }
+
+    /**
+     * Get relation.
+     *
+     * @return CustomRelation|null
+     */
+    public function getRelation()
+    {
+        return null;
     }
 
     /**

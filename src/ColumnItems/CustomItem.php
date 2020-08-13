@@ -11,9 +11,9 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -194,6 +194,16 @@ abstract class CustomItem implements ItemInterface
     public function getCustomColumn()
     {
         return $this->custom_column;
+    }
+
+    /**
+     * Get relation.
+     *
+     * @return CustomRelation|null
+     */
+    public function getRelation()
+    {
+        return $this->getRelationTrait();
     }
 
     protected function getTargetValue($custom_value)

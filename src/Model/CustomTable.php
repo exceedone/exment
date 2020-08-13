@@ -1297,7 +1297,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function setQueryWith($query, $custom_view = null, array $options = [])
+    public function setQueryWith($query, $custom_view = null)
     {
         if (!method_exists($query, 'with')) {
             return;
@@ -1327,6 +1327,27 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }))) {
             // add query
             WorkflowItem::getWorkUsersSubQuery($query, $this);
+        }
+
+        // if has relations, set with
+        if(isset($custom_view)){
+            $relations = $custom_view->custom_view_columns_cache->map(function($custom_view_column){
+                $column_item = $custom_view_column->column_item;
+                if(empty($column_item)){
+                    return null;
+                }
+
+                return $column_item->options([
+                    'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
+                    'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
+                ])->getRelation();
+            })->filter()->unique();
+
+            if($relations->count() > 0){
+                $relations->each(function($r) use($query){
+                    $query->with($r->getRelationName());
+                });
+            }
         }
     }
 

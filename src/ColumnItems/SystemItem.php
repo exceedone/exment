@@ -10,7 +10,7 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 
 class SystemItem implements ItemInterface
@@ -243,6 +243,16 @@ class SystemItem implements ItemInterface
     public function getCustomTable()
     {
         return $this->custom_table;
+    }
+
+    /**
+     * Get relation.
+     *
+     * @return CustomRelation|null
+     */
+    public function getRelation()
+    {
+        return $this->getRelationTrait();
     }
 
     protected function getTargetValue($custom_value)
