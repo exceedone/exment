@@ -398,7 +398,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($this->custom_forms as $item) {
             $item->deletingChildren();
         }
-        foreach ($this->custom_views as $item) {
+        foreach ($this->custom_views()->withoutGlobalScope('showableViews')->get() as $item) {
             $item->deletingChildren();
         }
         foreach ($this->from_custom_copies as $item) {
