@@ -433,7 +433,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->workflow_tables()->delete();
             $model->custom_form_block_target_tables()->delete();
             $model->child_custom_relations()->delete();
-            $model->custom_views()->delete();
+            $model->custom_views()->withoutGlobalScope('showableViews')->delete();
             $model->custom_forms()->delete();
             $model->custom_columns()->delete();
             $model->custom_relations()->delete();
