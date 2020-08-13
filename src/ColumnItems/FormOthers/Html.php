@@ -10,7 +10,7 @@ class Html extends FormOtherItem
     /**
      * get Text(for display)
      */
-    public function text()
+    protected function _text($v)
     {
         return array_get($this->form_column, 'options.html');
     }

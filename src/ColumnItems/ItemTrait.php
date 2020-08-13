@@ -20,7 +20,9 @@ trait ItemTrait
      */
     public function value()
     {
-        return $this->value;
+        return $this->_getMultipleValue(function($v){
+            return $this->_value($v);
+        });
     }
 
     /**
@@ -29,7 +31,68 @@ trait ItemTrait
      */
     public function pureValue()
     {
-        return $this->value;
+        return $this->_getMultipleValue(function($v){
+            return $this->_pureValue($v);
+        });
+    }
+
+    /**
+     * get text
+     */
+    public function text()
+    {
+        $text = $this->_getMultipleValue(function($v){
+            return $this->_text($v);
+        });
+
+        return is_list($text) ? collect($text)->implode(exmtrans('common.separate_word')) : $text;
+    }
+
+    /**
+     * get html(for display)
+     * *this function calls from non-escaping value method. So please escape if not necessary unescape.
+     */
+    public function html()
+    {
+        $html = $this->_getMultipleValue(function($v){
+            return $this->_html($v);
+        });
+
+        return is_list($html) ? collect($html)->implode(exmtrans('common.separate_word')) : $html;
+    }
+
+    protected function _getMultipleValue($singleValueCallback)
+    {
+        $isList = is_list($this->value);
+        $values = $isList ? $this->value : [$this->value];
+
+        $items = [];
+        foreach($values as $value){
+            $items[] = $singleValueCallback($value);
+        }
+        
+        if($isList){
+            return collect($items);
+        }
+
+        return collect($items)->first();
+    }
+
+    /**
+     * get value
+     */
+    protected function _value($v)
+    {
+        return $v;
+    }
+
+    /**
+     * get pure value. (In database value)
+     * *Don't override this function
+     */
+    protected function _pureValue($v)
+    {
+        return $v;
     }
 
     /**

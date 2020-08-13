@@ -51,18 +51,18 @@ class WorkflowItem extends SystemItem
     /**
      * get text(for display)
      */
-    public function text()
+    protected function _text($v)
     {
-        return $this->getWorkflowValue(false);
+        return $this->getWorkflowValue($v, false);
     }
 
     /**
      * get html(for display)
      * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
-    public function html()
+    protected function _html($v)
     {
-        return $this->getWorkflowValue(true);
+        return $this->getWorkflowValue($v, true);
     }
 
     /**
@@ -71,10 +71,8 @@ class WorkflowItem extends SystemItem
      * @param [type] $html
      * @return void
      */
-    protected function getWorkflowValue($html)
+    protected function getWorkflowValue($val, $html)
     {
-        $val = $this->pureValue();
-
         if (boolval(array_get($this->options, 'summary'))) {
             if (isset($val)) {
                 $model = WorkflowStatus::find($val);

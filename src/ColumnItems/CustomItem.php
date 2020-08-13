@@ -22,10 +22,16 @@ use Exceedone\Exment\Validator;
 
 abstract class CustomItem implements ItemInterface
 {
-    use ItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
+    use ItemTrait, SystemColumnItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
     
     protected $custom_column;
     
+    /**
+     * This custom table.
+     * *If view_pivot_column, custom_table is pivot target table
+     *
+     * @var CustomTable
+     */
     protected $custom_table;
     
     protected $custom_value;
@@ -116,18 +122,18 @@ abstract class CustomItem implements ItemInterface
     /**
      * get Text(for display)
      */
-    public function text()
+    protected function _text($v)
     {
-        return $this->value;
+        return $v;
     }
 
     /**
      * get html(for display)
      */
-    public function html()
+    protected function _html($v)
     {
         // default escapes text
-        $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($this->text()) : $this->text();
+        $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($this->_text($v)) : $this->_text($v);
         return esc_html($text);
     }
 
@@ -203,14 +209,7 @@ abstract class CustomItem implements ItemInterface
 
         // if options has "view_pivot_column", get select_table's custom_value first
         if (isset($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
-            $view_pivot_column = $this->options['view_pivot_column'];
-            if ($view_pivot_column == SystemColumn::PARENT_ID) {
-                $custom_value = $this->custom_table->getValueModel($custom_value->parent_id);
-            } else {
-                $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
-                $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
-                $custom_value = $this->custom_table->getValueModel($pivot_id);
-            }
+            return $this->getViewPivotValue($custom_value, $this->options);
         }
 
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);

@@ -11,10 +11,10 @@ class Image extends File
     /**
      * get html. show link to image
      */
-    public function html()
+    protected function _html($v)
     {
         // get image url
-        $url = ExmentFile::getUrl($this->fileValue());
+        $url = ExmentFile::getUrl($this->fileValue($v));
         if (!isset($url)) {
             return $url;
         }

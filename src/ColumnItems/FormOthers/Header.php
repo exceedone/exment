@@ -10,10 +10,10 @@ class Header extends FormOtherItem
     /**
      * get html(for display)
      */
-    public function html()
+    protected function _html($v)
     {
         // default escapes text
-        return esc_html($this->text());
+        return esc_html($this->_text($v));
     }
 
     protected function getAdminFieldClass()

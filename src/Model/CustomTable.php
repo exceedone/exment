@@ -1297,7 +1297,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return void
      */
-    public function setQueryWith($query, $custom_view = null)
+    public function setQueryWith($query, $custom_view = null, array $options = [])
     {
         if (!method_exists($query, 'with')) {
             return;
@@ -1991,9 +1991,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ];
 
         /// get system columns
-        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id) {
+        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id, $optionKeyParams) {
             foreach (SystemColumn::getOptions($filter) as $option) {
-                $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id);
+                $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id, $optionKeyParams);
                 $value = exmtrans('common.'.array_get($option, 'name'));
                 static::setKeyValueOption($options, $key, $value, $table_view_name);
             }
