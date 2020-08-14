@@ -142,7 +142,7 @@ class SummaryGrid extends GridBase
 
         $table_name = $this->custom_table->table_name;
         // get table id
-        $db_table_name = getDBTableName($table_name);
+        $db_table_name = getDBTableName($this->custom_table);
 
         // get relation child tables
         $child_relations = CustomRelation::getRelationsByParent($this->custom_table);
@@ -168,8 +168,8 @@ class SummaryGrid extends GridBase
 
             // check child item
             $is_child = $child_relations->contains(function ($child_relation, $key) use ($item) {
-                return isset($item->custom_table) && $child_relation->child_custom_table_id == $item->custom_table->id;
-            }) || in_array($item->custom_table->id, $selected_table_columns);
+                return isset($item->custom_table) && $child_relation->child_custom_table_id == $item->custom_table_cache->id;
+            }) || in_array($item->custom_table_cache->id, $selected_table_columns);
 
             if ($item instanceof CustomViewColumn) {
                 // first, set group_column. this column's name uses index.
@@ -194,8 +194,8 @@ class SummaryGrid extends GridBase
                 
                 // if this is child table, set as sub group by
                 if ($is_child) {
-                    $summary_options[$item->custom_table->id]->addSubGroupby($groupSqlAsName);
-                    $summary_options[$item->custom_table->id]->addSelectGroup($groupSqlAsName);
+                    $summary_options[$item->custom_table_cache->id]->addSubGroupby($groupSqlAsName);
+                    $summary_options[$item->custom_table_cache->id]->addSelectGroup($groupSqlAsName);
                 }
             }
             // set summary columns

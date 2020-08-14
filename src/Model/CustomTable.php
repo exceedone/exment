@@ -260,30 +260,36 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * Filter is select_target_table
      *
      * @param int|string|CustomTable|null $select_target_table if filter select target table, set value.
+     * @param bool $skipSelf if true, skip column for relation target is self.
      * @return Collection
      */
-    public function getSelectTableColumns($select_target_table = null)
+    public function getSelectTableColumns($select_target_table = null, bool $skipSelf = false)
     {
-        return $this->custom_columns_cache->filter(function ($custom_column) use ($select_target_table) {
+        return $this->custom_columns_cache->filter(function ($custom_column) use ($skipSelf, $select_target_table) {
             if (!ColumnType::isSelectTable($custom_column->column_type)) {
                 return false;
             }
                         
+            $custom_column_target_table = $custom_column->select_target_table;
+            if(!isset($custom_column_target_table)){
+                return false;
+            }
             // skip if $this->custom_table_id and $this->id (Self relation), return false.
-            if(isMatchString($custom_column->custom_table_id, $this->id)){
+            if($skipSelf && isMatchString($custom_column_target_table->id, $this->id)){
                 return false;
             }
 
+            // if not filter, return true.
             if (is_null($select_target_table)) {
                 return true;
             }
-
+            // filtering select_target_table if set
             $select_target_table = CustomTable::getEloquent($select_target_table);
             if (!isset($select_target_table)) {
                 return false;
             }
 
-            return isset($custom_column->select_target_table) && $select_target_table->id == $custom_column->select_target_table->id;
+            return $select_target_table->id == $custom_column_target_table->id;
         });
     }
 
@@ -324,13 +330,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * Value is custom column.
      * *Ignore self selection*
      *
+     * @param bool $skipSelf if true, skip column for relation target is self.
      * @return Collection
      */
-    public function getSelectedTableColumns()
+    public function getSelectedTableColumns(bool $skipSelf = true)
     {
-        return CustomColumn::allRecords(function($custom_column){
+        return CustomColumn::allRecords(function($custom_column) use($skipSelf){
             // skip if $this->custom_table_id and $this->id (Self relation), return false.
-            if(isMatchString($custom_column->custom_table_id, $this->id)){
+            if($skipSelf && isMatchString($custom_column->custom_table_id, $this->id)){
                 return false;
             }
 
@@ -1240,7 +1247,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             case SearchType::SELECT_TABLE:
                 // get columns for relation child to parent
                 if (!isset($searchColumns)) {
-                    $searchColumns = $child_table->getSelectTableColumns($this->id);
+                    $searchColumns = $child_table->getSelectTableColumns($this->id, true);
                 }
 
                 // set query info
@@ -1381,7 +1388,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        $this->getSelectTableColumns()->each(function ($column) use ($customValueCollection) {
+        $this->getSelectTableColumns(null, false)->each(function ($column) use ($customValueCollection) {
             $target_table = $column->select_target_table;
 
             // get searching value
@@ -1933,7 +1940,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 );
             }
             ///// get select table columns
-            $select_table_columns = $this->getSelectTableColumns();
+            $select_table_columns = $this->getSelectTableColumns(null, true);
             foreach ($select_table_columns as $select_table_column) {
                 if ($index_enabled_only && !$select_table_column->index_enabled) {
                     continue;
