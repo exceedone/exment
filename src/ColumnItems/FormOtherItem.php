@@ -77,7 +77,7 @@ abstract class FormOtherItem implements ItemInterface
     public function html()
     {
         // default escapes text
-        return esc_script_tag($this->text());
+        return html_clean($this->text());
     }
 
     /**

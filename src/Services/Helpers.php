@@ -86,47 +86,18 @@ if (!function_exists('esc_html')) {
 if (!function_exists('esc_script_tag')) {
     /**
      * escape only script tag
+     * 
+     * @deprecated Please use html_clean
      */
     function esc_script_tag($html)
     {
-        if (is_nullorempty($html)) {
-            return $html;
-        }
-        
-        try {
-            libxml_use_internal_errors(true);
-
-            $dom = new \DOMDocument();
-    
-            $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-    
-            $script = $dom->getElementsByTagName('script');
-    
-            $remove = [];
-            foreach ($script as $item) {
-                $remove[] = $item;
-            }
-    
-            foreach ($remove as $item) {
-                $item->parentNode->removeChild($item);
-            }
-    
-            $html = trim($dom->saveHTML());
-            $html = preg_replace('/^<br>/u', '', $html);
-            $html = preg_replace('/<br>$/u', '', $html);
-            
-            libxml_use_internal_errors(false);
-        } catch (\Exception $ex) {
-            return $html;
-        }
-        
-        return $html;
+        return html_clean($html);
     }
 }
 
 if (!function_exists('html_clean')) {
     /**
-     * clearn html with HTML Purifier
+     * clean html with HTML Purifier
      */
     function html_clean($html)
     {
@@ -135,19 +106,27 @@ if (!function_exists('html_clean')) {
         }
         
         try {
-            if (!is_null($html_allowed = config('exment.html_allowed'))) {
-                $config = HTMLPurifier_Config::createDefault();
-                $config->set('HTML.Allowed', $html_allowed);
-                $purifier = new HTMLPurifier($config);
-                $html = $purifier->purify($html);
-            } else {
-                $html = Purifier::clean($html);                
+            // default setting for exment
+            $config = HTMLPurifier_Config::createDefault();
+            $config->set('HTML.Allowed', Define::HTML_ALLOWED_DEFAULT);
+            $config->set('HTML.AllowedAttributes', Define::HTML_ALLOWED_ATTRIBUTES_DEFAULT);
+            $config->set('CSS.AllowedProperties', Define::CSS_ALLOWED_PROPERTIES_DEFAULT);
+
+            // override exment setting
+            if (!is_null($c = config('exment.html_allowed'))) {
+                $config->set('HTML.Allowed', $c);
             }
+            if (!is_null($c = config('exment.html_allowed_attributes'))) {
+                $config->set('HTML.AllowedAttributes', $c);
+            }
+            if (!is_null($c = config('exment.css_allowed_properties'))) {
+                $config->set('CSS.AllowedProperties', $c);
+            }
+
+            return Purifier::clean($html, $config);
         } catch (\Exception $ex) {
-            return $html;
+            return null;
         }
-        
-        return $html;
     }
 }
 
@@ -1253,6 +1232,8 @@ if (!function_exists('getCurrencySymbolLabel')) {
 if (!function_exists('replaceTextFromFormat')) {
     /**
      * Replace value from format. ex. ${value:user_name} to user_name's value
+     * 
+     * @deprecated Please use ReplaceFormatService::replaceTextFromFormat
      */
     function replaceTextFromFormat($format, $custom_value = null, $options = [])
     {

@@ -69,7 +69,7 @@ class CustomColumnTest extends UnitTestBase
         return $this->_testEditor(ValueType::TEXT, static::EDITOR_VALUE);
     }
     public function testEditorHtml(){
-        return $this->_testEditor(ValueType::HTML, '<div class="show-tinymce">'.replaceBreak(esc_script_tag(static::EDITOR_VALUE), false).'</div>');
+        return $this->_testEditor(ValueType::HTML, '<div class="show-tinymce">'.replaceBreak(html_clean(static::EDITOR_VALUE), false).'</div>');
     }
 
     
