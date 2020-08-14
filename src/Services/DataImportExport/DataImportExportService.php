@@ -322,7 +322,7 @@ class DataImportExportService extends AbstractExporter
             $formats['excel'] = 'xlsx';
         }
 
-        $form->description('<span class="red">' . exmtrans('common.help.import_max_row_count', [
+        $form->descriptionHtml('<span class="red">' . exmtrans('common.help.import_max_row_count', [
             'count' => config('exment.import_max_row_count', 1000),
             'manual' => \getManualUrl('data_bulk_insert')
         ]) . '</span>')

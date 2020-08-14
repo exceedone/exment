@@ -66,6 +66,11 @@ class HasManyTable extends HasMany
     protected $description;
 
     /**
+     * whether escape description
+     */
+    protected $escapeDescription = true;
+
+    /**
      * set bootstrap table width
      */
     public function setTableWidth($width = 8, $offset = 2)
@@ -89,6 +94,13 @@ class HasManyTable extends HasMany
     {
         $this->description = $description;
         return $this;
+    }
+
+    public function descriptionHtml($description)
+    {
+        $this->escapeDescription = false;
+        
+        return $this->description($description);
     }
 
     public function rowUpDown($rowUpDown, $power = 1)
@@ -367,6 +379,7 @@ EOT;
             'tablewidth' => $this->tablewidth,
             'tablecolumnwidths' => $this->tablecolumnwidths,
             'description' => $this->description,
+            'escapeDescription' => $this->escapeDescription,
             'options'      => $this->options,
             'header' => $this->header,
             'hideDeleteButtonRow' => $this->hideDeleteButtonRow,

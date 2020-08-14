@@ -160,7 +160,7 @@ class TemplateController extends AdminControllerBase
         $form->disableReset();
         $form->action(admin_url('template/export'));
 
-        $form->description(exmtrans('template.description_export'));
+        $form->descriptionHtml(exmtrans('template.description_export'));
         $form->text('template_name', exmtrans('template.template_name'))->required()->help(exmtrans('common.help_code'))->rules("max:30");
         $form->text('template_view_name', exmtrans('template.template_view_name'))->required()->rules("max:40");
         $form->textarea('description', exmtrans('template.form_description'))->rows(3);
@@ -197,7 +197,7 @@ class TemplateController extends AdminControllerBase
         $form->disableReset();
         $form->action(admin_url('template/import'));
 
-        $form->description(exmtrans('template.description_import'));
+        $form->descriptionHtml(exmtrans('template.description_import'));
         $this->addTemplateTile($form);
         $form->hidden('_token')->default(csrf_token());
 

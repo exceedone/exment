@@ -263,7 +263,7 @@ class ChartItem implements ItemInterface
             );
 
         // link to manual
-        $form->description(sprintf(exmtrans("chart.help.chartitem_manual"), getManualUrl('dashboard?id='.exmtrans('chart.chartitem_manual'))));
+        $form->descriptionHtml(sprintf(exmtrans("chart.help.chartitem_manual"), getManualUrl('dashboard?id='.exmtrans('chart.chartitem_manual'))));
 
         $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
             ->required()

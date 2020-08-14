@@ -424,6 +424,7 @@ class Initialize
             'link'           => Field\Link::class,
             'exmheader'           => Field\Header::class,
             'description'           => Field\Description::class,
+            'descriptionHtml'           => Field\DescriptionHtml::class,
             'switchbool'          => Field\SwitchBoolField::class,
             'pivotMultiSelect'          => Field\PivotMultiSelect::class,
             'checkboxone'          => Field\Checkboxone::class,

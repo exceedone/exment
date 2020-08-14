@@ -597,7 +597,7 @@ class DefaultGrid extends GridBase
                 $form->hidden('order')->default(0);
             })->required()->setTableColumnWidth(7, 3, 2)
             ->rowUpDown('order', 10)
-            ->description(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
+            ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
         }
 
         // filter setting
@@ -619,6 +619,6 @@ class DefaultGrid extends GridBase
             $form->hidden('priority')->default(0);
         })->setTableColumnWidth(7, 3, 2)
         ->rowUpDown('priority')
-        ->description(sprintf(exmtrans("custom_view.description_custom_view_sorts"), $manualUrl));
+        ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_sorts"), $manualUrl));
     }
 }

@@ -117,7 +117,7 @@ class LdapService implements LoginServiceInterface
         $form->action(route('exment.logintest_form', ['id' => $login_setting->id]));
         $form->disableReset();
 
-        $form->description(exmtrans('login.message.login_test_description'));
+        $form->descriptionHtml(exmtrans('login.message.login_test_description'));
 
         $form->text('username', trans('admin.username'))->required();
         $form->password('password', trans('admin.password'))->required();
@@ -138,7 +138,7 @@ class LdapService implements LoginServiceInterface
     public static function setLdapForm($form, $login_setting, $errors)
     {
         if (array_has($errors, LoginType::LDAP)) {
-            $form->description($errors[LoginType::LDAP])
+            $form->descriptionHtml($errors[LoginType::LDAP])
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::LDAP]])]);
             return;
         }

@@ -352,7 +352,7 @@ HTML;
             $form->hidden('multisetting_type')->default(MultisettingType::TABLE_LABELS);
         })->setTableColumnWidth(10, 2)
         ->rowUpDown('priority')
-        ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
+        ->descriptionHtml(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
 
         $form->hasManyTable('multi_uniques', exmtrans("custom_table.custom_column_multi.uniques"), function ($form) use ($custom_table) {
             $form->select('unique1', exmtrans("custom_table.custom_column_multi.unique1"))->required()
@@ -369,7 +369,7 @@ HTML;
                 ]));
             $form->hidden('multisetting_type')->default(MultisettingType::MULTI_UNIQUES);
         })->setTableColumnWidth(4, 4, 3, 1)
-        ->description(exmtrans("custom_table.custom_column_multi.help.uniques"));
+        ->descriptionHtml(exmtrans("custom_table.custom_column_multi.help.uniques"));
         
 
         $form->hasManyTable('compare_columns', exmtrans("custom_table.custom_column_multi.compare_columns"), function ($form) use ($custom_table) {
@@ -390,7 +390,7 @@ HTML;
                 ]));
             $form->hidden('multisetting_type')->default(MultisettingType::COMPARE_COLUMNS);
         })->setTableColumnWidth(4, 3, 4, 1)
-        ->description(exmtrans("custom_table.custom_column_multi.help.compare_columns"));
+        ->descriptionHtml(exmtrans("custom_table.custom_column_multi.help.compare_columns"));
         
         
         // if not master, share setting
@@ -405,7 +405,7 @@ HTML;
                     ->options(SharePermission::transKeyArray("custom_table.custom_column_multi.share_permission_options"));
                 $form->hidden('multisetting_type')->default(MultisettingType::SHARE_SETTINGS);
             })->setTableColumnWidth(3, 5, 3, 1)
-            ->description(exmtrans("custom_table.custom_column_multi.help.share_settings") . '<br/>' . exmtrans('common.help.more_help_here', $manualUrl));
+            ->descriptionHtml(exmtrans("custom_table.custom_column_multi.help.share_settings") . '<br/>' . exmtrans('common.help.more_help_here', $manualUrl));
         }
 
 

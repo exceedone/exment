@@ -71,7 +71,7 @@ class OAuthService implements LoginServiceInterface
     public static function setOAuthForm($form, $login_setting, $errors)
     {
         if (array_has($errors, LoginType::OAUTH)) {
-            $form->description($errors[LoginType::OAUTH])
+            $form->descriptionHtml($errors[LoginType::OAUTH])
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::OAUTH]])]);
 
             return;
@@ -85,7 +85,7 @@ class OAuthService implements LoginServiceInterface
         $login_provider_caution = '<span class="red">' . exmtrans('login.message.oauth_provider_caution', [
             'url' => getManualUrl('sso'),
         ]) . '</span>';
-        $form->description($login_provider_caution)
+        $form->descriptionHtml($login_provider_caution)
         ->attribute(['data-filter' => json_encode(['key' => 'options_provider_type', 'value' => [LoginProviderType::OTHER]])]);
 
         $form->text('oauth_provider_name', exmtrans('login.oauth_provider_name'))
