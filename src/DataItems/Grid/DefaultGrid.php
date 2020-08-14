@@ -61,7 +61,7 @@ class DefaultGrid extends GridBase
         }
         
         // create grid
-        $this->custom_view->setGrid($grid);
+        $this->setGrid($grid);
 
         // manage row action
         $this->manageRowAction($grid);
@@ -85,6 +85,65 @@ class DefaultGrid extends GridBase
 
         return $grid;
     }
+
+
+    /**
+     * Get database query
+     *
+     * @param [type] $query
+     * @param array $options
+     * @return 
+     */
+    public function getQuery($query, array $options = [])
+    {
+        // Now only execute filter Model
+        return $this->custom_view->filterModel($query, $options);
+    }
+
+
+    /**
+     * set laravel-admin grid using custom_view
+     */
+    public function setGrid($grid)
+    {
+        $custom_table = $this->custom_table;
+        // get view columns
+        $custom_view_columns = $this->custom_view->custom_view_columns_cache;
+        foreach ($custom_view_columns as $custom_view_column) {
+            $item = $custom_view_column->column_item;
+            if (!isset($item)) {
+                continue;
+            }
+
+            $item = $item->label(array_get($custom_view_column, 'view_column_name'))
+                ->options([
+                    'grid_column' => true,
+                    'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
+                    'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
+                ]);
+            $grid->column($item->indexEnabled() ? $item->index() : $item->name(), $item->label())
+                ->sort($item->sortable())
+                ->cast($item->getCastName())
+                ->style($item->gridStyle())
+                ->setClasses($item->indexEnabled() ? 'column-' . $item->name() : '')
+                ->display(function ($v) use ($item) {
+                    if (is_null($this)) {
+                        return '';
+                    }
+                    return $item->setCustomValue($this)->html();
+                });
+        }
+
+        // set parpage
+        $pager_count = $this->custom_view->pager_count;
+        if (is_null(request()->get('per_page')) && isset($pager_count) && is_numeric($pager_count) && $pager_count > 0) {
+            $grid->paginate(intval($pager_count));
+        }
+
+        // set with
+        $custom_table->setQueryWith($grid->model(), $this->custom_view);
+    }
+
 
     /**
      * execute filter for modal

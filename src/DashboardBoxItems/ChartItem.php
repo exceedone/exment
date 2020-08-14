@@ -183,10 +183,10 @@ class ChartItem implements ItemInterface
         $item_y = $view_column_y->column_item;
 
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueModel()->query();
+        $query = $this->custom_table->getValueModel()->query();
 
         // get data
-        $datalist = $this->custom_view->getValueSummary($model, $this->custom_table->table_name)->get();
+        $datalist = $this->custom_view->getQuery($query)->get();
         $chart_label = $datalist->map(function ($val) use ($item_x_list) {
             $labels = $item_x_list->map(function ($item_x) use ($val) {
                 $item = $item_x->setCustomValue($val);

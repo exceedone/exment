@@ -308,12 +308,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSelectedTables()
     {
-        return CustomColumn::where('options->select_target_table', $this->id)
-            ->get()
-            ->mapWithKeys(function ($item) {
-                $key = $item->getIndexColumnName();
-                return [$key => $item->custom_table_id];
-            })->filter()->toArray();
+        return CustomColumn::allRecords(function($custom_column){
+            $select_target_table = $custom_column->select_target_table;
+            return !empty($select_target_table) && isMatchString($select_target_table->id, $this->id);
+        })->mapWithKeys(function ($custom_column) {
+            $key = $custom_column->getIndexColumnName();
+            return [$key => $custom_column->custom_table_id];
+        })->filter()->toArray();
     }
 
     /**
@@ -2108,46 +2109,46 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $options[$key] = array_get($option, 'column_view_name');
             }
         }
+
+        ///// get parent table columns for summary
+        $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->get();
+        foreach ($relations as $rel) {
+            $parent_custom_table = array_get($rel, 'parent_custom_table');
+            $this->setSummarySelectOptionItem($options, $parent_custom_table, $parent_custom_table->custom_columns_cache);
+        }
+        
         ///// get child table columns for summary
         $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
         foreach ($relations as $rel) {
-            $child = array_get($rel, 'child_custom_table');
-            $tableid = array_get($child, 'id');
-            $tablename = array_get($child, 'table_view_name');
-            /// get system columns for summary
-            foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-                $key = static::getOptionKey(array_get($option, 'name'), true, $tableid);
-                $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
-            }
-            $child_columns = $child->custom_columns_cache;
-            foreach ($child_columns as $option) {
-                $column_type = array_get($option, 'column_type');
-                if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                    $key = static::getOptionKey(array_get($option, 'id'), true, $tableid);
-                    $options[$key] = $tablename . ' : ' . array_get($option, 'column_view_name');
-                }
-            }
+            $child_custom_table = array_get($rel, 'child_custom_table');
+            $this->setSummarySelectOptionItem($options, $child_custom_table, $child_custom_table->custom_columns_cache);
         }
+
         ///// get selected table columns
         $selected_table_columns = $this->getSelectedTableColumns();
         foreach ($selected_table_columns as $selected_table_column) {
             $custom_table = $selected_table_column->custom_table;
-            $tablename = array_get($custom_table, 'table_view_name');
-            /// get system columns for summary
-            foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-                $key = static::getOptionKey(array_get($option, 'name'), true, $custom_table->id);
-                $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
-            }
-            foreach ($custom_table->custom_columns_cache as $option) {
-                $column_type = array_get($option, 'column_type');
-                if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                    $key = static::getOptionKey(array_get($option, 'id'), true, $custom_table->id);
-                    $options[$key] = $tablename . ' : ' . array_get($option, 'column_view_name');
-                }
-            }
+            $this->setSummarySelectOptionItem($options, $custom_table, $custom_table->custom_columns_cache);
         }
     
         return $options;
+    }
+
+
+    protected function setSummarySelectOptionItem(&$options, $custom_table, $custom_columns){
+        $tablename = array_get($custom_table, 'table_view_name');
+        /// get system columns for summary
+        foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
+            $key = static::getOptionKey(array_get($option, 'name'), true, $custom_table->id);
+            $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
+        }
+        foreach ($custom_columns as $option) {
+            $column_type = array_get($option, 'column_type');
+            if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
+                $key = static::getOptionKey(array_get($option, 'id'), true, $custom_table->id);
+                $options[$key] = $tablename . ' : ' . array_get($option, 'column_view_name');
+            }
+        }
     }
 
     /**
