@@ -47,6 +47,25 @@ abstract class GridBase
     }
     
     /**
+     * Get database query
+     *
+     * @param [type] $query
+     * @param array $options
+     * @return 
+     */
+    public function getQuery($query, array $options = [])
+    {
+        return $query;
+    }
+
+    /**
+     * set laravel-admin grid using custom_view
+     */
+    public function setGrid($grid)
+    {
+    }
+
+    /**
      * Get callback filter function
      *
      * @return \Closure|null

@@ -317,21 +317,17 @@ class ChartItem implements ItemInterface
         $script = <<<EOT
         function setChartOptions(val) {
             if (val == 'pie') {
-                $('#chart_options > label:nth-child(1)').show();
-                $('#chart_options > label:nth-child(2)').hide();
-                $('#chart_axis_label').parent().hide();
-                $('#chart_axis_name').parent().hide();
+                $('#chart_options > .icheck:nth-child(1)').show();
+                $('#chart_options > .icheck:nth-child(2)').hide();
             } else {
-                $('#chart_options > label:nth-child(1)').hide();
-                $('#chart_options > label:nth-child(2)').show();
-                $('#chart_axis_label').parent().show();
-                $('#chart_axis_name').parent().show();
+                $('#chart_options > .icheck:nth-child(1)').hide();
+                $('#chart_options > .icheck:nth-child(2)').show();
             }
         }
         setChartOptions($('.options_chart_type').val());
 
-        $(document).off('change', ".options_chart_type");
-        $(document).on('change', ".options_chart_type", function () {
+        $(document).off('change.exment_dashboard', ".options_chart_type");
+        $(document).on('change.exment_dashboard', ".options_chart_type", function () {
             setChartOptions($(this).val());
         });
 EOT;

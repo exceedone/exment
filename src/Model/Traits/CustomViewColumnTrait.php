@@ -35,6 +35,10 @@ trait CustomViewColumnTrait
     {
         return $this->belongsTo(CustomTable::class, 'view_column_table_id');
     }
+    public function getCustomTableCacheAttribute()
+    {
+        return CustomTable::getEloquent($this->view_column_table_id);
+    }
 
     /**
      * get ViewColumnTarget.
@@ -183,6 +187,20 @@ trait CustomViewColumnTrait
                 break;
         }
         return [$target_column_id, $target_table_id];
+    }
+
+    protected function getViewPivotIdTrait($key)
+    {
+        return $this->getOption($key);
+    }
+    protected function setViewPivotIdTrait($key, $view_pivot_id)
+    {
+        if (!isset($view_pivot_id)) {
+            $this->setOption($key, null);
+            return $this;
+        }
+        $this->setOption($key, $view_pivot_id);
+        return $this;
     }
 
     /**

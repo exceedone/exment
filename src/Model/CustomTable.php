@@ -264,8 +264,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSelectTableColumns($select_target_table = null)
     {
-        return $this->custom_columns_cache->filter(function ($item) use ($select_target_table) {
-            if (!ColumnType::isSelectTable($item->column_type)) {
+        return $this->custom_columns_cache->filter(function ($custom_column) use ($select_target_table) {
+            if (!ColumnType::isSelectTable($custom_column->column_type)) {
+                return false;
+            }
+                        
+            // skip if $this->custom_table_id and $this->id (Self relation), return false.
+            if(isMatchString($custom_column->custom_table_id, $this->id)){
                 return false;
             }
 
@@ -278,7 +283,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return false;
             }
 
-            return isset($item->select_target_table) && $select_target_table->id == $item->select_target_table->id;
+            return isset($custom_column->select_target_table) && $select_target_table->id == $custom_column->select_target_table->id;
         });
     }
 
@@ -308,30 +313,33 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSelectedTables()
     {
-        return CustomColumn::allRecords(function($custom_column){
-            $select_target_table = $custom_column->select_target_table;
-            return !empty($select_target_table) && isMatchString($select_target_table->id, $this->id);
-        })->mapWithKeys(function ($custom_column) {
-            $key = $custom_column->getIndexColumnName();
+        return $this->getSelectedTableColumns()->mapWithKeys(function($custom_column, $key){
             return [$key => $custom_column->custom_table_id];
-        })->filter()->toArray();
+        })->toArray();
     }
 
     /**
      * Get key-value items.
      * Key is column index name.
      * Value is custom column.
+     * *Ignore self selection*
      *
      * @return Collection
      */
     public function getSelectedTableColumns()
     {
-        return CustomColumn::where('options->select_target_table', $this->id)
-            ->get()
-            ->mapWithKeys(function ($item) {
-                $key = $item->getIndexColumnName();
-                return [$key => $item];
-            })->filter();
+        return CustomColumn::allRecords(function($custom_column){
+            // skip if $this->custom_table_id and $this->id (Self relation), return false.
+            if(isMatchString($custom_column->custom_table_id, $this->id)){
+                return false;
+            }
+
+            $select_target_table = $custom_column->select_target_table;
+            return !empty($select_target_table) && isMatchString($select_target_table->id, $this->id);
+        })->mapWithKeys(function ($custom_column) {
+            $key = $custom_column->getIndexColumnName();
+            return [$key => $custom_column];
+        })->filter();
     }
 
     /**
