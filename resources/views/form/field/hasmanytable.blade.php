@@ -12,7 +12,11 @@
     
     @if(isset($description))
         <div class="col-sm-{{$tablewidth['width']}} col-sm-offset-{{$tablewidth['offset']}}" style="margin-bottom:20px;">
+            @if($escapeDescription)
+            {{ $description }}
+            @else
             {!! $description !!}
+            @endif
         </div>
     @endif
     <div class="col-sm-{{$tablewidth['width']}} col-sm-offset-{{$tablewidth['offset']}}">

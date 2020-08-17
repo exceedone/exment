@@ -444,4 +444,10 @@ class Define
         'ATTRNAME_FORMAT_URI' => 'urn:oasis:names:tc:SAML:2.0:attrname-format:uri',
         'ATTRNAME_FORMAT_BASIC' => 'urn:oasis:names:tc:SAML:2.0:attrname-format:basic',
     ];
+
+
+    public const HTML_ALLOWED_DEFAULT = 'div,b,strong,i,em,u,a[href|title|target],ul,ol,li,p,br,span,img[width|height|alt|src],h1,h2,h3,h4,h5,h6,blockquote,hr';
+    public const HTML_ALLOWED_EDITOR_DEFAULT = '@[style],div,b,strong,i,em,u,a[href|title|target],ul,ol,li,p,br,span,img[width|height|alt|src],h1,h2,h3,h4,h5,h6,blockquote,hr';
+    public const HTML_ALLOWED_ATTRIBUTES_DEFAULT = '*.style';
+    public const CSS_ALLOWED_PROPERTIES_DEFAULT = '*';
 }

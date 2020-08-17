@@ -80,7 +80,7 @@ class SamlService implements LoginServiceInterface
     public static function setSamlForm($form, $login_setting, $errors)
     {
         if (array_has($errors, LoginType::SAML)) {
-            $form->description($errors[LoginType::SAML])
+            $form->descriptionHtml($errors[LoginType::SAML])
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
 
             return;

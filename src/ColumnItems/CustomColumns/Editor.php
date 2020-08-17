@@ -19,7 +19,7 @@ class Editor extends CustomItem
             $text = get_omitted_string(strip_tags($text));
         }
         
-        return  '<div class="show-tinymce">'.replaceBreak(esc_script_tag($text), false).'</div>';
+        return  '<div class="show-tinymce">'.replaceBreak(html_clean($text), false).'</div>';
     }
     
     protected function getAdminFieldClass()

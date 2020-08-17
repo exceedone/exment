@@ -213,7 +213,7 @@ class LoginService
         $form->disableReset();
         $form->disableSubmit();
 
-        $form->description(exmtrans('login.message.login_test_description'));
+        $form->descriptionHtml(exmtrans('login.message.login_test_description'));
 
         $form->url('login_test_redirect', exmtrans('login.login_test_redirect'))
         ->readonly()

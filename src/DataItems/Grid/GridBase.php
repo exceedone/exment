@@ -141,7 +141,7 @@ abstract class GridBase
         ]);
 
         $hasManyTable->callbackField(function ($field) use ($manualUrl) {
-            $field->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
+            $field->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
         });
 
         $hasManyTable->render();

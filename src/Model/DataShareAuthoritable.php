@@ -89,7 +89,7 @@ class DataShareAuthoritable extends ModelBase
         $form->modalHeader(exmtrans('common.shared'));
         $form->action($url);
 
-        $form->description(exmtrans("role_group.data_share_description", $target_name))->setWidth(9, 2);
+        $form->descriptionHtml(exmtrans("role_group.data_share_description", $target_name))->setWidth(9, 2);
 
         // select target users
         $default = static::getUserOrgSelectDefault($target_type->toString(), $id, Permission::DATA_SHARE_EDIT);

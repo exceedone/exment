@@ -11,4 +11,14 @@ class Explain extends FormOtherItem
     {
         return Field\Description::class;
     }
+
+    /**
+     * get html(for display)
+     * *Please escape
+     */
+    public function html()
+    {
+        // default escapes text
+        return esc_html($this->text());
+    }
 }

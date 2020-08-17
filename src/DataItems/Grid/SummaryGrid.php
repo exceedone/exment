@@ -606,7 +606,7 @@ class SummaryGrid extends GridBase
                 
             $form->hidden('order')->default(0);
         })->required()->rowUpDown('order')->setTableColumnWidth(4, 2, 2, 1, 2, 1)
-        ->description(sprintf(exmtrans("custom_view.description_custom_view_groups"), $manualUrl));
+        ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_groups"), $manualUrl));
 
         // summary columns setting
         $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
@@ -643,7 +643,7 @@ class SummaryGrid extends GridBase
                 ->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
                 ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
         })->setTableColumnWidth(4, 2, 2, 1, 2, 1)
-        ->description(sprintf(exmtrans("custom_view.description_custom_view_summaries"), $manualUrl));
+        ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_summaries"), $manualUrl));
 
         // filter setting
         static::setFilterFields($form, $custom_table, true);

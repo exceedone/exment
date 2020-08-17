@@ -763,4 +763,45 @@ return [
     |
     */
     'datalist_view_button_disabled_user' => env('EXMENT_VIEW_BUTTON_DISABLED_USER', false),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | html allowed tags(for HTML Purifier)
+    |--------------------------------------------------------------------------
+    |
+    | html allowed tag list. Use default settings if not set
+    |
+    */
+    'html_allowed' => env('EXMENT_HTML_ALLOWED', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | html allowed tag attributes(for HTML Purifier)
+    |--------------------------------------------------------------------------
+    |
+    | html allowed tag atrtribute list. Use default settings if not set
+    |
+    */
+    'html_allowed_attributes' => env('EXMENT_HTML_ALLOWED_ATTRIBUTES', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | css allowed tag properties(for HTML Purifier)
+    |--------------------------------------------------------------------------
+    |
+    | css allowed tag properties list. Use default settings if not set
+    |
+    */
+    'css_allowed_properties' => env('EXMENT_CSS_ALLOWED_PROPERTIES', null),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | html allowed tags(for TinyMCE)
+    |--------------------------------------------------------------------------
+    |
+    | html allowed tag list. Use default settings if not set
+    |
+    */
+    'html_allowed_editor' => env('EXMENT_HTML_ALLOWED_EDITOR', null),
+
 ];
