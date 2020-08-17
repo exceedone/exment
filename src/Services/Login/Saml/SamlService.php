@@ -183,6 +183,11 @@ class SamlService implements LoginServiceInterface
         ->help(exmtrans("login.help.saml_option_logout_response_signed"))
         ->default("0")
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+
+        $form->switchbool('saml_option_proxy_vars', exmtrans("login.saml_option_proxy_vars"))
+        ->help(exmtrans("login.help.saml_option_proxy_vars"))
+        ->default("0")
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
     }
 
 
