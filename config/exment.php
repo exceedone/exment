@@ -519,7 +519,7 @@ return [
     | Disabled user view, only system view
     |
     */
-    'userview_disabled' => env('EXMENT_USER_VIEW_DISABLED', false),
+    'userview_disabled' => env('EXMENT_USER_VIEW_DISABLED', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -529,7 +529,7 @@ return [
     | Disabled user dashboard, only system dashboard
     |
     */
-    'userdashboard_disabled' => env('EXMENT_USER_DASHBOARD_DISABLED', false),
+    'userdashboard_disabled' => env('EXMENT_USER_DASHBOARD_DISABLED', true),
 
     /*
     |--------------------------------------------------------------------------

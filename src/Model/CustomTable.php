@@ -398,7 +398,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($this->custom_forms as $item) {
             $item->deletingChildren();
         }
-        foreach ($this->custom_views as $item) {
+        foreach ($this->custom_views()->withoutGlobalScope('showableViews')->get() as $item) {
             $item->deletingChildren();
         }
         foreach ($this->from_custom_copies as $item) {
@@ -433,7 +433,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->workflow_tables()->delete();
             $model->custom_form_block_target_tables()->delete();
             $model->child_custom_relations()->delete();
-            $model->custom_views()->delete();
+            $model->custom_views()->withoutGlobalScope('showableViews')->delete();
             $model->custom_forms()->delete();
             $model->custom_columns()->delete();
             $model->custom_relations()->delete();
@@ -1308,11 +1308,22 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             //WorkflowItem::getStatusSubquery($query, $this);
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
+        $this->appendWorkflowSubQuery($query, $custom_view);
+    }
 
+    /**
+     * Append to query for filtering workflow
+     *
+     * @param [type] $query
+     * @param CustomView $custom_view
+     * @return void
+     */
+    public function appendWorkflowSubQuery($query, $custom_view)
+    {
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
             (isset($custom_view) &&
-            $custom_view->custom_view_filters->contains(function ($custom_view_filter) {
+            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
                 return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
             }))) {
             // add query
@@ -1322,7 +1333,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
             ($custom_view &&
-            $custom_view->custom_view_filters->contains(function ($custom_view_filter) {
+            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
                 return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
             }))) {
             // add query
@@ -1373,7 +1384,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        $this->getValueModel()->findMany(array_unique($finds))->each(function ($target_value) {
+        $this->getValueModel()->query()->findMany(array_unique($finds))->each(function ($target_value) {
             // set request settion
             $target_value->setValueModel();
         });
