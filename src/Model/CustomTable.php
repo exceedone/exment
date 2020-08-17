@@ -1388,7 +1388,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        $this->getSelectTableColumns(null, false)->each(function ($column) use ($customValueCollection) {
+        //// for select table
+        $this->getSelectTableColumns()->each(function ($column) use ($customValueCollection) {
             $target_table = $column->select_target_table;
 
             // get searching value
@@ -1402,7 +1403,25 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // value sometimes array, so flatten value. maybe has best way..
             $target_table->setCustomValueModels($values);
         });
+
+
+        //// for parent relation
+        $relation = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
+        if(!empty($relation)){
+            // get searching value
+            $parent_custom_table = $relation->parent_custom_table;
+            $relationName = $relation->getRelationName();
+            $customValueCollection->load($relationName);
+
+            $customValueCollection->map(function($custom_value) use($relationName){
+                return $custom_value->{$relationName};
+            })->each(function($custom_value){
+                $custom_value->setValueModel();
+            });
+        }
     }
+
+
 
     public function setCustomValueModels($ids)
     {
