@@ -149,8 +149,12 @@ var Exment;
                 else if (hasValue(res.swal)) {
                     swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'error');
                 }
-                // if has message, not execute action
+                // if has message, show swal
                 else if (hasValue(res.message)) {
+                    if (swal.isVisible()) {
+                        swal.close();
+                    }
+                    swal($('#exment_error_title').val(), res.message, 'error');
                 }
                 else {
                     Exment.CommonEvent.UndefinedError();
