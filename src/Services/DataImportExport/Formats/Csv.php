@@ -128,6 +128,16 @@ class Csv extends FormatBase
         return count($this->datalist) > 1;
     }
     
+    public function saveAsFile($filepath, $files)
+    {
+        $writer = $this->createWriter($files[0]['spreadsheet']);
+        $writer->save($filepath);
+        // close workbook and release memory
+        $files[0]['spreadsheet']->disconnectWorksheets();
+        $files[0]['spreadsheet']->garbageCollect();
+        unset($writer);
+    }
+    
     public function createResponse($files)
     {
         // save as csv
