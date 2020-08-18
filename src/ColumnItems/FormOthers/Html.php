@@ -15,6 +15,16 @@ class Html extends FormOtherItem
         return array_get($this->form_column, 'options.html');
     }
 
+    
+    // Not escaping html if html item ----------------------------------------------------
+    /**
+     * get Text(for display)
+     */
+    // public function html()
+    // {
+    //     return $this->text();
+    // }
+
     /**
      * get column name
      */
