@@ -553,7 +553,7 @@ class CustomColumnController extends AdminControllerTableBase
         $form->disableCreatingCheck(false);
         $form->disableEditingCheck(false);
         $custom_table = $this->custom_table;
-        $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
             if (isset($id) && boolval(CustomColumn::getEloquent($id)->disabled_delete)) {
                 $tools->disableDelete();
             }
@@ -760,7 +760,7 @@ class CustomColumnController extends AdminControllerTableBase
             }
 
             // get select table's calc column
-            $column->select_target_table->custom_columns_cache->filter(function ($select_target_column) use ($id, $column, &$options) {
+            $column->select_target_table->custom_columns_cache->filter(function ($select_target_column) use ($id) {
                 if (isset($id) && $id == array_get($select_target_column, 'id')) {
                     return false;
                 }

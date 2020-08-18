@@ -4,7 +4,12 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\GroupCondition;
+use Exceedone\Exment\Model\CustomColumn;
 
+/**
+ * 
+ * @property CustomColumn $custom_column
+ */
 trait SummaryItemTrait
 {
     //for summary  --------------------------------------------------

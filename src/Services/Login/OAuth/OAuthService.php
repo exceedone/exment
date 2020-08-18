@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Login\OAuth;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\LoginProviderType;
 use Exceedone\Exment\Enums\SsoLoginErrorType;

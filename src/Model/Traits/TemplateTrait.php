@@ -5,6 +5,11 @@ namespace Exceedone\Exment\Model\Traits;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\TemplateImportResult;
 
+/**
+ * Template logics
+ * 
+ * @method static mixed importReplaceJson(&$json, $options = [])
+ */
 trait TemplateTrait
 {
     protected static $defaultExcepts = ['id', 'created_at', 'updated_at', 'created_user_id', 'updated_user_id', 'disabled_delete'];

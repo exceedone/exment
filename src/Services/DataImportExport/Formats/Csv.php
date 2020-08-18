@@ -71,7 +71,7 @@ class Csv extends FormatBase
                 return $datalist;
             } finally {
                 // delete tmp folder
-                if (isset($zip)) {
+                if (!is_nullorempty($zip)) {
                     $zip->close();
                 }
                 // delete zip

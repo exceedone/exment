@@ -153,7 +153,7 @@ class CustomOperationController extends AdminControllerTableBase
             })->required()
             ->attribute(['data-filtertrigger' =>true]);
 
-        $form->embeds('options', null, function ($form) use ($id) {
+        $form->embeds('options', null, function ($form) {
             $form->text('button_label', exmtrans("custom_operation.options.button_label"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => [CustomOperationType::BUTTON, CustomOperationType::BULK_UPDATE]])]);
             $form->icon('button_icon', exmtrans("custom_operation.options.button_icon"))

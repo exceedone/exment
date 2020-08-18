@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Enums;
 /**
  * EnumOptionTrait
  *
- * @property array $options
+ * @property static array $options
  */
 trait EnumOptionTrait
 {

@@ -192,7 +192,7 @@ if (!function_exists('parseIntN')) {
      * if cannot parse, return null.
      * TODO:common lib
      * @param mixed $str
-     * @return \double|integer|null
+     * @return double|integer|null
      */
     function parseIntN($str)
     {
@@ -556,7 +556,7 @@ if (!function_exists('isMatchRequest')) {
     /**
      * Is match uri from request
      *
-     * @param array_string $uris
+     * @param array|string $uris
      * @return boolean
      */
     function isMatchRequest($uris = null)
@@ -1410,6 +1410,8 @@ if (!function_exists('getExmentVersion')) {
             } catch (\Exception $e) {
             }
     
+            $latest = null;
+            $current = null;
             if (isset($version_json)) {
                 $version = json_decode($version_json, true);
                 $latest = array_get($version, 'latest');

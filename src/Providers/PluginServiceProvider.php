@@ -73,6 +73,8 @@ class PluginServiceProvider extends ServiceProvider
             return;
         }
 
+        $prefix = null;
+        $defaultFunction = null;
         switch ($plugin_type) {
             case PluginType::PAGE:
                 $prefix = $pluginPage->getRouteUri();
@@ -96,7 +98,7 @@ class PluginServiceProvider extends ServiceProvider
                 'prefix'        => url_join(config('admin.route.prefix'), $p),
                 'namespace'     => 'Exceedone\Exment\Services\Plugin',
                 'middleware'    => $isApi ? ['api', 'adminapi', 'pluginapi'] : ['adminweb', 'admin'],
-            ], function (Router $router) use ($plugin, $plugin_type, $pluginPage, $isApi, $defaultFunction, $json) {
+            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $json) {
                 $routes = array_get($json, 'route', []);
     
                 // if not has index endpoint, set.
@@ -186,7 +188,7 @@ class PluginServiceProvider extends ServiceProvider
             'prefix'        => url_join(config('admin.route.prefix'), $pluginScriptStyle->_plugin()->getRouteUri()),
             'namespace'     => 'Exceedone\Exment\Services\Plugin',
             'middleware'    => ['adminweb', 'admin_plugin_public'],
-        ], function (Router $router) use ($pluginScriptStyle) {
+        ], function (Router $router) {
             // for public file
             Route::get('public/{arg1?}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');
         });

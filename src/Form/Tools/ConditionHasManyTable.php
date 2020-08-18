@@ -160,7 +160,7 @@ class ConditionHasManyTable
 
             if ($this->showConditionKey) {
                 $form->select($condition_key_name, $this->condition_key_label)->required()
-                ->options(function ($val, $select) use ($condition_target_name, $condition_key_name, $condition_value_name, $filterKind) {
+                ->options(function ($val, $select) use ($condition_target_name, $filterKind) {
                     if (!isset($val)) {
                         return [];
                     }

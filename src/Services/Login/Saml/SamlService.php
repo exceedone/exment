@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Login\Saml;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums\LoginType;

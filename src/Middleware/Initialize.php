@@ -307,6 +307,7 @@ class Initialize
             }
 
             // Date format
+            $list = null;
             $val = System::default_date_format();
             if (!is_nullorempty($val)) {
                 $list = exmtrans("system.date_format_list.$val");

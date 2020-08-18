@@ -39,7 +39,7 @@ class PluginAction extends CustomTableAction
         $providers[] = new Export\SummaryProvider([
             'custom_table' => $this->custom_table,
             'custom_view' => $this->custom_view,
-            'is_summary' => $this->is_summary,
+            //'is_summary' => $this->is_summary,
             'grid' => $this->grid
         ]);
         

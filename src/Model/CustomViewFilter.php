@@ -216,6 +216,7 @@ class CustomViewFilter extends ModelBase
             case FilterOption::DAY_TODAY:
             case FilterOption::DAY_TOMORROW:
                 // get target day
+                $value_day = null;
                 switch ($view_filter_condition) {
                     case FilterOption::DAY_ON:
                         $value_day = Carbon::parse($condition_value_text);
@@ -238,6 +239,7 @@ class CustomViewFilter extends ModelBase
             case FilterOption::DAY_LAST_MONTH:
             case FilterOption::DAY_NEXT_MONTH:
                 // get target month
+                $value_day = null;
                 switch ($view_filter_condition) {
                     case FilterOption::DAY_THIS_MONTH:
                         $value_day = new Carbon('first day of this month');
@@ -285,6 +287,8 @@ class CustomViewFilter extends ModelBase
             case FilterOption::DAY_LAST_X_DAY_OR_BEFORE:
             case FilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
                 $today = Carbon::today();
+                $target_day = null;
+                $mark = null;
                 // get target day and where mark
                 switch ($view_filter_condition) {
                     case FilterOption::DAY_ON_OR_AFTER:

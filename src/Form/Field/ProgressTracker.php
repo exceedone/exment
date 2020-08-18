@@ -32,7 +32,7 @@ class ProgressTracker extends Field\Display
      */
     public function options($options = [])
     {
-        if ($options instanceof Arrayable) {
+        if ($options instanceof \Illuminate\Contracts\Support\Arrayable) {
             $options = $options->toArray();
         }
 
