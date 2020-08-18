@@ -7,7 +7,7 @@ use Exceedone\Exment\Enums\TemplateImportResult;
 
 /**
  * Template logics
- * 
+ *
  * @method static mixed importReplaceJson(&$json, $options = [])
  */
 trait TemplateTrait

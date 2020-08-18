@@ -7,7 +7,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 
 /**
- * 
+ *
  * @property CustomTable $custom_table
  * @property CustomColumn $custom_column
  */
@@ -29,7 +29,7 @@ trait ItemTrait
      */
     public function value()
     {
-        return $this->_getMultipleValue(function($v){
+        return $this->_getMultipleValue(function ($v) {
             return $this->_value($v);
         });
     }
@@ -40,7 +40,7 @@ trait ItemTrait
      */
     public function pureValue()
     {
-        return $this->_getMultipleValue(function($v){
+        return $this->_getMultipleValue(function ($v) {
             return $this->_pureValue($v);
         });
     }
@@ -50,7 +50,7 @@ trait ItemTrait
      */
     public function text()
     {
-        $text = $this->_getMultipleValue(function($v){
+        $text = $this->_getMultipleValue(function ($v) {
             return $this->_text($v);
         });
 
@@ -63,7 +63,7 @@ trait ItemTrait
      */
     public function html()
     {
-        $html = $this->_getMultipleValue(function($v){
+        $html = $this->_getMultipleValue(function ($v) {
             return $this->_html($v);
         });
 
@@ -76,11 +76,11 @@ trait ItemTrait
         $values = $isList ? $this->value : [$this->value];
 
         $items = [];
-        foreach($values as $value){
+        foreach ($values as $value) {
             $items[] = $singleValueCallback($value);
         }
         
-        if($isList){
+        if ($isList) {
             return collect($items);
         }
 

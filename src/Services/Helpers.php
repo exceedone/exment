@@ -86,7 +86,7 @@ if (!function_exists('esc_html')) {
 if (!function_exists('esc_script_tag')) {
     /**
      * escape only script tag
-     * 
+     *
      * @deprecated Please use html_clean
      */
     function esc_script_tag($html)
@@ -1232,7 +1232,7 @@ if (!function_exists('getCurrencySymbolLabel')) {
 if (!function_exists('replaceTextFromFormat')) {
     /**
      * Replace value from format. ex. ${value:user_name} to user_name's value
-     * 
+     *
      * @deprecated Please use ReplaceFormatService::replaceTextFromFormat
      */
     function replaceTextFromFormat($format, $custom_value = null, $options = [])

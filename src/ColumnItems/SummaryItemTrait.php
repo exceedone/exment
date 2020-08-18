@@ -7,7 +7,7 @@ use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Model\CustomColumn;
 
 /**
- * 
+ *
  * @property CustomColumn $custom_column
  */
 trait SummaryItemTrait

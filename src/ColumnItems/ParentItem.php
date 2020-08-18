@@ -5,7 +5,6 @@ namespace Exceedone\Exment\ColumnItems;
 use Encore\Admin\Form\Field\Select;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\FilterType;
-use Exceedone\Exment\Enums\RelationType;
 
 class ParentItem implements ItemInterface
 {

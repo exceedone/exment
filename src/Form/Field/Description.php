@@ -25,7 +25,8 @@ class Description extends Field\Display
      *
      * @var boolean
      */
-    public function escape(bool $escape){
+    public function escape(bool $escape)
+    {
         $this->escape = $escape;
 
         return $this;

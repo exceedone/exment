@@ -7,7 +7,7 @@ class SummaryOption
     /**
      * target table name
      *
-     * @var string  
+     * @var string
      */
     protected $db_table_name;
 
@@ -55,7 +55,8 @@ class SummaryOption
      * @param mixed $filter
      * @return $this
      */
-    public function addFilter($filter){
+    public function addFilter($filter)
+    {
         $this->filters[] = $filter;
         return $this;
     }
@@ -66,7 +67,8 @@ class SummaryOption
      * @param mixed $select
      * @return $this
      */
-    public function addSelect($select){
+    public function addSelect($select)
+    {
         $this->selects[] = $select;
         return $this;
     }
@@ -77,7 +79,8 @@ class SummaryOption
      * @param mixed $select_group
      * @return $this
      */
-    public function addSelectGroup($select_group){
+    public function addSelectGroup($select_group)
+    {
         $this->select_groups[] = $select_group;
         return $this;
     }
@@ -88,25 +91,31 @@ class SummaryOption
      * @param mixed $select_group
      * @return $this
      */
-    public function addSubGroupby($subGroupby){
+    public function addSubGroupby($subGroupby)
+    {
         $this->subGroupbys[] = $subGroupby;
         return $this;
     }
 
     
-    public function getSelects(){
+    public function getSelects()
+    {
         return array_filter($this->selects);
     }
-    public function getFilters(){
+    public function getFilters()
+    {
         return array_filter($this->filters);
     }
-    public function getTableName(){
+    public function getTableName()
+    {
         return $this->db_table_name;
     }
-    public function getSelectGroups(){
+    public function getSelectGroups()
+    {
         return array_filter($this->select_groups);
     }
-    public function getSelectGroupBys(){
+    public function getSelectGroupBys()
+    {
         return array_filter($this->subGroupbys);
     }
 }

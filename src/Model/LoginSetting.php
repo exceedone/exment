@@ -356,7 +356,7 @@ class LoginSetting extends ModelBase
         ];
 
         // set proxy vars
-        if(boolval($provider->getOption('saml_option_proxy_vars')) ?? false){
+        if (boolval($provider->getOption('saml_option_proxy_vars')) ?? false) {
             \OneLogin\Saml2\Utils::setProxyVars(true);
         }
 

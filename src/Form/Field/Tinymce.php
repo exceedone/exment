@@ -40,7 +40,8 @@ class Tinymce extends Textarea
         return parent::readonly();
     }
 
-    protected function getValidElements(){
+    protected function getValidElements()
+    {
         $tags = Define::HTML_ALLOWED_EDITOR_DEFAULT;
         if (!is_null($c = config('exment.html_allowed_editor'))) {
             $tags = $c;

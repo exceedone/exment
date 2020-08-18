@@ -9,7 +9,7 @@ use Exceedone\Exment\Enums\SystemTableName;
  * Custom Login User.
  * For OAuth, Saml, Plugin login.
  * When get user info from provider, set this model.
- * 
+ *
  * @method static function getMappingItemValue($samlUser, $mappingKey, $replaceMaps)
  */
 abstract class CustomLoginUserBase

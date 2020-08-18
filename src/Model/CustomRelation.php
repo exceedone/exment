@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ConditionType;
-use Encore\Admin\Facades\Admin;
 
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -187,7 +186,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
      */
     public function getDynamicRelationValue(CustomValue $custom_value, bool $isCallAsParent)
     {
-        if($isCallAsParent){
+        if ($isCallAsParent) {
             $child_custom_table = CustomTable::getEloquent($this->child_custom_table_id);
             $pivot_table_name = $this->getRelationName();
     
@@ -205,9 +204,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     
                 return $custom_value->belongsToMany(getModelName($child_custom_table), $pivot_table_name, "parent_id", "child_id")->withPivot("id");
             }
-        }
-
-        else{
+        } else {
             $parent_custom_table = CustomTable::getEloquent($this->parent_custom_table_id);
             $pivot_table_name = $this->getRelationName();
 

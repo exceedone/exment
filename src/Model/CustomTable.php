@@ -271,11 +271,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
                         
             $custom_column_target_table = $custom_column->select_target_table;
-            if(!isset($custom_column_target_table)){
+            if (!isset($custom_column_target_table)) {
                 return false;
             }
             // skip if $this->custom_table_id and $this->id (Self relation), return false.
-            if($skipSelf && isMatchString($custom_column_target_table->id, $this->id)){
+            if ($skipSelf && isMatchString($custom_column_target_table->id, $this->id)) {
                 return false;
             }
 
@@ -319,7 +319,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSelectedTables()
     {
-        return $this->getSelectedTableColumns()->mapWithKeys(function($custom_column, $key){
+        return $this->getSelectedTableColumns()->mapWithKeys(function ($custom_column, $key) {
             return [$key => $custom_column->custom_table_id];
         })->toArray();
     }
@@ -335,9 +335,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSelectedTableColumns(bool $skipSelf = true)
     {
-        return CustomColumn::allRecords(function($custom_column) use($skipSelf){
+        return CustomColumn::allRecords(function ($custom_column) use ($skipSelf) {
             // skip if $this->custom_table_id and $this->id (Self relation), return false.
-            if($skipSelf && isMatchString($custom_column->custom_table_id, $this->id)){
+            if ($skipSelf && isMatchString($custom_column->custom_table_id, $this->id)) {
                 return false;
             }
 
@@ -1357,10 +1357,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // if has relations, set with
-        if(isset($custom_view)){
-            $relations = $custom_view->custom_view_columns_cache->map(function($custom_view_column){
+        if (isset($custom_view)) {
+            $relations = $custom_view->custom_view_columns_cache->map(function ($custom_view_column) {
                 $column_item = $custom_view_column->column_item;
-                if(empty($column_item)){
+                if (empty($column_item)) {
                     return null;
                 }
 
@@ -1370,8 +1370,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 ])->getRelation();
             })->filter()->unique();
 
-            if($relations->count() > 0){
-                $relations->each(function($r) use($query){
+            if ($relations->count() > 0) {
+                $relations->each(function ($r) use ($query) {
                     $query->with($r->getRelationName());
                 });
             }
@@ -1407,15 +1407,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         //// for parent relation
         $relation = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
-        if(!empty($relation)){
+        if (!empty($relation)) {
             // get searching value
             $parent_custom_table = $relation->parent_custom_table;
             $relationName = $relation->getRelationName();
             $customValueCollection->load($relationName);
 
-            $customValueCollection->map(function($custom_value) use($relationName){
+            $customValueCollection->map(function ($custom_value) use ($relationName) {
                 return $custom_value->{$relationName};
-            })->each(function($custom_value){
+            })->each(function ($custom_value) {
                 $custom_value->setValueModel();
             });
         }
@@ -2169,7 +2169,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-    protected function setSummarySelectOptionItem(&$options, $custom_table, $custom_columns){
+    protected function setSummarySelectOptionItem(&$options, $custom_table, $custom_columns)
+    {
         $tablename = array_get($custom_table, 'table_view_name');
         /// get system columns for summary
         foreach (SystemColumn::getOptions(['summary' => true]) as $option) {

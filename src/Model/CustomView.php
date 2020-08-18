@@ -17,7 +17,6 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
-use Exceedone\Exment\ColumnItems\WorkflowItem;
 
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -241,7 +240,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      *
      * @param [type] $query
      * @param array $options
-     * @return 
+     * @return
      */
     public function getQuery($query, array $options = [])
     {

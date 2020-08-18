@@ -18,7 +18,7 @@ trait SystemColumnItemTrait
         $view_pivot_table = array_get($this->options, 'view_pivot_table');
         $view_pivot_column = array_get($this->options, 'view_pivot_column');
 
-        if(empty($view_pivot_table) || empty($view_pivot_column)){
+        if (empty($view_pivot_table) || empty($view_pivot_column)) {
             return null;
         }
         if ($view_pivot_column != SystemColumn::PARENT_ID) {
@@ -36,7 +36,7 @@ trait SystemColumnItemTrait
      * @return mixed
      */
     protected function getViewPivotValue($custom_value, $options)
-    { 
+    {
         $view_pivot_column = array_get($options, 'view_pivot_column');
 
         $valuekey = $this instanceof \Exceedone\Exment\ColumnItems\SystemItem ? $this->name() : 'value.'.$this->name();
@@ -50,8 +50,8 @@ trait SystemColumnItemTrait
             $relation_name = $relation->getRelationName();
             $relation_custom_value = $custom_value->{$relation_name};
 
-            if(is_list($relation_custom_value)){
-                return collect($relation_custom_value)->map(function($v) use($valuekey){
+            if (is_list($relation_custom_value)) {
+                return collect($relation_custom_value)->map(function ($v) use ($valuekey) {
                     return array_get($v, $valuekey);
                 });
             }
@@ -66,5 +66,4 @@ trait SystemColumnItemTrait
             return array_get($custom_value, $valuekey);
         }
     }
-
 }

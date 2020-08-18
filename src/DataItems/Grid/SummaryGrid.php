@@ -19,7 +19,6 @@ use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\DataItems\Grid\Summary\SummaryOption;
 
 class SummaryGrid extends GridBase
@@ -130,7 +129,7 @@ class SummaryGrid extends GridBase
 
     /**
      * get query for summary
-     * 
+     *
      * @return \Encore\Admin\Grid\Model|\Illuminate\Database\Eloquent\Builder query for summary
      */
     public function getQuery($query, array $options = [])
@@ -246,7 +245,8 @@ class SummaryGrid extends GridBase
      * @param array $summary_options use cusrom tables in this query
      * @return void
      */
-    protected function setRelationQuery($query, $summary_options){
+    protected function setRelationQuery($query, $summary_options)
+    {
         $db_table_name = getDBTableName($this->custom_table);
 
         $custom_table_id = $this->custom_table->id;
@@ -270,12 +270,12 @@ class SummaryGrid extends GridBase
                 continue;
             }
             // join parent table
-            if($this->setCustomRelationQueryParent($query, $parent_relations, $table_id, $summary_option, $db_table_name)){
+            if ($this->setCustomRelationQueryParent($query, $parent_relations, $table_id, $summary_option, $db_table_name)) {
                 continue;
             }
 
             // create subquery grouping child table
-            if($this->setCustomRelationQueryChildren($query, $child_relations, $table_id, $summary_option, $db_table_name, $sub_queries)){
+            if ($this->setCustomRelationQueryChildren($query, $child_relations, $table_id, $summary_option, $db_table_name, $sub_queries)) {
                 continue;
             }
 
@@ -320,16 +320,16 @@ class SummaryGrid extends GridBase
         $parent_relation = $parent_relations->first(function ($parent_relation) use ($table_id) {
             return $parent_relation->parent_custom_table_id == $table_id;
         });
-        if(empty($parent_relation)){
+        if (empty($parent_relation)) {
             return false;
         }
 
         // 1:n
-        if($parent_relation->relation_type == RelationType::ONE_TO_MANY){
+        if ($parent_relation->relation_type == RelationType::ONE_TO_MANY) {
             $this->addQuery($query, $db_table_name, $summary_option, 'parent_id', 'id');
         }
         // n:n
-        else{
+        else {
             $this->addManyManyQuery($query, $parent_relation, $db_table_name, $summary_option);
         }
 
@@ -353,16 +353,16 @@ class SummaryGrid extends GridBase
         $child_relation = $child_relations->first(function ($child_relation) use ($table_id) {
             return $child_relation->child_custom_table_id == $table_id;
         });
-        if(empty($child_relation)){
+        if (empty($child_relation)) {
             return false;
         }
 
         // 1:n
-        if($child_relation->relation_type == RelationType::ONE_TO_MANY){
+        if ($child_relation->relation_type == RelationType::ONE_TO_MANY) {
             $sub_query = $this->getSubQuery($db_table_name, 'id', 'parent_id', $summary_option);
         }
         // n:n
-        else{
+        else {
             $sub_query = $this->getManyManySubQuery($child_relation, $db_table_name, $summary_option);
         }
 
@@ -384,7 +384,8 @@ class SummaryGrid extends GridBase
                 'custom_view_column' => null,
                 'is_child' => false,
             ],
-        $options);
+            $options
+        );
     
         $column_label = $options['column_label'];
         $summary_condition = $options['summary_condition'];
@@ -413,11 +414,10 @@ class SummaryGrid extends GridBase
 
         // if has sumamry condition, set select
         if (isset($summary_condition)) {
-            if($options['is_child']){
+            if ($options['is_child']) {
                 // if child, set as normal sql name
                 $summary_options[$table_id]->addSelectGroup($item->sqlAsName());
-            }
-            else{
+            } else {
                 // if not child, set as group name(ex. count, sum, max)
                 $summary_options[$table_id]->addSelectGroup($item->getGroupName());
             }

@@ -121,7 +121,7 @@ class PasswordGrant extends PasswordGrantBase
             if (! $user->validateForPassportPasswordGrant($password, $credentials)) {
                 return;
             }
-        } 
+        }
         // elseif (! $this->hasher->check($password, $user->getAuthPassword())) {
         //     return;
         // }

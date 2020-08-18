@@ -222,7 +222,7 @@ class Csv extends FormatBase
         $original_locale = setlocale(LC_CTYPE, 0);
 
         // set C locale
-        if(0 === strpos(PHP_OS, 'WIN')) {
+        if (0 === strpos(PHP_OS, 'WIN')) {
             setlocale(LC_CTYPE, 'C');
         }
 

@@ -51,7 +51,7 @@ abstract class GridBase
      *
      * @param [type] $query
      * @param array $options
-     * @return 
+     * @return
      */
     public function getQuery($query, array $options = [])
     {
