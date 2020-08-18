@@ -16,14 +16,14 @@ class Html extends FormOtherItem
     }
 
     
-    // Not escaping html if html item ----------------------------------------------------
     /**
      * get Text(for display)
      */
-    // public function html()
-    // {
-    //     return $this->text();
-    // }
+    public function html()
+    {
+        // Not escaping html whether html item
+        return $this->text();
+    }
 
     /**
      * get column name
