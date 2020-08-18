@@ -880,10 +880,12 @@ var Exment;
         static addFieldEvent() {
             $('[data-add-date]').not('.added-datepicker').each(function (index, elem) {
                 $(elem).datetimepicker({ "useCurrent": false, "format": "YYYY-MM-DD", "locale": "ja", "allowInputToggle": true });
-            }).addClass('added-datepicker');
+                $(elem).addClass('added-datepicker');
+            });
             $('[data-add-icheck]').not('.added-icheck').each(function (index, elem) {
                 $(elem).iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
-            }).addClass('added-icheck');
+                $(elem).addClass('added-icheck');
+            });
         }
         static getFilterVal($parent, a) {
             // get filter object

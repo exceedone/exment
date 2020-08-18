@@ -1169,10 +1169,12 @@ namespace Exment {
         private static addFieldEvent() {
             $('[data-add-date]').not('.added-datepicker').each(function (index, elem: Element) {
                 $(elem).datetimepicker({"useCurrent":false, "format":"YYYY-MM-DD", "locale":"ja", "allowInputToggle":true});
-            }).addClass('added-datepicker');
+                $(elem).addClass('added-datepicker');
+            });
             $('[data-add-icheck]').not('.added-icheck').each(function (index, elem: Element) {
                 $(elem).iCheck({checkboxClass:'icheckbox_minimal-blue'});
-            }).addClass('added-icheck');
+                $(elem).addClass('added-icheck');
+            });
         }
 
         private static getFilterVal($parent: JQuery, a) {
