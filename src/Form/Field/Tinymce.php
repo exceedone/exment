@@ -60,8 +60,8 @@ class Tinymce extends Textarea
         
         $configs = array_merge([
             'selector' => "{$this->getElementClassSelector()}",
-            'toolbar'=> ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link'],
-            'plugins'=> 'textcolor hr link lists',
+            'toolbar'=> ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link code'],
+            'plugins'=> 'textcolor hr link lists code',
             'menubar' => false,
             'language' => $locale,
             'valid_elements' => $this->getValidElements(),
