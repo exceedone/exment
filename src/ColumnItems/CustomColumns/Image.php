@@ -39,5 +39,7 @@ class Image extends File
     protected function setValidates(&$validates, $form_column_options)
     {
         $validates[] = new \Exceedone\Exment\Validator\ImageRule;
+
+        parent::setValidates($validates, $form_column_options);
     }
 }

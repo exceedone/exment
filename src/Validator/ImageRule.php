@@ -20,6 +20,11 @@ class ImageRule implements Rule
     */
     public function passes($attribute, $value)
     {
+        // not check null or empty. Check by other required rule.
+        if (is_nullorempty($value)) {
+            return true;
+        }
+
         if (is_string($value)) {
             $ext = pathinfo($value, PATHINFO_EXTENSION);
             return in_array($ext, ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg']);

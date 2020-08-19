@@ -487,6 +487,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ], $options)
         );
 
+        // set required column's name for validation.
+        $this->setColumnsName($value, $custom_value, $options);
+
         // get rules for validation
         $rules = $this->getValidateRules($value, $custom_value, $options);
 
@@ -545,8 +548,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'deleted_at',
                 ];
                     
-                foreach ($rules as $key => $rule) {
-                    $customAttributes[$key] = exmtrans("common.$key") . ($appendKeyName ? "($key)" : "");
+                foreach ($rules as $rule) {
+                    $customAttributes[$rule] = exmtrans("common.$rule") . ($appendKeyName ? "($rule)" : "");
                 }
             }
         }
@@ -554,6 +557,40 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $customAttributes;
     }
     
+    /**
+     * Set required column
+     *
+     * @param [type] $value
+     * @param CustomValue|null $custom_value
+     * @param array $options
+     * @return void
+     */
+    protected function setColumnsName(&$value, ?CustomValue $custom_value = null, array $options = [])
+    {
+        $options = array_merge([
+            'column_name_prefix' => null,  // appending error key's prefix, and value prefix
+            'checkCustomValueExists' => true, // whether checking require custom column
+        ], $options);
+
+        if(!boolval($options['checkCustomValueExists'])){
+            return;
+        }
+        $column_name_prefix = $options['column_name_prefix'];
+
+        foreach ($this->custom_columns_cache as $custom_column) {
+            if(!$custom_column->required){
+                continue;
+            }
+
+            // if not contains $value[$custom_column->column_name], set as null.
+            // if not set, we cannot validate null check because $field->getValidator returns false.
+            $isNew = (is_null($custom_value) || !$custom_value->exists);
+            if ($isNew && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
+                array_set($value, $column_name_prefix.$custom_column->column_name, null);
+            }
+        }
+    }
+
     /**
      * get validation rules
      */
@@ -575,15 +612,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // get custom attributes
         $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
 
+        // set required column's name for validation.
+        $this->setColumnsName($value, $custom_value, $options);
+
         foreach ($this->custom_columns_cache as $custom_column) {
             $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value, null, $column_name_prefix, true, true);
-
-            // if not contains $value[$custom_column->column_name], set as null.
-            // if not set, we cannot validate null check because $field->getValidator returns false.
-            $isNew = (is_null($custom_value) || !$custom_value->exists);
-            if ($isNew && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
-                array_set($value, $column_name_prefix.$custom_column->column_name, null);
-            }
         }
 
         // create parent type validation array
@@ -862,7 +895,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $file_data = base64_decode($file_data);
 
             // convert file name for validation
-            $value[$file_column->column_name] = null;
+            $value[$file_column->column_name] = $file_name;
 
             // append file data
             $files[$file_column->column_name] = [
