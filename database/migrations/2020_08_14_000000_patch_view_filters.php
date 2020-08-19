@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class PatchView extends Migration
+class PatchViewFilters extends Migration
 {
     /**
      * Run the migrations.
