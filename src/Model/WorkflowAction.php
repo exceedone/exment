@@ -652,6 +652,7 @@ class WorkflowAction extends ModelBase
                 list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions($custom_table, null, true);
                 $form->multipleSelect('next_work_users', exmtrans('workflow.next_work_users'))
                     ->options($options)
+                    ->ajax($ajax)
                     ->required();
             } else {
                 // only display
