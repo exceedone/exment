@@ -1268,6 +1268,7 @@ return [
             'relation_filter' => 'If the column of the parent table or the referenced table of this column exists in the form, you can narrow down the selection of this column by selecting the column.',
             'changedata_no_item' => '*There are no columns in the table whose column type is "Select (From Table)", "User", and "Organization". Register these columns if you want to use data linkage settings.',
             'relation_filter_no_item' => '*The parent of column "%s" or the table to be referenced does not exist.',
+            'html' => 'Enter the HTML to display.<span class="red">*The entered HTML will be embedded as it is. It also runs the script. Please be careful when inputting.</span>',
         ],
 
         'message' => [
