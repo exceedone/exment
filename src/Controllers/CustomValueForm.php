@@ -622,7 +622,7 @@ EOT;
                     'btn_class' => 'btn-info',
                     'icon' => 'fa-search',
                     'attributes' => [
-                        'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modal' => 1]),
+                        'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
                         'data-widgetmodal_expand' => json_encode(['target_column_class' => 'parent_id']),
                         'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'parent_id']),
                     ],
