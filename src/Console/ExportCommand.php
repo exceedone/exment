@@ -19,7 +19,7 @@ class ExportCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:export {table_name} {--action=default} {--type=all} {--page=1} {--format=csv} {--view=} {--dirpath=}';
+    protected $signature = 'exment:export {table_name} {--action=default} {--type=all} {--page=1} {--count=} {--format=csv} {--view=} {--dirpath=} {--add_setting=0}';
 
     /**
      * The console command description.
@@ -66,24 +66,22 @@ class ExportCommand extends Command
         $options['action'] = $this->option("action");
         $options['type'] = $this->option("type");
         $options['page'] = $this->option("page");
+        $options['count'] = $this->option("count");
         $options['format'] = $this->option("format");
         $options['view'] = $this->option("view");
         $options['dirpath'] = $this->option("dirpath");
+        $options['add_setting'] = $this->option("add_setting");
 
         if (!\in_array($options['action'], ['default', 'view'])) {
-            throw new \Exception('parameter action error : ' . $options['action']);
+            throw new \Exception('optional parameter action error : ' . $options['action']);
         }
 
         if (!\in_array($options['type'], ['all', 'page'])) {
-            throw new \Exception('parameter type error : ' . $options['type']);
-        }
-
-        if (!preg_match("/^[0-9]+$/", $options['page'])) {
-            throw new \Exception('parameter page error : ' . $options['page']);
+            throw new \Exception('optional parameter type error : ' . $options['type']);
         }
 
         if (!\in_array($options['format'], ['csv', 'xlsx'])) {
-            throw new \Exception('parameter format error : ' . $options['format']);
+            throw new \Exception('optional parameter format error : ' . $options['format']);
         }
 
         if ($options['action'] == 'view') {
@@ -94,14 +92,25 @@ class ExportCommand extends Command
                 $custom_view = CustomView::getEloquent($options['view']);
             }
             if (!isset($custom_view)) {
-                throw new \Exception('parameter view error : ' . $options['view']);
+                throw new \Exception('optional parameter view error : ' . $options['view']);
             }
             $options['view'] = $custom_view;
+
+            if ($options['type'] == 'page') {
+                if (!preg_match("/^[0-9]+$/", $options['page'])) {
+                    throw new \Exception('optional parameter page error : ' . $options['page']);
+                }
+                if (!isset($options['count'])) {
+                    $options['count'] = $custom_view->pager_count;
+                } else if (!preg_match("/^[0-9]+$/", $options['count'])) {
+                    throw new \Exception('optional parameter count error : ' . $options['count']);
+                }
+            }
         }
 
         if (isset($options['dirpath'])) {
             if (!\File::isDirectory($options['dirpath'])) {
-                throw new \Exception('parameter dirpath error : ' . $options['dirpath']);
+                throw new \Exception('optional parameter dirpath error : ' . $options['dirpath']);
             }
         } else {
             // get default directory full path
@@ -111,8 +120,6 @@ class ExportCommand extends Command
                 \File::makeDirectory($options['dirpath'], 0755, true);
             }
         }
-
-        $options['filepath'] = path_join($options['dirpath'], $table_name.'.'.$options['format']);
 
         return [$custom_table, $options];
     }
@@ -128,6 +135,9 @@ class ExportCommand extends Command
             list($custom_table, $options) = $this->getParameters();
             $classname = getModelName($custom_table);
             $grid = new Grid(new $classname);
+            if ($options['type'] == 'page') {
+                $grid->model()->forPage($options['page'], $options['count']);
+            }
     
             $service = (new DataImportExport\DataImportExportService())
                 ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
@@ -139,11 +149,17 @@ class ExportCommand extends Command
                     [
                         'custom_table' => $custom_table,
                         'custom_view' => $options['view'],
+                        'grid' => $grid
                     ]
                 ))
                 ->format($options['format']);
             
             $result = $service->exportBackground($options);
+
+            $message = array_get($result, 'message');
+            if (!empty($message)) {
+                $this->line($message);
+            }
 
         } catch (\Exception $e) {
             $this->error($e->getMessage());

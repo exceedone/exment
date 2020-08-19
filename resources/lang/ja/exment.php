@@ -2008,7 +2008,10 @@ return [
             'success_message' => 'インポートに成功しました。件数：{%s}',
             'error_table' => '対象のテーブル{%s}が見つかりません。',
             'error_info_ex' => '処理の途中でエラーが発生しました。既に取込済のデータが存在します。{%s}',
-        ]
+        ],
+        'export' => [
+            'success_message' => 'エクスポートに成功しました。',
+        ],
     ],
 
     'condition' => [
