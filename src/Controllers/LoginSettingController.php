@@ -97,7 +97,7 @@ class LoginSettingController extends AdminControllerBase
 
         $errors = $this->checkLibraries();
 
-        $form->description(exmtrans('common.help.more_help'));
+        $form->descriptionHtml(exmtrans('common.help.more_help'));
 
         $form->text('login_view_name', exmtrans('login.login_view_name'))->required();
 
@@ -136,7 +136,7 @@ class LoginSettingController extends AdminControllerBase
                 $form->exmheader(exmtrans('login.mapping_setting'))->hr()
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
 
-                $form->description(exmtrans("login.help.mapping_description"))
+                $form->descriptionHtml(exmtrans("login.help.mapping_description"))
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML, LoginType::LDAP]])]);
 
                 // setting mapping list
@@ -285,7 +285,7 @@ class LoginSettingController extends AdminControllerBase
 
 
         $form->exmheader(exmtrans('system.password_policy'))->hr();
-        $form->description(exmtrans("system.help.password_policy"));
+        $form->descriptionHtml(exmtrans("system.help.password_policy"));
 
         $form->switchbool('complex_password', exmtrans("system.complex_password"))
             ->help(exmtrans("system.help.complex_password"));
@@ -508,7 +508,7 @@ class LoginSettingController extends AdminControllerBase
         $form->action(route('exment.post2factor'));
         $form->disableReset();
 
-        $form->description(exmtrans("2factor.message.description", getManualUrl('login_2factor_setting')));
+        $form->descriptionHtml(exmtrans("2factor.message.description", getManualUrl('login_2factor_setting')));
 
         $form->switchbool('login_use_2factor', exmtrans("2factor.login_use_2factor"))
             ->help(exmtrans("2factor.help.login_use_2factor"))

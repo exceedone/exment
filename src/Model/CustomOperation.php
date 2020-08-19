@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums;
+use Exceedone\Exment\Enums\CustomOperationType;
 
 class CustomOperation extends ModelBase
 {

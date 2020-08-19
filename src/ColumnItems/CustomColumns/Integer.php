@@ -12,18 +12,18 @@ class Integer extends CustomItem
 {
     use NumberTrait;
 
-    public function text()
+    protected function _text($v)
     {
-        if (is_null($this->value())) {
+        if (is_null($v)) {
             return null;
         }
 
         if (boolval(array_get($this->custom_column, 'options.number_format'))
-            && is_numeric($this->value())
+            && is_numeric($v)
             && !boolval(array_get($this->options, 'disable_number_format'))) {
-            return number_format($this->value());
+            return number_format($v);
         }
-        return $this->value();
+        return $v;
     }
 
     public function saving()

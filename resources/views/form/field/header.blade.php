@@ -2,7 +2,13 @@
 <div class="form-group">
     <div class="row" {!! $attributes !!} >
         <div class="col-sm-12" >
-            <h{{$no}} class="field-header">{{ $label }}</h4>
+            <h{{$no}} class="field-header">
+                @if($escape)
+                    {{ $label }}
+                @else
+                    {!! $label !!}
+                @endif
+            </h{{$no}}>
         </div>
     </div>
 

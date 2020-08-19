@@ -28,7 +28,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     public static $templateItems = [
         'excepts' => [
             'export' => [
-                'unique1', 'unique2', 'unique3', 'compare_type', 'options.unique1_id', 'options.unique2_id', 'options.unique3_id', 'options.compare_column1_id', 'options.compare_column2_id', 'options.table_label_id', 'options.share_trigger_type', 'options.share_column_id', 'options.share_permission'
+                'unique1', 'unique2', 'unique3', 'share_column_id', 'compare_type', 'options.unique1_id', 'options.unique2_id', 'options.unique3_id', 'options.compare_column1_id', 'options.compare_column2_id', 'options.table_label_id', 'options.share_trigger_type', 'options.share_column_id', 'options.share_permission'
             ],
             'import' => [
                 'custom_table_id', 'column_name'
@@ -109,7 +109,18 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
                 'uniqueKeyFunctionArgs' => ['compare_column2_id'],
             ],
-
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.share_table_name',
+                            'column_name' => 'options.share_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['share_column_id'],
+            ],
             [
                 'replaceNames' => [
                     [
@@ -343,6 +354,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         static::importReplaceJsonTableColumn('unique3', $json);
         static::importReplaceJsonTableColumn('compare_column1', $json);
         static::importReplaceJsonTableColumn('compare_column2', $json);
+        static::importReplaceJsonTableColumn('share', $json, 'share_column_id');
         static::importReplaceJsonTableColumn('table_label', $json);
     }
 

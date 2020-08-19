@@ -161,7 +161,7 @@ class RoleGroupController extends AdminControllerBase
             
         $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::SYSTEM()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
 
-        $form->description(exmtrans('role_group.description_system_admin'));
+        $form->descriptionHtml(exmtrans('role_group.description_system_admin'));
 
 
         // System --------------------------------------------------------

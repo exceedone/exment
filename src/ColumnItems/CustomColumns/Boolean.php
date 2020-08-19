@@ -16,11 +16,11 @@ class Boolean extends CustomItem
      */
     protected $required = false;
     
-    public function text()
+    protected function _text($v)
     {
-        if (array_get($this->custom_column, 'options.true_value') == $this->value()) {
+        if (array_get($this->custom_column, 'options.true_value') == $v) {
             return array_get($this->custom_column, 'options.true_label');
-        } elseif (array_get($this->custom_column, 'options.false_value') == $this->value()) {
+        } elseif (array_get($this->custom_column, 'options.false_value') == $v) {
             return array_get($this->custom_column, 'options.false_label');
         }
         return null;

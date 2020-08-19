@@ -149,8 +149,12 @@ var Exment;
                 else if (hasValue(res.swal)) {
                     swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'error');
                 }
-                // if has message, not execute action
+                // if has message, show swal
                 else if (hasValue(res.message)) {
+                    if (swal.isVisible()) {
+                        swal.close();
+                    }
+                    swal($('#exment_error_title').val(), res.message, 'error');
                 }
                 else {
                     Exment.CommonEvent.UndefinedError();
@@ -876,10 +880,12 @@ var Exment;
         static addFieldEvent() {
             $('[data-add-date]').not('.added-datepicker').each(function (index, elem) {
                 $(elem).datetimepicker({ "useCurrent": false, "format": "YYYY-MM-DD", "locale": "ja", "allowInputToggle": true });
-            }).addClass('added-datepicker');
+                $(elem).addClass('added-datepicker');
+            });
             $('[data-add-icheck]').not('.added-icheck').each(function (index, elem) {
                 $(elem).iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
-            }).addClass('added-icheck');
+                $(elem).addClass('added-icheck');
+            });
         }
         static getFilterVal($parent, a) {
             // get filter object

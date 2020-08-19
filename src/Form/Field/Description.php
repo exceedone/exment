@@ -8,16 +8,36 @@ class Description extends Field\Display
 {
     protected $view = 'exment::form.field.description';
 
+    /**
+     * Whether escape
+     *
+     * @var boolean
+     */
+    protected $escape = true;
+
     public function __construct($label)
     {
         $this->label = $label;
+    }
+
+    /**
+     * Toggle escape
+     *
+     * @var boolean
+     */
+    public function escape(bool $escape)
+    {
+        $this->escape = $escape;
+
+        return $this;
     }
 
     public function render()
     {
         return parent::render()->with(
             [
-                'offset' => str_replace("col-sm-", "col-sm-offset-", array_get($this->getViewElementClasses(), 'label'))
+                'offset' => str_replace("col-sm-", "col-sm-offset-", array_get($this->getViewElementClasses(), 'label')),
+                'escape' => $this->escape,
             ]
         );
     }

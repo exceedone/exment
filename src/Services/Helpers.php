@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Carbon\Carbon;
+use Mews\Purifier\Facades\Purifier;
 
 if (!function_exists('exmDebugLog')) {
     /**
@@ -85,41 +86,47 @@ if (!function_exists('esc_html')) {
 if (!function_exists('esc_script_tag')) {
     /**
      * escape only script tag
+     *
+     * @deprecated Please use html_clean
      */
     function esc_script_tag($html)
+    {
+        return html_clean($html);
+    }
+}
+
+if (!function_exists('html_clean')) {
+    /**
+     * clean html with HTML Purifier
+     */
+    function html_clean($html)
     {
         if (is_nullorempty($html)) {
             return $html;
         }
         
         try {
-            libxml_use_internal_errors(true);
+            // default setting for exment
+            $config = HTMLPurifier_Config::createDefault();
+            $config->set('HTML.Allowed', Define::HTML_ALLOWED_DEFAULT);
+            $config->set('HTML.AllowedAttributes', Define::HTML_ALLOWED_ATTRIBUTES_DEFAULT);
+            $config->set('CSS.AllowedProperties', Define::CSS_ALLOWED_PROPERTIES_DEFAULT);
 
-            $dom = new \DOMDocument();
-    
-            $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-    
-            $script = $dom->getElementsByTagName('script');
-    
-            $remove = [];
-            foreach ($script as $item) {
-                $remove[] = $item;
+            // override exment setting
+            if (!is_null($c = config('exment.html_allowed'))) {
+                $config->set('HTML.Allowed', $c);
             }
-    
-            foreach ($remove as $item) {
-                $item->parentNode->removeChild($item);
+            if (!is_null($c = config('exment.html_allowed_attributes'))) {
+                $config->set('HTML.AllowedAttributes', $c);
             }
-    
-            $html = trim($dom->saveHTML());
-            $html = preg_replace('/^<br>/u', '', $html);
-            $html = preg_replace('/<br>$/u', '', $html);
-            
-            libxml_use_internal_errors(false);
+            if (!is_null($c = config('exment.css_allowed_properties'))) {
+                $config->set('CSS.AllowedProperties', $c);
+            }
+
+            return Purifier::clean($html, $config);
         } catch (\Exception $ex) {
-            return $html;
+            return null;
         }
-        
-        return $html;
     }
 }
 
@@ -185,7 +192,7 @@ if (!function_exists('parseIntN')) {
      * if cannot parse, return null.
      * TODO:common lib
      * @param mixed $str
-     * @return \double|integer|null
+     * @return double|integer|null
      */
     function parseIntN($str)
     {
@@ -549,7 +556,7 @@ if (!function_exists('isMatchRequest')) {
     /**
      * Is match uri from request
      *
-     * @param array_string $uris
+     * @param array|string $uris
      * @return boolean
      */
     function isMatchRequest($uris = null)
@@ -1225,6 +1232,8 @@ if (!function_exists('getCurrencySymbolLabel')) {
 if (!function_exists('replaceTextFromFormat')) {
     /**
      * Replace value from format. ex. ${value:user_name} to user_name's value
+     *
+     * @deprecated Please use ReplaceFormatService::replaceTextFromFormat
      */
     function replaceTextFromFormat($format, $custom_value = null, $options = [])
     {
@@ -1401,6 +1410,8 @@ if (!function_exists('getExmentVersion')) {
             } catch (\Exception $e) {
             }
     
+            $latest = null;
+            $current = null;
             if (isset($version_json)) {
                 $version = json_decode($version_json, true);
                 $latest = array_get($version, 'latest');

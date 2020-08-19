@@ -234,47 +234,28 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return static::getEloquentDefault($id, $withs, 'id');
     }
 
+    
+    /**
+     * Get database query
+     *
+     * @param [type] $query
+     * @param array $options
+     * @return
+     */
+    public function getQuery($query, array $options = [])
+    {
+        return $this->grid_item->getQuery($query, $options);
+    }
+
+
     /**
      * set laravel-admin grid using custom_view
      */
     public function setGrid($grid)
     {
-        $custom_table = $this->custom_table;
-        // get view columns
-        $custom_view_columns = $this->custom_view_columns_cache;
-        foreach ($custom_view_columns as $custom_view_column) {
-            $item = $custom_view_column->column_item;
-            if (!isset($item)) {
-                continue;
-            }
-
-            $item = $item->label(array_get($custom_view_column, 'view_column_name'))
-                ->options([
-                    'grid_column' => true,
-                    'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
-                    'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
-                ]);
-            $grid->column($item->indexEnabled() ? $item->index() : $item->name(), $item->label())
-                ->sort($item->sortable())
-                ->cast($item->getCastName())
-                ->style($item->gridStyle())
-                ->setClasses($item->indexEnabled() ? 'column-' . $item->name() : '')
-                ->display(function ($v) use ($item) {
-                    if (is_null($this)) {
-                        return '';
-                    }
-                    return $item->setCustomValue($this)->html();
-                });
-        }
-
-        // set parpage
-        if (is_null(request()->get('per_page')) && isset($this->pager_count) && is_numeric($this->pager_count) && $this->pager_count > 0) {
-            $grid->paginate(intval($this->pager_count));
-        }
-
-        // set with
-        $custom_table->setQueryWith($grid->model(), $this);
+        return $this->grid_item->setGrid($grid);
     }
+
 
     /**
      * Get data paginate. default or summary
@@ -293,7 +274,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         if ($this->view_kind_type == ViewKindType::AGGREGATE) {
             $query = $options['query'] ?? $this->custom_table->getValueModel()->query();
-            return $this->getValueSummary($query, $this->custom_table, $options['grid'])->paginate($options['maxCount']);
+            return $this->getQuery($query, $options)->paginate($options['maxCount']);
         }
 
         // search all data using index --------------------------------------------------
@@ -590,6 +571,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $this->setValueSort($model);
         }
 
+        // Append workflow query
+        $this->custom_table->appendWorkflowSubQuery($model, $this);
+
         ///// We don't need filter using role here because filter auto using global scope.
 
         return $model;
@@ -730,261 +714,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $model;
     }
 
-    /**
-     * set value summary
-     */
-    public function getValueSummary(&$query, $table_name, $grid = null)
-    {
-        // get table id
-        $db_table_name = getDBTableName($table_name);
-
-        $group_columns = [];
-        $sort_columns = [];
-        $custom_tables = [];
-        $sub_queries = [];
-
-        // get relation parent tables
-        $parent_relations = CustomRelation::getRelationsByChild($this->custom_table);
-        // get relation child tables
-        $child_relations = CustomRelation::getRelationsByParent($this->custom_table);
-        // join select table refered from this table.
-        $select_table_columns = $this->custom_table->getSelectTables();
-        // join table refer to this table as select.
-        $selected_table_columns = $this->custom_table->getSelectedTables();
-        
-        // set grouping columns
-        $view_column_items = $this->getSummaryIndexAndViewColumns();
-        foreach ($view_column_items as $view_column_item) {
-            $item = array_get($view_column_item, 'item');
-            $index = array_get($view_column_item, 'index');
-            $column_item = $item->column_item;
-            // set order column
-            if (!empty(array_get($item, 'sort_order'))) {
-                $sort_order = array_get($item, 'sort_order');
-                $sort_type = array_get($item, 'sort_type');
-                $sort_columns[] = ['key' => $sort_order, 'sort_type' => $sort_type, 'column_name' => "column_$index"];
-            }
-
-            if ($item instanceof CustomViewColumn) {
-                // check child item
-                $is_child = $child_relations->contains(function ($value, $key) use ($item) {
-                    return isset($item->custom_table) && $value->child_custom_table->id == $item->custom_table->id;
-                });
-
-                // first, set group_column. this column's name uses index.
-                $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition'), 'summary_index' => $index, 'is_child' => $is_child]);
-                $groupSqlName = $column_item->sqlname();
-                $groupSqlAsName = $column_item->sqlAsName();
-                $group_columns[] = $is_child ? $groupSqlAsName : $groupSqlName;
-                $column_item->options(['groupby' => false, 'group_condition' => null]);
-
-                // parent_id need parent_type
-                if ($column_item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
-                    $group_columns[] = $column_item->sqltypename();
-                } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem) {
-                    \Exceedone\Exment\ColumnItems\WorkflowItem::getStatusSubquery($query, $item->custom_table);
-                }
-
-                $this->setSummaryItem($column_item, $index, $custom_tables, $grid, [
-                    'column_label' => array_get($item, 'view_column_name')?? $column_item->label(),
-                    'custom_view_column' => $item,
-                ]);
-                
-                // if this is child table, set as sub group by
-                if ($is_child) {
-                    $custom_tables[$item->custom_table->id]['subGroupby'][] = $groupSqlAsName;
-                    $custom_tables[$item->custom_table->id]['select_group'][] = $groupSqlAsName;
-                }
-            }
-            // set summary columns
-            else {
-                $this->setSummaryItem($column_item, $index, $custom_tables, $grid, [
-                    'column_label' => array_get($item, 'view_column_name')?? $column_item->label(),
-                    'summary_condition' => $item->view_summary_condition,
-                ]);
-            }
-        }
-
-        // set filter columns
-        foreach ($this->custom_view_filters_cache as $custom_view_filter) {
-            $target_table_id = array_get($custom_view_filter, 'view_column_table_id');
-
-            if (array_key_exists($target_table_id, $custom_tables)) {
-                $custom_tables[$target_table_id]['filter'][] = $custom_view_filter;
-            } else {
-                $custom_tables[$target_table_id] = [
-                    'table_name' => getDBTableName($target_table_id),
-                    'filter' => [$custom_view_filter]
-                ];
-            }
-        }
-
-        $custom_table_id = $this->custom_table->id;
-
-        foreach ($custom_tables as $table_id => $custom_table) {
-            // add select column and filter
-            if ($table_id == $custom_table_id) {
-                $this->addQuery($query, $db_table_name, $custom_table);
-                continue;
-            }
-            // join parent table
-            if ($parent_relations->contains(function ($value, $key) use ($table_id) {
-                return $value->parent_custom_table->id == $table_id;
-            })) {
-                $this->addQuery($query, $db_table_name, $custom_table, 'parent_id', 'id');
-                continue;
-            }
-            // create subquery grouping child table
-            if ($child_relations->contains(function ($value, $key) use ($table_id) {
-                return $value->child_custom_table->id == $table_id;
-            })) {
-                $sub_query = $this->getSubQuery($db_table_name, 'id', 'parent_id', $custom_table);
-                if (array_key_exists('select_group', $custom_table)) {
-                    $query->addSelect($custom_table['select_group']);
-                }
-                $sub_queries[] = $sub_query;
-                continue;
-            }
-            // join table refered from target table
-            if (in_array($table_id, $select_table_columns)) {
-                $column_key = array_search($table_id, $select_table_columns);
-                $this->addQuery($query, $db_table_name, $custom_table, $column_key, 'id');
-                continue;
-            }
-            // create subquery grouping table refer to target table
-            if (in_array($table_id, $selected_table_columns)) {
-                $column_key = array_search($table_id, $selected_table_columns);
-                $sub_query = $this->getSubQuery($db_table_name, 'id', $column_key, $custom_table);
-                if (array_key_exists('select_group', $custom_table)) {
-                    $query->addSelect($custom_table['select_group']);
-                }
-                $sub_queries[] = $sub_query;
-                continue;
-            }
-        }
-
-        // join subquery
-        foreach ($sub_queries as $table_no => $sub_query) {
-            //$query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
-            $alter_name = is_string($table_no)? $table_no : 'table_'.$table_no;
-            $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As $alter_name"), $db_table_name.'.id', "$alter_name.id");
-            $query->addBinding($sub_query->getBindings(), 'join');
-        }
-
-        if (count($sort_columns) > 0) {
-            $orders = collect($sort_columns)->sortBy('key')->all();
-            foreach ($orders as $order) {
-                $sort = ViewColumnSort::getEnum(array_get($order, 'sort_type'), ViewColumnSort::ASC)->lowerKey();
-                $query->orderBy(array_get($order, 'column_name'), $sort);
-            }
-        }
-        // set sql grouping columns
-        $query->groupBy($group_columns);
-
-        return $query;
-    }
-    
-    /**
-     * set summary item
-     */
-    protected function setSummaryItem($item, $index, &$custom_tables, $grid, $options = [])
-    {
-        extract(array_merge(
-            [
-                'column_label' => null,
-                'summary_condition' => null,
-                'custom_view_column' => null,
-            ],
-            $options
-        ));
-
-        $item->options([
-            'summary' => true,
-            'summary_condition' => $summary_condition,
-            'summary_index' => $index,
-            'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
-            'group_condition' => array_get($custom_view_column, 'view_group_condition'),
-        ]);
-
-        $table_id = $item->getCustomTable()->id;
-        $db_table_name = getDBTableName($table_id);
-
-        // set sql parts for custom table
-        if (!array_key_exists($table_id, $custom_tables)) {
-            $custom_tables[$table_id] = [ 'table_name' => $db_table_name ];
-        }
-
-        $custom_tables[$table_id]['select'][] = $item->sqlname();
-        if ($item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
-            $custom_tables[$table_id]['select'][] = $item->sqltypename();
-        }
-
-        if (isset($summary_condition)) {
-            $custom_tables[$table_id]['select_group'][] = $item->getGroupName();
-        }
-        
-        if (isset($grid)) {
-            $grid->column("column_".$index, $column_label)
-            ->sort($item->sortable())
-            ->display(function ($id) use ($item, $index) {
-                $option = SystemColumn::getOption(['name' => $item->name()]);
-                if (array_get($option, 'type') == 'user') {
-                    return esc_html(getUserName($id));
-                } else {
-                    return $item->setCustomValue($this)->html();
-                }
-            });
-        }
-    }
-
-    /**
-     * add select column and filter and join table to main query
-     */
-    protected function addQuery(&$query, $table_main, $custom_table, $key_main = null, $key_sub = null)
-    {
-        $table_name = array_get($custom_table, 'table_name');
-        if ($table_name != $table_main) {
-            $query->join($table_name, "$table_main.$key_main", "$table_name.$key_sub");
-            $query->whereNull("$table_name.deleted_at");
-        }
-        if (array_key_exists('select', $custom_table)) {
-            $query->addSelect($custom_table['select']);
-        }
-        if (array_key_exists('filter', $custom_table)) {
-            foreach ($custom_table['filter'] as $filter) {
-                $filter->setValueFilter($query, $table_name, $this->filter_is_or);
-            }
-        }
-    }
-    
-    /**
-     * add select column and filter and join table to sub query
-     */
-    protected function getSubQuery($table_main, $key_main, $key_sub, $custom_table)
-    {
-        $table_name = array_get($custom_table, 'table_name');
-        // get subquery groupbys
-        $groupBy = array_get($custom_table, 'subGroupby', []);
-        $groupBy[] = "$table_name.$key_sub";
-
-        $sub_query = \DB::table($table_main)
-            ->select("$table_name.$key_sub as id")
-            ->join($table_name, "$table_main.$key_main", "$table_name.$key_sub")
-            ->whereNull("$table_name.deleted_at")
-            ->groupBy($groupBy);
-        if (array_key_exists('select', $custom_table)) {
-            $sub_query->addSelect($custom_table['select']);
-        }
-        if (array_key_exists('filter', $custom_table)) {
-            $custom_filter = $custom_table['filter'];
-            $sub_query->where(function ($query) use ($table_name, $custom_filter) {
-                foreach ($custom_filter as $filter) {
-                    $filter->setValueFilter($query, $table_name, $this->filter_is_or);
-                }
-            });
-        }
-        return $sub_query;
-    }
 
     /**
      * Get arrays about Summary Column and custom_view_columns and custom_view_summaries

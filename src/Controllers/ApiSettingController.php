@@ -59,7 +59,7 @@ class ApiSettingController extends AdminControllerBase
         $form = new Form(new ApiClient);
         $client = ApiClient::find($id);
         
-        $form->description(exmtrans('common.help.more_help'));
+        $form->descriptionHtml(exmtrans('common.help.more_help'));
 
         if (!isset($id)) {
             $form->radio('client_type', exmtrans('api.client_type_text'))->options(ApiClientType::transArray('api.client_type_options'))

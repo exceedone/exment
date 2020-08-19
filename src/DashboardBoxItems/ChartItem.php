@@ -183,10 +183,10 @@ class ChartItem implements ItemInterface
         $item_y = $view_column_y->column_item;
 
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueModel()->query();
+        $query = $this->custom_table->getValueModel()->query();
 
         // get data
-        $datalist = $this->custom_view->getValueSummary($model, $this->custom_table->table_name)->get();
+        $datalist = $this->custom_view->getQuery($query)->get();
         $chart_label = $datalist->map(function ($val) use ($item_x_list) {
             $labels = $item_x_list->map(function ($item_x) use ($val) {
                 $item = $item_x->setCustomValue($val);
@@ -263,7 +263,7 @@ class ChartItem implements ItemInterface
             );
 
         // link to manual
-        $form->description(sprintf(exmtrans("chart.help.chartitem_manual"), getManualUrl('dashboard?id='.exmtrans('chart.chartitem_manual'))));
+        $form->descriptionHtml(sprintf(exmtrans("chart.help.chartitem_manual"), getManualUrl('dashboard?id='.exmtrans('chart.chartitem_manual'))));
 
         $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
             ->required()
@@ -317,21 +317,17 @@ class ChartItem implements ItemInterface
         $script = <<<EOT
         function setChartOptions(val) {
             if (val == 'pie') {
-                $('#chart_options > label:nth-child(1)').show();
-                $('#chart_options > label:nth-child(2)').hide();
-                $('#chart_axis_label').parent().hide();
-                $('#chart_axis_name').parent().hide();
+                $('#chart_options > .icheck:nth-child(1)').show();
+                $('#chart_options > .icheck:nth-child(2)').hide();
             } else {
-                $('#chart_options > label:nth-child(1)').hide();
-                $('#chart_options > label:nth-child(2)').show();
-                $('#chart_axis_label').parent().show();
-                $('#chart_axis_name').parent().show();
+                $('#chart_options > .icheck:nth-child(1)').hide();
+                $('#chart_options > .icheck:nth-child(2)').show();
             }
         }
         setChartOptions($('.options_chart_type').val());
 
-        $(document).off('change', ".options_chart_type");
-        $(document).on('change', ".options_chart_type", function () {
+        $(document).off('change.exment_dashboard', ".options_chart_type");
+        $(document).on('change.exment_dashboard', ".options_chart_type", function () {
             setChartOptions($(this).val());
         });
 EOT;

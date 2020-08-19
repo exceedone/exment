@@ -47,6 +47,25 @@ abstract class GridBase
     }
     
     /**
+     * Get database query
+     *
+     * @param [type] $query
+     * @param array $options
+     * @return
+     */
+    public function getQuery($query, array $options = [])
+    {
+        return $query;
+    }
+
+    /**
+     * set laravel-admin grid using custom_view
+     */
+    public function setGrid($grid)
+    {
+    }
+
+    /**
      * Get callback filter function
      *
      * @return \Closure|null
@@ -122,7 +141,7 @@ abstract class GridBase
         ]);
 
         $hasManyTable->callbackField(function ($field) use ($manualUrl) {
-            $field->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
+            $field->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
         });
 
         $hasManyTable->render();

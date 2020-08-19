@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
  * Auth trait, use from Auth Controller.
  *
  * @method string redirectPath()
+ * @method string getFailedLoginMessage()
  */
 trait AuthTrait
 {

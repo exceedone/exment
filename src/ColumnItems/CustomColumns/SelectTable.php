@@ -71,33 +71,33 @@ class SelectTable extends CustomItem
         return $this->target_table;
     }
 
-    public function value()
+    protected function _value($v)
     {
-        return $this->getValue(false, false);
+        return $this->getValue($v, false, false);
     }
 
-    public function text()
+    protected function _text($v)
     {
-        return $this->getValue(true, false);
+        return $this->getValue($v, true, false);
     }
 
-    public function html()
+    protected function _html($v)
     {
-        return $this->getValue(true, true);
+        return $this->getValue($v, true, true);
     }
 
-    protected function getValue($text, $html)
+    protected function getValue($v, $text, $html)
     {
         if (!isset($this->target_table)) {
             return;
         }
         
-        if (!is_array($this->value) && preg_match('/\[.+\]/i', $this->value)) {
-            $this->value = json_decode($this->value);
+        if (!is_array($v) && preg_match('/\[.+\]/i', $v)) {
+            $v = json_decode($v);
         }
 
-        $isArray = is_array($this->value);
-        $value = $isArray ? $this->value : [$this->value];
+        $isArray = is_list($v);
+        $value = $isArray ? $v : [$v];
 
         // set custom value cache
         $this->target_table->setCustomValueModels($value);

@@ -21,6 +21,7 @@ class ReplaceFormatService
             [
                 'matchBeforeCallback' => null,
                 'afterCallBack' => null,
+                'escapeValue' => false, // escape html value
             ],
             $options
         );
@@ -86,15 +87,15 @@ class ReplaceFormatService
                         $str = $item->getLink($str);
                     }
 
-                    if ($options['escapeValue'] ?? false) {
-                        $str = esc_html($str);
-                    }
-
                     // replace
                     $format = str_replace($matchString, $str, $format);
                 }
             }
         } catch (\Exception $e) {
+        }
+
+        if ($options['escapeValue'] ?? false) {
+            $format = esc_html($format);
         }
 
         if (array_key_value_exists('afterCallback', $options)) {

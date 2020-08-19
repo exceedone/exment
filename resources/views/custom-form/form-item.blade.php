@@ -89,7 +89,9 @@
 
                     @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[3,4]))
                     <div class="form-group">
-                            <span class="control-label col-sm-3">{{exmtrans('custom_form.html')}}</span>
+                            <span class="control-label col-sm-3">{{exmtrans('custom_form.html')}}
+                                <i class="fa fa-info-circle" data-help-text="{{exmtrans('custom_form.help.html')}}" data-help-title="{{exmtrans('custom_form.html')}}"></i>
+                            </span>
                             <div class="col-sm-9">
                                 {{ Form::textarea("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][html]", array_get($custom_form_column, 'options.html'), ['rows' => 4, 'class' => 'form-control']) }}
                             </div>

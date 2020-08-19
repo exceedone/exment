@@ -64,7 +64,7 @@ class CalendarGrid extends GridBase
                 ->required()
                 ->default(config('exment.calendor_font_color_default', '#FFFFFF'));
         })->required()->setTableColumnWidth(4, 3, 2, 2, 1)
-        ->description(sprintf(exmtrans("custom_view.description_custom_view_calendar_columns"), $manualUrl));
+        ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_calendar_columns"), $manualUrl));
 
         // filter setting
         static::setFilterFields($form, $custom_table);

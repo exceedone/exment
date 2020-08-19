@@ -260,25 +260,36 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * Filter is select_target_table
      *
      * @param int|string|CustomTable|null $select_target_table if filter select target table, set value.
+     * @param bool $skipSelf if true, skip column for relation target is self.
      * @return Collection
      */
-    public function getSelectTableColumns($select_target_table = null)
+    public function getSelectTableColumns($select_target_table = null, bool $skipSelf = false)
     {
-        return $this->custom_columns_cache->filter(function ($item) use ($select_target_table) {
-            if (!ColumnType::isSelectTable($item->column_type)) {
+        return $this->custom_columns_cache->filter(function ($custom_column) use ($skipSelf, $select_target_table) {
+            if (!ColumnType::isSelectTable($custom_column->column_type)) {
+                return false;
+            }
+                        
+            $custom_column_target_table = $custom_column->select_target_table;
+            if (!isset($custom_column_target_table)) {
+                return false;
+            }
+            // skip if $this->custom_table_id and $this->id (Self relation), return false.
+            if ($skipSelf && isMatchString($custom_column_target_table->id, $this->id)) {
                 return false;
             }
 
+            // if not filter, return true.
             if (is_null($select_target_table)) {
                 return true;
             }
-
+            // filtering select_target_table if set
             $select_target_table = CustomTable::getEloquent($select_target_table);
             if (!isset($select_target_table)) {
                 return false;
             }
 
-            return isset($item->select_target_table) && $select_target_table->id == $item->select_target_table->id;
+            return $select_target_table->id == $custom_column_target_table->id;
         });
     }
 
@@ -308,29 +319,34 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getSelectedTables()
     {
-        return CustomColumn::where('options->select_target_table', $this->id)
-            ->get()
-            ->mapWithKeys(function ($item) {
-                $key = $item->getIndexColumnName();
-                return [$key => $item->custom_table_id];
-            })->filter()->toArray();
+        return $this->getSelectedTableColumns()->mapWithKeys(function ($custom_column, $key) {
+            return [$key => $custom_column->custom_table_id];
+        })->toArray();
     }
 
     /**
      * Get key-value items.
      * Key is column index name.
      * Value is custom column.
+     * *Ignore self selection*
      *
+     * @param bool $skipSelf if true, skip column for relation target is self.
      * @return Collection
      */
-    public function getSelectedTableColumns()
+    public function getSelectedTableColumns(bool $skipSelf = true)
     {
-        return CustomColumn::where('options->select_target_table', $this->id)
-            ->get()
-            ->mapWithKeys(function ($item) {
-                $key = $item->getIndexColumnName();
-                return [$key => $item];
-            })->filter();
+        return CustomColumn::allRecords(function ($custom_column) use ($skipSelf) {
+            // skip if $this->custom_table_id and $this->id (Self relation), return false.
+            if ($skipSelf && isMatchString($custom_column->custom_table_id, $this->id)) {
+                return false;
+            }
+
+            $select_target_table = $custom_column->select_target_table;
+            return !empty($select_target_table) && isMatchString($select_target_table->id, $this->id);
+        })->mapWithKeys(function ($custom_column) {
+            $key = $custom_column->getIndexColumnName();
+            return [$key => $custom_column];
+        })->filter();
     }
 
     /**
@@ -398,7 +414,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($this->custom_forms as $item) {
             $item->deletingChildren();
         }
-        foreach ($this->custom_views as $item) {
+        foreach ($this->custom_views()->withoutGlobalScope('showableViews')->get() as $item) {
             $item->deletingChildren();
         }
         foreach ($this->from_custom_copies as $item) {
@@ -433,7 +449,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->workflow_tables()->delete();
             $model->custom_form_block_target_tables()->delete();
             $model->child_custom_relations()->delete();
-            $model->custom_views()->delete();
+            $model->custom_views()->withoutGlobalScope('showableViews')->delete();
             $model->custom_forms()->delete();
             $model->custom_columns()->delete();
             $model->custom_relations()->delete();
@@ -1231,7 +1247,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             case SearchType::SELECT_TABLE:
                 // get columns for relation child to parent
                 if (!isset($searchColumns)) {
-                    $searchColumns = $child_table->getSelectTableColumns($this->id);
+                    $searchColumns = $child_table->getSelectTableColumns($this->id, true);
                 }
 
                 // set query info
@@ -1308,11 +1324,22 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             //WorkflowItem::getStatusSubquery($query, $this);
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
+        $this->appendWorkflowSubQuery($query, $custom_view);
+    }
 
+    /**
+     * Append to query for filtering workflow
+     *
+     * @param [type] $query
+     * @param CustomView $custom_view
+     * @return void
+     */
+    public function appendWorkflowSubQuery($query, $custom_view)
+    {
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
             (isset($custom_view) &&
-            $custom_view->custom_view_filters->contains(function ($custom_view_filter) {
+            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
                 return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
             }))) {
             // add query
@@ -1322,11 +1349,32 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
             ($custom_view &&
-            $custom_view->custom_view_filters->contains(function ($custom_view_filter) {
+            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
                 return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
             }))) {
             // add query
             WorkflowItem::getWorkUsersSubQuery($query, $this);
+        }
+
+        // if has relations, set with
+        if (isset($custom_view)) {
+            $relations = $custom_view->custom_view_columns_cache->map(function ($custom_view_column) {
+                $column_item = $custom_view_column->column_item;
+                if (empty($column_item)) {
+                    return null;
+                }
+
+                return $column_item->options([
+                    'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
+                    'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
+                ])->getRelation();
+            })->filter()->unique();
+
+            if ($relations->count() > 0) {
+                $relations->each(function ($r) use ($query) {
+                    $query->with($r->getRelationName());
+                });
+            }
         }
     }
 
@@ -1340,6 +1388,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
+        //// for select table
         $this->getSelectTableColumns()->each(function ($column) use ($customValueCollection) {
             $target_table = $column->select_target_table;
 
@@ -1354,7 +1403,25 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // value sometimes array, so flatten value. maybe has best way..
             $target_table->setCustomValueModels($values);
         });
+
+
+        //// for parent relation
+        $relation = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
+        if (!empty($relation)) {
+            // get searching value
+            $parent_custom_table = $relation->parent_custom_table;
+            $relationName = $relation->getRelationName();
+            $customValueCollection->load($relationName);
+
+            $customValueCollection->map(function ($custom_value) use ($relationName) {
+                return $custom_value->{$relationName};
+            })->each(function ($custom_value) {
+                $custom_value->setValueModel();
+            });
+        }
     }
+
+
 
     public function setCustomValueModels($ids)
     {
@@ -1373,7 +1440,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        $this->getValueModel()->findMany(array_unique($finds))->each(function ($target_value) {
+        $this->getValueModel()->query()->findMany(array_unique($finds))->each(function ($target_value) {
             // set request settion
             $target_value->setValueModel();
         });
@@ -1892,7 +1959,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 );
             }
             ///// get select table columns
-            $select_table_columns = $this->getSelectTableColumns();
+            $select_table_columns = $this->getSelectTableColumns(null, true);
             foreach ($select_table_columns as $select_table_column) {
                 if ($index_enabled_only && !$select_table_column->index_enabled) {
                     continue;
@@ -1991,9 +2058,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ];
 
         /// get system columns
-        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id) {
+        $setSystemColumn = function ($filter) use (&$options, $table_view_name, $append_table, $table_id, $optionKeyParams) {
             foreach (SystemColumn::getOptions($filter) as $option) {
-                $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id);
+                $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id, $optionKeyParams);
                 $value = exmtrans('common.'.array_get($option, 'name'));
                 static::setKeyValueOption($options, $key, $value, $table_view_name);
             }
@@ -2076,46 +2143,47 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $options[$key] = array_get($option, 'column_view_name');
             }
         }
+
+        ///// get parent table columns for summary
+        $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->get();
+        foreach ($relations as $rel) {
+            $parent_custom_table = array_get($rel, 'parent_custom_table');
+            $this->setSummarySelectOptionItem($options, $parent_custom_table, $parent_custom_table->custom_columns_cache);
+        }
+        
         ///// get child table columns for summary
         $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
         foreach ($relations as $rel) {
-            $child = array_get($rel, 'child_custom_table');
-            $tableid = array_get($child, 'id');
-            $tablename = array_get($child, 'table_view_name');
-            /// get system columns for summary
-            foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-                $key = static::getOptionKey(array_get($option, 'name'), true, $tableid);
-                $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
-            }
-            $child_columns = $child->custom_columns_cache;
-            foreach ($child_columns as $option) {
-                $column_type = array_get($option, 'column_type');
-                if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                    $key = static::getOptionKey(array_get($option, 'id'), true, $tableid);
-                    $options[$key] = $tablename . ' : ' . array_get($option, 'column_view_name');
-                }
-            }
+            $child_custom_table = array_get($rel, 'child_custom_table');
+            $this->setSummarySelectOptionItem($options, $child_custom_table, $child_custom_table->custom_columns_cache);
         }
+
         ///// get selected table columns
         $selected_table_columns = $this->getSelectedTableColumns();
         foreach ($selected_table_columns as $selected_table_column) {
             $custom_table = $selected_table_column->custom_table;
-            $tablename = array_get($custom_table, 'table_view_name');
-            /// get system columns for summary
-            foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-                $key = static::getOptionKey(array_get($option, 'name'), true, $custom_table->id);
-                $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
-            }
-            foreach ($custom_table->custom_columns_cache as $option) {
-                $column_type = array_get($option, 'column_type');
-                if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                    $key = static::getOptionKey(array_get($option, 'id'), true, $custom_table->id);
-                    $options[$key] = $tablename . ' : ' . array_get($option, 'column_view_name');
-                }
-            }
+            $this->setSummarySelectOptionItem($options, $custom_table, $custom_table->custom_columns_cache);
         }
     
         return $options;
+    }
+
+
+    protected function setSummarySelectOptionItem(&$options, $custom_table, $custom_columns)
+    {
+        $tablename = array_get($custom_table, 'table_view_name');
+        /// get system columns for summary
+        foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
+            $key = static::getOptionKey(array_get($option, 'name'), true, $custom_table->id);
+            $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
+        }
+        foreach ($custom_columns as $option) {
+            $column_type = array_get($option, 'column_type');
+            if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
+                $key = static::getOptionKey(array_get($option, 'id'), true, $custom_table->id);
+                $options[$key] = $tablename . ' : ' . array_get($option, 'column_view_name');
+            }
+        }
     }
 
     /**

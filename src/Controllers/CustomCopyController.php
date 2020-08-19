@@ -193,12 +193,12 @@ class CustomCopyController extends AdminControllerTableBase
         $form->hasManyTable('custom_copy_columns', exmtrans("custom_copy.custom_copy_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
             $form->select('from_column_target', exmtrans("custom_copy.from_custom_column"))
                 ->options($from_custom_column_options)->required();
-            $form->description('▶');
+            $form->descriptionHtml('▶');
             $form->select('to_column_target', exmtrans("custom_copy.to_custom_column"))
                 ->options($to_custom_column_options)->required();
             $form->hidden('copy_column_type')->default(CopyColumnType::DEFAULT);
         })->setTableWidth(10, 1)
-        ->description(exmtrans("custom_copy.column_description"));
+        ->descriptionHtml(exmtrans("custom_copy.column_description"));
 
         ///// get input columns
         $form->hasManyTable('custom_copy_input_columns', exmtrans("custom_copy.custom_copy_input_columns"), function ($form) use ($to_custom_column_options) {
@@ -206,7 +206,7 @@ class CustomCopyController extends AdminControllerTableBase
                 ->options($to_custom_column_options)->required();
             $form->hidden('copy_column_type')->default(CopyColumnType::INPUT);
         })->setTableWidth(10, 1)
-        ->description(exmtrans("custom_copy.input_column_description"));
+        ->descriptionHtml(exmtrans("custom_copy.input_column_description"));
 
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
             $tools->add(new Tools\CustomTableMenuButton('copy', $custom_table));

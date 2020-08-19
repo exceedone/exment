@@ -128,6 +128,7 @@ return [
         'description' => 'An error has occurred. Please check the content of the error.',
         'error_message' => 'Error Message',
         'error_trace' => 'Error Trace',
+        'delete_failed' => 'Delete failed. Please check the error log file.',
         'failure_import_file' => 'The format of the uploaded file is incorrect. Please check the file.',
         'import_max_row_count' => 'Up to :count data items can be imported at one time. Please divide and upload.',
         'not_install' => 'Exment is not installed. Please install Exment according to the following URL. <br /> https://exment.net/docs/#/quickstart',
@@ -703,6 +704,7 @@ return [
         'saml_option_authn_request_signed' => 'Sign AuthnRequest',
         'saml_option_logout_request_signed' => 'Sign LogoutRequest',
         'saml_option_logout_response_signed' => 'Sign LogoutResponse',
+        'saml_option_proxy_vars' => 'Use Proxy',
         
         'ldap_setting' => 'LDAP Setting',
         'ldap_name' => 'LDAP Name',
@@ -767,6 +769,7 @@ return [
             'saml_option_authn_request_signed' => 'Set to YES to sign the authentication request sent by the SP.',
             'saml_option_logout_request_signed' => 'Set to YES to sign the logout request sent by the SP.',
             'saml_option_logout_response_signed' => 'Set to YES to sign the logout response sent by the SP.',
+            'saml_option_proxy_vars' => 'Set to YES if use Reverse Proxy.',
             'saml_key_path' => '<br />*When reading from a file, place the file in the following path.<br/>%s',
 
             'activate' => 'Enable this login. We recommend that you perform a "login test" in advance to confirm that you can successfully log in. Do you want to activate it?',
@@ -1265,6 +1268,7 @@ return [
             'relation_filter' => 'If the column of the parent table or the referenced table of this column exists in the form, you can narrow down the selection of this column by selecting the column.',
             'changedata_no_item' => '*There are no columns in the table whose column type is "Select (From Table)", "User", and "Organization". Register these columns if you want to use data linkage settings.',
             'relation_filter_no_item' => '*The parent of column "%s" or the table to be referenced does not exist.',
+            'html' => 'Enter the HTML to display.<span class="red">*The entered HTML will be embedded as it is. It also runs the script. Please be careful when inputting.</span>',
         ],
 
         'message' => [

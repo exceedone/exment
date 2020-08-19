@@ -26,6 +26,7 @@
         "laravelcollective/html": "^5.6.0",
         "webpatser/laravel-uuid": "^3.0",
         "phpoffice/phpspreadsheet": "^1.5.0",
+        "mews/purifier": "^3.2",
         "myclabs/php-enum": "^1.6.0",
         "laravel/passport": "^7.0",
         "renatomarinho/laravel-page-speed": "^1.8.11"

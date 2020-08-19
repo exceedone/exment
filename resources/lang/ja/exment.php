@@ -128,6 +128,7 @@ return [
         'description' => 'エラーが発生しました。エラー内容をご確認ください。',
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
+        'delete_failed' => '削除に失敗しました。詳細はエラーログをご確認ください。',
         'import_max_row_count' => '一度にインポートできるデータの件数は:count件までです。分割してアップロードをいただくか、大量データ投入を行ってください。',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'disabled_outside_api' => '外部接続が許可されていません。',
@@ -700,6 +701,7 @@ return [
         'saml_option_authn_request_signed' => 'Sign AuthnRequest',
         'saml_option_logout_request_signed' => 'Sign LogoutRequest',
         'saml_option_logout_response_signed' => 'Sign LogoutResponse',
+        'saml_option_proxy_vars' => 'Proxy使用',
         
         'ldap_setting' => 'LDAP設定',
         'ldap_name' => 'LDAP名(英数字)',
@@ -764,6 +766,7 @@ return [
             'saml_option_authn_request_signed' => 'SPによって送信する認証リクエストを署名する場合は、YESにしてください。',
             'saml_option_logout_request_signed' => 'SPによって送信するログアウトリクエストを署名する場合は、YESにしてください。',
             'saml_option_logout_response_signed' => 'SPによって送信するログアウトレスポンスを署名する場合は、YESにしてください。',
+            'saml_option_proxy_vars' => 'リバースプロキシなどを使用している場合に、YESにしてください。',
             'saml_key_path' => '<br />※ファイルから読み込みを行う場合、以下のパスにファイルを配置してください。<br/>%s',
 
             'activate' => 'このログインを有効化します。事前に「ログインテスト」を実施し、ログインが正常に実行できることの確認をおすすめします。有効化しますか？',
@@ -1263,6 +1266,7 @@ return [
             'relation_filter' => 'フォーム内に、この列の親テーブル、もしくは参照先テーブルの列が存在する場合、その列を選択することで、この列の選択肢を絞り込むことができます。',
             'changedata_no_item' => '※列の種類が「選択肢 (他のテーブルの値一覧から選択)」、「ユーザー」、「組織」となる列がテーブル内に存在しません。データ連動設定を使用する場合、これらの列を登録してください。',
             'relation_filter_no_item' => '※列「%s」の親、もしくは参照先となるテーブルが存在しません。',
+            'html' => '表示するHTMLを記入してください。<span class="red">※入力したHTMLがそのまま埋め込まれます。またスクリプトも実行されます。入力には十分注意してください。</span>',
         ],
 
         'message' => [

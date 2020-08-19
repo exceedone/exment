@@ -77,6 +77,11 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         return $this->setOption('menu_target_view', $value);
     }
 
+    public static function getTableName()
+    {
+        return with(new static)->getTable();
+    }
+
     /**
      * @return array
      */
@@ -330,16 +335,6 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
             'menu_target_name' => $menu_target_name,
             'uri' => $uri,
         ];
-        
-
-        // if has children, loop
-        if (array_key_value_exists('children', $menu)) {
-            foreach (array_get($menu, 'children') as $child) {
-                // set children menu item recursively to $menus.
-                $menus = array_merge($menus, static::getTemplateMenuItems($child, $target_tables, $menulist));
-            }
-        }
-        return $menus;
     }
     
     /**

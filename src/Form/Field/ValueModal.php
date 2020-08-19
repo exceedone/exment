@@ -303,7 +303,7 @@ EOT;
     /**
      * convert string if value is array
      *
-     * @return void
+     * @return string
      */
     protected function convertString($value)
     {

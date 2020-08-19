@@ -11,29 +11,29 @@ class Select extends CustomItem
 {
     use ImportValueTrait, SelectTrait;
     
-    public function value()
+    protected function _value($v)
     {
-        return $this->getResultForSelect(false);
+        return $this->getResultForSelect($v, false);
     }
 
-    public function text()
+    protected function _text($v)
     {
-        return $this->getResultForSelect(true);
+        return $this->getResultForSelect($v, true);
     }
 
-    protected function getResultForSelect($label)
+    protected function getResultForSelect($v, $label)
     {
         $select_options = $this->custom_column->createSelectOptions();
         // if $value is array
         $multiple = true;
-        if (!is_array($this->value) && preg_match('/\[.+\]/i', $this->value)) {
-            $this->value = json_decode($this->value);
+        if (!is_array($v) && preg_match('/\[.+\]/i', $v)) {
+            $v = json_decode($v);
         }
-        if (!is_array($this->value)) {
-            $val = [$this->value];
+        if (!is_array($v)) {
+            $val = [$v];
             $multiple = false;
         } else {
-            $val = $this->value;
+            $val = $v;
         }
         // switch column_type and get return value
         $returns = $this->getReturnsValue($select_options, $val, $label);

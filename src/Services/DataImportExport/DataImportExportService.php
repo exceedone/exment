@@ -322,7 +322,7 @@ class DataImportExportService extends AbstractExporter
             $formats['excel'] = 'xlsx';
         }
 
-        $form->description('<span class="red">' . exmtrans('common.help.import_max_row_count', [
+        $form->descriptionHtml('<span class="red">' . exmtrans('common.help.import_max_row_count', [
             'count' => config('exment.import_max_row_count', 1000),
             'manual' => \getManualUrl('data_bulk_insert')
         ]) . '</span>')
@@ -448,7 +448,7 @@ class DataImportExportService extends AbstractExporter
             } elseif ($key == Define::PARENT_ID_NAME && isset($value)) {
                 // convert target key's id
                 if (array_has($options, 'setting')) {
-                    $s = collect($options['setting'])->filter(function ($s) use ($key) {
+                    $s = collect($options['setting'])->filter(function ($s) {
                         return isset($s['target_column_name']) && $s['column_name'] == Define::PARENT_ID_NAME;
                     })->first();
                 }

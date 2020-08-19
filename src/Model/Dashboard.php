@@ -156,7 +156,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         
         // add global scope
         static::addGlobalScope('showableDashboards', function (Builder $builder) {
-            return static::showableDashboards($builder);
+            static::showableDashboards($builder);
         });
     }
 
@@ -181,7 +181,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     /**
      * scope user showable Dashboards
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Eloquent\Builder $query
      * @return void
      */
     protected static function showableDashboards($query)

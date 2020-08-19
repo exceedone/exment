@@ -1213,7 +1213,7 @@ class PatchDataCommand extends Command
         }
 
         // update system value
-        System::userdashboard_available(!boolval(config('exment.userdashboard_disabled', false)));
-        System::userview_available(!boolval(config('exment.userview_disabled', false)));
+        System::userdashboard_available(!boolval(config('exment.userdashboard_disabled', true)));
+        System::userview_available(!boolval(config('exment.userview_disabled', true)));
     }
 }
