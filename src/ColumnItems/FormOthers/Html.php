@@ -19,10 +19,10 @@ class Html extends FormOtherItem
     /**
      * get Text(for display)
      */
-    public function html()
+    public function _html($v)
     {
         // Not escaping html whether html item
-        return $this->text();
+        return $this->_text($v);
     }
 
     /**

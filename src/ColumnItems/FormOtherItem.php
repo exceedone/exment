@@ -115,6 +115,7 @@ abstract class FormOtherItem implements ItemInterface
     {
         $classname = $this->getAdminFieldClass();
         $field = new $classname($this->html(), []);
+        $this->setAdminOptions($field, null);
 
         return $field;
     }

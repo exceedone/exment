@@ -16,9 +16,15 @@ class Explain extends FormOtherItem
      * get html(for display)
      * *Please escape
      */
-    public function html()
+    public function _html($v)
     {
         // default escapes text
-        return esc_html($this->text());
+        return esc_html($this->_text($v));
+    }
+    
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
+        // not escape because always calls escape in "_html" function 
+        $field->escape(false);
     }
 }
