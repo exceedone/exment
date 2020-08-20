@@ -345,6 +345,16 @@ if (!function_exists('path_join')) {
     }
 }
 
+if (!function_exists('path_join_os')) {
+    /**
+     * Join FilePath. consider OS SEPARATOR.
+     */
+    function path_join_os(...$pass_array)
+    {
+        return join_paths(DIRECTORY_SEPARATOR, $pass_array);
+    }
+}
+
 if (!function_exists('url_join')) {
     /**
      * Join FilePath.

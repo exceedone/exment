@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Console;
 
 use Encore\Admin\Grid;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Schema;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Services\DataImportExport;
@@ -19,7 +18,7 @@ class ExportCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:export {table_name} {--action=default} {--type=all} {--page=1} {--count=} {--format=csv} {--view=} {--dirpath=} {--add_setting=0}';
+    protected $signature = 'exment:export {table_name} {--action=default} {--type=all} {--page=1} {--count=} {--format=csv} {--view=} {--dirpath=} {--add_setting=0} {--add_relation=0}';
 
     /**
      * The console command description.
@@ -71,6 +70,7 @@ class ExportCommand extends Command
         $options['view'] = $this->option("view");
         $options['dirpath'] = $this->option("dirpath");
         $options['add_setting'] = $this->option("add_setting");
+        $options['add_relation'] = $this->option("add_relation");
 
         if (!\in_array($options['action'], ['default', 'view'])) {
             throw new \Exception('optional parameter action error : ' . $options['action']);
@@ -84,17 +84,21 @@ class ExportCommand extends Command
             throw new \Exception('optional parameter format error : ' . $options['format']);
         }
 
-        if ($options['action'] == 'view') {
-            if (!isset($options['view'])) {
-                // get all data view
-                $custom_view = $custom_table->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
-            } else {
-                $custom_view = CustomView::getEloquent($options['view']);
-            }
+        // set view info
+        if (isset($options['view'])) {
+            $custom_view = CustomView::getEloquent($options['view']);
+
             if (!isset($custom_view)) {
                 throw new \Exception('optional parameter view error : ' . $options['view']);
             }
             $options['view'] = $custom_view;
+        }
+
+        if ($options['action'] == 'view') {
+            if (!isset($options['view'])) {
+                // get all data view
+                $options['view'] = CustomView::getAllData($custom_table);
+            }
 
             if ($options['type'] == 'page') {
                 if (!preg_match("/^[0-9]+$/", $options['page'])) {
@@ -114,7 +118,7 @@ class ExportCommand extends Command
             }
         } else {
             // get default directory full path
-            $options['dirpath'] = storage_path(path_join('app', 'export', date('YmdHis')));
+            $options['dirpath'] = storage_path(path_join_os('app', 'export', date('YmdHis')));
             // if default is not exists, make directory
             if (!\File::exists($options['dirpath'])) {
                 \File::makeDirectory($options['dirpath'], 0755, true);
@@ -136,14 +140,21 @@ class ExportCommand extends Command
             $classname = getModelName($custom_table);
             $grid = new Grid(new $classname);
             if ($options['type'] == 'page') {
-                $grid->model()->forPage($options['page'], $options['count']);
+                $grid->model()->setPerPageArguments([$options['count'], ['*'], 'page', $options['page']])
+                    ->disableHandleInvalidPage();
+            }
+
+            if(isset($options['view']) && $options['view'] instanceof CustomView){
+                $options['view']->filterModel($grid->model());
             }
     
             $service = (new DataImportExport\DataImportExportService())
                 ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
                     [
                         'custom_table' => $custom_table,
-                        'grid' => $grid
+                        'grid' => $grid,
+                        'add_setting' => boolval(array_get($options, 'add_setting', false)),
+                        'add_relation' => boolval(array_get($options, 'add_relation', false)),
                     ]
                 ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
                     [
@@ -161,7 +172,9 @@ class ExportCommand extends Command
                 $this->line($message);
             }
 
+            return array_get($result, 'dirpath');
         } catch (\Exception $e) {
+            \Log::error($e);
             $this->error($e->getMessage());
             return -1;
         }

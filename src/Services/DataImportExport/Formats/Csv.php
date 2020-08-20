@@ -128,12 +128,9 @@ class Csv extends FormatBase
         return count($this->datalist) > 1;
     }
     
-    public function saveAsFile($csvdir, $files, $add_setting = false)
+    public function saveAsFile($csvdir, $files)
     {
         foreach ($files as $f) {
-            if (!boolval($add_setting) && $f['name'] == Define::SETTING_SHEET_NAME) {
-                continue;
-            }
             // csv path
             $csv_name = $f['name'] . '.csv';
             $csv_path = path_join($csvdir, $csv_name);

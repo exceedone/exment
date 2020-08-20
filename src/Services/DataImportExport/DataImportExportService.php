@@ -278,11 +278,12 @@ class DataImportExportService extends AbstractExporter
             ->filebasename($this->exportAction->filebasename())
             ->createFile();
 
-        $this->format->saveAsFile($options['dirpath'], $files, $options['add_setting']);
+        $this->format->saveAsFile($options['dirpath'], $files);
 
         return [
             'result' => true,
-            'message' => exmtrans('command.export.success_message')
+            'message' => exmtrans('command.export.success_message', $options['dirpath']),
+            'dirpath' => $options['dirpath'],
         ];
     }
 

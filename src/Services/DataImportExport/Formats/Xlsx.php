@@ -27,7 +27,7 @@ class Xlsx extends FormatBase
         }, 200, $this->getDefaultHeaders());
     }
     
-    public function saveAsFile($dirpath, $files, $add_setting = false)
+    public function saveAsFile($dirpath, $files)
     {
         $writer = $this->createWriter($files[0]['spreadsheet']);
         $file_path = path_join($dirpath, $this->filebasename. ".xlsx");
