@@ -342,13 +342,19 @@ class RoleGroupController extends AdminControllerBase
 
         list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions(null, null, false, $default);
         
-        $form->listbox('role_group_item', exmtrans('role_group.user_organization_setting'))
-            ->options($options)
-            ->ajax($ajax)
-            ->default($default)
-            ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
-            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
-        ;
+        if(!is_nullorempty($ajax)){
+            $form->multipleSelect('role_group_item', exmtrans('role_group.user_organization_setting'))
+                ->options($options)
+                ->ajax($ajax)
+                ->default($default);
+        }else{
+            $form->listbox('role_group_item', exmtrans('role_group.user_organization_setting'))
+                ->options($options)
+                ->default($default)
+                ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
+                ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
+            ;
+        }
 
         return $form;
     }
