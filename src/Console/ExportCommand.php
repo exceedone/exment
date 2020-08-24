@@ -143,6 +143,9 @@ class ExportCommand extends Command
                 $grid->model()->setPerPageArguments([$options['count'], ['*'], 'page', $options['page']])
                     ->disableHandleInvalidPage();
             }
+            elseif($options['type'] == 'all'){
+                $grid->model()->usePaginate(false);
+            }
 
             if(isset($options['view']) && $options['view'] instanceof CustomView){
                 $options['view']->filterModel($grid->model());
