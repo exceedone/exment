@@ -100,7 +100,7 @@ class Csv extends FormatBase
                 return $callbackZip($files);
             } finally {
                 // delete tmp folder
-                if (isset($zip)) {
+                if (!is_nullorempty($zip)) {
                     $zip->close();
                 }
                 // delete zip
@@ -242,7 +242,7 @@ class Csv extends FormatBase
         $original_locale = setlocale(LC_CTYPE, 0);
 
         // set C locale
-        if(0 === strpos(PHP_OS, 'WIN')) {
+        if (0 === strpos(PHP_OS, 'WIN')) {
             setlocale(LC_CTYPE, 'C');
         }
 

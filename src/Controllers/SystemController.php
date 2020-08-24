@@ -179,11 +179,11 @@ class SystemController extends AdminControllerBase
         $form->exmheader(exmtrans('system.view_dashboard_header'))->hr();
 
         $form->switchbool('userdashboard_available', exmtrans("system.userdashboard_available"))
-            ->default(1)
+            ->default(0)
             ->help(exmtrans("system.help.userdashboard_available"));
 
         $form->switchbool('userview_available', exmtrans("system.userview_available"))
-            ->default(1)
+            ->default(0)
             ->help(exmtrans("system.help.userview_available"));
 
 
@@ -191,7 +191,7 @@ class SystemController extends AdminControllerBase
         if (!boolval(config('exment.mail_setting_env_force', false))) {
             $form->exmheader(exmtrans('system.system_mail'))->hr();
 
-            $form->description(exmtrans("system.help.system_mail"));
+            $form->descriptionHtml(exmtrans("system.help.system_mail"));
 
             $form->text('system_mail_host', exmtrans("system.system_mail_host"));
 
@@ -209,7 +209,7 @@ class SystemController extends AdminControllerBase
         }
        
         $form->exmheader(exmtrans('system.ip_filter'))->hr();
-        $form->description(exmtrans("system.help.ip_filter"));
+        $form->descriptionHtml(exmtrans("system.help.ip_filter"));
 
         $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
@@ -239,7 +239,7 @@ class SystemController extends AdminControllerBase
         $form->disableReset();
         $form->disableSubmit();
 
-        $form->description(exmtrans('system.help.test_mail'));
+        $form->descriptionHtml(exmtrans('system.help.test_mail'));
 
         $form->email('test_mail_to', exmtrans("system.test_mail_to"));
 

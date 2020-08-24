@@ -6,9 +6,9 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\WorkflowAuthority;
+use Exceedone\Exment\Model\WorkflowValueAuthority;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Form\Field\ChangeField;
@@ -18,8 +18,8 @@ use Carbon\Carbon;
 /**
  *
  * @method mixed getFilterOption()
- * @method mixed getChangeField()
- * @method string getText()
+ * @method mixed getChangeField($key, $show_condition_key = true)
+ * @method string getText($key, $value, $showFilter = true)
  */
 abstract class ConditionItemBase
 {

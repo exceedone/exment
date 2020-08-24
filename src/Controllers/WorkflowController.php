@@ -161,7 +161,7 @@ class WorkflowController extends AdminControllerBase
         $form = new Form(new Workflow);
         $form->progressTracker()->options($this->getProgressInfo($workflow, 1));
 
-        $form->description(exmtrans('common.help.more_help'));
+        $form->descriptionHtml(exmtrans('common.help.more_help'));
 
         $form->text('workflow_view_name', exmtrans("workflow.workflow_view_name"))
             ->required()
@@ -215,7 +215,7 @@ class WorkflowController extends AdminControllerBase
             $field->disableOptions();
         } else {
             $field->rowUpDown('order')
-                ->description(sprintf(exmtrans("workflow.description_workflow_statuses")));
+                ->descriptionHtml(sprintf(exmtrans("workflow.description_workflow_statuses")));
         }
         
         $form->saving(function (Form $form) {
@@ -282,7 +282,7 @@ class WorkflowController extends AdminControllerBase
         $form = new Form(new Workflow);
         $form->progressTracker()->options($this->getProgressInfo($workflow, 2));
 
-        $form->description(exmtrans('common.help.more_help'));
+        $form->descriptionHtml(exmtrans('common.help.more_help'));
 
         $form->hidden('action')->default(2);
         $form->display('workflow_view_name', exmtrans("workflow.workflow_view_name"));
@@ -509,7 +509,7 @@ class WorkflowController extends AdminControllerBase
         }
 
         // add form
-        $form->description(exmtrans('workflow.help.beginning') . '<br />' . exmtrans('common.help.more_help'));
+        $form->descriptionHtml(exmtrans('workflow.help.beginning') . '<br />' . exmtrans('common.help.more_help'));
 
         $form->html(view('exment::workflow.beginning', [
             'items' => $results
@@ -924,7 +924,7 @@ class WorkflowController extends AdminControllerBase
         $form = new ModalForm($value);
 
         if (isset($workflow_type)) {
-            $form->description(exmtrans('workflow.help.work_conditions_' . $workflow_type->lowerKey()))
+            $form->descriptionHtml(exmtrans('workflow.help.work_conditions_' . $workflow_type->lowerKey()))
                 ->setWidth(10, 2);
         }
 
@@ -1017,7 +1017,7 @@ class WorkflowController extends AdminControllerBase
         $form = new ModalForm();
         $form->action($activatePath);
 
-        $form->description(exmtrans('workflow.help.setting_complete'));
+        $form->descriptionHtml(exmtrans('workflow.help.setting_complete'));
 
         $form->text('activate_keyword', exmtrans('common.keyword'))
             ->required()

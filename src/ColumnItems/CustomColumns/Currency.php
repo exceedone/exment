@@ -6,9 +6,9 @@ use Exceedone\Exment\Enums\CurrencySymbol;
 
 class Currency extends Decimal
 {
-    public function text()
+    protected function _text($v)
     {
-        list($symbol, $value) = $this->getSymbolAndValue();
+        list($symbol, $value) = $this->getSymbolAndValue($v);
         if (!isset($symbol)) {
             return $value;
         }
@@ -16,9 +16,9 @@ class Currency extends Decimal
         return getCurrencySymbolLabel($symbol, false, $value);
     }
 
-    public function html()
+    protected function _html($v)
     {
-        list($symbol, $value) = $this->getSymbolAndValue();
+        list($symbol, $value) = $this->getSymbolAndValue($v);
         if (!isset($symbol)) {
             return $value;
         }
@@ -26,24 +26,24 @@ class Currency extends Decimal
         return getCurrencySymbolLabel($symbol, true, $value);
     }
 
-    protected function getSymbolAndValue()
+    protected function getSymbolAndValue($v)
     {
-        if (is_null($this->value())) {
+        if (is_null($v)) {
             return [null, null];
         }
 
         if (boolval(array_get($this->custom_column, 'options.number_format'))
-        && is_numeric($this->value())
+        && is_numeric($v)
         && !boolval(array_get($this->options, 'disable_number_format'))) {
             if (array_has($this->custom_column, 'options.decimal_digit')) {
                 $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-                $value = number_format($this->value(), $digit);
+                $value = number_format($v, $digit);
             //$value = preg_replace("/\.?0+$/",'', $value);
             } else {
-                $value = number_format($this->value());
+                $value = number_format($v);
             }
         } else {
-            $value = $this->value();
+            $value = $v;
         }
 
         if (boolval(array_get($this->options, 'disable_currency_symbol'))) {

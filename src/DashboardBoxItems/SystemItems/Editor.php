@@ -36,7 +36,7 @@ class Editor
     public function body()
     {
         // escape script.
-        return esc_script_tag('<div class="dashboard-box-editor">' . $this->dashboard_box->getOption('content') . '</div>');
+        return html_clean('<div class="dashboard-box-editor">' . $this->dashboard_box->getOption('content') . '</div>');
     }
 
     /**

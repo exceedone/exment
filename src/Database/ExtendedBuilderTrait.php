@@ -2,6 +2,10 @@
 
 namespace Exceedone\Exment\Database;
 
+/**
+ *
+ * @property mixed $query
+ */
 trait ExtendedBuilderTrait
 {
     /**

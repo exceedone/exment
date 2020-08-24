@@ -29,7 +29,9 @@ trait BuilderTrait
             ],
             $settings
         );
-        extract($settings);
+        $dbValueFilter = $settings['dbValueFilter'];
+        $dbDeleteFilter = $settings['dbDeleteFilter'];
+        $matchFilter = $settings['matchFilter'];
         
         // get DB values
         $dbValueQuery = \DB::table($table);

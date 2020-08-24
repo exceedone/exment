@@ -180,25 +180,18 @@ class ListItem implements ItemInterface
         }
         
         // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueModel()::query();
+        $query = $this->custom_table->getValueModel()::query();
+        $this->custom_view->getQuery($query);
 
-        if (array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE) {
-            // filter model
-            $model = $this->custom_view->getValueSummary($model, $this->custom_table->table_name);
-        } else {
-            // filter model
-            $this->custom_view->filterModel($model);
-        }
-        
         // pager count
         $pager_count = $this->dashboard_box->getOption('pager_count');
         if (!isset($pager_count) || $pager_count == 0) {
             $pager_count = System::datalist_pager_count() ?? 5;
         }
 
-        $this->custom_table->setQueryWith($model, $this->custom_view);
+        $this->custom_table->setQueryWith($query, $this->custom_view);
 
         // get data
-        $this->paginate = $model->paginate($pager_count);
+        $this->paginate = $query->paginate($pager_count);
     }
 }

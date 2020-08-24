@@ -96,7 +96,7 @@ class Initialize
         ///// set config
 
         // Only set if expire_on_close is false(default)
-        if(!boolval(Config::get('session.expire_on_close', false))){
+        if (!boolval(Config::get('session.expire_on_close', false))) {
             Config::set('session.expire_on_close', Config::get('exment.session_expire_on_close', false));
         }
 
@@ -307,6 +307,7 @@ class Initialize
             }
 
             // Date format
+            $list = null;
             $val = System::default_date_format();
             if (!is_nullorempty($val)) {
                 $list = exmtrans("system.date_format_list.$val");
@@ -424,6 +425,7 @@ class Initialize
             'link'           => Field\Link::class,
             'exmheader'           => Field\Header::class,
             'description'           => Field\Description::class,
+            'descriptionHtml'           => Field\DescriptionHtml::class,
             'switchbool'          => Field\SwitchBoolField::class,
             'pivotMultiSelect'          => Field\PivotMultiSelect::class,
             'checkboxone'          => Field\Checkboxone::class,

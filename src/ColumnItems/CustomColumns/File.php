@@ -17,26 +17,26 @@ class File extends CustomItem
      */
     public function file()
     {
-        return ExmentFile::getFile($this->fileValue());
+        return ExmentFile::getFile($this->fileValue($this->value));
     }
 
     /**
      * get text
      */
-    public function text()
+    protected function _text($v)
     {
         // get image url
-        return ExmentFile::getUrl($this->fileValue(), boolval(array_get($this->options, 'asApi')));
+        return ExmentFile::getUrl($this->fileValue($v), boolval(array_get($this->options, 'asApi')));
     }
 
     /**
      * get html. show link to file
      */
-    public function html()
+    protected function _html($v)
     {
         // get image url
-        $url = ExmentFile::getUrl($this->fileValue());
-        $file = ExmentFile::getData($this->fileValue());
+        $url = ExmentFile::getUrl($this->fileValue($v));
+        $file = ExmentFile::getData($this->fileValue($v));
         if (!isset($url)) {
             return $url;
         }
@@ -155,17 +155,17 @@ class File extends CustomItem
      *
      * @return string
      */
-    protected function fileValue()
+    protected function fileValue($v)
     {
-        if (is_null($this->value)) {
+        if (is_null($v)) {
             return null;
         }
 
-        if (is_array($this->value)) {
-            return count($this->value) == 0 ? null : $this->value[0];
+        if (is_array($v)) {
+            return count($v) == 0 ? null : $v[0];
         }
 
-        return $this->value;
+        return $v;
     }
 
     protected function setValidates(&$validates, $form_column_options)

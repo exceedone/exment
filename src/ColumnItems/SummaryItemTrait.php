@@ -4,7 +4,12 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\GroupCondition;
+use Exceedone\Exment\Model\CustomColumn;
 
+/**
+ *
+ * @property CustomColumn $custom_column
+ */
 trait SummaryItemTrait
 {
     //for summary  --------------------------------------------------
@@ -63,7 +68,7 @@ trait SummaryItemTrait
 
     protected function getSummaryParams()
     {
-        $db_table_name = getDBTableName($this->custom_column->custom_table);
+        $db_table_name = getDBTableName($this->custom_column->custom_table_cache);
         $column_name = $this->custom_column->column_name;
 
         $group_condition = array_get($this->options, 'group_condition');

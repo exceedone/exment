@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\RelationType;
 
 class ClassBuilder
 {
@@ -203,46 +202,18 @@ class ClassBuilder
             
         // loop children tables
         foreach ($relations as $relation) {
-            $child_custom_table = CustomTable::getEloquent($relation->child_custom_table_id);
+            $function_string = 'return $this->getDynamicRelationValue(' . $relation->id . ', true);';
             $pivot_table_name = $relation->getRelationName();
-
-            // Get Parent and child table Name.
-            // case 1 to many
-            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
-                $function_string = 'return $this->morphMany("'.getModelName($child_custom_table).'", "parent");';
-            }
-            // case many to many
-            else {
-                // Create pivot table
-                if (!hasTable($pivot_table_name)) {
-                    \Schema::createRelationValueTable($pivot_table_name);
-                }
-
-                $function_string = 'return $this->belongsToMany("'.getModelName($child_custom_table).'", "'.$pivot_table_name.'", "parent_id", "child_id")->withPivot("id");';
-            }
+            
             $builder = $builder->addMethod("public", "{$pivot_table_name}()", $function_string);
         }
         
         $relations = CustomRelation::getRelationsByChild($table);
         // loop children tables
         foreach ($relations as $relation) {
-            $parent_custom_table = CustomTable::getEloquent($relation->parent_custom_table_id);
+            $function_string = 'return $this->getDynamicRelationValue(' . $relation->id . ', false);';
             $pivot_table_name = $relation->getRelationName();
-
-            // Get Parent and child table Name.
-            // case 1 to many
-            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
-                $function_string = 'return $this->morphTo("'.getModelName($parent_custom_table, true).'", "parent");';
-            }
-            // case many to many
-            else {
-                // Create pivot table
-                if (!hasTable($pivot_table_name)) {
-                    \Schema::createRelationValueTable($pivot_table_name);
-                }
-
-                $function_string = 'return $this->belongsToMany("'.getModelName($parent_custom_table, true).'", "'.$pivot_table_name.'", "child_id", "parent_id")->withPivot("id");';
-            }
+            
             $builder = $builder->addMethod("public", "{$pivot_table_name}()", $function_string);
         }
 

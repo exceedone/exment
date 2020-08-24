@@ -35,9 +35,9 @@ class Tile extends Field
     public function options($options = [])
     {
         // remote options
-        if (is_string($options)) {
-            return $this->loadRemoteOptions(...func_get_args());
-        }
+        // if (is_string($options)) {
+        //     return $this->loadRemoteOptions(...func_get_args());
+        // }
 
         if ($options instanceof Arrayable) {
             $options = $options->toArray();

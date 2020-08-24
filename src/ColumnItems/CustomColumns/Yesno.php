@@ -17,9 +17,9 @@ class Yesno extends CustomItem
      */
     protected $required = false;
 
-    public function text()
+    protected function _text($v)
     {
-        return getYesNo($this->value);
+        return getYesNo($v);
     }
 
     public function saving()

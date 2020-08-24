@@ -169,8 +169,13 @@ namespace Exment {
                 else if(hasValue(res.swal)){
                     swal(res.swal, (hasValue(res.swaltext) ? res.swaltext : ''), 'error');
                 }
-                // if has message, not execute action
+                // if has message, show swal
                 else if(hasValue(res.message)){
+                    if(swal.isVisible()){
+                        swal.close();
+                    }
+
+                    swal($('#exment_error_title').val(), res.message, 'error');
                 }
                 else {
                     Exment.CommonEvent.UndefinedError();
@@ -199,15 +204,15 @@ namespace Exment {
 
         public static UndefinedError(){
             let undefined_error = $('#exment_undefined_error').val();
-                    if(!hasValue(undefined_error)){
-                        undefined_error = 'Undefined Error';
-                    }
-                    toastr.error(undefined_error);
+            if(!hasValue(undefined_error)){
+                undefined_error = 'Undefined Error';
+            }
+            toastr.error(undefined_error);
 
-                    if(swal.isVisible()){
-                        swal.close();
-                    }
-                    return;
+            if(swal.isVisible()){
+                swal.close();
+            }
+            return;
         }
 
         /**
@@ -1164,10 +1169,12 @@ namespace Exment {
         private static addFieldEvent() {
             $('[data-add-date]').not('.added-datepicker').each(function (index, elem: Element) {
                 $(elem).datetimepicker({"useCurrent":false, "format":"YYYY-MM-DD", "locale":"ja", "allowInputToggle":true});
-            }).addClass('added-datepicker');
+                $(elem).addClass('added-datepicker');
+            });
             $('[data-add-icheck]').not('.added-icheck').each(function (index, elem: Element) {
                 $(elem).iCheck({checkboxClass:'icheckbox_minimal-blue'});
-            }).addClass('added-icheck');
+                $(elem).addClass('added-icheck');
+            });
         }
 
         private static getFilterVal($parent: JQuery, a) {

@@ -161,7 +161,7 @@ class RoleGroupController extends AdminControllerBase
             
         $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::SYSTEM()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
 
-        $form->description(exmtrans('role_group.description_system_admin'));
+        $form->descriptionHtml(exmtrans('role_group.description_system_admin'));
 
 
         // System --------------------------------------------------------
@@ -342,13 +342,19 @@ class RoleGroupController extends AdminControllerBase
 
         list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions(null, null, false, $default);
         
-        $form->listbox('role_group_item', exmtrans('role_group.user_organization_setting'))
-            ->options($options)
-            ->ajax($ajax)
-            ->default($default)
-            ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
-            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
-        ;
+        if(!is_nullorempty($ajax)){
+            $form->multipleSelect('role_group_item', exmtrans('role_group.user_organization_setting'))
+                ->options($options)
+                ->ajax($ajax)
+                ->default($default);
+        }else{
+            $form->listbox('role_group_item', exmtrans('role_group.user_organization_setting'))
+                ->options($options)
+                ->default($default)
+                ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
+                ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
+            ;
+        }
 
         return $form;
     }

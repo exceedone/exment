@@ -263,7 +263,7 @@ class CustomValueAuthoritable extends ModelBase
         $form->modalHeader(exmtrans('common.shared'));
         $form->action(admin_urls('data', $tableKey, $id, 'sendShares'));
 
-        $form->description(exmtrans('role_group.share_description'))->setWidth(9, 2);
+        $form->descriptionHtml(exmtrans('role_group.share_description'))->setWidth(9, 2);
 
         // select target users
         $default = static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_EDIT);

@@ -12,6 +12,13 @@ class Header extends Field\Display
 
     protected $hr;
 
+    /**
+     * Whether escape
+     *
+     * @var boolean
+     */
+    protected $escape = true;
+
     public function __construct($label)
     {
         $this->no = 4;
@@ -40,11 +47,24 @@ class Header extends Field\Display
         return $this;
     }
 
+    /**
+     * Toggle escape
+     *
+     * @var boolean
+     */
+    public function escape(bool $escape)
+    {
+        $this->escape = $escape;
+
+        return $this;
+    }
+
     public function render()
     {
         return parent::render()->with([
             'no' => $this->no,
             'hr' => $this->hr,
+            'escape' => $this->escape,
         ]);
     }
 }

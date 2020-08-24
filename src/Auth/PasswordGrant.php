@@ -121,9 +121,10 @@ class PasswordGrant extends PasswordGrantBase
             if (! $user->validateForPassportPasswordGrant($password, $credentials)) {
                 return;
             }
-        } elseif (! $this->hasher->check($password, $user->getAuthPassword())) {
-            return;
         }
+        // elseif (! $this->hasher->check($password, $user->getAuthPassword())) {
+        //     return;
+        // }
 
         return new \Laravel\Passport\Bridge\User($user->getAuthIdentifier());
     }

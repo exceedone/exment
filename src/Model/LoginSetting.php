@@ -355,6 +355,11 @@ class LoginSetting extends ModelBase
             ],
         ];
 
+        // set proxy vars
+        if (boolval($provider->getOption('saml_option_proxy_vars')) ?? false) {
+            \OneLogin\Saml2\Utils::setProxyVars(true);
+        }
+
         $saml2Auth = new \Aacotroneo\Saml2\Saml2Auth(new \OneLogin\Saml2\Auth($config));
         return $saml2Auth;
     }

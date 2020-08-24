@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Form\Field;
 
 use Encore\Admin\Form\Field\Textarea;
+use Exceedone\Exment\Model\Define;
 
 class Tinymce extends Textarea
 {
@@ -39,6 +40,16 @@ class Tinymce extends Textarea
         return parent::readonly();
     }
 
+    protected function getValidElements()
+    {
+        $tags = Define::HTML_ALLOWED_EDITOR_DEFAULT;
+        if (!is_null($c = config('exment.html_allowed_editor'))) {
+            $tags = $c;
+        }
+        
+        return $tags;
+    }
+
     public function render()
     {
         // Remove required attributes(for timymce bug).
@@ -50,10 +61,11 @@ class Tinymce extends Textarea
         
         $configs = array_merge([
             'selector' => "{$this->getElementClassSelector()}",
-            'toolbar'=> ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link'],
-            'plugins'=> 'textcolor hr link lists',
+            'toolbar'=> ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link code'],
+            'plugins'=> 'textcolor hr link lists code',
             'menubar' => false,
             'language' => $locale,
+            'valid_elements' => $this->getValidElements(),
         ], $this->config);
 
         $configs = json_encode($configs);

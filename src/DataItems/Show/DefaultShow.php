@@ -311,7 +311,7 @@ class DefaultShow extends ShowBase
                     $grid->model()->whereIn('id', $children_ids->toArray());
                 }
                 
-                $custom_view = CustomView::getDefault($target_table);
+                $custom_view = CustomView::getAllData($target_table);
                 $custom_view->setGrid($grid);
                 
                 $grid->disableFilter();

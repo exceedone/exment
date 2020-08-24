@@ -153,7 +153,7 @@ class CustomOperationController extends AdminControllerTableBase
             })->required()
             ->attribute(['data-filtertrigger' =>true]);
 
-        $form->embeds('options', null, function ($form) use ($id) {
+        $form->embeds('options', null, function ($form) {
             $form->text('button_label', exmtrans("custom_operation.options.button_label"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'operation_type', 'value' => [CustomOperationType::BUTTON, CustomOperationType::BULK_UPDATE]])]);
             $form->icon('button_icon', exmtrans("custom_operation.options.button_icon"))
@@ -218,7 +218,7 @@ class CustomOperationController extends AdminControllerTableBase
         
         $hasManyTable->callbackField(function ($field) {
             $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
-            $field->description(sprintf(exmtrans("custom_operation.help.custom_operation_columns"), $manualUrl));
+            $field->descriptionHtml(sprintf(exmtrans("custom_operation.help.custom_operation_columns"), $manualUrl));
             $field->setTableColumnWidth(4, 3, 4, 1);
         });
         $hasManyTable->render();
@@ -241,7 +241,7 @@ class CustomOperationController extends AdminControllerTableBase
         ]);
         
         $filterTable->callbackField(function ($field) {
-            $field->description(sprintf(exmtrans("custom_operation.help.custom_operation_conditions")));
+            $field->descriptionHtml(sprintf(exmtrans("custom_operation.help.custom_operation_conditions")));
         });
         $filterTable->render();
 

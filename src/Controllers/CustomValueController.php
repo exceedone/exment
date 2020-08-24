@@ -564,7 +564,7 @@ class CustomValueController extends AdminControllerTableBase
         $copy_input_columns = $copy->custom_copy_input_columns ?? [];
 
         // add form
-        $form->description(sprintf(exmtrans('custom_copy.dialog_description'), $from_table_view_name, $to_table_view_name, $to_table_view_name));
+        $form->descriptionHtml(sprintf(exmtrans('custom_copy.dialog_description'), $from_table_view_name, $to_table_view_name, $to_table_view_name));
         foreach ($copy_input_columns as $copy_input_column) {
             $field = FormHelper::getFormField($this->custom_table, $copy_input_column->to_custom_column, null);
             $form->pushField($field);

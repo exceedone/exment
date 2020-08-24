@@ -623,7 +623,7 @@ class WorkflowAction extends ModelBase
         $showSubmit = !WorkflowValue::isAlreadyExecuted($this->id, $custom_value, \Exment::user()->base_user);
 
         if ($showSubmit) {
-            $form->description(exmtrans('workflow.message.action_execute'));
+            $form->descriptionHtml(exmtrans('workflow.message.action_execute'));
         }
         
         $form->display('action_name', exmtrans('workflow.action_name'))
@@ -652,6 +652,7 @@ class WorkflowAction extends ModelBase
                 list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions($custom_table, null, true);
                 $form->multipleSelect('next_work_users', exmtrans('workflow.next_work_users'))
                     ->options($options)
+                    ->ajax($ajax)
                     ->required();
             } else {
                 // only display

@@ -92,7 +92,7 @@ trait HasResourceActions
         } else {
             $data = [
                 'status'  => false,
-                'message' => trans('admin.delete_failed'),
+                'message' => exmtrans('error.delete_failed'),
             ];
         }
 

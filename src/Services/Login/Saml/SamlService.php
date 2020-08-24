@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Login\Saml;
 use Exceedone\Exment\Exceptions\SsoLoginErrorException;
 use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Model\LoginSetting;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums\LoginType;
@@ -80,7 +81,7 @@ class SamlService implements LoginServiceInterface
     public static function setSamlForm($form, $login_setting, $errors)
     {
         if (array_has($errors, LoginType::SAML)) {
-            $form->description($errors[LoginType::SAML])
+            $form->descriptionHtml($errors[LoginType::SAML])
                 ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
 
             return;
@@ -181,6 +182,11 @@ class SamlService implements LoginServiceInterface
 
         $form->switchbool('saml_option_logout_response_signed', exmtrans("login.saml_option_logout_response_signed"))
         ->help(exmtrans("login.help.saml_option_logout_response_signed"))
+        ->default("0")
+        ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
+
+        $form->switchbool('saml_option_proxy_vars', exmtrans("login.saml_option_proxy_vars"))
+        ->help(exmtrans("login.help.saml_option_proxy_vars"))
         ->default("0")
         ->attribute(['data-filter' => json_encode(['key' => 'login_type', 'parent' => 1, 'value' => [LoginType::SAML]])]);
     }

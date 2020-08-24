@@ -121,31 +121,22 @@ class CustomViewColumn extends ModelBase
 
     public function getViewPivotColumnIdAttribute()
     {
-        return $this->getOption('view_pivot_column_id');
+        return $this->getViewPivotIdTrait('view_pivot_column_id');
     }
     public function setViewPivotColumnIdAttribute($view_pivot_column_id)
     {
-        if (!isset($view_pivot_column_id)) {
-            $this->setOption('view_pivot_column_id', null);
-            return $this;
-        }
-        $this->setOption('view_pivot_column_id', $view_pivot_column_id);
-        return $this;
+        return $this->setViewPivotIdTrait('view_pivot_column_id', $view_pivot_column_id);
     }
+    
     public function getViewPivotTableIdAttribute()
     {
-        return $this->getOption('view_pivot_table_id');
+        return $this->getViewPivotIdTrait('view_pivot_table_id');
     }
     public function setViewPivotTableIdAttribute($view_pivot_table_id)
     {
-        if (!isset($view_pivot_table_id)) {
-            $this->setOption('view_pivot_table_id', null);
-            return $this;
-        }
-        $this->setOption('view_pivot_table_id', $view_pivot_table_id);
-        return $this;
+        return $this->setViewPivotIdTrait('view_pivot_table_id', $view_pivot_table_id);
     }
-
+    
     
     public function getViewGroupConditionAttribute()
     {

@@ -830,6 +830,10 @@ class Plugin extends ModelBase
     {
         return $this->getJson('custom_options', $key, $default);
     }
+    public function setCustomOption($key, $val = null)
+    {
+        return $this->setJson('custom_options', $key, $val);
+    }
 
     protected static function boot()
     {

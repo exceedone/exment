@@ -7,10 +7,10 @@ class ExHtml extends Html
     /**
      * get Text(for display)
      */
-    public function text()
+    protected function _text($v)
     {
         $format = array_get($this->form_column, 'options.html');
-        return replaceTextFromFormat($format, $this->value, ['escapeValue' => true]);
+        return replaceTextFromFormat($format, $v);
     }
 
     public function setCustomValue($custom_value)

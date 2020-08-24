@@ -158,7 +158,7 @@ class SearchController extends AdminControllerBase
         $table_names = stringToArray($request->input('table_names', []));
 
         $results = [];
-        foreach($table_names as $table_name){
+        foreach ($table_names as $table_name) {
             $results[$table_name] = $this->getListItem($request, $q, $table_name);
         }
 
@@ -182,7 +182,7 @@ class SearchController extends AdminControllerBase
     protected function getListItem(Request $request, $q, $table_name)
     {
         $custom_table = CustomTable::getEloquent($table_name);
-        if(empty($custom_table)){
+        if (empty($custom_table)) {
             return [];
         }
 

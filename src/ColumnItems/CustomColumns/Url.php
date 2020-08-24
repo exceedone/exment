@@ -12,10 +12,10 @@ class Url extends CustomItem
      * get html(for display)
      * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
-    public function html()
+    protected function _html($v)
     {
-        $value = $this->value();
-        $url = $this->value();
+        $value = $this->_value($v);
+        $url = $this->_value($v);
 
         $value = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($value) : $value;
         

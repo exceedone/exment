@@ -11,10 +11,10 @@ class Image extends File
     /**
      * get html. show link to image
      */
-    public function html()
+    protected function _html($v)
     {
         // get image url
-        $url = ExmentFile::getUrl($this->fileValue());
+        $url = ExmentFile::getUrl($this->fileValue($v));
         if (!isset($url)) {
             return $url;
         }
@@ -39,5 +39,7 @@ class Image extends File
     protected function setValidates(&$validates, $form_column_options)
     {
         $validates[] = new \Exceedone\Exment\Validator\ImageRule;
+
+        parent::setValidates($validates, $form_column_options);
     }
 }
