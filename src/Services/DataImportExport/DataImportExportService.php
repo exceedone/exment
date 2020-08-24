@@ -259,6 +259,33 @@ class DataImportExportService extends AbstractExporter
 
         return $this->importAction->importChunk($datalist, $options);
     }
+    
+    /**
+     * execute export background
+     */
+    public function exportBackground(array $options = [])
+    {
+        setTimeLimitLong();
+
+        if ($options['action'] == 'view' && isset($this->viewExportAction)) {
+            $datalist = $this->viewExportAction->datalist();
+        } else {
+            $datalist = $this->exportAction->datalist();
+        }
+
+        $files = $this->format
+            ->datalist($datalist)
+            ->filebasename($this->exportAction->filebasename())
+            ->createFile();
+
+        $this->format->saveAsFile($options['dirpath'], $files);
+
+        return [
+            'result' => true,
+            'message' => exmtrans('command.export.success_message', $options['dirpath']),
+            'dirpath' => $options['dirpath'],
+        ];
+    }
 
     /**
      * import data by custom logic

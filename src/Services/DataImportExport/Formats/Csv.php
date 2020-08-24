@@ -128,6 +128,28 @@ class Csv extends FormatBase
         return count($this->datalist) > 1;
     }
     
+    public function saveAsFile($csvdir, $files)
+    {
+        foreach ($files as $f) {
+            // csv path
+            $csv_name = $f['name'] . '.csv';
+            $csv_path = path_join($csvdir, $csv_name);
+            $writer = $this->createWriter($f['spreadsheet']);
+            
+            // append bom if config
+            if (boolval(config('exment.export_append_csv_bom', false))) {
+                $writer->setUseBOM(true);
+            }
+
+            $writer->save($csv_path);
+
+            // close workbook and release memory
+            $f['spreadsheet']->disconnectWorksheets();
+            $f['spreadsheet']->garbageCollect();
+            unset($writer);
+        }
+    }
+    
     public function createResponse($files)
     {
         // save as csv

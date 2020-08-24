@@ -26,6 +26,17 @@ class Xlsx extends FormatBase
             unset($writer);
         }, 200, $this->getDefaultHeaders());
     }
+    
+    public function saveAsFile($dirpath, $files)
+    {
+        $writer = $this->createWriter($files[0]['spreadsheet']);
+        $file_path = path_join($dirpath, $this->filebasename. ".xlsx");
+        $writer->save($file_path);
+        // close workbook and release memory
+        $files[0]['spreadsheet']->disconnectWorksheets();
+        $files[0]['spreadsheet']->garbageCollect();
+        unset($writer);
+    }
 
     protected function getDefaultHeaders()
     {
