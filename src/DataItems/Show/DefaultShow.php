@@ -301,7 +301,7 @@ class DefaultShow extends ShowBase
                 // one to many
                 if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
                     // append filter
-                    $grid->model()->where('parent_id', $this->custom_value->id);
+                    $grid->model()->where('parent_id', $this->custom_value->id)->where('parent_type', $this->custom_table->table_name);
                 }
                 // one to many
                 elseif ($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY) {

@@ -549,7 +549,7 @@ abstract class CustomItem implements ItemInterface
         if (boolval(array_get($options, 'unique')) && !boolval(array_get($options, 'multiple_enabled'))) {
             // add unique field
             $unique_table_name = getDBTableName($this->custom_table); // database table name
-            $unique_column_name = "value->".array_get($this->custom_column, 'column_name'); // column name
+            $unique_column_name = $this->custom_column->getQueryKey(); // column name
             
             $uniqueRules = [$unique_table_name, $unique_column_name];
             // create rules.if isset id, add
