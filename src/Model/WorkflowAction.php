@@ -386,9 +386,10 @@ class WorkflowAction extends ModelBase
      * @param CustomValue $custom_value
      * @param boolean $orgAsUser if true, convert organization to users
      * @param boolean $getAsDefine if true, contains label "created_user", etc
+     * @param boolean $getValueAutorities if true, get value authority
      * @return boolean
      */
-    public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false)
+    public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false, $getValueAutorities = true)
     {
         // get users and organizations
         $userIds = [];
@@ -396,17 +397,19 @@ class WorkflowAction extends ModelBase
         $labels = [];
 
         // add as workflow_value_authorities
-        if (!is_nullorempty($custom_value) && isset($custom_value->workflow_value)) {
-            $workflow_value_authorities = $custom_value->workflow_value->getWorkflowValueAutorities();
-            foreach ($workflow_value_authorities as $workflow_value_authority) {
-                $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
-                switch ($type) {
-                    case ConditionTypeDetail::USER:
-                        $userIds[] = $workflow_value_authority->related_id;
-                        break;
-                    case ConditionTypeDetail::ORGANIZATION:
-                        $organizationIds[] = $workflow_value_authority->related_id;
-                        break;
+        if($getValueAutorities){
+            if (!is_nullorempty($custom_value) && isset($custom_value->workflow_value)) {
+                $workflow_value_authorities = $custom_value->workflow_value->getWorkflowValueAutorities();
+                foreach ($workflow_value_authorities as $workflow_value_authority) {
+                    $type = ConditionTypeDetail::getEnum($workflow_value_authority->related_type);
+                    switch ($type) {
+                        case ConditionTypeDetail::USER:
+                            $userIds[] = $workflow_value_authority->related_id;
+                            break;
+                        case ConditionTypeDetail::ORGANIZATION:
+                            $organizationIds[] = $workflow_value_authority->related_id;
+                            break;
+                    }
                 }
             }
         }
@@ -712,7 +715,8 @@ class WorkflowAction extends ModelBase
             $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow, true);
         }
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
-            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value)
+            // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
+            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value, false, false, false)
                     ->merge($toActionAuthorities);
         });
         
