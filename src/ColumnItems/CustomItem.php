@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
 use Exceedone\Exment\Validator;
 
@@ -426,6 +427,30 @@ abstract class CustomItem implements ItemInterface
             default:
                 return FilterType::DEFAULT;
         }
+    }
+
+    /**
+     * get cast name for sort
+     */
+    public function getCastName()
+    {
+        list($type, $addOption, $options) = $this->getCastOptions();
+        $grammar = \DB::getQueryGrammar();
+        return $grammar->getCastString($type, $addOption, $options);
+    }
+
+    /**
+     * get cast name for virtual column database
+     */
+    public function getVirtualColumnTypeName()
+    {
+        list($type, $addOption, $options) = $this->getCastOptions();
+        $grammar = \DB::getQueryGrammar();
+        return $grammar->getColumnTypeString($type);
+    }
+
+    protected function getCastOptions(){
+        return [DatabaseDataType::TYPE_STRING, false, []];
     }
 
     /**

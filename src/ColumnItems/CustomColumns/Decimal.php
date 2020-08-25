@@ -105,19 +105,18 @@ class Decimal extends CustomItem
 
         $validates[] = new Validator\DecimalCommaRule;
     }
+
     /**
-     * get cast name for sort
+     * get cast Options
      */
-    public function getCastName()
-    {
-        $grammar = \DB::getQueryGrammar();
+    protected function getCastOptions(){
         if (array_has($this->custom_column, 'options.decimal_digit')) {
-            return $grammar->getCastString(DatabaseDataType::TYPE_DECIMAL, true, [
+            return [DatabaseDataType::TYPE_DECIMAL, true, [
                 'length' => 50,
                 'decimal_digit' => intval(array_get($this->custom_column, 'options.decimal_digit', 2))
-            ]);
+            ]];
         } else {
-            return $grammar->getCastString(DatabaseDataType::TYPE_DECIMAL, true);
+            return [DatabaseDataType::TYPE_DECIMAL, false, []];
         }
     }
 }

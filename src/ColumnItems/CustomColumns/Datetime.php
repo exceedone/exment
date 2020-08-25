@@ -6,6 +6,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Form\Field as ExmentField;
+use Exceedone\Exment\Grid\Filter;
 
 class Datetime extends Date
 {
@@ -31,12 +32,16 @@ class Datetime extends Date
         return Field\Datetime::class;
     }
 
-    /**
-     * get cast name for sort
-     */
-    public function getCastName()
+    protected function getAdminFilterClass()
     {
-        $grammar = \DB::getQueryGrammar();
-        return $grammar->getCastString(DatabaseDataType::TYPE_DATETIME, true);
+        return Filter\BetweenDatetime::class;
+    }
+
+    /**
+     * get cast Options
+     */
+    protected function getCastOptions()
+    {
+        return [DatabaseDataType::TYPE_DATETIME, true, []];
     }
 }

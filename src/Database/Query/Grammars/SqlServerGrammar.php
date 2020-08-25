@@ -26,6 +26,30 @@ class SqlServerGrammar extends BaseGrammar
     }
 
     /**
+     * Get column type string. Almost use virtual column.
+     *
+     * @return string
+     */
+    public function getColumnTypeString($type)
+    {
+        switch ($type) {
+            case DatabaseDataType::TYPE_INTEGER:
+                return 'int';
+            case DatabaseDataType::TYPE_DECIMAL:
+                return 'decimal';
+            case DatabaseDataType::TYPE_STRING:
+                return 'nvarchar';
+            case DatabaseDataType::TYPE_DATE:
+                return 'date';
+            case DatabaseDataType::TYPE_DATETIME:
+                return 'datetime';
+            case DatabaseDataType::TYPE_TIME:
+                return 'time';
+        }
+        return 'nvarchar';
+    }
+
+    /**
      * Get cast string
      *
      * @return string
@@ -48,6 +72,9 @@ class SqlServerGrammar extends BaseGrammar
                 break;
             case DatabaseDataType::TYPE_DATETIME:
                 $cast = 'datetime';
+                break;
+            case DatabaseDataType::TYPE_TIME:
+                $cast = 'time';
                 break;
         }
 

@@ -5,13 +5,13 @@ namespace Exceedone\Exment\Grid\Filter;
 use Illuminate\Support\Arr;
 use Encore\Admin\Grid\Filter\Between;
 
-class BetweenDatetime extends Between
+class BetweenDate extends Between
 {
     /**
      * {@inheritdoc}
      */
     protected $view = 'admin::filter.betweenDatetime';
-
+    
     /**
      * Get condition of this filter.
      *
@@ -35,29 +35,18 @@ class BetweenDatetime extends Between
             return;
         }
 
-        $value = $this->convertValue($value);
-
         $column = $this->column;
-        
+
         if (!isset($value['start'])) {
-            return $this->buildCondition($column, '<', $value['end']);
+            return $this->buildCondition($column, '<=', $value['end']);
         }
 
         if (!isset($value['end'])) {
             return $this->buildCondition($column, '>=', $value['start']);
         }
 
-        $this->query = 'whereBetweenLt';
+        $this->query = 'whereBetweenQuery';
 
-        return $this->buildCondition($column, $value);
-    }
-
-    protected function convertValue($value){
-        if (isset($value['end'])) {
-            $end = \Carbon\Carbon::parse($value['end'])->addDay(1);
-            $value['end'] = $end->format('Y-m-d');
-        }
-
-        return $value;
+        return $this->buildCondition($column, $this->value);
     }
 }

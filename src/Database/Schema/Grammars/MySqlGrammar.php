@@ -56,13 +56,13 @@ class MySqlGrammar extends BaseGrammar
         return "create table if not exists {$this->wrapTable($tableName)} like custom_relation_values";
     }
     
-    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name)
+    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type)
     {
         // ALTER TABLE
         $as_value = "json_unquote(json_extract({$this->wrap('value')},'$.\"{$json_column_name}\"'))";
 
         return [
-            "alter table {$db_table_name} add {$db_column_name} nvarchar(768) generated always as ({$as_value}) virtual",
+            "alter table {$db_table_name} add {$db_column_name} {$column_type} generated always as ({$as_value}) virtual",
             "alter table {$db_table_name} add index {$index_name}({$db_column_name})",
         ];
     }

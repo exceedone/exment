@@ -219,9 +219,10 @@ trait BuilderTrait
      * @param string $db_column_name
      * @param string $index_name
      * @param string $json_column_name
+     * @param string $column_type
      * @return void
      */
-    public function alterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name)
+    public function alterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type)
     {
         if (!\Schema::hasTable($db_table_name)) {
             return;
@@ -229,7 +230,7 @@ trait BuilderTrait
 
         $db_table_name = $this->connection->getTablePrefix().$db_table_name;
 
-        $sqls = $this->grammar->compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name);
+        $sqls = $this->grammar->compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type);
 
         foreach ($sqls as $sql) {
             $this->connection->statement($sql);

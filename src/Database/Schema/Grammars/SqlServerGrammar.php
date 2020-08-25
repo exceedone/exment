@@ -62,7 +62,7 @@ class SqlServerGrammar extends BaseGrammar
         return "if object_id('{$this->wrapTable($tableName)}') is null select * into {$this->wrapTable($tableName)} from custom_relation_values";
     }
     
-    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name)
+    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type)
     {
         // ALTER TABLE
         $as_value = "JSON_VALUE(\"value\",'$.$json_column_name')";

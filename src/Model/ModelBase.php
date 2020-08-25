@@ -169,7 +169,7 @@ class ModelBase extends Model
         // get table
         $obj = static::{$fucnName}(function ($table) use ($query_key, $obj) {
             return array_get($table, $query_key) == $obj;
-        });
+        }, false);
 
         if (is_nullorempty($obj)) {
             return null;

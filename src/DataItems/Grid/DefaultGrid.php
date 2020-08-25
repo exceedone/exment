@@ -124,7 +124,7 @@ class DefaultGrid extends GridBase
             $name = $item->indexEnabled() ? $item->index() : make_uuid();
             $grid->column($name, $item->label())
                 ->sort($item->sortable())
-                ->cast($item->getCastName())
+                //->cast($item->getCastName())
                 ->style($item->gridStyle())
                 ->setClasses($item->indexEnabled() ? 'column-' . $item->name() : '')
                 ->display(function ($v) use ($item) {

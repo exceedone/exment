@@ -54,4 +54,42 @@ trait ExtendedBuilderTrait
             $binds
         );
     }
+    
+    /**
+     * Where between, but call as (start) <= column and column <= (end). for performance
+     * @param  string                                          $column
+     * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereBetweenQuery($column, array $values)
+    {
+        return $this->_between($column, $values, '>=', '<=');
+    }
+
+    /**
+     * Where between, but call as (start) <= column and column < (end)
+     * @param  string                                          $column
+     * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereBetweenLt($column, array $values)
+    {
+        return $this->_between($column, $values, '>=', '<');
+    }
+
+
+    protected function _between($column, array $values, $startMark, $endMark){
+        $values = array_values($values);
+
+        if (count($values) < 2) {
+            return $this->whereRaw('1 = 0');
+        }
+
+        $this->query->where($column, $startMark, $values[0]);
+        $this->query->where($column, $endMark, $values[1]);
+
+        return $this;
+    }
 }

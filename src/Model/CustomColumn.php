@@ -23,7 +23,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected $guarded = ['id', 'suuid'];
     // protected $with = ['custom_table'];
 
-    private $_custom_item;
+    private $_column_item;
 
 
     /**
@@ -161,12 +161,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     public function getColumnItemAttribute()
     {
-        if (isset($this->_custom_item)) {
-            return $this->_custom_item;
+        if (isset($this->_column_item)) {
+            return $this->_column_item;
         }
 
-        $this->_custom_item = ColumnItems\CustomItem::getItem($this);
-        return $this->_custom_item;
+        $this->_column_item = ColumnItems\CustomItem::getItem($this);
+        return $this->_column_item;
     }
 
     public function getSelectTargetTableAttribute()
@@ -322,6 +322,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         // Create index --------------------------------------------------
         $table = $this->custom_table_cache;
         $column_name = $this->column_name;
+        $column_type = $this->column_item->getVirtualColumnTypeName();
 
         //DB table name
         $db_table_name = getDBTableName($table);
@@ -345,7 +346,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
         // if index_enabled = true, not exists, then create index
         elseif ($index_enabled && !$exists) {
-            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
+            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $column_type);
             System::clearCache();
         }
     }

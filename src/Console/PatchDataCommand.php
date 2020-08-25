@@ -83,6 +83,9 @@ class PatchDataCommand extends Command
             case 'alter_index_hyphen':
                 $this->reAlterIndexContainsHyphen();
                 return;
+            case 'alter_index_all':
+                $this->reAlterIndexAll();
+                return;
             case '2factor':
                 $this->import2factorTemplate();
                 return;
@@ -255,15 +258,31 @@ class PatchDataCommand extends Command
     {
         // get index contains hyphen
         $index_custom_columns = CustomColumn::indexEnabled()->where('column_name', 'LIKE', '%-%')->get();
-        
+        $this->reAlterIndex($index_custom_columns);
+    }
+
+    /**
+     * re-alter Index all
+     *
+     * @return void
+     */
+    protected function reAlterIndexAll()
+    {
+        // get index contains hyphen
+        $index_custom_columns = CustomColumn::indexEnabled()->get();
+        $this->reAlterIndex($index_custom_columns);
+    }
+
+    protected function reAlterIndex($index_custom_columns){
         foreach ($index_custom_columns as  $index_custom_column) {
             $db_table_name = getDBTableName($index_custom_column->custom_table);
             $db_column_name = $index_custom_column->getIndexColumnName(false);
             $index_name = "index_$db_column_name";
             $column_name = $index_custom_column->column_name;
+            $column_type = $index_custom_column->column_item->getVirtualColumnTypeName();
 
             \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
-            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
+            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $column_type);
         }
     }
     

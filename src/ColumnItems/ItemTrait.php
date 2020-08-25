@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Enums\DatabaseDataType;
 
 /**
  *
@@ -205,7 +206,9 @@ trait ItemTrait
      */
     public function getSortColumn()
     {
-        return $this->getCastColumn();
+        // not use cast for sort, because performance.
+        return $this->indexEnabled() ? $this->index() : $this->sqlname();
+        //return $this->getCastColumn();
     }
 
     /**

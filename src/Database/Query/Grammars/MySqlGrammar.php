@@ -25,6 +25,30 @@ class MySqlGrammar extends BaseGrammar
     }
 
     /**
+     * Get column type string. Almost use virtual column.
+     *
+     * @return string
+     */
+    public function getColumnTypeString($type)
+    {
+        switch ($type) {
+            case DatabaseDataType::TYPE_INTEGER:
+                return 'bigint';
+            case DatabaseDataType::TYPE_DECIMAL:
+                return 'decimal';
+            case DatabaseDataType::TYPE_STRING:
+                return 'nvarchar(768)';
+            case DatabaseDataType::TYPE_DATE:
+                return 'date';
+            case DatabaseDataType::TYPE_DATETIME:
+                return 'datetime';
+            case DatabaseDataType::TYPE_TIME:
+                return 'time';
+        }
+        return 'nvarchar(768)';
+    }
+
+    /**
      * Get cast string
      *
      * @return string
@@ -47,6 +71,9 @@ class MySqlGrammar extends BaseGrammar
                 break;
             case DatabaseDataType::TYPE_DATETIME:
                 $cast = 'datetime';
+                break;
+            case DatabaseDataType::TYPE_TIME:
+                $cast = 'time';
                 break;
         }
 
