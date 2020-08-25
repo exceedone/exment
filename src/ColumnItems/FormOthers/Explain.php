@@ -24,7 +24,7 @@ class Explain extends FormOtherItem
     
     protected function setAdminOptions(&$field, $form_column_options)
     {
-        // not escape because always calls escape in "_html" function 
+        // not escape because always calls escape in "_html" function
         $field->escape(false);
     }
 }

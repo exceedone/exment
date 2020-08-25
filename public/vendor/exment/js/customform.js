@@ -295,7 +295,15 @@ var Exment;
         // loop "custom_form_block_available" is 1
         let hasRequire = false;
         if (!$('form.custom_form_form').hasClass('confirmed')) {
-            $('.custom_form_block_available').filter('[value="1"]').each(function (index, elem) {
+            $('.custom_form_block_available').each(function (index, elem) {
+                // if elem's value is not 1, continue.
+                if (!pBool($(elem).val())) {
+                    return true;
+                }
+                // if not check, continue
+                if ($(elem).is(':checkbox') && !$(elem).is(':checked')) {
+                    return true;
+                }
                 let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests li');
                 // if required value is 1, hasRequire is true and break
                 $suggests.each(function (i, e) {

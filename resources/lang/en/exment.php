@@ -2006,6 +2006,20 @@ return [
         'redirect' => 'Redirect URL',
     ],
 
+    'command' => [
+        'import' => [
+            'file_count' => 'Number of applicable files:',
+            'file_info' => ' case implementation start. file:{%s}',
+            'error_info' => 'Error info : ',
+            'success_message' => 'The import was successful. number:{%s}',
+            'error_table' => 'The target table {%s} cannot be found.',
+            'error_info_ex' => 'An error occurred during processing. There is already imported data.{%s}',
+        ],
+        'export' => [
+            'success_message' => 'The export was successful. Directory path:%s',
+        ],
+    ],
+    
     'condition' => [
         'condition_target' => 'Condition Item',
         'condition_key' => 'Search Condition',

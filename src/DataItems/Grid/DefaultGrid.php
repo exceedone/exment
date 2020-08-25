@@ -121,7 +121,8 @@ class DefaultGrid extends GridBase
                     'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
                     'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
                 ]);
-            $grid->column($item->indexEnabled() ? $item->index() : $item->name(), $item->label())
+            $name = $item->indexEnabled() ? $item->index() : make_uuid();
+            $grid->column($name, $item->label())
                 ->sort($item->sortable())
                 ->cast($item->getCastName())
                 ->style($item->gridStyle())

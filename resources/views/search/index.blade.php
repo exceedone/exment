@@ -25,7 +25,9 @@
             <div class="box-body" style="min-height:100px;">
                 <div class="box-body-inner">
                     <div class="box-body-inner-header box-body-inneritem"></div>
-                    <div class="box-body-inner-body box-body-inneritem"></div>
+                    <div class="table-responsive" style="width:100%; padding-top:0.5em;">
+                        <div class="box-body-inner-body box-body-inneritem"></div>
+                    </div>
                     <div class="box-body-inner-footer box-body-inneritem"></div>
                 </div>
             </div>

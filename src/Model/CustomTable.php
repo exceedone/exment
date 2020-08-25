@@ -487,6 +487,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ], $options)
         );
 
+        // set required column's name for validation.
+        $this->setColumnsName($value, $custom_value, $options);
+
         // get rules for validation
         $rules = $this->getValidateRules($value, $custom_value, $options);
 
@@ -545,8 +548,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'deleted_at',
                 ];
                     
-                foreach ($rules as $key => $rule) {
-                    $customAttributes[$key] = exmtrans("common.$key") . ($appendKeyName ? "($key)" : "");
+                foreach ($rules as $rule) {
+                    $customAttributes[$rule] = exmtrans("common.$rule") . ($appendKeyName ? "($rule)" : "");
                 }
             }
         }
@@ -554,6 +557,40 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $customAttributes;
     }
     
+    /**
+     * Set required column
+     *
+     * @param [type] $value
+     * @param CustomValue|null $custom_value
+     * @param array $options
+     * @return void
+     */
+    protected function setColumnsName(&$value, ?CustomValue $custom_value = null, array $options = [])
+    {
+        $options = array_merge([
+            'column_name_prefix' => null,  // appending error key's prefix, and value prefix
+            'checkCustomValueExists' => true, // whether checking require custom column
+        ], $options);
+
+        if (!boolval($options['checkCustomValueExists'])) {
+            return;
+        }
+        $column_name_prefix = $options['column_name_prefix'];
+
+        foreach ($this->custom_columns_cache as $custom_column) {
+            if (!$custom_column->required) {
+                continue;
+            }
+
+            // if not contains $value[$custom_column->column_name], set as null.
+            // if not set, we cannot validate null check because $field->getValidator returns false.
+            $isNew = (is_null($custom_value) || !$custom_value->exists);
+            if ($isNew && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
+                array_set($value, $column_name_prefix.$custom_column->column_name, null);
+            }
+        }
+    }
+
     /**
      * get validation rules
      */
@@ -575,15 +612,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // get custom attributes
         $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
 
+        // set required column's name for validation.
+        $this->setColumnsName($value, $custom_value, $options);
+
         foreach ($this->custom_columns_cache as $custom_column) {
             $fields[] = FormHelper::getFormField($this, $custom_column, $custom_value, null, $column_name_prefix, true, true);
-
-            // if not contains $value[$custom_column->column_name], set as null.
-            // if not set, we cannot validate null check because $field->getValidator returns false.
-            $isNew = (is_null($custom_value) || !$custom_value->exists);
-            if ($isNew && !array_has($value, $column_name_prefix.$custom_column->column_name)) {
-                array_set($value, $column_name_prefix.$custom_column->column_name, null);
-            }
         }
 
         // create parent type validation array
@@ -862,7 +895,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $file_data = base64_decode($file_data);
 
             // convert file name for validation
-            $value[$file_column->column_name] = null;
+            $value[$file_column->column_name] = $file_name;
 
             // append file data
             $files[$file_column->column_name] = [
@@ -1648,6 +1681,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
+    
     /**
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
@@ -1655,17 +1689,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * *"$this" is the table targeted on options.
      * *"$display_table" is the table user shows on display.
      *
-     * @param $selected_value the value that already selected.
-     * @param CustomTable $display_table Information on the table displayed on the screen
-     * @param boolean $all is show all data. for system role, it's true.
+     * @param array $options
+     * @return Collection
      */
-    public function getSelectOptions($options = [])
+    public function getSelectOptions($options = []) : Collection
     {
-        extract(array_merge(
+        $options = array_merge(
             [
-                'selected_value' => null,
-                'display_table' => null,
-                'all' => false,
+                'selected_value' => null, // the value that already selected.
+                'display_table' => null, // Information on the table displayed on the screen
+                'all' => false, // is show all data. for system role, it's true
                 'showMessage_ifDeny' => null,
                 'filterCallback' => null,
                 'target_id' => null,
@@ -1675,7 +1708,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'custom_column' => null,
             ],
             $options
-        ));
+        );
+        $selected_value = $options['selected_value'];
 
         // if ajax, return []. (set callQuery is false)
         if (!$this->isGetOptions(array_merge(['callQuery' => false], $options))) {
@@ -1730,7 +1764,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * put selected value
      */
-    protected function putSelectedValue($items, $selected_value, $options = [])
+    protected function putSelectedValue(Collection $items, $selected_value, $options = []) : Collection
     {
         // if display_table and $this is same, and contains target_id, remove selects
         if (!is_null(array_get($options, 'display_table')) && $this->id == array_get($options, 'display_table.id')
@@ -1837,11 +1871,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Get selected option default.
      * If ajax etc, and not set default list, call this function.
+     *
+     * @param int|string|null $selected_value
+     * @return \Illuminate\Support\Collection
      */
-    protected function getSelectedOptionDefault($selected_value)
+    protected function getSelectedOptionDefault($selected_value) : Collection
     {
         if (!isset($selected_value)) {
-            return [];
+            return collect([]);
         }
         $item = getModelName($this)::find($selected_value);
 
@@ -1852,11 +1889,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 foreach ($item as $i) {
                     $ret[$i->id] = $i->label;
                 }
-                return $ret;
+                return collect($ret);
             }
-            return [$item->id => $item->label];
+            return collect([$item->id => $item->label]);
         } else {
-            return [];
+            return collect([]);
         }
     }
 

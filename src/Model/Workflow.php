@@ -174,6 +174,11 @@ class Workflow extends ModelBase
             if (isset($record->active_end_date) && $today->gt(new \Carbon\Carbon($record->active_end_date))) {
                 return false;
             }
+
+            $workflow = Workflow::getEloquent($record->workflow_id);
+            if (!boolval($workflow->setting_completed_flg)) {
+                return false;
+            }
             
             return true;
         }, false)->first();

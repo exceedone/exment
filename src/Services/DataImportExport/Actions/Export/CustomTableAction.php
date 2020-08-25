@@ -23,6 +23,20 @@ class CustomTableAction implements ActionInterface
      */
     protected $grid;
 
+    /**
+     * Whether appending setting
+     *
+     * @var bool
+     */
+    protected $add_setting = true;
+
+    /**
+     * Whether appending relation
+     *
+     * @var bool
+     */
+    protected $add_relation = true;
+
     public function __construct($args = [])
     {
         $this->custom_table = array_get($args, 'custom_table');
@@ -31,6 +45,9 @@ class CustomTableAction implements ActionInterface
         $this->relations = CustomRelation::getRelationsByParent($this->custom_table);
         
         $this->grid = array_get($args, 'grid');
+        
+        $this->add_setting = array_get($args, 'add_setting', true);
+        $this->add_relation = array_get($args, 'add_relation', true);
     }
 
     public function datalist()
@@ -43,31 +60,36 @@ class CustomTableAction implements ActionInterface
             'grid' => $this->grid
         ]);
         
-        foreach ($this->relations as $relation) {
-            // if n:n, create as RelationPivotTable
-            if ($relation->relation_type == RelationType::MANY_TO_MANY) {
-                $providers[] = new Export\RelationPivotTableProvider(
-                    [
-                        'relation' => $relation,
-                        'grid' => $this->grid
-                    ]
-                );
-            } else {
-                $providers[] = new Export\DefaultTableProvider(
-                    [
-                        'custom_table' => $relation->child_custom_table,
-                        'grid' => $this->grid,
-                        'parent_table' => $this->custom_table->table_name,
-                    ]
-                );
+        
+        if (boolval($this->add_relation)) {
+            foreach ($this->relations as $relation) {
+                // if n:n, create as RelationPivotTable
+                if ($relation->relation_type == RelationType::MANY_TO_MANY) {
+                    $providers[] = new Export\RelationPivotTableProvider(
+                        [
+                            'relation' => $relation,
+                            'grid' => $this->grid
+                        ]
+                    );
+                } else {
+                    $providers[] = new Export\DefaultTableProvider(
+                        [
+                            'custom_table' => $relation->child_custom_table,
+                            'grid' => $this->grid,
+                            'parent_table' => $this->custom_table->table_name,
+                        ]
+                    );
+                }
             }
         }
         
-        $providers[] = new Export\DefaultTableSettingProvider(
-            [
-                'custom_table' => $this->custom_table,
-            ]
-        );
+        if (boolval($this->add_setting)) {
+            $providers[] = new Export\DefaultTableSettingProvider(
+                [
+                    'custom_table' => $this->custom_table,
+                ]
+            );
+        }
 
         $datalist = [];
         foreach ($providers as $provider) {
