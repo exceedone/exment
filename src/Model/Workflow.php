@@ -176,7 +176,7 @@ class Workflow extends ModelBase
             }
 
             $workflow = Workflow::getEloquent($record->workflow_id);
-            if(!boolval($workflow->setting_completed_flg)){
+            if (!boolval($workflow->setting_completed_flg)) {
                 return false;
             }
             

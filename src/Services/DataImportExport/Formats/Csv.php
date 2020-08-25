@@ -19,9 +19,9 @@ class Csv extends FormatBase
     public function getDataTable($request, array $options = [])
     {
         $options = $this->getDataOptions($options);
-        return $this->_getData($request, function($files) use($options){
+        return $this->_getData($request, function ($files) use ($options) {
             // if over row size, return number
-            if(boolval($options['checkCount'])){
+            if (boolval($options['checkCount'])) {
                 if (($count = $this->getRowCount($files)) > (config('exment.import_max_row_count', 1000) + 2)) {
                     return $count;
                 }
@@ -34,9 +34,9 @@ class Csv extends FormatBase
             }
 
             return $datalist;
-        }, function($path) use($options){
+        }, function ($path) use ($options) {
             // if over row size, return number
-            if(boolval($options['checkCount'])){
+            if (boolval($options['checkCount'])) {
                 if (($count = $this->getRowCount($path)) > (config('exment.import_max_row_count', 1000) + 2)) {
                     return $count;
                 }
@@ -50,14 +50,15 @@ class Csv extends FormatBase
     
     public function getDataCount($request)
     {
-        return $this->_getData($request, function($files){
+        return $this->_getData($request, function ($files) {
             return $this->getRowCount($files);
-        }, function($path){
+        }, function ($path) {
             return $this->getRowCount($path);
         });
     }
 
-    protected function _getData($request, $callbackZip, $callbackDefault){
+    protected function _getData($request, $callbackZip, $callbackDefault)
+    {
         // get file
         if ($request instanceof Request) {
             $file = $request->file('custom_table_file');

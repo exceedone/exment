@@ -342,12 +342,12 @@ class RoleGroupController extends AdminControllerBase
 
         list($options, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions(null, null, false, $default);
         
-        if(!is_nullorempty($ajax)){
+        if (!is_nullorempty($ajax)) {
             $form->multipleSelect('role_group_item', exmtrans('role_group.user_organization_setting'))
                 ->options($options)
                 ->ajax($ajax)
                 ->default($default);
-        }else{
+        } else {
             $form->listbox('role_group_item', exmtrans('role_group.user_organization_setting'))
                 ->options($options)
                 ->default($default)

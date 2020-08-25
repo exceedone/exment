@@ -53,12 +53,12 @@ class Xlsx extends FormatBase
     public function getDataTable($request, array $options = [])
     {
         $options = $this->getDataOptions($options);
-        return $this->_getData($request, function($spreadsheet) use($options){
+        return $this->_getData($request, function ($spreadsheet) use ($options) {
             // if over row size, return number
-            if(boolval($options['checkCount'])){
+            if (boolval($options['checkCount'])) {
                 if (($count = $this->getRowCount($spreadsheet)) > (config('exment.import_max_row_count', 1000) + 2)) {
                     return $count;
-                }    
+                }
             }
 
             // get all data
@@ -77,12 +77,13 @@ class Xlsx extends FormatBase
      */
     public function getDataCount($request)
     {
-        return $this->_getData($request, function($spreadsheet){
+        return $this->_getData($request, function ($spreadsheet) {
             return $this->getRowCount($spreadsheet);
         });
     }
 
-    protected function _getData($request, $callback){
+    protected function _getData($request, $callback)
+    {
         // get file
         if ($request instanceof Request) {
             $file = $request->file('custom_table_file');

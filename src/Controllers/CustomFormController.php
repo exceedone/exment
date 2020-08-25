@@ -253,7 +253,7 @@ class CustomFormController extends AdminControllerTableBase
         // $grid->disableCreateButton();
         $table_name = $this->custom_table->table_name;
 
-        $grid->actions(function ($actions) use($table_name) {
+        $grid->actions(function ($actions) use ($table_name) {
             $actions->disableView();
             // $actions->disableDelete();
             $linker = (new Linker)

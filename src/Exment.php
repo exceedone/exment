@@ -206,7 +206,7 @@ class Exment
     /**
      * get Data from excel sheet
      */
-    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
+    public function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
     {
         $data = [];
         foreach ($sheet->getRowIterator() as $row_no => $row) {

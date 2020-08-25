@@ -7,7 +7,6 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Services\DataImportExport;
-use \File;
 
 class ExportCommand extends Command
 {
@@ -106,7 +105,7 @@ class ExportCommand extends Command
                 }
                 if (!isset($options['count'])) {
                     $options['count'] = $custom_view->pager_count;
-                } else if (!preg_match("/^[0-9]+$/", $options['count'])) {
+                } elseif (!preg_match("/^[0-9]+$/", $options['count'])) {
                     throw new \Exception('optional parameter count error : ' . $options['count']);
                 }
             }
@@ -142,12 +141,11 @@ class ExportCommand extends Command
             if ($options['type'] == 'page') {
                 $grid->model()->setPerPageArguments([$options['count'], ['*'], 'page', $options['page']])
                     ->disableHandleInvalidPage();
-            }
-            elseif($options['type'] == 'all'){
+            } elseif ($options['type'] == 'all') {
                 $grid->model()->usePaginate(false);
             }
 
-            if(isset($options['view']) && $options['view'] instanceof CustomView){
+            if (isset($options['view']) && $options['view'] instanceof CustomView) {
                 $options['view']->filterModel($grid->model());
             }
     

@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Schema;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\DataImportExport;
 use \File;

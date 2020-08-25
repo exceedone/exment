@@ -397,7 +397,7 @@ class WorkflowAction extends ModelBase
         $labels = [];
 
         // add as workflow_value_authorities
-        if($getValueAutorities){
+        if ($getValueAutorities) {
             if (!is_nullorempty($custom_value) && isset($custom_value->workflow_value)) {
                 $workflow_value_authorities = $custom_value->workflow_value->getWorkflowValueAutorities();
                 foreach ($workflow_value_authorities as $workflow_value_authority) {

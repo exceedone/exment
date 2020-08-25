@@ -21,8 +21,8 @@ trait ImportTrait
         // filter files by extension
         $files = array_filter($files, function ($file) use ($ext) {
             $exts = stringToArray($ext);
-            foreach($exts as $e){
-                if(preg_match('/.+\.'.$e.'$/i', $file)){
+            foreach ($exts as $e) {
+                if (preg_match('/.+\.'.$e.'$/i', $file)) {
                     return true;
                 }
             }

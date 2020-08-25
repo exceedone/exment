@@ -106,7 +106,8 @@ abstract class FormatBase
      * @param array $options
      * @return array
      */
-    public function getDataOptions(array $options){
+    public function getDataOptions(array $options)
+    {
         return array_merge([
             'checkCount' => true, // whether checking count
             'page' => null, // if set, getting target page count

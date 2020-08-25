@@ -38,7 +38,7 @@ class CustomTableAction implements ActionInterface
     }
 
     /**
-     * Import and validate the divided data 
+     * Import and validate the divided data
      *
      * @param array $datalist
      * @param array $options

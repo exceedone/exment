@@ -25,14 +25,14 @@ class CustomTableAction implements ActionInterface
 
     /**
      * Whether appending setting
-     * 
+     *
      * @var bool
      */
     protected $add_setting = true;
 
     /**
      * Whether appending relation
-     * 
+     *
      * @var bool
      */
     protected $add_relation = true;
@@ -61,7 +61,7 @@ class CustomTableAction implements ActionInterface
         ]);
         
         
-        if(boolval($this->add_relation)){
+        if (boolval($this->add_relation)) {
             foreach ($this->relations as $relation) {
                 // if n:n, create as RelationPivotTable
                 if ($relation->relation_type == RelationType::MANY_TO_MANY) {
@@ -83,7 +83,7 @@ class CustomTableAction implements ActionInterface
             }
         }
         
-        if(boolval($this->add_setting)){
+        if (boolval($this->add_setting)) {
             $providers[] = new Export\DefaultTableSettingProvider(
                 [
                     'custom_table' => $this->custom_table,

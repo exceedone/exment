@@ -572,13 +572,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'checkCustomValueExists' => true, // whether checking require custom column
         ], $options);
 
-        if(!boolval($options['checkCustomValueExists'])){
+        if (!boolval($options['checkCustomValueExists'])) {
             return;
         }
         $column_name_prefix = $options['column_name_prefix'];
 
         foreach ($this->custom_columns_cache as $custom_column) {
-            if(!$custom_column->required){
+            if (!$custom_column->required) {
                 continue;
             }
 
@@ -1689,7 +1689,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * *"$this" is the table targeted on options.
      * *"$display_table" is the table user shows on display.
      *
-     * @param array $options 
+     * @param array $options
      * @return Collection
      */
     public function getSelectOptions($options = []) : Collection

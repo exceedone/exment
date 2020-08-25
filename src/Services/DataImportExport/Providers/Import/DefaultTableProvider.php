@@ -50,7 +50,7 @@ class DefaultTableProvider extends ProviderBase
             $start_idx = $options['get_index'] * $take;
             $end_idx = $start_idx + $take;
             $headers = $data[0];
-            for ($i = max(2, $start_idx); $i < $end_idx; $i++){
+            for ($i = max(2, $start_idx); $i < $end_idx; $i++) {
                 if (!\array_key_exists($i, $data)) {
                     break;
                 }
