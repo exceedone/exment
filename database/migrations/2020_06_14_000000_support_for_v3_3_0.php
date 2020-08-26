@@ -73,6 +73,7 @@ class SupportForV330 extends Migration
         if(Schema::hasTable('login_users')){
             Schema::table('login_users', function (Blueprint $table) {
                 if(Schema::hasColumn('login_users', 'login_type')){
+                    $table->dropIndex(['login_type']);
                     $table->dropColumn('login_type');
                 }
             });

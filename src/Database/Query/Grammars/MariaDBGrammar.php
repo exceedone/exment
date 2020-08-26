@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 /**
  * https://github.com/ybr-nx/laravel-mariadb
  */
-class MariaDBGrammar extends MySqlGrammar
+class MariaDBGrammar extends MySqlGrammar implements GrammarInterface
 {
     protected function wrapJsonSelector($value)
     {

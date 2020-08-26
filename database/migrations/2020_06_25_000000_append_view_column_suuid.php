@@ -41,6 +41,7 @@ class AppendViewColumnSuuid extends Migration
         if(Schema::hasTable('custom_view_columns')){
             Schema::table('custom_view_columns', function (Blueprint $table) {
                 if(Schema::hasColumn('custom_view_columns', 'suuid')){
+                    $table->dropIndex(['suuid']);
                     $table->dropColumn('suuid');
                 }
             });
@@ -48,6 +49,7 @@ class AppendViewColumnSuuid extends Migration
         if(Schema::hasTable('custom_view_summaries')){
             Schema::table('custom_view_summaries', function (Blueprint $table) {
                 if(Schema::hasColumn('custom_view_summaries', 'suuid')){
+                    $table->dropIndex(['suuid']);
                     $table->dropColumn('suuid');
                 }
             });

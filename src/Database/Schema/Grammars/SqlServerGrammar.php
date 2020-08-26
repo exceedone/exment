@@ -4,8 +4,18 @@ namespace Exceedone\Exment\Database\Schema\Grammars;
 
 use Illuminate\Database\Schema\Grammars\SqlServerGrammar as BaseGrammar;
 
-class SqlServerGrammar extends BaseGrammar
+class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 {
+    /**
+     * Compile the query to get version
+     *
+     * @return string
+     */
+    public function compileGetVersion()
+    {
+        return 'SELECT @@VERSION;';
+    }
+
     /**
      * Compile the query to show tables
      *

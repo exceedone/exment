@@ -5,7 +5,6 @@ namespace Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Enums\DatabaseDataType;
 
 /**
  *

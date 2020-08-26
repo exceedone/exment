@@ -82,7 +82,7 @@ class SupportForV300 extends Migration
         $schema->create('workflow_statuses', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('workflow_id')->unsigned()->index();
-            $table->integer('status_type')->unsigned()->index();
+            $table->integer('status_type')->unsigned()->index()->default(0);
             $table->integer('order')->unsigned()->index();
             $table->string('status_name', 30);
             $table->boolean('datalock_flg')->default(false);

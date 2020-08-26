@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Database\Schema\Grammars;
 
 use Illuminate\Database\Schema\Grammars\MySqlGrammar as BaseGrammar;
 
-class MySqlGrammar extends BaseGrammar
+class MySqlGrammar extends BaseGrammar implements GrammarInterface
 {
     /**
      * Compile the query to get version

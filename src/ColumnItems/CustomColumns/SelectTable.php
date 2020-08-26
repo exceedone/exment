@@ -62,7 +62,7 @@ class SelectTable extends CustomItem
      */
     protected function getCastOptions()
     {
-        $type = $this->isMultipleEnabled() ? DatabaseDataType::TYPE_STRING : DatabaseDataType::TYPE_INTEGER;
+        $type = $this->isMultipleEnabled() ? DatabaseDataType::TYPE_STRING_MULTIPLE : DatabaseDataType::TYPE_INTEGER;
         return [$type, false, []];
     }
 

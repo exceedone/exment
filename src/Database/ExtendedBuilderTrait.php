@@ -31,8 +31,10 @@ trait ExtendedBuilderTrait
         return $this->where($column, $operator, $value, $boolean);
     }
 
+
     /**
-     * Multiple wherein querys
+     * Multiple wherein querys.
+     * *NOW Only support columns is 2 column. *
      *
      * @param  array                                          $columns
      * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
@@ -42,19 +44,72 @@ trait ExtendedBuilderTrait
      */
     public function whereInMultiple(array $columns, $values, bool $zeroQueryIfEmpty = false)
     {
+        if(count($columns) !== 2){
+            throw new \Exception('Now whereInMultiple is only support 2 columns.');
+        }
         if (boolval($zeroQueryIfEmpty) && empty($values)) {
             return $this->whereRaw('1 = 0');
         }
 
-        $columns = $this->query->grammar->wrapWhereInMultiple($columns);
-        list($bindStrings, $binds) = $this->query->grammar->bindValueWhereInMultiple($values);
+        // is suport where in multiple ----------------------------------------------------
+        if($this->query->grammar->isSupportWhereInMultiple()){
+            $columns = $this->query->grammar->wrapWhereInMultiple($columns);
+            list($bindStrings, $binds) = $this->query->grammar->bindValueWhereInMultiple($values);
+    
+            return $this->whereRaw(
+                '('.implode(', ', $columns).') in ('.implode(', ', $bindStrings).')',
+                $binds
+            );
+        }
 
-        return $this->whereRaw(
-            '('.implode(', ', $columns).') in ('.implode(', ', $bindStrings).')',
-            $binds
-        );
+        // if not suport where in multiple, first getting target id, and add query. ----------------------------------------------------
+        $tableName = $this->model->getTable();
+        $subquery = \DB::table($tableName);
+
+        // group "$values" index.
+        $groups = collect($values)->groupBy(function ($item, $key) {
+            return $item[0];
+        });
+
+        $ids = $subquery->where(function($query) use($groups, $columns){
+            foreach($groups as $key => $group){
+                $query->orWhere(function($query) use($key, $group, $columns){
+                    $values = collect($group)->map(function($g){
+                        return $g[1];
+                    })->toArray();
+                    $query->where($columns[0], $key)
+                        ->whereIn($columns[1], $values);
+                });
+            }
+        })->select(['id'])->get()->pluck('id');
+
+        // set id filter
+        return $this->whereIn('id', $ids);
     }
     
+
+    /**
+     * wherein string.
+     * Ex. column is 1,12,23,31 , and want to match 1, getting.
+     *
+     * @param  string                                         $column
+     * @param  \Illuminate\Contracts\Support\Arrayable|array  $values
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public function whereInArrayString($column, $values)
+    {
+        if (is_null($values)) {
+            return $this->whereRaw('1 = 0');
+        }
+
+        $tableName = $this->model->getTable();
+        $this->query->grammar->whereInArrayString($this, $tableName, $column, $values);
+
+        return $this;
+    }
+    
+
     /**
      * Where between, but call as (start) <= column and column <= (end). for performance
      * @param  string                                          $column
