@@ -21,6 +21,8 @@
                 hour: '2-digit',
                 minute: '2-digit'
             },
+            // showing event size. if over, dialog.
+            eventLimit:5,
             @if($calendar_type == 'month') 
             plugins: [ 'dayGrid', 'interaction' ],
             fixedWeekCount: false,

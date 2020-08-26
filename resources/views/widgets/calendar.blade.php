@@ -46,6 +46,8 @@
                 hour: '2-digit',
                 minute: '2-digit'
             },
+            // showing event size
+            eventLimit:5,
             // put your options and callbacks here
             events: {
                 url: "{{ $data_url }}",
