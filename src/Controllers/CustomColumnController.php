@@ -194,6 +194,7 @@ class CustomColumnController extends AdminControllerTableBase
         if (!isset($id)) {
             $id = $form->model()->id;
         }
+        $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
 
         if (!isset($id)) {
             $form->select('column_type', exmtrans("custom_column.column_type"))
@@ -231,9 +232,9 @@ class CustomColumnController extends AdminControllerTableBase
                 ->displayText(function ($val) {
                     return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
             });
+            $form->hidden('column_type')->default($column_type);
         }
 
-        $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id, $controller) {
             $form->switchbool('required', exmtrans("common.required"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
