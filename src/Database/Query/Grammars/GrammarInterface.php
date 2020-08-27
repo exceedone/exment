@@ -19,9 +19,10 @@ interface GrammarInterface
      * @param string $tableName database table name
      * @param string $column target table name
      * @param array $values
+     * @param bool $isOr
      * @return \Illuminate\Database\Query\Builder
      */
-    public function whereInArrayString($builder, string $tableName, string $column, $values) : \Illuminate\Database\Query\Builder;
+    public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false);
         
     public function wrapWhereInMultiple(array $columns);
 

@@ -31,7 +31,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
      * @param array $values
      * @return \Illuminate\Database\Query\Builder
      */
-    public function whereInArrayString($builder, string $tableName, string $column, $values) : \Illuminate\Database\Query\Builder
+    public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false)
     {
         $index = $this->wrap($column);
         $queryStr = "STRING_SPLIT(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ',')";
@@ -44,7 +44,8 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         // CREATE "CROSS APPLY"
         $fromRaw = "$tableNameWrap as $tableNameWrapAs CROSS APPLY $queryStr AS CROSS_APPLY_TABLE";
 
-        $builder->whereExists(function ($query) use($values, $fromRaw, $tableNameAs, $tableNameWrap, $tableNameWrapAs) {
+        $func = $isNot ? 'whereNotExists' : 'whereExists';
+        $builder->{$func}(function ($query) use($values, $fromRaw, $tableNameAs, $tableNameWrap, $tableNameWrapAs) {
             $query->select(\DB::raw(1))
                 ->fromRaw($fromRaw)
                 ->whereRaw("$tableNameWrapAs.id = $tableNameWrap.id")

@@ -30,20 +30,26 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      * @param array $values
      * @return \Illuminate\Database\Query\Builder
      */
-    public function whereInArrayString($builder, string $tableName, string $column, $values) : \Illuminate\Database\Query\Builder
+    public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false)
     {
-
         $index = $this->wrap($column);
-        $queryStr = "FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
+
+        if($isNot){
+            $queryStr = "NOT FIND_IN_SET(?, IFNULL(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ''))";
+        }else{
+            $queryStr = "FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
+        }
         
         if (is_list($values)) {
-            $builder->where(function ($query) use ($queryStr, $values) {
+            $func = $isOr ? 'orWhere' : 'where';
+            $builder->{$func}(function ($query) use ($queryStr, $values) {
                 foreach ($values as $i) {
                     $query->orWhereRaw($queryStr, $i);
                 }
             });
         } else {
-            $builder->whereRaw($queryStr, $values);
+            $func = $isOr ? 'orWhereRaw' : 'whereRaw';
+            $builder->{$func}($queryStr, $values);
         }
 
         return $builder;
