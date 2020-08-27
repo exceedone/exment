@@ -434,7 +434,7 @@ class ApiController extends AdminControllerBase
         }
 
         // get as paginator
-        $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, count($results), count($results), 1);
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, count($results), $count, 1);
 
         return $paginator;
     }
