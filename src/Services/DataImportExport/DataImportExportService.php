@@ -95,7 +95,10 @@ class DataImportExportService extends AbstractExporter
         
         if ($args instanceof UploadedFile) {
             $format = $args->extension();
-        } elseif (is_string($args)) {
+            if($args->getClientMimeType() === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"){
+                $format = "xlsx";
+            }
+         } elseif (is_string($args)) {
             $format = $args;
         } elseif (array_has($args, 'format')) {
             $format = array_get($args, 'format');
