@@ -95,7 +95,6 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
     protected function _compileGetIndex($tableName, $unique)
     {
-        $unique_key = boolval($unique) ? 1 : 0;
         return "select
             COL_NAME(ic.object_id, ic.column_id) as column_name,
             i.is_unique as is_unique,
@@ -109,7 +108,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         where
             i.type = 2
         and i.object_id = OBJECT_ID('{$this->wrapTable($tableName)}')
-        and i.is_unique = {$unique_key}
-        and COL_NAME(ic.object_id, ic.column_id) = ?";
+        and i.is_unique = :is_unique
+        and COL_NAME(ic.object_id, ic.column_id) = :column_name";
     }
 }

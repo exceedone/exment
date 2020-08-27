@@ -179,8 +179,7 @@ trait BuilderTrait
 
         $sql = $unique ? $this->grammar->compileGetUnique($tableName) : $this->grammar->compileGetIndex($tableName);
 
-        $results = $this->connection->select($sql, [$columnName]);
-
+        $results = $this->getUniqueIndexDefinitionsSelect($sql, $tableName, $columnName, $unique);
         return $this->connection->getPostProcessor()->processIndexDefinitions($baseTableName, $results);
     }
     

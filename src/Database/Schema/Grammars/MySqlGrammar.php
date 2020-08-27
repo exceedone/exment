@@ -79,7 +79,6 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
 
     protected function _compileGetIndex($tableName, $unique)
     {
-        $unique_key = boolval($unique) ? 0 : 1;
-        return "show index from {$this->wrapTable($tableName)} where non_unique = $unique_key and column_name = ?";
+        return "show index from {$this->wrapTable($tableName)} where non_unique = :is_unique and column_name = :column_name";
     }
 }
