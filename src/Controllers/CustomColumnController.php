@@ -190,42 +190,51 @@ class CustomColumnController extends AdminControllerTableBase
             ->required()
             ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
-        $form->select('column_type', exmtrans("custom_column.column_type"))
-        ->help(exmtrans("custom_column.help.column_type"))
-        ->options(function () {
-            $arrays = collect(ColumnType::arrays())->filter(function ($arr) {
-                if (System::organization_available() || $arr != ColumnType::ORGANIZATION) {
-                    return true;
-                } else {
-                    return false;
-                }
-            })->toArray();
-            return getTransArray($arrays, "custom_column.column_type_options");
-        })
-        ->attribute(['data-filtertrigger' =>true,
-            'data-linkage' => json_encode([
-                'options_select_import_column_id' => [
-                    'url' => admin_url('webapi/table/indexcolumns'),
-                    'text' => 'column_view_name',
-                ],
-                'options_select_export_column_id' => [
-                    'url' => admin_url('webapi/table/columns'),
-                    'text' => 'column_view_name',
-                ],
-                'options_select_target_view' => [
-                    'url' => admin_url('webapi/table/filterviews'),
-                    'text' => 'view_view_name',
-                ],
-            ]),
-            'data-linkage-expand' => json_encode(['custom_type' => true]),
-        ])
-        ->required();
 
         if (!isset($id)) {
             $id = $form->model()->id;
         }
-
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
+
+        if (!isset($id)) {
+            $form->select('column_type', exmtrans("custom_column.column_type"))
+                ->help(exmtrans("custom_column.help.column_type"))
+                ->options(function () {
+                    $arrays = collect(ColumnType::arrays())->filter(function ($arr) {
+                        if (System::organization_available() || $arr != ColumnType::ORGANIZATION) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    })->toArray();
+                    return getTransArray($arrays, "custom_column.column_type_options");
+                })
+                ->attribute(['data-filtertrigger' =>true,
+                    'data-linkage' => json_encode([
+                        'options_select_import_column_id' => [
+                            'url' => admin_url('webapi/table/indexcolumns'),
+                            'text' => 'column_view_name',
+                        ],
+                        'options_select_export_column_id' => [
+                            'url' => admin_url('webapi/table/columns'),
+                            'text' => 'column_view_name',
+                        ],
+                        'options_select_target_view' => [
+                            'url' => admin_url('webapi/table/filterviews'),
+                            'text' => 'view_view_name',
+                        ],
+                    ]),
+                    'data-linkage-expand' => json_encode(['custom_type' => true]),
+                ])
+                ->required();
+        } else {
+            $form->display('column_type', exmtrans("custom_column.column_type"))
+                ->displayText(function ($val) {
+                    return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
+            });
+            $form->hidden('column_type')->default($column_type);
+        }
+
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id, $controller) {
             $form->switchbool('required', exmtrans("common.required"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
