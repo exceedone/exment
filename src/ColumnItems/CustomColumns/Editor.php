@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Form\Field;
+use Exceedone\Exment\Validator;
 
 class Editor extends CustomItem
 {
@@ -35,7 +36,7 @@ class Editor extends CustomItem
     
     protected function setValidates(&$validates, $form_column_options)
     {
-        // value size
-        $validates[] = 'string';
+        // value string
+        $validates[] = new Validator\StringNumericRule();
     }
 }

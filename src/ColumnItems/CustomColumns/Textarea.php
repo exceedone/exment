@@ -33,7 +33,7 @@ class Textarea extends CustomItem
     
     protected function setValidates(&$validates, $form_column_options)
     {
-        // value size
-        $validates[] = 'string';
+        // value string
+        $validates[] = new Validator\StringNumericRule();
     }
 }
