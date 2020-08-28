@@ -82,6 +82,25 @@ class Exment
         return null;
     }
 
+
+    /**
+     * Get User Model's ID
+     * "This function name defines Custom value's user and login user. But this function always return Custom value's user
+     *
+     * @return string|int
+     */
+    public function getUserId()
+    {
+        // whether has User
+        $user = \Exment::user();
+        if (empty($user)) {
+            return null;
+        }
+
+        return $user->getUserId();
+    }
+
+
     /**
      * get exment version
      */
