@@ -226,7 +226,7 @@ class WorkflowController extends AdminControllerBase
             $model = $form->model();
 
             // get workflow_statuses and set completed fig
-            $statuses = $model->workflow_statuses()->orderby('order', 'desc')->get();
+            $statuses = $model->workflow_statuses()->get()->sortByDesc('order')->values();
 
             foreach ($statuses as $index => $status) {
                 $status->completed_flg = ($index === 0);

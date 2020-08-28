@@ -1783,6 +1783,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return $items;
         }
 
+        // checking id
+        $isId = !collect(toArray($selected_value))->filter()->contains(function($s){
+            return !is_numeric($s);
+        });
+        if(!$isId){
+            return $items;
+        }
+        
         $selected_custom_values = $this->getValueModel()->find((array)$selected_value);
         if (is_nullorempty($selected_custom_values)) {
             return $items;
