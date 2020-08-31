@@ -64,6 +64,7 @@ class News
             // get wordpress items
             $this->items = json_decode($contents, true);
         } catch (\Exception $ex) {
+            \Log::error($ex);
         }
     }
 
