@@ -161,6 +161,8 @@ class RefreshDataService
 
         // remove attachment files
         static::removeAttachmentFiles($custom_tables);
+
+        static::removeDocumentComments($custom_tables);
     }
 
 
@@ -189,5 +191,32 @@ class RefreshDataService
             }
             deleteDirectory($disk, $custom_table->table_name);
         }
+    }
+
+    /**
+     * Remove document and comment
+     *
+     * @param \Illuminate\Support\Collection $custom_tables
+     * @return void
+     */
+    public static function removeDocumentComments($custom_tables)
+    {
+        // delete tables
+        $deleteTables = [
+            SystemTableName::COMMENT,
+            SystemTableName::DOCUMENT,
+        ];
+        foreach($deleteTables as $deleteTable){
+            $deleteTableName = getDBTableName(CustomTable::getEloquent($deleteTable));
+            if(!hasTable($deleteTableName)){
+                continue;
+            }
+
+            foreach($custom_tables as $custom_table){
+                \DB::table($deleteTableName)->where('parent_type', $custom_table->table_name)
+                    ->delete();
+            }
+        }
+
     }
 }
