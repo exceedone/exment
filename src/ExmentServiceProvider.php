@@ -344,6 +344,8 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function bootSetting()
     {
+        Initialize::requireBootstrap();
+
         // Extend --------------------------------------------------
         Auth::provider('exment-auth', function ($app, array $config) {
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...
