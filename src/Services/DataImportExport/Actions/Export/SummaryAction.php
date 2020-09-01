@@ -40,6 +40,7 @@ class SummaryAction extends CustomTableAction
             }
 
             $datalist[] = ['name' => $provider->name(), 'outputs' => $provider->data()];
+            $this->count .= $provider->getCount();
         }
 
         return $datalist;

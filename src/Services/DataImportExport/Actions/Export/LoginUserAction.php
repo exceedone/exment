@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Actions\Export;
 
 use Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
-class LoginUserAction implements ActionInterface
+class LoginUserAction extends ExportActionBase implements ActionInterface
 {
     /**
      * laravel-admin grid
@@ -24,6 +24,8 @@ class LoginUserAction implements ActionInterface
 
         $datalist = [];
         $datalist[] = ['name' => $provider->name(), 'outputs' => $provider->data()];
+        $this->count = $provider->getCount();
+        
         return $datalist;
     }
 

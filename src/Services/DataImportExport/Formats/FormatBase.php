@@ -11,7 +11,6 @@ abstract class FormatBase
     protected $datalist;
     protected $filebasename;
     protected $accept_extension = '*';
-    protected $index;
 
     public function datalist($datalist = [])
     {
@@ -21,12 +20,6 @@ abstract class FormatBase
         
         $this->datalist = $datalist;
         
-        return $this;
-    }
-
-    public function setIndex($index = null)
-    {
-        $this->index = $index;
         return $this;
     }
 
