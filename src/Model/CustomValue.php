@@ -384,7 +384,7 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleting(function ($model) {
-            $model->deleted_user_id = \Exment::user()->getUserId();
+            $model->deleted_user_id = \Exment::getUserId();
 
             // saved_notify(as update) disable
             $saved_notify = $model->saved_notify;
@@ -720,7 +720,7 @@ abstract class CustomValue extends ModelBase
 
                 // check has user or org id
                 if ($related_type == SystemTableName::USER) {
-                    return $value['authoritable_target_id'] == \Exment::user()->getUserId();
+                    return $value['authoritable_target_id'] == \Exment::getUserId();
                 } elseif ($related_type == SystemTableName::ORGANIZATION) {
                     $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                     return in_array($value['authoritable_target_id'], \Exment::user()->getOrganizationIds($enum));
@@ -732,7 +732,7 @@ abstract class CustomValue extends ModelBase
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
-            ->where('authoritable_target_id', \Exment::user()->getUserId());
+            ->where('authoritable_target_id', \Exment::getUserId());
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
             $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
             $query = $this

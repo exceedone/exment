@@ -85,7 +85,7 @@ trait UserTrait
             return true;
         }
         // cannnot delete myself
-        if (\Exment::user()->getUserId() == $this->id) {
+        if (\Exment::getUserId() == $this->id) {
             return true;
         }
     }
