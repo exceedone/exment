@@ -17,7 +17,7 @@ class ExportCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:export {table_name} {--action=default} {--type=all} {--page=1} {--count=} {--format=csv} {--view=} {--dirpath=} {--add_setting=0} {--add_relation=0}';
+    protected $signature = 'exment:export {table_name} {--action=default} {--type=all} {--page=1} {--count=} {--chunk=0} {--chunkcount=1000} {--format=csv} {--view=} {--dirpath=} {--add_setting=0} {--add_relation=0}';
 
     /**
      * The console command description.
@@ -65,6 +65,8 @@ class ExportCommand extends Command
         $options['type'] = $this->option("type");
         $options['page'] = $this->option("page");
         $options['count'] = $this->option("count");
+        $options['chunk'] = $this->option("chunk");
+        $options['chunkcount'] = $this->option("chunkcount");
         $options['format'] = $this->option("format");
         $options['view'] = $this->option("view");
         $options['dirpath'] = $this->option("dirpath");
@@ -77,6 +79,20 @@ class ExportCommand extends Command
 
         if (!\in_array($options['type'], ['all', 'page'])) {
             throw new \Exception('optional parameter type error : ' . $options['type']);
+        }
+
+        if (!preg_match("/^[1,0]$/", $options['chunk'])) {
+            throw new \Exception('optional parameter chunk error : ' . $options['chunk']);
+        }
+        $options['chunk'] = \boolval($options['chunk']);
+
+        if ($options['chunk']) {
+            if ($options['type'] == 'page') {
+                throw new \Exception('optional parameter chunk cannot use with type : page');
+            }
+            if (!preg_match("/^[0-9]+$/", $options['chunkcount'])) {
+                throw new \Exception('optional parameter chunkcount error : ' . $options['chunkcount']);
+            }
         }
 
         if (!\in_array($options['format'], ['csv', 'xlsx'])) {
@@ -137,43 +153,82 @@ class ExportCommand extends Command
             // get parameters
             list($custom_table, $options) = $this->getParameters();
             $classname = getModelName($custom_table);
-            $grid = new Grid(new $classname);
-            if ($options['type'] == 'page') {
-                $grid->model()->setPerPageArguments([$options['count'], ['*'], 'page', $options['page']])
-                    ->disableHandleInvalidPage();
-            } elseif ($options['type'] == 'all') {
-                $grid->model()->usePaginate(false);
-            }
 
-            if (isset($options['view']) && $options['view'] instanceof CustomView) {
-                $options['view']->filterModel($grid->model());
-            }
+            if ($options['chunk']) {
+                $i = 1;
+                while(true){
+                    $grid = new Grid(new $classname);
+                    // set data get range
+                    $grid->model()->setPerPageArguments([$options['chunkcount'] ?? 1000, ['*'], 'page', $i])
+                        ->disableHandleInvalidPage();
+                    if (isset($options['view']) && $options['view'] instanceof CustomView) {
+                        $options['view']->filterModel($grid->model());
+                    }
+                    $service = (new DataImportExport\DataImportExportService())
+                        ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
+                        [
+                            'custom_table' => $custom_table,
+                            'grid' => $grid,
+                            'add_setting' => false,
+                            'add_relation' => false,
+                        ]
+                        ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
+                        [
+                            'custom_table' => $custom_table,
+                            'custom_view' => $options['view'],
+                            'grid' => $grid
+                        ]
+                    ))
+                    ->format($options['format']);
+
+                    $result = $service->exportBackground($options, $i);
+
+                    if (empty($message)) {
+                        $message = array_get($result, 'message');
+                    }
+
+                    if (array_get($result, 'status') !== 0) {
+                        break;
+                    }
+                    $i++;
+                }
+            } else {
+                $grid = new Grid(new $classname);
+                if ($options['type'] == 'page') {
+                    $grid->model()->setPerPageArguments([$options['count'], ['*'], 'page', $options['page']])
+                        ->disableHandleInvalidPage();
+                } elseif ($options['type'] == 'all') {
+                    $grid->model()->usePaginate(false);
+                }
     
-            $service = (new DataImportExport\DataImportExportService())
-                ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
-                    [
-                        'custom_table' => $custom_table,
-                        'grid' => $grid,
-                        'add_setting' => boolval(array_get($options, 'add_setting', false)),
-                        'add_relation' => boolval(array_get($options, 'add_relation', false)),
-                    ]
-                ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
-                    [
-                        'custom_table' => $custom_table,
-                        'custom_view' => $options['view'],
-                        'grid' => $grid
-                    ]
-                ))
-                ->format($options['format']);
-            
-            $result = $service->exportBackground($options);
-
-            $message = array_get($result, 'message');
+                if (isset($options['view']) && $options['view'] instanceof CustomView) {
+                    $options['view']->filterModel($grid->model());
+                }
+        
+                $service = (new DataImportExport\DataImportExportService())
+                    ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
+                        [
+                            'custom_table' => $custom_table,
+                            'grid' => $grid,
+                            'add_setting' => boolval(array_get($options, 'add_setting', false)),
+                            'add_relation' => boolval(array_get($options, 'add_relation', false)),
+                        ]
+                    ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
+                        [
+                            'custom_table' => $custom_table,
+                            'custom_view' => $options['view'],
+                            'grid' => $grid
+                        ]
+                    ))
+                    ->format($options['format']);
+                
+                $result = $service->exportBackground($options);
+    
+                $message = array_get($result, 'message');
+            }
             if (!empty($message)) {
                 $this->line($message);
             }
-
-            return array_get($result, 'dirpath');
         } catch (\Exception $e) {
             \Log::error($e);
             $this->error($e->getMessage());

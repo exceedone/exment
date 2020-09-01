@@ -133,7 +133,11 @@ class Csv extends FormatBase
     {
         foreach ($files as $f) {
             // csv path
-            $csv_name = $f['name'] . '.csv';
+            $csv_name = $f['name'];
+            if (isset($this->index)) {
+                $csv_name .= '.' . $this->index;
+            }
+            $csv_name .= '.csv';
             $csv_path = path_join($csvdir, $csv_name);
             $writer = $this->createWriter($f['spreadsheet']);
             

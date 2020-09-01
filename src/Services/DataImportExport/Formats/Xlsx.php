@@ -30,7 +30,11 @@ class Xlsx extends FormatBase
     public function saveAsFile($dirpath, $files)
     {
         $writer = $this->createWriter($files[0]['spreadsheet']);
-        $file_path = path_join($dirpath, $this->filebasename. ".xlsx");
+        $file_name = $this->filebasename;
+        if (isset($this->index)) {
+            $file_name .= '.' . $this->index;
+        }
+        $file_path = path_join($dirpath, $file_name. ".xlsx");
         $writer->save($file_path);
         // close workbook and release memory
         $files[0]['spreadsheet']->disconnectWorksheets();

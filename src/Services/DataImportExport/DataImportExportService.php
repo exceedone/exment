@@ -263,7 +263,7 @@ class DataImportExportService extends AbstractExporter
     /**
      * execute export background
      */
-    public function exportBackground(array $options = [])
+    public function exportBackground(array $options = [], $index = null)
     {
         setTimeLimitLong();
 
@@ -273,15 +273,28 @@ class DataImportExportService extends AbstractExporter
             $datalist = $this->exportAction->datalist();
         }
 
+        if (isset($index)){
+            if (count($datalist) > 0) {
+                $outputs = array_get($datalist[0], 'outputs');
+            }
+            if (empty($outputs) || count($outputs) <= 2) {
+                return [
+                    'status' => 1,
+                    'message' => exmtrans('common.message.notfound'),
+                ];
+            }
+        }
+
         $files = $this->format
             ->datalist($datalist)
             ->filebasename($this->exportAction->filebasename())
+            ->setIndex($index)
             ->createFile();
 
         $this->format->saveAsFile($options['dirpath'], $files);
 
         return [
-            'result' => true,
+            'status' => 0,
             'message' => exmtrans('command.export.success_message', $options['dirpath']),
             'dirpath' => $options['dirpath'],
         ];
