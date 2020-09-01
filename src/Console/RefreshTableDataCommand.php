@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Services\RefreshDataService;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums\SystemTableName;
 
 /**
  * Refresh custom data.
@@ -58,6 +59,15 @@ class RefreshTableDataCommand extends Command
         });
         if($notExistsTables->count() > 0){
             $this->error('Table ' . $notExistsTables->implode(",") . " are not found.");   
+            return;
+        }
+        
+        // if contains user org mailtemplate table, return
+        $userOrgTables = collect($table_names)->filter(function($table_name){
+            return isMatchString($table_name, SystemTableName::USER) || isMatchString($table_name, SystemTableName::ORGANIZATION) || isMatchString($table_name, SystemTableName::MAIL_TEMPLATE);
+        });
+        if($userOrgTables->count() > 0){
+            $this->error('Table ' . $userOrgTables->implode(",") . " cannot refresh.");   
             return;
         }
 
