@@ -9,6 +9,21 @@ namespace Exceedone\Exment\Database;
 trait ExtendedBuilderTrait
 {
     /**
+     * Update a removing json key.
+     *
+     * @param  string  $targetColumn
+     * @param  string  $removingJsonKey
+     * @return int
+     */
+    public function updateRemovingJsonKey(string $key)
+    {
+        $sql = $this->query->grammar->compileUpdateRemovingJsonKey($this->query, $key);
+
+        return $this->query->connection->statement($sql);
+    }
+
+
+    /**
      * Execute query "where" or "whereIn". If args is array, call whereIn
      *
      * @param  string|array|\Closure  $column

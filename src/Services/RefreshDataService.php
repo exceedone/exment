@@ -146,7 +146,8 @@ class RefreshDataService
 
                     $custom_table->getValueModel()->query()->withTrashed()
                         ->whereNotNull('value->' . $custom_column->column_name)
-                        ->update(['value->' . $custom_column->column_name => '']);
+                        ->updateRemovingJsonKey('value->' . $custom_column->column_name);
+                        //->update(['value->' . $custom_column->column_name => '']);
                 });
             }
             

@@ -10,6 +10,37 @@ class MySqlGrammar extends BaseGrammar
 {
     use GrammarTrait;
     
+    public function compileUpdateRemovingJsonKey($query, string $key) : string
+    {
+        $table = $this->wrapTable($query->from);
+
+        // Creating json value
+        
+        $path = explode('->', $key);
+
+        $field = $this->wrapValue(array_shift($path));
+
+        $accessor = "'$.\"".implode('"."', $path)."\"'";
+
+        $column = "{$field} = json_remove({$field}, {$accessor})";
+
+        // If the query has any "join" clauses, we will setup the joins on the builder
+        // and compile them so we can attach them to this update, as update queries
+        // can get join statements to attach to other tables when they're needed.
+        $joins = '';
+
+        if (isset($query->joins)) {
+            $joins = ' '.$this->compileJoins($query, $query->joins);
+        }
+
+        // Of course, update queries may also be constrained by where clauses so we'll
+        // need to compile the where clauses and attach it to the query so only the
+        // intended records are updated by the SQL statements we generate to run.
+        $wheres = $this->compileWheres($query);
+
+        return trim("update {$table}{$joins} set $column $wheres");
+    }
+
     /**
      * Get cast column string
      *
