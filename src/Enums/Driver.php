@@ -41,10 +41,9 @@ class Driver extends EnumBase
     {
         $c = config("exment.driver.$driverKey", 'local');
         // if exists extends
-        if(array_key_exists($c, static::$customDrivers)){
+        if (array_key_exists($c, static::$customDrivers)) {
             $classname = static::$customDrivers[$c];
-        }
-        else{
+        } else {
             $classname = Adapter\ExmentAdapterLocal::class;
             switch ($c) {
                 case self::LOCAL:

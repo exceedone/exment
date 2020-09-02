@@ -99,15 +99,15 @@ class RefreshDataService
         $truacateTables = [];
         $custom_tables = [];
 
-        foreach($tables as $table){
+        foreach ($tables as $table) {
             $custom_table = CustomTable::getEloquent($table);
-            if(empty($custom_table)){
+            if (empty($custom_table)) {
                 continue;
             }
 
             // truncate 1:n table if $custom_table is parent
             $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
-            foreach($relations as $relation){
+            foreach ($relations as $relation) {
                 $truacateTables[] = getDBTableName($relation->child_custom_table);
                 $custom_tables[] = $relation->child_custom_table;
             }
@@ -118,7 +118,7 @@ class RefreshDataService
             $pivots = $pivots->map(function ($relation) {
                 return $relation->getRelationName();
             })
-            ->each(function($pivot) use(&$truacateTables){
+            ->each(function ($pivot) use (&$truacateTables) {
                 $truacateTables[] = $pivot;
             });
 
@@ -130,29 +130,29 @@ class RefreshDataService
 
         // call truncate
         \DB::transaction(function () use ($truacateTables, $custom_tables, $deleteTables) {
-            foreach($custom_tables as $custom_table){
+            foreach ($custom_tables as $custom_table) {
                 // delete
-                foreach($deleteTables as $deleteTableName => $deleteTable){
+                foreach ($deleteTables as $deleteTableName => $deleteTable) {
                     \DB::table($deleteTableName)
                         ->where($deleteTable['type'], $custom_table->table_name)->delete();
                 }
 
                 // update select table's value
-                collect($custom_table->getSelectedTableColumns())->each(function($custom_column){
+                collect($custom_table->getSelectedTableColumns())->each(function ($custom_column) {
                     $custom_table = $custom_column->custom_table_cache;
-                    if(empty($custom_table)){
+                    if (empty($custom_table)) {
                         return true;
                     }
 
                     $custom_table->getValueModel()->query()->withTrashed()
                         ->whereNotNull('value->' . $custom_column->column_name)
                         ->updateRemovingJsonKey('value->' . $custom_column->column_name);
-                        //->update(['value->' . $custom_column->column_name => '']);
+                    //->update(['value->' . $custom_column->column_name => '']);
                 });
             }
             
             foreach ($truacateTables as $table) {
-                if(!hasTable($table)){
+                if (!hasTable($table)) {
                     continue;
                 }
 
@@ -207,17 +207,16 @@ class RefreshDataService
             SystemTableName::COMMENT,
             SystemTableName::DOCUMENT,
         ];
-        foreach($deleteTables as $deleteTable){
+        foreach ($deleteTables as $deleteTable) {
             $deleteTableName = getDBTableName(CustomTable::getEloquent($deleteTable));
-            if(!hasTable($deleteTableName)){
+            if (!hasTable($deleteTableName)) {
                 continue;
             }
 
-            foreach($custom_tables as $custom_table){
+            foreach ($custom_tables as $custom_table) {
                 \DB::table($deleteTableName)->where('parent_type', $custom_table->table_name)
                     ->delete();
             }
         }
-
     }
 }

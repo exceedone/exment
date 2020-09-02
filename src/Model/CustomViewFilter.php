@@ -354,7 +354,7 @@ class CustomViewFilter extends ModelBase
             case FilterOption::USER_EQ_USER:
             case FilterOption::USER_NE_USER:
                 $user_id = \Exment::getUserId();
-                if($user_id) {
+                if ($user_id) {
                     $mark = isMatchString($view_filter_condition, FilterOption::USER_NE_USER) ? '<>' : '=';
                     $model->{$method_name}($view_column_target, $mark, $user_id);
                 } else {

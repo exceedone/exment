@@ -192,9 +192,10 @@ __EOT__;
                     $disk->delete($path);
                     $disk->writeStream($path, $stream);
                             
-                    try{
+                    try {
                         fclose($stream);
-                    }catch(\Exception $ex){}
+                    } catch (\Exception $ex) {
+                    }
                 }
             }
         }

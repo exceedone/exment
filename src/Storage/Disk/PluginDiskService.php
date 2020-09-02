@@ -109,9 +109,10 @@ class PluginDiskService extends DiskServiceBase
             }
             $localSyncDisk->writeStream($file, $stream);
 
-            try{
+            try {
                 fclose($stream);
-            }catch(\Exception $ex){}
+            } catch (\Exception $ex) {
+            }
         }
         
         // create updated_at file

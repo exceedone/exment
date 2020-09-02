@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Storage\Adapter;
 
 /**
- * 
+ *
  * @method static getMergeConfigKeys(string $mergeFrom, array $options = []);
  */
 trait AdapterTrait

@@ -67,38 +67,34 @@ class ExportChunkCommand extends Command
         $options['end'] = $this->option("end");
         $options['seqlength'] = $this->option("seqlength");
 
-        if($options['count']){
+        if ($options['count']) {
             if (!preg_match("/^[0-9]+$/", $options['count'])) {
                 throw new \Exception('optional parameter count error : ' . $options['count']);
             }
-        }
-        else{
+        } else {
             $options['count'] = 1000;
         }
         
-        if($options['start']){
+        if ($options['start']) {
             if (!preg_match("/^[0-9]+$/", $options['start'])) {
                 throw new \Exception('optional parameter start error : ' . $options['start']);
             }
-        }
-        else{
+        } else {
             $options['start'] = 1;
         }
-        if($options['end']){
+        if ($options['end']) {
             if (!preg_match("/^[0-9]+$/", $options['end'])) {
                 throw new \Exception('optional parameter end error : ' . $options['end']);
             }
-        }
-        else{
+        } else {
             $options['end'] = 1000;
         }
         
-        if($options['seqlength']){
+        if ($options['seqlength']) {
             if (!preg_match("/^[0-9]+$/", $options['seqlength'])) {
                 throw new \Exception('optional parameter seqlength error : ' . $options['seqlength']);
             }
-        }
-        else{
+        } else {
             $options['seqlength'] = 1;
         }
 
@@ -119,7 +115,7 @@ class ExportChunkCommand extends Command
             $message = null;
 
             $executeCount = 0;
-            for($i = $options['start'] ?? 1; $i <= $options['end'] ?? 1000; $i++){
+            for ($i = $options['start'] ?? 1; $i <= $options['end'] ?? 1000; $i++) {
                 $grid = new Grid(new $classname);
                 // set data get range
                 $grid->model()->setPerPageArguments([$options['count'] ?? 1000, ['*'], 'page', $i])
@@ -132,19 +128,19 @@ class ExportChunkCommand extends Command
 
                 $service = (new DataImportExport\DataImportExportService())
                     ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
-                    [
+                        [
                         'custom_table' => $custom_table,
                         'grid' => $grid,
                         'add_setting' => false,
                         'add_relation' => false,
                     ]
                     ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
-                    [
+                        [
                         'custom_table' => $custom_table,
                         'custom_view' => $options['view'],
                         'grid' => $grid,
                     ]
-                ))
+                    ))
                 ->format($options['format'])
                 ->filebasename("{$custom_table->table_name}.{$seq}");
 
@@ -159,7 +155,7 @@ class ExportChunkCommand extends Command
                 }
 
                 $executeCount++;
-                if($executeCount >= 1000){
+                if ($executeCount >= 1000) {
                     break;
                 }
             }

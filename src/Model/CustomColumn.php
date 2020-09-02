@@ -351,7 +351,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         //  if index_enabled = false, and exists, then drop index
         // if column exists and (index_enabled = false or forceDropIndex)
         if ($exists && ($forceDropIndex || (!boolval($index_enabled)))) {
-            \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);            
+            \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
             System::clearCache();
         }
         // if index_enabled = true, not exists, then create index

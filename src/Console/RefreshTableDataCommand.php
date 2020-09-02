@@ -54,20 +54,20 @@ class RefreshTableDataCommand extends Command
         $table_names = stringToArray($table_names);
 
         // check table exists
-        $notExistsTables = collect($table_names)->filter(function($table_name){
+        $notExistsTables = collect($table_names)->filter(function ($table_name) {
             return !CustomTable::getEloquent($table_name);
         });
-        if($notExistsTables->count() > 0){
-            $this->error('Table ' . $notExistsTables->implode(",") . " are not found.");   
+        if ($notExistsTables->count() > 0) {
+            $this->error('Table ' . $notExistsTables->implode(",") . " are not found.");
             return;
         }
         
         // if contains user org mailtemplate table, return
-        $userOrgTables = collect($table_names)->filter(function($table_name){
+        $userOrgTables = collect($table_names)->filter(function ($table_name) {
             return isMatchString($table_name, SystemTableName::USER) || isMatchString($table_name, SystemTableName::ORGANIZATION) || isMatchString($table_name, SystemTableName::MAIL_TEMPLATE);
         });
-        if($userOrgTables->count() > 0){
-            $this->error('Table ' . $userOrgTables->implode(",") . " cannot refresh.");   
+        if ($userOrgTables->count() > 0) {
+            $this->error('Table ' . $userOrgTables->implode(",") . " cannot refresh.");
             return;
         }
 

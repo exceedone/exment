@@ -54,7 +54,7 @@ class Tinymce extends Textarea
     {
         // Remove required attributes(for timymce bug).
         array_forget($this->attributes, 'required');
-        $this->rules = collect($this->rules)->filter(function($rule) {
+        $this->rules = collect($this->rules)->filter(function ($rule) {
             return !is_string($rule) || $rule !== 'required';
         })->toArray();
         $this->rules = array_values($this->rules);

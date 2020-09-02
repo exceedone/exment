@@ -338,8 +338,9 @@ class DocumentExcelService
         $stream = \Storage::disk(Define::DISKNAME_ADMIN_TMP)->readStream($file);
         \Storage::disk(Define::DISKNAME_ADMIN)->writeStream($file, $stream);
         
-        try{
+        try {
             fclose($stream);
-        }catch(\Exception $ex){}
+        } catch (\Exception $ex) {
+        }
     }
 }

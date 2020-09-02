@@ -67,9 +67,10 @@ class BackupDiskService extends DiskServiceBase
         
         $stream = $disk->readStream($diskItem->filePath());
         $localSyncDisk->writeStream($localSyncDiskItem->filePath(), $stream);
-        try{
+        try {
             fclose($stream);
-        }catch(\Exception $ex){}
+        } catch (\Exception $ex) {
+        }
         
         // open new zip file
         $zip = new \ZipArchive();
