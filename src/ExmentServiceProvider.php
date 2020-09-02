@@ -72,6 +72,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\RefreshTableDataCommand',
         'Exceedone\Exment\Console\ImportCommand',
         'Exceedone\Exment\Console\ExportCommand',
+        'Exceedone\Exment\Console\ExportChunkCommand',
     ];
 
     /**

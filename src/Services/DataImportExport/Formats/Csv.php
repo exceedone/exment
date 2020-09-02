@@ -132,8 +132,8 @@ class Csv extends FormatBase
     public function saveAsFile($csvdir, $files)
     {
         foreach ($files as $f) {
-            // csv path
-            $csv_name = $f['name'] . '.csv';
+            // csv pathz
+            $csv_name = $this->filebasename . '.csv';
             $csv_path = path_join($csvdir, $csv_name);
             $writer = $this->createWriter($f['spreadsheet']);
             

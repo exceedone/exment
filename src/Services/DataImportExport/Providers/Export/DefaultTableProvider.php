@@ -109,13 +109,14 @@ class DefaultTableProvider extends ProviderBase
      */
     public function getRecords()
     {
+        $records = new Collection;
         $this->grid->applyQuickSearch();
         $this->grid->getFilter()->chunk(function ($data) use (&$records) {
             if (!isset($records)) {
                 $records = new Collection;
             }
             $records = $records->merge($data);
-        }) ?? [];
+        }) ?? new Collection;
 
         if (isset($this->parent_table) && $records->count() > 0) {
             return getModelName($this->name())
@@ -123,6 +124,8 @@ class DefaultTableProvider extends ProviderBase
                 ->where('parent_type', $this->parent_table)
                 ->get();
         }
+
+        $this->count = count($records);
         return $records;
     }
 
