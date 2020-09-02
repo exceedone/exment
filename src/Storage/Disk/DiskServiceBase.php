@@ -74,7 +74,9 @@ abstract class DiskServiceBase
 
             $this->diskItem()->disk()->writeStream($to, $stream);
 
-            fclose($stream);
+            try{
+                fclose($stream);
+            }catch(\Exception $ex){}
         }
     }
 

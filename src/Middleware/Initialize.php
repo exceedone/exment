@@ -62,7 +62,7 @@ class Initialize
             static::initializeConfig();
         }
         
-        static::requireBootstrap();
+        //static::requireBootstrap();
 
         return $next($request);
     }
@@ -354,7 +354,7 @@ class Initialize
         }
     }
 
-    protected static function requireBootstrap()
+    public static function requireBootstrap()
     {
         $file = config('exment.bootstrap', exment_app_path('bootstrap.php'));
         if (!\File::exists($file)) {

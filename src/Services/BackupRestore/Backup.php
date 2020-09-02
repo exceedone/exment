@@ -122,7 +122,9 @@ class Backup
                     $stream = $disk->readStream($file);
                     $this->tmpDisk()->writeStream(path_join($to, $file), $stream);
 
-                    fclose($stream);
+                    try{
+                        fclose($stream);
+                    }catch(\Exception $ex){}
                 }
             }
         }
