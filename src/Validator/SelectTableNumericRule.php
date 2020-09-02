@@ -28,7 +28,7 @@ class SelectTableNumericRule implements Rule
         }
 
         // if numeric, return true
-        if (!is_array($value) && is_numeric($value)) {
+        if (!is_list($value) && is_numeric($value)) {
             return true;
         }
 
@@ -40,8 +40,8 @@ class SelectTableNumericRule implements Rule
             return true;
         }
 
-        if (is_array($value)) {
-            $value = array_filter($value);
+        if (is_list($value)) {
+            $value = array_filter(toArray($value));
             foreach ($value as $v) {
                 if (!is_numeric($v)) {
                     return false;
