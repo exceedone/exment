@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Services\Login\LoginService;
 
 /**
  * Login User item
@@ -144,23 +145,12 @@ class LoginUserItem extends ProviderBase
 
         try {
             if ($has_change) {
-                $login_user->password_reset_flg = $password_reset_flg;
-                // mailsend
-                if (boolval($send_password)) {
-                    try {
-                        $login_user->sendPassword($password);
-                    }
-                    // throw mailsend Exception
-                    catch (\Swift_TransportException $ex) {
-                        admin_error(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
-                        return back()->withInput();
-                    }
-                }
-                $login_user->save();
+                LoginService::resetPassword($login_user, [
+                    'password' => $password,
+                    'send_password' => $send_password,
+                    'password_reset_flg' => $password_reset_flg,
+                ]);
             }
-        } catch (\Swift_TransportException $ex) {
-            admin_error('Error', exmtrans('error.mailsend_failed'));
-            return back()->withInput();
         } catch (\Exception $ex) {
             throw $ex;
         }
@@ -204,7 +194,6 @@ class LoginUserItem extends ProviderBase
             // user select "create_password_auto"
             if (boolval(array_get($data, 'create_password_auto'))) {
                 $password = make_password();
-                $login_user->password = $password;
                 $has_change = true;
             } elseif (boolval(array_get($data, 'password'))) {
                 $rules = [
@@ -215,7 +204,6 @@ class LoginUserItem extends ProviderBase
                     return back()->withInput()->withErrors($validation);
                 }
                 $password = array_get($data, 'password');
-                $login_user->password = $password;
                 $has_change = true;
             } else {
                 return back()->withInput()->withErrors([
