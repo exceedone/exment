@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Form\Field;
+use Exceedone\Exment\Validator;
 
 class Text extends CustomItem
 {
@@ -22,6 +23,6 @@ class Text extends CustomItem
         }
         
         // value type
-        $validates[] = 'string';
+        $validates[] = new Validator\StringNumericRule();
     }
 }
