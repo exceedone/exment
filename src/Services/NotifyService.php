@@ -295,20 +295,7 @@ class NotifyService
             $params
         );
         $params['notify'] = $notify;
-
-        $mail_template = $params['mail_template'];
         $custom_value = $params['custom_value'];
-
-        // get template
-        if (!isset($mail_template)) {
-            $mail_template = array_get($notify->action_settings, 'mail_template_id');
-        }
-        if (is_numeric($mail_template)) {
-            $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
-        }
-        $params['mail_template'] = $mail_template;
-        $params['subject'] = $params['subject'] ?? array_get($mail_template->value, 'mail_subject');
-        $params['body'] = $params['body'] ?? array_get($mail_template->value, 'mail_body');
 
         // get notify actions
         $notify_actions = $notify->notify_actions;
@@ -375,6 +362,7 @@ class NotifyService
             ],
             $params
         );
+        static::replaceSubjectBody($params);
 
         // send mail
         try {
@@ -418,6 +406,7 @@ class NotifyService
             ],
             $params
         );
+        static::replaceSubjectBody($params);
 
         $notify = $params['notify'];
         $mail_template = $params['mail_template'];
@@ -501,6 +490,7 @@ class NotifyService
                 'webhook_name' => null,
                 'webhook_icon' => null,
                 'notify' => null,
+                'mail_template' => null,
                 'prms' => [],
                 'custom_value' => null,
                 'subject' => null,
@@ -509,6 +499,7 @@ class NotifyService
             ],
             $params
         );
+        static::replaceSubjectBody($params);
 
         $webhook_url = $params['webhook_url'];
         if(!isset($webhook_url) && isset($params['notify'])){
@@ -524,6 +515,42 @@ class NotifyService
         $className::make($webhook_url, $slack_subject, $slack_body, $options)->send();
     }
 
+
+    
+    /**
+     * replace subject and body from mail template
+     */
+    public static function replaceSubjectBody(&$params = [])
+    {
+        $params = array_merge(
+            [
+                'mail_template' => null,
+                'notify' => null,
+            ],
+            $params
+        );
+        $notify = $params['notify'];
+        $mail_template = $params['mail_template'];
+
+        // get template
+        if (!isset($mail_template) && isset($notify)) {
+            $mail_template = array_get($notify->action_settings, 'mail_template_id');
+        }
+        if (is_numeric($mail_template)) {
+            $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
+        }
+
+        if(!isset($mail_template)){
+            return;
+        }
+
+        if(is_nullorempty($params['subject'])){
+            $params['subject'] = array_get($mail_template->value, 'mail_subject');
+        }
+        if(is_nullorempty($params['body'])){
+            $params['body'] = array_get($mail_template->value, 'mail_body');
+        }
+    }
 
     /**
      * get Progress Info
