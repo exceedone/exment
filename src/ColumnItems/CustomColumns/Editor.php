@@ -8,6 +8,14 @@ use Exceedone\Exment\Validator;
 
 class Editor extends CustomItem
 {
+    public function saving()
+    {
+        if (is_nullorempty($this->value)) {
+            return;
+        }
+        return strval($this->value);
+    }
+
     protected function _html($v)
     {
         $text = $this->_text($v);

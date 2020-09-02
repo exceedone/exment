@@ -8,6 +8,14 @@ use Exceedone\Exment\Validator;
 
 class Text extends CustomItem
 {
+    public function saving()
+    {
+        if (is_nullorempty($this->value)) {
+            return;
+        }
+        return strval($this->value);
+    }
+
     protected function getAdminFieldClass()
     {
         return Field\Text::class;
