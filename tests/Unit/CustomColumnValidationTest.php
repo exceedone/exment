@@ -49,16 +49,14 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::TEXT => 'abc',
         ]);
     }
+    public function testSuccessText2(){
+        $this->executeTestAllColumns(ColumnType::TEXT, [
+            ColumnType::TEXT => 1,
+        ]);
+    }
     public function testTextNotString(){
         $this->executeTestAllColumns(ColumnType::TEXT, [
             ColumnType::TEXT => ['abc'],
-        ], [
-            ColumnType::TEXT => [$this->getErrorMessage('string', ColumnType::TEXT)],
-        ]);
-    }
-    public function testTextNotString2(){
-        $this->executeTestAllColumns(ColumnType::TEXT, [
-            ColumnType::TEXT => 1,
         ], [
             ColumnType::TEXT => [$this->getErrorMessage('string', ColumnType::TEXT)],
         ]);
@@ -72,18 +70,16 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::TEXTAREA => "abc\r\ndef",
         ]);
     }
+    public function testSuccessTextarea2(){
+        $this->executeTestAllColumns(ColumnType::TEXTAREA, [
+            ColumnType::TEXTAREA => 1,
+        ]);
+    }
 
     public function testTextareaNotString(){
         $this->executeTestAllColumns(ColumnType::TEXTAREA, [
             ColumnType::TEXTAREA => ['abc'],
         ], [ 
-            ColumnType::TEXTAREA => [$this->getErrorMessage('string', ColumnType::TEXTAREA)],
-        ]);
-    }
-    public function testTextareaNotString2(){
-        $this->executeTestAllColumns(ColumnType::TEXTAREA, [
-            ColumnType::TEXTAREA => 1,
-        ], [
             ColumnType::TEXTAREA => [$this->getErrorMessage('string', ColumnType::TEXTAREA)],
         ]);
     }
@@ -97,18 +93,16 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::EDITOR => "abc\r\ndef",
         ]);
     }
+    public function testSuccessEditor2(){
+        $this->executeTestAllColumns(ColumnType::EDITOR, [
+            ColumnType::EDITOR => 1,
+        ]);
+    }
 
     public function testEditorNotString(){
         $this->executeTestAllColumns(ColumnType::EDITOR, [
             ColumnType::EDITOR => ['abc'],
         ], [ 
-            ColumnType::EDITOR => [$this->getErrorMessage('string', ColumnType::EDITOR)],
-        ]);
-    }
-    public function testEditorNotString2(){
-        $this->executeTestAllColumns(ColumnType::EDITOR, [
-            ColumnType::EDITOR => 1,
-        ], [
             ColumnType::EDITOR => [$this->getErrorMessage('string', ColumnType::EDITOR)],
         ]);
     }

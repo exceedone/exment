@@ -80,7 +80,10 @@ class TemplateDiskService extends DiskServiceBase
             $localPath = path_join($localSyncDiskItem->dirName(), $file);
             $localSyncDisk->writeStream($localPath, $stream);
 
-            fclose($stream);
+            try {
+                fclose($stream);
+            } catch (\Exception $ex) {
+            }
         }
         
         return true;

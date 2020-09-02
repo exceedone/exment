@@ -6,7 +6,7 @@ use Exceedone\Exment\Services\DataImportExport\Providers\Export;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\RelationType;
 
-class CustomTableAction implements ActionInterface
+class CustomTableAction extends ExportActionBase implements ActionInterface
 {
     /**
      * target custom table
@@ -98,6 +98,7 @@ class CustomTableAction implements ActionInterface
             }
 
             $datalist[] = ['name' => $provider->name(), 'outputs' => $provider->data()];
+            $this->count .= $provider->getCount();
         }
 
         return $datalist;

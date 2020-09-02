@@ -77,6 +77,96 @@ class RefreshDataService
         static::removeAttachmentFiles($custom_tables);
     }
 
+
+    /**
+     * Refresh transaction data selecting table
+     *
+     * @param array $tables
+     * @return void
+     */
+    public static function refreshTable(array $tables)
+    {
+        // delete tables
+        $deleteTables = [
+            'notify_navbars' => ['type' => 'parent_type'],
+            'revisions' => ['type' => 'revisionable_type'],
+            'workflow_value_authorities' => ['type' => 'related_type'],
+            'workflow_values' => ['type' => 'morph_type'],
+            'custom_value_authoritables' => ['type' => 'parent_type'],
+        ];
+
+        // truancate tables;
+        $truacateTables = [];
+        $custom_tables = [];
+
+        foreach ($tables as $table) {
+            $custom_table = CustomTable::getEloquent($table);
+            if (empty($custom_table)) {
+                continue;
+            }
+
+            // truncate 1:n table if $custom_table is parent
+            $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
+            foreach ($relations as $relation) {
+                $truacateTables[] = getDBTableName($relation->child_custom_table);
+                $custom_tables[] = $relation->child_custom_table;
+            }
+
+            // pivot custom value's
+            $pivots = CustomRelation::getRelationsByParent($custom_table, RelationType::MANY_TO_MANY);
+            $pivots = $pivots->merge(CustomRelation::getRelationsByChild($custom_table, RelationType::MANY_TO_MANY));
+            $pivots = $pivots->map(function ($relation) {
+                return $relation->getRelationName();
+            })
+            ->each(function ($pivot) use (&$truacateTables) {
+                $truacateTables[] = $pivot;
+            });
+
+            // truncate table self
+            $truacateTables[] = getDBTableName($custom_table);
+            $custom_tables[] = $custom_table;
+        }
+
+
+        // call truncate
+        \DB::transaction(function () use ($truacateTables, $custom_tables, $deleteTables) {
+            foreach ($custom_tables as $custom_table) {
+                // delete
+                foreach ($deleteTables as $deleteTableName => $deleteTable) {
+                    \DB::table($deleteTableName)
+                        ->where($deleteTable['type'], $custom_table->table_name)->delete();
+                }
+
+                // update select table's value
+                collect($custom_table->getSelectedTableColumns())->each(function ($custom_column) {
+                    $custom_table = $custom_column->custom_table_cache;
+                    if (empty($custom_table)) {
+                        return true;
+                    }
+
+                    $custom_table->getValueModel()->query()->withTrashed()
+                        ->whereNotNull('value->' . $custom_column->column_name)
+                        ->updateRemovingJsonKey('value->' . $custom_column->column_name);
+                    //->update(['value->' . $custom_column->column_name => '']);
+                });
+            }
+            
+            foreach ($truacateTables as $table) {
+                if (!hasTable($table)) {
+                    continue;
+                }
+
+                \DB::table($table)->truncate();
+            }
+        });
+
+        // remove attachment files
+        static::removeAttachmentFiles($custom_tables);
+
+        static::removeDocumentComments($custom_tables);
+    }
+
+
     /**
      * Remove attachment files
      *
@@ -101,6 +191,32 @@ class RefreshDataService
                 continue;
             }
             deleteDirectory($disk, $custom_table->table_name);
+        }
+    }
+
+    /**
+     * Remove document and comment
+     *
+     * @param \Illuminate\Support\Collection $custom_tables
+     * @return void
+     */
+    public static function removeDocumentComments($custom_tables)
+    {
+        // delete tables
+        $deleteTables = [
+            SystemTableName::COMMENT,
+            SystemTableName::DOCUMENT,
+        ];
+        foreach ($deleteTables as $deleteTable) {
+            $deleteTableName = getDBTableName(CustomTable::getEloquent($deleteTable));
+            if (!hasTable($deleteTableName)) {
+                continue;
+            }
+
+            foreach ($custom_tables as $custom_table) {
+                \DB::table($deleteTableName)->where('parent_type', $custom_table->table_name)
+                    ->delete();
+            }
         }
     }
 }

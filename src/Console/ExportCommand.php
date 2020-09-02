@@ -10,7 +10,7 @@ use Exceedone\Exment\Services\DataImportExport;
 
 class ExportCommand extends Command
 {
-    use CommandTrait, ImportTrait;
+    use CommandTrait, ImportTrait, ExportCommandTrait;
 
     /**
      * The name and signature of the console command.
@@ -59,46 +59,20 @@ class ExportCommand extends Command
             throw new \Exception('parameter table name error : ' . $table_name);
         }
 
-        $options = [];
+        $options = $this->getParametersCommon();
+
         // get parameters
-        $options['action'] = $this->option("action");
         $options['type'] = $this->option("type");
         $options['page'] = $this->option("page");
         $options['count'] = $this->option("count");
-        $options['format'] = $this->option("format");
-        $options['view'] = $this->option("view");
-        $options['dirpath'] = $this->option("dirpath");
         $options['add_setting'] = $this->option("add_setting");
         $options['add_relation'] = $this->option("add_relation");
-
-        if (!\in_array($options['action'], ['default', 'view'])) {
-            throw new \Exception('optional parameter action error : ' . $options['action']);
-        }
 
         if (!\in_array($options['type'], ['all', 'page'])) {
             throw new \Exception('optional parameter type error : ' . $options['type']);
         }
 
-        if (!\in_array($options['format'], ['csv', 'xlsx'])) {
-            throw new \Exception('optional parameter format error : ' . $options['format']);
-        }
-
-        // set view info
-        if (isset($options['view'])) {
-            $custom_view = CustomView::getEloquent($options['view']);
-
-            if (!isset($custom_view)) {
-                throw new \Exception('optional parameter view error : ' . $options['view']);
-            }
-            $options['view'] = $custom_view;
-        }
-
         if ($options['action'] == 'view') {
-            if (!isset($options['view'])) {
-                // get all data view
-                $options['view'] = CustomView::getAllData($custom_table);
-            }
-
             if ($options['type'] == 'page') {
                 if (!preg_match("/^[0-9]+$/", $options['page'])) {
                     throw new \Exception('optional parameter page error : ' . $options['page']);
@@ -108,19 +82,6 @@ class ExportCommand extends Command
                 } elseif (!preg_match("/^[0-9]+$/", $options['count'])) {
                     throw new \Exception('optional parameter count error : ' . $options['count']);
                 }
-            }
-        }
-
-        if (isset($options['dirpath'])) {
-            if (!\File::isDirectory($options['dirpath'])) {
-                throw new \Exception('optional parameter dirpath error : ' . $options['dirpath']);
-            }
-        } else {
-            // get default directory full path
-            $options['dirpath'] = storage_path(path_join_os('app', 'export', date('YmdHis')));
-            // if default is not exists, make directory
-            if (!\File::exists($options['dirpath'])) {
-                \File::makeDirectory($options['dirpath'], 0755, true);
             }
         }
 
@@ -137,6 +98,7 @@ class ExportCommand extends Command
             // get parameters
             list($custom_table, $options) = $this->getParameters();
             $classname = getModelName($custom_table);
+            
             $grid = new Grid(new $classname);
             if ($options['type'] == 'page') {
                 $grid->model()->setPerPageArguments([$options['count'], ['*'], 'page', $options['page']])
@@ -164,7 +126,8 @@ class ExportCommand extends Command
                         'grid' => $grid
                     ]
                 ))
-                ->format($options['format']);
+                ->format($options['format'])
+                ->filebasename($custom_table->table_name);
             
             $result = $service->exportBackground($options);
 
@@ -172,8 +135,6 @@ class ExportCommand extends Command
             if (!empty($message)) {
                 $this->line($message);
             }
-
-            return array_get($result, 'dirpath');
         } catch (\Exception $e) {
             \Log::error($e);
             $this->error($e->getMessage());

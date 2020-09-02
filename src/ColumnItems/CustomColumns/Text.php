@@ -4,9 +4,18 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Form\Field;
+use Exceedone\Exment\Validator;
 
 class Text extends CustomItem
 {
+    public function saving()
+    {
+        if (is_nullorempty($this->value)) {
+            return;
+        }
+        return strval($this->value);
+    }
+
     protected function getAdminFieldClass()
     {
         return Field\Text::class;
@@ -22,6 +31,6 @@ class Text extends CustomItem
         }
         
         // value type
-        $validates[] = 'string';
+        $validates[] = new Validator\StringNumericRule();
     }
 }

@@ -352,10 +352,15 @@ class CustomViewFilter extends ModelBase
         
             // for user --------------------------------------------------
             case FilterOption::USER_EQ_USER:
-                $model->{$method_name}($view_column_target, \Exment::user()->base_user->id);
-                break;
             case FilterOption::USER_NE_USER:
-                $model->{$method_name}($view_column_target, '<>', \Exment::user()->base_user->id);
+                $user_id = \Exment::getUserId();
+                if ($user_id) {
+                    $mark = isMatchString($view_filter_condition, FilterOption::USER_NE_USER) ? '<>' : '=';
+                    $model->{$method_name}($view_column_target, $mark, $user_id);
+                } else {
+                    $model->{$method_name . 'Raw'}('1 = 0');
+                }
+                break;
         }
 
         return $model;

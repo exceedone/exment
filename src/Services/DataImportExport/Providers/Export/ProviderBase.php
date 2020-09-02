@@ -11,6 +11,13 @@ abstract class ProviderBase
     protected $template = false;
 
     /**
+     * data's count
+     *
+     * @var integer
+     */
+    protected $count = 0;
+
+    /**
      * Create a new exporter instance.
      *
      * @param $grid
@@ -38,5 +45,10 @@ abstract class ProviderBase
     public function isOutput()
     {
         return true;
+    }
+    
+    public function getCount()
+    {
+        return $this->count;
     }
 }

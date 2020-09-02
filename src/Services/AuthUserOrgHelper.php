@@ -280,7 +280,7 @@ class AuthUserOrgHelper
         $orgsArray = static::getOrganizationTreeArray();
                 
         if (!isset($targetUserId)) {
-            $targetUserId = \Exment::user()->getUserId();
+            $targetUserId = \Exment::getUserId();
         }
 
         $results = [];

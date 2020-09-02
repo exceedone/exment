@@ -191,7 +191,11 @@ __EOT__;
                     $stream = $tmpDisk->readStream($file);
                     $disk->delete($path);
                     $disk->writeStream($path, $stream);
-                    fclose($stream);
+                            
+                    try {
+                        fclose($stream);
+                    } catch (\Exception $ex) {
+                    }
                 }
             }
         }

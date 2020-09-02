@@ -258,6 +258,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         static::saving(function ($model) {
             $model->prepareJson('options');
         });
+        
+        static::saved(function ($model) {
+            // create or drop index --------------------------------------------------
+            $model->alterColumn();
+        });
 
         // delete event
         static::deleting(function ($model) {
@@ -266,6 +271,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
             // execute alter column
             $model->alterColumn(true);
+        });
+
+        // deleted event
+        static::deleted(function ($model) {
+            $model->custom_table_cache->getValueModel()->query()->
+                updateRemovingJsonKey("value->{$model->column_name}");
         });
     }
 

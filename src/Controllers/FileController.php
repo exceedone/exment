@@ -207,7 +207,7 @@ class FileController extends AdminControllerBase
         }
 
         // if not has delete setting, abort 403
-        if (!$options['asApi'] && boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->getUserId()) {
+        if (!$options['asApi'] && boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::getUserId()) {
             abort(403);
         }
 

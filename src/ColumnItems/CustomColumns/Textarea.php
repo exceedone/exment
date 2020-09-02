@@ -4,9 +4,18 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Validator;
 
 class Textarea extends CustomItem
 {
+    public function saving()
+    {
+        if (is_nullorempty($this->value)) {
+            return;
+        }
+        return strval($this->value);
+    }
+
     protected function _html($v)
     {
         $text = $this->_text($v);
@@ -33,7 +42,7 @@ class Textarea extends CustomItem
     
     protected function setValidates(&$validates, $form_column_options)
     {
-        // value size
-        $validates[] = 'string';
+        // value string
+        $validates[] = new Validator\StringNumericRule();
     }
 }

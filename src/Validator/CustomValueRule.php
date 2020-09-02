@@ -31,12 +31,7 @@ class CustomValueRule implements Rule
             return true;
         }
 
-
-        if (!is_array($value)) {
-            $value = [$value];
-        }
-
-        $value = array_filter($value);
+        $value = array_filter(toArray($value));
 
         foreach ($value as $v) {
             // get target table's value (use request session)

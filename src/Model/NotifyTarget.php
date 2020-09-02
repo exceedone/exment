@@ -117,7 +117,7 @@ class NotifyTarget
                 return [];
             }
     
-            if (!is_array($target_value)) {
+            if (!is_list($target_value)) {
                 $target_value = [$target_value];
             }
     

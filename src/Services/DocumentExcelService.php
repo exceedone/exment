@@ -337,6 +337,10 @@ class DocumentExcelService
         // copy admin_tmp to admin
         $stream = \Storage::disk(Define::DISKNAME_ADMIN_TMP)->readStream($file);
         \Storage::disk(Define::DISKNAME_ADMIN)->writeStream($file, $stream);
-        fclose($stream);
+        
+        try {
+            fclose($stream);
+        } catch (\Exception $ex) {
+        }
     }
 }

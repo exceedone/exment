@@ -135,7 +135,7 @@ class CustomValueAuthoritable extends ModelBase
             $belong_orgs = \Exment::user()->belong_organizations;
             $delete_user_organizations = $beforesaved_user_organizations->filter(function ($beforesaved_user_organization) use ($belong_orgs, $total_user_organizations) {
                 // skip self user
-                if (array_get($beforesaved_user_organization, 'authoritable_target_id') == \Exment::user()->getUserId()
+                if (array_get($beforesaved_user_organization, 'authoritable_target_id') == \Exment::getUserId()
                     && array_get($beforesaved_user_organization, 'authoritable_user_org_type') == SystemTableName::USER) {
                     return false;
                 }
@@ -397,7 +397,7 @@ class CustomValueAuthoritable extends ModelBase
             ]);
 
             if ($ignoreLoginUser && $key == SystemTableName::USER) {
-                $user_id = \Exment::user()->getUserId();
+                $user_id = \Exment::getUserId();
                 $optionItem = $optionItem->filter(function ($user, $id) use ($user_id) {
                     return $id != $user_id;
                 });

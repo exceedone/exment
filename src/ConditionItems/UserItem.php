@@ -41,7 +41,7 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
-        $user = \Exment::user()->getUserId();
+        $user = \Exment::getUserId();
         return $this->compareValue($condition, $user);
     }
     
@@ -84,7 +84,7 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
     public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
     {
         $query->orWhere(function ($query) use ($authorityTableName) {
-            $query->where($authorityTableName . '.related_id', \Exment::user()->getUserId())
+            $query->where($authorityTableName . '.related_id', \Exment::getUserId())
                 ->where($authorityTableName . '.related_type', ConditionTypeDetail::USER()->lowerkey());
         });
     }

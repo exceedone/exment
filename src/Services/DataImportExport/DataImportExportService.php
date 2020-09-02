@@ -95,6 +95,9 @@ class DataImportExportService extends AbstractExporter
         
         if ($args instanceof UploadedFile) {
             $format = $args->extension();
+            if ($args->getClientMimeType() === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+                $format = "xlsx";
+            }
         } elseif (is_string($args)) {
             $format = $args;
         } elseif (array_has($args, 'format')) {
@@ -275,13 +278,20 @@ class DataImportExportService extends AbstractExporter
 
         $files = $this->format
             ->datalist($datalist)
-            ->filebasename($this->exportAction->filebasename())
+            ->filebasename($this->filebasename() ?? $this->exportAction->filebasename())
             ->createFile();
 
+        if ($this->exportAction->getCount() == 0 && boolval(array_get($options, 'breakIfEmpty', false))) {
+            return [
+                'status' => 1,
+                'message' => exmtrans('common.message.notfound'),
+            ];
+        }
+    
         $this->format->saveAsFile($options['dirpath'], $files);
 
         return [
-            'result' => true,
+            'status' => 0,
             'message' => exmtrans('command.export.success_message', $options['dirpath']),
             'dirpath' => $options['dirpath'],
         ];

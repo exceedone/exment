@@ -267,7 +267,7 @@ class LoginUserItem extends ProviderBase
             $tools->disableEdit();
         }
         // cannnot delete myself
-        if (\Exment::user()->getUserId() == $custom_value->id) {
+        if (\Exment::getUserId() == $custom_value->id) {
             $tools->disableDelete();
         }
     }

@@ -289,7 +289,7 @@ class ApiController extends AdminControllerBase
                 'target_user_id' => $target_user,
                 'notify_subject' => $request->get('notify_subject'),
                 'notify_body' => $request->get('notify_body'),
-                'trigger_user_id' => \Exment::user()->getUserId()
+                'trigger_user_id' => \Exment::getUserId()
             ]);
     
             $notify->saveOrFail();
@@ -317,7 +317,7 @@ class ApiController extends AdminControllerBase
         }
 
         // get notify NotifyNavbar list
-        $query = NotifyNavbar::where('target_user_id', \Exment::user()->getUserId())
+        $query = NotifyNavbar::where('target_user_id', \Exment::getUserId())
             ->orderBy('created_at', 'desc');
                 
         if (!boolval($request->get('all', false))) {
@@ -349,7 +349,7 @@ class ApiController extends AdminControllerBase
     public function notifyPage(Request $request)
     {
         // get notify NotifyNavbar list
-        $query = NotifyNavbar::where('target_user_id', \Exment::user()->getUserId())
+        $query = NotifyNavbar::where('target_user_id', \Exment::getUserId())
             ->where('read_flg', false)
             ->orderBy('created_at', 'desc');
         
@@ -434,7 +434,7 @@ class ApiController extends AdminControllerBase
         }
 
         // get as paginator
-        $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, count($results), count($results), 1);
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator($results, count($results), $count, 1);
 
         return $paginator;
     }
