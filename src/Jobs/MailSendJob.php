@@ -85,12 +85,8 @@ class MailSendJob implements ShouldQueue
 
             $message->to($this->getAddress($this->to))->subject($subject);
             $message->from($this->getAddress($this->from));
-            if (count($this->cc) > 0) {
-                $message->cc($this->getAddress($this->cc));
-            }
-            if (count($this->bcc) > 0) {
-                $message->bcc($this->getAddress($this->bcc));
-            }
+            $message->cc($this->getAddress($this->cc));
+            $message->bcc($this->getAddress($this->bcc));
 
             // set attachment
             if (!$noAttach && collect($this->attachments)->count() > 0) {
@@ -186,7 +182,10 @@ class MailSendJob implements ShouldQueue
      */
     protected function getAddress($users)
     {
-        if (!($users instanceof Collection) && !is_array($users)) {
+        if(is_string($users)){
+            $users = stringToArray($users);
+        }
+        elseif (!($users instanceof Collection) && !is_array($users)) {
             $users = [$users];
         }
         $addresses = [];

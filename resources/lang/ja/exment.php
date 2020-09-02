@@ -462,6 +462,7 @@ return [
         'select_plugin_file' => 'プラグインを選択',
         'show_plugin_page' => 'プラグインページを表示',
         'edit_plugin' => 'プラグイン編集',
+        'execute_plugin_batch' => 'バッチ実行',
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',

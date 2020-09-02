@@ -105,6 +105,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('plugin/edit_code/{id}', 'PluginCodeController@edit');
             $router->post('plugin/edit_code/{id}', 'PluginCodeController@store');
             $router->delete('plugin/edit_code/{id}', 'PluginCodeController@delete');
+            $router->get('plugin/{id}/executeBatch', 'PluginController@executeBatch');
 
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
 
