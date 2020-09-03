@@ -2016,6 +2016,10 @@ return [
         'export' => [
             'success_message' => 'エクスポートに成功しました。ディレクトリパス：%s',
         ],
+        'resetpassword' => [
+            'notify_password' => 'パスワードをリセットしました。新しいパスワード：%s',
+            'success' => 'パスワードをリセットしました。',
+        ],
     ],
 
     'condition' => [
