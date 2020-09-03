@@ -81,6 +81,9 @@ class Define
         'first_change_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
         'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
 
+        'login_background_color' => ['default' => null, 'group' => 'login'],
+        'login_page_image' => ['type' => 'file', 'move' => 'system', 'group' => 'login'],
+
         'show_default_login_provider' => ['type' => 'boolean', 'default' => '1', 'group' => 'login'],
         'sso_redirect_force' => ['type' => 'boolean', 'default' => '0', 'group' => 'login'],
         'sso_jit' => ['type' => 'boolean', 'default' => '0', 'group' => 'login'],

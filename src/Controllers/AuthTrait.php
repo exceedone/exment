@@ -28,6 +28,12 @@ trait AuthTrait
     public function getLoginPageData($array = [])
     {
         $array['site_name'] = System::site_name();
+        $array['background_color'] = System::login_background_color();
+
+        $val = System::login_page_image();
+        if (!is_nullorempty($val)) {
+            $array['background_image'] = admin_url('auth/login/image');
+        }
 
         // if sso_disabled is true
         if (boolval(config('exment.custom_login_disabled', false))) {

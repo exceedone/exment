@@ -236,6 +236,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('auth/change', 'ChangePasswordController@showChangeForm');
             $router->post('auth/change', 'ChangePasswordController@change');
             $router->get('favicon', 'FileController@downloadFavicon');
+            $router->get('auth/login/image', 'FileController@downloadLoginImage');
 
             // get config about login provider
             if (canConnection() && hasTable(SystemTableName::LOGIN_SETTINGS)) {

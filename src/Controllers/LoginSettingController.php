@@ -304,7 +304,32 @@ class LoginSettingController extends AdminControllerBase
             ->min(0)
             ->max(20)
             ->help(exmtrans("system.help.password_history_cnt"));
-    
+
+        $form->exmheader(exmtrans('system.login_page_view'))->hr();
+
+        $form->color('login_background_color', exmtrans('system.login_background_color'))
+            ->default(null)
+            ->help(exmtrans('system.help.login_background_color'));
+
+        $fileOption = array_merge(
+            Define::FILE_OPTION(),
+            [
+                'showPreview' => true,
+                'deleteUrl' => admin_urls('system', 'filedelete'),
+                'deleteExtraData'      => [
+                    '_token'           => csrf_token(),
+                    '_method'          => 'PUT',
+                    'delete_flg'       => 'login_page_image'
+                ]
+            ]
+        );
+        $form->image('login_page_image', exmtrans("system.login_page_image"))
+            ->help(exmtrans("system.help.login_page_image"))
+            ->options($fileOption)
+            ->removable()
+            ->attribute(['accept' => "image/*"])
+            ;
+
         if (!is_nullorempty(LoginSetting::getAllSettings())) {
             $form->exmheader(exmtrans('login.sso_setting'))->hr();
 
