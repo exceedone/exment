@@ -4,20 +4,11 @@ namespace Exceedone\Exment\Storage\Adapter;
 
 use Aws\S3\S3Client;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
-use Exceedone\Exment\Model\File;
 
 class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
 {
     use AdapterTrait;
     
-    /**
-     * Get URL using File class
-     */
-    public function getUrl($path)
-    {
-        return File::getUrl($path);
-    }
-
     /**
      * get adapter class
      */

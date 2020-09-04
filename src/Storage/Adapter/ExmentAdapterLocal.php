@@ -4,19 +4,9 @@ namespace Exceedone\Exment\Storage\Adapter;
 
 use League\Flysystem\Adapter\Local;
 
-use Exceedone\Exment\Model\File;
-
 class ExmentAdapterLocal extends Local implements ExmentAdapterInterface
 {
     use AdapterTrait;
-    
-    /**
-     * Get URL using File class
-     */
-    public function getUrl($path)
-    {
-        return File::getUrl($path);
-    }
     
     /**
      * get adapter class
