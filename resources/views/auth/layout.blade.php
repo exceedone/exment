@@ -34,13 +34,26 @@
     @if(isset($background_image))
       background-image: url("{{ $background_image }}");
     @endif
+
+    @if(isset($background_image_type) && $background_image_type == 'repeat')
+      background-repeat: repeat;
+    @elseif(isset($background_image_type) && $background_image_type == 'cover')
+      background-size: cover;
+      background-position: center;
+    @endif
   }
   </style>
 </head>
 <body class="hold-transition login-page">
       <div class="login-box">
           <div class="login-logo">
-              <a href="{{ admin_url('/') }}"><b>{{$site_name ?? \Exceedone\Exment\Model\System::site_name()}}</b></a>
+              <a href="{{ admin_url('/') }}">
+                @if(isset($header_image))
+                <img src="{{$header_image}}" style="width:100%; max-height:100px;" />
+                @else
+                <b>{{$site_name ?? \Exceedone\Exment\Model\System::site_name()}}</b>
+                @endif
+              </a>
           </div>
           <!-- /.login-logo -->
           <div class="login-box-body">

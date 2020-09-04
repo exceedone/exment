@@ -30,9 +30,17 @@ trait AuthTrait
         $array['site_name'] = System::site_name();
         $array['background_color'] = System::login_background_color();
 
+        $val = System::site_logo();
+        if (!boolval(config('exment.disable_login_header_logo', false)) && !is_nullorempty($val)) {
+            $array['header_image'] = admin_url('auth/login/header');
+        }
         $val = System::login_page_image();
         if (!is_nullorempty($val)) {
-            $array['background_image'] = admin_url('auth/login/image');
+            $array['background_image'] = admin_url('auth/login/background');
+        }
+        $val = System::login_page_image_type();
+        if (!is_nullorempty($val)) {
+            $array['background_image_type'] = $val;
         }
 
         // if sso_disabled is true

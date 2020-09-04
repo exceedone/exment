@@ -254,6 +254,7 @@ return [
         'login_page_view' => 'ログインページ設定',
         'login_background_color' => '背景色',
         'login_page_image' => '背景画像',
+        'login_page_image_type' => '背景画像表示方法',
         'view_dashboard_header' => 'ビュー・ダッシュボード設定',
         'organization_header' => '組織設定',
         'org_joined_type_role_group' => '組織階層設定(役割グループ)',
@@ -335,6 +336,11 @@ return [
             'user_organizationview' => 'ログインユーザーと、所属する組織(閲覧のみ)',
         ],
 
+        'login_page_image_type_options' => [
+            "repeat" => "繰り返し表示",
+            "cover" => "画像サイズをページに合わせて表示",
+        ],
+        
         'help' =>[
             'site_name' => 'ページの左上に表示するサイト名です。',
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
@@ -368,6 +374,7 @@ return [
             'password_history_cnt' => '1以上を入力することで、過去に使用したことのある古いパスワードは、入力した件数分、再度登録できなくなります。<br />※0にした場合でも、設定中のパスワードは登録できません。',
             'login_background_color' => 'ログイン画面の背景色を設定します。',
             'login_page_image' => 'ログイン画面に背景画像を設定します。',
+            'login_page_image_type' => 'ログイン画面の背景画像を、どのように表示するかを選択します。',
             'org_joined_type_role_group' => '役割グループの「ユーザー・組織設定」に組織を設定したとき、役割の設定範囲で、親子階層の組織を含める範囲を設定します。',
             'org_joined_type_custom_value' => '各カスタムデータの共有設定に組織を設定したとき、データの共有範囲で、親子階層の組織を含めるかどうかをを設定します。',
             'filter_multi_orguser' => 'ログインユーザーが、他のユーザー・組織を表示できる範囲を設定します。※複数の会社をまたいで利用するポータルサイトなど、他のユーザー情報を表示させたくない場合に設定してください。',

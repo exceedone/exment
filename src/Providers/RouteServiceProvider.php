@@ -235,8 +235,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
             $router->get('auth/change', 'ChangePasswordController@showChangeForm');
             $router->post('auth/change', 'ChangePasswordController@change');
-            $router->get('favicon', 'FileController@downloadFavicon');
-            $router->get('auth/login/image', 'FileController@downloadLoginImage');
 
             // get config about login provider
             if (canConnection() && hasTable(SystemTableName::LOGIN_SETTINGS)) {
@@ -252,6 +250,17 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('saml/login/{provider}/acs', 'AuthSamlController@acs')->name('exment.saml_acs');
                 }
             }
+        });
+
+
+        Route::group([
+            'prefix'        => config('admin.route.prefix'),
+            'namespace'     => $this->namespace,
+            'middleware'    => ['adminweb', 'admin_anonymous_simple'],
+        ], function (Router $router) {
+            $router->get('favicon', 'FileController@downloadFavicon');
+            $router->get('auth/login/background', 'FileController@downloadLoginBackground');
+            $router->get('auth/login/header', 'FileController@downloadLoginHeader');
         });
     }
     

@@ -42,6 +42,7 @@ use Cache;
 * @method static int|void password_history_cnt($arg = null)
 * @method static string|void login_background_color($arg = null)
 * @method static string|void login_page_image($arg = null)
+* @method static string|void login_page_image_type($arg = null)
 * @method static string|void web_ip_filters($arg = null)
 * @method static string|void api_ip_filters($arg = null)
 * @method static int|void org_joined_type_role_group($arg = null)

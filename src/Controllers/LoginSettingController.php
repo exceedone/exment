@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
@@ -329,6 +330,13 @@ class LoginSettingController extends AdminControllerBase
             ->removable()
             ->attribute(['accept' => "image/*"])
             ;
+            
+        $form->select('login_page_image_type', exmtrans("system.login_page_image_type"))
+            ->help(exmtrans("system.help.login_page_image_type"))
+            ->config('allowClear', false)
+            ->options(Enums\LoginBgImageType::transArray('system.login_page_image_type_options'))
+        ;
+
 
         if (!is_nullorempty(LoginSetting::getAllSettings())) {
             $form->exmheader(exmtrans('login.sso_setting'))->hr();

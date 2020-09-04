@@ -107,21 +107,34 @@ class FileController extends AdminControllerBase
      */
     public function downloadFavicon()
     {
-        $record = System::where('system_name', 'site_favicon')->first();
-
-        if (!isset($record)) {
-            abort(404);
-        }
-
-        return static::downloadFile($record->system_value);
+        return static::downloadFileByKey('site_favicon');
     }
 
     /**
-     * Download favicon image
+     * Download Login image
      */
-    public function downloadLoginImage()
+    public function downloadLoginBackground()
     {
-        $record = System::where('system_name', 'login_page_image')->first();
+        return static::downloadFileByKey('login_page_image');
+    }
+
+    /**
+     * Download Login Header
+     */
+    public function downloadLoginHeader()
+    {
+        return static::downloadFileByKey('site_logo');
+    }
+
+    /**
+     * Download File
+     *
+     * @param string $key
+     * @return mixed
+     */
+    public static function downloadFileByKey(string $key)
+    {
+        $record = System::where('system_name', $key)->first();
 
         if (!isset($record)) {
             abort(404);
