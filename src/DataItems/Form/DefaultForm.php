@@ -212,15 +212,12 @@ EOT;
     /**
      * set custom form columns
      */
-    protected function getCustomFormColumns($form, $custom_form_block, $custom_value = null)
+    protected function getCustomFormColumns($form, $custom_form_block)
     {
         $closures = [];
-        if (is_numeric($custom_value)) {
-            $custom_value = $this->custom_table->getValueModel($custom_value);
-        }
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if (!isset($custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
+            if (!isset($this->custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                 continue;
             }
 
@@ -234,7 +231,7 @@ EOT;
                 continue;
             }
 
-            $field = $form_column->column_item->setCustomValue($custom_value)->getAdminField($form_column);
+            $field = $form_column->column_item->setCustomValue($this->custom_value)->getAdminField($form_column);
 
             // set $closures using $form_column->column_no
             if (isset($field)) {
