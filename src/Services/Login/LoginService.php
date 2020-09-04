@@ -50,7 +50,7 @@ class LoginService
         }
 
         try {
-            $login_user->password_reset_flg = boolval($password_reset_flg);
+            $login_user->password_reset_flg = System::first_change_password() || boolval($password_reset_flg);
 
             if(is_nullorempty($password)){
                 $password = make_password();

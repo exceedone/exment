@@ -71,9 +71,7 @@ class LoginUserItem extends ProviderBase
                 , ['key' => 'create_password_auto', 'value' => '0']
                 ])]);
 
-        if (System::first_change_password()) {
-            $form->hidden('password_reset_flg')->default("1");
-        } else {
+        if (!System::first_change_password()) {
             $form->switchbool('password_reset_flg', exmtrans('user.password_reset_flg'))
                 ->default('0')
                 ->help(exmtrans('user.help.password_reset_flg'))

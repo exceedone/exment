@@ -3,9 +3,7 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
-use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\Login\LoginService;
 
 class ResetPasswordCommand extends Command
@@ -54,16 +52,34 @@ class ResetPasswordCommand extends Command
         if (!$options['id'] && !$options['email'] && !$options['user_code']) {
             throw new \Exception('please set one of parameters, id, email or user_code.');
         }
+        if (!isset($options['password']) && !boolval($options['random'])) {
+            throw new \Exception('please set password or random parameter.');
+        }
+        if ($options['random']) {
+            if (!preg_match("/^[0,1]$/", $options['random'])) {
+                throw new \Exception('please specify 1 or 0 for the random parameter');
+            }
+        }
+        if ($options['send']) {
+            if (!preg_match("/^[0,1]$/", $options['send'])) {
+                throw new \Exception('please specify 1 or 0 for the send parameter');
+            }
+        }
+        if ($options['reset_first_login']) {
+            if (!preg_match("/^[0,1]$/", $options['reset_first_login'])) {
+                throw new \Exception('please specify 1 or 0 for the reset_first_login parameter');
+            }
+        }
+
+
 
         if ($options['id']) {
             $user = getModelName(SystemTableName::USER)::find($options['id']);
         }
-
-        if (!isset($user) && $options['email']) {
+        elseif ($options['email']) {
             $user = getModelName(SystemTableName::USER)::where('value->email', $options['email'])->first();
         }
-
-        if (!isset($user) && $options['user_code']) {
+        elseif ($options['user_code']) {
             $user = getModelName(SystemTableName::USER)::where('value->user_code', $options['user_code'])->first();
         }
 
@@ -71,29 +87,7 @@ class ResetPasswordCommand extends Command
             throw new \Exception('optional parameters for target user is invalid.');
         }
 
-        if (!isset($options['password']) && !boolval($options['random'])) {
-            throw new \Exception('please set password or random parameter.');
-        }
-
-        if ($options['random']) {
-            if (!preg_match("/^[0,1]$/", $options['random'])) {
-                throw new \Exception('please specify 1 or 0 for the random parameter');
-            }
-        }
-
-        if ($options['send']) {
-            if (!preg_match("/^[0,1]$/", $options['send'])) {
-                throw new \Exception('please specify 1 or 0 for the send parameter');
-            }
-        }
-
-        if ($options['reset_first_login']) {
-            if (!preg_match("/^[0,1]$/", $options['reset_first_login'])) {
-                throw new \Exception('please specify 1 or 0 for the reset_first_login parameter');
-            }
-        }
-
-        $login_user = LoginUser::where('base_user_id', $user->id)->whereNull('login_provider')->where('login_type', LoginType::PURE)->first();
+        $login_user = $user->login_user;
 
         if (!isset($login_user)) {
             throw new \Exception('target user does not have login authority.');
