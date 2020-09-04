@@ -26,7 +26,6 @@ abstract class ShowBase
     public function id($id)
     {
         $this->custom_value = $this->custom_table->getValueModel($id, boolval(request()->get('trashed')));
-        ;
 
         return $this;
     }
