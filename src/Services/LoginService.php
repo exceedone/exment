@@ -1,7 +1,7 @@
 <?php
 namespace Exceedone\Exment\Services;
 
-use Exceedone\Exment\Services\LoginService as NewLoginService;
+use Exceedone\Exment\Services\Login\LoginService as NewLoginService;
 
 /**
  * OLD : LoginService
