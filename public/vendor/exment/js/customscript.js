@@ -1,6 +1,7 @@
 var Exment;
 (function (Exment) {
     const EVENT_LOADED = 'exment:loaded';
+    const EVENT_FIRST_LOADED = 'exment:first_loaded';
     const EVENT_FORM_LOADED = 'exment:form_loaded';
     const EVENT_LIST_LOADED = 'exment:list_loaded';
     const EVENT_SHOW_LOADED = 'exment:show_loaded';
@@ -18,6 +19,7 @@ var Exment;
             $(document).on('pjax:complete', function (event) {
                 CustomScriptEvent.AddEvent();
             });
+            $(window).trigger(EVENT_FIRST_LOADED);
         }
         static fireEvent() {
             $(window).trigger(EVENT_LOADED);
