@@ -26,18 +26,42 @@
   <script src="//oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
   <script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
   <![endif]-->
+  <style>
+  .login-page{
+    @if(isset($background_color))
+      background-color:{{ $background_color }};
+    @endif
+    @if(isset($background_image))
+      background-image: url("{{ $background_image }}");
+    @endif
+
+    @if(isset($background_image_type) && $background_image_type == 'repeat')
+      background-repeat: repeat;
+    @elseif(isset($background_image_type) && $background_image_type == 'cover')
+      background-size: cover;
+      background-position: center;
+    @endif
+  }
+  </style>
 </head>
 <body class="hold-transition login-page">
-    <div class="login-box">
-            <div class="login-logo">
-                <a href="{{ admin_url('/') }}"><b>{{$site_name ?? \Exceedone\Exment\Model\System::site_name()}}</b></a>
-            </div>
-            <!-- /.login-logo -->
-            <div class="login-box-body">
-          @yield('content')
-  </div>
-  <!-- /.login-box-body -->
-</div>
+      <div class="login-box">
+          <div class="login-logo">
+              <a href="{{ admin_url('/') }}">
+                @if(isset($header_image))
+                <img src="{{$header_image}}" style="width:100%; max-height:100px;" />
+                @else
+                <b>{{$site_name ?? \Exceedone\Exment\Model\System::site_name()}}</b>
+                @endif
+              </a>
+          </div>
+          <!-- /.login-logo -->
+          <div class="login-box-body">
+              @yield('content')
+          </div>
+          <!-- /.login-box-body -->
+      </div>
+      <!-- /.login-box -->
 <!-- jQuery 2.1.4 -->
 <script src="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/jQuery/jQuery-2.1.4.min.js")}} "></script>
 <!-- Bootstrap 3.3.5 -->

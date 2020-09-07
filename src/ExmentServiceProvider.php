@@ -149,6 +149,11 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.permission',
             'admin.session',
         ],
+        // Exment not login web page, and simple config, (Almost use image)
+        'admin_anonymous_simple' => [
+            'admin.web-ipfilter',
+            'admin.initialize',
+        ],
         // Exment install page
         'admin_install' => [
             'admin.browser',

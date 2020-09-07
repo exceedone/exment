@@ -4,19 +4,10 @@ namespace Exceedone\Exment\Storage\Adapter;
 
 use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
-use Exceedone\Exment\Model\File;
 
 class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapterInterface
 {
     use AdapterTrait;
-
-    /**
-     * Get URL using File class
-     */
-    public function getUrl($path)
-    {
-        return File::getUrl($path);
-    }
 
     /**
      * get adapter class

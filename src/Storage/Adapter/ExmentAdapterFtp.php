@@ -4,19 +4,9 @@ namespace Exceedone\Exment\Storage\Adapter;
 
 use League\Flysystem\Adapter\Ftp;
 
-use Exceedone\Exment\Model\File;
-
 class ExmentAdapterFtp extends Ftp implements ExmentAdapterInterface
 {
     use AdapterTrait;
-    
-    /**
-     * Get URL using File class
-     */
-    public function getUrl($path)
-    {
-        return File::getUrl($path);
-    }
     
     /**
      * get adapter class
