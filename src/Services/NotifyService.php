@@ -536,8 +536,12 @@ class NotifyService
         if (!isset($mail_template) && isset($notify)) {
             $mail_template = array_get($notify->action_settings, 'mail_template_id');
         }
+        
         if (is_numeric($mail_template)) {
             $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
+        }
+        elseif (is_string($mail_template)) {
+            $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', $mail_template)->first();
         }
 
         if(!isset($mail_template)){

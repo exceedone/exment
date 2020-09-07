@@ -1044,6 +1044,17 @@ if (!function_exists('replaceBreak')) {
     }
 }
 
+if (!function_exists('replaceBrTag')) {
+    /**
+     * replace <br /> to new line code
+     * @return string
+     */
+    function replaceBrTag($text)
+    {
+        return preg_replace("/<br *\/>/u", "\n", $text);
+    }
+}
+
 if (!function_exists('explodeBreak')) {
     /**
      * explode new line code

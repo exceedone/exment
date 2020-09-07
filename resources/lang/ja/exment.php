@@ -231,6 +231,7 @@ return [
         'system_mail_password' => 'パスワード',
         'system_mail_encryption' => '暗号化形式',
         'system_mail_from' => '送信元アドレス',
+        'system_mail_body_type' => 'メール本文種類',
         'test_mail_to' => 'テストメール送信先',
         'submit_test_mail' => 'テストメール送信',
         'grid_pager_count' => 'データ一覧の表示件数',
@@ -341,6 +342,11 @@ return [
             "cover" => "画像サイズをページに合わせて表示",
         ],
         
+        'system_mail_body_type_options' => [
+            "html" => "HTML",
+            "plain" => "テキスト",
+        ],
+        
         'help' =>[
             'site_name' => 'ページの左上に表示するサイト名です。',
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
@@ -361,6 +367,7 @@ return [
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
             'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
+            'system_mail_body_type' => '送信するメールの、本文の種類を選択してください。',
             'test_mail' => '入力した送信先にテストメールを送ります。<br /><b>※上記のメール設定を必ず保存してから実行してください。入力途中の設定は無効になります。</b>',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',

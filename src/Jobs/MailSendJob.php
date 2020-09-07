@@ -2,14 +2,15 @@
 
 namespace Exceedone\Exment\Jobs;
 
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\NotifyTarget;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\ZipService;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
@@ -110,7 +111,7 @@ class MailSendJob implements ShouldQueue
             }
             
             // replace \r\n
-            $message->setBody(preg_replace("/\r\n|\r|\n/", "<br />", $body), 'text/html');
+            $this->replaceAndSetBody($message, $body);
         });
 
         if (isset($tmpZipPath)) {
@@ -182,10 +183,11 @@ class MailSendJob implements ShouldQueue
      */
     protected function getAddress($users)
     {
+        // Convert "," string to array
         if(is_string($users)){
             $users = stringToArray($users);
         }
-        elseif (!($users instanceof Collection) && !is_array($users)) {
+        elseif (!is_list($users)) {
             $users = [$users];
         }
         $addresses = [];
@@ -198,8 +200,26 @@ class MailSendJob implements ShouldQueue
                 $addresses[] = $user;
             }
         }
-        // return count($addresses) == 1 ? $addresses[0] : $addresses;
         return $addresses;
+    }
+
+
+    /**
+     * Replace body break to <br/>, or <br /> to \n
+     *
+     * @param [type] $message
+     * @param string $body
+     * @return $this
+     */
+    protected function replaceAndSetBody($message, $body){
+        if(isMatchString(System::system_mail_body_type(), Enums\MailBodyType::PLAIN)){
+            $message->setBody(replaceBrTag($body), 'text/plain');
+        }
+        else{
+            $message->setBody(replaceBreak($body, false), 'text/html');
+        }
+
+        return $this;
     }
     
     /**

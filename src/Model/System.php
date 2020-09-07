@@ -30,6 +30,7 @@ use Cache;
 * @method static string|void system_mail_password($arg = null)
 * @method static string|void system_mail_encryption($arg = null)
 * @method static string|void system_mail_from($arg = null)
+* @method static string|void system_mail_body_type($arg = null)
 * @method static boolean|void userview_available($arg = null)
 * @method static boolean|void userdashboard_available($arg = null)
 * @method static string|void default_date_format($arg = null)

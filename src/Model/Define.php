@@ -62,6 +62,7 @@ class Define
         'system_mail_password' => ['type' => 'password', 'config' => 'mail.password', 'group' => 'advanced'],
         'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'advanced'],
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'advanced'],
+        'system_mail_body_type' => ['default' => 'html', 'group' => 'advanced'],
 
         'default_date_format' => ['default' => 'format_default', 'group' => 'advanced'],
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'advanced'],
