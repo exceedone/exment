@@ -91,6 +91,22 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * Remove the specified resource from storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($tableKey, $id)
+    {
+        $request = request();
+        if (($response = $this->firstFlow($request, CustomValuePageType::DELETE, $id)) instanceof Response) {
+            return $response;
+        }
+        return $this->destroyTrait($tableKey, $id);
+    }
+
+    /**
      * Index interface.
      *
      * @return Content
@@ -275,18 +291,6 @@ class CustomValueController extends AdminControllerTableBase
             $show_item->setOptionBoxes($row);
         });
         return $content;
-    }
-
-
-    /**
-     * Make a form builder.
-     * @param $id if edit mode, set model id
-     * @return Form
-     */
-    protected function form($id = null)
-    {
-        $form_item = $this->custom_form->form_item;
-        return $form_item->id($id)->form();
     }
 
 
@@ -683,6 +687,59 @@ class CustomValueController extends AdminControllerTableBase
         return $this->restore($request, $tableKey, $request->get('id'));
     }
 
+    /**
+     * set notify target users and  get form
+     */
+    public function sendTargetUsers(Request $request, $tableKey, $id = null)
+    {
+        $service = $this->getNotifyService($tableKey, $id);
+        
+        // get target users
+        $target_users = request()->get('target_users');
+
+        $form = $service->getNotifyDialogFormMultiple($target_users);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('custom_value.sendmail.title')
+        ]);
+    }
+
+
+    /**
+     * send mail
+     */
+    public function sendMail(Request $request, $tableKey, $id = null)
+    {
+        $service = $this->getNotifyService($tableKey, $id);
+        
+        return $service->sendNotifyMail($this->custom_table);
+    }
+
+    
+    /**
+     * set share users organizations
+     */
+    public function sendShares(Request $request, $tableKey, $id)
+    {
+        // get customvalue
+        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+        return CustomValueAuthoritable::saveShareDialogForm($custom_value);
+    }
+
+
+    /**
+     * Make a form builder.
+     * @param $id if edit mode, set model id
+     * @return Form
+     */
+    protected function form($id = null)
+    {
+        $form_item = $this->custom_form->form_item;
+        return $form_item->id($id)->form();
+    }
+
     protected function restore(Request $request, $tableKey, $id)
     {
         $ids = stringToArray($id);
@@ -718,44 +775,6 @@ class CustomValueController extends AdminControllerTableBase
             'result'  => true,
             'message' => exmtrans('custom_value.message.restore_succeeded'),
         ]);
-    }
-
-    /**
-     * set notify target users and  get form
-     */
-    public function sendTargetUsers(Request $request, $tableKey, $id = null)
-    {
-        $service = $this->getNotifyService($tableKey, $id);
-        
-        // get target users
-        $target_users = request()->get('target_users');
-
-        $form = $service->getNotifyDialogFormMultiple($target_users);
-        
-        return getAjaxResponse([
-            'body'  => $form->render(),
-            'script' => $form->getScript(),
-            'title' => exmtrans('custom_value.sendmail.title')
-        ]);
-    }
-    /**
-     * send mail
-     */
-    public function sendMail(Request $request, $tableKey, $id = null)
-    {
-        $service = $this->getNotifyService($tableKey, $id);
-        
-        return $service->sendNotifyMail($this->custom_table);
-    }
-
-    /**
-     * set share users organizations
-     */
-    public function sendShares(Request $request, $tableKey, $id)
-    {
-        // get customvalue
-        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
-        return CustomValueAuthoritable::saveShareDialogForm($custom_value);
     }
 
     protected function getNotifyService($tableKey, $id)
