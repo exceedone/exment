@@ -72,9 +72,9 @@ class Notify extends ModelBase
     }
 
     /**
-     * notify user
+     * notify user on schedule
      */
-    public function notifyUser()
+    public function notifySchedule()
     {
         list($datalist, $table, $column) = $this->getNotifyTargetDatalist();
 
@@ -108,11 +108,12 @@ class Notify extends ModelBase
                 }
                 // throw mailsend Exception
                 catch (\Swift_TransportException $ex) {
-                    // TODO:loging error
+                    \Log::error($ex);
                 }
             }
         }
     }
+    
     
     /**
      * notify_create_update_user
@@ -210,12 +211,14 @@ class Notify extends ModelBase
             }
             // throw mailsend Exception
             catch (\Swift_TransportException $ex) {
+                \Log::error($ex);
                 // show warning message
                 admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
             }
         }
     }
     
+
     /**
      * notify workflow
      * *Contains Comment, share
@@ -290,6 +293,7 @@ class Notify extends ModelBase
             }
             // throw mailsend Exception
             catch (\Swift_TransportException $ex) {
+                \Log::error($ex);
                 // show warning message
                 admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
             }
@@ -374,6 +378,7 @@ class Notify extends ModelBase
             }
             // throw mailsend Exception
             catch (\Swift_TransportException $ex) {
+                \Log::error($ex);
                 // show warning message
                 admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
             }
