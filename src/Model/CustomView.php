@@ -451,8 +451,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             // if query has view id, set view.
             $view = static::findBySuuid($suuid);
 
+            // not match table id, reset view
+            if(isset($view) && !isMatchString($view->custom_table_id, $tableObj->id)){
+                $view = null;
+            }
+
             // set user_setting
-            if (!is_null($user) && !$is_dashboard) {
+            if (isset($view) && !is_null($user) && !$is_dashboard) {
                 $user->setSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]), $suuid);
             }
         }
@@ -461,6 +466,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             // get suuid
             $suuid = $user->getSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]));
             $view = CustomView::findBySuuid($suuid);
+
+            // not match table id, reset view
+            if(isset($view) && !isMatchString($view->custom_table_id, $tableObj->id)){
+                $view = null;
+            }
         }
         // if url doesn't contain view query, get custom view. first
         if (!isset($view)) {
