@@ -34,8 +34,6 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use CustomValueForm;
-
     use HasResourceTableActions{
         HasResourceTableActions::update as updateTrait;
         HasResourceTableActions::store as storeTrait;
@@ -278,6 +276,19 @@ class CustomValueController extends AdminControllerTableBase
         });
         return $content;
     }
+
+
+    /**
+     * Make a form builder.
+     * @param $id if edit mode, set model id
+     * @return Form
+     */
+    protected function form($id = null)
+    {
+        $form_item = $this->custom_form->form_item;
+        return $form_item->id($id)->form();
+    }
+
 
     /**
      * compare
