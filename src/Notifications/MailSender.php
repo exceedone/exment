@@ -77,7 +77,10 @@ class MailSender
      */
     public function to($to)
     {
-        $this->to = $to;
+        if (isset($to)) {
+            $this->to = $to;
+        }
+
         return $this;
     }
     
@@ -86,7 +89,10 @@ class MailSender
      */
     public function cc($cc)
     {
-        $this->cc = $cc;
+        if (isset($cc)) {
+            $this->cc = $cc;
+        }
+
         return $this;
     }
     
@@ -95,7 +101,10 @@ class MailSender
      */
     public function bcc($bcc)
     {
-        $this->bcc = $bcc;
+        if (isset($bcc)) {
+            $this->bcc = $bcc;
+        }
+
         return $this;
     }
 
@@ -119,13 +128,19 @@ class MailSender
 
     public function custom_value($custom_value)
     {
-        $this->custom_value = $custom_value;
+        if (isset($custom_value)) {
+            $this->custom_value = $custom_value;
+        }
+
         return $this;
     }
     
     public function user($user)
     {
-        $this->user = $user;
+        if (isset($user)) {
+            $this->user = $user;
+        }
+
         return $this;
     }
 
@@ -140,7 +155,10 @@ class MailSender
     
     public function prms($prms)
     {
-        $this->prms = $prms;
+        if (isset($prms)) {
+            $this->prms = $prms;
+        }
+
         return $this;
     }
     

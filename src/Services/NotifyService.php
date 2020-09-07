@@ -368,7 +368,8 @@ class NotifyService
         try {
             Notifications\MailSender::make($params['mail_template'], $params['user'] ?? $params['to'])
             ->prms($params['prms'])
-            ->user($params['user'] ?? $params['to'])
+            ->user($params['user'])
+            ->to($params['to'])
             ->custom_value($params['custom_value'])
             ->subject($params['subject'])
             ->body($params['body'])

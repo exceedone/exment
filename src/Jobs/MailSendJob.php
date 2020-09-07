@@ -167,7 +167,7 @@ class MailSendJob implements ShouldQueue
         }
         
         if ($this->history_body) {
-            $model->setValue('mail_body', $this->body);
+            $model->setValue('mail_body', replaceBrTag($this->body));
         } else {
             $model->setValue('mail_body', exmtrans('mail_template.disable_body'));
         }
@@ -226,7 +226,7 @@ class MailSendJob implements ShouldQueue
      * Get User id
      *
      * @param mixed $user user object
-     * @return string
+     * @return string|null
      */
     protected function getUserId($user)
     {
@@ -238,8 +238,9 @@ class MailSendJob implements ShouldQueue
             return $user->id();
         }
         // pure email
-        else {
+        elseif(is_string($user)) {
             return $user;
         }
+        return null;
     }
 }
