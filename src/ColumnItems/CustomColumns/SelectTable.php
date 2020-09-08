@@ -208,7 +208,8 @@ class SelectTable extends CustomItem
                         'display_table_id' => $this->custom_table->id,
                         'linkage' => $linkage_expand,
                     ]),
-                    'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'value_' . $this->name()]),
+                    'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'class_' . $this->uniqueName()]),
+                    'data-widgetmodal_expand' => json_encode(['target_column_class' => 'class_' . $this->uniqueName()]),
                 ],
             ];
         }

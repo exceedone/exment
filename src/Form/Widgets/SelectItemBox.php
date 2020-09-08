@@ -10,6 +10,7 @@ class SelectItemBox implements Renderable
 {
     protected $iframe_url;
     protected $target_class;
+    protected $widgetmodal_uuid;
     protected $items;
 
     /**
@@ -40,10 +41,11 @@ class SelectItemBox implements Renderable
      * @param string $iframe_url
      * @param array $items
      */
-    public function __construct($iframe_url, $target_class, array $items)
+    public function __construct($iframe_url, $target_class, $widgetmodal_uuid, array $items)
     {
         $this->iframe_url = $iframe_url;
         $this->target_class = $target_class;
+        $this->widgetmodal_uuid = $widgetmodal_uuid;
         $this->items = $items;
     }
 
@@ -52,6 +54,7 @@ class SelectItemBox implements Renderable
         return view('exment::widgets.selectitem-box', [
             'iframe_url' => $this->iframe_url,
             'target_class' => $this->target_class ?? null,
+            'widgetmodal_uuid' => $this->widgetmodal_uuid ?? null,
             'items' => $this->items,
         ])->render();
     }
