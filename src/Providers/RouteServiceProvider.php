@@ -174,6 +174,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
+            $router->delete("data/{tableKey}/{id}/deletecomment/{suuid}", 'CustomValueController@deleteComment');
 
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
