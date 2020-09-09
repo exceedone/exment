@@ -200,13 +200,13 @@ class SelectTable extends CustomItem
                 'attributes' => [
                     'data-widgetmodal_url' => admin_urls_query('data', $this->target_table->table_name, ['modalframe' => 1]),
                     'data-widgetmodal_expand' => json_encode([
+                        'target_column_class' => 'class_' . $this->uniqueName(),
                         'target_column_id' => $this->custom_column->id,
                         'target_view_id' => $this->custom_column->getOption('select_target_view'),
                         'display_table_id' => $this->custom_table->id,
                         'linkage' => $linkage_expand,
                     ]),
                     'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'class_' . $this->uniqueName()]),
-                    'data-widgetmodal_expand' => json_encode(['target_column_class' => 'class_' . $this->uniqueName()]),
                 ],
             ];
         }
