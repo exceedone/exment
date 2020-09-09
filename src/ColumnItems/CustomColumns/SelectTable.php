@@ -302,16 +302,19 @@ class SelectTable extends CustomItem
 
     protected function setAdminFilterOptions(&$filter)
     {
-        if (isset($this->target_table)) {
-            $options = $this->target_table->getSelectOptions();
-            $ajax = $this->target_table->getOptionAjaxUrl();
-    
-            if (isset($ajax)) {
-                $filter->select([])->ajax($ajax);
-            } else {
-                $filter->select($options);
-            }
+        if (!isset($this->target_table)) {
+            return;
         }
+        $target_table = $this->target_table;
+        
+        $selectOption = $this->getSelectFieldOptions();
+        $ajax = $target_table->getOptionAjaxUrl($selectOption);
+        
+        $filter->select(function($value) use($target_table, $selectOption){
+            $selectOption['selected_value'] = $value;
+            // get DB option value
+            return $target_table->getSelectOptions($selectOption);
+        })->ajax($ajax);
     }
     
     protected function setValidates(&$validates, $form_column_options)
