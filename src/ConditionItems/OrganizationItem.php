@@ -29,7 +29,7 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
         $selectOption = [
             'display_table' => $this->custom_table
         ];
-        list($options, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl($selectOption);
+        $ajax = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptionAjaxUrl($selectOption);
         $field = new Field\MultipleSelect($this->elementName, [$this->label]);
 
         if (isset($ajax)) {
@@ -38,7 +38,10 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
                 'data-add-select2-ajax' => $ajax,
             ]);
         }
-        return $field->options($options);
+        return $field->options(function($value) use($selectOption){
+            $selectOption['selected_value'] = $value;
+            return $this->custom_table->getSelectOptions($selectOption);
+        });
     }
 
     /**
