@@ -40,7 +40,7 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
         }
         return $field->options(function($value) use($selectOption){
             $selectOption['selected_value'] = $value;
-            return $this->custom_table->getSelectOptions($selectOption);
+            return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions($selectOption);
         });
     }
     
