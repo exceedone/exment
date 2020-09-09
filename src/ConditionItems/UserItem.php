@@ -26,10 +26,18 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function getChangeField($key, $show_condition_key = true)
     {
-        $options = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
+        $selectOption = [
             'display_table' => $this->custom_table
-        ]);
+        ];
+        list($options, $ajax) = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl($selectOption);
         $field = new Field\MultipleSelect($this->elementName, [$this->label]);
+
+        if (isset($ajax)) {
+            $field->attribute([
+                'data-add-select2' => $this->label,
+                'data-add-select2-ajax' => $ajax,
+            ]);
+        }
         return $field->options($options);
     }
     

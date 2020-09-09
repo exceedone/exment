@@ -26,10 +26,18 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
      */
     public function getChangeField($key, $show_condition_key = true)
     {
-        $options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions([
+        $selectOption = [
             'display_table' => $this->custom_table
-        ]);
+        ];
+        list($options, $ajax) = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptionsAndAjaxUrl($selectOption);
         $field = new Field\MultipleSelect($this->elementName, [$this->label]);
+
+        if (isset($ajax)) {
+            $field->attribute([
+                'data-add-select2' => $this->label,
+                'data-add-select2-ajax' => $ajax,
+            ]);
+        }
         return $field->options($options);
     }
 
