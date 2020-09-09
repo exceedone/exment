@@ -570,6 +570,7 @@ class DefaultGrid extends GridBase
         // get target column id or class
         $custom_column = CustomColumn::getEloquent(request()->get('target_column_id'));
         $target_column_class = request()->get('target_column_class');
+        $target_column_multiple = request()->get('target_column_multiple') ?? (isset($custom_column) ? boolval($custom_column->getOption('multiple_enabled')) : false);
         $widgetmodal_uuid = request()->get('widgetmodal_uuid');
 
         $items = $this->custom_table->getValueModel()->query()->whereOrIn('id', stringToArray(request()->get('selected_items')))->get();
@@ -584,7 +585,7 @@ class DefaultGrid extends GridBase
                 [[
                 'name' => 'select',
                 'label' =>  trans('admin.choose'),
-                'multiple' => isset($custom_column) ? boolval($custom_column->getOption('multiple_enabled')) : false,
+                'multiple' => $target_column_multiple,
                 'icon' => $this->custom_table->getOption('icon'),
                 'background_color' =>  $this->custom_table->getOption('color') ?? '#3c8dbc', //if especially
                 'color' => '#FFFFFF',

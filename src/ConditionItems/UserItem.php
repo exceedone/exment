@@ -12,6 +12,8 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 
 class UserItem extends ConditionItemBase implements ConditionItemInterface
 {
+    use UserOrganizationItemTrait;
+
     public function getFilterOption()
     {
         return $this->getFilterOptionConditon();
@@ -22,26 +24,11 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
      *
      * @param [type] $target_val
      * @param [type] $key
-     * @return void
+     * @return \Encore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
     {
-        $selectOption = [
-            'display_table' => $this->custom_table
-        ];
-        $ajax = CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl($selectOption);
-        $field = new Field\MultipleSelect($this->elementName, [$this->label]);
-
-        if (isset($ajax)) {
-            $field->attribute([
-                'data-add-select2' => $this->label,
-                'data-add-select2-ajax' => $ajax,
-            ]);
-        }
-        return $field->options(function($value) use($selectOption){
-            $selectOption['selected_value'] = $value;
-            return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions($selectOption);
-        });
+        return $this->getChangeFieldUserOrg(CustomTable::getEloquent(SystemTableName::USER), $key, $show_condition_key);
     }
     
     /**
