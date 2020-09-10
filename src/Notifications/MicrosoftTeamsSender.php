@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Notifications;
 
 use Illuminate\Notifications\Notifiable;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Jobs;
 
 class MicrosoftTeamsSender

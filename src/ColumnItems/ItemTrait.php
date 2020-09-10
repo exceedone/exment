@@ -187,7 +187,7 @@ trait ItemTrait
      */
     public function uniqueName()
     {
-        if(is_nullorempty($this->uniqueName)){
+        if (is_nullorempty($this->uniqueName)) {
             $this->uniqueName = make_uuid();
         }
         return $this->uniqueName;

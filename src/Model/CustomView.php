@@ -452,7 +452,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $view = static::findBySuuid($suuid);
 
             // not match table id, reset view
-            if(isset($view) && !isMatchString($view->custom_table_id, $tableObj->id)){
+            if (isset($view) && !isMatchString($view->custom_table_id, $tableObj->id)) {
                 $view = null;
             }
 
@@ -468,7 +468,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $view = CustomView::findBySuuid($suuid);
 
             // not match table id, reset view
-            if(isset($view) && !isMatchString($view->custom_table_id, $tableObj->id)){
+            if (isset($view) && !isMatchString($view->custom_table_id, $tableObj->id)) {
                 $view = null;
             }
         }

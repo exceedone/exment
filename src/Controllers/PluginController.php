@@ -57,7 +57,8 @@ class PluginController extends AdminControllerBase
      * @param [type] $id
      * @return void
      */
-    public function executeBatch(Request $request, $id){
+    public function executeBatch(Request $request, $id)
+    {
         if (!\Exment::user()->hasPermission(Permission::PLUGIN_ACCESS)) {
             Checker::error();
             return false;

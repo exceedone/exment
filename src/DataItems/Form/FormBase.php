@@ -19,7 +19,7 @@ abstract class FormBase
     public function id($id = null)
     {
         $this->id = $id;
-        if(!is_nullorempty($id)){
+        if (!is_nullorempty($id)) {
             $this->custom_value = $this->custom_table->getValueModel($id);
         }
 

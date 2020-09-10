@@ -60,7 +60,7 @@ class NotifyController extends AdminControllerBase
         $grid->column('notify_name', exmtrans("notify.notify_name"))->sortable();
         $grid->column('notify_view_name', exmtrans("notify.notify_view_name"))->sortable();
         $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->displayEscape(function ($val) {
-            $enum = NotifyTrigger::getEnum($val); 
+            $enum = NotifyTrigger::getEnum($val);
             return $enum ? $enum->transKey('notify.notify_trigger_options') : null;
         });
 
@@ -377,7 +377,7 @@ class NotifyController extends AdminControllerBase
             ->get(
                 ['id', 'column_view_name as text']
             )
-            ->map(function($option){
+            ->map(function ($option) {
                 return ['id' => $option['id'], 'text' => exmtrans('common.custom_column') . ' : ' . $option['text']];
             })->toArray());
 

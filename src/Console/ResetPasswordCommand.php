@@ -75,11 +75,9 @@ class ResetPasswordCommand extends Command
 
         if ($options['id']) {
             $user = getModelName(SystemTableName::USER)::find($options['id']);
-        }
-        elseif ($options['email']) {
+        } elseif ($options['email']) {
             $user = getModelName(SystemTableName::USER)::where('value->email', $options['email'])->first();
-        }
-        elseif ($options['user_code']) {
+        } elseif ($options['user_code']) {
             $user = getModelName(SystemTableName::USER)::where('value->user_code', $options['user_code'])->first();
         }
 
@@ -135,7 +133,6 @@ class ResetPasswordCommand extends Command
             } else {
                 $this->line(exmtrans('command.resetpassword.success'));
             }
-
         } catch (\Exception $e) {
             \Log::error($e);
             $this->error($e->getMessage());

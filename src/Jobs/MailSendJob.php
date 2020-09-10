@@ -184,10 +184,9 @@ class MailSendJob implements ShouldQueue
     protected function getAddress($users)
     {
         // Convert "," string to array
-        if(is_string($users)){
+        if (is_string($users)) {
             $users = stringToArray($users);
-        }
-        elseif (!is_list($users)) {
+        } elseif (!is_list($users)) {
             $users = [$users];
         }
         $addresses = [];
@@ -211,11 +210,11 @@ class MailSendJob implements ShouldQueue
      * @param string $body
      * @return $this
      */
-    protected function replaceAndSetBody($message, $body){
-        if(isMatchString(System::system_mail_body_type(), Enums\MailBodyType::PLAIN)){
+    protected function replaceAndSetBody($message, $body)
+    {
+        if (isMatchString(System::system_mail_body_type(), Enums\MailBodyType::PLAIN)) {
             $message->setBody(replaceBrTag($body), 'text/plain');
-        }
-        else{
+        } else {
             $message->setBody(replaceBreak($body, false), 'text/html');
         }
 
@@ -238,7 +237,7 @@ class MailSendJob implements ShouldQueue
             return $user->id();
         }
         // pure email
-        elseif(is_string($user)) {
+        elseif (is_string($user)) {
             return $user;
         }
         return null;

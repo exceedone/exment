@@ -423,7 +423,7 @@ class NotifyService
             $id = $user->getUserId();
         } elseif ($user instanceof NotifyTarget) {
             $id = $user->id();
-        } elseif(is_numeric($user)){
+        } elseif (is_numeric($user)) {
             $id = $user;
         }
 
@@ -435,7 +435,7 @@ class NotifyService
         $login_user = \Exment::user();
 
         // replace system:site_name to custom_value label
-        if(isset($custom_value)){
+        if (isset($custom_value)) {
             array_set($prms, 'system.site_name', $custom_value->label);
         }
 
@@ -446,7 +446,7 @@ class NotifyService
         $notify_navbar = new NotifyNavbar;
         $notify_navbar->notify_id = array_get($notify, 'id', -1);
 
-        if(isset($custom_value)){
+        if (isset($custom_value)) {
             $notify_navbar->parent_id = array_get($custom_value, 'id');
             $notify_navbar->parent_type = $custom_value->custom_table->table_name;
         }
@@ -484,7 +484,8 @@ class NotifyService
     }
 
 
-    protected static function notifyWebHook(array $params, string $className){
+    protected static function notifyWebHook(array $params, string $className)
+    {
         $params = array_merge(
             [
                 'webhook_url' => null,
@@ -503,7 +504,7 @@ class NotifyService
         static::replaceSubjectBody($params);
 
         $webhook_url = $params['webhook_url'];
-        if(!isset($webhook_url) && isset($params['notify'])){
+        if (!isset($webhook_url) && isset($params['notify'])) {
             $webhook_url = array_get($params['notify']->action_settings, 'webhook_url');
         }
 
@@ -540,19 +541,18 @@ class NotifyService
         
         if (is_numeric($mail_template)) {
             $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
-        }
-        elseif (is_string($mail_template)) {
+        } elseif (is_string($mail_template)) {
             $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', $mail_template)->first();
         }
 
-        if(!isset($mail_template)){
+        if (!isset($mail_template)) {
             return;
         }
 
-        if(is_nullorempty($params['subject'])){
+        if (is_nullorempty($params['subject'])) {
             $params['subject'] = array_get($mail_template->value, 'mail_subject');
         }
-        if(is_nullorempty($params['body'])){
+        if (is_nullorempty($params['body'])) {
             $params['body'] = array_get($mail_template->value, 'mail_body');
         }
     }

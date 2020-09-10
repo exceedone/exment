@@ -7,7 +7,8 @@ use Exceedone\Exment\Model\CustomTable;
 
 trait UserOrganizationItemTrait
 {
-    protected function getChangeFieldUserOrg(CustomTable $target_table, $key, $show_condition_key = true){
+    protected function getChangeFieldUserOrg(CustomTable $target_table, $key, $show_condition_key = true)
+    {
         $field = new Field\MultipleSelect($this->elementName, [$this->label]);
         $className = "class_" . make_uuid();
         $field->setElementClass($className);

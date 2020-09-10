@@ -310,7 +310,7 @@ class SelectTable extends CustomItem
         $selectOption = $this->getSelectFieldOptions();
         $ajax = $target_table->getOptionAjaxUrl($selectOption);
         
-        $filter->select(function($value) use($target_table, $selectOption){
+        $filter->select(function ($value) use ($target_table, $selectOption) {
             $selectOption['selected_value'] = $value;
             // get DB option value
             return $target_table->getSelectOptions($selectOption);

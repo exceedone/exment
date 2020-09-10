@@ -29,7 +29,8 @@ class LoginService
      * @param array $options
      * @return void
      */
-    public static function resetPassword($user, array $options = []){
+    public static function resetPassword($user, array $options = [])
+    {
         $options = array_merge([
             'send_password' => false,  // whether sending password.
             'password_reset_flg' => false,  // whether reset password flg first login.
@@ -41,18 +42,18 @@ class LoginService
         $password = $options['password'];
 
         // get user
-        if($user instanceof LoginUser){
+        if ($user instanceof LoginUser) {
             $login_user = $user;
-        }elseif($user instanceof CustomValue){
+        } elseif ($user instanceof CustomValue) {
             $login_user = $user->login_user;
-        }else{
+        } else {
             throw new \Exception('Please input LoginUser or CustomValue.');
         }
 
         try {
             $login_user->password_reset_flg = System::first_change_password() || boolval($password_reset_flg);
 
-            if(is_nullorempty($password)){
+            if (is_nullorempty($password)) {
                 $password = make_password();
             }
             $login_user->password = $password;
