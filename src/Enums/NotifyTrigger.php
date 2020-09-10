@@ -19,7 +19,6 @@ class NotifyTrigger extends EnumBase
                 return MailKeyName::DATA_SAVED_NOTIFY;
 
             case static::BUTTON:
-            case static::EMPTY:
                 return null;
                 
             case static::WORKFLOW:
