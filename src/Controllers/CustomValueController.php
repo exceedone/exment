@@ -373,6 +373,21 @@ class CustomValueController extends AdminControllerTableBase
         return $show_item->addComment($comment);
     }
 
+
+    /**
+     * remove comment.
+     */
+    public function deleteComment(Request $request, $tableKey, $id, $suuid)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->deleteComment($id, $suuid);
+    }
+
+
     /**
      * @param Request $request
      */
