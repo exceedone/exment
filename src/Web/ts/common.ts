@@ -1118,7 +1118,7 @@ namespace Exment {
         /**
          * add select2
          */
-        private static addSelect2() {
+        public static addSelect2() {
             $('[data-add-select2]').not('.added-select2').each(function (index, elem: Element) {
                 let $elem = $(elem);
                 let allowClear = hasValue($elem.data('add-select2-allow-clear')) ? $elem.data('add-select2-allow-clear') : true;

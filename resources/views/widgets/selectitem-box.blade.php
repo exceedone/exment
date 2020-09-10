@@ -17,6 +17,7 @@
         data-selectitem-color="{{array_get($item, 'color', '#FFFFFF')}}" 
         data-selectitem-background_color="{{array_get($item, 'background_color', '#3c8dbc')}}"
         data-selectitem-target_class="{{$target_class}}"
+        data-selectitem-widgetmodal_uuid="{{$widgetmodal_uuid}}"
     >
 
         <div class="col-sm-1 text-right">{{array_get($item, 'label')}}</div>
