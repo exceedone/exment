@@ -62,7 +62,8 @@ class WorkflowStatus extends ModelBase
     public static function getWorkflowStatusName($workflow_status = null, $workflow = null)
     {
         if (!is_nullorempty($workflow_status) && $workflow_status != Define::WORKFLOW_START_KEYNAME) {
-            return WorkflowStatus::getEloquent($workflow_status)->status_name;
+            $rec = WorkflowStatus::getEloquent($workflow_status);
+            return isset($rec)? $rec->status_name: null;
         }
 
         // get workflow

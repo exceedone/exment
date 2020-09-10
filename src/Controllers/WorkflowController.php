@@ -267,6 +267,14 @@ class WorkflowController extends AdminControllerBase
             }
         });
 
+        $form->submitRedirect([
+            'value' => 1,
+            'label' => trans('admin.continue_editing'),
+            'redirect' => function($resourcesPath, $key){
+                return redirect(admin_urls('workflow', $key, 'edit?action=2'));
+           },
+        ]);
+
         return $form;
     }
 
@@ -418,6 +426,12 @@ class WorkflowController extends AdminControllerBase
                 return $result;
             }
         });
+
+        $form->submitRedirect([
+            'value' => 1,
+            'label' => trans('admin.continue_editing'),
+            'redirect' => admin_urls('workflow', $id, 'edit'),
+        ]);
 
         return $form;
     }
