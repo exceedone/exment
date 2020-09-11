@@ -60,7 +60,8 @@ class NotifyController extends AdminControllerBase
         $grid->column('notify_name', exmtrans("notify.notify_name"))->sortable();
         $grid->column('notify_view_name', exmtrans("notify.notify_view_name"))->sortable();
         $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->displayEscape(function ($val) {
-            return NotifyTrigger::getEnum($val)->transKey('notify.notify_trigger_options');
+            $enum = NotifyTrigger::getEnum($val);
+            return $enum ? $enum->transKey('notify.notify_trigger_options') : null;
         });
 
         $grid->column('custom_table_id', exmtrans("notify.notify_target"))->sortable()->displayEscape(function ($val) {
@@ -375,7 +376,10 @@ class NotifyController extends AdminControllerBase
             ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION, ColumnType::EMAIL])
             ->get(
                 ['id', 'column_view_name as text']
-            )->toArray());
+            )
+            ->map(function ($option) {
+                return ['id' => $option['id'], 'text' => exmtrans('common.custom_column') . ' : ' . $option['text']];
+            })->toArray());
 
 
             // get select table's
@@ -397,7 +401,7 @@ class NotifyController extends AdminControllerBase
                     continue;
                 }
 
-                $options[] = ['id' => $select_table_column->id, 'text' => $select_table_column->column_view_name];
+                $options[] = ['id' => $select_table_column->id, 'text' => exmtrans('common.custom_column') . ' : ' . $select_table_column->column_view_name];
             }
         }
         if ($isApi) {

@@ -17,15 +17,17 @@ trait InitializeFormTrait
     /**
      *
      * @param [type] $routeName
-     * @param boolean $add_template
+     * @param boolean $isInitialize
      * @return WidgetForm
      */
-    protected function getInitializeForm($routeName, $add_template = false)
+    protected function getInitializeForm($routeName, $isInitialize = false)
     {
         $form = new WidgetForm(System::get_system_values(['initialize', 'system']));
         $form->disableReset();
         
-        $form->exmheader(exmtrans('system.header'))->hr();
+        if ($isInitialize) {
+            $form->exmheader(exmtrans('system.header'))->hr();
+        }
         $form->text('site_name', exmtrans("system.site_name"))
             ->required()
             ->help(exmtrans("system.help.site_name"));
@@ -91,7 +93,7 @@ trait InitializeFormTrait
             ->help(exmtrans("system.help.organization_available"));
         
         // template list
-        if ($add_template) {
+        if ($isInitialize) {
             $this->addTemplateTile($form);
         }
         return $form;

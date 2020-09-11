@@ -255,7 +255,8 @@ class CustomColumnController extends AdminControllerTableBase
             $form->switchbool('login_user_default', exmtrans("custom_column.options.login_user_default"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::USER]])])
                 ->help(exmtrans("custom_column.help.login_user_default"));
-            $form->text('placeholder', exmtrans("custom_column.options.placeholder"));
+            $form->text('placeholder', exmtrans("custom_column.options.placeholder"))
+                ->help(exmtrans("custom_column.help.placeholder"));
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
             
             $form->text('min_width', exmtrans("custom_column.options.min_width"))

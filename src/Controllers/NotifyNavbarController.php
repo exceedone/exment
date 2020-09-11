@@ -101,13 +101,15 @@ class NotifyNavbarController extends AdminControllerBase
             }
         }
 
-        return new Show($model, function (Show $show) use ($id, $custom_value, $custom_table) {
-            $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) use ($custom_table) {
-                if (is_null($parent_type) || is_null($custom_table)) {
-                    return null;
-                }
-                return $custom_table->table_view_name;
-            });
+        return new Show($model, function (Show $show) use ($id, $parent_type, $custom_value, $custom_table) {
+            if (isset($parent_type)) {
+                $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) use ($custom_table) {
+                    if (is_null($parent_type) || is_null($custom_table)) {
+                        return null;
+                    }
+                    return $custom_table->table_view_name;
+                });
+            }
 
             if (isset($custom_value)) {
                 $show->field('target_custom_value', exmtrans('notify_navbar.target_custom_value'))->as(function ($v) use ($custom_value) {

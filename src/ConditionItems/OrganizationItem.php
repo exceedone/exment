@@ -12,6 +12,8 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class OrganizationItem extends ConditionItemBase implements ConditionItemInterface
 {
+    use UserOrganizationItemTrait;
+    
     public function getFilterOption()
     {
         return $this->getFilterOptionConditon();
@@ -22,15 +24,11 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
      *
      * @param [type] $target_val
      * @param [type] $key
-     * @return void
+     * @return \Encore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
     {
-        $options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions([
-            'display_table' => $this->custom_table
-        ]);
-        $field = new Field\MultipleSelect($this->elementName, [$this->label]);
-        return $field->options($options);
+        return $this->getChangeFieldUserOrg(CustomTable::getEloquent(SystemTableName::ORGANIZATION), $key, $show_condition_key);
     }
 
     /**

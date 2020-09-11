@@ -190,9 +190,6 @@ class SelectTable extends CustomItem
             'linkage_value_id' => $linkage->getParentValueId($this->custom_value),
         ] : null;
 
-        // add table info
-        $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
-
         // set buttons
         $buttons = [];
         if (!$this->disableEdit($form_column_options) && !boolval(config('exment.select_table_modal_search_disabled', false))) {
@@ -203,46 +200,29 @@ class SelectTable extends CustomItem
                 'attributes' => [
                     'data-widgetmodal_url' => admin_urls_query('data', $this->target_table->table_name, ['modalframe' => 1]),
                     'data-widgetmodal_expand' => json_encode([
+                        'target_column_class' => 'class_' . $this->uniqueName(),
                         'target_column_id' => $this->custom_column->id,
                         'target_view_id' => $this->custom_column->getOption('select_target_view'),
                         'display_table_id' => $this->custom_table->id,
                         'linkage' => $linkage_expand,
                     ]),
-                    'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'value_' . $this->name()]),
+                    'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'class_' . $this->uniqueName()]),
                 ],
             ];
         }
-        $field->buttons($buttons);
 
-        // add view info
         $callback = $this->getRelationFilterCallback($linkage);
         $selectOption = $this->getSelectFieldOptions($callback);
 
-        $thisObj = $this;
-        $field->options(function ($value, $field) use ($thisObj, $selectOption) {
-            return $thisObj->getSelectOptions($value, $field, $selectOption);
-        });
-
-        $ajax = $this->target_table->getOptionAjaxUrl($selectOption);
-        if (isset($ajax)) {
-
-            // set select2_expand data
-            $select2_expand = [];
-            if (isset($this->target_view)) {
-                $select2_expand['target_view_id'] = array_get($this->target_view, 'id');
-            }
-            if (isset($linkage)) {
-                $select2_expand['linkage_column_id'] = $linkage->parent_column->id;
-                $select2_expand['column_id'] = $linkage->child_column->id;
-                $select2_expand['linkage_value_id'] = $linkage->getParentValueId($this->custom_value);
-            }
-
-            $field->attribute([
-                'data-add-select2' => $this->label(),
-                'data-add-select2-ajax' => $ajax,
-                'data-add-select2-expand' => json_encode($select2_expand),
-            ]);
-        }
+        $this->target_table->setSelectTableField($field, [
+            'custom_value' => $this->custom_value, // select custom value, if called custom value's select table
+            'custom_column' => $this->custom_column, // target custom column
+            'buttons' => $buttons, // append buttons for select field searching etc.
+            'label' => $this->label(), // almost use 'data-add-select2'.
+            'linkage' => $linkage, // linkage \Closure|null info
+            'target_view' => $this->target_view,
+            'select_option' => $selectOption, // select option's option
+        ]);
     }
 
     public function getSelectOptions($value, $field, array $selectOption = [])
@@ -322,16 +302,19 @@ class SelectTable extends CustomItem
 
     protected function setAdminFilterOptions(&$filter)
     {
-        if (isset($this->target_table)) {
-            $options = $this->target_table->getSelectOptions();
-            $ajax = $this->target_table->getOptionAjaxUrl();
-    
-            if (isset($ajax)) {
-                $filter->select([])->ajax($ajax);
-            } else {
-                $filter->select($options);
-            }
+        if (!isset($this->target_table)) {
+            return;
         }
+        $target_table = $this->target_table;
+        
+        $selectOption = $this->getSelectFieldOptions();
+        $ajax = $target_table->getOptionAjaxUrl($selectOption);
+        
+        $filter->select(function ($value) use ($target_table, $selectOption) {
+            $selectOption['selected_value'] = $value;
+            // get DB option value
+            return $target_table->getSelectOptions($selectOption);
+        })->ajax($ajax);
     }
     
     protected function setValidates(&$validates, $form_column_options)

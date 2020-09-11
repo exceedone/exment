@@ -2,27 +2,48 @@
 
 namespace Exceedone\Exment\Notifications;
 
-use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Notifiable;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Jobs;
 
 class MicrosoftTeamsSender
 {
+    use Notifiable;
+
     protected $subject;
     protected $body;
+    protected $webhook_url;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($subject, $body)
+    public function __construct($webhook_url, $subject, $body)
     {
-        //$this->name = config('exment.slack_from_name') ?? System::site_name();
-        //$this->icon = config('exment.slack_from_icon') ?? ':information_source:';
         $this->subject = $subject;
         $this->body = $body;
+        $this->webhook_url = $webhook_url;
+    }
+
+
+    /**
+     * Initialize $this
+     *
+     * @param string $webhook_url
+     * @param string $subject
+     * @param string $body
+     * @return MicrosoftTeamsSender
+     */
+    public static function make($webhook_url, $subject, $body, array $options = []) : MicrosoftTeamsSender
+    {
+        return new self($webhook_url, $subject, $body);
+    }
+
+
+    protected function routeNotificationForMicrosoftTeams()
+    {
+        return $this->webhook_url;
     }
 
     /**
@@ -30,12 +51,12 @@ class MicrosoftTeamsSender
      *
      * @return void
      */
-    public function send($notify)
+    public function send()
     {
         // replace word
         $teams_content = static::editContent($this->subject, $this->body);
         // send slack message
-        $notify->notify(new Jobs\MicrosoftTeamsJob($this->subject, $teams_content));
+        $this->notify(new Jobs\MicrosoftTeamsJob($this->subject, $teams_content));
     }
 
     /**

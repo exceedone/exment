@@ -33,7 +33,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     public static $templateItems = [
         'excepts' => [
             'import' => ['permission'],
-            'export' => ['menu_target', 'permission'],
+            'export' => ['menu_target', 'permission', 'menu_target_view'],
         ],
         'uniqueKeys' => ['menu_type', 'menu_name'],
         'langs' => [
@@ -53,6 +53,17 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     ]
                 ],
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'options.menu_target_view',
+                        'replacedName' => [
+                            'suuid' => 'options.menu_target_view_suuid',
+                        ]
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomView::class,
             ],
         ]
     ];

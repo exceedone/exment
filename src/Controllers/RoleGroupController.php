@@ -308,6 +308,14 @@ class RoleGroupController extends AdminControllerBase
         if (!$enable) {
             $form->disableSubmit();
         }
+        
+        $form->submitRedirect([
+            'value' => 'form_type_2',
+            'label' => exmtrans('common.redirect_to', exmtrans('role_group.user_organization_setting')),
+        ])->submitRedirect([
+            'value' => 1,
+            'label' => trans('admin.continue_editing'),
+        ]);
 
         return $form;
     }
@@ -355,6 +363,13 @@ class RoleGroupController extends AdminControllerBase
                 ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
             ;
         }
+        $form->submitRedirect([
+            'value' => 'form_type_1',
+            'label' => exmtrans('common.redirect_to', exmtrans('role_group.permission_setting')),
+        ])->submitRedirect([
+            'value' => 1,
+            'label' => trans('admin.continue_editing'),
+        ]);
 
         return $form;
     }
@@ -449,7 +464,13 @@ class RoleGroupController extends AdminControllerBase
 
             admin_toastr(trans('admin.save_succeeded'));
 
-            return redirect(admin_url('role_group'));
+            if ($request->get('after-save', 0) == 1) {
+                return redirect(admin_urls('role_group', $role_group->id, 'edit?form_type=1'));
+            }elseif ($request->get('after-save', 0) === 'form_type_2') {
+                return redirect(admin_urls('role_group', $role_group->id, 'edit?form_type=2'));
+            } else {
+                return redirect(admin_url('role_group'));
+            }
         } catch (\Exception $exception) {
             //TODO:error handling
             \DB::rollback();
@@ -507,7 +528,13 @@ class RoleGroupController extends AdminControllerBase
             
             admin_toastr(trans('admin.save_succeeded'));
 
-            return redirect(admin_url('role_group'));
+            if ($request->get('after-save', 0) == 1) {
+                return redirect(admin_urls('role_group', $id, 'edit?form_type=2'));
+            }elseif ($request->get('after-save', 0) === 'form_type_1') {
+                return redirect(admin_urls('role_group', $id, 'edit?form_type=1'));
+            } else {
+                return redirect(admin_url('role_group'));
+            }
         } catch (\Exception $exception) {
             //TODO:error handling
             \DB::rollback();

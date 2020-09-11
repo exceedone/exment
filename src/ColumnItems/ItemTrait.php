@@ -24,6 +24,8 @@ trait ItemTrait
 
     protected $options;
 
+    protected $uniqueName;
+
     /**
      * get value
      */
@@ -176,6 +178,19 @@ trait ItemTrait
     public function apiName()
     {
         return $this->name();
+    }
+
+    /**
+     * Get unique name. Use for classname, column name(Only not sorted).
+     *
+     * @return string
+     */
+    public function uniqueName()
+    {
+        if (is_nullorempty($this->uniqueName)) {
+            $this->uniqueName = make_uuid();
+        }
+        return $this->uniqueName;
     }
 
     /**

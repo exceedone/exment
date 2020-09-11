@@ -2,12 +2,22 @@
 
 namespace Exceedone\Exment\Storage\Adapter;
 
+use Exceedone\Exment\Model\File;
+
 /**
  *
  * @method static getMergeConfigKeys(string $mergeFrom, array $options = []);
  */
 trait AdapterTrait
 {
+    /**
+     * Get URL using File class
+     */
+    public function getUrl($path)
+    {
+        return File::getUrl($path);
+    }
+    
     /**
      * Merge config
      *

@@ -150,6 +150,7 @@ class LoginUserController extends AdminControllerBase
             }
             DB::commit();
         } catch (\Swift_TransportException $ex) {
+            \Log::error($ex);
             admin_error('Error', exmtrans('error.mailsend_failed'));
             DB::rollback();
             return back()->withInput();

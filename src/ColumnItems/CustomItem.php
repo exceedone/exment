@@ -370,6 +370,8 @@ abstract class CustomItem implements ItemInterface
 
         $field->attribute(['data-column_type' => $this->custom_column->column_type]);
 
+        $field->setElementClass("class_" . $this->uniqueName());
+
         return $field;
     }
 

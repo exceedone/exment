@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
@@ -304,7 +305,39 @@ class LoginSettingController extends AdminControllerBase
             ->min(0)
             ->max(20)
             ->help(exmtrans("system.help.password_history_cnt"));
-    
+
+        $form->exmheader(exmtrans('system.login_page_view'))->hr();
+
+        $form->color('login_background_color', exmtrans('system.login_background_color'))
+            ->default(null)
+            ->help(exmtrans('system.help.login_background_color'));
+
+        $fileOption = array_merge(
+            Define::FILE_OPTION(),
+            [
+                'showPreview' => true,
+                'deleteUrl' => admin_urls('system', 'filedelete'),
+                'deleteExtraData'      => [
+                    '_token'           => csrf_token(),
+                    '_method'          => 'PUT',
+                    'delete_flg'       => 'login_page_image'
+                ]
+            ]
+        );
+        $form->image('login_page_image', exmtrans("system.login_page_image"))
+            ->help(exmtrans("system.help.login_page_image"))
+            ->options($fileOption)
+            ->removable()
+            ->attribute(['accept' => "image/*"])
+            ;
+            
+        $form->select('login_page_image_type', exmtrans("system.login_page_image_type"))
+            ->help(exmtrans("system.help.login_page_image_type"))
+            ->config('allowClear', false)
+            ->options(Enums\LoginBgImageType::transArray('system.login_page_image_type_options'))
+        ;
+
+
         if (!is_nullorempty(LoginSetting::getAllSettings())) {
             $form->exmheader(exmtrans('login.sso_setting'))->hr();
 
@@ -616,6 +649,7 @@ class LoginSettingController extends AdminControllerBase
         }
         // throw mailsend Exception
         catch (\Swift_TransportException $ex) {
+            \Log::error($ex);
             return getAjaxResponse([
                 'result'  => false,
                 'toastr' => exmtrans('error.mailsend_failed'),

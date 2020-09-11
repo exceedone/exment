@@ -105,6 +105,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('plugin/edit_code/{id}', 'PluginCodeController@edit');
             $router->post('plugin/edit_code/{id}', 'PluginCodeController@store');
             $router->delete('plugin/edit_code/{id}', 'PluginCodeController@delete');
+            $router->get('plugin/{id}/executeBatch', 'PluginController@executeBatch');
 
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
 
@@ -174,6 +175,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
+            $router->delete("data/{tableKey}/{id}/deletecomment/{suuid}", 'CustomValueController@deleteComment');
 
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
@@ -235,7 +237,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
             $router->get('auth/change', 'ChangePasswordController@showChangeForm');
             $router->post('auth/change', 'ChangePasswordController@change');
-            $router->get('favicon', 'FileController@downloadFavicon');
 
             // get config about login provider
             if (canConnection() && hasTable(SystemTableName::LOGIN_SETTINGS)) {
@@ -251,6 +252,17 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('saml/login/{provider}/acs', 'AuthSamlController@acs')->name('exment.saml_acs');
                 }
             }
+        });
+
+
+        Route::group([
+            'prefix'        => config('admin.route.prefix'),
+            'namespace'     => $this->namespace,
+            'middleware'    => ['adminweb', 'admin_anonymous_simple'],
+        ], function (Router $router) {
+            $router->get('favicon', 'FileController@downloadFavicon');
+            $router->get('auth/login/background', 'FileController@downloadLoginBackground');
+            $router->get('auth/login/header', 'FileController@downloadLoginHeader');
         });
     }
     

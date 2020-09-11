@@ -121,12 +121,13 @@ class DefaultGrid extends GridBase
                     'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
                     'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
                 ]);
-            $name = $item->indexEnabled() ? $item->index() : make_uuid();
+            $name = $item->indexEnabled() ? $item->index() : $item->uniqueName();
+            $className = $item->indexEnabled() ? 'column-' . $item->name() : '';
             $grid->column($name, $item->label())
                 ->sort($item->sortable())
                 ->cast($item->getCastName())
                 ->style($item->gridStyle())
-                ->setClasses($item->indexEnabled() ? 'column-' . $item->name() : '')
+                ->setClasses($className)
                 ->display(function ($v) use ($item) {
                     if (is_null($this)) {
                         return '';
@@ -568,7 +569,9 @@ class DefaultGrid extends GridBase
     {
         // get target column id or class
         $custom_column = CustomColumn::getEloquent(request()->get('target_column_id'));
-        $target_column_class = isset($custom_column) ? "value_{$custom_column->column_name}" :  request()->get('target_column_class');
+        $target_column_class = request()->get('target_column_class');
+        $target_column_multiple = request()->get('target_column_multiple') ?? (isset($custom_column) ? boolval($custom_column->getOption('multiple_enabled')) : false);
+        $widgetmodal_uuid = request()->get('widgetmodal_uuid');
 
         $items = $this->custom_table->getValueModel()->query()->whereOrIn('id', stringToArray(request()->get('selected_items')))->get();
 
@@ -578,10 +581,11 @@ class DefaultGrid extends GridBase
             'body'  => (new SelectItemBox(
                 $url,
                 $target_column_class,
+                $widgetmodal_uuid,
                 [[
                 'name' => 'select',
                 'label' =>  trans('admin.choose'),
-                'multiple' => isset($custom_column) ? boolval($custom_column->getOption('multiple_enabled')) : false,
+                'multiple' => $target_column_multiple,
                 'icon' => $this->custom_table->getOption('icon'),
                 'background_color' =>  $this->custom_table->getOption('color') ?? '#3c8dbc', //if especially
                 'color' => '#FFFFFF',

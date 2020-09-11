@@ -70,6 +70,7 @@ return [
         'join_or' => 'または',
         'download' => 'ダウンロード',
         'append_to_selectitem' => '追加',
+        'redirect_to' => '%sへ遷移する',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -135,7 +136,7 @@ return [
         'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
         'mistake_keyword' => 'キーワードを正しく入力してください。',
-        'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
+        'mailsend_failed' => 'メール送信に失敗しました。メール設定と、システムログファイルをご確認ください。',
         'size_too_large' => 'ファイル "{name}" (<b>{size} KB</b>) はアップロード可能なサイズ <b>{maxSize} KB</b> を超えています。',
         'disable_delete_row' => '削除できない行が含まれています。',
         'no_mail_template' => 'メールテンプレートがありません。メールテンプレート設定を確認してください。',
@@ -231,6 +232,7 @@ return [
         'system_mail_password' => 'パスワード',
         'system_mail_encryption' => '暗号化形式',
         'system_mail_from' => '送信元アドレス',
+        'system_mail_body_type' => 'メール本文種類',
         'test_mail_to' => 'テストメール送信先',
         'submit_test_mail' => 'テストメール送信',
         'grid_pager_count' => 'データ一覧の表示件数',
@@ -251,6 +253,10 @@ return [
         'first_change_password' => '初回ログイン時にパスワードを変更させる',
         'password_expiration_days' => '有効日数',
         'password_history_cnt' => 'パスワードの履歴件数',
+        'login_page_view' => 'ログインページ設定',
+        'login_background_color' => '背景色',
+        'login_page_image' => '背景画像',
+        'login_page_image_type' => '背景画像表示方法',
         'view_dashboard_header' => 'ビュー・ダッシュボード設定',
         'organization_header' => '組織設定',
         'org_joined_type_role_group' => '組織階層設定(役割グループ)',
@@ -332,6 +338,16 @@ return [
             'user_organizationview' => 'ログインユーザーと、所属する組織(閲覧のみ)',
         ],
 
+        'login_page_image_type_options' => [
+            "repeat" => "繰り返し表示",
+            "cover" => "画像サイズをページに合わせて表示",
+        ],
+        
+        'system_mail_body_type_options' => [
+            "html" => "HTML",
+            "plain" => "テキスト",
+        ],
+        
         'help' =>[
             'site_name' => 'ページの左上に表示するサイト名です。',
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
@@ -352,6 +368,7 @@ return [
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
             'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
+            'system_mail_body_type' => '送信するメールの、本文の種類を選択してください。',
             'test_mail' => '入力した送信先にテストメールを送ります。<br /><b>※上記のメール設定を必ず保存してから実行してください。入力途中の設定は無効になります。</b>',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
@@ -363,6 +380,9 @@ return [
             'password_expiration_days' => 'パスワードの有効日数を設定します。0にした場合は無期限になります。',
             'first_change_password' => 'YESにした場合、ユーザーが初めてログインを行う際に、パスワードを変更する画面を表示します。',
             'password_history_cnt' => '1以上を入力することで、過去に使用したことのある古いパスワードは、入力した件数分、再度登録できなくなります。<br />※0にした場合でも、設定中のパスワードは登録できません。',
+            'login_background_color' => 'ログイン画面の背景色を設定します。',
+            'login_page_image' => 'ログイン画面に背景画像を設定します。',
+            'login_page_image_type' => 'ログイン画面の背景画像を、どのように表示するかを選択します。',
             'org_joined_type_role_group' => '役割グループの「ユーザー・組織設定」に組織を設定したとき、役割の設定範囲で、親子階層の組織を含める範囲を設定します。',
             'org_joined_type_custom_value' => '各カスタムデータの共有設定に組織を設定したとき、データの共有範囲で、親子階層の組織を含めるかどうかをを設定します。',
             'filter_multi_orguser' => 'ログインユーザーが、他のユーザー・組織を表示できる範囲を設定します。※複数の会社をまたいで利用するポータルサイトなど、他のユーザー情報を表示させたくない場合に設定してください。',
@@ -462,6 +482,7 @@ return [
         'select_plugin_file' => 'プラグインを選択',
         'show_plugin_page' => 'プラグインページを表示',
         'edit_plugin' => 'プラグイン編集',
+        'execute_plugin_batch' => 'バッチ実行',
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',
@@ -1162,6 +1183,7 @@ return [
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
             'init_only' => 'YESにすることで、1回だけ値を入力可能になります。保存後は、読み取り専用で表示されます。',
             'default' => '新規登録時の、項目の初期値です。',
+            'placeholder' => '入力前のフィールドにガイダンスとして薄い色で表示される文字列です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
             'min_width' => '一覧表示する時の、列の幅の最小値を、整数(px)で入力してください。',
             'max_width' => '一覧表示する時の、列の幅の最大値を、整数(px)で入力してください。',
@@ -1680,7 +1702,7 @@ return [
         'header_import' => 'テンプレート - インポート',
         'description' => 'Exmentのテーブル、列、フォーム情報をインポート、またはエクスポートします。',
         'description_export' => 'システムに登録している、テーブル・列・フォーム情報をエクスポートします。このテンプレートファイルは、他のシステムでインポートすることができます。',
-        'description_import' => 'エクスポートされたExmentテンプレート情報を、このシステムにインポートし、テーブル・列・フォーム情報をインストールします。<br />以下の2つの項目から、1つを選択し、実施してください。',
+        'description_import' => 'エクスポートされたExmentテンプレート情報を、このシステムにインポートし、テーブル・列・フォーム情報をインストールします。<br />すでにインストール済のテンプレートから選択するか、新しいテンプレートファイルをアップロードしてください。',
         'template_name' => 'テンプレート名(英数字)',
         'template_view_name' => 'テンプレート表示名',
         'form_description' => 'テンプレート説明文',
@@ -2015,6 +2037,10 @@ return [
         ],
         'export' => [
             'success_message' => 'エクスポートに成功しました。ディレクトリパス：%s',
+        ],
+        'resetpassword' => [
+            'notify_password' => 'パスワードをリセットしました。新しいパスワード：%s',
+            'success' => 'パスワードをリセットしました。',
         ],
     ],
 

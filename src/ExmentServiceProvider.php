@@ -73,6 +73,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\ImportCommand',
         'Exceedone\Exment\Console\ExportCommand',
         'Exceedone\Exment\Console\ExportChunkCommand',
+        'Exceedone\Exment\Console\ResetPasswordCommand',
     ];
 
     /**
@@ -147,6 +148,11 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap',
             'admin.permission',
             'admin.session',
+        ],
+        // Exment not login web page, and simple config, (Almost use image)
+        'admin_anonymous_simple' => [
+            'admin.web-ipfilter',
+            'admin.initialize',
         ],
         // Exment install page
         'admin_install' => [

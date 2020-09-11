@@ -1681,7 +1681,62 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
-    
+
+    /**
+     * Set select table's field info.
+     *
+     * @param [type] $field
+     * @param array $options
+     * @return void
+     */
+    public function setSelectTableField($field, array $options = [])
+    {
+        $options = array_merge([
+            'custom_value' => null, // select custom value, if called custom value's select table
+            'custom_column' => null, // target custom column
+            'buttons' => [], // append buttons for select field searching etc.
+            'label' => null, // almost use 'data-add-select2'.
+            'linkage' => null, // linkage \Closure|null info
+            'target_view' => null, // target view for filter
+            'select_option' => [], // select option's option
+        ], $options);
+        $selectOption = $options['select_option'];
+        $thisObj = $this;
+
+        // add table info
+        $field->attribute(['data-target_table_name' => array_get($this, 'table_name')]);
+        $field->buttons($options['buttons']);
+
+        $field->options(function ($value, $field) use ($thisObj, $selectOption) {
+            $selectOption['selected_value'] = (!empty($field) ? $field->getOld() : null) ?? $value;
+            return $thisObj->getSelectOptions($selectOption);
+        });
+
+        $ajax = $this->getOptionAjaxUrl($selectOption);
+        if (isset($ajax)) {
+            // set select2_expand data
+            $select2_expand = [];
+            if (isset($options['target_view'])) {
+                $select2_expand['target_view_id'] = array_get($options['target_view'], 'id');
+            }
+            if (isset($options['linkage'])) {
+                $select2_expand['linkage_column_id'] = $options['linkage']->parent_column->id;
+                $select2_expand['column_id'] = $options['linkage']->child_column->id;
+                $select2_expand['linkage_value_id'] = $options['linkage']->getParentValueId($options['custom_value']);
+            }
+
+            $field->attribute([
+                'data-add-select2' => $options['label'],
+                'data-add-select2-ajax' => $ajax,
+                'data-add-select2-ajax-webapi' => admin_urls('webapi', 'data', $thisObj->table_name), // called by changedata
+                'data-add-select2-expand' => json_encode($select2_expand),
+            ]);
+        }
+
+        return $field;
+    }
+
+
     /**
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.

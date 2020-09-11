@@ -581,6 +581,7 @@ EOT;
                     'comment' => $comment,
                     'table_name' => $this->custom_table->table_name,
                     'isAbleRemove' => ($comment->created_user_id == \Exment::getUserId()),
+                    'deleteUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'deletecomment', $comment->suuid),
                 ])->render() . "</p>";
             }
             // loop and add as link
@@ -768,5 +769,25 @@ EOT;
         $url = admin_urls('data', $this->custom_table->table_name, $this->custom_value->id);
         admin_toastr(trans('admin.save_succeeded'));
         return redirect($url);
+    }
+
+ 
+    /**
+     * delete comment.
+     */
+    public function deleteComment($id, $suuid)
+    {
+        if (!empty($suuid)) {
+            // save Comment Model
+            CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel()
+                ->where('suuid', $suuid)
+                ->where('parent_id', $id)
+                ->where('parent_type', $this->custom_table->table_name)
+                ->delete();
+        }
+        return getAjaxResponse([
+            'result' => true,
+            'toastr' => trans('admin.delete_succeeded'),
+        ]);
     }
 }

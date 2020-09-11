@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
@@ -69,7 +70,7 @@ class SystemController extends AdminControllerBase
                 ]);
             })->default($admin_users);
 
-        $box = new Box(trans('admin.edit'), $form);
+        $box = new Box(exmtrans('common.basic_setting'), $form);
         
         $box->tools(new Tools\SystemChangePageMenu());
 
@@ -188,9 +189,8 @@ class SystemController extends AdminControllerBase
 
 
         // use mail setting
+        $form->exmheader(exmtrans('system.system_mail'))->hr();
         if (!boolval(config('exment.mail_setting_env_force', false))) {
-            $form->exmheader(exmtrans('system.system_mail'))->hr();
-
             $form->descriptionHtml(exmtrans("system.help.system_mail"));
 
             $form->text('system_mail_host', exmtrans("system.system_mail_host"));
@@ -207,7 +207,13 @@ class SystemController extends AdminControllerBase
             $form->email('system_mail_from', exmtrans("system.system_mail_from"))
                 ->help(exmtrans("system.help.system_mail_from"));
         }
+        $form->select('system_mail_body_type', exmtrans("system.system_mail_body_type"))
+            ->help(exmtrans("system.help.system_mail_body_type"))
+            ->config('allowClear', false)
+            ->options(Enums\MailBodyType::transArray('system.system_mail_body_type_options'));
        
+
+
         $form->exmheader(exmtrans('system.ip_filter'))->hr();
         $form->descriptionHtml(exmtrans("system.help.ip_filter"));
 

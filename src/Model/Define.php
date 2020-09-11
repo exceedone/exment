@@ -62,6 +62,7 @@ class Define
         'system_mail_password' => ['type' => 'password', 'config' => 'mail.password', 'group' => 'advanced'],
         'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'advanced'],
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'advanced'],
+        'system_mail_body_type' => ['default' => 'html', 'group' => 'advanced'],
 
         'default_date_format' => ['default' => 'format_default', 'group' => 'advanced'],
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'advanced'],
@@ -80,6 +81,10 @@ class Define
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
         'first_change_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
         'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
+
+        'login_background_color' => ['type' => 'string', 'default' => '#d2d6de', 'group' => 'login'],
+        'login_page_image' => ['type' => 'file', 'move' => 'system', 'group' => 'login'],
+        'login_page_image_type' => ['type' => 'string', 'default' => 'repeat', 'group' => 'login'],
 
         'show_default_login_provider' => ['type' => 'boolean', 'default' => '1', 'group' => 'login'],
         'sso_redirect_force' => ['type' => 'boolean', 'default' => '0', 'group' => 'login'],

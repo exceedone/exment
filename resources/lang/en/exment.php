@@ -70,6 +70,7 @@ return [
         'join_or' => 'Or',
         'download' => 'Download',
         'append_to_selectitem' => 'Append',
+        'redirect_to' => 'Move to %s',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -232,6 +233,7 @@ return [
         'system_mail_password' => 'Password',
         'system_mail_encryption' => 'Encryption Format',
         'system_mail_from' => 'System Email',
+        'system_mail_body_type' => 'Mail Body Type',
         'test_mail_to' => 'TestMail Send To',
         'submit_test_mail' => 'Send TestMail',
         'grid_pager_count' => 'Number of displayed data list',
@@ -252,6 +254,10 @@ return [
         'first_change_password' => 'Change Password at First Login',
         'password_expiration_days' => 'Password Expiration Days',
         'password_history_cnt' => 'Number of Password History',
+        'login_page_view' => 'Login Page Setting',
+        'login_background_color' => 'Background Color',
+        'login_page_image' => 'Background Image',
+        'login_page_image_type' => 'Background Image Type',
         'view_dashboard_header' => 'View/Dashboard Setting',
         'organization_header' => 'Organization Setting',
         'org_joined_type_role_group' => 'Organization Tree Setting(Role Group)',
@@ -333,6 +339,16 @@ return [
             'user_organizationview' => 'Login user and your organization(VIEW ONLY)',
         ],
 
+        'login_page_image_type_options' => [
+            "repeat" => "Repeat",
+            "cover" => "Display image size fix to page",
+        ],
+        
+        'system_mail_body_type_options' => [
+            "html" => "HTML",
+            "plain" => "Text",
+        ],
+        
         'help' =>[
             'site_name' => 'The site name displayed in the upper left of the page.',
             'site_name_short' => 'An abbreviation for the site name to be displayed when the menu is collapsed.',
@@ -353,6 +369,7 @@ return [
             'system_mail' => 'Configure settings when sending mail from the system.',
             'system_mail_from' => 'the mail address from this system. Using this mail address as "from", this system sends users.',
             'system_mail_encryption' => 'Enter the mail encryption protocol format in lower case. (ssl, tls etc)',
+            'system_mail_body_type' => 'Please select the type of body of the email you want to send.',
             'test_mail' => 'Send a test email to the destination you entered. <br /> <b>*Be sure to save the above email settings before executing. The settings during input are invalid. </b>',
             'template' => 'If select these templates, install tables, columns and forms.',
             'role_one_user_organization' => 'Please register one or more users or organizations for permission.',
@@ -363,6 +380,9 @@ return [
             'complex_password' => 'If set to YES, the password must be at least 12 characters long and must include three types of characters (uppercase letters, lowercase letters, numbers, and symbols).',
             'password_expiration_days' => 'Set the password validity period. If set to 0, it will be indefinite.',
             'first_change_password' => 'If set to YES, the screen to change the password will be displayed when the user logs in for the first time.',
+            'login_background_color' => 'Set the background color of the login screen.',
+            'login_page_image' => 'Set the background image on the login screen.',
+            'login_page_image_type' => 'Select how to display the background image of the login screen.',
             'password_history_cnt' => 'If you enter 1 or more, old passwords that have been used in the past cannot be registered again for the number of entered passwords. <br />*Even if set to 0, the password being set cannot be registered.',
             'org_joined_type_role_group' => 'When an organization is set in "User / Organization Settings" of the role group, set the range to include the parent/child hierarchy organization.',
             'org_joined_type_custom_value' => 'When the organization is set in the sharing settings for each custom data, set the scope to include the organization of the parent-child hierarchy.',
@@ -463,6 +483,7 @@ return [
         'select_plugin_file' => 'Select Plugin File',
         'show_plugin_page' => 'Show Plugin Page',
         'edit_plugin' => 'Edit Plugin',
+        'execute_plugin_batch' => 'Execute',
         'options' => [
             'header' => 'Option Setting',
             'custom_options_header' => 'Custom Options',
@@ -1163,6 +1184,7 @@ return [
             'unique' => 'If you do not want to register the same value with other data in duplicate, please set it to YES. * For data with a large number of cases, we recommend setting "Search index" to YES.',
             'init_only' => 'If set to YES, the value can be entered only once. After saving, it is displayed as read-only.',
             'default' => 'The initial value of the item at the time of new registration.',
+            'placeholder' => 'A string that is displayed in a light color as guidance in the field before input.',
             'help' => 'Help string displayed below the field.',
             'min_width' => 'Enter the minimum value of the column width when displaying the list as an integer (px).',
             'max_width' => 'Enter the maximum value of the column width when displaying the list as an integer (px).',
@@ -2017,6 +2039,10 @@ return [
         ],
         'export' => [
             'success_message' => 'The export was successful. Directory path:%s',
+        ],
+        'resetpassword' => [
+            'notify_password' => 'Executed password reset. A new password is : %s',
+            'success' => 'Executed password reset.',
         ],
     ],
     
