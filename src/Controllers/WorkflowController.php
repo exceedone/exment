@@ -270,9 +270,9 @@ class WorkflowController extends AdminControllerBase
         $form->submitRedirect([
             'value' => 1,
             'label' => trans('admin.continue_editing'),
-            'redirect' => function($resourcesPath, $key){
+            'redirect' => function ($resourcesPath, $key) {
                 return redirect(admin_urls('workflow', $key, 'edit?action=2'));
-           },
+            },
         ]);
 
         return $form;

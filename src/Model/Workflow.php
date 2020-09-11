@@ -234,7 +234,7 @@ class Workflow extends ModelBase
             return false;
         }
 
-        // check action use status is exists 
+        // check action use status is exists
         $status_list = $this->workflow_statuses->pluck('id');
         $status_list->push(Define::WORKFLOW_START_KEYNAME);
 
@@ -242,8 +242,7 @@ class Workflow extends ModelBase
             if (!$status_list->contains($workflow_action->status_from)) {
                 return false;
             }
-            foreach ($workflow_action->workflow_condition_headers as $workflow_condition_header)
-            {
+            foreach ($workflow_action->workflow_condition_headers as $workflow_condition_header) {
                 if (!$status_list->contains($workflow_condition_header->status_to)) {
                     return false;
                 }
