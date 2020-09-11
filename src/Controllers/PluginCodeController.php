@@ -116,6 +116,10 @@ class PluginCodeController extends AdminControllerBase
 
         if ($request->hasfile('fileUpload')) {
             $folder_path = str_replace('//', '/', $request->get('plugin_file_path'));
+            // path root check, if search as ex. "../../", throw new exception.
+            if(strpos(str_replace(' ', '', $folder_path), '..') !== false){
+                throw new \Exception;
+            }
             $upload_files = $request->file('fileUpload');
 
             foreach ($upload_files as $upload_file) {
@@ -172,6 +176,11 @@ class PluginCodeController extends AdminControllerBase
         }
 
         $nodepath = str_replace('//', '/', $request->get('nodepath'));
+        // path root check, if search as ex. "../../", throw new exception.
+        if(strpos(str_replace(' ', '', $nodepath), '..') !== false){
+            throw new \Exception;
+        }
+
         try {
             if ($this->plugin->isPathDir($nodepath)) {
                 return [view('exment::plugin.editor.upload', [
