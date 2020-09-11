@@ -70,7 +70,7 @@ class SystemController extends AdminControllerBase
                 ]);
             })->default($admin_users);
 
-        $box = new Box(trans('admin.edit'), $form);
+        $box = new Box(exmtrans('common.basic_setting'), $form);
         
         $box->tools(new Tools\SystemChangePageMenu());
 
