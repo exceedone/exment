@@ -499,11 +499,10 @@ var Exment;
          * set getmodel or getitem data to form
          */
         static setModelItem(modeldata, $changedata_target, $elem, options) {
-            var $elem;
             return __awaiter(this, void 0, void 0, function* () {
                 // loop for options
-                for (var i = 0; i < options.length; i++) {
-                    var option = options[i];
+                for (let i = 0; i < options.length; i++) {
+                    let option = options[i];
                     // if has changedata_to_block, get $elem using changedata_to_block
                     if (hasValue(option.to_block)) {
                         $changedata_target = $(option.to_block);
@@ -512,14 +511,15 @@ var Exment;
                             $changedata_target = $changedata_target.find(option.to_block_form).last();
                         }
                     }
-                    $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
+                    // get element
+                    let $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
                     if (!hasValue(modeldata)) {
                         yield CommonEvent.setValue($elem, null);
                         //$elem.val('');
                     }
                     else {
                         // get element value from model
-                        var from = modeldata['value'][option.from];
+                        let from = modeldata['value'][option.from];
                         yield CommonEvent.setValue($elem, from);
                     }
                     // view filter execute
@@ -528,15 +528,15 @@ var Exment;
                     option['elem'] = $elem;
                 }
                 // re-loop for options
-                for (var i = 0; i < options.length; i++) {
-                    var option = options[i];
+                for (let i = 0; i < options.length; i++) {
+                    let option = options[i];
                     $elem = option['elem'];
                     ///// execute calc
-                    for (var j = 0; j < CommonEvent.calcDataList.length; j++) {
-                        var calcData = CommonEvent.calcDataList[j];
+                    for (let j = 0; j < CommonEvent.calcDataList.length; j++) {
+                        let calcData = CommonEvent.calcDataList[j];
                         // if calcData.key matches option.to, execute cals
                         if (calcData.key == option.to) {
-                            var $filterTo = $elem.filter(calcData.classKey);
+                            let $filterTo = $elem.filter(calcData.classKey);
                             if (hasValue($filterTo)) {
                                 yield CommonEvent.setCalc($filterTo, calcData.data);
                             }
@@ -790,12 +790,12 @@ var Exment;
             if (!hasValue($target)) {
                 return;
             }
-            var column_type = $target.data('column_type');
+            let column_type = $target.data('column_type');
             // if 'image' or 'file', cannot setValue, continue
             if ($.inArray(column_type, ['file', 'image']) != -1) {
                 return;
             }
-            var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']) != -1;
+            let isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']) != -1;
             // if number, remove comma
             if (isNumber) {
                 value = rmcomma(value);
@@ -803,14 +803,14 @@ var Exment;
             // if integer, floor value
             if (column_type == 'integer') {
                 if (hasValue(value)) {
-                    var bn = new BigNumber(value);
+                    let bn = new BigNumber(value);
                     value = bn.integerValue().toPrecision();
                 }
             }
             // if 'decimal' or 'currency', floor 
             if ($.inArray(column_type, ['decimal', 'currency']) != -1 && hasValue($target.attr('decimal_digit'))) {
                 if (hasValue(value)) {
-                    var bn = new BigNumber(value);
+                    let bn = new BigNumber(value);
                     value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
                 }
             }
@@ -820,8 +820,22 @@ var Exment;
             }
             // switch bootstrapSwitch
             if ($.inArray(column_type, ['boolean', 'yesno']) != -1) {
-                var $bootstrapSwitch = $target.filter('[type="checkbox"]');
+                let $bootstrapSwitch = $target.filter('[type="checkbox"]');
                 $bootstrapSwitch.bootstrapSwitch('toggleReadonly').bootstrapSwitch('state', $bootstrapSwitch.data('onvalue') == value).bootstrapSwitch('toggleReadonly');
+            }
+            // if select2 and has 'data-add-select2-ajax-webapi', call api, and select2 options
+            if ($target.filter('[data-add-select2-ajax-webapi]').length > 0) {
+                let api = URLJoin($target.data('add-select2-ajax-webapi'), value);
+                $.ajax({
+                    type: 'GET',
+                    url: api,
+                    data: { 'label': 1 },
+                    async: false,
+                    success: function (repsonse) {
+                        let newOption = new Option(repsonse.label, repsonse.id, true, true);
+                        $target.append(newOption);
+                    }
+                });
             }
             // set value
             $target.val(value).trigger('change');

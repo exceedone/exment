@@ -241,6 +241,7 @@ class SelectTable extends CustomItem
             $field->attribute([
                 'data-add-select2' => $this->label(),
                 'data-add-select2-ajax' => $ajax,
+                'data-add-select2-ajax-webapi' => admin_urls('webapi', 'data', $this->target_table->table_name), // called by changedata
                 'data-add-select2-expand' => json_encode($select2_expand),
             ]);
         }
