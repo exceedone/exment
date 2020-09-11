@@ -70,6 +70,7 @@ return [
         'join_or' => 'Or',
         'download' => 'Download',
         'append_to_selectitem' => 'Append',
+        'redirect_to' => 'Move to %s',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',

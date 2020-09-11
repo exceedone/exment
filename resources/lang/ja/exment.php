@@ -70,6 +70,7 @@ return [
         'join_or' => 'または',
         'download' => 'ダウンロード',
         'append_to_selectitem' => '追加',
+        'redirect_to' => '%sへ遷移する',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',

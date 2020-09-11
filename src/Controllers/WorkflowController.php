@@ -268,10 +268,16 @@ class WorkflowController extends AdminControllerBase
         });
 
         $form->submitRedirect([
+            'value' => 'action_2',
+            'label' => exmtrans('common.redirect_to', exmtrans('workflow.workflow_actions')),
+            'redirect' => function ($resourcesPath, $key) {
+                return redirect(admin_urls('workflow', $key, 'edit?action=2'));
+            },
+        ])->submitRedirect([
             'value' => 1,
             'label' => trans('admin.continue_editing'),
             'redirect' => function ($resourcesPath, $key) {
-                return redirect(admin_urls('workflow', $key, 'edit?action=2'));
+                return redirect(admin_urls('workflow', $key, 'edit?action=1'));
             },
         ]);
 
@@ -428,9 +434,17 @@ class WorkflowController extends AdminControllerBase
         });
 
         $form->submitRedirect([
+            'value' => 'action_1',
+            'label' => exmtrans('common.redirect_to', exmtrans('workflow.workflow_statuses')),
+            'redirect' => function ($resourcesPath, $key) {
+                return redirect(admin_urls('workflow', $key, 'edit?action=1'));
+            },
+        ])->submitRedirect([
             'value' => 1,
             'label' => trans('admin.continue_editing'),
-            'redirect' => admin_urls('workflow', $id, 'edit'),
+            'redirect' => function ($resourcesPath, $key) {
+                return redirect(admin_urls('workflow', $key, 'edit?action=2'));
+            },
         ]);
 
         return $form;
