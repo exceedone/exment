@@ -308,7 +308,10 @@ class RoleGroupController extends AdminControllerBase
         if (!$enable) {
             $form->disableSubmit();
         }
-
+        $form->submitRedirect([
+            'value' => 1,
+            'label' => trans('admin.continue_editing'),
+        ]);
         return $form;
     }
 
@@ -355,6 +358,10 @@ class RoleGroupController extends AdminControllerBase
                 ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
             ;
         }
+        $form->submitRedirect([
+            'value' => 1,
+            'label' => trans('admin.continue_editing'),
+        ]);
 
         return $form;
     }
@@ -449,7 +456,11 @@ class RoleGroupController extends AdminControllerBase
 
             admin_toastr(trans('admin.save_succeeded'));
 
-            return redirect(admin_url('role_group'));
+            if ($request->get('after-save', 0) == 1) {
+                return redirect(admin_urls('role_group', $role_group->id, 'edit?form_type=2'));
+            } else {
+                return redirect(admin_url('role_group'));
+            }
         } catch (\Exception $exception) {
             //TODO:error handling
             \DB::rollback();
@@ -507,7 +518,11 @@ class RoleGroupController extends AdminControllerBase
             
             admin_toastr(trans('admin.save_succeeded'));
 
-            return redirect(admin_url('role_group'));
+            if ($request->get('after-save', 0) == 1) {
+                return redirect(admin_urls('role_group', $id, 'edit?form_type=1'));
+            } else {
+                return redirect(admin_url('role_group'));
+            }
         } catch (\Exception $exception) {
             //TODO:error handling
             \DB::rollback();
