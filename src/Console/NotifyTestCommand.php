@@ -60,10 +60,10 @@ class NotifyTestCommand extends Command
             return 0;
         }
         // throw mailsend Exception
-        catch (\Swift_TransportException $e) {
+        catch (\Swift_TransportException $ex) {
             $this->error('Send mail Error. Please check log.');
-            \Log::error($e);
-        } catch (\Exception $e) {
+            \Log::error($ex);
+        } catch (\Exception $ex) {
             return -1;
         } finally {
         }

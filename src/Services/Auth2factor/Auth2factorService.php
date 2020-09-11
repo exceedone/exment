@@ -118,6 +118,7 @@ class Auth2factorService
         }
         // throw mailsend Exception
         catch (\Swift_TransportException $ex) {
+            \Log::error($ex);
             return false;
         }
     }

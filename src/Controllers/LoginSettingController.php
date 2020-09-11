@@ -649,6 +649,7 @@ class LoginSettingController extends AdminControllerBase
         }
         // throw mailsend Exception
         catch (\Swift_TransportException $ex) {
+            \Log::error($ex);
             return getAjaxResponse([
                 'result'  => false,
                 'toastr' => exmtrans('error.mailsend_failed'),

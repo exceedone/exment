@@ -65,6 +65,7 @@ class LoginService
                 }
                 // throw mailsend Exception
                 catch (\Swift_TransportException $ex) {
+                    \Log::error($ex);
                     admin_error(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
                     return back()->withInput();
                 }
