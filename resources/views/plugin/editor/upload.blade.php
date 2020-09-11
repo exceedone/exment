@@ -40,7 +40,6 @@
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-info btn-upload submit_disabled" data-loading-text="<i class='fa fa-spinner fa-spin '></i> {{trans('admin.upload')}}">{{trans('admin.upload')}}</button>
         </div>
-        <input type="hidden" id="plugin_file_path" name="plugin_file_path" value="{{ $filepath }}">
     </form>
 </div>
 

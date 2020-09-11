@@ -10,7 +10,7 @@
         <button id="delete_plugin_file" class="btn btn-danger">{{ exmtrans('common.deleted') }}</button>
     </div>
 </div>
-<input type="hidden" id="plugin_file_path" value="{{ $filepath }}">
+<input type="hidden" id="nodeid" value="{{ $nodeid }}">
 
 <script type="text/javascript">
     $('#delete_plugin_file').off('click').on('click', function() {
@@ -21,7 +21,7 @@
             method: 'delete',
             cancel:"{{ trans('admin.cancel') }}",
             data: {
-                file_path: $('#plugin_file_path').val()
+                nodeid: $('#nodeid').val()
             },
         });
     });
@@ -39,7 +39,7 @@
             data: {
                 _token: LA.token,
                 edit_file: $('#edit_plugin_file').val(),
-                file_path: $('#plugin_file_path').val(),
+                nodeid: $('#nodeid').val(),
                 },
             success:function(repsonse) {
                 button.text(button.data('default-label'));
