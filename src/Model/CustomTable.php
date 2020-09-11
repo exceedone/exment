@@ -1728,6 +1728,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $field->attribute([
                 'data-add-select2' => $options['label'],
                 'data-add-select2-ajax' => $ajax,
+                'data-add-select2-ajax-webapi' => admin_urls('webapi', 'data', $thisObj->table_name), // called by changedata
                 'data-add-select2-expand' => json_encode($select2_expand),
             ]);
         }
