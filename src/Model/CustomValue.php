@@ -738,6 +738,8 @@ abstract class CustomValue extends ModelBase
             $query = $this
                 ->value_authoritable_organizations()
                 ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds($enum));
+        }else{
+            throw new \Exception;
         }
 
         return $query->get();
@@ -1210,7 +1212,8 @@ abstract class CustomValue extends ModelBase
     public function getSearchQuery($q, $options = [])
     {
         $options = $this->getQueryOptions($q, $options);
-        extract($options);
+        $searchColumns = $options['searchColumns'];
+
 
         // if search and not has searchColumns, return null;
         if ($options['executeSearch'] && empty($searchColumns)) {
@@ -1219,7 +1222,9 @@ abstract class CustomValue extends ModelBase
         }
 
         $getQueryFunc = function ($searchColumn, $options) {
-            extract($options);
+            $takeCount = $options['takeCount'];
+
+            $queries = [];
             // if not search, set only pure query
             if (!$options['executeSearch']) {
                 $query = static::query();
@@ -1231,13 +1236,13 @@ abstract class CustomValue extends ModelBase
                     return;
                 }
 
-                foreach ($column_item->getSearchQueries($mark, $value, $takeCount, $q, $options) as $query) {
+                foreach ($column_item->getSearchQueries($options['mark'], $options['value'], $takeCount, $options['q'], $options) as $query) {
                     $query->take($takeCount);
                     $queries[] = $query;
                 }
             } else {
                 $query = static::query();
-                $query->whereOrIn($searchColumn, $mark, $value)->select('id');
+                $query->whereOrIn($searchColumn, $options['mark'], $options['value'])->select('id');
                 $query->take($takeCount);
     
                 $queries[] = $query;
@@ -1245,18 +1250,18 @@ abstract class CustomValue extends ModelBase
             
             foreach ($queries as &$query) {
                 // if has relationColumn, set query filtering
-                if (isset($relationColumn)) {
-                    $relationColumn->setQueryFilter($query, array_get($options, 'relationColumnValue'));
+                if (isset($options['relationColumn'])) {
+                    $options['relationColumn']->setQueryFilter($query, array_get($options, 'relationColumnValue'));
                 }
                 
                 ///// if has display table, filter display table
-                if (isset($display_table)) {
-                    $this->custom_table->filterDisplayTable($query, $display_table, $options);
+                if (isset($options['display_table'])) {
+                    $this->custom_table->filterDisplayTable($query, $options['display_table'], $options);
                 }
 
                 // set custom view's filter
-                if (isset($target_view)) {
-                    $target_view->filterModel($query, ['sort' => false]);
+                if (isset($options['target_view'])) {
+                    $options['target_view']->filterModel($query, ['sort' => false]);
                 }
             }
 
@@ -1298,9 +1303,7 @@ abstract class CustomValue extends ModelBase
         $options = $this->getQueryOptions($q, $options);
 
         $query->where(function ($query) use ($options) {
-            extract($options);
-
-            $searchColumns = collect($searchColumns);
+            $searchColumns = collect($options['searchColumns']);
             for ($i = 0; $i < count($searchColumns); $i++) {
                 $searchColumn = $searchColumns->values()->get($i);
 
@@ -1310,9 +1313,9 @@ abstract class CustomValue extends ModelBase
                         continue;
                     }
                         
-                    $column_item->setSearchOrWhere($query, $mark, $value, $q);
+                    $column_item->setSearchOrWhere($query, $options['mark'], $options['value'], $options['q']);
                 } else {
-                    $query->orWhere($searchColumn, $mark, $value);
+                    $query->orWhere($searchColumn, $options['mark'], $options['value']);
                 }
             }
         });
@@ -1339,31 +1342,30 @@ abstract class CustomValue extends ModelBase
             ],
             $options
         );
-        extract($options);
 
         // if selected target column,
-        if (is_null($searchColumns)) {
-            $searchColumns = $this->custom_table->getFreewordSearchColumns();
+        if (!isset($options['searchColumns'])) {
+            $options['searchColumns'] = $this->custom_table->getFreewordSearchColumns();
         }
 
-        if (!isset($searchColumns) || count($searchColumns) == 0) {
+        if (!isset($options['searchColumns']) || count($options['searchColumns']) == 0) {
             return $options;
         }
 
-        list($mark, $value) = $this->getQueryMarkAndValue($isLike, $q, $relation);
+        list($mark, $value) = $this->getQueryMarkAndValue($options['isLike'], $options['q'], $options['relation']);
 
-        if ($relation) {
+        if (boolval($options['relation'])) {
             $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
         } else {
             $takeCount = intval(config('exment.keyword_search_count', 1000));
         }
 
         // if not paginate, only take maxCount
-        if (!$paginate) {
-            $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
+        if (!boolval($options['paginate'])) {
+            $takeCount = !isset($options['maxCount']) ? $takeCount : min($takeCount, $options['maxCount']);
         }
 
-        $options['searchColumns'] = $searchColumns;
+        //$options['searchColumns'] = $searchColumns;
         $options['takeCount'] = $takeCount;
         $options['mark'] = $mark;
         $options['value'] = $value;

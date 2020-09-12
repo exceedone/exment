@@ -12,6 +12,7 @@ use Exceedone\Exment\ConditionItems;
  * @method static ConditionTypeDetail ORGANIZATION()
  * @method static ConditionTypeDetail ROLE()
  * @method static ConditionTypeDetail SYSTEM()
+ * @method static ConditionTypeDetail FORM()
  * @method static ConditionTypeDetail COLUMN()
  */
 class ConditionTypeDetail extends EnumBase
