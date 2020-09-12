@@ -801,6 +801,19 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
+     * Set value for custom column, not check custom column contains.
+     *
+     * @param string|array|Collection $key
+     * @param mixed $val if $key is string, set value
+     * @param boolean $forgetIfNull if true, and val is null, remove DB's column from "value".
+     * @return $this
+     */
+    public function setValueDirectly($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('value', $key, $val, $forgetIfNull);
+    }
+
+    /**
      * Get all column's getValue.
      * "$this->value" : return data on database
      * "$this->getValues()" : return data converting getValue
@@ -818,6 +831,7 @@ abstract class CustomValue extends ModelBase
 
     public function getValue($column, $label = false, $options = [])
     {
+        $time_start = microtime(true);
         if (is_null($column)) {
             return null;
         }
@@ -885,6 +899,7 @@ abstract class CustomValue extends ModelBase
         }
 
         $item->options($options);
+
 
         // get value
         // using ValueType
