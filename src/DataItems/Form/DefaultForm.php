@@ -11,14 +11,19 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\DataItems\DataTrait;
 
 class DefaultForm extends FormBase
 {
+    use DataTrait;
+
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
@@ -68,7 +73,7 @@ class DefaultForm extends FormBase
             }
             // when default block, set as normal form columns.
             if ($custom_form_block->form_block_type == FormBlockType::DEFAULT) {
-                $form->embeds('value', exmtrans("common.input"), $this->getCustomFormColumns($form, $custom_form_block))
+                $form->embeds('value', exmtrans("common.input"), $this->getCustomFormColumns($form, $custom_form_block, $this->custom_value))
                     ->disableHeader();
             }
             // one_to_many or manytomany
@@ -211,13 +216,21 @@ EOT;
 
     /**
      * set custom form columns
+     *
+     * @param Form $form Laravel-admin's form
+     * @param CustomFormBlock $custom_form_block
+     * @param CustomValue|null $target_custom_value target customvalue. if Child block, this arg is child custom value.
+     * @return array
      */
-    protected function getCustomFormColumns($form, $custom_form_block)
+    protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null)
     {
         $closures = [];
+        if (is_numeric($target_custom_value)) {
+            $target_custom_value = $this->custom_table->getValueModel($target_custom_value);
+        }
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if (!isset($this->custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
+            if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                 continue;
             }
 
@@ -231,7 +244,7 @@ EOT;
                 continue;
             }
 
-            $field = $form_column->column_item->setCustomValue($this->custom_value)->getAdminField($form_column);
+            $field = $form_column->column_item->setCustomValue($target_custom_value)->getAdminField($form_column);
 
             // set $closures using $form_column->column_no
             if (isset($field)) {
