@@ -2,6 +2,11 @@
 
 namespace Exceedone\Exment\Enums;
 
+/**
+ * System Table Name List.
+ *
+ * @method static SystemTableName SYSTEM()
+ */
 class SystemTableName extends EnumBase
 {
     const SYSTEM = 'systems';

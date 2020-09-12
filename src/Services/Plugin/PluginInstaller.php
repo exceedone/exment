@@ -76,7 +76,7 @@ class PluginInstaller
             }
 
             // remove zip
-            if (isset($zip)) {
+            if (!is_nullorempty($zip)) {
                 $zip->close();
             }
             // delete zip

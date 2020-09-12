@@ -8,7 +8,8 @@ use Exceedone\Exment\Enums\TemplateImportResult;
 /**
  * Template logics
  *
- * @method static mixed importReplaceJson(&$json, $options = [])
+ * @method static string|null|void importReplaceJson(&$json, $options = [])
+ * @property static array templateItems
  */
 trait TemplateTrait
 {

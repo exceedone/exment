@@ -343,9 +343,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     /**
      * Set json value calling import
      *
-     * @param [type] $json
+     * @param array $json
      * @param array $options
-     * @return void
      */
     protected static function importReplaceJson(&$json, $options = [])
     {

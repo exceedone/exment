@@ -273,6 +273,8 @@ class CustomViewFilter extends ModelBase
                     case FilterOption::DAY_NEXT_YEAR:
                         $value_day = new Carbon('first day of next year');
                         break;
+                    default:
+                        throw new \Exception; // (Never called this, for set lint).
                 }
                 $model->{$method_name.'Year'}($view_column_target, $value_day->year);
                 break;

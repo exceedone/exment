@@ -201,7 +201,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
     /**
      * User logout.
      *
-     * @return Redirect
+     * @return \Illuminate\Routing\Redirector|\Illuminate\Http\RedirectResponse
      */
     public function getLogout(Request $request)
     {

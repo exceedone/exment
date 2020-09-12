@@ -17,8 +17,6 @@ use Exceedone\Exment\ConditionItems;
  */
 class ConditionTypeDetail extends EnumBase
 {
-    use EnumOptionTrait;
-    
     const USER = "1";
     const ORGANIZATION = "2";
     const ROLE = "3";

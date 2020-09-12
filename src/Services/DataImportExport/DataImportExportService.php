@@ -319,44 +319,7 @@ class DataImportExportService extends AbstractExporter
         }
     }
 
-    /**
-     * Set data count for background
-     *
-     * @param $request
-     * @return mixed|void error message or success message etc...
-     */
-    public function setDataCountForBackground($request)
-    {
-        setTimeLimitLong();
-        // validate request
-        if (!($errors = $this->validateRequest($request))) {
-            return [
-                'result' => false,
-                'errors' => $errors,
-            ];
-        }
-
-        $this->format->filebasename($this->filebasename);
-
-        // get data count
-        if (method_exists($this->importAction, 'getDataTable')) {
-            $count = $this->importAction->getDataTable($request, true);
-        } else {
-            $count = $this->format->getDataCount($request);
-        }
-
-        if ($count == 0) {
-            return [
-                'result' => false,
-                'toastr' => exmtrans('common.message.import_error'),
-                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.failure_import_file')]],
-            ];
-        }
-
-        // save job table
-        return $response;
-    }
-
+    
     /**
      * @param $request
      * @return bool

@@ -31,7 +31,7 @@ class MySqlConnection extends BaseConnection
     /**
      * Get the default schema grammar instance.
      *
-     * @return MySqlGrammar
+     * @return SchemaGrammar
      */
     protected function getDefaultSchemaGrammar()
     {

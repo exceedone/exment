@@ -1352,7 +1352,7 @@ abstract class CustomValue extends ModelBase
             return $options;
         }
 
-        list($mark, $value) = $this->getQueryMarkAndValue($options['isLike'], $options['q'], $options['relation']);
+        list($mark, $value) = $this->getQueryMarkAndValue($options['isLike'], $q, $options['relation']);
 
         if (boolval($options['relation'])) {
             $takeCount = intval(config('exment.keyword_search_relation_count', 5000));

@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Form\Field as ExmentField;
+use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
@@ -163,7 +164,7 @@ class SelectTable extends CustomItem
     protected function getAdminFilterClass()
     {
         if (boolval($this->custom_column->getOption('multiple_enabled'))) {
-            return Filter\Where::class;
+            return ExmWhere::class;
         }
         return Filter\Equal::class;
     }
