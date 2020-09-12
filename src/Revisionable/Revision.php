@@ -88,7 +88,7 @@ class Revision extends Eloquent
      *
      * Allow overrides for field names.
      *
-     * @param $key
+     * @param string $key
      *
      * @return bool
      */
@@ -294,8 +294,8 @@ class Revision extends Eloquent
     /**
      * Format the value according to the $revisionFormattedFields array.
      *
-     * @param  $key
-     * @param  $value
+     * @param mixed $key
+     * @param mixed $value
      *
      * @return string formatted value
      */

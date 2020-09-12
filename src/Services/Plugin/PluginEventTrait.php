@@ -1,6 +1,7 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin;
 
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomValue;
 
 /**
@@ -17,9 +18,9 @@ trait PluginEventTrait
     /**
      * Init event
      *
-     * @param [type] $plugin
-     * @param [type] $custom_table
-     * @param [type] $custom_value
+     * @param Model\Plugin $plugin
+     * @param Model\CustomTable $custom_table
+     * @param Model\CustomValue $custom_value
      * @param array $options
      * @return void
      */

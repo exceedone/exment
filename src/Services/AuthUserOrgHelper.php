@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
@@ -199,7 +200,8 @@ class AuthUserOrgHelper
      * get users or organizaitons who can access table.
      *
      * @param CustomTable $target_table access table.
-     * @param array $related_types "user" or "organization"
+     * @param string $related_type "user" or "organization"
+     * @param string|array|null $tablePermission target permission
      */
     protected static function getRoleUserOrgId($target_table, $related_type, $tablePermission = null)
     {
@@ -398,8 +400,8 @@ class AuthUserOrgHelper
      * Filtering user. Only join. set by filter_multi_user.
      *
      * @param [type] $builder
-     * @param [type] $user
-     * @param [type] $db_table_name
+     * @param CustomValue|LoginUser $user
+     * @param string $db_table_name
      * @return void
      */
     public static function filterUserOnlyJoin($builder, $user, $db_table_name)

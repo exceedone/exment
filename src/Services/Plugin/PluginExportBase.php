@@ -16,14 +16,14 @@ abstract class PluginExportBase
     /**
      * Provider as default
      *
-     * @var [type]
+     * @var \Exceedone\Exment\Services\DataImportExport\Providers\Export\ProviderBase
      */
     protected $default_provider;
     
     /**
      * Provider as view
      *
-     * @var [type]
+     * @var \Exceedone\Exment\Services\DataImportExport\Providers\Export\ProviderBase
      */
     protected $view_provider;
     

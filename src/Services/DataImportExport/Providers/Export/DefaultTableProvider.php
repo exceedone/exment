@@ -112,7 +112,7 @@ class DefaultTableProvider extends ProviderBase
         $records = new Collection;
         $this->grid->applyQuickSearch();
         $this->grid->getFilter()->chunk(function ($data) use (&$records) {
-            if (!isset($records)) {
+            if (is_nullorempty($records)) {
                 $records = new Collection;
             }
             $records = $records->merge($data);
@@ -230,8 +230,8 @@ class DefaultTableProvider extends ProviderBase
     /**
      * Get parent target value. Convert to export_column_id
      *
-     * @param CustomColumn $column
      * @param string|int|null $value export id
+     * @param string|int|CustomTable|null $parent_table
      * @return mixed
      */
     protected function getParentExportValue($value, $parent_table)

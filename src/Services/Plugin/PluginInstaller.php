@@ -156,7 +156,7 @@ class PluginInstaller
     /**
      * Function validate config.json file with field required
      *
-     * @param [type] $json
+     * @param array $json
      * @return bool|string
      */
     protected static function checkRuleConfigFile($json)
@@ -230,10 +230,10 @@ class PluginInstaller
     /**
      * Copy tmp folder to app folder
      *
-     * @param [type] $plugin
-     * @param [type] $json
-     * @param [type] $pluginFolderPath
-     * @param [type] $pluginFileBasepath
+     * @param Plugin $plugin
+     * @param array $json
+     * @param string $pluginFolderPath
+     * @param string $pluginFileBasepath
      * @return void
      */
     protected static function copyPluginNameFolder($plugin, $json, $pluginFolderPath, $pluginFileBasepath, $diskService)

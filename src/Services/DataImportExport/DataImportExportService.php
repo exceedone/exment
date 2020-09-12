@@ -174,7 +174,7 @@ class DataImportExportService extends AbstractExporter
     }
     
     /**
-     * @param $request
+     * @param Request $request
      * @return mixed|void error message or success message etc...
      */
     public function import($request)
@@ -299,7 +299,8 @@ class DataImportExportService extends AbstractExporter
 
     /**
      * import data by custom logic
-     * @param $import_plugin
+     * @param int|string $import_plugin
+     * @param mixed $file
      */
     protected function customImport($import_plugin, $file)
     {
@@ -321,7 +322,7 @@ class DataImportExportService extends AbstractExporter
 
     
     /**
-     * @param $request
+     * @param Request $request
      * @return bool
      */
     public function validateRequest($request)
@@ -364,7 +365,12 @@ class DataImportExportService extends AbstractExporter
         return true;
     }
 
-    // Import Modal --------------------------------------------------
+    /**
+     * Import Modal
+     *
+     * @param array $pluginlist
+     * @return array
+     */
     public function getImportModal($pluginlist = null)
     {
         // create form fields
@@ -449,6 +455,9 @@ class DataImportExportService extends AbstractExporter
     
     /**
      * get primary key list.
+     *
+     * @param CustomTable $custom_table
+     * @return array
      */
     protected static function getPrimaryKeys($custom_table)
     {
@@ -477,8 +486,8 @@ class DataImportExportService extends AbstractExporter
     /**
      * Replace custom value's data array. For import. Calling custom_value import, API POST, API PUT
      *
-     * @param [type] $custom_columns
-     * @param [type] $data
+     * @param \Illuminate\Support\Collection $custom_columns
+     * @param array $data
      * @param array $options
      * @return array
      */

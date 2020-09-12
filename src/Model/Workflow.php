@@ -142,8 +142,8 @@ class Workflow extends ModelBase
     /**
      * Get workflow filtering active using custom table
      *
-     * @param [type] $custom_table
-     * @return ?Workflow
+     * @param CustomTable $custom_table
+     * @return Workflow|null
      */
     public static function getWorkflowByTable($custom_table)
     {

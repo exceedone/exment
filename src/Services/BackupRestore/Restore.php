@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Services\BackupRestore;
 
-use Illuminate\Console\Command;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Model\System;
@@ -90,7 +89,6 @@ class Restore
     /**
      * insert table data from backup tsv files.
      *
-     * @param string unzip restore file path
      */
     protected function importTsv()
     {
@@ -270,7 +268,6 @@ __EOT__;
     /**
      * restore backup table definition and table data.
      *
-     * @param string unzip folder path
      */
     protected function restoreDatabase()
     {

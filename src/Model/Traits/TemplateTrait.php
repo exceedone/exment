@@ -210,7 +210,7 @@ trait TemplateTrait
     /**
      * set template Export Items.
      *
-     * @return array template items
+     * @return \Illuminate\Database\Eloquent\Model template items
      */
     public static function importTemplate($array, $is_update, $options = [])
     {
