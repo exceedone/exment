@@ -64,6 +64,12 @@ abstract class CustomValue extends ModelBase
      */
     protected $_label;
 
+    /**
+     * file uuids.
+     * *NOW only use edtitor images
+     */
+    protected $file_uuids = [];
+
 
     /**
      * Create a new Eloquent model instance.
@@ -340,6 +346,21 @@ abstract class CustomValue extends ModelBase
 
         // set
         $this->remove_file_columns[] = $key;
+        return $this;
+    }
+
+    /**
+     * get or set file_uuids
+     */
+    public function file_uuids($key = null)
+    {
+        // get
+        if (!isset($key)) {
+            return $this->file_uuids;
+        }
+
+        // set
+        $this->file_uuids[] = $key;
         return $this;
     }
 
