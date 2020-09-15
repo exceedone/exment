@@ -4,10 +4,14 @@ namespace Exceedone\Exment;
 
 use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Enums\UrlTagType;
+use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Illuminate\Support\Facades\Auth;
 use Encore\Admin\Admin;
 
@@ -260,4 +264,57 @@ class Exment
 
         return $data;
     }
+
+    
+    /**
+     * Get mark and value for search
+     *
+     * @param bool $isLike
+     * @param string $q search string
+     * @return array
+     */
+    public function getQueryMarkAndValue($isLike, $q)
+    {
+        // if all search
+        $mark = ($isLike ? 'LIKE' : '=');
+        if (System::filter_search_type() == FilterSearchType::ALL) {
+            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        } else {
+            $value = $q . ($isLike ? '%' : '');
+        }
+
+        return [$mark, $value];
+    }
+
+    
+    /**
+     * search document 
+     */
+    public function getSearchDocumentQuery(CustomTable $target_custom_table, ?string $q)
+    {
+        $ids = $this->getSearchDocumentIds($target_custom_table, $q);
+
+        return $target_custom_table->getValueModel()->query()->whereOrIn('id', $ids)->select(['id']);
+    }
+
+    /**
+     * search document 
+     */
+    public function getSearchDocumentIds(CustomTable $target_custom_table, ?string $q) : \Illuminate\Support\Collection
+    {
+        $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
+        $column_document_name = CustomColumn::getEloquent('document_name', $custom_table);
+        $query = $custom_table->getValueModel()->query();
+
+        // search document name
+        list($mark, $q) = \Exment::getQueryMarkAndValue(true, $q);
+        $ids = $query->where($column_document_name->getQueryKey(), $mark, $q)
+            ->where('parent_type', $target_custom_table->table_name)
+            ->select(['parent_id'])
+            ->get()
+            ->pluck('parent_id');
+
+        return $ids;
+    }
+
 }
