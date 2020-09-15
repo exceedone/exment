@@ -1282,7 +1282,7 @@ abstract class CustomValue extends ModelBase
         //$subquery->take($takeCount);
 
         if($options['searchDocument'] && !boolval(config('exment.disable_search_document', false))){
-            $subquery->union(\Exment::getSearchDocumentQuery($this->custom_table, $q));
+            $subquery->union(\Exment::getSearchDocumentQuery($this->custom_table, $q)->select('id'));
         }
 
         // create main query
@@ -1320,7 +1320,9 @@ abstract class CustomValue extends ModelBase
             }
 
             if($options['searchDocument'] && !boolval(config('exment.disable_search_document', false))){
-                $query->orWhereIn('id', \Exment::getSearchDocumentIds($this->custom_table, $q)->toArray());
+                $query->orWhere(function($query) use($q){
+                    \Exment::getSearchDocumentQuery($this->custom_table, $q, $query);
+                });
             }
         });
     }

@@ -290,31 +290,25 @@ class Exment
     /**
      * search document 
      */
-    public function getSearchDocumentQuery(CustomTable $target_custom_table, ?string $q)
+    public function getSearchDocumentQuery(CustomTable $target_custom_table, ?string $q, $query = null)
     {
-        $ids = $this->getSearchDocumentIds($target_custom_table, $q);
+        if(empty($query)){
+            $query = $target_custom_table->getValueModel()->query();
+        }
+        return $query->whereExists(function($query) use($target_custom_table, $q){
+            $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
+            $column_document_name = CustomColumn::getEloquent('document_name', $custom_table);
+            $documentDbName = getDBTableName($custom_table);
+            $targetDbName = getDBTableName($target_custom_table);
 
-        return $target_custom_table->getValueModel()->query()->whereOrIn('id', $ids)->select(['id']);
+            // search document name
+            list($mark, $q) = \Exment::getQueryMarkAndValue(true, $q);
+            $query
+                ->select(\DB::raw(1))
+                ->from($documentDbName)
+                ->where($documentDbName . '.' . $column_document_name->getQueryKey(), $mark, $q)
+                ->where("$documentDbName.parent_type", $target_custom_table->table_name)
+                ->whereRaw("$documentDbName.parent_id = $targetDbName.id");;
+        });
     }
-
-    /**
-     * search document 
-     */
-    public function getSearchDocumentIds(CustomTable $target_custom_table, ?string $q) : \Illuminate\Support\Collection
-    {
-        $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
-        $column_document_name = CustomColumn::getEloquent('document_name', $custom_table);
-        $query = $custom_table->getValueModel()->query();
-
-        // search document name
-        list($mark, $q) = \Exment::getQueryMarkAndValue(true, $q);
-        $ids = $query->where($column_document_name->getQueryKey(), $mark, $q)
-            ->where('parent_type', $target_custom_table->table_name)
-            ->select(['parent_id'])
-            ->get()
-            ->pluck('parent_id');
-
-        return $ids;
-    }
-
 }
