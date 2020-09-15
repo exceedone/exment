@@ -81,7 +81,11 @@ class Editor extends CustomItem
             $file = base64_decode($base64);
 
             // save file info
-            $exmentfile = ExmentFile::put(path_join($this->custom_table->table_name, make_uuid()), $file);
+            $fileName = make_uuid() . $this->getExtention($type);
+            $exmentfile = ExmentFile::put(path_join($this->custom_table->table_name, $fileName), $file);
+            
+            // save document model
+            $exmentfile->saveDocumentModel($this->custom_value, $fileName);
 
             // set request session to save this custom_value's id and type into files table.
             $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
@@ -103,5 +107,26 @@ class Editor extends CustomItem
         }
 
         return $value;
+    }
+
+    protected function getExtention($type){
+        if(is_nullorempty($type)){
+            return null;
+        }
+        
+        $types = [
+            'image/gif' => 'gif', 
+            'image/jpeg'=>'jpg', 
+            'image/png'=>'png', 
+            'image/svg+xml'=>'svg', 
+            'image/bmp'=>'bmp', 
+        ];
+        foreach($types as $t => $ext){
+            if(isMatchString($t, $type)){
+                return ".{$ext}";
+            }
+        }
+
+        return null;
     }
 }
