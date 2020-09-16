@@ -380,13 +380,13 @@ return [
   
     /*
     |--------------------------------------------------------------------------
-    | Disable search document
+    | search document
     |--------------------------------------------------------------------------
     |
     | Whether searching document file
     |
     */
-    'disable_search_document' => env('EXMENT_DISABLE_SEARCH_DOCUMENT', false),
+    'search_document' => env('EXMENT_SEARCH_DOCUMENT', false),
   
     /*
     |--------------------------------------------------------------------------
