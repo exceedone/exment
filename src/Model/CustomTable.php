@@ -1172,6 +1172,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'getLabel' => false,
                 'executeSearch' => true, // if true, search $q . If false,  not filter.
                 'relationColumn' => null, // Linkage object. if has, filtering value.
+                'searchDocument' => false, // is search document.
             ],
             $options
         );

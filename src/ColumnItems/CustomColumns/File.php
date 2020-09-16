@@ -5,9 +5,12 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\UrlTagType;
+use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Validator;
 
 class File extends CustomItem
@@ -203,5 +206,70 @@ class File extends CustomItem
         });
 
         return $field;
+    }
+    
+
+    /**
+     * Get Search queries for free text search
+     *
+     * @param string $mark
+     * @param string $value
+     * @param int $takeCount
+     * @param string|null $q
+     * @return array
+     */
+    public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
+    {
+        // get values ids
+        $ids = $this->getQueryIds($mark, $value);
+        if(is_nullorempty($ids)){
+            return [];
+        }
+        
+        $query = $this->custom_table->getValueModel()->query();
+        $query->whereOrIn('id', $ids)->select('id');
+        
+        $query->take($takeCount);
+
+        return [$query];
+    }
+
+    /**
+     * Set Search orWhere for free text search
+     *
+     * @param Builder $mark
+     * @param string $mark
+     * @param string $value
+     * @param string|null $q
+     * @return void
+     */
+    public function setSearchOrWhere(&$query, $mark, $value, $q)
+    {
+        $ids = $this->getQueryIds($mark, $value);
+        if(is_nullorempty($ids)){
+            return $this;
+        }
+        $query->orWhereIn('id', $ids);
+
+        return $this;
+    }
+
+    /**
+     * Get query search bar
+     *
+     * @param string $mark
+     * @param string $value
+     * @return array target custom values's id list
+     */
+    protected function getQueryIds($mark, $value)
+    {
+        ///// first, search document table
+        $file_query = ExmentFile::query();
+        // get values
+        return $file_query->where('custom_column_id', $this->custom_column->id)
+            ->where('parent_type', $this->custom_table->table_name)
+            ->where('filename', $mark, $value)
+            ->select(['parent_id'])
+            ->get()->pluck('parent_id');
     }
 }
