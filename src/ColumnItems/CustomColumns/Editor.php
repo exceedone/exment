@@ -89,7 +89,7 @@ class Editor extends CustomItem
 
             //replace src
             $replaceValue = preg_replace('/src="(.*?)"/u', 'src="' . $url . '"', $replaceValue);
-            $replaceValue = preg_replace('/data-exment-file-uuid="(.*?)"/u', "", $replaceValue);
+            //$replaceValue = preg_replace('/data-exment-file-uuid="(.*?)"/u', "", $replaceValue);
 
             $v = str_replace($matches[0][$index], $replaceValue, $v);
         }
@@ -120,31 +120,30 @@ class Editor extends CustomItem
             $tmp = strpos($src, admin_urls('tmpfiles')); // check url
 
             // save tmp files
-            if (!$exists || $tmp === false) {
-                continue;
+            $uuid = null;
+            if ($exists && $tmp !== false) {
+                // get temporary file data
+                $file = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->get($filename);            
+                // save file info
+                $exmentfile = ExmentFile::put(path_join($this->custom_table->table_name, make_uuid()), $file);
+                // delete temporary file
+                Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->delete($filename);            
+
+                // set request session to save this custom_value's id and type into files table.
+                $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
+                $file_uuid = [
+                    'uuid' => $exmentfile->uuid,
+                    'column_name' => $this->custom_column->column_name,
+                    'custom_table' => $this->custom_table,
+                    'path' => $exmentfile->path
+                ];
+                $file_uuids[] = $file_uuid;
+                System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
+
+                $uuid = $exmentfile->uuid;
+                $this->custom_value->file_uuids($file_uuid);
             }
-
-            // get temporary file data
-            $file = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->get($filename);            
-            // save file info
-            $exmentfile = ExmentFile::put(path_join($this->custom_table->table_name, make_uuid()), $file);
-            // delete temporary file
-            Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->delete($filename);            
-
-            // set request session to save this custom_value's id and type into files table.
-            $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
-            $file_uuid = [
-                'uuid' => $exmentfile->uuid,
-                'column_name' => $this->custom_column->column_name,
-                'custom_table' => $this->custom_table,
-                'path' => $exmentfile->path
-            ];
-            $file_uuids[] = $file_uuid;
-            System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
-
-            $uuid = $exmentfile->uuid;
-            $this->custom_value->file_uuids($file_uuid);
-
+        
             // replace src to uuid
             $replaceValue = $match;
             preg_match('/src="(.*?)"/u', $replaceValue, $replaceMatch);
@@ -152,9 +151,10 @@ class Editor extends CustomItem
                 $replaceValue = preg_replace('/src="(.*?)"/u', 'src=""', $replaceValue);
             }
 
-            preg_match('/data-exment-file-uuid="(.*?)"/u', $replaceValue, $replaceMatch);
+            preg_match('/data-exment-file-uuid="(?<uuid>.*?)"/u', $replaceValue, $replaceMatch);
             if($replaceMatch){
-                $replaceValue = preg_replace('/data-exment-file-uuid="(.*?)"/u', 'src="' . $uuid . '"', $replaceValue);
+                $uuid = isset($uuid) ? $uuid : array_get($replaceMatch, 'uuid');
+                $replaceValue = preg_replace('/data-exment-file-uuid="(.*?)"/u', 'data-exment-file-uuid="' . $uuid . '"', $replaceValue);
             }
             // not exists "data-exment-file-uuid", add
             else{
