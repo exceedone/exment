@@ -23,6 +23,14 @@ class Editor extends CustomItem
         return strval($value);
     }
 
+    protected function _text($v)
+    {
+        // replace img html
+        $v = $this->replaceImgUrl($v);
+
+        return $v;
+    }
+
     protected function _html($v)
     {
         $text = $this->_text($v);
@@ -47,6 +55,11 @@ class Editor extends CustomItem
     {
         $options = $this->custom_column->options;
         $field->rows(array_get($options, 'rows', 6));
+
+        $item = $this;
+        $field->callbackValue(function($value) use($item){
+            return $item->replaceImgUrl($value);
+        });
     }
     
     protected function setValidates(&$validates, $form_column_options)
@@ -56,32 +69,58 @@ class Editor extends CustomItem
     }
 
 
+    /**
+     * Replace "src" value
+     *
+     * @param ?string $v
+     * @return string
+     */
+    public function replaceImgUrl($v){
+        // replace img html
+        preg_match_all('/\<img(.*?)data-exment-file-uuid="(?<file_uuid>.*?)"(.*?)\>/u', $v, $matches);
+        if(is_nullorempty($matches)){
+            return $v;
+        }
+        
+        for($index = 0; $index < count($matches[0]); $index++){
+            $replaceValue = $matches[0][$index];
+            $file_uuid = array_get($matches, 'file_uuid')[$index];
+            $url = ExmentFile::getUrl($file_uuid);
+
+            //replace src
+            $replaceValue = preg_replace('/src="(.*?)"/u', 'src="' . $url . '"', $replaceValue);
+            $replaceValue = preg_replace('/data-exment-file-uuid="(.*?)"/u', "", $replaceValue);
+
+            $v = str_replace($matches[0][$index], $replaceValue, $v);
+        }
+
+        return $v;
+    }
+
+
     protected function savedFileInEditor($value)
     {
         if (is_nullorempty($value)) {
             return $value;
         }
-        // find <img alt="" src="data:"> tag
+        // find <img alt="" src=""> tag
         preg_match_all('/\<img([^\>]*?)src="(?<src>.*?)"(.*?)\>/u', $value, $matches);
         if(is_nullorempty($matches)){
             return $value;
         }
 
-        // replace src="data:" and save file
-        foreach($matches[0] as $match){
+        // replace src="" and save file
+        for($index = 0; $index < count($matches[0]); $index++){
+            $match = $matches[0][$index];
             // group
-            preg_match('/\<img([^\>]*?)src="(?<src>.*?)"(.*?)\>/u', $match, $matchSrc);
-
-            if(is_nullorempty($matchSrc)){
-                continue;
-            }
-
-            $src = array_get($matchSrc, 'src');
+            $src = array_get($matches, 'src')[$index];
             $filename = pathinfo($src, PATHINFO_FILENAME);
 
             $exists = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->exists($filename);
-        
-            if (!$exists) {
+            $tmp = strpos($src, admin_urls('tmpfiles')); // check url
+
+            // save tmp files
+            if (!$exists || $tmp === false) {
                 continue;
             }
 
@@ -103,12 +142,25 @@ class Editor extends CustomItem
             $file_uuids[] = $file_uuid;
             System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
 
-            // replace src to url
-            preg_match('/\<img([^\>]*?)src="(?<src>.*?)"(.*?)\>/u', $match, $matchSrc);
-            if($matchSrc){
-                $value = str_replace(array_get($matchSrc, 'src'), ExmentFile::getUrl($exmentfile), $value);
-            }
+            $uuid = $exmentfile->uuid;
             $this->custom_value->file_uuids($file_uuid);
+
+            // replace src to uuid
+            $replaceValue = $match;
+            preg_match('/src="(.*?)"/u', $replaceValue, $replaceMatch);
+            if($replaceMatch){
+                $replaceValue = preg_replace('/src="(.*?)"/u', 'src=""', $replaceValue);
+            }
+
+            preg_match('/data-exment-file-uuid="(.*?)"/u', $replaceValue, $replaceMatch);
+            if($replaceMatch){
+                $replaceValue = preg_replace('/data-exment-file-uuid="(.*?)"/u', 'src="' . $uuid . '"', $replaceValue);
+            }
+            // not exists "data-exment-file-uuid", add
+            else{
+                $replaceValue = str_replace('<img', '<img data-exment-file-uuid="' . $uuid . '"' , $replaceValue);
+            }
+            $value = str_replace($match, $replaceValue, $value);
         }
 
         return $value;

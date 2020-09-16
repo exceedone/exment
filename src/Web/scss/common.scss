@@ -487,7 +487,10 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
     
 }
 
-
+// tinymce
+.mce-window.mce-in .mce-open{
+    display: none;
+}
 
 .has-error {
     .btn-valuemodal, .text-valuemodal, .checkbox, .checkbox-inline, .control-label, .help-block, .radio, .radio-inline{
