@@ -313,6 +313,7 @@ class DefaultShow extends ShowBase
                 
                 $custom_view = CustomView::getAllData($target_table);
                 $custom_view->setGrid($grid);
+                $custom_view->setValueSort($grid->model());
                 
                 $grid->disableFilter();
                 $grid->disableCreateButton();
