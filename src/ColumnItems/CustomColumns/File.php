@@ -4,13 +4,11 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
+use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\UrlTagType;
-use Exceedone\Exment\Enums\FilterSearchType;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Validator;
 
 class File extends CustomItem
@@ -92,6 +90,11 @@ class File extends CustomItem
         return Field\File::class;
     }
     
+    protected function getAdminFilterClass()
+    {
+        return Where::class;
+    }
+
     protected function setAdminOptions(&$field, $form_column_options)
     {
         // set file options
@@ -206,6 +209,19 @@ class File extends CustomItem
         });
 
         return $field;
+    }
+    
+
+    public function getAdminFilterWhereQuery($query, $input)
+    {
+        list($mark, $value) = \Exment::getQueryMarkAndValue(true, $input);
+        // get values ids
+        $ids = $this->getQueryIds($mark, $value);
+        if(is_nullorempty($ids)){
+            $query->whereRaw("0 = 1");
+        }
+        
+        $query->whereOrIn('id', $ids);
     }
     
 

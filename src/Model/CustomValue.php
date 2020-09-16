@@ -1367,6 +1367,12 @@ abstract class CustomValue extends ModelBase
                 'relation' => false,
                 'executeSearch' => true, // if true, search $q . If false,  not filter.
                 'searchDocument' => false, // is search document.
+
+                // append default
+                'takeCount' => null,
+                'mark' => null,
+                'value' => null,
+                'q' => $q,
             ],
             $options
         );
