@@ -192,9 +192,12 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->get('files/{uuid}', 'FileController@download');
             $router->get('files/{tableKey}/{uuid}', 'FileController@downloadTable');
-            
+
             $router->delete('files/{uuid}', 'FileController@delete');
             $router->delete('files/{tableKey}/{uuid}', 'FileController@deleteTable');
+            
+            $router->post('tmpfiles', 'FileController@uploadTempFile');
+            $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFile');
             
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
