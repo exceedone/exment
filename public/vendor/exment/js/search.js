@@ -6,7 +6,7 @@ var Exment;
          */
         static AddEventOnce() {
             SearchEvent.searchHeaderEvent();
-            $(document).off('click.exment_search', '[data-ajax-link]').on('click.exment_search', '[data-ajax-link]', [], SearchEvent.dataAjaxLinkEvent);
+            $(document).on('click.exment_search', '[data-ajax-link]', [], SearchEvent.dataAjaxLinkEvent);
         }
         static AddEvent() {
         }
