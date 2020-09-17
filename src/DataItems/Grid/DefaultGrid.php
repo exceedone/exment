@@ -349,7 +349,7 @@ class DefaultGrid extends GridBase
         // if modal, checking relatin type 
         if($this->modal){
             $searchType = array_get(request()->get('linkage'), 'search_type');
-            if(isMatchString($searchType, $relation->search_type)){
+            if(isMatchString($searchType, $relation->relation_type)){
                 return;
             }
         }
