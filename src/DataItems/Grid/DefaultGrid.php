@@ -387,13 +387,24 @@ class DefaultGrid extends GridBase
      * @return void
      */
     protected function setColumnFilter(&$filterItems, $search_enabled_columns){
+        // if modal, skip
+        $search_column_select = null;
+        $searchType = null;
+        if ($this->modal) {
+            $linkage = request()->get('linkage');
+            $searchType = array_get($linkage, 'search_type');
+            $parent_table = CustomTable::getEloquent(array_get($linkage, 'parent_select_table_id'));
+            $child_table = CustomTable::getEloquent(array_get($linkage, 'child_select_table_id'));
+            if(isset($parent_table) && isset($child_table)){
+                $search_column_select = $child_table->getSelectTableColumns($parent_table)->first();
+            }
+        }
+
         // loop custom column
         foreach ($search_enabled_columns as $search_column) {
             // if modal, checking relatin type 
             if($this->modal){
-                $linkage = request()->get('linkage');
-                $searchType = array_get($linkage, 'search_type');
-                if(isMatchString($searchType, SearchType::SELECT_TABLE) && isMatchString($search_column->id, array_get($linkage, 'child_column_id'))){
+                if(isMatchString($searchType, SearchType::SELECT_TABLE) && isset($search_column_select) && isMatchString($search_column_select->id, $search_column->id)){
                     continue;
                 }
             }
