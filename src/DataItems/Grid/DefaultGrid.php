@@ -149,6 +149,7 @@ class DefaultGrid extends GridBase
 
     /**
      * execute filter for modal
+     * *PLEASE append func "getFilterUrl" logic if append query logic.* 
      *
      * @return void
      */
@@ -187,6 +188,23 @@ class DefaultGrid extends GridBase
         }
     }
 
+
+    protected function getFilterUrl()
+    {
+        if(!$this->modal){
+            return admin_urls('data', $this->custom_table->table_name);
+        }
+
+        $query = array_filter(request()->all([
+            'target_view_id',
+            'display_table_id',
+            'target_column_id',
+            'linkage',
+        ]));
+        $query['modal'] = 1;
+        return admin_urls_query('data', $this->custom_table->table_name, $query);
+    }
+
     /**
      * Get filter html. call from ajax, or execute set filter.
      *
@@ -222,19 +240,15 @@ class DefaultGrid extends GridBase
 
         $grid->filter(function ($filter) use ($search_enabled_columns, $ajax) {
             $filter->disableIdFilter();
-            $filter->setAction(admin_urls('data', $this->custom_table->table_name));
+            $filter->setAction($this->getFilterUrl());
 
-            if ($this->custom_table->enableShowTrashed() === true) {
+            if ($this->custom_table->enableShowTrashed() === true && !$this->modal) {
                 $filter->scope('trashed', exmtrans('custom_value.soft_deleted_data'))->onlyTrashed();
             }
 
             if (config('exment.custom_value_filter_ajax', true) && !$ajax && !$this->modal && !boolval(request()->get('execute_filter'))) {
                 $filter->setFilterAjax(admin_urls_query('data', $this->custom_table->table_name, ['filter_ajax' => 1]));
                 return;
-            }
-            
-            if ($this->modal) {
-                $filter->setAction(admin_urls_query('data', $this->custom_table->table_name, ['modal' => 1]));
             }
 
             $filterItems = [];
