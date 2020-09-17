@@ -20,6 +20,7 @@ use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
@@ -188,10 +189,16 @@ class DefaultGrid extends GridBase
         }
     }
 
-
-    protected function getFilterUrl()
+    /**
+     * Get filter url.
+     * *Modal appends query URL.*
+     *
+     * @return string
+     */
+    protected function getFilterUrl() : string
     {
-        if(!$this->modal){
+        if(!$this->modal)
+        {
             return admin_urls('data', $this->custom_table->table_name);
         }
 
@@ -271,34 +278,8 @@ class DefaultGrid extends GridBase
                 };
             }
 
-            // check 1:n relation
-            $relation = CustomRelation::getRelationByChild($this->custom_table);
-            // if set, create select
-            if (isset($relation)) {
-                // get options and ajax url
-                $options = $relation->parent_custom_table->getSelectOptions();
-                $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
-                $table_view_name = $relation->parent_custom_table->table_view_name;
-
-                $relationQuery = function ($query) use ($relation) {
-                    if ($relation->relation_type == RelationType::ONE_TO_MANY) {
-                        RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $this->input);
-                    } else {
-                        RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $this->input);
-                    }
-                };
-
-                // set relation
-                if (isset($ajax)) {
-                    $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
-                        $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
-                    };
-                } else {
-                    $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
-                        $filter->where($relationQuery, $table_view_name)->select($options);
-                    };
-                }
-            }
+            // check relation
+            $this->setRelationFilter($filterItems);
 
             // filter workflow
             if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
@@ -328,11 +309,7 @@ class DefaultGrid extends GridBase
             }
 
             // loop custom column
-            foreach ($search_enabled_columns as $search_column) {
-                $filterItems[] = function ($filter) use ($search_column) {
-                    $search_column->column_item->setAdminFilter($filter);
-                };
-            }
+            $this->setColumnFilter($filterItems, $search_enabled_columns);
 
             // set filter item
             if (count($filterItems) <= 6) {
@@ -354,6 +331,79 @@ class DefaultGrid extends GridBase
             }
         });
     }
+
+
+    /**
+     * Set relation filter. Consider modal.
+     *
+     * @return void
+     */
+    protected function setRelationFilter(&$filterItems){
+        // check relation
+        $relation = CustomRelation::getRelationByChild($this->custom_table);
+        // if set, create select
+        if (!isset($relation)) {
+            return;
+        }
+
+        // if modal, checking relatin type 
+        if($this->modal){
+            $searchType = array_get(request()->get('linkage'), 'search_type');
+            if(isMatchString($searchType, $relation->search_type)){
+                return;
+            }
+        }
+
+
+        // get options and ajax url
+        $options = $relation->parent_custom_table->getSelectOptions();
+        $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
+        $table_view_name = $relation->parent_custom_table->table_view_name;
+
+        $relationQuery = function ($query) use ($relation) {
+            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+                RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $this->input);
+            } else {
+                RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $this->input);
+            }
+        };
+
+        // set relation
+        if (isset($ajax)) {
+            $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
+                $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
+            };
+        } else {
+            $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
+                $filter->where($relationQuery, $table_view_name)->select($options);
+            };
+        }
+    }
+
+    
+    /**
+     * Set column filter. Consider modal.
+     *
+     * @return void
+     */
+    protected function setColumnFilter(&$filterItems, $search_enabled_columns){
+        // loop custom column
+        foreach ($search_enabled_columns as $search_column) {
+            // if modal, checking relatin type 
+            if($this->modal){
+                $linkage = request()->get('linkage');
+                $searchType = array_get($linkage, 'search_type');
+                if(isMatchString($searchType, SearchType::SELECT_TABLE) && isMatchString($search_column->id, array_get($linkage, 'child_column_id'))){
+                    continue;
+                }
+            }
+
+            $filterItems[] = function ($filter) use ($search_column) {
+                $search_column->column_item->setAdminFilter($filter);
+            };
+        }
+    }
+
 
     /**
      * Manage Grid Tool Button
