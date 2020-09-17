@@ -85,6 +85,10 @@ class Editor extends CustomItem
         for($index = 0; $index < count($matches[0]); $index++){
             $replaceValue = $matches[0][$index];
             $file_uuid = array_get($matches, 'file_uuid')[$index];
+            if(is_nullorempty($file_uuid)){
+                continue;
+            }
+
             $url = ExmentFile::getUrl($file_uuid);
 
             //replace src
@@ -117,11 +121,18 @@ class Editor extends CustomItem
             $filename = pathinfo($src, PATHINFO_FILENAME);
 
             $exists = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->exists($filename);
-            $tmp = strpos($src, admin_urls('tmpfiles')); // check url
+            $tmpUrl = strpos($src, admin_urls('tmpfiles')); // check url
+            $fileUrl = strpos($src, admin_urls('files')); // check url
 
+            // if not exment path url, continue
+            if ($tmpUrl === false && $fileUrl === false) {
+                continue;
+            }
+            
             // save tmp files
             $uuid = null;
-            if ($exists && $tmp !== false) {
+            
+            if ($exists && $tmpUrl !== false) {
                 // get temporary file data
                 $file = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->get($filename);            
                 // save file info
