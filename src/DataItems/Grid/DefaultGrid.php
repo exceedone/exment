@@ -501,7 +501,7 @@ class DefaultGrid extends GridBase
                     $actions->append($linker);
 
                     // add hard delete link
-                    $deleteUrl = $actions->row->getUrl();
+                    $deleteUrl = $actions->row->getUrl() . '?trashed=1';
                     $linker = (new Linker)
                         ->icon('fa-trash')
                         ->script(true)
