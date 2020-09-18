@@ -1283,9 +1283,10 @@ abstract class CustomValue extends ModelBase
         //$subquery->take($takeCount);
 
         // create main query
-        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+        // $mainQuery = \DB::query()->fromSub($subquery, 'sub');
 
-        return $mainQuery;
+        // return $mainQuery;
+        return $subquery;
     }
 
     /**
