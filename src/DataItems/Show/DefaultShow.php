@@ -228,7 +228,7 @@ class DefaultShow extends ShowBase
 
                             // add hard delete button
                             $tools->prepend(new Tools\SwalInputButton([
-                                'url' => admin_urls("data", $this->custom_table->table_name, $this->custom_value->id),
+                                'url' => admin_urls_query("data", $this->custom_table->table_name, $this->custom_value->id, ['trashed' => 1]),
                                 'label' => exmtrans('custom_value.hard_delete'),
                                 'icon' => 'fa-trash',
                                 'btn_class' => 'btn-danger',
