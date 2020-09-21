@@ -1043,9 +1043,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         if (isset($query_key)) {
             // get table
-            $obj = static::allRecordsCache(function ($table) use ($query_key, $obj) {
+            $obj = static::firstRecordCache(function ($table) use ($query_key, $obj) {
                 return array_get($table, $query_key) == $obj;
-            })->first();
+            });
             if (!isset($obj)) {
                 return null;
             }
