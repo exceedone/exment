@@ -1187,7 +1187,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $dbTableName = getDBTableName($this);
 
         $mainQuery = $this->getValueModel()->query()
-            ->joinSub($subQuery, 'sub', function ($join) use($dbTableName) {
+            ->joinSub($subQuery, 'sub', function ($join) use ($dbTableName) {
                 $join->on('sub.id', '=', $dbTableName . '.id');
             });
 
