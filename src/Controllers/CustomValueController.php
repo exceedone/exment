@@ -24,7 +24,6 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\CustomValuePageType;
-use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
@@ -837,24 +836,25 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->setFormViewInfo($request, $formActionType, $id);
- 
+        
         // id set, checking as update.
         // check for update
         $code = null;
+        $trashed = boolval($request->get('trashed')) || isMatchString($request->get('_scope_'), 'trashed');
         if ($formActionType == CustomValuePageType::CREATE) {
             $code = $this->custom_table->enableCreate(true);
         } elseif ($formActionType == CustomValuePageType::EDIT) {
             $custom_value = $this->custom_table->getValueModel($id);
             $code = $custom_value ? $custom_value->enableEdit(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::SHOW) {
-            $custom_value = $this->custom_table->getValueModel($id, boolval($request->get('trashed')) && $this->custom_table->enableShowTrashed() === true);
+            $custom_value = $this->custom_table->getValueModel($id, $trashed && $this->custom_table->enableShowTrashed() === true);
             $code = $custom_value ? $custom_value->enableAccess(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::GRID) {
             $code = $this->custom_table->enableView();
         } elseif ($formActionType == CustomValuePageType::GRIDMODAL) {
             $code = $this->custom_table->enableAccess();
         } elseif ($formActionType == CustomValuePageType::DELETE) {
-            $custom_value = $this->custom_table->getValueModel($id);
+            $custom_value = $this->custom_table->getValueModel($id, $trashed);
             $code = $custom_value ? $custom_value->enableDelete(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::EXPORT) {
             $code = $this->custom_table->enableExport();

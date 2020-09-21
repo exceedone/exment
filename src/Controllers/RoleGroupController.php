@@ -466,7 +466,7 @@ class RoleGroupController extends AdminControllerBase
 
             if ($request->get('after-save', 0) == 1) {
                 return redirect(admin_urls('role_group', $role_group->id, 'edit?form_type=1'));
-            }elseif ($request->get('after-save', 0) === 'form_type_2') {
+            } elseif ($request->get('after-save', 0) === 'form_type_2') {
                 return redirect(admin_urls('role_group', $role_group->id, 'edit?form_type=2'));
             } else {
                 return redirect(admin_url('role_group'));
@@ -530,7 +530,7 @@ class RoleGroupController extends AdminControllerBase
 
             if ($request->get('after-save', 0) == 1) {
                 return redirect(admin_urls('role_group', $id, 'edit?form_type=2'));
-            }elseif ($request->get('after-save', 0) === 'form_type_1') {
+            } elseif ($request->get('after-save', 0) === 'form_type_1') {
                 return redirect(admin_urls('role_group', $id, 'edit?form_type=1'));
             } else {
                 return redirect(admin_url('role_group'));

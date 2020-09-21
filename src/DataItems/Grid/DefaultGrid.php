@@ -20,6 +20,7 @@ use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
@@ -149,6 +150,7 @@ class DefaultGrid extends GridBase
 
     /**
      * execute filter for modal
+     * *PLEASE append func "getFilterUrl" logic if append query logic.*
      *
      * @return void
      */
@@ -188,6 +190,28 @@ class DefaultGrid extends GridBase
     }
 
     /**
+     * Get filter url.
+     * *Modal appends query URL.*
+     *
+     * @return string
+     */
+    protected function getFilterUrl() : string
+    {
+        if (!$this->modal) {
+            return admin_urls('data', $this->custom_table->table_name);
+        }
+
+        $query = array_filter(request()->all([
+            'target_view_id',
+            'display_table_id',
+            'target_column_id',
+            'linkage',
+        ]));
+        $query['modal'] = 1;
+        return admin_urls_query('data', $this->custom_table->table_name, $query);
+    }
+
+    /**
      * Get filter html. call from ajax, or execute set filter.
      *
      * @return array offset 0 : html, 1 : script
@@ -217,24 +241,20 @@ class DefaultGrid extends GridBase
     protected function setCustomGridFilters($grid, $search_enabled_columns, $ajax = false)
     {
         $grid->quickSearch(function ($model, $input) {
-            $model->eloquent()->setSearchQueryOrWhere($model, $input);
+            $model->eloquent()->setSearchQueryOrWhere($model, $input, ['searchDocument' => true,]);
         }, 'left');
 
         $grid->filter(function ($filter) use ($search_enabled_columns, $ajax) {
             $filter->disableIdFilter();
-            $filter->setAction(admin_urls('data', $this->custom_table->table_name));
+            $filter->setAction($this->getFilterUrl());
 
-            if ($this->custom_table->enableShowTrashed() === true) {
+            if ($this->custom_table->enableShowTrashed() === true && !$this->modal) {
                 $filter->scope('trashed', exmtrans('custom_value.soft_deleted_data'))->onlyTrashed();
             }
 
             if (config('exment.custom_value_filter_ajax', true) && !$ajax && !$this->modal && !boolval(request()->get('execute_filter'))) {
                 $filter->setFilterAjax(admin_urls_query('data', $this->custom_table->table_name, ['filter_ajax' => 1]));
                 return;
-            }
-            
-            if ($this->modal) {
-                $filter->setAction(admin_urls_query('data', $this->custom_table->table_name, ['modal' => 1]));
             }
 
             $filterItems = [];
@@ -257,34 +277,8 @@ class DefaultGrid extends GridBase
                 };
             }
 
-            // check 1:n relation
-            $relation = CustomRelation::getRelationByChild($this->custom_table);
-            // if set, create select
-            if (isset($relation)) {
-                // get options and ajax url
-                $options = $relation->parent_custom_table->getSelectOptions();
-                $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
-                $table_view_name = $relation->parent_custom_table->table_view_name;
-
-                $relationQuery = function ($query) use ($relation) {
-                    if ($relation->relation_type == RelationType::ONE_TO_MANY) {
-                        RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $this->input);
-                    } else {
-                        RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $this->input);
-                    }
-                };
-
-                // set relation
-                if (isset($ajax)) {
-                    $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
-                        $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
-                    };
-                } else {
-                    $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
-                        $filter->where($relationQuery, $table_view_name)->select($options);
-                    };
-                }
-            }
+            // check relation
+            $this->setRelationFilter($filterItems);
 
             // filter workflow
             if (!is_null($workflow = Workflow::getWorkflowByTable($this->custom_table))) {
@@ -314,11 +308,7 @@ class DefaultGrid extends GridBase
             }
 
             // loop custom column
-            foreach ($search_enabled_columns as $search_column) {
-                $filterItems[] = function ($filter) use ($search_column) {
-                    $search_column->column_item->setAdminFilter($filter);
-                };
-            }
+            $this->setColumnFilter($filterItems, $search_enabled_columns);
 
             // set filter item
             if (count($filterItems) <= 6) {
@@ -340,6 +330,92 @@ class DefaultGrid extends GridBase
             }
         });
     }
+
+
+    /**
+     * Set relation filter. Consider modal.
+     *
+     * @return void
+     */
+    protected function setRelationFilter(&$filterItems)
+    {
+        // check relation
+        $relation = CustomRelation::getRelationByChild($this->custom_table);
+        // if set, create select
+        if (!isset($relation)) {
+            return;
+        }
+
+        // if modal, checking relatin type
+        if ($this->modal) {
+            $searchType = array_get(request()->get('linkage'), 'search_type');
+            if (isMatchString($searchType, $relation->relation_type)) {
+                return;
+            }
+        }
+
+
+        // get options and ajax url
+        $options = $relation->parent_custom_table->getSelectOptions();
+        $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
+        $table_view_name = $relation->parent_custom_table->table_view_name;
+
+        $relationQuery = function ($query) use ($relation) {
+            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+                RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $this->input);
+            } else {
+                RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $this->input);
+            }
+        };
+
+        // set relation
+        if (isset($ajax)) {
+            $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
+                $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
+            };
+        } else {
+            $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
+                $filter->where($relationQuery, $table_view_name)->select($options);
+            };
+        }
+    }
+
+    
+    /**
+     * Set column filter. Consider modal.
+     *
+     * @return void
+     */
+    protected function setColumnFilter(&$filterItems, $search_enabled_columns)
+    {
+        // if modal, skip
+        $search_column_select = null;
+        $searchType = null;
+        if ($this->modal) {
+            $linkage = request()->get('linkage');
+            $searchType = array_get($linkage, 'search_type');
+            $parent_table = CustomTable::getEloquent(array_get($linkage, 'parent_select_table_id'));
+            $child_table = CustomTable::getEloquent(array_get($linkage, 'child_select_table_id'));
+            if (isset($parent_table) && isset($child_table)) {
+                $search_column_select = $child_table->getSelectTableColumns($parent_table)->first();
+            }
+        }
+
+        // loop custom column
+        foreach ($search_enabled_columns as $search_column) {
+            // if modal, checking relatin type
+            if ($this->modal) {
+                if (isMatchString($searchType, SearchType::SELECT_TABLE) && isset($search_column_select) && isMatchString($search_column_select->id, $search_column->id)) {
+                    continue;
+                }
+            }
+
+            $filterItems[] = function ($filter) use ($search_column) {
+                $search_column->column_item->setAdminFilter($filter);
+            };
+        }
+    }
+
 
     /**
      * Manage Grid Tool Button
@@ -501,7 +577,7 @@ class DefaultGrid extends GridBase
                     $actions->append($linker);
 
                     // add hard delete link
-                    $deleteUrl = $actions->row->getUrl();
+                    $deleteUrl = $actions->row->getUrl() . '?trashed=1';
                     $linker = (new Linker)
                         ->icon('fa-trash')
                         ->script(true)

@@ -1043,9 +1043,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         if (isset($query_key)) {
             // get table
-            $obj = static::allRecordsCache(function ($table) use ($query_key, $obj) {
+            $obj = static::firstRecordCache(function ($table) use ($query_key, $obj) {
                 return array_get($table, $query_key) == $obj;
-            })->first();
+            });
             if (!isset($obj)) {
                 return null;
             }
@@ -1172,6 +1172,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'getLabel' => false,
                 'executeSearch' => true, // if true, search $q . If false,  not filter.
                 'relationColumn' => null, // Linkage object. if has, filtering value.
+                'searchDocument' => false, // is search document.
             ],
             $options
         );
@@ -1179,21 +1180,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $data = [];
 
-        $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
-
-        if (is_nullorempty($mainQuery)) {
+        $subQuery = $this->getValueModel()->getSearchQuery($q, $options);
+        if (is_nullorempty($subQuery)) {
             return null;
         }
+        $dbTableName = getDBTableName($this);
+
+        $mainQuery = $this->getValueModel()->query()
+            ->joinSub($subQuery, 'sub', function ($join) use ($dbTableName) {
+                $join->on('sub.id', '=', $dbTableName . '.id');
+            });
 
         // return as paginate
         if ($paginate) {
             // set custom view, sort
             if (isset($target_view)) {
-                $target_view->setValueSort($mainQuery);
+                $target_view->setValueSort($subQuery);
             }
 
             // get data(only id)
-            $paginates = $mainQuery->select('id')->paginate($maxCount);
+            $paginates = $mainQuery->select("$dbTableName.id")->paginate($maxCount);
 
             // set eloquent data using ids
             $ids = collect($paginates->items())->map(function ($item) {
@@ -1201,7 +1207,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             });
 
             // set pager items
-            $query = getModelName($this)::whereIn('id', $ids->toArray());
+            $query = getModelName($this)::whereIn("id", $ids->toArray());
 
             // set custom view, sort again.
             if (isset($target_view)) {
@@ -1234,7 +1240,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // return default
-        $ids = $mainQuery->select('id')->take($maxCount)->get()->pluck('id');
+        $ids = $mainQuery->select("$dbTableName.id")->take($maxCount)->get()->pluck('id');
         
         $query = getModelName($this)::whereIn('id', $ids);
     

@@ -181,6 +181,7 @@ class Define
     public const SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE = "accessible_table_%s_%s";
     public const SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG = "disable_data_url_tag";
     public const SYSTEM_KEY_SESSION_FORM_DATA_TYPE = "form_data_type";
+    public const SYSTEM_KEY_SESSION_FILE_NODELIST = "file_treelist";
 
     /**
      * MENU SYSTEM DIFINITION
@@ -378,6 +379,7 @@ class Define
             'dropZoneEnabled' => !boolval(config('exment.file_drag_drop_disabled', false)),
             'dropZoneTitle' => exmtrans('common.message.file_drag_drop'),
             'browseLabel' => trans('admin.browse'),
+            'uploadLabel' => trans('admin.upload'),
             'maxFileSize' => $maxSize / 1024,
             'maxFileSizeHuman' => bytesToHuman($maxSize),
             'maxFileSizeHelp' => sprintf(exmtrans('common.max_file_size') . ' : %s', bytesToHuman($maxSize)),
@@ -429,6 +431,7 @@ class Define
     public const DISKNAME_PLUGIN_SYNC = 'plugin_sync';
     public const DISKNAME_PLUGIN_LOCAL = 'plugin_local';
     public const DISKNAME_TEMPLATE_SYNC = 'template_sync';
+    public const DISKNAME_TEMP_UPLOAD = 'tmpupload';
 
     public const CHARTITEM_LABEL = 'chartitem_label';
 

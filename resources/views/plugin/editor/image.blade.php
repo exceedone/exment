@@ -8,7 +8,7 @@
         </div>
     </div>
 </div>
-<input type="hidden" id="plugin_file_path" value="{{ $filepath }}">
+<input type="hidden" id="nodeid" value="{{ $nodeid }}">
 @if(isset($can_delete) && boolval($can_delete))
 <div class="col-md-12">
     <div class="btn-group pull-right">
@@ -25,7 +25,7 @@
             method: 'delete',
             cancel:"{{ trans('admin.cancel') }}",
             data: {
-                file_path: $('#plugin_file_path').val()
+                nodeid: $('#nodeid').val()
             },
         });
     });
