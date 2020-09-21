@@ -379,6 +379,7 @@ class Define
             'dropZoneEnabled' => !boolval(config('exment.file_drag_drop_disabled', false)),
             'dropZoneTitle' => exmtrans('common.message.file_drag_drop'),
             'browseLabel' => trans('admin.browse'),
+            'uploadLabel' => trans('admin.upload'),
             'maxFileSize' => $maxSize / 1024,
             'maxFileSizeHuman' => bytesToHuman($maxSize),
             'maxFileSizeHelp' => sprintf(exmtrans('common.max_file_size') . ' : %s', bytesToHuman($maxSize)),

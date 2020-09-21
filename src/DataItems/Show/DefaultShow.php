@@ -520,6 +520,7 @@ EOT;
 
         // add file uploader
         if ($useFileUpload) {
+            $max_count = config('exment.document_upload_max_count', 5);
             $options = array_merge(Define::FILE_OPTION(), [
                 'showUpload' => true,
                 'showPreview' => true,
@@ -528,6 +529,8 @@ EOT;
                 'uploadExtraData'=> [
                     '_token' => csrf_token()
                 ],
+                'minFileCount' => 1,
+                'maxFileCount' => $max_count,
             ]);
 
             $options_json = json_encode($options);
@@ -537,6 +540,7 @@ EOT;
             $form->multipleFile($input_id, trans('admin.upload'))
                 ->options($options)
                 ->setLabelClass(['d-none'])
+                ->help(exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(getUploadMaxFileSize()), 'max_count' => $max_count]))
                 ->setWidth(12, 0);
             $script = <<<EOT
     $(".$input_id").on('fileuploaded', function(e, params) {
@@ -680,6 +684,13 @@ EOT;
      */
     public function fileupload($httpfiles)
     {
+        if(is_nullorempty($httpfiles)){
+            return getAjaxResponse([
+                'result'  => false,
+                'message' => exmtrans('common.message.error_execute'),
+            ]);
+        }
+
         // file put(store)
         foreach (toArray($httpfiles) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();
