@@ -90,7 +90,7 @@ trait UseRequestSessionTrait
         System::{$func}($key, $records);
 
         if (is_nullorempty($records)) {
-            return $records;
+            return $first ? null : $records;
         }
 
         // execute filter
