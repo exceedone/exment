@@ -217,7 +217,7 @@ class File extends CustomItem
         list($mark, $value) = \Exment::getQueryMarkAndValue(true, $input);
         // get values ids
         $ids = $this->getQueryIds($mark, $value);
-        if(is_nullorempty($ids)){
+        if (is_nullorempty($ids)) {
             $query->whereRaw("0 = 1");
         }
         
@@ -238,7 +238,7 @@ class File extends CustomItem
     {
         // get values ids
         $ids = $this->getQueryIds($mark, $value);
-        if(is_nullorempty($ids)){
+        if (is_nullorempty($ids)) {
             return [];
         }
         
@@ -262,7 +262,7 @@ class File extends CustomItem
     public function setSearchOrWhere(&$query, $mark, $value, $q)
     {
         $ids = $this->getQueryIds($mark, $value);
-        if(is_nullorempty($ids)){
+        if (is_nullorempty($ids)) {
             return $this;
         }
         $query->orWhereIn('id', $ids);

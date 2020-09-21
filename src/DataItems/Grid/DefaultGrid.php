@@ -150,7 +150,7 @@ class DefaultGrid extends GridBase
 
     /**
      * execute filter for modal
-     * *PLEASE append func "getFilterUrl" logic if append query logic.* 
+     * *PLEASE append func "getFilterUrl" logic if append query logic.*
      *
      * @return void
      */
@@ -197,8 +197,7 @@ class DefaultGrid extends GridBase
      */
     protected function getFilterUrl() : string
     {
-        if(!$this->modal)
-        {
+        if (!$this->modal) {
             return admin_urls('data', $this->custom_table->table_name);
         }
 
@@ -338,7 +337,8 @@ class DefaultGrid extends GridBase
      *
      * @return void
      */
-    protected function setRelationFilter(&$filterItems){
+    protected function setRelationFilter(&$filterItems)
+    {
         // check relation
         $relation = CustomRelation::getRelationByChild($this->custom_table);
         // if set, create select
@@ -346,10 +346,10 @@ class DefaultGrid extends GridBase
             return;
         }
 
-        // if modal, checking relatin type 
-        if($this->modal){
+        // if modal, checking relatin type
+        if ($this->modal) {
             $searchType = array_get(request()->get('linkage'), 'search_type');
-            if(isMatchString($searchType, $relation->relation_type)){
+            if (isMatchString($searchType, $relation->relation_type)) {
                 return;
             }
         }
@@ -386,7 +386,8 @@ class DefaultGrid extends GridBase
      *
      * @return void
      */
-    protected function setColumnFilter(&$filterItems, $search_enabled_columns){
+    protected function setColumnFilter(&$filterItems, $search_enabled_columns)
+    {
         // if modal, skip
         $search_column_select = null;
         $searchType = null;
@@ -395,16 +396,16 @@ class DefaultGrid extends GridBase
             $searchType = array_get($linkage, 'search_type');
             $parent_table = CustomTable::getEloquent(array_get($linkage, 'parent_select_table_id'));
             $child_table = CustomTable::getEloquent(array_get($linkage, 'child_select_table_id'));
-            if(isset($parent_table) && isset($child_table)){
+            if (isset($parent_table) && isset($child_table)) {
                 $search_column_select = $child_table->getSelectTableColumns($parent_table)->first();
             }
         }
 
         // loop custom column
         foreach ($search_enabled_columns as $search_column) {
-            // if modal, checking relatin type 
-            if($this->modal){
-                if(isMatchString($searchType, SearchType::SELECT_TABLE) && isset($search_column_select) && isMatchString($search_column_select->id, $search_column->id)){
+            // if modal, checking relatin type
+            if ($this->modal) {
+                if (isMatchString($searchType, SearchType::SELECT_TABLE) && isset($search_column_select) && isMatchString($search_column_select->id, $search_column->id)) {
                     continue;
                 }
             }

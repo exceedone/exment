@@ -1804,6 +1804,7 @@ return [
             'view_export_page' => 'Exports the data for the current page in the format of the currently displayed view.',
             'template' => 'Download the template file to use for the import.',
             'import' => 'Displays a dialog for executing import. *For the data to be imported, use the data output by "Export Template" or "Export(All System/Custom Columns)".',
+            'document_upload' => 'You can upload attachments related to this data. The maximum file size of one file is :max_size, and you can upload up to :max_count files at a time.',
         ],
         'message' => [
             'operation_notfound' => 'The data to be updated was not found.',
@@ -1813,6 +1814,7 @@ return [
             'restore' => 'Are you sure to restore this item ?',
             'restore_succeeded' => 'Restore succeeded !',
             'hard_delete' => 'Permanently delete? (This operation cannot be restored)',
+            'editor_image_oversize' => 'The file size is too large.',
         ],
     ],
 

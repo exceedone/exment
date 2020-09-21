@@ -288,14 +288,14 @@ class Exment
 
     
     /**
-     * search document 
+     * search document
      */
     public function getSearchDocumentQuery(CustomTable $target_custom_table, ?string $q, $query = null)
     {
-        if(empty($query)){
+        if (empty($query)) {
             $query = $target_custom_table->getValueModel()->query();
         }
-        return $query->whereExists(function($query) use($target_custom_table, $q){
+        return $query->whereExists(function ($query) use ($target_custom_table, $q) {
             $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
             $column_document_name = CustomColumn::getEloquent('document_name', $custom_table);
             $documentDbName = getDBTableName($custom_table);
@@ -308,7 +308,8 @@ class Exment
                 ->from($documentDbName)
                 ->where($documentDbName . '.' . $column_document_name->getQueryKey(), $mark, $q)
                 ->where("$documentDbName.parent_type", $target_custom_table->table_name)
-                ->whereRaw("$documentDbName.parent_id = $targetDbName.id");;
+                ->whereRaw("$documentDbName.parent_id = $targetDbName.id");
+            ;
         });
     }
 }

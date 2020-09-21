@@ -188,12 +188,11 @@ class File extends ModelBase
         // if match path, return this model's id
         if (array_get($value, 'value.' . array_get($uuidObj, 'column_name')) == $path) {
             return $value;
-        }
-        else{
-            $file_uuid = collect($custom_value->file_uuids())->first(function($file_uuid){
+        } else {
+            $file_uuid = collect($custom_value->file_uuids())->first(function ($file_uuid) {
                 return isMatchString(array_get($file_uuid, 'uuid'), $this->uuid);
             });
-            if(isset($file_uuid)){
+            if (isset($file_uuid)) {
                 return $value;
             }
         }
@@ -264,7 +263,7 @@ class File extends ModelBase
             return null;
         }
 
-        if($pathOrUuids instanceof File){
+        if ($pathOrUuids instanceof File) {
             return $pathOrUuids;
         }
 

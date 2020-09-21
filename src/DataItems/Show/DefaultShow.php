@@ -684,7 +684,7 @@ EOT;
      */
     public function fileupload($httpfiles)
     {
-        if(is_nullorempty($httpfiles)){
+        if (is_nullorempty($httpfiles)) {
             return getAjaxResponse([
                 'result'  => false,
                 'message' => exmtrans('common.message.error_execute'),

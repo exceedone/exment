@@ -353,7 +353,7 @@ class FileController extends AdminControllerBase
         $validator = \Validator::make($request->all(), [
             'file' => 'required|image'
         ]);
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json(array_get($validator->errors()->toArray(), 'file'), 400);
         }
 

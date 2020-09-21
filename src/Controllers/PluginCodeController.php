@@ -52,7 +52,7 @@ class PluginCodeController extends AdminControllerBase
         $content->row(function (Row $row) use ($request, $id) {
             // get nodeid
             $json = $this->getTreeDataJson($request);
-            $node = collect($json)->first(function($j){
+            $node = collect($json)->first(function ($j) {
                 return isMatchString(array_get($j, 'path'), '/');
             });
 
@@ -110,7 +110,7 @@ class PluginCodeController extends AdminControllerBase
      */
     protected function getTreeDataJson(Request $request)
     {
-        if(session()->has(static::node_key)){
+        if (session()->has(static::node_key)) {
             return session(static::node_key);
         }
 
@@ -403,12 +403,14 @@ class PluginCodeController extends AdminControllerBase
     }
 
 
-    protected function getDirectoryPaths($folder){
+    protected function getDirectoryPaths($folder)
+    {
         return $this->plugin->getPluginDirPaths($folder, false);
     }
 
 
-    protected function getFilePaths($folder){
+    protected function getFilePaths($folder)
+    {
         return $this->plugin->getPluginFilePaths($folder, false);
     }
 }

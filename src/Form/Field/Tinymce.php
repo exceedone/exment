@@ -63,9 +63,9 @@ class Tinymce extends Textarea
 
         $enableImage = !boolval(config('exment.diable_upload_images_editor', false));
 
-        if($enableImage){
+        if ($enableImage) {
             $toolbar = ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link image code'];
-        }else{
+        } else {
             $toolbar = ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link code'];
         }
 
@@ -81,7 +81,7 @@ class Tinymce extends Textarea
             'paste_data_images' => false,
         ], $this->config);
 
-        if($enableImage){
+        if ($enableImage) {
             $configs = array_merge([
                 'automatic_uploads' => true,
                 'file_picker_types' => 'image',

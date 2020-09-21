@@ -57,7 +57,7 @@ class Editor extends CustomItem
         $field->rows(array_get($options, 'rows', 6));
 
         $item = $this;
-        $field->callbackValue(function($value) use($item){
+        $field->callbackValue(function ($value) use ($item) {
             return $item->replaceImgUrl($value);
         });
     }
@@ -75,17 +75,18 @@ class Editor extends CustomItem
      * @param ?string $v
      * @return string
      */
-    public function replaceImgUrl($v){
+    public function replaceImgUrl($v)
+    {
         // replace img html
         preg_match_all('/\<img(.*?)data-exment-file-uuid="(?<file_uuid>.*?)"(.*?)\>/u', $v, $matches);
-        if(is_nullorempty($matches)){
+        if (is_nullorempty($matches)) {
             return $v;
         }
         
-        for($index = 0; $index < count($matches[0]); $index++){
+        for ($index = 0; $index < count($matches[0]); $index++) {
             $replaceValue = $matches[0][$index];
             $file_uuid = array_get($matches, 'file_uuid')[$index];
-            if(is_nullorempty($file_uuid)){
+            if (is_nullorempty($file_uuid)) {
                 continue;
             }
 
@@ -109,12 +110,12 @@ class Editor extends CustomItem
         }
         // find <img alt="" src=""> tag
         preg_match_all('/\<img([^\>]*?)src="(?<src>.*?)"(.*?)\>/u', $value, $matches);
-        if(is_nullorempty($matches)){
+        if (is_nullorempty($matches)) {
             return $value;
         }
 
         // replace src="" and save file
-        for($index = 0; $index < count($matches[0]); $index++){
+        for ($index = 0; $index < count($matches[0]); $index++) {
             $match = $matches[0][$index];
             // group
             $src = array_get($matches, 'src')[$index];
@@ -133,7 +134,7 @@ class Editor extends CustomItem
             $uuid = null;
             if ($exists && $tmpUrl !== false) {
                 // get temporary file data
-                $file = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->get($filename);            
+                $file = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->get($filename);
                 // save file info
                 $exmentfile = ExmentFile::put(path_join($this->custom_table->table_name, make_uuid()), $file);
                     
@@ -141,7 +142,7 @@ class Editor extends CustomItem
                 $exmentfile->saveDocumentModel($this->custom_value, $filename);
 
                 // delete temporary file
-                Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->delete($filename);            
+                Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->delete($filename);
 
                 // set request session to save this custom_value's id and type into files table.
                 $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
@@ -161,18 +162,18 @@ class Editor extends CustomItem
             // replace src to uuid
             $replaceValue = $match;
             preg_match('/src="(.*?)"/u', $replaceValue, $replaceMatch);
-            if($replaceMatch){
+            if ($replaceMatch) {
                 $replaceValue = preg_replace('/src="(.*?)"/u', 'src=""', $replaceValue);
             }
 
             preg_match('/data-exment-file-uuid="(?<uuid>.*?)"/u', $replaceValue, $replaceMatch);
-            if($replaceMatch){
+            if ($replaceMatch) {
                 $uuid = isset($uuid) ? $uuid : array_get($replaceMatch, 'uuid');
                 $replaceValue = preg_replace('/data-exment-file-uuid="(.*?)"/u', 'data-exment-file-uuid="' . $uuid . '"', $replaceValue);
             }
             // not exists "data-exment-file-uuid", add
-            else{
-                $replaceValue = str_replace('<img', '<img data-exment-file-uuid="' . $uuid . '"' , $replaceValue);
+            else {
+                $replaceValue = str_replace('<img', '<img data-exment-file-uuid="' . $uuid . '"', $replaceValue);
             }
             $value = str_replace($match, $replaceValue, $value);
         }
@@ -180,20 +181,21 @@ class Editor extends CustomItem
         return $value;
     }
 
-    protected function getExtention($type){
-        if(is_nullorempty($type)){
+    protected function getExtention($type)
+    {
+        if (is_nullorempty($type)) {
             return null;
         }
         
         $types = [
-            'image/gif' => 'gif', 
-            'image/jpeg'=>'jpg', 
-            'image/png'=>'png', 
-            'image/svg+xml'=>'svg', 
-            'image/bmp'=>'bmp', 
+            'image/gif' => 'gif',
+            'image/jpeg'=>'jpg',
+            'image/png'=>'png',
+            'image/svg+xml'=>'svg',
+            'image/bmp'=>'bmp',
         ];
-        foreach($types as $t => $ext){
-            if(isMatchString($t, $type)){
+        foreach ($types as $t => $ext) {
+            if (isMatchString($t, $type)) {
                 return ".{$ext}";
             }
         }
