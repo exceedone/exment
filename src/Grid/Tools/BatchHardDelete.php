@@ -46,7 +46,8 @@ $('{$this->getElementClass()}').on('click', function() {
                     url: '{$url}/' + $.admin.grid.selected().join(),
                     data: {
                         _method:'delete',
-                        _token:'{$this->getToken()}'
+                        _token:'{$this->getToken()}',
+                        trashed: 1,
                     },
                     success: function (data) {
                         $.pjax.reload('#pjax-container');

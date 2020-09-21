@@ -93,7 +93,7 @@ class Tile extends Field
         // template search url
         $this->script = <<<EOT
     
-    $(document).on('click', '[data-ajax-link]', {}, function(ev){
+    $(document).on('click.exment_tile', '[data-ajax-link]', {}, function(ev){
         searchTemplate(null, $(ev.target).data('ajax-link'));
     });
 
