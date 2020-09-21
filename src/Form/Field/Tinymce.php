@@ -110,20 +110,17 @@ class Tinymce extends Textarea
                 xhr = new XMLHttpRequest();
                 xhr.withCredentials = false;
                 xhr.open('POST', '$url');
-            
-                xhr.upload.onprogress = function (e) {
-                  progress(e.loaded / e.total * 100);
-                };
-    
                 xhr.onload = function() {
-                    var json;
+                    var json = JSON.parse(xhr.responseText);
     
-                    if (xhr.status < 200 || xhr.status >= 300) {
+                    if (xhr.status >= 400 && xhr.status < 500) {
+                        failure('Error: ' + json[0]);
+                        return;
+                    }
+                    else if (xhr.status < 200 || xhr.status >= 300) {
                         failure('HTTP Error: ' + xhr.status);
                         return;
                     }
-    
-                    json = JSON.parse(xhr.responseText);
     
                     if (!json || typeof json.location != 'string') {
                         failure('Invalid JSON: ' + xhr.responseText);

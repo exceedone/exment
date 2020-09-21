@@ -131,12 +131,15 @@ class Editor extends CustomItem
             
             // save tmp files
             $uuid = null;
-            
             if ($exists && $tmpUrl !== false) {
                 // get temporary file data
                 $file = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->get($filename);            
                 // save file info
                 $exmentfile = ExmentFile::put(path_join($this->custom_table->table_name, make_uuid()), $file);
+                    
+                // save document model
+                $exmentfile->saveDocumentModel($this->custom_value, $filename);
+
                 // delete temporary file
                 Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->delete($filename);            
 

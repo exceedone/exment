@@ -348,6 +348,15 @@ class FileController extends AdminControllerBase
     {
         // delete old temporary files
         $this->removeTempFiles();
+        
+        // check image file. *NOW Only this endpoint is image*
+        $validator = \Validator::make($request->all(), [
+            'file' => 'required|image'
+        ]);
+        if($validator->fails()){
+            return response()->json(array_get($validator->errors()->toArray(), 'file'), 400);
+        }
+
         // get upload file
         $file = $request->file('file');
         // store uploaded file
