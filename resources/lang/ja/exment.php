@@ -1812,6 +1812,7 @@ return [
             'restore' => '復元しますか？',
             'restore_succeeded' => '復元が完了しました！',
             'hard_delete' => '完全に削除しますか？(この操作は復元できません)',
+            'editor_image_oversize' => 'ファイルサイズが大きすぎます。',
         ],
     ],
 

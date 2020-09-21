@@ -66,7 +66,7 @@ class File extends ModelBase
         if (isset($custom_column)) {
             $table_name = $this->local_dirname ?? $custom_table->table_name;
             $custom_column = CustomColumn::getEloquent($custom_column, $table_name);
-            $this->custom_column_id = $custom_column->id;
+            $this->custom_column_id = $custom_column ? $custom_column->id : null;
         }
         $this->save();
         return $this;
@@ -189,6 +189,15 @@ class File extends ModelBase
         if (array_get($value, 'value.' . array_get($uuidObj, 'column_name')) == $path) {
             return $value;
         }
+        else{
+            $file_uuid = collect($custom_value->file_uuids())->first(function($file_uuid){
+                return isMatchString(array_get($file_uuid, 'uuid'), $this->uuid);
+            });
+            if(isset($file_uuid)){
+                return $value;
+            }
+        }
+        
 
         return null;
     }
@@ -196,8 +205,8 @@ class File extends ModelBase
     /**
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
-     * @param  string  $disk disk name
-     * @param  string  $path directory path
+     * @param  string  $path directory and file path(Please join.)
+     * @param  string  $content set item content
      * @return string|false
      */
     public static function put($path, $content, $override = false)
@@ -253,6 +262,10 @@ class File extends ModelBase
     {
         if (is_nullorempty($pathOrUuids)) {
             return null;
+        }
+
+        if($pathOrUuids instanceof File){
+            return $pathOrUuids;
         }
 
         $funcUuid = function ($pathOrUuid) {

@@ -190,7 +190,8 @@ class SearchController extends AdminControllerBase
         // search all data using index --------------------------------------------------
         $paginate = $custom_table->searchValue($q, [
             'paginate' => true,
-            'maxCount' => System::datalist_pager_count() ?? 5
+            'maxCount' => System::datalist_pager_count() ?? 5,
+            'searchDocument' => true,
         ]);
         $paginate->setPath(admin_urls('search', 'list') . "?query=$q&table_name=$table_name");
         $datalist = $paginate->items();

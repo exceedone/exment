@@ -10,7 +10,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\ErrorCode;
@@ -63,6 +62,12 @@ abstract class CustomValue extends ModelBase
      * get label only first time.
      */
     protected $_label;
+
+    /**
+     * file uuids.
+     * *NOW only use edtitor images
+     */
+    protected $file_uuids = [];
 
 
     /**
@@ -340,6 +345,21 @@ abstract class CustomValue extends ModelBase
 
         // set
         $this->remove_file_columns[] = $key;
+        return $this;
+    }
+
+    /**
+     * get or set file_uuids
+     */
+    public function file_uuids($key = null)
+    {
+        // get
+        if (!isset($key)) {
+            return $this->file_uuids;
+        }
+
+        // set
+        $this->file_uuids[] = $key;
         return $this;
     }
 
@@ -1282,6 +1302,10 @@ abstract class CustomValue extends ModelBase
         }
         //$subquery->take($takeCount);
 
+        if($options['searchDocument'] && boolval(config('exment.search_document', false))){
+            $subquery->union(\Exment::getSearchDocumentQuery($this->custom_table, $q)->select('id'));
+        }
+
         // create main query
         $mainQuery = \DB::query()->fromSub($subquery, 'sub');
 
@@ -1315,6 +1339,12 @@ abstract class CustomValue extends ModelBase
                     $query->orWhere($searchColumn, $mark, $value);
                 }
             }
+
+            if($options['searchDocument'] && boolval(config('exment.search_document', false))){
+                $query->orWhere(function($query) use($q){
+                    \Exment::getSearchDocumentQuery($this->custom_table, $q, $query);
+                });
+            }
         });
     }
 
@@ -1336,6 +1366,13 @@ abstract class CustomValue extends ModelBase
                 'searchColumns' => null,
                 'relation' => false,
                 'executeSearch' => true, // if true, search $q . If false,  not filter.
+                'searchDocument' => false, // is search document.
+
+                // append default
+                'takeCount' => null,
+                'mark' => null,
+                'value' => null,
+                'q' => $q,
             ],
             $options
         );
@@ -1386,15 +1423,7 @@ abstract class CustomValue extends ModelBase
             return ["=", $q];
         }
 
-        // if all search
-        $mark = ($isLike ? 'LIKE' : '=');
-        if (System::filter_search_type() == FilterSearchType::ALL) {
-            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        } else {
-            $value = $q . ($isLike ? '%' : '');
-        }
-
-        return [$mark, $value];
+        return \Exment::getQueryMarkAndValue($isLike, $q);
     }
 
     /**

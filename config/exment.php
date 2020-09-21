@@ -380,6 +380,16 @@ return [
   
     /*
     |--------------------------------------------------------------------------
+    | search document
+    |--------------------------------------------------------------------------
+    |
+    | Whether searching document file
+    |
+    */
+    'search_document' => env('EXMENT_SEARCH_DOCUMENT', false),
+  
+    /*
+    |--------------------------------------------------------------------------
     | Mail Setting From env file
     |--------------------------------------------------------------------------
     |
@@ -811,5 +821,15 @@ return [
     |
     */
     'html_allowed_editor' => env('EXMENT_HTML_ALLOWED_EDITOR', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | diable upload images
+    |--------------------------------------------------------------------------
+    |
+    | disable paste image
+    |
+    */
+    'diable_upload_images_editor' => env('EXMENT_DIABLE_UPLOAD_IMAGES_EDITOR', false),
 
 ];
