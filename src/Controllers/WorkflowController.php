@@ -267,7 +267,7 @@ class WorkflowController extends AdminControllerBase
             }
         });
 
-        if(isset($workflow)){
+        if (isset($workflow)) {
             $form->submitRedirect([
                 'value' => 'action_2',
                 'label' => exmtrans('common.redirect_to', exmtrans('workflow.workflow_actions')),

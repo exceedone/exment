@@ -171,6 +171,11 @@ class Initialize
             'root' => storage_path('app/admin_tmp'),
         ]);
 
+        Config::set('filesystems.disks.tmpupload', [
+            'driver' => 'local',
+            'root' => storage_path('app/tmpupload'),
+        ]);
+
         Config::set('filesystems.disks.admin', [
             'driver' => 'exment-driver-exment',
             'mergeFrom' => 'exment',

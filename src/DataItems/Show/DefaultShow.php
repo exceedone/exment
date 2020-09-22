@@ -228,7 +228,7 @@ class DefaultShow extends ShowBase
 
                             // add hard delete button
                             $tools->prepend(new Tools\SwalInputButton([
-                                'url' => admin_urls("data", $this->custom_table->table_name, $this->custom_value->id),
+                                'url' => admin_urls_query("data", $this->custom_table->table_name, $this->custom_value->id, ['trashed' => 1]),
                                 'label' => exmtrans('custom_value.hard_delete'),
                                 'icon' => 'fa-trash',
                                 'btn_class' => 'btn-danger',
@@ -313,6 +313,7 @@ class DefaultShow extends ShowBase
                 
                 $custom_view = CustomView::getAllData($target_table);
                 $custom_view->setGrid($grid);
+                $custom_view->setValueSort($grid->model());
                 
                 $grid->disableFilter();
                 $grid->disableCreateButton();
@@ -519,6 +520,7 @@ EOT;
 
         // add file uploader
         if ($useFileUpload) {
+            $max_count = config('exment.document_upload_max_count', 5);
             $options = array_merge(Define::FILE_OPTION(), [
                 'showUpload' => true,
                 'showPreview' => true,
@@ -527,6 +529,8 @@ EOT;
                 'uploadExtraData'=> [
                     '_token' => csrf_token()
                 ],
+                'minFileCount' => 1,
+                'maxFileCount' => $max_count,
             ]);
 
             $options_json = json_encode($options);
@@ -536,6 +540,7 @@ EOT;
             $form->multipleFile($input_id, trans('admin.upload'))
                 ->options($options)
                 ->setLabelClass(['d-none'])
+                ->help(exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(getUploadMaxFileSize()), 'max_count' => $max_count]))
                 ->setWidth(12, 0);
             $script = <<<EOT
     $(".$input_id").on('fileuploaded', function(e, params) {
@@ -679,6 +684,13 @@ EOT;
      */
     public function fileupload($httpfiles)
     {
+        if (is_nullorempty($httpfiles)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'message' => exmtrans('common.message.error_execute'),
+            ]);
+        }
+
         // file put(store)
         foreach (toArray($httpfiles) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();

@@ -15,7 +15,11 @@ use Validator;
 
 class PluginCodeController extends AdminControllerBase
 {
+    use CodeTreeTrait;
+    
     protected $plugin;
+
+    protected const node_key = Define::SYSTEM_KEY_SESSION_FILE_NODELIST;
 
     /**
      * constructer
@@ -37,7 +41,7 @@ class PluginCodeController extends AdminControllerBase
     public function edit(Request $request, Content $content, $id)
     {
         $this->AdminContent($content);
-        session()->forget(Define::SYSTEM_KEY_SESSION_PLUGIN_NODELIST);
+        session()->forget(static::node_key);
 
         $this->plugin = Plugin::getEloquent($id);
 
@@ -45,12 +49,18 @@ class PluginCodeController extends AdminControllerBase
             Checker::error();
             return false;
         }
-        $content->row(function (Row $row) use ($id) {
+        $content->row(function (Row $row) use ($request, $id) {
+            // get nodeid
+            $json = $this->getTreeDataJson($request);
+            $node = collect($json)->first(function ($j) {
+                return isMatchString(array_get($j, 'path'), '/');
+            });
+
             $row->column(9, view('exment::plugin.editor.upload', [
                 'url' => admin_url("plugin/edit_code/$id/fileupload"),
                 'filepath' => '/',
                 'message' => exmtrans('plugincode.message.upload_file'),
-                'nodeid' => null,
+                'nodeid' => array_get($node, 'id'),
             ]));
 
             $row->column(3, $this->getJsTreeBox($id));
@@ -82,18 +92,34 @@ class PluginCodeController extends AdminControllerBase
      */
     public function getTreeData(Request $request, $id)
     {
-        $json = [];
         $this->plugin = Plugin::getEloquent($id);
         if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
             Checker::error();
             return false;
         }
 
-        $this->setDirectoryNodes('/', '#', $json, true);
+        return response()->json($this->getTreeDataJson($request));
+    }
+    
+    /**
+     * Get file tree data
+     *
+     * @param Request $request
+     * @param int $id
+     * @return Response
+     */
+    protected function getTreeDataJson(Request $request)
+    {
+        if (session()->has(static::node_key)) {
+            return session(static::node_key);
+        }
 
+        $json = [];
+        $this->setDirectoryNodes('/', '#', $json, true);
+        
         // set session
-        session([Define::SYSTEM_KEY_SESSION_PLUGIN_NODELIST => $json]);
-        return response()->json($json);
+        session([static::node_key => $json]);
+        return $json;
     }
 
     /**
@@ -120,17 +146,9 @@ class PluginCodeController extends AdminControllerBase
         }
 
         if ($request->hasfile('fileUpload')) {
-            $nodeid = str_replace('//', '/', $request->get('nodeid'));
-            $nodepath = $this->getNodePath($nodeid);
-            if(is_nullorempty($nodepath)){
-                throw new \Exception;
-            }
-
-            $folder_path = str_replace('//', '/', $request->get('nodepath'));
-            // path root check, if search as ex. "../../", throw new exception.
-            if(strpos(str_replace(' ', '', $folder_path), '..') !== false){
-                throw new \Exception;
-            }
+            $nodeid = $request->get('nodeid');
+            $folder_path = $this->getNodePath($nodeid);
+            
             $upload_files = $request->file('fileUpload');
 
             foreach ($upload_files as $upload_file) {
@@ -186,11 +204,8 @@ class PluginCodeController extends AdminControllerBase
             return [view('exment::plugin.editor.info'), false];
         }
 
-        $nodeid = str_replace('//', '/', $request->get('nodeid'));
+        $nodeid = $request->get('nodeid');
         $nodepath = $this->getNodePath($nodeid);
-        if(is_nullorempty($nodepath)){
-            throw new \Exception;
-        }
 
         try {
             if ($this->plugin->isPathDir($nodepath)) {
@@ -291,45 +306,6 @@ class PluginCodeController extends AdminControllerBase
     }
 
     /**
-     * Get and set file and directory nodes in target folder
-     *
-     * @param string $folder
-     * @param string $parent
-     * @param array &$json
-     * @param string $folderName root folder name.
-     */
-    protected function setDirectoryNodes($folder, $parent, &$json, bool $selected = false)
-    {
-        $directory_node = "node_" . make_uuid();
-        $json[] = [
-            'id' => $directory_node,
-            'parent' => $parent,
-            'path' => $folder,
-            'text' => isMatchString($folder, '/') ? '/' : basename($folder),
-            'state' => [
-                'opened' => $parent == '#',
-                'selected' => $selected
-            ]
-        ];
-
-        $directories = $this->plugin->getPluginDirPaths($folder, false);
-        foreach ($directories as $directory) {
-            $this->setDirectoryNodes($directory, $directory_node, $json);
-        }
-
-        $files = $this->plugin->getPluginFilePaths($folder, false);
-        foreach ($files as $file) {
-            $json[] = [
-                'id' => "node_" . make_uuid(),
-                'parent' => $directory_node,
-                'path' => path_join($folder, basename($file)),
-                'icon' => 'jstree-file',
-                'text' => basename($file),
-            ];
-        }
-    }
-
-    /**
      * delete target file from plugin folder
      *
      * @param Request $request
@@ -356,14 +332,10 @@ class PluginCodeController extends AdminControllerBase
             ]);
         }
 
-        $nodeid = str_replace('//', '/', $request->get('nodeid'));
+        $nodeid = $request->get('nodeid');
         $nodepath = $this->getNodePath($nodeid);
-        if(is_nullorempty($nodepath)){
-            throw new \Exception;
-        }
-        $file_path = str_replace('//', '/', $nodepath);
 
-        $this->plugin->deletePluginFile($file_path);
+        $this->plugin->deletePluginFile($nodepath);
 
         $this->updatePluginDatetime();
 
@@ -402,15 +374,11 @@ class PluginCodeController extends AdminControllerBase
             ]);
         }
 
-        $nodeid = str_replace('//', '/', $request->get('nodeid'));
+        $nodeid = $request->get('nodeid');
         $nodepath = $this->getNodePath($nodeid);
-        if(is_nullorempty($nodepath)){
-            throw new \Exception;
-        }
-        $file_path = $nodepath;
         $edit_file = $request->get('edit_file');
 
-        $this->plugin->putPluginFile($file_path, $edit_file);
+        $this->plugin->putPluginFile($nodepath, $edit_file);
 
         $this->updatePluginDatetime();
 
@@ -421,6 +389,7 @@ class PluginCodeController extends AdminControllerBase
         ]);
     }
 
+    
     /**
      * Update plugin's updated_at. Because sync files from crowd.
      *
@@ -434,24 +403,14 @@ class PluginCodeController extends AdminControllerBase
     }
 
 
-    /**
-     * Get node path from node id
-     *
-     * @param string $nodeId
-     * @return string|null
-     */
-    protected function getNodePath($nodeId) : ?string{
-        $nodelist = session(Define::SYSTEM_KEY_SESSION_PLUGIN_NODELIST);
-        if(is_nullorempty($nodelist)){
-            return null;
-        }
+    protected function getDirectoryPaths($folder)
+    {
+        return $this->plugin->getPluginDirPaths($folder, false);
+    }
 
-        foreach($nodelist as $node){
-            if(!isMatchString($nodeId, array_get($node, 'id'))){
-                continue;
-            }
 
-            return array_get($node, 'path');
-        }
+    protected function getFilePaths($folder)
+    {
+        return $this->plugin->getPluginFilePaths($folder, false);
     }
 }

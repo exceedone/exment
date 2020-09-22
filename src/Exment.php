@@ -4,10 +4,14 @@ namespace Exceedone\Exment;
 
 use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Enums\UrlTagType;
+use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Illuminate\Support\Facades\Auth;
 use Encore\Admin\Admin;
 
@@ -259,5 +263,53 @@ class Exment
         }
 
         return $data;
+    }
+
+    
+    /**
+     * Get mark and value for search
+     *
+     * @param bool $isLike
+     * @param string $q search string
+     * @return array
+     */
+    public function getQueryMarkAndValue($isLike, $q)
+    {
+        // if all search
+        $mark = ($isLike ? 'LIKE' : '=');
+        if (System::filter_search_type() == FilterSearchType::ALL) {
+            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        } else {
+            $value = $q . ($isLike ? '%' : '');
+        }
+
+        return [$mark, $value];
+    }
+
+    
+    /**
+     * search document
+     */
+    public function getSearchDocumentQuery(CustomTable $target_custom_table, ?string $q, $query = null)
+    {
+        if (empty($query)) {
+            $query = $target_custom_table->getValueModel()->query();
+        }
+        return $query->whereExists(function ($query) use ($target_custom_table, $q) {
+            $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
+            $column_document_name = CustomColumn::getEloquent('document_name', $custom_table);
+            $documentDbName = getDBTableName($custom_table);
+            $targetDbName = getDBTableName($target_custom_table);
+
+            // search document name
+            list($mark, $q) = \Exment::getQueryMarkAndValue(true, $q);
+            $query
+                ->select(\DB::raw(1))
+                ->from($documentDbName)
+                ->where($documentDbName . '.' . $column_document_name->getQueryKey(), $mark, $q)
+                ->where("$documentDbName.parent_type", $target_custom_table->table_name)
+                ->whereRaw("$documentDbName.parent_id = $targetDbName.id");
+            ;
+        });
     }
 }

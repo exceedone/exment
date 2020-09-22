@@ -10,7 +10,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\ErrorCode;
@@ -63,6 +62,12 @@ abstract class CustomValue extends ModelBase
      * get label only first time.
      */
     protected $_label;
+
+    /**
+     * file uuids.
+     * *NOW only use edtitor images
+     */
+    protected $file_uuids = [];
 
 
     /**
@@ -340,6 +345,21 @@ abstract class CustomValue extends ModelBase
 
         // set
         $this->remove_file_columns[] = $key;
+        return $this;
+    }
+
+    /**
+     * get or set file_uuids
+     */
+    public function file_uuids($key = null)
+    {
+        // get
+        if (!isset($key)) {
+            return $this->file_uuids;
+        }
+
+        // set
+        $this->file_uuids[] = $key;
         return $this;
     }
 
@@ -803,6 +823,19 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
+     * Set value for custom column, not check custom column contains.
+     *
+     * @param string|array|Collection $key
+     * @param mixed $val if $key is string, set value
+     * @param boolean $forgetIfNull if true, and val is null, remove DB's column from "value".
+     * @return $this
+     */
+    public function setValueDirectly($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('value', $key, $val, $forgetIfNull);
+    }
+
+    /**
      * Get all column's getValue.
      * "$this->value" : return data on database
      * "$this->getValues()" : return data converting getValue
@@ -820,6 +853,7 @@ abstract class CustomValue extends ModelBase
 
     public function getValue($column, $label = false, $options = [])
     {
+        $time_start = microtime(true);
         if (is_null($column)) {
             return null;
         }
@@ -887,6 +921,7 @@ abstract class CustomValue extends ModelBase
         }
 
         $item->options($options);
+
 
         // get value
         // using ValueType
@@ -1287,10 +1322,15 @@ abstract class CustomValue extends ModelBase
         }
         //$subquery->take($takeCount);
 
-        // create main query
-        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+        if ($options['searchDocument'] && boolval(config('exment.search_document', false))) {
+            $subquery->union(\Exment::getSearchDocumentQuery($this->custom_table, $q)->select('id'));
+        }
 
-        return $mainQuery;
+        // create main query
+        // $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+
+        // return $mainQuery;
+        return $subquery;
     }
 
     /**
@@ -1318,6 +1358,12 @@ abstract class CustomValue extends ModelBase
                     $query->orWhere($searchColumn, $options['mark'], $options['value']);
                 }
             }
+
+            if ($options['searchDocument'] && boolval(config('exment.search_document', false))) {
+                $query->orWhere(function ($query) use ($q) {
+                    \Exment::getSearchDocumentQuery($this->custom_table, $q, $query);
+                });
+            }
         });
     }
 
@@ -1339,6 +1385,13 @@ abstract class CustomValue extends ModelBase
                 'searchColumns' => null,
                 'relation' => false,
                 'executeSearch' => true, // if true, search $q . If false,  not filter.
+                'searchDocument' => false, // is search document.
+
+                // append default
+                'takeCount' => null,
+                'mark' => null,
+                'value' => null,
+                'q' => $q,
             ],
             $options
         );
@@ -1388,15 +1441,7 @@ abstract class CustomValue extends ModelBase
             return ["=", $q];
         }
 
-        // if all search
-        $mark = ($isLike ? 'LIKE' : '=');
-        if (System::filter_search_type() == FilterSearchType::ALL) {
-            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        } else {
-            $value = $q . ($isLike ? '%' : '');
-        }
-
-        return [$mark, $value];
+        return \Exment::getQueryMarkAndValue($isLike, $q);
     }
 
     /**
