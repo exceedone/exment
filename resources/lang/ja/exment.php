@@ -1481,6 +1481,8 @@ return [
         'message' => [
             'over_filters_max' => '表示条件は6件以上設定できません。',
             'over_sorts_max' => 'データ並べ替えは6件以上設定できません。',
+            'used_notify_error' => '通知設定で使用しています。事前に削除を行ってください。',
+            'used_column_error' => 'カスタム列設定の絞り込み条件ビューで使用しています。事前に削除を行ってください。',
         ],
 
         'custom_view_button_label' => 'ビュー',
