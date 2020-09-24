@@ -291,6 +291,8 @@ class NotifyService
                 'subject' => null,
                 'body' => null,
                 'is_chat' => false,
+                'mention_here' => false,
+                'mention_users' => [],
             ],
             $params
         );
@@ -491,6 +493,7 @@ class NotifyService
                 'webhook_url' => null,
                 'webhook_name' => null,
                 'webhook_icon' => null,
+                'mention_here' => false,
                 'notify' => null,
                 'mail_template' => null,
                 'prms' => [],
@@ -498,6 +501,7 @@ class NotifyService
                 'subject' => null,
                 'body' => null,
                 'replaceOptions' => [],
+                'mention_users' => [],
             ],
             $params
         );
@@ -513,7 +517,7 @@ class NotifyService
         $slack_body = static::replaceWord($params['body'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
 
         // send message
-        $options = ['webhook_name' => $params['webhook_name'], 'webhook_icon' => $params['webhook_icon']];
+        $options = ['webhook_name' => $params['webhook_name'], 'webhook_icon' => $params['webhook_icon'], 'mention_here' => $params['mention_here'], 'mention_users' => $params['mention_users']];
         $className::make($webhook_url, $slack_subject, $slack_body, $options)->send();
     }
 

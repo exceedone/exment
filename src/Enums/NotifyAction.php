@@ -27,4 +27,23 @@ class NotifyAction extends EnumBase
 
         return false;
     }
+
+    public static function isUserTarget($notify_actions)
+    {
+        if (!isset($notify_actions)) {
+            return false;
+        }
+
+        if (!is_array($notify_actions)) {
+            $notify_actions = [$notify_actions];
+        }
+
+        foreach ($notify_actions as $notify_action) {
+            if (in_array($notify_action, [static::EMAIL, static::SHOW_PAGE])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

@@ -1878,6 +1878,7 @@ return [
         'notify_select' => '送信先選択',
         'message_input' => 'メッセージ入力',
         'webhook_url' => 'Webhook URL',
+        'mention_here' => 'チャンネルに通知を実施',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
@@ -1892,6 +1893,7 @@ return [
             'notify_action_target' => '通知先の対象を選択します。',
             'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
             'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 <br/>SlackとTeamsの両立はできません。',
+            'mention_here' => 'チャンネルでアクティブなステータスのメンバーに通知を送ります。',
         ],
 
         'notify_trigger_options' => [

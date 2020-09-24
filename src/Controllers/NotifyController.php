@@ -288,6 +288,11 @@ class NotifyController extends AdminControllerBase
                     'data-filter' => json_encode(['parent' => 1, 'key' => 'notify_actions', 'value' => [NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS]])
                 ]);
 
+            $form->switchbool('mention_here', exmtrans("notify.mention_here"))
+                ->help(exmtrans("notify.help.mention_here"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_actions', 'value' =>  [NotifyAction::SLACK]])
+                ]);
+
             $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
                 ->options(function ($val, $foo, $notify) use ($controller) {
                     if ($notify->workflow_id) {
@@ -302,7 +307,7 @@ class NotifyController extends AdminControllerBase
                 ])])
                 ->attribute([
                     'data-filter' => json_encode([
-                        ['parent' => 1, 'key' => 'notify_actions', 'value' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE]]
+                        ['parent' => 1, 'key' => 'notify_actions', 'value' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK]]
                     ])
                 ])
                 ->help(exmtrans("notify.help.notify_action_target"));

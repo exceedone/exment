@@ -71,6 +71,20 @@ class Notify extends ModelBase
         return $this->getJson('action_settings', $key, $default);
     }
 
+    public function getMentionHere()
+    {
+        $mention_here = $this->getActionSetting('mention_here', false);
+
+        return boolval($mention_here);
+    }
+
+    public function getMentionUsers($users)
+    {
+        return collect($users)->map(function($user) {
+            return $user->slack_id();
+        })->filter()->unique()->toArray();
+    }
+
     /**
      * notify user on schedule
      */
@@ -87,16 +101,24 @@ class Notify extends ModelBase
                 'notify_target_column_value' => $custom_value->getValue($column),
             ];
     
+            $users = $this->getNotifyTargetUsers($custom_value);
+
             if (NotifyAction::isChatMessage($this->notify_actions)) {
                 // send slack message
                 NotifyService::executeNotifyAction($this, [
                     'prms' => $prms,
                     'custom_value' => $custom_value,
+                    'mention_here' => $this->getMentionHere(),
+                    'mention_users' => $this->getMentionUsers($users),
                     'is_chat' => true
                 ]);
             }
+
+            // return function if no user-targeted action is included
+            if (!NotifyAction::isUserTarget($this->notify_actions)) {
+                return;
+            }
     
-            $users = $this->getNotifyTargetUsers($custom_value);
             foreach ($users as $user) {
                 // send mail
                 try {
@@ -191,8 +213,15 @@ class Notify extends ModelBase
                 'mail_template' => $mail_template,
                 'prms' => $prms,
                 'custom_value' => $custom_value,
+                'mention_here' => $this->getMentionHere(),
+                'mention_users' => $this->getMentionUsers($users),
                 'is_chat' => true
             ]);
+        }
+
+        // return function if no user-targeted action is included
+        if (!NotifyAction::isUserTarget($this->notify_actions)) {
+            return;
         }
 
         foreach ($users as $user) {
@@ -269,12 +298,19 @@ class Notify extends ModelBase
                 'mail_template' => $mail_template,
                 'prms' => $prms,
                 'custom_value' => $custom_value,
+                'mention_here' => $this->getMentionHere(),
+                'mention_users' => $this->getMentionUsers($users),
                 'is_chat' => true,
                 'replaceOptions' => [
                     'workflow_action' => $workflow_action,
                     'workflow_value' => $workflow_value,
                 ]
             ]);
+        }
+
+        // return function if no user-targeted action is included
+        if (!NotifyAction::isUserTarget($this->notify_actions)) {
+            return;
         }
 
         foreach ($users as $user) {
@@ -334,6 +370,8 @@ class Notify extends ModelBase
         })->filter();
 
         if (NotifyAction::isChatMessage($this->notify_actions)) {
+            $users = NotifyTarget::getSelectedNotifyTargets($target_user_keys, $this, $custom_value);
+
             // send slack message
             NotifyService::executeNotifyAction($this, [
                 'mail_template' => $mail_template,
@@ -344,9 +382,17 @@ class Notify extends ModelBase
                 'custom_value' => $custom_value,
                 'subject' => $subject,
                 'body' => $body,
+                'mention_here' => $this->getMentionHere(),
+                'mention_users' => $this->getMentionUsers($users),
                 'is_chat' => true
             ]);
         }
+
+        // return function if no user-targeted action is included
+        if (!NotifyAction::isUserTarget($this->notify_actions)) {
+            return;
+        }
+
         // loop target users
         foreach ($target_user_keys as $target_user_key) {
             $user = NotifyTarget::getSelectedNotifyTarget($target_user_key, $this, $custom_value);
