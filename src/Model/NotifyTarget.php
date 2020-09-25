@@ -49,6 +49,13 @@ class NotifyTarget
      * @var string
      */
     protected $joinUserName;
+
+    /**
+     * slack user id
+     *
+     * @var string
+     */
+    protected $slack_id;
     
     /**
      * user id if email, this value is null.
@@ -70,6 +77,11 @@ class NotifyTarget
     public function email()
     {
         return $this->email;
+    }
+    
+    public function slack_id()
+    {
+        return $this->slack_id;
     }
     
     public function getLabel()
@@ -200,6 +212,12 @@ class NotifyTarget
         if (empty($email)) {
             return null;
         }
+
+        // get 'slack_id' custom column
+        $slack_id_column = CustomColumn::getEloquent('slack_id', SystemTableName::USER);
+        if (isset($slack_id_column)) {
+            $slack_id = $target_value->getValue($slack_id_column);
+        }
         
         $label = $target_value->getLabel();
 
@@ -210,6 +228,7 @@ class NotifyTarget
         $notifyTarget->userName = $label;
         $notifyTarget->notifyKey = $target_value->custom_table->id . '_' . $target_value->id;
         $notifyTarget->joinUserName = true;
+        $notifyTarget->slack_id = $slack_id?? null;
 
         return $notifyTarget;
     }
@@ -253,5 +272,17 @@ class NotifyTarget
             return $user->notifyKey == $select_target;
         });
         return $user;
+    }
+
+    public static function getSelectedNotifyTargets($select_targets, Notify $notify, CustomValue $custom_value)
+    {
+        // all target users
+        $allUsers = $notify->getNotifyTargetUsers($custom_value);
+
+        $users = collect($allUsers)->filter(function ($user) use ($select_targets) {
+            return in_array($user->notifyKey, $select_targets);
+        })->toArray();
+
+        return $users;
     }
 }
