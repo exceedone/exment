@@ -533,8 +533,6 @@ EOT;
                 'maxFileCount' => $max_count,
             ]);
 
-            $options_json = json_encode($options);
-
             $input_id = 'file_data';
 
             $form->multipleFile($input_id, trans('admin.upload'))
@@ -543,10 +541,11 @@ EOT;
                 ->help(exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(getUploadMaxFileSize()), 'max_count' => $max_count]))
                 ->setWidth(12, 0);
             $script = <<<EOT
-    $(".$input_id").on('fileuploaded', function(e, params) {
-        console.log('file uploaded', e, params);
-        $.pjax.reload('#pjax-container');
-    });
+            $(".$input_id").on('fileuploaded', function(e, params, fileId, index) {
+                if(params.files.length - 1 <= index){
+                    $.pjax.reload('#pjax-container');
+                }
+            });
 EOT;
 
             Admin::script($script);
