@@ -220,7 +220,7 @@ class HasManyTable extends HasMany
          */
         $script = <<<EOT
 var $indexName = {$count};
-$('#has-many-table-{$this->column}').off('click', '.add').on('click', '.add', function () {
+$('#has-many-table-{$this->column}').off('click.admin_add', '.add').on('click.admin_add', '.add', function () {
     var tpl = $('template.{$this->column}-tpl');
 
     $indexName++;
@@ -232,7 +232,7 @@ $('#has-many-table-{$this->column}').off('click', '.add').on('click', '.add', fu
     {$this->countscript}
 });
 
-$('#has-many-table-{$this->column}').off('click', '.remove').on('click', '.remove', function () {
+$('#has-many-table-{$this->column}').off('click.admin_remove', '.remove').on('click.admin_remove', '.remove', function () {
     var row = $(this).closest('.has-many-table-{$this->column}-row');
     row.find('input,textarea,select').removeAttr('required max min maxlength pattern');
     row.hide();
@@ -240,7 +240,7 @@ $('#has-many-table-{$this->column}').off('click', '.remove').on('click', '.remov
     {$this->countscript}
 });
 
-$('#has-many-table-{$this->column}').off('click', '.row-move').on('click', '.row-move', function(ev){
+$('#has-many-table-{$this->column}').off('click.admin_row_remove', '.row-move').on('click.admin_row_remove', '.row-move', function(ev){
     var row = $(ev.target).closest('tr');
     var isup = $(ev.target).closest('.row-move').hasClass('row-move-up');
     

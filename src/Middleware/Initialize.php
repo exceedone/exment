@@ -438,6 +438,8 @@ class Initialize
             'tile'          => Field\Tile::class,
             'hasMany'           => Field\HasMany::class,
             'hasManyTable'           => Field\HasManyTable::class,
+            'hasManyJson'           => Field\HasManyJson::class,
+            'hasManyJsonTable'           => Field\HasManyJsonTable::class,
             //'relationTable'          => Field\RelationTable::class,
             'embeds'          => Field\Embeds::class,
             'nestedEmbeds'          => Field\NestedEmbeds::class,

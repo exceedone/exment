@@ -94,7 +94,7 @@ EOT;
          */
         $script = <<<EOT
 var $indexName = {$count};
-$('#has-many-{$this->column}').on('click', '.add', function () {
+$('#has-many-{$this->column}').off('click.admin_add').on('click.admin_add', '.add', function () {
 
     var tpl = $('template.{$this->column}-tpl');
 
@@ -106,7 +106,7 @@ $('#has-many-{$this->column}').on('click', '.add', function () {
     {$this->countscript}
 });
 
-$('#has-many-{$this->column}').on('click', '.remove', function () {
+$('#has-many-{$this->column}').off('click.admin_remove').on('click.admin_remove', '.remove', function () {
     $(this).closest('.has-many-{$this->column}-form').hide();
     $(this).closest('.has-many-{$this->column}-form').find('input[required], select[required]').prop('disabled', true);
     $(this).closest('.has-many-{$this->column}-form').find('.$removeClass').val(1);
@@ -151,8 +151,7 @@ EOT;
          */
         $script = <<<EOT
 var $indexName = {$count};
-$('#has-many-{$this->column}').on('click', '.add', function () {
-
+$('#has-many-{$this->column}').off('click.admin_add').on('click.admin_add', '.add', function () {
     var tpl = $('template.{$this->column}-tpl');
 
     $indexName++;
@@ -162,7 +161,7 @@ $('#has-many-{$this->column}').on('click', '.add', function () {
     {$templateScript}
 });
 
-$('#has-many-{$this->column}').on('click', '.remove', function () {
+$('#has-many-{$this->column}').off('click.admin_remove').on('click.admin_remove', '.remove', function () {
     $(this).closest('.has-many-{$this->column}-form').hide();
     $(this).closest('.has-many-{$this->column}-form').find('input[required], select[required]').prop('disabled', true);
     $(this).closest('.has-many-{$this->column}-form').find('.$removeClass').val(1);
