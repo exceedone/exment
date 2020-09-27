@@ -541,8 +541,17 @@ EOT;
                 ->help(exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(getUploadMaxFileSize()), 'max_count' => $max_count]))
                 ->setWidth(12, 0);
             $script = <<<EOT
+            var uploadCount = null;
+            $(".$input_id").on('filepreupload', function(event, data, previewId, index) {
+                if(uploadCount === null){
+                    uploadCount = data.files.length;
+                }
+            });
             $(".$input_id").on('fileuploaded', function(e, params, fileId, index) {
-                if(params.files.length - 1 <= index){
+                uploadCount--;
+                console.log('upload uploadCount : ' + uploadCount);
+                console.log('upload index : ' + index);
+                if(0 >= uploadCount){
                     $.pjax.reload('#pjax-container');
                 }
             });
