@@ -79,6 +79,9 @@ class SlackSender
             $mentions[] = '<!here>';
         }
         foreach ($mention_users as $mention_user) {
+            if(is_nullorempty($mention_user)){
+                continue;
+            }
             $mentions[] = "<@$mention_user>";
         }
         if (!empty($mentions)) {

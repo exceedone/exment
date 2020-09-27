@@ -167,6 +167,9 @@ class PatchDataCommand extends Command
             case 'patch_view_dashboard':
                 $this->patchViewDashboard();
                 return;
+            case 'update_notify_difinition':
+                $this->updateNotifyDifinition();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -1215,5 +1218,36 @@ class PatchDataCommand extends Command
         // update system value
         System::userdashboard_available(!boolval(config('exment.userdashboard_disabled', true)));
         System::userview_available(!boolval(config('exment.userview_disabled', true)));
+    }
+
+
+    protected function updateNotifyDifinition()
+    {
+        Model\Notify::whereNull('mail_template_id')->get()
+        ->each(function ($notify) {
+            $notify_actions = array_filter(stringToArray($notify->notify_actions), function($notify_action){
+                return !is_nullorempty($notify_action);
+            });
+            if(count($notify_actions) == 0){
+                return;
+            }
+
+            $action_settings_array = [];
+
+            foreach($notify_actions as $notify_action){
+                $action_settings = $notify->action_settings;
+                $item = [
+                    'notify_action' => $notify_action,
+                    'webhook_url' => array_get($action_settings, 'webhook_url'),
+                    'notify_action_target' => array_get($action_settings, 'notify_action_target'),
+                ];
+
+                $action_settings_array[] = $item;
+            }
+
+            $notify->mail_template_id = array_get($notify->action_settings, 'mail_template_id');
+            $notify->action_settings = $action_settings_array;
+            $notify->save();
+        });
     }
 }

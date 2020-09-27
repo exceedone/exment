@@ -98,7 +98,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     
     public function notifies()
     {
-        return $this->hasMany(Notify::class, 'custom_table_id');
+        return $this->hasMany(Notify::class, 'custom_table_id')
+            ->where('active_flg', 1);
     }
     
     public function operations()
@@ -1920,10 +1921,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
         if ($table_name == SystemTableName::USER && !$all) {
-            return AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission, $query);
+            return AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($display_table, $permission, $query);
         }
         if ($table_name == SystemTableName::ORGANIZATION && !$all) {
-            return AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission, $query);
+            return AuthUserOrgHelper::getRoleOrganizationQueryTable($display_table, $permission, $query);
         }
 
         return $query;

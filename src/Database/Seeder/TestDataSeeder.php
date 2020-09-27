@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Model\Condition;
@@ -31,7 +32,6 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Workflow;
 use Illuminate\Database\Seeder;
 
 class TestDataSeeder extends Seeder
@@ -770,9 +770,11 @@ class TestDataSeeder extends Seeder
         $notify->notify_view_name = $custom_table->table_name . '_notify';
         $notify->custom_table_id = $custom_table->id;
         $notify->notify_trigger = 2;
-        $notify->action_settings = [
+        $notify->mail_template_id = 6;
+        $notify->action_settings = [[
+            "notify_action" => NotifyAction::SHOW_PAGE,
             "notify_action_target" => ["created_user"],
-            "mail_template_id" => "6"];
+        ]];
         $notify->save();
         return $notify->id;
     }

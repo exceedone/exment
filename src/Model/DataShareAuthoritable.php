@@ -203,16 +203,6 @@ class DataShareAuthoritable extends ModelBase
 
             System::clearCache();
 
-            // // send notify
-            // $shares = collect($shares)->map(function ($share) {
-            //     return CustomTable::getEloquent($share['authoritable_user_org_type'])->getValueModel($share['authoritable_target_id']);
-            // });
-            
-            // // loop for $notifies
-            // foreach ($custom_value->custom_table->notifies as $notify) {
-            //     $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE, ['targetUserOrgs' => $shares]);
-            // }
-
             return getAjaxResponse([
                 'result'  => true,
                 'toastr' => trans('admin.save_succeeded'),

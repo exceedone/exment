@@ -654,7 +654,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
-        $notify = Notify::where('suuid', $targetid)->first();
+        $notify = Notify::where('suuid', $targetid)->where('active_flg', 1)->first();
         if (!isset($notify)) {
             abort(404);
         }
@@ -798,7 +798,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
-        $notify = Notify::where('suuid', $targetid)->first();
+        $notify = Notify::where('suuid', $targetid)->where('active_flg', 1)->first();
         if (!isset($notify)) {
             abort(404);
         }

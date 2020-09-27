@@ -265,7 +265,7 @@ class BackupController extends AdminControllerBase
         if (isset($file_key)) {
             $form->display('restore_zipfile', exmtrans('backup.restore_zipfile'))
                 ->setWidth(8, 3)
-                ->displayText("$file_key.zip");
+                ->displayText("$file_key.zip")->escape(false);
             $form->hidden('restore_zipfile')->default($file_key);
         } else {
             $form->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
@@ -288,7 +288,7 @@ class BackupController extends AdminControllerBase
 
         $form->display('restore_caution', exmtrans('backup.restore_caution'))
             ->setWidth(8, 3)
-            ->displayText(exmtrans('backup.message.restore_caution'));
+            ->displayText(exmtrans('backup.message.restore_caution'))->escape(false);
 
         return getAjaxResponse([
             'body'  => $form->render(),

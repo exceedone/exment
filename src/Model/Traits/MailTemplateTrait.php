@@ -60,7 +60,7 @@ trait MailTemplateTrait
         }
 
         $notify = Model\Notify::firstRecordCache(function ($notify) {
-            return isMatchString(array_get($notify, 'action_settings.mail_template_id'), $this->id);
+            return isMatchString(array_get($notify, 'mail_template_id'), $this->id);
         });
 
         return !is_nullorempty($notify);

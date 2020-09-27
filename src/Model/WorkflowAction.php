@@ -633,7 +633,7 @@ class WorkflowAction extends ModelBase
             ->default($this->action_name);
         
         $form->display('status', exmtrans('workflow.status'))
-            ->displayText($showStatus);
+            ->displayText($showStatus)->escape(false);
 
         $next = $this->isActionNext($custom_value);
         $completed = WorkflowStatus::getWorkflowStatusCompleted($statusTo);
@@ -665,7 +665,7 @@ class WorkflowAction extends ModelBase
                             'tag' => true,
                             'only_avatar' => true,
                         ]);
-                    })->implode(exmtrans('common.separate_word')));
+                    })->implode(exmtrans('common.separate_word')))->escape(false);
             }
         }
         

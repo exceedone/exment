@@ -235,6 +235,8 @@ return [
         'system_mail_body_type' => 'メール本文種類',
         'test_mail_to' => 'テストメール送信先',
         'submit_test_mail' => 'テストメール送信',
+        'system_slack' => 'Slack設定',
+        'system_slack_user_column' => 'Slack ID設定列(ユーザー)',
         'grid_pager_count' => 'データ一覧の表示件数',
         'datalist_pager_count' => '検索・ダッシュボードの表示件数',
         'userdashboard_available' => 'ユーザーダッシュボードを使用する',
@@ -370,6 +372,7 @@ return [
             'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
             'system_mail_body_type' => '送信するメールの、本文の種類を選択してください。',
             'test_mail' => '入力した送信先にテストメールを送ります。<br /><b>※上記のメール設定を必ず保存してから実行してください。入力途中の設定は無効になります。</b>',
+            'system_slack_user_column' => 'Slack IDを設定する、ユーザーテーブルのカスタム列を選択してください。Slack通知実施時、そのユーザーID宛てに、メンションを追加することができます。',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
             'userdashboard_available' => 'YESにすることで、ログインユーザーが各自でダッシュボードを作成できる、ユーザーダッシュボード機能を使用します。',
@@ -1878,7 +1881,7 @@ return [
         'notify_select' => '送信先選択',
         'message_input' => 'メッセージ入力',
         'webhook_url' => 'Webhook URL',
-        'mention_here' => 'チャンネルに通知を実施',
+        'mention_here' => 'メンバー全員に通知を実施',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
@@ -1890,10 +1893,10 @@ return [
             'notify_beforeafter' => '通知を行うのが、登録している日付の「前」か「後」かを選択します。<br/>例：「通知日」が7、「通知前後」が「前」の場合、指定したフィールドの日付の7日前に通知実行',
             'notify_hour' => '通知を実行する時間です。0～23で入力します。 例：「6」と入力した場合、6:00に通知実行',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
-            'notify_action_target' => '通知先の対象を選択します。',
+            'notify_action_target' => '通知先の対象を選択します。※実施アクションが「Eメール」「システム内アラート」の場合、必須になります。',
             'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
-            'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 <br/>SlackとTeamsの両立はできません。',
-            'mention_here' => 'チャンネルでアクティブなステータスのメンバーに通知を送ります。',
+            'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 ',
+            'mention_here' => '指定のチャンネルで、ステータスがアクティブになっているメンバー全員に通知を行う、「@here」メンションを送ります。※個別のメンションを行うには、下の「通知対象」項目を設定してください。',
         ],
 
         'notify_trigger_options' => [

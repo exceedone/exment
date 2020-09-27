@@ -2,6 +2,9 @@
 namespace Exceedone\Exment\Services\Installer;
 
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Encore\Admin\Widgets\Box;
+use Exceedone\Exment\Enums;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\TemplateImportExport;
@@ -99,6 +102,68 @@ trait InitializeFormTrait
         return $form;
     }
     
+
+    /**
+     * get sendmail test box.
+     *
+     * @return Content
+     */
+    protected function getsendmailTestBox()
+    {
+        $form = new WidgetForm();
+        $form->action(admin_urls('system/2factor'));
+        $form->disableReset();
+        $form->disableSubmit();
+
+        $form->descriptionHtml(exmtrans('system.help.test_mail'));
+
+        $form->email('test_mail_to', exmtrans("system.test_mail_to"));
+
+        $form->ajaxButton('test_mail_send_button', exmtrans("system.submit_test_mail"))
+            ->url(admin_urls('system', 'send_testmail'))
+            ->button_class('btn-sm btn-info')
+            ->attribute(['data-senddata' => json_encode(['test_mail_to'])])
+            ->button_label(exmtrans('system.submit_test_mail'))
+            ->send_params('test_mail_to');
+
+        return new Box(exmtrans("system.submit_test_mail"), $form);
+    }
+
+
+    protected function setNotifyForm($form){
+        // use mail setting
+        $form->exmheader(exmtrans('system.system_mail'))->hr();
+        if (!boolval(config('exment.mail_setting_env_force', false))) {
+            $form->descriptionHtml(exmtrans("system.help.system_mail"));
+
+            $form->text('system_mail_host', exmtrans("system.system_mail_host"));
+
+            $form->text('system_mail_port', exmtrans("system.system_mail_port"));
+
+            $form->text('system_mail_encryption', exmtrans("system.system_mail_encryption"))
+                ->help(exmtrans("system.help.system_mail_encryption"));
+                
+            $form->text('system_mail_username', exmtrans("system.system_mail_username"));
+
+            $form->password('system_mail_password', exmtrans("system.system_mail_password"));
+            
+            $form->email('system_mail_from', exmtrans("system.system_mail_from"))
+                ->help(exmtrans("system.help.system_mail_from"));
+        }
+        $form->select('system_mail_body_type', exmtrans("system.system_mail_body_type"))
+            ->help(exmtrans("system.help.system_mail_body_type"))
+            ->config('allowClear', false)
+            ->options(Enums\MailBodyType::transArray('system.system_mail_body_type_options'));
+       
+        $form->exmheader(exmtrans('system.system_slack'))->hr();
+
+        $form->select('system_slack_user_column', exmtrans('system.system_slack_user_column'))
+            ->help(exmtrans('system.help.system_slack_user_column'))
+            ->options($this->getUserOrgSlackColumns('user'));
+
+    }
+
+
     protected function postInitializeForm(Request $request, $group = null, $initialize = false, $validateUser = false)
     {
         $rules = [
@@ -234,5 +299,22 @@ EOT;
     protected function guard()
     {
         return Auth::guard('admin');
+    }
+
+    
+    protected function getUserOrgSlackColumns(string $table_name){
+        return $this->getUserOrgColumns($table_name, Enums\ColumnType::TEXT);
+    }
+
+    protected function getUserOrgColumns(string $table_name, string $column_type){
+        $custom_table = CustomTable::getEloquent($table_name);
+        if(!$custom_table){
+            return [];
+        }
+
+        return $custom_table->custom_columns_cache
+            ->filter(function($custom_column) use($column_type){
+                return isMatchString($custom_column->column_type, $column_type);
+            })->pluck('column_view_name', 'id');
     }
 }

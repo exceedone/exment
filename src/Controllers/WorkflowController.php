@@ -190,6 +190,7 @@ class WorkflowController extends AdminControllerBase
         else {
             $form->display('workflow_type', exmtrans('workflow.workflow_type'))
                 ->displayText(WorkflowType::getEnum($workflow->workflow_type)->transKey('workflow.workflow_type_options'))
+                ->escape(false)
                 ;
 
             if ($workflow->workflow_type == WorkflowType::TABLE) {
@@ -720,11 +721,11 @@ class WorkflowController extends AdminControllerBase
         $notify->notify_view_name = exmtrans('notify.notify_trigger_options.workflow');
         $notify->notify_trigger = NotifyTrigger::WORKFLOW;
         $notify->workflow_id = $workflow->id;
-        $notify->notify_actions = NotifyAction::SHOW_PAGE;
-        $notify->action_settings = [
-            'mail_template_id' => $mail_template->id,
+        $notify->mail_template_id = $mail_template->id;
+        $notify->action_settings = [[
+            'notify_action' => NotifyAction::SHOW_PAGE,
             'notify_action_target' =>  [NotifyActionTarget::WORK_USER]
-        ];
+        ]];
         $notify->save();
     }
 

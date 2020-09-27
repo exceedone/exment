@@ -79,6 +79,7 @@ class RouteServiceProvider extends ServiceProvider
                 return redirect(admin_url('template'));
             });
             
+            $router->post('notify/setting', 'NotifyController@postNotifySetting');
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
             $router->get('notify/notify_action_target_workflow', 'NotifyController@notify_action_target_workflow');

@@ -714,7 +714,7 @@ namespace Exment {
                     }
 
                     let key = g.key;
-                    let $target = $parent.find(CommonEvent.getClassKey(key));
+                    let $target = $getdata.find(CommonEvent.getClassKey(key));
                     expand[key] = $target.val();
                 }
             }

@@ -4,11 +4,19 @@
         <div class="no-margin">
             <!-- /.box-header -->
             <div class="box-body {{$displayClass ?? null}}" style="padding-left:0; padding-bottom:0;">
-                <span class="{{$class}}">
+                <span class="{{$class}}" {!! $attributes  !!}>
                 @if(isset($displayText))
-                {!! $displayText !!}
+                    @if(!$escape)
+                    {!! $displayText !!}
+                    @else
+                    {{ $displayText }}
+                    @endif
                 @else
-                {{ $value }}
+                    @if(!$escape)
+                    {!! $value !!}
+                    @else
+                    {{ $value }}
+                    @endif
                 @endif
                 </span>&nbsp;
             </div><!-- /.box-body -->

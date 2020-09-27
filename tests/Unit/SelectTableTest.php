@@ -415,10 +415,10 @@ class SelectTableTest extends UnitTestBase
 
         // if column_type is or user, filter
         if($custom_column->column_type == ColumnType::USER){
-            AuthUserOrgHelper::getRoleUserQueryTable($custom_column->custom_table_cache, null, $query);
+            AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($custom_column->custom_table_cache, null, $query);
         }
         elseif($custom_column->column_type == ColumnType::ORGANIZATION){
-            AuthUserOrgHelper::getRoleOrganizationQuery($custom_column->custom_table_cache, null, $query);
+            AuthUserOrgHelper::getRoleOrganizationQueryTable($custom_column->custom_table_cache, null, $query);
         }
 
 

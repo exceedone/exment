@@ -98,7 +98,7 @@ class ApiSettingController extends AdminControllerBase
 
                 $form->display('user_id', exmtrans('common.executed_user'))->displayText(function ($user_id) {
                     return getUserName($user_id, true);
-                })->help(exmtrans('api.help.executed_user'));
+                })->help(exmtrans('api.help.executed_user'))->escape(false);
             }
         }
 

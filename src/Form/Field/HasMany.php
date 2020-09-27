@@ -31,13 +31,13 @@ class HasMany extends AdminHasMany
 
         $this->setupScript($script);
 
-        $grandParent = get_parent_class(get_parent_class($this));
+        $grandParent = $this->getParentRenderClass();
         return $grandParent::render()->with([
             'forms'        => $this->buildRelatedForms(),
             'template'     => $template,
             'relationName' => $this->relationName,
             'options'      => $this->options,
-//            'header'       => $this->header
+            'enableHeader' => $this->enableHeader,
         ]);
     }
     public function setCountScript($targets)
@@ -284,5 +284,11 @@ EOT;
         }
 
         return 0;
+    }
+
+
+    protected function getParentRenderClass()
+    {
+        return get_parent_class(get_parent_class($this));
     }
 }

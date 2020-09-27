@@ -56,13 +56,6 @@ class Define
         
         // Advanced ----------------------------------
         'filter_search_type' => ['default' => 'forward', 'group' => 'advanced'],
-        'system_mail_host' => ['config' => 'mail.host', 'group' => 'advanced'],
-        'system_mail_port' => ['config' => 'mail.port', 'group' => 'advanced'],
-        'system_mail_username' => ['config' => 'mail.username', 'group' => 'advanced'],
-        'system_mail_password' => ['type' => 'password', 'config' => 'mail.password', 'group' => 'advanced'],
-        'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'advanced'],
-        'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'advanced'],
-        'system_mail_body_type' => ['default' => 'html', 'group' => 'advanced'],
 
         'default_date_format' => ['default' => 'format_default', 'group' => 'advanced'],
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'advanced'],
@@ -98,6 +91,18 @@ class Define
         'custom_value_save_autoshare' => ['type' => 'int', 'default' => '0', 'group' => 'advanced'],
         'filter_multi_user' => ['type' => 'int', 'default' => '-1', 'group' => 'advanced'],
         
+
+        // notify
+        'system_mail_host' => ['config' => 'mail.host', 'group' => 'notify'],
+        'system_mail_port' => ['config' => 'mail.port', 'group' => 'notify'],
+        'system_mail_username' => ['config' => 'mail.username', 'group' => 'notify'],
+        'system_mail_password' => ['type' => 'password', 'config' => 'mail.password', 'group' => 'notify'],
+        'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'notify'],
+        'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'notify'],
+        'system_mail_body_type' => ['default' => 'html', 'group' => 'notify'],
+
+        'system_slack_user_column' => ['group' => 'notify'],
+
         // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
         'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],
@@ -149,6 +154,7 @@ class Define
     public const SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID = "file_uploaded_uuid";
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS = "table_accessible_orgs_%s";
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS = "table_accessible_users_%s";
+    public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS_ORGS = "table_accessible_users_orgs_%s";
     public const SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS = "value_accessible_users_%s_%s";
     public const SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE = "can_connection_database";
     public const SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES = "all_database_table_names";

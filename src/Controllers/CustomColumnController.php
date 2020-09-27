@@ -231,7 +231,7 @@ class CustomColumnController extends AdminControllerTableBase
             $form->display('column_type', exmtrans("custom_column.column_type"))
                 ->displayText(function ($val) {
                     return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
-                });
+                })->escape(false);
             $form->hidden('column_type')->default($column_type);
         }
 

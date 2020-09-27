@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\NotifyTargetType;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Notifications\Notifiable;
 use Carbon\Carbon;
@@ -20,7 +21,6 @@ class Notify extends ModelBase
     use Notifiable;
 
     protected $guarded = ['id'];
-    protected $appends = ['notify_actions'];
     protected $casts = ['trigger_settings' => 'json', 'action_settings' => 'json'];
     
     public function custom_table()
@@ -36,17 +36,6 @@ class Notify extends ModelBase
         return null;
     }
     
-    public function setNotifyActionsAttribute($notifyActions)
-    {
-        if (is_null($notifyActions)) {
-            $this->attributes['notify_actions'] = null;
-        } elseif (is_string($notifyActions)) {
-            $this->attributes['notify_actions'] = $notifyActions;
-        } else {
-            $this->attributes['notify_actions'] = implode(',', array_filter($notifyActions));
-        }
-    }
- 
     public function getNotifyActionsAttribute()
     {
         return explode(",", array_get($this->attributes, 'notify_actions'));
@@ -54,7 +43,7 @@ class Notify extends ModelBase
 
     public function getMailTemplate()
     {
-        $mail_template_id = array_get($this->action_settings, 'mail_template_id');
+        $mail_template_id = array_get($this, 'mail_template_id');
 
         if (isset($mail_template_id)) {
             return getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template_id);
@@ -101,36 +90,38 @@ class Notify extends ModelBase
                 'notify_target_column_value' => $custom_value->getValue($column),
             ];
     
-            $users = $this->getNotifyTargetUsers($custom_value);
+            foreach($this->action_settings as $action_setting){
+                $users = $this->getNotifyTargetUsers($custom_value, $action_setting);
 
-            if (NotifyAction::isChatMessage($this->notify_actions)) {
-                // send slack message
-                NotifyService::executeNotifyAction($this, [
-                    'prms' => $prms,
-                    'custom_value' => $custom_value,
-                    'mention_here' => $this->getMentionHere(),
-                    'mention_users' => $this->getMentionUsers($users),
-                    'is_chat' => true
-                ]);
-            }
-
-            // return function if no user-targeted action is included
-            if (!NotifyAction::isUserTarget($this->notify_actions)) {
-                return;
-            }
-    
-            foreach ($users as $user) {
-                // send mail
-                try {
+                if (NotifyAction::isChatMessage($action_setting)) {
+                    // send slack message
                     NotifyService::executeNotifyAction($this, [
-                        'prms' => array_merge(['user' => $user->toArray()], $prms),
-                        'user' => $user,
+                        'prms' => $prms,
                         'custom_value' => $custom_value,
+                        'mention_here' => $this->getMentionHere(),
+                        'mention_users' => $this->getMentionUsers($users),
+                        'is_chat' => true,
                     ]);
                 }
-                // throw mailsend Exception
-                catch (\Swift_TransportException $ex) {
-                    \Log::error($ex);
+    
+                // return function if no user-targeted action is included
+                if (!NotifyAction::isUserTarget($action_setting)) {
+                    return;
+                }
+        
+                foreach ($users as $user) {
+                    // send mail
+                    try {
+                        NotifyService::executeNotifyAction($this, [
+                            'prms' => array_merge(['user' => $user->toArray()], $prms),
+                            'user' => $user,
+                            'custom_value' => $custom_value,
+                        ]);
+                    }
+                    // throw mailsend Exception
+                    catch (\Swift_TransportException $ex) {
+                        \Log::error($ex);
+                    }
                 }
             }
         }
@@ -168,28 +159,6 @@ class Notify extends ModelBase
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
 
-        // loop custom_value
-        if (!isset($options['targetUserOrgs'])) {
-            $users = $this->getNotifyTargetUsers($custom_value);
-        } else {
-            $users = [];
-            foreach ($options['targetUserOrgs'] as $targetUserOrg) {
-                if ($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION) {
-                    $users = array_merge($users, $targetUserOrg->users->pluck('id')->toArray());
-                } else {
-                    $users[] = $targetUserOrg->id;
-                }
-            }
-
-            // get users
-            $users = getModelName(SystemTableName::USER)::find($users);
-
-            // convert as NotifyTarget
-            $users = $users->map(function ($user) {
-                return NotifyTarget::getModelAsUser($user);
-            })->toArray();
-        }
-        
         // create freespace
         $freeSpace = '';
         if (isset($options['comment'])) {
@@ -207,44 +176,69 @@ class Notify extends ModelBase
             'free_space' => $freeSpace,
         ];
 
-        if (NotifyAction::isChatMessage($this->notify_actions)) {
-            // send slack message
-            NotifyService::executeNotifyAction($this, [
-                'mail_template' => $mail_template,
-                'prms' => $prms,
-                'custom_value' => $custom_value,
-                'mention_here' => $this->getMentionHere(),
-                'mention_users' => $this->getMentionUsers($users),
-                'is_chat' => true
-            ]);
-        }
+        // loop action setting
+        foreach ($this->action_settings as $action_setting) {
+            if (!isset($options['targetUserOrgs'])) {
+                $users = $this->getNotifyTargetUsers($custom_value, $action_setting);
+            } else {
+                $users = [];
+                foreach ($options['targetUserOrgs'] as $targetUserOrg) {
+                    if ($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION) {
+                        $users = array_merge($users, $targetUserOrg->users->pluck('id')->toArray());
+                    } else {
+                        $users[] = $targetUserOrg->id;
+                    }
+                }
 
-        // return function if no user-targeted action is included
-        if (!NotifyAction::isUserTarget($this->notify_actions)) {
-            return;
-        }
+                // get users
+                $users = getModelName(SystemTableName::USER)::find($users);
 
-        foreach ($users as $user) {
-            if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user)) {
-                continue;
+                // convert as NotifyTarget
+                $users = $users->map(function ($user) {
+                    return NotifyTarget::getModelAsUser($user);
+                })->toArray();
             }
-
-            // send mail
-            try {
+            
+            if (NotifyAction::isChatMessage($action_setting)) {
+                // send slack message
                 NotifyService::executeNotifyAction($this, [
                     'mail_template' => $mail_template,
-                    'prms' => array_merge(['user' => $user->toArray()], $prms),
-                    'user' => $user,
+                    'prms' => $prms,
                     'custom_value' => $custom_value,
+                    'mention_here' => $this->getMentionHere(),
+                    'mention_users' => $this->getMentionUsers($users),
+                    'is_chat' => true,
                 ]);
             }
-            // throw mailsend Exception
-            catch (\Swift_TransportException $ex) {
-                \Log::error($ex);
-                // show warning message
-                admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
+
+            // return function if no user-targeted action is included
+            if (!NotifyAction::isUserTarget($action_setting)) {
+                return;
+            }
+
+            foreach ($users as $user) {
+                if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user)) {
+                    continue;
+                }
+
+                // send notify
+                try {
+                    NotifyService::executeNotifyAction($this, [
+                        'mail_template' => $mail_template,
+                        'prms' => array_merge(['user' => $user->toArray()], $prms),
+                        'user' => $user,
+                        'custom_value' => $custom_value,
+                    ]);
+                }
+                // throw mailsend Exception
+                catch (\Swift_TransportException $ex) {
+                    \Log::error($ex);
+                    // show warning message
+                    admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
+                }
             }
         }
+
     }
     
 
@@ -292,7 +286,7 @@ class Notify extends ModelBase
             'notify' => $this,
         ];
 
-        if (NotifyAction::isChatMessage($this->notify_actions)) {
+        if (NotifyAction::isChatMessage($action_setting)) {
             // send slack message
             NotifyService::executeNotifyAction($this, [
                 'mail_template' => $mail_template,
@@ -309,7 +303,7 @@ class Notify extends ModelBase
         }
 
         // return function if no user-targeted action is included
-        if (!NotifyAction::isUserTarget($this->notify_actions)) {
+        if (!NotifyAction::isUserTarget($action_setting)) {
             return;
         }
 
@@ -369,7 +363,7 @@ class Notify extends ModelBase
             return File::where('uuid', $uuid)->first();
         })->filter();
 
-        if (NotifyAction::isChatMessage($this->notify_actions)) {
+        if (NotifyAction::isChatMessage($action_setting)) {
             $users = NotifyTarget::getSelectedNotifyTargets($target_user_keys, $this, $custom_value);
 
             // send slack message
@@ -389,7 +383,7 @@ class Notify extends ModelBase
         }
 
         // return function if no user-targeted action is included
-        if (!NotifyAction::isUserTarget($this->notify_actions)) {
+        if (!NotifyAction::isUserTarget($action_setting)) {
             return;
         }
 
@@ -466,30 +460,66 @@ class Notify extends ModelBase
      * get notify target users
      *
      * @param CustomValue $custom_value target custom value
+     * @param array $action_setting
      * @return array
      */
-    public function getNotifyTargetUsers($custom_value)
+    public function getNotifyTargetUsers($custom_value, array $action_setting)
     {
-        $notify_action_target = $this->getActionSetting('notify_action_target');
+        $notify_action_target = array_get($action_setting, 'notify_action_target');
         if (!isset($notify_action_target)) {
             return [];
         }
 
-        if (!is_array($notify_action_target)) {
-            $notify_action_target = [$notify_action_target];
-        }
-
         // loop
-        $users = collect([]);
-        foreach ($notify_action_target as $notify_act) {
-            $users_inner = NotifyTarget::getModels($this, $custom_value, $notify_act);
-            foreach ($users_inner as $u) {
-                $users->push($u);
+        $values = collect([]);
+        foreach (stringToArray($notify_action_target) as $notify_act) {
+            $values_inner = NotifyTarget::getModels($this, $custom_value, $notify_act);
+            foreach ($values_inner as $u) {
+                $values->push($u);
             }
         }
 
-        return $users;
+        return $values;
     }
+
+
+    
+    /**
+     * Prepare notify targets
+     *
+     * @param CustomValue $custom_value target custom value
+     * @param array $action_setting
+     * @return array
+     */
+    protected function prepareNotifyTargets($custom_value, array $action_setting, array $options = [])
+    {
+        // get $targets. NotifyTarget array.
+        if (!isset($options['targetUserOrgs'])) {
+            $targets = $this->getNotifyTargetUsers($custom_value, $action_setting);
+        } else {
+            $targets = collect($options['targetUserOrgs'])->map(function ($targetUserOrg) use($custom_value) {
+                return NotifyTarget::getModelAsSelectTable($custom_value, NotifyTargetType::getNotifyTargetTypeByTable($targetUserOrg->custom_table->table_name));
+            })->toArray();
+        }
+        
+
+        $notify_action_target = array_get($action_setting, 'notify_action_target');
+        if (!isset($notify_action_target)) {
+            return [];
+        }
+
+        // loop
+        $values = collect([]);
+        foreach (stringToArray($notify_action_target) as $notify_act) {
+            $values_inner = NotifyTarget::getModels($this, $custom_value, $notify_act);
+            foreach ($values_inner as $u) {
+                $values->push($u);
+            }
+        }
+
+        return $values;
+    }
+
 
     /**
      * whether $user is target send user
@@ -531,14 +561,6 @@ class Notify extends ModelBase
         }
 
         return true;
-    }
-    protected function routeNotificationForSlack()
-    {
-        return array_get($this->action_settings, 'webhook_url');
-    }
-    protected function routeNotificationForMicrosoftTeams()
-    {
-        return array_get($this->action_settings, 'webhook_url');
     }
     
     protected static function boot()

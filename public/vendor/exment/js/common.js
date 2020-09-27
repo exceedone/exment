@@ -1012,7 +1012,7 @@ var Exment;
                     $getdata = CommonEvent.getParentRow($parent);
                 }
                 let key = g.key;
-                let $target = $parent.find(CommonEvent.getClassKey(key));
+                let $target = $getdata.find(CommonEvent.getClassKey(key));
                 expand[key] = $target.val();
             }
         }

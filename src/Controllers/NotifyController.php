@@ -7,34 +7,39 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Widgets\Form as WidgetForm;
+use Encore\Admin\Widgets\Box;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyBeforeAfter;
-use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Services\Installer\InitializeFormTrait;
+use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Validator\RequiredIfExRule;
 use Illuminate\Http\Request;
 
 class NotifyController extends AdminControllerBase
 {
     use HasResourceActions;
+    use InitializeFormTrait;
 
     public function __construct()
     {
         $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"), 'fa-bell');
     }
 
-    
+
     /**
      * Create interface.
      *
@@ -57,7 +62,6 @@ class NotifyController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new Notify);
-        $grid->column('notify_name', exmtrans("notify.notify_name"))->sortable();
         $grid->column('notify_view_name', exmtrans("notify.notify_view_name"))->sortable();
         $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->displayEscape(function ($val) {
             $enum = NotifyTrigger::getEnum($val);
@@ -76,11 +80,11 @@ class NotifyController extends AdminControllerBase
             return null;
         });
 
-        $grid->column('notify_actions', exmtrans("notify.notify_action"))->sortable()->displayEscape(function ($val) {
-            return implode(exmtrans('common.separate_word'), collect($val)->map(function ($v) {
-                $enum = NotifyAction::getEnum($v);
+        $grid->column('action_settings', exmtrans("notify.notify_action"))->sortable()->displayEscape(function ($val) {
+            return collect($val)->map(function ($v) {
+                $enum = NotifyAction::getEnum(array_get($v, 'notify_action'));
                 return isset($enum) ? $enum->transKey('notify.notify_action_options') : null;
-            })->toArray());
+            })->filter()->unique()->implode(exmtrans('common.separate_word'));
         });
 
         // filter only custom table user has permission custom table
@@ -105,6 +109,7 @@ class NotifyController extends AdminControllerBase
         });
         return $grid;
     }
+
 
     /**
      * Make a form builder.
@@ -131,6 +136,9 @@ class NotifyController extends AdminControllerBase
         $form->text('notify_view_name', exmtrans("notify.notify_view_name"))->required()->rules("max:40");
         // TODO: only role tables
 
+        $form->switchbool('active_flg', exmtrans("plugin.active_flg"))
+            ->default(true);
+
         $form->exmheader(exmtrans('notify.header_trigger'))->hr();
         
         $form->select('notify_trigger', exmtrans("notify.notify_trigger"))
@@ -153,7 +161,6 @@ class NotifyController extends AdminControllerBase
         })->attribute([
             'data-linkage' => json_encode([
                 'trigger_settings_notify_target_column' =>  admin_url('notify/targetcolumn'),
-                'action_settings_notify_action_target' => admin_url('notify/notify_action_target'),
                 'custom_view_id' => [
                   'url' => admin_url('webapi/table/filterviews'),
                   'text' => 'view_view_name',
@@ -266,62 +273,80 @@ class NotifyController extends AdminControllerBase
         })->disableHeader();
 
         $form->exmheader(exmtrans("notify.header_action"))->hr();
-        $form->multipleSelect('notify_actions', exmtrans("notify.notify_action"))
+
+        $form->hasManyJson('action_settings', exmtrans("notify.action_settings"), function($form){
+            $form->select('notify_action', exmtrans("notify.notify_action"))
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
-            ->default([NotifyAction::SHOW_PAGE])
             ->required()
             ->attribute([
                 'data-filtertrigger' =>true,
+                'data-linkage' => json_encode([
+                    'notify_action_target' => admin_url('notify/notify_action_target'),
+                ]),
+                'data-linkage-getdata' =>json_encode([
+                    ['key' => 'custom_table_id', 'parent' => 1],
+                    ['key' => 'workflow_id', 'parent' => 1],
+                ]),
             ])
             ->config('allowClear', false)
             ->help(exmtrans("notify.help.notify_action"))
             ;
 
-        $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form) {
-            $controller = $this;
-            
             $form->text('webhook_url', exmtrans("notify.webhook_url"))
-                ->rules(["max:300", new RequiredIfExRule([['notify_actions', NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS]])])
+                ->required()
+                ->rules(["max:300"])
                 ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify_webhook')))
-                ->setLabelClass(['asterisk'])
                 ->attribute([
-                    'data-filter' => json_encode(['parent' => 1, 'key' => 'notify_actions', 'value' => [NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS]])
+                    'data-filter' => json_encode(['key' => 'notify_action', 'value' => [NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS]])
                 ]);
 
             $form->switchbool('mention_here', exmtrans("notify.mention_here"))
                 ->help(exmtrans("notify.help.mention_here"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_actions', 'value' =>  [NotifyAction::SLACK]])
+                ->attribute(['data-filter' => json_encode(['key' => 'notify_action', 'value' =>  [NotifyAction::SLACK]])
                 ]);
-
+            
+            $system_slack_user_column = CustomColumn::getEloquent(System::system_slack_user_column());
+            $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE];
             $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
-                ->options(function ($val, $foo, $notify) use ($controller) {
-                    if ($notify->workflow_id) {
-                        return $controller->getNotifyActionTargetWorkflowOptions(false);
-                    }
-                    return $controller->getNotifyActionTargetOptions($notify->custom_table_id ?? null, false);
+                ->options(function ($val, $field, $notify) {
+                    $options = [
+                        'as_workflow' => !is_nullorempty($notify->workflow_id),
+                    ];
+                    return collect(NotifyService::getNotifyTargetColumns($notify->custom_table_id ?? null, array_get($field->data(), 'notify_action'), $options))
+                        ->pluck('text', 'id');
                 })
-                ->default(NotifyActionTarget::HAS_ROLES)
-                ->setLabelClass(['asterisk'])
+                ->attribute([
+                    'data-filter' => json_encode([
+                        ['key' => 'notify_action', 'value' => $notify_action_target_filter]
+                    ])
+                ])
                 ->rules([new RequiredIfExRule([
                     ['notify_actions', NotifyAction::EMAIL, NotifyAction::SHOW_PAGE],
                 ])])
-                ->attribute([
-                    'data-filter' => json_encode([
-                        ['parent' => 1, 'key' => 'notify_actions', 'value' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK]]
-                    ])
-                ])
                 ->help(exmtrans("notify.help.notify_action_target"));
 
-            // get notify mail template
-            $notify_mail_id = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', MailKeyName::TIME_NOTIFY)->first()->id;
-
-            $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function ($val) {
-                return getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('label', 'id');
-            })->help(exmtrans("notify.help.mail_template_id"))
-            ->config('allowClear', false)
-            ->default($notify_mail_id)->required();
+            if(!isset($system_slack_user_column)){
+                $form->display('notify_action_target_text', exmtrans("notify.notify_action_target"))
+                    ->displayText('※システム設定の「Slack ID設定列(ユーザー)」が登録されていません。Slack IDを登録する列を指定後、通知対象を設定できます。')
+                    ->attribute([
+                        'data-filter' => json_encode([
+                            ['key' => 'notify_action', 'value' => [NotifyAction::SLACK]]
+                        ])
+                    ])
+                    ->escape(false);
+                $form->ignore('notify_action_target_text');
+            }
         })->disableHeader();
-        
+
+        // get notify mail template
+        $notify_mail_id = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', MailKeyName::TIME_NOTIFY)->first()->id;
+
+        $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function ($val) {
+            return getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('label', 'id');
+        })->help(exmtrans("notify.help.mail_template_id"))
+        ->config('allowClear', false)
+        ->default($notify_mail_id)->required();
+
         $form->tools(function (Form\Tools $tools) {
             $tools->append(new Tools\SystemChangePageMenu());
         });
@@ -337,12 +362,11 @@ class NotifyController extends AdminControllerBase
 
     public function notify_action_target(Request $request)
     {
-        return $this->getNotifyActionTargetOptions($request->get('q'), true);
-    }
+        $options = NotifyService::getNotifyTargetColumns($request->get('custom_table_id'), $request->get('q'), [
+            'as_workflow' => !is_nullorempty($request->get('workflow_id')),
+        ]);
 
-    public function notify_action_target_workflow(Request $request)
-    {
-        return $this->getNotifyActionTargetWorkflowOptions(true);
+        return $options;
     }
 
     protected function getTargetColumnOptions($custom_table, $isApi)
@@ -365,76 +389,9 @@ class NotifyController extends AdminControllerBase
         }
     }
 
-    protected function getNotifyActionTargetOptions($custom_table, $isApi)
-    {
-        // if workflow
-        $array = getTransArray(NotifyActionTarget::ACTION_TARGET_CUSTOM_TABLE(), 'notify.notify_action_target_options');
-        $options = [];
-        foreach ($array as $k => $v) {
-            $options[] = ['id' => $k, 'text' => $v];
-        }
-
-        $custom_table = CustomTable::getEloquent($custom_table);
-        if (isset($custom_table)) {
-            $options = array_merge($options, CustomColumn
-            ::where('custom_table_id', $custom_table->id)
-            ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION, ColumnType::EMAIL])
-            ->get(
-                ['id', 'column_view_name as text']
-            )
-            ->map(function ($option) {
-                return ['id' => $option['id'], 'text' => exmtrans('common.custom_column') . ' : ' . $option['text']];
-            })->toArray());
-
-
-            // get select table's
-            $select_table_columns = $custom_table->custom_columns()
-                ->where('column_type', ColumnType::SELECT_TABLE)
-                ->get();
-
-            foreach ($select_table_columns as $select_table_column) {
-                if (is_null($select_target_table = $select_table_column->select_target_table)) {
-                    continue;
-                }
-
-                // if has $emailColumn, add $select_table_column
-                $emailColumn = CustomColumn
-                    ::where('custom_table_id', $select_target_table->id)
-                    ->where('column_type', ColumnType::EMAIL)
-                    ->first();
-                if (!isset($emailColumn)) {
-                    continue;
-                }
-
-                $options[] = ['id' => $select_table_column->id, 'text' => exmtrans('common.custom_column') . ' : ' . $select_table_column->column_view_name];
-            }
-        }
-        if ($isApi) {
-            return $options;
-        } else {
-            return collect($options)->pluck('text', 'id')->toArray();
-        }
-    }
-    
-    protected function getNotifyActionTargetWorkflowOptions($isApi)
-    {
-        // if workflow
-        $array = getTransArray(NotifyActionTarget::ACTION_TARGET_WORKFLOW(), 'notify.notify_action_target_options');
-        $options = [];
-        foreach ($array as $k => $v) {
-            $options[] = ['id' => $k, 'text' => $v];
-        }
-
-        if ($isApi) {
-            return $options;
-        } else {
-            return collect($options)->pluck('text', 'id')->toArray();
-        }
-    }
-    
     public function getNotifyTriggerTemplate(Request $request)
     {
-        $keyName = 'action_settings_mail_template_id';
+        $keyName = 'mail_template_id';
         $value = $request->input('value');
 
         // get mail key enum
@@ -492,4 +449,31 @@ class NotifyController extends AdminControllerBase
 
         return true;
     }
+
+    
+    /**
+     * Send data
+     * @param Request $request
+     */
+    public function postNotifySetting(Request $request)
+    {
+        \DB::beginTransaction();
+        try {
+            $result = $this->postInitializeForm($request, ['notify'], false, false);
+            if ($result instanceof \Illuminate\Http\RedirectResponse) {
+                return $result;
+            }
+
+            \DB::commit();
+
+            admin_toastr(trans('admin.save_succeeded'));
+
+            return redirect(admin_url('notify'));
+        } catch (\Exception $exception) {
+            //TODO:error handling
+            \DB::rollback();
+            throw $exception;
+        }
+    }
+
 }

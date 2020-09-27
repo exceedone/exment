@@ -47,4 +47,9 @@ class HasManyJsonTable extends HasManyTable
     {
         return $this->buildNestedFormTrait($column, $builder, $key, $index);
     }
+    
+    protected function getParentRenderClass()
+    {
+        return get_parent_class(get_parent_class(get_parent_class(get_parent_class($this))));
+    }
 }

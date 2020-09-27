@@ -15,7 +15,7 @@ class HasManyTable extends HasMany
 {
     protected $tablecolumnwidths = [];
     protected $count = null;
-    protected $header = true;
+    protected $enableHeader = true;
 
     /**
      * Show row up down button
@@ -112,7 +112,7 @@ class HasManyTable extends HasMany
     
     public function disableHeader()
     {
-        $this->header = false;
+        $this->enableHeader = false;
 
         return $this;
     }
@@ -366,7 +366,7 @@ EOT;
         $this->setupScript($script);
 
         // get field class
-        $grandParent = get_parent_class(get_parent_class(get_parent_class($this)));
+        $grandParent = $this->getParentRenderClass();
         return $grandParent::render()->with([
             'forms'        => $relatedforms,
             'template'     => $template,
@@ -381,8 +381,14 @@ EOT;
             'description' => $this->description,
             'escapeDescription' => $this->escapeDescription,
             'options'      => $this->options,
-            'header' => $this->header,
+            'enableHeader' => $this->enableHeader,
             'hideDeleteButtonRow' => $this->hideDeleteButtonRow,
         ]);
+    }
+
+    
+    protected function getParentRenderClass()
+    {
+        return get_parent_class(get_parent_class(get_parent_class($this)));
     }
 }
