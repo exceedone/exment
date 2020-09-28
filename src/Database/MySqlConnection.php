@@ -135,12 +135,11 @@ class MySqlConnection extends BaseConnection
     public function checkBackup()
     {
         $commands = [static::getMysqlDumpPath(), static::getMysqlPath()];
-        foreach($commands as $command){
+        foreach ($commands as $command) {
             $execCommand = "$command --version";
             exec($execCommand, $output, $return_var);
 
-            if($return_var != 0)
-            {
+            if ($return_var != 0) {
                 throw new BackupRestoreCheckException(exmtrans('backup.message.cmd_check_error', ['cmd' => $execCommand]));
             }
         }

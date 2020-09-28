@@ -43,9 +43,9 @@ class BackupController extends AdminControllerBase
         $disk = $this->backup->disk();
         
         // check backup execute
-        try{
+        try {
             $this->backup->check();
-        }catch(BackupRestoreCheckException $ex){
+        } catch (BackupRestoreCheckException $ex) {
             admin_error(exmtrans('common.error'), $ex->getMessage());
             return $content;
         }

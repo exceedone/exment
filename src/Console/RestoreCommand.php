@@ -63,7 +63,7 @@ class RestoreCommand extends Command
         } catch (BackupRestoreCheckException $e) {
             $this->error($e->getMessage());
             return;
-        }  catch (\Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         } finally {
             $this->restore->diskService()->deleteTmpDirectory();

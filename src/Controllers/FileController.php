@@ -360,7 +360,7 @@ class FileController extends AdminControllerBase
         // get upload file
         $file = $request->file('file');
         $original_name = $file->getClientOriginalName();
-        $uuid = make_uuid(); 
+        $uuid = make_uuid();
         // store uploaded file
         $filename = $file->storeAs('', $uuid, Define::DISKNAME_TEMP_UPLOAD);
         try {
