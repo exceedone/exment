@@ -244,6 +244,7 @@ class Notify extends ModelBase
     public function notifyWorkflow($custom_value, $workflow_action, $workflow_value, $statusTo)
     {
         $users = collect();
+        $workflow = $workflow_action->workflow_cache;
 
         // loop action setting
         foreach ($this->action_settings as $action_setting) {
@@ -258,7 +259,11 @@ class Notify extends ModelBase
             }
     
             if (in_array(NotifyActionTarget::WORK_USER, $notify_action_target)) {
-                WorkflowStatus::getActionsByFrom($statusTo, $workflow_action->workflow, true)
+                // if this workflow is completed
+                if(isset($workflow_value) && $workflow_value->isCompleted()){
+                    continue;
+                }
+                WorkflowStatus::getActionsByFrom($statusTo, $workflow, true)
                     ->each(function ($workflow_action) use (&$users, $custom_value) {
                         $users = $users->merge(
                             $workflow_action->getAuthorityTargets($custom_value, true),
