@@ -363,11 +363,13 @@ class Notify extends ModelBase
             return File::where('uuid', $uuid)->first();
         })->filter();
 
-        if (NotifyAction::isChatMessage($action_setting)) {
-            $users = NotifyTarget::getSelectedNotifyTargets($target_user_keys, $this, $custom_value);
+        // loop action setting
+        foreach ($this->action_settings as $action_setting) {
+            if (NotifyAction::isChatMessage($action_setting)) {
+                $users = NotifyTarget::getSelectedNotifyTargets($target_user_keys, $this, $custom_value);
 
-            // send slack message
-            NotifyService::executeNotifyAction($this, [
+                // send slack message
+                NotifyService::executeNotifyAction($this, [
                 'mail_template' => $mail_template,
                 'prms' => [
                     'notify' => $this,
@@ -380,33 +382,33 @@ class Notify extends ModelBase
                 'mention_users' => $this->getMentionUsers($users),
                 'is_chat' => true
             ]);
-        }
-
-        // return function if no user-targeted action is included
-        if (!NotifyAction::isUserTarget($action_setting)) {
-            return;
-        }
-
-        // loop target users
-        foreach ($target_user_keys as $target_user_key) {
-            $user = NotifyTarget::getSelectedNotifyTarget($target_user_key, $this, $custom_value);
-            if (!isset($user)) {
-                continue;
             }
 
-            if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, false)) {
-                continue;
+            // return function if no user-targeted action is included
+            if (!NotifyAction::isUserTarget($action_setting)) {
+                return;
             }
 
-            $prms = [
+            // loop target users
+            foreach ($target_user_keys as $target_user_key) {
+                $user = NotifyTarget::getSelectedNotifyTarget($target_user_key, $this, $custom_value);
+                if (!isset($user)) {
+                    continue;
+                }
+
+                if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, false)) {
+                    continue;
+                }
+
+                $prms = [
                 'user' => $user,
                 'notify' => $this,
                 'target_table' => $custom_table->table_view_name ?? null
             ];
 
-            // send mail
-            try {
-                NotifyService::executeNotifyAction($this, [
+                // send mail
+                try {
+                    NotifyService::executeNotifyAction($this, [
                     'mail_template' => $mail_template,
                     'prms' => $prms,
                     'user' => $user,
@@ -415,12 +417,13 @@ class Notify extends ModelBase
                     'body' => $body,
                     'attach_files' => $attach_files,
                 ]);
-            }
-            // throw mailsend Exception
-            catch (\Swift_TransportException $ex) {
-                \Log::error($ex);
-                // show warning message
-                admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
+                }
+                // throw mailsend Exception
+                catch (\Swift_TransportException $ex) {
+                    \Log::error($ex);
+                    // show warning message
+                    admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
+                }
             }
         }
     }

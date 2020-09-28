@@ -214,7 +214,7 @@ class NotifyService
         if (isset($title) && isset($message)) {
             try {
                 $this->notify->notifyButtonClick($this->custom_value, $target_user_keys, $title, $message, $attachments);
-            } catch (\Swift_RfcComplianceException $ex) {
+            } catch (\Swift_TransportException $ex) {
                 return getAjaxResponse([
                     'result'  => false,
                     'errors' => ['send_error_message' => ['type' => 'input',
