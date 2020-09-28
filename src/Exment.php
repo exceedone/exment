@@ -312,4 +312,24 @@ class Exment
             ;
         });
     }
+
+    /**
+     * Push collection. if $item is \Illuminate\Support\Collection, loop
+     *
+     * @param [type] $item
+     * @return void
+     */
+    public function pushCollection(\Illuminate\Support\Collection $collect, $item) : \Illuminate\Support\Collection
+    {
+        if($item instanceof \Illuminate\Support\Collection){
+            foreach($item as $i){
+                $collect->push($i);
+            }
+        }
+        else{
+            $collect->push($item);
+        }
+
+        return $collect;
+    }
 }

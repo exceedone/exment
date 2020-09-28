@@ -97,6 +97,7 @@ class Notify extends ModelBase
                         'mention_users' => $this->getMentionUsers($users),
                         'is_chat' => true,
                     ]);
+                    continue;
                 }
     
                 // return function if no user-targeted action is included
@@ -187,11 +188,10 @@ class Notify extends ModelBase
 
                 // get users
                 $users = getModelName(SystemTableName::USER)::find($users);
-
                 // convert as NotifyTarget
                 $users = $users->map(function ($user) {
                     return NotifyTarget::getModelAsUser($user);
-                })->toArray();
+                });
             }
             
             if (NotifyAction::isChatMessage($action_setting)) {
@@ -204,6 +204,7 @@ class Notify extends ModelBase
                     'mention_users' => $this->getMentionUsers($users),
                     'is_chat' => true,
                 ]);
+                continue;
             }
 
             // continue function if no user-targeted action is included
@@ -274,13 +275,22 @@ class Notify extends ModelBase
     
             $loginuser = \Exment::user();
             $users = $users->unique()->filter(function ($user) use ($loginuser) {
-                return is_nullorempty($loginuser) || $loginuser->getUserId() != $user->getUserId();
+                if(is_nullorempty($loginuser)){
+                    return true;
+                }
+                if (!boolval(config('exment.notify_skip_self_target', true))) {
+                    return true;
+                }
+                if($loginuser->getUserId() != $user->getUserId()){
+                    return true;
+                }
+                return false;
             });
     
             // convert as NotifyTarget
             $users = $users->map(function ($user) {
                 return NotifyTarget::getModelAsUser($user);
-            })->toArray();
+            });
     
             $mail_template = $this->getMailTemplate();
     
@@ -302,6 +312,7 @@ class Notify extends ModelBase
                         'workflow_value' => $workflow_value,
                     ]
                 ]);
+                continue;
             }
     
             // return function if no user-targeted action is included
@@ -373,18 +384,19 @@ class Notify extends ModelBase
 
                 // send slack message
                 NotifyService::executeNotifyAction($this, [
-                'mail_template' => $mail_template,
-                'prms' => [
-                    'notify' => $this,
-                    'target_table' => $custom_table->table_view_name ?? null
-                ],
-                'custom_value' => $custom_value,
-                'subject' => $subject,
-                'body' => $body,
-                'mention_here' => $this->getMentionHere($action_setting),
-                'mention_users' => $this->getMentionUsers($users),
-                'is_chat' => true
-            ]);
+                    'mail_template' => $mail_template,
+                    'prms' => [
+                        'notify' => $this,
+                        'target_table' => $custom_table->table_view_name ?? null
+                    ],
+                    'custom_value' => $custom_value,
+                    'subject' => $subject,
+                    'body' => $body,
+                    'mention_here' => $this->getMentionHere($action_setting),
+                    'mention_users' => $this->getMentionUsers($users),
+                    'is_chat' => true
+                ]);
+                continue;
             }
 
             // continue function if no user-targeted action is included
@@ -412,14 +424,14 @@ class Notify extends ModelBase
                 // send mail
                 try {
                     NotifyService::executeNotifyAction($this, [
-                    'mail_template' => $mail_template,
-                    'prms' => $prms,
-                    'user' => $user,
-                    'custom_value' => $custom_value,
-                    'subject' => $subject,
-                    'body' => $body,
-                    'attach_files' => $attach_files,
-                ]);
+                        'mail_template' => $mail_template,
+                        'prms' => $prms,
+                        'user' => $user,
+                        'custom_value' => $custom_value,
+                        'subject' => $subject,
+                        'body' => $body,
+                        'attach_files' => $attach_files,
+                    ]);
                 }
                 // throw mailsend Exception
                 catch (\Swift_TransportException $ex) {
@@ -471,44 +483,6 @@ class Notify extends ModelBase
      */
     public function getNotifyTargetUsers($custom_value, array $action_setting)
     {
-        $notify_action_target = array_get($action_setting, 'notify_action_target');
-        if (!isset($notify_action_target)) {
-            return [];
-        }
-
-        // loop
-        $values = collect([]);
-        foreach (stringToArray($notify_action_target) as $notify_act) {
-            $values_inner = NotifyTarget::getModels($this, $custom_value, $notify_act);
-            foreach ($values_inner as $u) {
-                $values->push($u);
-            }
-        }
-
-        return $values;
-    }
-
-
-    
-    /**
-     * Prepare notify targets
-     *
-     * @param CustomValue $custom_value target custom value
-     * @param array $action_setting
-     * @return array
-     */
-    protected function prepareNotifyTargets($custom_value, array $action_setting, array $options = [])
-    {
-        // get $targets. NotifyTarget array.
-        if (!isset($options['targetUserOrgs'])) {
-            $targets = $this->getNotifyTargetUsers($custom_value, $action_setting);
-        } else {
-            $targets = collect($options['targetUserOrgs'])->map(function ($targetUserOrg) use($custom_value) {
-                return NotifyTarget::getModelAsSelectTable($custom_value, NotifyTargetType::getNotifyTargetTypeByTable($targetUserOrg->custom_table->table_name));
-            })->toArray();
-        }
-        
-
         $notify_action_target = array_get($action_setting, 'notify_action_target');
         if (!isset($notify_action_target)) {
             return [];

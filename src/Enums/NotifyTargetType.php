@@ -9,12 +9,12 @@ class NotifyTargetType extends EnumBase
     const USER = "3";
     const ORGANIZATION = "4";
 
-    public static function getNotifyTargetTypeByTable($table_name){
+    public static function getNotifyFuncByTable($table_name){
         switch($table_name){
             case SystemTableName::USER:
-                return static::USER;
+                return 'getModelAsUser';
             case SystemTableName::ORGANIZATION:
-                return static::ORGANIZATION;
+                return 'getModelsAsOrganization';
         }
     }
 }
