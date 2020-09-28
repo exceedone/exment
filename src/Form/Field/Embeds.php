@@ -9,7 +9,7 @@ class Embeds extends AdminField\Embeds
 {
     protected $view = 'exment::form.field.embeds';
 
-    protected $header = true;
+    protected $enableHeader = true;
 
     protected $footer_hr = false;
 
@@ -17,7 +17,7 @@ class Embeds extends AdminField\Embeds
 
     public function disableHeader()
     {
-        $this->header = false;
+        $this->enableHeader = false;
     }
 
     public function footerHr($footer_hr = true)
@@ -93,7 +93,7 @@ class Embeds extends AdminField\Embeds
             'gridHeaders' => $this->gridFields[8]?? null,
             'gridFooters' => $this->gridFields[9]?? null,
             'is_grid' => true,
-            'header' => $this->header,
+            'enableHeader' => $this->enableHeader,
             'footer_hr' => $this->footer_hr,
         ]);
     }

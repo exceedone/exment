@@ -1,6 +1,6 @@
 
 <div id="has-many-table-{{$column}}" class="form-group has-many-table-div">
-    @if($header)
+    @if($enableHeader)
     <div class="row">
         <div class="col-sm-12">
             <h4 class="field-header">{{ $label }}</h4>

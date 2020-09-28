@@ -1,5 +1,5 @@
 
-@if($header)
+@if($enableHeader)
 <div class="">
     <h4 class="field-header">{{ $label }}</h4>
 </div>
