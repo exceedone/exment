@@ -359,8 +359,14 @@ class FileController extends AdminControllerBase
 
         // get upload file
         $file = $request->file('file');
+        $original_name = $file->getClientOriginalName();
+        $uuid = make_uuid();
         // store uploaded file
-        $filename = $file->storeAs('', make_uuid(), Define::DISKNAME_TEMP_UPLOAD);
+        $filename = $file->storeAs('', $uuid, Define::DISKNAME_TEMP_UPLOAD);
+        try {
+            $request->session()->put($uuid, $original_name);
+        } catch (\Exception $e) {
+        }
         return json_encode(['location' => admin_urls('tmpfiles', basename($filename))]);
     }
 

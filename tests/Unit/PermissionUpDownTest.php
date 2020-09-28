@@ -7,7 +7,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
-class PermissionTest extends UnitTestBase
+class PermissionUpDownTest extends UnitTestBase
 {
     protected function init(){
         System::clearCache();
