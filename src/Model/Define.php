@@ -376,6 +376,10 @@ class Define
         return [
             'showPreview' => true,
             'showCancel' => false,
+            'fileActionSettings' => [
+                'showZoom' => false,
+                'showDrag' => false,
+            ],
             'dropZoneEnabled' => !boolval(config('exment.file_drag_drop_disabled', false)),
             'dropZoneTitle' => exmtrans('common.message.file_drag_drop'),
             'browseLabel' => trans('admin.browse'),

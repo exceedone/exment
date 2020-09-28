@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests;
 
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\CustomTable;
 
 trait TestTrait
 {
@@ -40,5 +41,34 @@ trait TestTrait
     protected function initAllTest(){
         System::clearCache();
         \Exceedone\Exment\Middleware\Morph::defineMorphMap();
+    }
+
+    
+    /**
+     * Check custom value's permission after getting api
+     *
+     * @param CustomTable $custom_table
+     * @param array $ids
+     * @param boolean $filterCallback filtering query
+     * @return void
+     */
+    protected function checkCustomValuePermission(CustomTable $custom_table, $ids, ?\Closure $filterCallback = null)
+    {
+        // get all ids
+        $allIds = \DB::table(getDBTableName($custom_table))->select('id')->pluck('id');
+        $query = $custom_table->getValueModel()->withoutGlobalScopes();
+        
+        if($filterCallback){
+            $filterCallback($query);
+        }
+        $all_custom_values = $query->findMany($allIds);
+        
+        foreach($all_custom_values as $all_custom_value){
+            // if find target user ids, check has permisison
+            $hasPermission = in_array($all_custom_value->id, $ids);
+            $hasPermissionString = $hasPermission ? 'true' : 'false';
+
+            $this->assertTrue($hasPermission === $custom_table->hasPermissionData($all_custom_value->id), "id {$all_custom_value->id}'s permission expects {$hasPermissionString}, but wrong.");
+        }
     }
 }

@@ -616,6 +616,7 @@ return [
             'same_filename' => 'A backup file with that file name has already been created.',
             'notfound_file' => 'Not found the file.',
             'restore_caution' => 'When migrating to another environment, problems may occur due to the difference between the original environment and the destination environment.<br>In particular, if the OS is different (Windows or Linux), the type of database (MySQL or MariaDB), the version, etc., it will not be completed normally due to various factors.<br>Be sure to check in advance.',
+            'cmd_check_error' => 'The following command did not complete successfully. Please double check the server settings and database settings.  :cmd',
         ],
         'help' =>[
             'file_name' => 'Please select the backup zip file.%s<br>*Up to the size listed can be uploaded from the screen. If you want to restore larger files, please refer to <a href="%s" target="_blank">here <i class="fa fa-external-link"></i></a>.',
@@ -1483,6 +1484,8 @@ return [
         'message' => [
             'over_filters_max' => 'Cannot set 6 or more display filters.',
             'over_sorts_max' => 'Cannot set 6 or more display sorts.',
+            'used_notify_error' => 'Used in the notification settings. Please delete it in advance.',
+            'used_column_error' => 'Used in the refinement view for custom column settings. Please delete it in advance.',
         ],
 
         'custom_view_button_label' => 'View',

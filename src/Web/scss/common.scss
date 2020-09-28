@@ -491,6 +491,9 @@ body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>
 .mce-window.mce-in .mce-open{
     display: none;
 }
+.show-tinymce img{
+    max-width: 100%;
+}
 
 .has-error {
     .btn-valuemodal, .text-valuemodal, .checkbox, .checkbox-inline, .control-label, .help-block, .radio, .radio-inline{

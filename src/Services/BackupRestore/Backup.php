@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Services\BackupRestore;
 
-use Illuminate\Console\Command;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\Installer\EnvTrait;
@@ -33,11 +32,15 @@ class Backup
     /**
      * Execute backup.
      *
-     * @return mixed
+     * @return int
+     * @throws \Exceedone\Exment\Exceptions\BackupRestoreCheckException
      */
     public function execute($target = null, bool $schedule = false)
     {
         try {
+            // check backup execute
+            \DB::checkBackup();
+
             $target = $target ?? BackupTarget::arrays();
 
             if (is_string($target)) {
