@@ -178,7 +178,7 @@ class AuthUserOrgHelper
                 $queryTable = static::{$func}($custom_value->custom_table, $tablePermission);
                 $queryTable->withoutGlobalScope(CustomValueModelScope::class);
 
-                $results[$idkey] = $queryTable->findMany($idvalue)->get();
+                $results[$idkey] = $queryTable->findMany($idvalue);
             }
 
             if (!isset($tablePermission)) {

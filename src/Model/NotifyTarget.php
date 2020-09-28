@@ -221,7 +221,7 @@ class NotifyTarget
      * @param string $notify_target
      * @return NotifyTarget
      */
-    protected static function getModelAsSelectTable($target_value, $notify_target, ?CustomColumn $custom_column = null)
+    public static function getModelAsSelectTable($target_value, $notify_target, ?CustomColumn $custom_column = null)
     {
         if (!isset($target_value)) {
             return null;
