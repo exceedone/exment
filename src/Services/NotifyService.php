@@ -430,21 +430,6 @@ class NotifyService
         $replaceOptions = $params['replaceOptions'];
 
 
-        if ($user instanceof CustomValue) {
-            $id = $user->getUserId();
-        } elseif ($user instanceof NotifyTarget) {
-            $id = $user->id();
-        } elseif (is_numeric($user)) {
-            $id = $user;
-        }
-
-        if (!isset($id)) {
-            return;
-        }
-
-        // save data
-        $login_user = \Exment::user();
-
         // replace system:site_name to custom_value label
         if (isset($custom_value)) {
             array_set($prms, 'system.site_name', $custom_value->label);
@@ -454,19 +439,10 @@ class NotifyService
         $mail_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
         $mail_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
 
-        $notify_navbar = new NotifyNavbar;
-        $notify_navbar->notify_id = array_get($notify, 'id', -1);
-
-        if (isset($custom_value)) {
-            $notify_navbar->parent_id = array_get($custom_value, 'id');
-            $notify_navbar->parent_type = $custom_value->custom_table->table_name;
-        }
-
-        $notify_navbar->notify_subject = $mail_subject;
-        $notify_navbar->notify_body = $mail_body;
-        $notify_navbar->target_user_id = $id;
-        $notify_navbar->trigger_user_id = isset($login_user) ? $login_user->getUserId() : null;
-        $notify_navbar->save();
+        Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params)
+            ->custom_value($custom_value)
+            ->user($user)
+            ->send();
     }
 
 
