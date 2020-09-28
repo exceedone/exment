@@ -84,7 +84,7 @@ class Embeds extends AdminField\Embeds
     {
         $form = $this->buildEmbeddedForm();
         if (count($this->gridFields) == 0) {
-            return parent::render()->with(['form' => $form, 'header' => $this->header, 'footer_hr' => $this->footer_hr]);
+            return parent::render()->with(['form' => $form, 'enableHeader' => $this->enableHeader, 'footer_hr' => $this->footer_hr]);
         }
 
         return parent::render()->with([
