@@ -62,7 +62,7 @@ class NotifyAction extends EnumBase
             case static::SHOW_PAGE:
                 return [
                     'get_user' => true,
-                    'get_organization' => true,
+                    //'get_organization' => true,
                 ];
 
             case static::SLACK:
@@ -72,7 +72,7 @@ class NotifyAction extends EnumBase
                 }
                 return [
                     'get_user' => true,
-                    'get_organization' => true,
+                    //'get_organization' => true,
                 ];
                 
             case static::MICROSOFT_TEAMS:

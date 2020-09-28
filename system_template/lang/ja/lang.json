@@ -188,19 +188,19 @@
         },
         {
             "table_name": "mail_template",
-            "table_view_name": "メールテンプレート",
-            "description": "メール送信時のメッセージの本文などを管理します。",
+            "table_view_name": "通知テンプレート",
+            "description": "通知送信時のメッセージの本文などを管理します。",
             "custom_columns": [
                 {
                     "column_name": "mail_key_name",
-                    "column_view_name": "メールキー名",
+                    "column_view_name": "通知キー名",
                     "options": {
-                        "help": "システム上で、メールテンプレートを一意に判別するためのキー名です。"
+                        "help": "システム上で、通知テンプレートを一意に判別するためのキー名です。"
                     }
                 },
                 {
                     "column_name": "mail_view_name",
-                    "column_view_name": "メール表示名",
+                    "column_view_name": "通知表示名",
                     "options": {
                         "help": "一覧画面で表示する、テンプレート名称です。"
                     }
@@ -214,16 +214,16 @@
                 },
                 {
                     "column_name": "mail_subject",
-                    "column_view_name": "メール件名",
+                    "column_view_name": "通知件名",
                     "options": {
-                        "help": "送付するメールの件名を入力します。変数を利用できます。"
+                        "help": "送付する通知の件名を入力します。変数を利用できます。"
                     }
                 },
                 {
                     "column_name": "mail_body",
-                    "column_view_name": "メール本文",
+                    "column_view_name": "通知本文",
                     "options": {
-                        "help": "送付するメールの本文を入力します。変数を利用できます。"
+                        "help": "送付する通知の本文を入力します。変数を利用できます。"
                     }
                 }
             ]
@@ -263,7 +263,7 @@
                 },
                 {
                     "column_name": "mail_template",
-                    "column_view_name": "送信メールテンプレート"
+                    "column_view_name": "送信通知テンプレート"
                 },
                 {
                     "column_name": "send_datetime",
@@ -496,7 +496,7 @@
         {
             "menu_type": "table",
             "menu_name": "mail_template",
-            "title": "メールテンプレート"
+            "title": "通知テンプレート"
         },
         {
             "menu_type": "table",
