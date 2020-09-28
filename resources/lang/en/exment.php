@@ -1484,6 +1484,8 @@ return [
         'message' => [
             'over_filters_max' => 'Cannot set 6 or more display filters.',
             'over_sorts_max' => 'Cannot set 6 or more display sorts.',
+            'used_notify_error' => 'Used in the notification settings. Please delete it in advance.',
+            'used_column_error' => 'Used in the refinement view for custom column settings. Please delete it in advance.',
         ],
 
         'custom_view_button_label' => 'View',
