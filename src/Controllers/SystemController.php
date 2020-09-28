@@ -58,7 +58,7 @@ class SystemController extends AdminControllerBase
         $this->AdminContent($content);
         $form = $this->getInitializeForm('system', false);
         $form->action(admin_url('system'));
-
+  
         $admin_users = System::system_admin_users();
         $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
             ->help(exmtrans('system.help.system_admin_users'))
@@ -99,6 +99,8 @@ class SystemController extends AdminControllerBase
         $form = new WidgetForm(System::get_system_values(['advanced', 'notify']));
         $form->disableReset();
         $form->action(admin_url('system'));
+
+        $form->progressTracker()->options($this->getProgressInfo(true));
         
         $form->hidden('advanced')->default(1);
         $form->ignore('advanced');
@@ -337,5 +339,4 @@ class SystemController extends AdminControllerBase
             ]);
         }
     }
-
 }

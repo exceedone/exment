@@ -31,6 +31,10 @@ trait InitializeFormTrait
         if ($isInitialize) {
             $form->exmheader(exmtrans('system.header'))->hr();
         }
+        else{
+            $form->progressTracker()->options($this->getProgressInfo(false));
+        }
+
         $form->text('site_name', exmtrans("system.site_name"))
             ->required()
             ->help(exmtrans("system.help.site_name"));
@@ -317,4 +321,33 @@ EOT;
                 return isMatchString($custom_column->column_type, $column_type);
             })->pluck('column_view_name', 'id');
     }
+
+    
+    /**
+     * Get progress info
+     *
+     * @param bool $isAdvanced
+     * @return array
+     */
+    protected function getProgressInfo(bool $isAdvanced) : array
+    {
+        $steps = [];
+
+        $steps[] = [
+            'active' => !$isAdvanced,
+            'complete' => false,
+            'url' => admin_urls('system'),
+            'description' => exmtrans('common.basic_setting'),
+        ];
+
+        $steps[] = [
+            'active' => $isAdvanced,
+            'complete' => false,
+            'url' => admin_urls_query('system', ['advanced' => 1]),
+            'description' => exmtrans('common.detail_setting'),
+        ];
+        
+        return $steps;
+    }
+
 }
