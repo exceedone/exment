@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
-use \File;
+use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 
 class RestoreCommand extends Command
 {
@@ -60,6 +60,9 @@ class RestoreCommand extends Command
             $tmp = boolval($this->option("tmp"));
 
             $result = $this->restore->execute($file, $tmp);
+        } catch (BackupRestoreCheckException $e) {
+            $this->error($e->getMessage());
+            return;
         } catch (\Exception $e) {
             throw $e;
         } finally {

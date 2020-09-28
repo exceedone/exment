@@ -96,7 +96,7 @@ class Tinymce extends Textarea
         $url =  admin_url('tmpfiles') . '?_token='. csrf_token();
 
         $this->script = <<<EOT
-        let config = $configs;
+        var config = $configs;
         if(pBool('$enableImage')){
             config['images_upload_handler'] = function(blobInfo, success, failure){
                 const image_size = blobInfo.blob().size;

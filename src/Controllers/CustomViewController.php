@@ -429,4 +429,13 @@ class CustomViewController extends AdminControllerTableBase
         $custom_view = CustomView::getEloquent($id);
         return DataShareAuthoritable::saveShareDialogForm($custom_view);
     }
+
+    /**
+     * validate before delete.
+     * @param int|string $id
+     */
+    protected function validateDestroy($id)
+    {
+        return CustomView::validateDestroy($id);
+    }
 }

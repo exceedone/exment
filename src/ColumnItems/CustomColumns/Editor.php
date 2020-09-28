@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Storage;
 
 class Editor extends CustomItem
 {
+    protected $tmpfiles;
+
     public function saving()
     {
         if (is_nullorempty($this->value)) {
@@ -21,6 +23,17 @@ class Editor extends CustomItem
         $value = $this->savedFileInEditor($this->value);
 
         return strval($value);
+    }
+
+    public function saved()
+    {
+        if (is_nullorempty($this->tmpfiles)) {
+            return;
+        }
+
+        foreach ($this->tmpfiles as $tmpfile) {
+            $tmpfile['file']->saveDocumentModel($this->custom_value, $tmpfile['filename']);
+        }
     }
 
     protected function _text($v)
@@ -114,6 +127,8 @@ class Editor extends CustomItem
             return $value;
         }
 
+        $this->tmpfiles = [];
+
         // replace src="" and save file
         for ($index = 0; $index < count($matches[0]); $index++) {
             $match = $matches[0][$index];
@@ -135,11 +150,16 @@ class Editor extends CustomItem
             if ($exists && $tmpUrl !== false) {
                 // get temporary file data
                 $file = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->get($filename);
+                // get original filename from session
+                $original_name = session()->get($filename);
                 // save file info
                 $exmentfile = ExmentFile::put(path_join($this->custom_table->table_name, make_uuid()), $file);
                     
                 // save document model
-                $exmentfile->saveDocumentModel($this->custom_value, $filename);
+                $this->tmpfiles[] = [
+                    'file' => $exmentfile,
+                    'filename' => $original_name??$filename,
+                ];
 
                 // delete temporary file
                 Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->delete($filename);
