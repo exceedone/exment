@@ -16,8 +16,8 @@ class SlackSender
     protected $subject;
     protected $body;
     protected $webhook_url;
-    protected $mention_here;
-    protected $mention_users;
+    protected $mention_here = false;
+    protected $mention_users = [];
     
     /**
      * Create a new notification instance.
@@ -62,7 +62,7 @@ class SlackSender
     public function send()
     {
         // replace word
-        $slack_content = static::editContent($this->subject, $this->body, $this->mention_here, $this->mention_users);
+        $slack_content = $this->editContent();
         // send slack message
         $this->notify(new Jobs\SlackSendJob($this->name, $this->icon, $slack_content));
     }
@@ -70,15 +70,15 @@ class SlackSender
     /**
      * replace url to slack format.
      */
-    public static function editContent($subject, $body, $mention_here = false, $mention_users = [])
+    protected function editContent()
     {
-        $content = $subject . "\n*************************\n" . $body;
+        $content = $this->subject . "\n*************************\n" . $this->body;
 
         $mentions = [];
-        if ($mention_here) {
+        if ($this->mention_here) {
             $mentions[] = '<!here>';
         }
-        foreach ($mention_users as $mention_user) {
+        foreach ($this->mention_users as $mention_user) {
             if(is_nullorempty($mention_user)){
                 continue;
             }

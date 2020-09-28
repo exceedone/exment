@@ -153,8 +153,8 @@ class AuthUserOrgHelper
     public static function getRoleUserAndOrganizations($custom_value, $tablePermission = null)
     {
         $results = [
-            SystemTableName::USER => [],
-            SystemTableName::ORGANIZATION => [],
+            SystemTableName::USER => collect(),
+            SystemTableName::ORGANIZATION => collect(),
         ];
         $ids = [
             SystemTableName::USER => [],
@@ -165,20 +165,30 @@ class AuthUserOrgHelper
         $key = sprintf(Define::SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS, $custom_value->custom_table->id, $custom_value->id);
         // if set $tablePermission, always call
         if (isset($tablePermission) || is_null($results = System::requestSession($key))) {
+            // get ids contains value_authoritable table
             $ids[SystemTableName::USER] = $custom_value->value_authoritable_users()->pluck('authoritable_target_id')->toArray();
 
             // get custom_value's organizations
             if (System::organization_available()) {
+                // get ids contains value_authoritable table
                 $ids[SystemTableName::ORGANIZATION]= $custom_value->value_authoritable_organizations()->pluck('authoritable_target_id')->toArray();
             }
 
             foreach($ids as $idkey => $idvalue){
                 // get custom table's user ids(contains all table and permission role group)
-                $func = $idkey == SystemTableName::USER ? 'getRoleUserQueryTable' : 'getRoleOrganizationQueryTable';
+                $func = $idkey == SystemTableName::USER ? 'getRoleUserAndOrgBelongsUserQueryTable' : 'getRoleOrganizationQueryTable';
                 $queryTable = static::{$func}($custom_value->custom_table, $tablePermission);
                 $queryTable->withoutGlobalScope(CustomValueModelScope::class);
 
-                $results[$idkey] = $queryTable->findMany($idvalue);
+                $tablename = getDBTableName($idkey);
+                $ids[$idkey] = array_merge($queryTable->pluck("$tablename.id")->toArray(), $ids[$idkey]);
+
+                // get real value
+                $results[$idkey] = getModelName($idkey)::query()
+                    ->withoutGlobalScope(CustomValueModelScope::class)
+                    ->whereIn('id', $ids[$idkey])
+                    ->get()
+                    ->unique();
             }
 
             if (!isset($tablePermission)) {

@@ -279,9 +279,7 @@ class NotifyTarget
     protected static function getModelsAsRole($custom_value)
     {
         $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
-        $users = array_get($items, SystemTableName::USER);
-        $organizations = array_get($items, SystemTableName::ORGANIZATION);
-
+        
         $list = collect();
         foreach([SystemTableName::USER, SystemTableName::ORGANIZATION] as $key){
             $values = array_get($items, $key);
@@ -291,7 +289,7 @@ class NotifyTarget
             }
         }
         
-        return collect($list)->filter();
+        return collect($list)->filter()->unique();
     }
 
     public static function getSelectedNotifyTarget($select_target, Notify $notify, CustomValue $custom_value)
