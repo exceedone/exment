@@ -209,8 +209,8 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             $query->orWhere(function ($query) use ($custom_column, $tableName, $ids) {
                 $indexName = $custom_column->getIndexColumnName();
                 
-                $query->where(SystemTableName::VIEW_WORKFLOW_VALUE . '.authority_related_id', $custom_column->id)
-                    ->where(SystemTableName::VIEW_WORKFLOW_VALUE . '.authority_related_type', ConditionTypeDetail::COLUMN()->lowerkey());
+                $query->where('authority_related_id', $custom_column->id)
+                    ->where('authority_related_type', ConditionTypeDetail::COLUMN()->lowerkey());
                     
                 if ($custom_column->column_type == ColumnType::USER) {
                     $query->where($tableName . '.' . $indexName, \Exment::getUserId());

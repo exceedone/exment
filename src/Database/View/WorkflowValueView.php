@@ -10,44 +10,8 @@ class WorkflowValueView
     /**
      * create workflow view sql
      */
-    public static function createWorkflowValueView()
+    public static function createWorkflowValueUnionView()
     {
-        /////// first query. not has workflow value's custom value
-        $subquery = \DB::table(SystemTableName::WORKFLOW_TABLE)
-        ->join(SystemTableName::WORKFLOW, function ($join) {
-            $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-                ;
-        })
-        ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
-            $join->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
-                ->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
-                ;
-        })
-        ->join(SystemTableName::WORKFLOW_AUTHORITY, function ($join) {
-            $join->on(SystemTableName::WORKFLOW_AUTHORITY . '.workflow_action_id', SystemTableName::WORKFLOW_ACTION . ".id")
-                ;
-        })
-        ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
-        ->distinct()
-        ->select([
-            \DB::raw('1 as workflow_view_type'),
-            \DB::raw('null as workflow_value_id'),
-            'workflows.id as workflow_id',
-            'workflow_tables.custom_table_id as workflow_table_id',
-            \DB::raw('null as custom_value_id'),
-            \DB::raw('null as custom_value_type'),
-            'workflow_actions.id as workflow_action_id',
-            'workflow_authorities.related_id as authority_related_id',
-            'workflow_authorities.related_type as authority_related_type',
-            \DB::raw('null as status_to_id'),
-        ]);
-
-
-
-
-        /////// second query. has workflow value's custom value
-
-        
         $subquery2 = \DB::table(SystemTableName::WORKFLOW_TABLE)
         ->join(SystemTableName::WORKFLOW, function ($join) {
             $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
@@ -84,7 +48,6 @@ class WorkflowValueView
         ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
         ->distinct()
         ->select([
-            \DB::raw('2 as workflow_view_type'),
             'workflow_values.id as workflow_value_id',
             'workflows.id as workflow_id',
             'workflow_tables.custom_table_id as workflow_table_id',
@@ -93,7 +56,6 @@ class WorkflowValueView
             'workflow_actions.id as workflow_action_id',
             'workflow_authorities.related_id as authority_related_id',
             'workflow_authorities.related_type as authority_related_type',
-            'workflow_values.workflow_status_to_id as status_to_id',
         ]);
 
 
@@ -135,7 +97,6 @@ class WorkflowValueView
         ->where(SystemTableName::WORKFLOW_TABLE . '.active_flg', 1)
         ->distinct()
         ->select([
-            \DB::raw('3 as workflow_view_type'),
             'workflow_values.id as workflow_value_id',
             'workflows.id as workflow_id',
             'workflow_tables.custom_table_id as workflow_table_id',
@@ -144,14 +105,10 @@ class WorkflowValueView
             'workflow_actions.id as workflow_action_id',
             'workflow_value_authorities.related_id as authority_related_id',
             'workflow_value_authorities.related_type as authority_related_type',
-            'workflow_values.workflow_status_to_id as status_to_id',
         ]);
 
 
-        
-
-        $subquery3->union($subquery)
-            ->union($subquery2);
+        $subquery3->union($subquery2);
         
         return $subquery3;
     }

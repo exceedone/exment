@@ -51,8 +51,8 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
     public static function setWorkflowConditionQuery($query, $tableName, $custom_table)
     {
         $query->orWhere(function ($query) use ($tableName) {
-            $query->where(SystemTableName::VIEW_WORKFLOW_VALUE . '.authority_related_id', WorkflowTargetSystem::CREATED_USER)
-                ->where(SystemTableName::VIEW_WORKFLOW_VALUE . '.authority_related_type', ConditionTypeDetail::SYSTEM()->lowerkey())
+            $query->where('authority_related_id', WorkflowTargetSystem::CREATED_USER)
+                ->where('authority_related_type', ConditionTypeDetail::SYSTEM()->lowerkey())
                 ->where($tableName . '.created_user_id', \Exment::getUserId());
         });
     }

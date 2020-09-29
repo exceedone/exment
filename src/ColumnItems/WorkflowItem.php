@@ -160,11 +160,10 @@ class WorkflowItem extends SystemItem
 
         /////// first query. has workflow value's custom value
         $subquery = \DB::table($tableName)
-            ->join(SystemTableName::VIEW_WORKFLOW_VALUE, function ($join) use($tableName, $custom_table) {
-                $join->on(SystemTableName::VIEW_WORKFLOW_VALUE . '.custom_value_id', "$tableName.id")
-                    ->where(SystemTableName::VIEW_WORKFLOW_VALUE . '.custom_value_type', $custom_table->table_name)
-                    ->where(SystemTableName::VIEW_WORKFLOW_VALUE . '.workflow_table_id', $custom_table->id)
-                    ->whereIn(SystemTableName::VIEW_WORKFLOW_VALUE . '.workflow_view_type', [2, 3])
+            ->join(SystemTableName::VIEW_WORKFLOW_VALUE_UNION, function ($join) use($tableName, $custom_table) {
+                $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.custom_value_id', "$tableName.id")
+                    ->where(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.custom_value_type', $custom_table->table_name)
+                    ->where(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.workflow_table_id', $custom_table->id)
                     ;
             })
             ///// add authority function for user or org
@@ -186,9 +185,8 @@ class WorkflowItem extends SystemItem
         
         /////// second query. not has workflow value's custom value
         $subquery2 = \DB::table($tableName)
-            ->join(SystemTableName::VIEW_WORKFLOW_VALUE, function ($join) use($tableName, $custom_table) {
-                $join->where(SystemTableName::VIEW_WORKFLOW_VALUE . '.workflow_table_id', $custom_table->id)
-                    ->where(SystemTableName::VIEW_WORKFLOW_VALUE . '.workflow_view_type', 1)
+            ->join(SystemTableName::VIEW_WORKFLOW_START, function ($join) use($tableName, $custom_table) {
+                $join->where(SystemTableName::VIEW_WORKFLOW_START . '.workflow_table_id', $custom_table->id)
                     ;
             })
             // filtering not contains workflow value
