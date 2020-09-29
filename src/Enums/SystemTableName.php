@@ -41,6 +41,8 @@ class SystemTableName extends EnumBase
     const WORKFLOW_VALUE_AUTHORITY = 'workflow_value_authorities';
     const DATA_SHARE_AUTHORITABLE = 'data_share_authoritables';
 
+    const VIEW_WORKFLOW_VALUE = 'workflow_values_view';
+
     public static function SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY()
     {
         return [
