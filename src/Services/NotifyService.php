@@ -296,6 +296,7 @@ class NotifyService
                 'is_chat' => false,
                 'mention_here' => false,
                 'mention_users' => [],
+                'action_setting' => null,
             ],
             $params
         );
@@ -308,8 +309,16 @@ class NotifyService
             'notify' => $notify,
         ]);
 
+        // get loop data for action_setting
+        if(!isset($params['action_setting'])){
+            $action_settings = array_get($notify, 'action_settings', []);
+        }
+        else{
+            $action_settings = [$params['action_setting']];
+        }
+
         // get notify actions
-        foreach(array_get($notify, 'action_settings', []) as $action_setting){
+        foreach($action_settings as $action_setting){
             $notify_action = array_get($action_setting, 'notify_action');
             if(is_nullorempty($notify_action)){
                 continue;

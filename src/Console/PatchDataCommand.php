@@ -1223,13 +1223,13 @@ class PatchDataCommand extends Command
 
     protected function updateNotifyDifinition()
     {
-        Model\Notify::whereNull('mail_template_id')->get()
+        Model\Notify::get()
         ->each(function ($notify) {
             $notify_actions = array_filter(stringToArray($notify->notify_actions), function($notify_action){
                 return !is_nullorempty($notify_action);
             });
             if(count($notify_actions) == 0){
-                return;
+                $notify_actions = [Enums\NotifyAction::SHOW_PAGE];
             }
 
             $action_settings_array = [];

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\NotifyActionTarget;
@@ -221,7 +222,7 @@ class NotifyTarget
      * @param string $notify_target
      * @return NotifyTarget|null
      */
-    public static function getModelAsSelectTable($target_value, $notify_target, ?CustomColumn $custom_column = null) : ?NotifyTarget
+    public static function getModelAsSelectTable(CustomValue $target_value, string $notify_target, ?CustomColumn $custom_column = null) : ?NotifyTarget
     {
         if (!isset($target_value)) {
             return null;
@@ -250,7 +251,7 @@ class NotifyTarget
         return $notifyTarget;
     }
 
-    public static function getModelAsUser($target_value, $custom_column = null) : ?NotifyTarget
+    public static function getModelAsUser(CustomValue $target_value, ?CustomColumn $custom_column = null) : ?NotifyTarget
     {
         if(is_null($custom_column)){
             $custom_column = CustomColumn::getEloquent('email', SystemTableName::USER);
@@ -258,7 +259,7 @@ class NotifyTarget
         return static::getModelAsSelectTable($target_value, NotifyTargetType::USER, $custom_column);
     }
     
-    public static function getModelsAsOrganization($target_value, $custom_column = null) : Collection
+    public static function getModelsAsOrganization(CustomValue $target_value, ?CustomColumn $custom_column = null) : Collection
     {
         // get organization user
         $result = collect();
@@ -279,7 +280,7 @@ class NotifyTarget
      * @param string $email
      * @return NotifyTarget
      */
-    protected static function getModelsAsRole($custom_value) : Collection
+    protected static function getModelsAsRole(CustomValue $custom_value) : Collection
     {
         $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
         

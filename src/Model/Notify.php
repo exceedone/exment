@@ -96,6 +96,7 @@ class Notify extends ModelBase
                         'mention_here' => $this->getMentionHere($action_setting),
                         'mention_users' => $this->getMentionUsers($users),
                         'is_chat' => true,
+                        'action_setting' => $action_setting,
                     ]);
                     continue;
                 }
@@ -112,6 +113,7 @@ class Notify extends ModelBase
                             'prms' => array_merge(['user' => $user->toArray()], $prms),
                             'user' => $user,
                             'custom_value' => $custom_value,
+                            'action_setting' => $action_setting,
                         ]);
                     }
                     // throw mailsend Exception
@@ -203,6 +205,7 @@ class Notify extends ModelBase
                     'mention_here' => $this->getMentionHere($action_setting),
                     'mention_users' => $this->getMentionUsers($users),
                     'is_chat' => true,
+                    'action_setting' => $action_setting,
                 ]);
                 continue;
             }
@@ -224,6 +227,7 @@ class Notify extends ModelBase
                         'prms' => array_merge(['user' => $user->toArray()], $prms),
                         'user' => $user,
                         'custom_value' => $custom_value,
+                        'action_setting' => $action_setting,
                     ]);
                 }
                 // throw mailsend Exception
@@ -310,7 +314,8 @@ class Notify extends ModelBase
                     'replaceOptions' => [
                         'workflow_action' => $workflow_action,
                         'workflow_value' => $workflow_value,
-                    ]
+                    ],
+                    'action_setting' => $action_setting,
                 ]);
                 continue;
             }
@@ -331,7 +336,8 @@ class Notify extends ModelBase
                         'replaceOptions' => [
                             'workflow_action' => $workflow_action,
                             'workflow_value' => $workflow_value,
-                        ]
+                        ],
+                        'action_setting' => $action_setting,
                     ]);
                 }
                 // throw mailsend Exception
@@ -396,7 +402,8 @@ class Notify extends ModelBase
                     'body' => $body,
                     'mention_here' => $this->getMentionHere($action_setting),
                     'mention_users' => $this->getMentionUsers($users),
-                    'is_chat' => true
+                    'is_chat' => true,
+                    'action_setting' => $action_setting,
                 ]);
                 continue;
             }
@@ -413,9 +420,9 @@ class Notify extends ModelBase
                     continue;
                 }
 
-                if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, false)) {
-                    continue;
-                }
+                // if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, false)) {
+                //     continue;
+                // }
 
                 $prms = [
                 'user' => $user,
@@ -433,6 +440,7 @@ class Notify extends ModelBase
                         'subject' => $subject,
                         'body' => $body,
                         'attach_files' => $attach_files,
+                        'action_setting' => $action_setting,
                     ]);
                 }
                 // throw mailsend Exception
