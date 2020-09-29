@@ -244,11 +244,11 @@ class Notify extends ModelBase
      */
     public function notifyWorkflow($custom_value, $workflow_action, $workflow_value, $statusTo)
     {
-        $users = collect();
         $workflow = $workflow_action->workflow_cache;
 
         // loop action setting
         foreach ($this->action_settings as $action_setting) {
+            $users = collect();
             $notify_action_target = array_get($action_setting, 'notify_action_target', []);
         
             if (in_array(NotifyActionTarget::CREATED_USER, $notify_action_target)) {
