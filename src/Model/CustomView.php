@@ -915,4 +915,33 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         return $hasEdit;
     }
+
+    /**
+     * check if target id view can be deleted
+     * @param int|string $id
+     * @return [boolean, string] status, error message.
+     */
+    public static function validateDestroy($id)
+    {
+        // check notify target view
+        $notify_count = Notify::where('custom_view_id', $id)
+            ->count();
+
+        if ($notify_count > 0) {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_view.message.used_notify_error'),
+            ];
+        }
+        // check select_table
+        $column_count = CustomColumn::whereIn('options->select_target_view', [strval($id), intval($id)])
+            ->count();
+
+        if ($column_count > 0) {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_view.message.used_column_error'),
+            ];
+        }
+    }
 }

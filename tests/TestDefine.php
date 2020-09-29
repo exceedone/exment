@@ -5,8 +5,12 @@ namespace Exceedone\Exment\Tests;
 class TestDefine
 {
     public const TESTDATA_USER_LOGINID_ADMIN = '1'; // admin
+    public const TESTDATA_USER_LOGINID_USER2 = '3'; // user2
     public const TESTDATA_USER_LOGINID_DEV1_USERC = '7'; //dev1-userC
 
+    public const TESTDATA_TABLE_NAME_VIEW_ALL = 'custom_value_view_all';
+    public const TESTDATA_TABLE_NAME_VIEW = 'custom_value_view';
+    
     public const TESTDATA_TABLE_NAME_PARENT_TABLE = 'parent_table';
     public const TESTDATA_TABLE_NAME_CHILD_TABLE = 'child_table';
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE = 'pivot_table';
