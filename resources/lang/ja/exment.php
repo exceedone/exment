@@ -1924,6 +1924,10 @@ return [
             'created_user' => '作成者',
             'work_user' => '次の作業ユーザー',
         ],
+
+        'message' => [
+            'no_action_target' => '通知対象がありませんでした。',
+        ],
     ],
     
     'operation_log' => [

@@ -55,13 +55,6 @@ class NotifyTarget
      */
     protected $name;
 
-    // /**
-    //  * User code
-    //  *
-    //  * @var string
-    //  */
-    // protected $userCode;
-
     /**
      * notify key
      *
@@ -113,7 +106,7 @@ class NotifyTarget
     public function getLabel()
     {
         if(isset($this->email)){
-            return $this->email;
+            return "{$this->name} <{$this->email}>";
         }
 
         return $this->name;

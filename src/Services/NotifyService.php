@@ -44,7 +44,7 @@ class NotifyService
      * Get dialog form for send mail
      *
      * @param Notify $notify
-     * @return void
+     * @return ModalForm|false
      */
     public function getNotifyDialogForm()
     {
@@ -52,6 +52,10 @@ class NotifyService
         $values = collect();
         foreach($this->notify->action_settings as $action_setting){
             $values = $values->merge($this->notify->getNotifyTargetUsers($this->custom_value, $action_setting));
+        }
+
+        if(!$this->hasNotifyUserByButton($values)){
+            return false;
         }
 
         // if only one data, get form for detail
@@ -125,14 +129,18 @@ class NotifyService
             abort(404);
         }
 
-        $replace = count($notifyTargets) == 1;
+        $notifyTargets = collect($notifyTargets);
+        if(!$this->hasNotifyUserByButton($notifyTargets)){
+            return false;
+        }
+
+        $replace = $notifyTargets->count() == 1;
         $mail_subject = array_get($mail_template->value, 'mail_subject');
         $mail_body = $mail_template->getJoinedBody();
 
-        $notifyTarget = implode(exmtrans("common.separate_word"), collect($notifyTargets)->map(function ($notifyTarget) {
-            return $notifyTarget->getLabel();
-        })->toArray());
-        $notifyTargetJson = json_encode(collect($notifyTargets)->map(function ($notifyTarget) {
+        $notifyTarget = $this->getNotifyTargetLabel($notifyTargets);
+
+        $notifyTargetJson = json_encode($notifyTargets->map(function ($notifyTarget) {
             return $notifyTarget->notifyKey();
         })->toArray());
 
@@ -241,6 +249,62 @@ class NotifyService
             ]);
         }
     }
+    
+
+    /**
+     * has notify User By Button action
+     *
+     * @param \Illuminate\Support\Collection $values
+     * @return boolean
+     */
+    protected function hasNotifyUserByButton(\Illuminate\Support\Collection $values) : bool
+    {
+        // Exists user, return true
+        if($values->count() > 0){
+            return true;
+        }
+
+        // contains webhook, return true.
+        if(collect($this->notify->action_settings)->contains(function($action_setting){
+            return NotifyAction::isChatMessage($notify_action);
+        })){
+            return true;
+        }
+
+        return false;
+        
+    }
+
+
+    /**
+     * get notify target label
+     *
+     * @param \Illuminate\Support\Collection $notifyTargets
+     * @return string
+     */
+    protected function getNotifyTargetLabel(\Illuminate\Support\Collection $notifyTargets) : string
+    {
+        $targets = clone $notifyTargets;
+        $targets = $targets->map(function ($notifyTarget) {
+            return $notifyTarget->getLabel();
+        });
+
+        // contains webhook, Append label.
+        if(collect($this->notify->action_settings)->contains(function($action_setting){
+            return isMatchString(NotifyAction::SLACK,  array_get($action_setting, 'notify_action'));
+        })){
+            $targets->push(exmtrans('notify.notify_action_options.slack'));
+        }
+        if(collect($this->notify->action_settings)->contains(function($action_setting){
+            return isMatchString(NotifyAction::MICROSOFT_TEAMS,  array_get($action_setting, 'notify_action'));
+        })){
+            $targets->push(exmtrans('notify.notify_action_options.microsoft_teams'));
+        }
+
+        return $targets->implode(exmtrans("common.separate_word"));
+    }
+
+
     
     /**
      * Execute Notify test

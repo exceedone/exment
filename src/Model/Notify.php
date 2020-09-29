@@ -265,16 +265,15 @@ class Notify extends ModelBase
     
             if (in_array(NotifyActionTarget::WORK_USER, $notify_action_target)) {
                 // if this workflow is completed
-                if(isset($workflow_value) && $workflow_value->isCompleted()){
-                    continue;
-                }
-                WorkflowStatus::getActionsByFrom($statusTo, $workflow, true)
+                if(!isset($workflow_value) || !$workflow_value->isCompleted()){
+                    WorkflowStatus::getActionsByFrom($statusTo, $workflow, true)
                     ->each(function ($workflow_action) use (&$users, $custom_value) {
                         $users = $users->merge(
                             $workflow_action->getAuthorityTargets($custom_value, true),
                             $users
                         );
                     });
+                }
             }
     
             $loginuser = \Exment::user();

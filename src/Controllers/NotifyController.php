@@ -351,6 +351,26 @@ class NotifyController extends AdminControllerBase
             $tools->append(new Tools\SystemChangePageMenu());
         });
 
+        $form->saving(function(Form $form){
+            $error = false;
+            if(is_null($form->action_settings)){
+                $error = true;
+            }
+            else{
+                $cnt = collect($form->action_settings)->filter(function ($value) {
+                    return $value[Form::REMOVE_FLAG_NAME] != 1;
+                })->count();
+                if ($cnt == 0) {
+                    $error = true;
+                }
+            }
+
+            // if($error){
+            //     admin_toastr(sprintf(exmtrans("common.message.exists_row"), exmtrans("notify.header_action")), 'error');
+            //     return back()->withInput();
+            // }
+        });
+
 
         return $form;
     }
