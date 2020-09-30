@@ -126,7 +126,7 @@ class WorkflowItem extends SystemItem
     /**
      * create subquery for join
      */
-    public static function getStatusSubquery($query, $custom_table)
+    public static function getStatusSubquery($query, $custom_table, $or_option = false)
     {
         if (static::$addStatusSubQuery) {
             return;
@@ -141,7 +141,9 @@ class WorkflowItem extends SystemItem
                     ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', true);
             })->select(["$tableName.id as morph_id", 'morph_type', 'workflow_status_from_id', 'workflow_status_to_id']);
             
-        $query->joinSub($subquery, 'workflow_values', function ($join) use ($tableName) {
+        // join query is $or_option is true then leftJoin
+        $joinFunc = $or_option ? 'leftJoinSub' : 'joinSub';
+        $query->{$joinFunc}($subquery, 'workflow_values', function ($join) use ($tableName) {
             $join->on($tableName . '.id', 'workflow_values.morph_id');
         });
     }
@@ -216,8 +218,8 @@ class WorkflowItem extends SystemItem
             ->select([$tableName .'.id as morph_id']);
  
         // join query is $or_option is true then leftJoin
-        $join = $or_option ? 'leftJoinSub' : 'joinSub';
-        $query->{$join}($subquery2, 'workflow_values_wf', function ($join) use ($tableName) {
+        $joinFunc = $or_option ? 'leftJoinSub' : 'joinSub';
+        $query->{$joinFunc}($subquery2, 'workflow_values_wf', function ($join) use ($tableName) {
             $join->on($tableName . '.id', 'workflow_values_wf.morph_id');
         });
     }

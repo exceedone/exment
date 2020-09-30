@@ -1392,7 +1392,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
             }))) {
             // add query
-            WorkflowItem::getStatusSubquery($query, $this);
+            WorkflowItem::getStatusSubquery($query, $this, $custom_view->filter_is_or);
         }
         // if contains custom_view_filters workflow query
         if (
