@@ -142,8 +142,7 @@ class WorkflowItem extends SystemItem
             })->select(["$tableName.id as morph_id", 'morph_type', 'workflow_status_from_id', 'workflow_status_to_id']);
             
         // join query is $or_option is true then leftJoin
-        $joinFunc = $or_option ? 'leftJoinSub' : 'joinSub';
-        $query->{$joinFunc}($subquery, 'workflow_values', function ($join) use ($tableName) {
+        $query->joinSub($subquery, 'workflow_values', function ($join) use ($tableName) {
             $join->on($tableName . '.id', 'workflow_values.morph_id');
         });
     }
