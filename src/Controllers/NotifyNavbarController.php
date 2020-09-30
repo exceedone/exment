@@ -200,11 +200,7 @@ class NotifyNavbarController extends AdminControllerBase
                     NotifyNavbar::query()->delete();
                     break;
                 default:
-                    return getAjaxResponse([
-                        'result'  => false,
-                        'swal' => exmtrans('common.error'),
-                        'swaltext' => exmtrans('notify_navbar.message.batch_error'),
-                    ]);
+                    throw new \Exception();
             }
             
             \DB::commit();
