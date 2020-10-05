@@ -26,7 +26,9 @@ trait SummaryItemTrait
      */
     protected function getSummarySqlName()
     {
-        extract($this->getSummaryParams());
+        $options = $this->getSummaryParams();
+        $value_column = $options['value_column'];
+        $group_condition = $options['group_condition'];
 
         $summary_condition = $this->getSummaryConditionName();
         
@@ -48,7 +50,10 @@ trait SummaryItemTrait
      */
     protected function getGroupBySqlName()
     {
-        extract($this->getSummaryParams());
+        $options = $this->getSummaryParams();
+        $value_column = $options['value_column'];
+        $group_condition = $options['group_condition'];
+        $is_child = $options['is_child'];
         
         // get column_name. toggle whether is child or not
         if ($is_child) {

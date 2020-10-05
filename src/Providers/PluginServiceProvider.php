@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Services\Plugin\PluginPageBase;
 
 class PluginServiceProvider extends ServiceProvider
 {
@@ -48,8 +49,8 @@ class PluginServiceProvider extends ServiceProvider
     /**
      * routing plugin
      *
-     * @param Plugin $plugin
-     * @param json $json
+     * @param string $plugin_type
+     * @param PluginPageBase $pluginPage
      * @return void
      */
     protected function pluginRoute($plugin_type, $pluginPage)
@@ -137,7 +138,7 @@ class PluginServiceProvider extends ServiceProvider
     /**
      * Check route has index.
      *
-     * @param [type] $routes
+     * @param array $routes
      * @return boolean
      */
     protected function hasPluginRouteIndex($routes)
@@ -174,8 +175,7 @@ class PluginServiceProvider extends ServiceProvider
     /**
      * routing plugin
      *
-     * @param Plugin $plugin
-     * @param json $json
+     * @param PluginPageBase $pluginScriptStyle
      * @return void
      */
     protected function pluginScriptStyleRoute($pluginScriptStyle)

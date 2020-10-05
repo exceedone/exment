@@ -65,7 +65,7 @@ class LoginUserProvider extends ProviderBase
     
     /**
      * validate imported all data.
-     * @param $data
+     * @param mixed $data
      * @return array
      */
     public function validateImportData($dataObjects)
@@ -86,8 +86,8 @@ class LoginUserProvider extends ProviderBase
     
     /**
      * validate data row
-     * @param $line_no
-     * @param $dataAndModel
+     * @param int $line_no
+     * @param array $dataAndModel
      * @return array
      */
     public function validateDataRow($line_no, $dataAndModel)

@@ -304,7 +304,7 @@ class Notify extends ModelBase
      * check if notify target data
      *
      * @param CustomValue $custom_value
-     * @param [type] $notify_trigger
+     * @param string $notify_trigger
      * @return boolean
      */
     public function isNotifyTarget($custom_value, $notify_trigger)

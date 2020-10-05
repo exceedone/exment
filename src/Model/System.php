@@ -131,8 +131,7 @@ class System extends ModelBase
      * Has Request Settion.
      *
      * @param string $key
-     * @param mixed $value
-     * @return void
+     * @return bool
      */
     public static function hasRequestSession($key)
     {

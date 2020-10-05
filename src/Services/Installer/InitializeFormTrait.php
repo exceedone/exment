@@ -16,7 +16,7 @@ trait InitializeFormTrait
 {
     /**
      *
-     * @param [type] $routeName
+     * @param string $routeName
      * @param boolean $isInitialize
      * @return WidgetForm
      */

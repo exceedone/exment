@@ -132,8 +132,8 @@ class LoginService
     /**
      * Get custom login validator for synced user.
      *
-     * @param array $array
-     * @return \Validator
+     * @param CustomLoginUserBase $custom_login_user
+     * @return \Illuminate\Contracts\Validation\Validator
      */
     public static function validateCustomLoginSync(CustomLoginUserBase $custom_login_user)
     {
@@ -206,9 +206,10 @@ class LoginService
     /**
      * Get login test result.
      *
-     * @param [type] $result
-     * @param [type] $messages
-     * @param [type] $custom_login_user
+     * @param bool $result
+     * @param array $messages
+     * @param array $adminMessages
+     * @param CustomLoginUserBase $custom_login_user
      * @return array
      */
     public static function getLoginResult($result, $messages, $adminMessages = null, ?CustomLoginUserBase $custom_login_user = null)
@@ -457,8 +458,8 @@ class LoginService
      * get login_user from login_users table
      *
      * @param CustomLoginUserBase $custom_login_user
-     * @param [type] $exment_user
-     * @param [type] $socialiteProvider
+     * @param CustomValue|LoginUser $exment_user
+     * @param mixed $socialiteProvider
      * @return LoginUser
      */
     public static function getLoginUser(CustomLoginUserBase $custom_login_user, $exment_user, $socialiteProvider = null) : LoginUser

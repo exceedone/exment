@@ -7,6 +7,7 @@ use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
+use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -383,10 +384,10 @@ abstract class CustomItem implements ItemInterface
         $classname = $this->getAdminFilterClass();
 
         // if where query, call Cloquire
-        if ($classname == Where::class) {
+        if ($classname == ExmWhere::class) {
             $item = $this;
-            $filteritem = new $classname(function ($query) use ($item) {
-                $item->getAdminFilterWhereQuery($query, $this->input);
+            $filteritem = new $classname(function ($query, $input) use ($item) {
+                $item->getAdminFilterWhereQuery($query, $input);
             }, $this->label(), $this->index());
         } else {
             $filteritem = new $classname($this->index(), $this->label());

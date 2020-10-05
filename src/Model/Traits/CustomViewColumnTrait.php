@@ -13,6 +13,10 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\ColumnItems;
 
+/**
+ * @method getOption($key, $default = null))
+ * @method setOption($key, $val = null, $forgetIfNull = false)
+ */
 trait CustomViewColumnTrait
 {
     use ColumnOptionQueryTrait;

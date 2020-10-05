@@ -286,8 +286,8 @@ class DefaultGrid extends GridBase
 
                 if (!$custom_table->gridFilterDisable('workflow_status')) {
                     $filterItems[] = function ($filter) use ($workflow, $custom_table) {
-                        $field = $filter->where(function ($query) use ($custom_table) {
-                            WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $this->input);
+                        $field = $filter->exmwhere(function ($query, $input) use ($custom_table) {
+                            WorkflowItem::scopeWorkflowStatus($query, $custom_table, FilterOption::EQ, $input);
                         }, $workflow->workflow_view_name)->select($workflow->getStatusOptions());
                         if (boolval(request()->get($field->getFilter()->getId()))) {
                             System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK, true);
@@ -514,7 +514,7 @@ class DefaultGrid extends GridBase
                 // if has relations, add link
                 if (count($relationTables) > 0) {
                     $linker = (new Linker)
-                        ->url($this->row->getRelationSearchUrl())
+                        ->url($actions->row->getRelationSearchUrl())
                         ->icon('fa-compress')
                         ->tooltip(exmtrans('search.header_relation'));
                     $actions->prepend($linker);

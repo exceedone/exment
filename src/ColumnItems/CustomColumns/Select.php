@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator\SelectRule;
+use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 
@@ -62,7 +63,7 @@ class Select extends CustomItem
     protected function getAdminFilterClass()
     {
         if (boolval($this->custom_column->getOption('multiple_enabled'))) {
-            return Filter\Where::class;
+            return ExmWhere::class;
         }
         return Filter\Equal::class;
     }

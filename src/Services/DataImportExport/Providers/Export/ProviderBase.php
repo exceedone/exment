@@ -19,8 +19,6 @@ abstract class ProviderBase
 
     /**
      * Create a new exporter instance.
-     *
-     * @param $grid
      */
     public function __construct()
     {

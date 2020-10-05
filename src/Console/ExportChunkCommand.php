@@ -10,7 +10,7 @@ use Exceedone\Exment\Services\DataImportExport;
 
 class ExportChunkCommand extends Command
 {
-    use CommandTrait, ImportTrait, ExportCommandTrait;
+    use CommandTrait, ExportCommandTrait;
 
     /**
      * The name and signature of the console command.

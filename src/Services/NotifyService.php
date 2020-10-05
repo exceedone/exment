@@ -41,8 +41,7 @@ class NotifyService
     /**
      * Get dialog form for send mail
      *
-     * @param Notify $notify
-     * @return void
+     * @return ModalForm
      */
     public function getNotifyDialogForm()
     {
@@ -89,8 +88,8 @@ class NotifyService
     /**
      *
      *
-     * @param Notify $notify
-     * @return void
+     * @param array|\Illuminate\Support\Collection $target_users
+     * @return ModalForm
      */
     public function getNotifyDialogFormMultiple($target_users)
     {
@@ -278,7 +277,7 @@ class NotifyService
     /**
      * Execute Notify action
      *
-     * @param [type] $notify
+     * @param Notify $notify
      * @param array $params
      * @return void
      */
@@ -560,7 +559,7 @@ class NotifyService
     /**
      * get Progress Info
      *
-     * @param [type] $isSelectTarget
+     * @param bool $isSelectTarget
      * @return array
      */
     protected function getProgressInfo($isSelectTarget)

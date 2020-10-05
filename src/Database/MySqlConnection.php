@@ -320,6 +320,20 @@ __EOT__;
         }
     }
 
+
+
+    public function createView($viewName, $query){
+        $viewName = $this->getQueryGrammar()->wrapTable($viewName);
+        \DB::statement("
+            CREATE OR REPLACE VIEW $viewName 
+            AS " . $query->toSql(), $query->getBindings());
+    }
+
+    public function dropView($viewName){
+        $viewName = $this->getQueryGrammar()->wrapTable($viewName);
+        \DB::statement("DROP VIEW IF EXISTS " . $viewName);
+    }
+
     
     protected static function getMysqlPath()
     {

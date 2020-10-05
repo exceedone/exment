@@ -393,6 +393,8 @@ class ApiController extends AdminControllerBase
         }
 
         $results = collect();
+        // default count
+        $count = config('exment.api_default_data_count', 20);
         foreach ($keys as $key) {
             $custom_table = CustomTable::getEloquent($key);
 

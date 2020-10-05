@@ -46,7 +46,7 @@ class RelationPivotTableProvider extends ProviderBase
     
     /**
      * validate imported all data.
-     * @param $data
+     * @param mixed $dataObjects
      * @return array
      */
     public function validateImportData($dataObjects)
