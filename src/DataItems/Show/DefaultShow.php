@@ -70,20 +70,22 @@ class DefaultShow extends ShowBase
                 $field->border = false;
             }
 
-            // add parent link if this form is 1:n relation
-            $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
-            if (isset($relation)) {
-                $item = ColumnItems\ParentItem::getItem($relation->child_custom_table);
+            // add parent link
+            $relations = CustomRelation::getRelationsByChild($this->custom_table);
+            if (isset($relations)) {
+                foreach ($relations as $relation) {
+                    $item = ColumnItems\ParentItem::getItemWithParent($relation->child_custom_table, $relation->parent_custom_table);
 
-                $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
-                    if (is_null($this)) {
-                        return '';
+                    $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
+                        if (is_null($this)) {
+                            return '';
+                        }
+                        return $item->setCustomValue($this)->html();
+                    })->setEscape(false);
+
+                    if ($this->modal) {
+                        $field->setWidth(9, 3);
                     }
-                    return $item->setCustomValue($this)->html();
-                })->setEscape(false);
-
-                if ($this->modal) {
-                    $field->setWidth(9, 3);
                 }
             }
 

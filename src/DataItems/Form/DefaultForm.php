@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomFormBlock;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -604,19 +605,28 @@ EOT;
 
     protected function setParentSelect($request, $form, $select_parent)
     {
-        // get select_parent
-        $select_parent = null;
-        if ($request->has('select_parent')) {
-            $select_parent = intval($request->get('select_parent'));
-        }
-        $form->hidden('select_parent')->default($select_parent);
-
-        // add parent select if this form is 1:n relation
-        $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
-        if (!isset($relation)) {
+        // add parent select
+        $relations = CustomRelation::getRelationsByChild($this->custom_table);
+        if (!isset($relations)) {
             return;
         }
+
+        foreach ($relations as $relation) {
+            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+                // set one:many select
+                $this->setParentSelectOneToMany($request, $form, $select_parent, $relation);
+            } else {
+                // set many:many select
+                $this->setParentSelectManyToMany($request, $form, $relation);
+            }
+        }
+    }
+
+    protected function setParentSelectOneToMany($request, $form, $select_parent, $relation)
+    {
         $parent_custom_table = $relation->parent_custom_table;
+
+        $form->hidden('select_parent')->default($select_parent);
         $form->hidden('parent_type')->default($parent_custom_table->table_name);
 
         // if create data and not has $select_parent, select item
@@ -661,5 +671,42 @@ EOT;
                 $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label);
             }
         }
+    }
+
+    protected function setParentSelectManyToMany($request, $form, $relation)
+    {
+        $parent_custom_table = $relation->parent_custom_table;
+
+        if ($parent_custom_table->table_name == SystemTableName::ORGANIZATION &&
+            $this->custom_table->table_name == SystemTableName::USER) {
+            return;
+        }
+
+        $pivot_name = $relation->getRelationName();
+
+        $select = $form->multipleSelect($pivot_name, $parent_custom_table->table_view_name)
+            ->options(function ($value) use ($parent_custom_table) {
+                return $parent_custom_table->getSelectOptions([
+                    'selected_value' => $value,
+                    'showMessage_ifDeny' => true,
+                ]);
+            });
+
+        // set select options
+        $select->ajax($parent_custom_table->getOptionAjaxUrl());
+
+        // set buttons
+        $select->buttons([
+            [
+                'label' => trans('admin.search'),
+                'btn_class' => 'btn-info',
+                'icon' => 'fa-search',
+                'attributes' => [
+                    'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
+                    'data-widgetmodal_expand' => json_encode(['target_column_class' => $pivot_name, 'target_column_multiple' => true]),
+                    'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => $pivot_name]),
+                ],
+            ],
+        ]);
     }
 }
