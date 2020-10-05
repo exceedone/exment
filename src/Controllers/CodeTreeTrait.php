@@ -32,12 +32,12 @@ trait CodeTreeTrait
             ]
         ];
 
-        $directories = $this->getDirectoryPaths($folder, $root);
+        $directories = $this->getDirectoryPaths($folder);
         foreach ($directories as $directory) {
             $this->setDirectoryNodes($directory, $directory_node, $json, false);
         }
 
-        $files = $this->getFilePaths($folder, $root);
+        $files = $this->getFilePaths($folder);
         foreach ($files as $file) {
             $json[] = [
                 'id' => "node_" . make_uuid(),

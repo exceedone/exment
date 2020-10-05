@@ -1342,7 +1342,7 @@ abstract class CustomValue extends ModelBase
     {
         $options = $this->getQueryOptions($q, $options);
 
-        $query->where(function ($query) use ($options) {
+        $query->where(function ($query) use ($options, $q) {
             $searchColumns = collect($options['searchColumns']);
             for ($i = 0; $i < count($searchColumns); $i++) {
                 $searchColumn = $searchColumns->values()->get($i);
