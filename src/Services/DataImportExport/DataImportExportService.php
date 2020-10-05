@@ -307,16 +307,20 @@ class DataImportExportService extends AbstractExporter
         $plugin = Plugin::find($import_plugin);
         $batch = $plugin->getClass(PluginType::IMPORT, ['file' => $file]);
         $result = $batch->execute();
-        if ($result === false) {
-            return [
-                'result' => false,
-                'toastr' => exmtrans('common.message.import_error')
-            ];
+        if (gettype($result) == 'boolean') {
+            if ($result === false) {
+                return [
+                    'result' => false,
+                    'toastr' => exmtrans('common.message.import_error')
+                ];
+            } else {
+                return [
+                    'result' => true,
+                    'toastr' => exmtrans('common.message.import_success')
+                ];
+            }
         } else {
-            return [
-                'result' => true,
-                'toastr' => exmtrans('common.message.import_success')
-            ];
+            return $result;
         }
     }
 
