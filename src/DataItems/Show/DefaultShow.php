@@ -27,17 +27,13 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\NotifyTrigger;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Services\PartialCrudService;
-use Exceedone\Exment\DataItems\DataTrait;
 
 class DefaultShow extends ShowBase
 {
-    use DataTrait;
-
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
@@ -286,7 +282,7 @@ class DefaultShow extends ShowBase
             }
             ////// relation block
             else {
-                list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
+                list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
                 $target_table = $custom_form_block->target_table;
                 if (!isset($target_table)) {
                     return;

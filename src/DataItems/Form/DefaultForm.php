@@ -19,12 +19,9 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
-use Exceedone\Exment\DataItems\DataTrait;
 
 class DefaultForm extends FormBase
 {
-    use DataTrait;
-
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
@@ -79,7 +76,7 @@ class DefaultForm extends FormBase
             }
             // one_to_many or manytomany
             else {
-                list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
+                list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
                 $target_table = $custom_form_block->target_table;
                 // if user doesn't have edit permission, hide child block
                 if ($target_table->enableEdit() !== true) {
@@ -106,8 +103,8 @@ class DefaultForm extends FormBase
                         $hasmany = $form->hasMany(
                             $relation_name,
                             $block_label,
-                            function ($form, $model = null) use ($custom_form_block) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model))
+                            function ($form, $model = null) use ($custom_form_block, $relation) {
+                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
                                 ->disableHeader();
                             }
                         );
@@ -221,9 +218,10 @@ EOT;
      * @param Form $form Laravel-admin's form
      * @param CustomFormBlock $custom_form_block
      * @param CustomValue|null $target_custom_value target customvalue. if Child block, this arg is child custom value.
+     * @param CustomRelation|null $this form block's relation
      * @return array
      */
-    protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null)
+    protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null, ?CustomRelation $relation = null)
     {
         $closures = [];
         if (is_numeric($target_custom_value)) {
@@ -245,7 +243,7 @@ EOT;
                 continue;
             }
 
-            $field = $form_column->column_item->setCustomValue($target_custom_value)->getAdminField($form_column);
+            $field = $form_column->column_item->setCustomValue($target_custom_value)->setFormRelation($relation)->getAdminField($form_column);
 
             // set $closures using $form_column->column_no
             if (isset($field)) {

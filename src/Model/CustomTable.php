@@ -662,7 +662,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 continue;
             }
             // get field rules
-            $field_rules = $field_validator->getRules();
+            $field_rules = $field_validator->getRules($value);
 
             // merge rules
             $rules = array_merge($field_rules, $rules);

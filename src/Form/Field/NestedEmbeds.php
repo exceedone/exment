@@ -30,11 +30,11 @@ class NestedEmbeds extends Embeds
         return $this->nestedForm;
     }
 
-    protected function getRules()
+    protected function getRules($input = [])
     {
         $rules = [];
         foreach ($this->buildEmbeddedForm()->fields() as $field) {
-            if (!$fieldRules = $field->getRules()) {
+            if (!$fieldRules = $field->getRules($input)) {
                 continue;
             }
             $column = $field->column();
