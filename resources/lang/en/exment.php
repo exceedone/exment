@@ -687,6 +687,7 @@ return [
         'throttle' => 'There are too many login attempts. Please try again after %s minutes.',
         'not_accept_domain' => 'Login in domain :domain is not allowed.',
         'login_button_format' => 'Login with :display_name',
+        'sso_provider_error_validate' => 'There was a problem with the login information obtained from the provider. Please check the following contents and contact the administrator.:errors',
 
         'header' => 'Login Setting',
         'description' => 'Configure Exment login settings such as SSO authentication and 2-step verification.',
