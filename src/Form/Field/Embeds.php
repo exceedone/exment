@@ -18,11 +18,15 @@ class Embeds extends AdminField\Embeds
     public function disableHeader()
     {
         $this->header = false;
+
+        return $this;
     }
 
     public function footerHr($footer_hr = true)
     {
         $this->footer_hr = $footer_hr;
+        
+        return $this;
     }
 
     /**

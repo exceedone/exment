@@ -361,30 +361,53 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-
-    public function getMultipleUniques($custom_column = null)
+    /**
+     * Get unique keys. Contains simple and multiple column settings
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getUniqueColumns()
     {
-        return CustomColumnMulti::allRecords(function ($val) use ($custom_column) {
+        $results = collect();
+        // First, single column setting ----------------------------------------------------
+        $this->custom_columns_cache->filter(function($custom_column){
+            return boolval(array_get($custom_column->options, 'unique')) && !boolval(array_get($custom_column->options, 'multiple_enabled'));
+        })->each(function($custom_column) use($results){
+            $results->push([
+                // set as "unique1" array
+                'unique1' => $custom_column,
+            ]);
+        });
+
+        // second, multi column setting ----------------------------------------------------
+        CustomColumnMulti::allRecords(function ($val) {
             if (array_get($val, 'custom_table_id') != $this->id) {
                 return false;
-            }
-
-            if (!isset($custom_column)) {
-                return true;
             }
 
             if ($val->multisetting_type != MultisettingType::MULTI_UNIQUES) {
                 return false;
             }
 
-            $targetid = CustomColumn::getEloquent($custom_column, $this)->id;
+            return true;
+        }, false)->each(function($custom_column_multi) use($results){
+            $i = [];
             foreach ([1,2,3] as $key) {
-                if ($val->{'unique' . $key} == $targetid) {
-                    return true;
+                $value = $custom_column_multi->{"unique${key}"};
+                if(is_nullorempty($value)){
+                    continue;
                 }
+                $i["unique${key}"] = $value;
             }
-            return false;
-        }, false);
+
+            if(is_nullorempty($i)){
+                return;
+            }
+
+            $results->push($i);
+        });
+
+        return $results;
     }
 
     public function getCompareColumns()
@@ -506,7 +529,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // execute validation
         $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
-        $errors = $this->validatorMultiUniques($value, $custom_value, $options);
+        $errors = $this->validatorUniques($value, $custom_value, $options);
         
         $errors = $this->validatorUnnecessaryColumn($value, $options);
         
@@ -703,31 +726,46 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $errors;
     }
     
-    public function validatorMultiUniques($input, $custom_value = null, array $options = [])
+
+    /**
+     * Validate unique single and multiple.
+     *
+     * @param array $input
+     * @param \CustomValue|null $custom_value
+     * @param array $options
+     * @return array
+     */
+    public function validatorUniques($input, ?CustomValue$custom_value = null, array $options = [])
     {
         $options = array_merge([
+            'column_name_prefix' => null,  // appending error key's prefix, and value prefix
             'asApi' => false, // calling as api
             'appendErrorAllColumn' => false, // if error, append error message for all column
+            'uniqueCheckSiblings' => [], // unique validation Siblings. Please consider myself values.
         ], $options);
 
         $errors = [];
 
-        // getting custom_table's custom_column_multi_uniques
-        $multi_uniques = $this->getMultipleUniques();
+        // getting custom_table's unique columns(contains simgle, multiple)
+        $unique_columns = $this->getUniqueColumns();
 
-        if (!isset($multi_uniques) || count($multi_uniques) == 0) {
+        if (!isset($unique_columns) || count($unique_columns) == 0) {
             return $errors;
         }
 
-        foreach ($multi_uniques as $multi_unique) {
+        foreach ($unique_columns as $unique_column) {
             $query = $this->getValueModel()->query();
             $column_keys = [];
             foreach ([1,2,3] as $key) {
-                if (is_null($column_id = $multi_unique->{'unique' . $key})) {
+                if (is_null($column_id = array_get($unique_column, "unique{$key}"))) {
                     continue;
                 }
 
                 $column = CustomColumn::getEloquent($column_id);
+                if (is_null($column)) {
+                    continue;
+                }
+
                 // get value
                 $value = array_get($input, 'value.' . $column->column_name);
                 if (is_array($value)) {
@@ -762,7 +800,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 
                 // append error message
                 foreach ($column_keys as $column_key) {
-                    $errors["value.{$column_key->column_name}"] = [exmtrans('custom_value.help.multiple_uniques', $errorText)];
+                    $errors[$options['column_name_prefix'] . $column_key->column_name] = [exmtrans('custom_value.help.multiple_uniques', $errorText)];
                     if (!$options['appendErrorAllColumn']) {
                         break;
                     }

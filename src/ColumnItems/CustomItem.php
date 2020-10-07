@@ -345,9 +345,9 @@ abstract class CustomItem implements ItemInterface
 
         // set validates as callback
         $_this = $this;
-        $field->rules(function($form, $value) use($_this, $form_column_options, $field){
+        $field->rules(function($form) use($_this, $form_column_options, $field){
             // set validates
-            return $_this->getColumnValidatesCallback($form_column_options, $field, $value);
+            return $_this->getColumnValidatesCallback($form_column_options, $field);
         });
 
         // set help string using result_options ----------------------------------------------------
@@ -560,10 +560,9 @@ abstract class CustomItem implements ItemInterface
      * @param array $result_options
      * @param mixed $form_column_options
      * @param Field $field
-     * @param Field $value input's value
      * @return array
      */
-    public function getColumnValidatesCallback($form_column_options, Field $field, array $value)
+    public function getColumnValidatesCallback($form_column_options, Field $field)
     {
         $options = array_get($this->custom_column, 'options');
         $validates = [];
@@ -578,23 +577,7 @@ abstract class CustomItem implements ItemInterface
             $validates[] = 'nullable';
         }
 
-        // unique
-        if (boolval(array_get($options, 'unique')) && !boolval(array_get($options, 'multiple_enabled'))) {
-            // add unique field
-            $unique_table_name = getDBTableName($this->custom_table); // database table name
-            $unique_column_name = $this->custom_column->getQueryKey(); // column name
-            
-            $uniqueRules = [$unique_table_name, $unique_column_name];
-            // create rules.if isset id, add
-            $uniqueRules[] = array_get($value, 'id') ?? $this->id ?? '';
-            $uniqueRules[] = 'id';
-            // and ignore data deleted_at is NULL
-            $uniqueRules[] = 'deleted_at';
-            $uniqueRules[] = 'NULL';
-            $rules = "unique:".implode(",", $uniqueRules);
-            // add rules
-            $validates[] = $rules;
-        }
+        ///// unique rule moves to validatorSaving logic
 
         // init_flg(for validation)
         if ($this->initonly()) {

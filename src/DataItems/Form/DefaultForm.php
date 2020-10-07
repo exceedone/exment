@@ -91,10 +91,10 @@ class DefaultForm extends FormBase
                         $hasmany = $form->hasManyTable(
                             $relation_name,
                             $block_label,
-                            function ($form) use ($custom_form_block) {
+                            function ($form) use ($custom_form_block, $relation_name) {
                                 $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
                                     $this->setCustomFormColumns($form, $custom_form_block);
-                                });
+                                })->setRelationName($relation_name);
                             }
                         )->setTableWidth(12, 0);
                     }
@@ -103,9 +103,9 @@ class DefaultForm extends FormBase
                         $hasmany = $form->hasMany(
                             $relation_name,
                             $block_label,
-                            function ($form, $model = null) use ($custom_form_block, $relation) {
+                            function ($form, $model = null) use ($custom_form_block, $relation, $relation_name) {
                                 $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
-                                ->disableHeader();
+                                ->disableHeader()->setRelationName($relation_name);
                             }
                         );
                     }
@@ -315,6 +315,56 @@ EOT;
             $result = PartialCrudService::saving($this->custom_table, $form, $id);
             if ($result instanceof Response) {
                 return $result;
+            }
+        });
+
+        // form validation saving event
+        $form->validatorSavingCallback(function($input, $message, $form){
+            $model = $form->model();
+            if(!$model){
+                return;
+            }
+
+            if(is_array($validateResult = $model->validatorSaving($input, [
+                'column_name_prefix' => 'value.',
+            ]))){
+                $message = $message->merge($validateResult);
+            }
+
+
+            // validation relations ----------------------------------------------------
+            foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+                // if available is false, continue
+                if (!$custom_form_block->available) {
+                    continue;
+                }
+                // when default block, set as normal form columns.
+                if ($custom_form_block->form_block_type == FormBlockType::DEFAULT) {
+                    continue;
+                }
+                list($custom_relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
+                if(!$custom_relation){
+                    continue;
+                }
+                if (!method_exists($model, $relation_name)) {
+                    continue;
+                }
+    
+                // get relation value
+                $relation = $model->$relation_name();
+                $keyName = $relation->getRelated()->getKeyName();
+                $relationValue = array_get($input, $relation_name, []);
+    
+                // loop input's value
+                foreach($relationValue as $relationK => $relationV){
+                    $instance = $relation->findOrNew(array_get($relationV, $keyName));
+                    if(is_array($validateResult = $instance->validatorSaving($relationV, [
+                        'column_name_prefix' => "$relation_name.$relationK.value.",
+                        'uniqueCheckSiblings' => array_values($relationValue),
+                    ]))){
+                        $message = $message->merge($validateResult);
+                    }
+                }
             }
         });
     }

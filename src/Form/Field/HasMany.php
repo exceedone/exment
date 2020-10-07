@@ -216,7 +216,7 @@ EOT;
                     continue;
                 }
                 foreach ($nestedValues as $nestedKey => $nestedValue) {
-                    if (!$fieldRules = $field->getRules($nestedValue)) {
+                    if (!$fieldRules = $field->getRules()) {
                         continue;
                     }
                     foreach ($fieldRules as $key => $fieldRule) {
@@ -232,7 +232,7 @@ EOT;
             }
 
             else{
-                if (!$fieldRules = $field->getRules($input)) {
+                if (!$fieldRules = $field->getRules()) {
                     continue;
                 }
     
