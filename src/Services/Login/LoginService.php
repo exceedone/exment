@@ -173,33 +173,8 @@ class LoginService
             return $rules;
         }
 
-        $mapping_user_column = $login_setting->getOption('mapping_user_column');
-        // remove "unique" and initflg class if not key
-        $rules = collect($rules)->mapWithKeys(function ($rule, $key) use ($mapping_user_column) {
-            // same mapping_user_column and r, return same rules
-            if ($mapping_user_column == $key) {
-                return [$key => $rule];
-            }
-
-            $rule = collect($rule)->filter(function ($r) {
-                if ($r instanceof \Exceedone\Exment\Validator\InitOnlyRule) {
-                    return false;
-                }
-                
-                if (!is_string($r)) {
-                    return true;
-                }
-
-                if (strpos($r, 'unique') === 0) {
-                    return false;
-                }
-                return true;
-            })->toArray();
-
-            return [$key => $rule];
-        })->toArray();
-
-        return $rules;
+        // In other cases, no validation will be performed and an empty array will be returned.
+        return [];
     }
     
 
