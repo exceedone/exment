@@ -1464,7 +1464,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             $customValueCollection->map(function ($custom_value) use ($relationName) {
                 return $custom_value->{$relationName};
-            })->each(function ($custom_value) {
+            })->filter()->each(function ($custom_value) {
                 $custom_value->setValueModel();
             });
         }

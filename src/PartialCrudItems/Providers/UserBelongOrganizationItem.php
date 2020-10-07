@@ -34,7 +34,8 @@ class UserBelongOrganizationItem extends ProviderBase
 
         $defaults = [];
         if (isset($id)) {
-            $defaults = $this->custom_table->getValueModel($id)->belong_organizations->pluck('id')->toArray();
+            $custom_value = $this->custom_table->getValueModel($id);
+            $defaults = $custom_value ? $custom_value->belong_organizations->pluck('id')->toArray() : [];
         }
 
         $form->listbox('belong_organizations', exmtrans("user.belong_organizations"))

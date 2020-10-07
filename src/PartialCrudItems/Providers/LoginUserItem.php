@@ -240,7 +240,7 @@ class LoginUserItem extends ProviderBase
     protected function setEditDelete($tools, $custom_value)
     {
         if (is_numeric($custom_value)) {
-            $custom_value = getModelName(SystemTableName::USER)::findOrFail($custom_value);
+            $custom_value = getModelName(SystemTableName::USER)::find($custom_value);
         }
 
         if (!isset($custom_value)) {
