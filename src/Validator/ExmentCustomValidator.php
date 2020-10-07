@@ -31,6 +31,18 @@ class ExmentCustomValidator extends AdminValidator
         return array_merge($this->errors()->messages(), $this->customMessages);
     }
 
+    public function getMessageStrings() : array
+    {
+        $messages = collect();
+        foreach($this->getMessages() as $messageItems){
+            foreach($messageItems as $message){
+                $messages->push($message);
+            }
+        }
+
+        return $messages->unique()->filter()->toArray();
+    }
+
     /**
      * Validation in table
      *

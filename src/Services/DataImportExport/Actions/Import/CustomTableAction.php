@@ -216,6 +216,9 @@ class CustomTableAction implements ActionInterface
         } else {
             // get relations
             foreach ($this->relations as $relation) {
+                if ($keyname != $relation->getSheetName()) {
+                    continue;
+                }
                 if ($relation->relation_type == RelationType::MANY_TO_MANY) {
                     return new Import\RelationPivotTableProvider([
                         'relation' => $relation,
