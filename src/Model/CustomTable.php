@@ -535,7 +535,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $errors = $this->validatorUniques($value, $custom_value, $options);
         
-        $errors = $this->validatorUnnecessaryColumn($value, $options);
+        $errors = array_merge(
+            $this->validatorUnnecessaryColumn($value, $options),
+            $errors
+        );
         
         $errors = array_merge(
             $this->validatorCompareColumns($value, $custom_value, $options),
@@ -818,7 +821,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     continue;
                 }
     
-                if (isset($custom_value)) {
+                if (isset($custom_value) && isset($custom_value->id)) {
                     $query->where('id', '<>', $custom_value->id);
                 }
     
