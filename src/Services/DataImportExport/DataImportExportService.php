@@ -174,7 +174,7 @@ class DataImportExportService extends AbstractExporter
     }
     
     /**
-     * @param $request
+     * @param Request $request
      * @return mixed|void error message or success message etc...
      */
     public function import($request)
@@ -299,66 +299,34 @@ class DataImportExportService extends AbstractExporter
 
     /**
      * import data by custom logic
-     * @param $import_plugin
+     * @param int|string $import_plugin
+     * @param mixed $file
      */
     protected function customImport($import_plugin, $file)
     {
         $plugin = Plugin::find($import_plugin);
         $batch = $plugin->getClass(PluginType::IMPORT, ['file' => $file]);
         $result = $batch->execute();
-        if ($result === false) {
-            return [
-                'result' => false,
-                'toastr' => exmtrans('common.message.import_error')
-            ];
+        if (gettype($result) == 'boolean') {
+            if ($result === false) {
+                return [
+                    'result' => false,
+                    'toastr' => exmtrans('common.message.import_error')
+                ];
+            } else {
+                return [
+                    'result' => true,
+                    'toastr' => exmtrans('common.message.import_success')
+                ];
+            }
         } else {
-            return [
-                'result' => true,
-                'toastr' => exmtrans('common.message.import_success')
-            ];
+            return $result;
         }
     }
 
+    
     /**
-     * Set data count for background
-     *
-     * @param $request
-     * @return mixed|void error message or success message etc...
-     */
-    public function setDataCountForBackground($request)
-    {
-        setTimeLimitLong();
-        // validate request
-        if (!($errors = $this->validateRequest($request))) {
-            return [
-                'result' => false,
-                'errors' => $errors,
-            ];
-        }
-
-        $this->format->filebasename($this->filebasename);
-
-        // get data count
-        if (method_exists($this->importAction, 'getDataTable')) {
-            $count = $this->importAction->getDataTable($request, true);
-        } else {
-            $count = $this->format->getDataCount($request);
-        }
-
-        if ($count == 0) {
-            return [
-                'result' => false,
-                'toastr' => exmtrans('common.message.import_error'),
-                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.failure_import_file')]],
-            ];
-        }
-
-        // save job table
-        return $response;
-    }
-
-    /**
-     * @param $request
+     * @param Request $request
      * @return bool
      */
     public function validateRequest($request)
@@ -401,7 +369,12 @@ class DataImportExportService extends AbstractExporter
         return true;
     }
 
-    // Import Modal --------------------------------------------------
+    /**
+     * Import Modal
+     *
+     * @param array $pluginlist
+     * @return array
+     */
     public function getImportModal($pluginlist = null)
     {
         // create form fields
@@ -486,6 +459,9 @@ class DataImportExportService extends AbstractExporter
     
     /**
      * get primary key list.
+     *
+     * @param CustomTable $custom_table
+     * @return array
      */
     protected static function getPrimaryKeys($custom_table)
     {
@@ -514,8 +490,8 @@ class DataImportExportService extends AbstractExporter
     /**
      * Replace custom value's data array. For import. Calling custom_value import, API POST, API PUT
      *
-     * @param [type] $custom_columns
-     * @param [type] $data
+     * @param \Illuminate\Support\Collection $custom_columns
+     * @param array $data
      * @param array $options
      * @return array
      */

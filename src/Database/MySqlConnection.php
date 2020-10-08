@@ -250,10 +250,13 @@ class MySqlConnection extends BaseConnection
 
             // get insert sql file for each tables
             $files = array_filter(\File::files($dirFullPath), function ($file) {
-                return preg_match('/.+\.sql$/i', $file);
+                $filename = $file->getFilename();
+                // ignore "view_" file. (Bug fix v3.6.7)
+                return preg_match('/.+\.sql$/i', $filename) && !preg_match('/^view_.*/i', $filename);
             });
 
             foreach ($files as $file) {
+
                 $command = sprintf('%s < %s', $mysqlcmd, $file->getRealPath());
                 
                 $table = $file->getBasename('.' . $file->getExtension());
@@ -318,6 +321,20 @@ __EOT__;
         } finally {
             \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
+    }
+
+
+
+    public function createView($viewName, $query){
+        $viewName = $this->getQueryGrammar()->wrapTable($viewName);
+        \DB::statement("
+            CREATE OR REPLACE VIEW $viewName 
+            AS " . $query->toSql(), $query->getBindings());
+    }
+
+    public function dropView($viewName){
+        $viewName = $this->getQueryGrammar()->wrapTable($viewName);
+        \DB::statement("DROP VIEW IF EXISTS " . $viewName);
     }
 
     

@@ -37,6 +37,8 @@ class SummaryGrid extends GridBase
 
         $this->setSummaryGrid($grid);
 
+        $this->setGrid($grid);
+
         $grid->disableCreateButton();
         $grid->disableFilter();
         //$grid->disableActions();
@@ -44,12 +46,13 @@ class SummaryGrid extends GridBase
         $grid->disableExport();
 
         $table_name = $this->custom_table->table_name;
+        $custom_view = $this->custom_view;
         $isShowViewSummaryDetail = $this->isShowViewSummaryDetail();
         if (!$isShowViewSummaryDetail) {
             $grid->disableActions();
         }
 
-        $grid->actions(function (Grid\Displayers\Actions $actions) use ($isShowViewSummaryDetail, $table_name) {
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($isShowViewSummaryDetail, $custom_view, $table_name) {
             $actions->disableDelete();
             $actions->disableEdit();
             $actions->disableView();
@@ -64,7 +67,7 @@ class SummaryGrid extends GridBase
 
             if ($isShowViewSummaryDetail) {
                 $linker = (new Grid\Linker)
-                ->url(admin_urls_query('data', $table_name, ['view' => CustomView::getAllData($table_name)->suuid,'group_key' => json_encode($params)]))
+                ->url(admin_urls_query('data', $table_name, ['view' => CustomView::getAllData($table_name)->suuid, 'group_view' => $custom_view->suuid, 'group_key' => json_encode($params)]))
                 ->icon('fa-list')
                 ->tooltip(exmtrans('custom_value.view_summary_detail'));
                 $actions->prepend($linker);
@@ -123,7 +126,8 @@ class SummaryGrid extends GridBase
      */
     public function setGrid($grid)
     {
-        // Nothing this function.
+        // set with
+        $this->custom_table->setQueryWith($grid->model(), $this->custom_view);
     }
 
 

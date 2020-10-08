@@ -459,6 +459,7 @@ class Initialize
         Show::extend('system_values', \Exceedone\Exment\Form\Show\SystemValues::class);
 
         Filter::extend('betweendatetime', \Exceedone\Exment\Grid\Filter\BetweenDatetime::class);
+        Filter::extend('exmwhere', \Exceedone\Exment\Grid\Filter\Where::class);
     }
 
     public static function logDatabase()

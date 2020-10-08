@@ -3,10 +3,8 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
-use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Model\Plugin;
@@ -43,7 +41,6 @@ class NotifyService
     /**
      * Get dialog form for send mail
      *
-     * @param Notify $notify
      * @return ModalForm|false
      */
     public function getNotifyDialogForm()
@@ -98,8 +95,8 @@ class NotifyService
     /**
      *
      *
-     * @param Notify $notify
-     * @return void
+     * @param array|\Illuminate\Support\Collection $target_users
+     * @return ModalForm
      */
     public function getNotifyDialogFormMultiple($target_users)
     {
@@ -345,7 +342,7 @@ class NotifyService
     /**
      * Execute Notify action
      *
-     * @param [type] $notify
+     * @param Notify $notify
      * @param array $params
      * @return void
      */
@@ -619,7 +616,7 @@ class NotifyService
     /**
      * get Progress Info
      *
-     * @param [type] $isSelectTarget
+     * @param bool $isSelectTarget
      * @return array
      */
     protected function getProgressInfo($isSelectTarget)

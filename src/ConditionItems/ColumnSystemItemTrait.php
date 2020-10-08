@@ -26,8 +26,9 @@ trait ColumnSystemItemTrait
     /**
      * Get change field
      *
-     * @param [type] $key
-     * @return void
+     * @param string $key
+     * @param bool $show_condition_key
+     * @return \Encore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
     {

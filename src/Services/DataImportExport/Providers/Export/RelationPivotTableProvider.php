@@ -99,7 +99,7 @@ class RelationPivotTableProvider extends ProviderBase
 
         $records = new Collection;
         $this->grid->model()->chunk(function ($data) use (&$records, $relation_name) {
-            if (!isset($records)) {
+            if (is_nullorempty($records)) {
                 $records = new Collection;
             }
             $datalist = $data->map(function ($d) use ($relation_name) {

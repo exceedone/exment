@@ -238,7 +238,7 @@ class File extends ModelBase
      * @param  string  $name file name. the name is shown by display
      * @param  string  $local_filename local file name.
      * @param  bool  $override if file already exists, override
-     * @return string|false
+     * @return File
      */
     public static function storeAs($content, $dirname, $name, $override = false)
     {

@@ -55,8 +55,8 @@ class WorkflowStatus extends ModelBase
     /**
      * Get workflow status name
      *
-     * @param [type] $workflow_status
-     * @param [type] $workflow
+     * @param string|null $workflow_status
+     * @param Workflow $workflow
      * @return string|null
      */
     public static function getWorkflowStatusName($workflow_status = null, $workflow = null)
@@ -77,8 +77,7 @@ class WorkflowStatus extends ModelBase
     /**
      * Get workflow status is completed
      *
-     * @param [type] $workflow_status
-     * @param [type] $workflow
+     * @param string|null $workflow_status
      * @return bool
      */
     public static function getWorkflowStatusCompleted($workflow_status = null) : bool
@@ -94,8 +93,9 @@ class WorkflowStatus extends ModelBase
     /**
      * Get workflow actions from status
      *
-     * @param [type] $workflow_status
-     * @param [type] $workflow
+     * @param string $workflow_status
+     * @param Workflow $workflow
+     * @param bool $ignoreReject
      * @return \Illuminate\Support\Collection
      */
     public static function getActionsByFrom($workflow_status = null, $workflow = null, $ignoreReject = false)

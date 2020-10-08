@@ -5,7 +5,6 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Illuminate\Validation\Validator as AdminValidator;
 
@@ -32,14 +31,26 @@ class ExmentCustomValidator extends AdminValidator
         return array_merge($this->errors()->messages(), $this->customMessages);
     }
 
+    public function getMessageStrings() : array
+    {
+        $messages = collect();
+        foreach($this->getMessages() as $messageItems){
+            foreach($messageItems as $message){
+                $messages->push($message);
+            }
+        }
+
+        return $messages->unique()->filter()->toArray();
+    }
+
     /**
-    * Validation in table
-    *
-    * @param $attribute
-    * @param $value
-    * @param $parameters
-    * @return bool
-    */
+     * Validation in table
+     *
+     * @param string $attribute
+     * @param mixed $value
+     * @param array $parameters
+     * @return bool
+     */
     public function validateUniqueInTable($attribute, $value, $parameters)
     {
         if (count($parameters) < 2) {
@@ -66,9 +77,9 @@ class ExmentCustomValidator extends AdminValidator
     /**
     * Validation in table
     *
-    * @param $attribute
-    * @param $value
-    * @param $parameters
+    * @param string $attribute
+    * @param mixed $value
+    * @param array $parameters
     * @return bool
     */
     public function validateSummaryCondition($attribute, $value, $parameters)
@@ -96,9 +107,9 @@ class ExmentCustomValidator extends AdminValidator
     /**
     * Validate relations between tables are circular reference
     *
-    * @param $attribute
-    * @param $value
-    * @param $parameters
+    * @param string $attribute
+    * @param mixed $value
+    * @param array $parameters
     * @return bool
     */
     public function validateLoopRelation($attribute, $value, $parameters)
@@ -161,9 +172,9 @@ class ExmentCustomValidator extends AdminValidator
     /**
     * Validation regular expression
     *
-    * @param $attribute
-    * @param $value
-    * @param $parameters
+    * @param string $attribute
+    * @param mixed $value
+    * @param array $parameters
     * @return bool
     */
     public function validateRegularExpression($attribute, $value, $parameters)

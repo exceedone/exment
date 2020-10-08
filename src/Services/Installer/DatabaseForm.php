@@ -107,7 +107,7 @@ class DatabaseForm
     /**
      * Check Database Connection
      *
-     * @param [type] $request
+     * @param \Illuminate\Http\Request $request
      * @return boolean is connect database
      */
     protected function canDatabaseConnection($request)

@@ -88,7 +88,7 @@ class Revision extends Eloquent
      *
      * Allow overrides for field names.
      *
-     * @param $key
+     * @param string $key
      *
      * @return bool
      */
@@ -243,7 +243,7 @@ class Revision extends Eloquent
     /**
      * User Responsible.
      *
-     * @return User user responsible for the change
+     * @return mixed user responsible for the change
      */
     public function userResponsible()
     {
@@ -294,8 +294,8 @@ class Revision extends Eloquent
     /**
      * Format the value according to the $revisionFormattedFields array.
      *
-     * @param  $key
-     * @param  $value
+     * @param mixed $key
+     * @param mixed $value
      *
      * @return string formatted value
      */

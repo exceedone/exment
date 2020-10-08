@@ -170,7 +170,7 @@ class RefreshDataService
     /**
      * Remove attachment files
      *
-     * @param [type] $custom_tables
+     * @param array|\Illuminate\Support\Collection $custom_tables
      * @return void
      */
     public static function removeAttachmentFiles($custom_tables)

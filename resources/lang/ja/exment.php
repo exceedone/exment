@@ -688,6 +688,7 @@ return [
         'throttle' => 'ログイン試行回数が多すぎます。%s分経過後、再度お試しください。',
         'not_accept_domain' => 'ドメイン :domain でのログインは、許可されていません。',
         'login_button_format' => ':display_nameでログイン',
+        'sso_provider_error_validate' => 'プロバイダから取得したログイン情報に問題がありました。以下の内容をご確認いただき、管理者にお問い合わせください。:errors',
 
         'header' => 'ログイン設定',
         'description' => 'SSO認証や2段階認証など、Exmentのログインの設定を行います。',

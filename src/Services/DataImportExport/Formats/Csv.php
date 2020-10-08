@@ -237,7 +237,7 @@ class Csv extends FormatBase
     /**
      * Get all csv's row count
      *
-     * @param [type] $spreadsheet
+     * @param string|array|\Illuminate\Support\Collection $files
      * @return int
      */
     protected function getRowCount($files) : int

@@ -4,9 +4,9 @@
 
 namespace Exceedone\Exment\Services;
 
-use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomValue;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class DocumentExcelService
@@ -24,7 +24,10 @@ class DocumentExcelService
     protected $model;
     /**
      * construct
-     * @param Request $request
+     * @param CustomValue $model
+     * @param string $tempfilename
+     * @param string $outputfilename
+     * @param string $document_type
      * @param $document
      */
     public function __construct($model, $tempfilename, $outputfilename, $document_type)

@@ -33,7 +33,7 @@ class SamlUser extends CustomLoginUserBase
     /**
      * Mapping saml user value
      *
-     * @param [type] $samlUser
+     * @param SamlUser $samlUser
      * @return void
      */
     protected static function getMappingItemValue($samlUser, $mappingKey, $replaceMaps)

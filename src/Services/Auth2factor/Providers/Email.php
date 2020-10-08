@@ -40,8 +40,6 @@ class Email
     /**
      * Handle verify posting
      *
-     * @param Request $request
-     *
      * @return mixed
      */
     public function verify()

@@ -99,7 +99,10 @@ class ChartItem implements ItemInterface
             return exmtrans('dashboard.message.need_setting');
         }
 
-        extract($result);
+        $axisx_label = $result['axisx_label'];
+        $axisy_label = $result['axisy_label'];
+        $chart_data = $result['chart_data'];
+        $chart_label = $result['chart_label'];
 
         return view('exment::dashboard.chart.chart', [
             'suuid' => $this->dashboard_box->suuid,
@@ -169,7 +172,7 @@ class ChartItem implements ItemInterface
         $view_column_x_list = $this->custom_view->custom_view_columns;
         $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
 
-        if (!isset($view_column_x_list) || count(($view_column_x_list)) == 0 || !isset($view_column_y)) {
+        if (is_nullorempty($view_column_x_list) || count(($view_column_x_list)) == 0 || is_nullorempty($view_column_y)) {
             return false;
         }
 

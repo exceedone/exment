@@ -49,7 +49,7 @@ class RoleGroup extends ModelBase
      * Get HasPermissionRoleGroup.
      * Check as user, and organization.
      *
-     * @return \Collection
+     * @return \Illuminate\Support\Collection
      */
     public static function getHasPermissionRoleGroup($user_id, $organization_ids, $checkContainJointdOrgs = false)
     {

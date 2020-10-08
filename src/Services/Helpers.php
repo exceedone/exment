@@ -671,7 +671,8 @@ if (!function_exists('array_keys_exists')) {
 if (!function_exists('array_key_value_exists')) {
     /**
      * whether has array_key and array_get
-     * @param mixed $str
+     * @param mixed $key
+     * @param array|\Illuminate\Support\Collection $array
      * @return bool
      */
     function array_key_value_exists($key, $array)
@@ -885,7 +886,7 @@ if (!function_exists('is_list')) {
      * is value is array or Collection
      *
      * @param mixed $value
-     * @return array
+     * @return bool
      */
     function is_list($value) : bool
     {

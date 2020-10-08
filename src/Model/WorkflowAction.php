@@ -347,7 +347,8 @@ class WorkflowAction extends ModelBase
     /**
      * Check has workflow authority
      *
-     * @param [type] $targetUser
+     * @param CustomValue|null $custom_value
+     * @param CustomValue $targetUser
      * @return boolean
      */
     public function hasAuthority($custom_value, $targetUser = null)
@@ -598,7 +599,7 @@ class WorkflowAction extends ModelBase
     /**
      * Get action modal form
      *
-     * @param [type] $custom_value
+     * @param CustomValue $custom_value
      * @return void
      */
     public function actionModal($custom_value)

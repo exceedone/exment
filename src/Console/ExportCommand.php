@@ -10,7 +10,7 @@ use Exceedone\Exment\Services\DataImportExport;
 
 class ExportCommand extends Command
 {
-    use CommandTrait, ImportTrait, ExportCommandTrait;
+    use CommandTrait, ExportCommandTrait;
 
     /**
      * The name and signature of the console command.
@@ -78,7 +78,7 @@ class ExportCommand extends Command
                     throw new \Exception('optional parameter page error : ' . $options['page']);
                 }
                 if (!isset($options['count'])) {
-                    $options['count'] = $custom_view->pager_count;
+                    $options['count'] = $options['view']->pager_count;
                 } elseif (!preg_match("/^[0-9]+$/", $options['count'])) {
                     throw new \Exception('optional parameter count error : ' . $options['count']);
                 }

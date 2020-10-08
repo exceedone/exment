@@ -21,8 +21,9 @@ trait AdapterTrait
     /**
      * Merge config
      *
-     * @param [type] $configKey
-     * @param [type] $driver
+     * @param string $baseConfigKey
+     * @param string $mergeConfigKey
+     * @param string $mergeFrom
      * @return array
      */
     public static function mergeFileConfig($baseConfigKey, $mergeConfigKey, $mergeFrom)

@@ -79,11 +79,11 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
         return $workflow_authority->related_id == $targetUser->id;
     }
 
-    public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
+    public static function setWorkflowConditionQuery($query, $tableName, $custom_table)
     {
-        $query->orWhere(function ($query) use ($authorityTableName) {
-            $query->where($authorityTableName . '.related_id', \Exment::getUserId())
-                ->where($authorityTableName . '.related_type', ConditionTypeDetail::USER()->lowerkey());
+        $query->orWhere(function ($query) {
+            $query->where('authority_related_id', \Exment::getUserId())
+                ->where('authority_related_type', ConditionTypeDetail::USER()->lowerkey());
         });
     }
 }

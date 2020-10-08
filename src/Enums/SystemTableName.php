@@ -2,6 +2,11 @@
 
 namespace Exceedone\Exment\Enums;
 
+/**
+ * System Table Name List.
+ *
+ * @method static SystemTableName SYSTEM()
+ */
 class SystemTableName extends EnumBase
 {
     const SYSTEM = 'systems';
@@ -35,6 +40,9 @@ class SystemTableName extends EnumBase
     const WORKFLOW_VALUE = 'workflow_values';
     const WORKFLOW_VALUE_AUTHORITY = 'workflow_value_authorities';
     const DATA_SHARE_AUTHORITABLE = 'data_share_authoritables';
+
+    const VIEW_WORKFLOW_VALUE_UNION = 'view_workflow_value_unions';
+    const VIEW_WORKFLOW_START = 'view_workflow_start';
 
     public static function SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY()
     {

@@ -88,7 +88,7 @@ class LoginUserProvider extends ProviderBase
     {
         $records = new Collection;
         $this->grid->model()->chunk(function ($data) use (&$records) {
-            if (!isset($records)) {
+            if (is_nullorempty($records)) {
                 $records = new Collection;
             }
             $records = $records->merge($data);

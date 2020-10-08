@@ -23,9 +23,9 @@ class FieldFormatter
     /**
      * Format the value according to the provided formats.
      *
-     * @param  $key
-     * @param  $value
-     * @param  $formats
+     * @param mixed $key
+     * @param mixed $value
+     * @param array $formats
      *
      * @return string formatted value
      */

@@ -132,7 +132,7 @@ class DefaultTableProvider extends ProviderBase
     
     /**
      * validate imported all data.
-     * @param $data
+     * @param mixed $dataObjects
      * @return array
      */
     public function validateImportData($dataObjects)
@@ -160,8 +160,9 @@ class DefaultTableProvider extends ProviderBase
     
     /**
      * validate data row
-     * @param $action
-     * @param $data
+     * @param int $line_no
+     * @param array $dataAndModel
+     * @param array $validate_columns
      * @return array
      */
     public function validateDataRow($line_no, $dataAndModel, $validate_columns)
