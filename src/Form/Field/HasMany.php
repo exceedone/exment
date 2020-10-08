@@ -23,6 +23,13 @@ class HasMany extends AdminHasMany
      */
     public function render()
     {
+        // remove "asterisk" if has required
+        if(array_has($this->attributes, 'required')){
+            $this->labelClass = array_filter($this->labelClass, function($a){
+                return $a !== 'asterisk';
+            });
+        }
+
         // specify a view to render.
         $this->view = $this->views[$this->viewMode];
 
@@ -85,6 +92,9 @@ EOT;
         $count = $this->getHasManyCount();
         $indexName = "index_{$this->column}";
 
+        $errortitle = exmtrans("common.error");
+        $requiremessage = sprintf(exmtrans("common.message.exists_row"), $this->label);
+
         /**
          * When add a new sub form, replace all element key in new sub form.
          *
@@ -111,6 +121,18 @@ $('#has-many-{$this->column}').off('click.admin_remove').on('click.admin_remove'
     $(this).closest('.has-many-{$this->column}-form').find('input[required], select[required]').prop('disabled', true);
     $(this).closest('.has-many-{$this->column}-form').find('.$removeClass').val(1);
     {$this->countscript}
+});
+
+$("button[type='submit']").click(function(){
+    if ($('#has-many-{$this->column}').attr('required') === undefined) {
+        return true;
+    }
+    var cnt = $('#has-many-{$this->column} .has-many-{$this->column}-forms > .fields-group').filter(':visible').length;
+    if (cnt == 0) { 
+        swal("$errortitle", "$requiremessage", "error");
+        return false;
+    };
+    return true;
 });
 
 EOT;
@@ -126,50 +148,6 @@ EOT;
             ->getTemplateHtmlAndScript();
 
         return $this->setupScript($script);
-    }
-
-    /**
-     * Setup default template script.
-     *
-     * @param string $templateScript
-     *
-     * @return void
-     */
-    protected function setupScriptForTableView($templateScript)
-    {
-        $removeClass = NestedForm::REMOVE_FLAG_CLASS;
-        $defaultKey = NestedForm::DEFAULT_KEY_NAME;
-        $count = !isset($this->value) ? 0 : count($this->value);
-        $indexName = "index_{$this->column}";
-
-        /**
-         * When add a new sub form, replace all element key in new sub form.
-         *
-         * @example comments[new___key__][title]  => comments[new_{index}][title]
-         *
-         * {count} is increment number of current sub form count.
-         */
-        $script = <<<EOT
-var $indexName = {$count};
-$('#has-many-{$this->column}').off('click.admin_add').on('click.admin_add', '.add', function () {
-    var tpl = $('template.{$this->column}-tpl');
-
-    $indexName++;
-
-    var template = tpl.html().replace(/{$defaultKey}/g, $indexName);
-    $('.has-many-{$this->column}-forms').append(template);
-    {$templateScript}
-});
-
-$('#has-many-{$this->column}').off('click.admin_remove').on('click.admin_remove', '.remove', function () {
-    $(this).closest('.has-many-{$this->column}-form').hide();
-    $(this).closest('.has-many-{$this->column}-form').find('input[required], select[required]').prop('disabled', true);
-    $(this).closest('.has-many-{$this->column}-form').find('.$removeClass').val(1);
-});
-
-EOT;
-
-        Admin::script($script);
     }
 
     /**

@@ -275,13 +275,14 @@ $('#has-many-table-{$this->column}').off('click.admin_row_remove', '.row-move').
 });
 
 $("button[type='submit']").click(function(){
-    if ($('#has-many-table-{$this->column}-table').attr('required') != undefined) {
-        var cnt = $('#has-many-table-{$this->column}-table tr.has-many-table-{$this->column}-row').filter(':visible').length;
-        if (cnt == 0) { 
-            swal("$title", "$message", "error");
-            return false;
-        };
+    if ($('#has-many-table-{$this->column}-table').attr('required') === undefined) {
+        return true;
     }
+    var cnt = $('#has-many-table-{$this->column}-table tr.has-many-table-{$this->column}-row').filter(':visible').length;
+    if (cnt == 0) { 
+        swal("$title", "$message", "error");
+        return false;
+    };
     return true;
 });
 

@@ -344,7 +344,7 @@ class NotifyController extends AdminControllerBase
                     ->escape(false);
                 $form->ignore('notify_action_target_text');
             }
-        })->disableHeader();
+        })->required()->disableHeader();
 
         // get notify mail template
         $notify_mail_id = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', MailKeyName::TIME_NOTIFY)->first()->id;
