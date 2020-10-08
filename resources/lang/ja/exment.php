@@ -1890,7 +1890,7 @@ return [
         'notify_day' => '通知日',
         'notify_beforeafter' => '通知前後',
         'notify_hour' => '通知時間',
-        'notify_myself' => '通知実行者にも通知する',
+        'notify_myself' => '作業実施者にも通知する',
         'notify_action' => '実施アクション',
         'action_settings' => '実施アクション設定',
         'notify_action_target' => '通知対象',
@@ -1900,6 +1900,7 @@ return [
         'message_input' => 'メッセージ入力',
         'webhook_url' => 'Webhook URL',
         'mention_here' => 'メンバー全員に通知を実施',
+        'mention_setting_manual_id' => 'slack-id設定方法',
 
         'help' => [
             'active_flg' => '通知を一時的に無効にする場合、NOにしてください。',
@@ -1911,12 +1912,13 @@ return [
             'trigger_settings' => '通知を行うかどうかの判定を行う、日付・日時のフィールドを選択します。',
             'notify_beforeafter' => '通知を行うのが、登録している日付の「前」か「後」かを選択します。<br/>例：「通知日」が7、「通知前後」が「前」の場合、指定したフィールドの日付の7日前に通知実行',
             'notify_hour' => '通知を実行する時間です。0～23で入力します。 例：「6」と入力した場合、6:00に通知実行',
-            'notify_myself' => 'YESにすることで、通知対象が、通知を実行したログインユーザーであっても、ログインユーザーに通知を実行します。',
+            'notify_myself' => 'YESにすることで、通知対象が、作業を実施したログインユーザーであっても、そのログインユーザーに通知を実行します。',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
             'notify_action_target' => '通知先の対象を選択します。※実施アクションが「Eメール」「システム内アラート」の場合、必須になります。',
             'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前に通知テンプレート画面にて、新規テンプレートを作成してください。',
             'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 ',
             'mention_here' => '指定のチャンネルで、ステータスがアクティブになっているメンバー全員に通知を行う、「@here」メンションを送ります。※個別のメンションを行うには、下の「通知対象」項目を設定してください。',
+            'slack_user_column_not_setting' => '※システム設定の「Slack ID設定列(ユーザー)」が登録されていません。Slack IDを登録する列を指定後、通知対象を設定できます。',
         ],
 
         'notify_trigger_options' => [

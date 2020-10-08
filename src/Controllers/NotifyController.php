@@ -105,6 +105,31 @@ class NotifyController extends AdminControllerBase
                 ->tooltip(exmtrans('common.copy_item', exmtrans('notify.notify')));
             $actions->prepend($linker);
         });
+        
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+            $filter->like('notify_name', exmtrans("notify.notify_name"));
+            $filter->like('notify_view_name', exmtrans("notify.notify_view_name"));
+
+            $filter->equal('notify_trigger', exmtrans("notify.notify_trigger"))->select(function ($val) {
+                return NotifyTrigger::transKeyArray("notify.notify_trigger_options");
+            });
+            
+            $filter->equal('custom_table_id', exmtrans("notify.custom_table_id"))->select(function ($val) {
+                return CustomTable::filterList()->pluck('table_view_name', 'table_view_name');
+            });
+
+            $filter->equal('workflow_id', exmtrans("notify.workflow_id"))->select(function ($val) {
+                return Workflow::allRecords(function ($workflow) {
+                    if (!boolval($workflow->setting_completed_flg)) {
+                        return false;
+                    }
+                    return true;
+                })->pluck('workflow_view_name', 'id');
+            });
+        });
+
+
         return $grid;
     }
 
@@ -335,7 +360,7 @@ class NotifyController extends AdminControllerBase
 
             if(!isset($system_slack_user_column)){
                 $form->display('notify_action_target_text', exmtrans("notify.notify_action_target"))
-                    ->displayText('※システム設定の「Slack ID設定列(ユーザー)」が登録されていません。Slack IDを登録する列を指定後、通知対象を設定できます。')
+                    ->displayText(exmtrans('notify.help.slack_user_column_not_setting') . \Exment::getMoreTag('notify', 'notify.mention_setting_manual_id'))
                     ->attribute([
                         'data-filter' => json_encode([
                             ['key' => 'notify_action', 'value' => [NotifyAction::SLACK]]
@@ -379,6 +404,7 @@ class NotifyController extends AdminControllerBase
             // }
         });
 
+        $form->disableEditingCheck(false);
 
         return $form;
     }

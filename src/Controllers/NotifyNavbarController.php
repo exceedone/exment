@@ -63,6 +63,24 @@ class NotifyNavbarController extends AdminControllerBase
                 $actions->prepend($linker);
             }
         });
+        
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+
+            $options = [
+                '' => 'All',
+                0 => exmtrans("notify_navbar.read_flg_options.0"),
+                1 => exmtrans("notify_navbar.read_flg_options.1"),
+            ];
+            $filter->equal('read_flg', exmtrans("notify_navbar.read_flg"))->radio($options);
+
+            $filter->equal('parent_type', exmtrans("notify_navbar.parent_type"))->select(function ($val) {
+                return CustomTable::filterList()->pluck('table_view_name', 'table_view_name');
+            });
+            
+            $filter->like('notify_subject', exmtrans("notify_navbar.notify_subject"));
+        });
+
         return $grid;
     }
 

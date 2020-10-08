@@ -332,4 +332,34 @@ class Exment
 
         return $collect;
     }
+
+
+    
+    /**
+     * Get manual url
+     *
+     * @param string|null $uri
+     * @return string
+     */
+    public function getManualUrl(?string $uri = null) : string
+    {
+        $manual_url_base = config('exment.manual_url');
+        // if ja, set
+        if (config('app.locale') == 'ja') {
+            $manual_url_base = url_join($manual_url_base, 'ja') . '/';
+        }
+        $manual_url_base = url_join($manual_url_base, $uri);
+        return $manual_url_base;
+    }
+
+
+    public function getMoreTag(?string $uri = null, ?string $id_transkey = null){
+        $url = $this->getManualUrl($uri);
+
+        if($id_transkey){
+            $url .= '#' . exmtrans($id_transkey);
+        }
+
+        return exmtrans('common.help.more_help_here', $url);
+    }
 }

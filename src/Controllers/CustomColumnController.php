@@ -133,8 +133,8 @@ class CustomColumnController extends AdminControllerTableBase
             // Remove the default id filter
             $filter->disableIdFilter();
             // Add a column filter
-            $filter->equal('column_name', exmtrans("custom_column.column_name"));
-            $filter->equal('column_view_name', exmtrans("custom_column.column_view_name"));
+            $filter->like('column_name', exmtrans("custom_column.column_name"));
+            $filter->like('column_view_name', exmtrans("custom_column.column_view_name"));
             $filter->equal('column_type', exmtrans("custom_column.column_type"))->select(function ($val) {
                 return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
             });
