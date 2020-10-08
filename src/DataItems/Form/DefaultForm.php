@@ -353,14 +353,35 @@ EOT;
                 // get relation value
                 $relation = $model->$relation_name();
                 $keyName = $relation->getRelated()->getKeyName();
-                $relationValue = array_get($input, $relation_name, []);
-    
+                $relationValues = array_get($input, $relation_name, []);
+
+                // ignore ids
+                $ignoreIds = collect($relationValues)->filter(function($val, $key){
+                    return is_int($key);
+                })->map(function($val){
+                    return array_get($val, 'id');
+                })->values()->toArray();
+                
+                // skip _remove_ flg
+                $relationValues = array_filter($relationValues, function($val){
+                    if(array_get($val, Form::REMOVE_FLAG_NAME) == 1){
+                        return false;
+                    }
+                    return true;
+                });
+
                 // loop input's value
-                foreach($relationValue as $relationK => $relationV){
+                foreach($relationValues as $relationK => $relationV){
                     $instance = $relation->findOrNew(array_get($relationV, $keyName));
+                    // remove self item
+                    $uniqueCheckSiblings = array_filter($relationValues, function($relationValue, $key) use($relationK){
+                        return !isMatchString($relationK, $key);
+                    }, ARRAY_FILTER_USE_BOTH);
+                    
                     if(is_array($validateResult = $instance->validatorSaving($relationV, [
                         'column_name_prefix' => "$relation_name.$relationK.value.",
-                        'uniqueCheckSiblings' => array_values($relationValue),
+                        'uniqueCheckSiblings' => array_values($uniqueCheckSiblings),
+                        'uniqueCheckIgnoreIds' => $ignoreIds,
                     ]))){
                         $message = $message->merge($validateResult);
                     }

@@ -741,7 +741,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'column_name_prefix' => null,  // appending error key's prefix, and value prefix
             'asApi' => false, // calling as api
             'appendErrorAllColumn' => false, // if error, append error message for all column
-            'uniqueCheckSiblings' => [], // unique validation Siblings. Please consider myself values.
+            'uniqueCheckSiblings' => [], // unique validation Siblings. Please mremove myself values.
+            'uniqueCheckIgnoreIds' => [], // ignore ids.
         ], $options);
 
         $errors = [];
