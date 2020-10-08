@@ -37,13 +37,6 @@ abstract class CustomItem implements ItemInterface
     protected $custom_value;
 
     /**
-     * Form's relation
-     *
-     * @var CustomRelation
-     */
-    protected $form_relation;
-
-    /**
      * laravel-admin set required. if false, always not-set required
      */
     protected $required = true;
@@ -211,19 +204,6 @@ abstract class CustomItem implements ItemInterface
     public function getRelation()
     {
         return $this->getRelationTrait();
-    }
-
-    /**
-     * Set form relation
-     *
-     * @param CustomRelation|null $relation
-     * @return $this
-     */
-    public function setFormRelation(?CustomRelation $relation)
-    {
-        $this->form_relation = $relation;
-
-        return $this;
     }
 
 

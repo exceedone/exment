@@ -243,7 +243,7 @@ EOT;
                 continue;
             }
 
-            $field = $form_column->column_item->setCustomValue($target_custom_value)->setFormRelation($relation)->getAdminField($form_column);
+            $field = $form_column->column_item->setCustomValue($target_custom_value)->getAdminField($form_column);
 
             // set $closures using $form_column->column_no
             if (isset($field)) {
