@@ -24,7 +24,6 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\NotifyService;
-use Exceedone\Exment\Validator\RequiredIfExRule;
 use Illuminate\Http\Request;
 
 class NotifyController extends AdminControllerBase
@@ -325,7 +324,7 @@ class NotifyController extends AdminControllerBase
             ->help(exmtrans("notify.help.notify_action"))
             ;
 
-            $form->text('webhook_url', exmtrans("notify.webhook_url"))
+            $form->url('webhook_url', exmtrans("notify.webhook_url"))
                 ->required()
                 ->rules(["max:300"])
                 ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify_webhook')))
@@ -350,17 +349,15 @@ class NotifyController extends AdminControllerBase
                 })
                 ->attribute([
                     'data-filter' => json_encode([
-                        ['key' => 'notify_action', 'value' => $notify_action_target_filter]
+                        ['key' => 'notify_action', 'value' => $notify_action_target_filter],
+                        ['key' => 'notify_action', 'requiredValue' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE]],
                     ])
                 ])
-                ->rules([new RequiredIfExRule([
-                    ['notify_actions', NotifyAction::EMAIL, NotifyAction::SHOW_PAGE],
-                ])])
                 ->help(exmtrans("notify.help.notify_action_target"));
 
             if(!isset($system_slack_user_column)){
                 $form->display('notify_action_target_text', exmtrans("notify.notify_action_target"))
-                    ->displayText(exmtrans('notify.help.slack_user_column_not_setting') . \Exment::getMoreTag('notify', 'notify.mention_setting_manual_id'))
+                    ->displayText(exmtrans('notify.help.slack_user_column_not_setting') . \Exment::getMoreTag('notify_webhook', 'notify.mention_setting_manual_id'))
                     ->attribute([
                         'data-filter' => json_encode([
                             ['key' => 'notify_action', 'value' => [NotifyAction::SLACK]]
