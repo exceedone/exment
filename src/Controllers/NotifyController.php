@@ -7,8 +7,6 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Widgets\Box;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
@@ -137,6 +135,7 @@ class NotifyController extends AdminControllerBase
         // TODO: only role tables
 
         $form->switchbool('active_flg', exmtrans("plugin.active_flg"))
+            ->help(exmtrans("notify.help.active_flg"))
             ->default(true);
 
         $form->exmheader(exmtrans('notify.header_trigger'))->hr();
@@ -216,6 +215,7 @@ class NotifyController extends AdminControllerBase
         ])
         ->help(exmtrans("notify.help.workflow_id"));
 
+
         $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) use ($copy_id) {
             // Notify Time --------------------------------------------------
             $controller = $this;
@@ -270,6 +270,14 @@ class NotifyController extends AdminControllerBase
                 ->required()
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::BUTTON]])])
                 ->rules("max:40");
+                    
+            $form->switchbool('notify_myself', exmtrans("notify.notify_myself"))
+            ->attribute([
+                'data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::CREATE_UPDATE_DATA, NotifyTrigger::WORKFLOW]]),
+            ])
+            ->default(false)
+            ->help(exmtrans("notify.help.notify_myself"));
+
         })->disableHeader();
 
         $form->exmheader(exmtrans("notify.header_action"))->hr();

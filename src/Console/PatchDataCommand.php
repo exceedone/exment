@@ -1249,5 +1249,13 @@ class PatchDataCommand extends Command
             $notify->action_settings = $action_settings_array;
             $notify->save();
         });
+
+        if (!boolval(config('exment.notify_skip_self_target', true))) {
+            Model\Notify::whereIn('notify_trigger', [Enums\NotifyTrigger::CREATE_UPDATE_DATA, Enums\NotifyTrigger::WORKFLOW])->get()
+                ->each(function ($notify) {
+                    $notify->setTriggerSetting('notify_myself', true)->save();
+                });
+        }
+
     }
 }

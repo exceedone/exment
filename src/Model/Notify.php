@@ -54,6 +54,10 @@ class Notify extends ModelBase
     {
         return $this->getJson('trigger_settings', $key, $default);
     }
+    public function setTriggerSetting($key, $value = null)
+    {
+        return $this->setJson('trigger_settings', $key, $value);
+    }
 
     public function getMentionHere($action_setting)
     {
@@ -281,7 +285,7 @@ class Notify extends ModelBase
                 if(is_nullorempty($loginuser)){
                     return true;
                 }
-                if (!boolval(config('exment.notify_skip_self_target', true))) {
+                if ($this->isNotifyMyself()) {
                     return true;
                 }
                 if($loginuser->getUserId() != $user->getUserId()){
@@ -517,7 +521,7 @@ class Notify extends ModelBase
     {
         // if $user is myself, return false
         $loginuser = \Exment::user();
-        if (boolval(config('exment.notify_skip_self_target', true))) {
+        if (!$this->isNotifyMyself()) {
             if ($checkHistory && !is_nullorempty($loginuser) && isMatchString($loginuser->email, $user->email())) {
                 return false;
             }
@@ -550,6 +554,19 @@ class Notify extends ModelBase
         }
 
         return true;
+    }
+
+    /**
+     * Whether skip notify myself
+     *
+     * @return bool
+     */
+    protected function isNotifyMyself() : bool{
+        // only CREATE_UPDATE_DATA and WORKFLOW
+        if(!in_array($this->notify_trigger, [NotifyTrigger::CREATE_UPDATE_DATA, NotifyTrigger::WORKFLOW])){
+            return true;
+        }
+        return boolval($this->getTriggerSetting('notify_myself') ?? false);
     }
     
     protected static function boot()

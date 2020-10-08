@@ -12,6 +12,7 @@ use Carbon\Carbon;
 class ScheduleCommand extends Command
 {
     use CommandTrait;
+    use NotifyScheduleTrait;
 
     /**
      * The console command name.
