@@ -204,5 +204,4 @@ class EBackupDataTest extends ExmentKitTestCase
         });
         return $files;
     }
-
 }

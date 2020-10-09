@@ -21,8 +21,8 @@ class CCustomFormTest extends ExmentKitTestCase
      * prepare test table.
      */
     public function testPrepareTestTable() {
-        $this->createCustomTable('ntq_form');
-        $this->createCustomTable('ntq_form_relation');
+        $this->createCustomTable('exmenttest_form');
+        $this->createCustomTable('exmenttest_form_relation');
     }
 
     /**
@@ -30,7 +30,7 @@ class CCustomFormTest extends ExmentKitTestCase
      */
     public function testPrepareTestColumn() {
         $targets = ['integer', 'text', 'datetime', 'select', 'boolean', 'yesno', 'image'];
-        $this->createCustomColumns('ntq_form', $targets);
+        $this->createCustomColumns('exmenttest_form', $targets);
     }
 
     /**
@@ -38,8 +38,8 @@ class CCustomFormTest extends ExmentKitTestCase
      */
     public function testPrepareTestColumnAndRelation() {
         $targets = ['integer', 'text', 'datetime', 'select', 'boolean', 'yesno', 'image'];
-        $this->createCustomColumns('ntq_form_relation', $targets);
-        $this->createCustomRelation('ntq_form', 'ntq_form_relation');
+        $this->createCustomColumns('exmenttest_form_relation', $targets);
+        $this->createCustomRelation('exmenttest_form', 'exmenttest_form_relation');
     }
 
     /**
@@ -48,19 +48,19 @@ class CCustomFormTest extends ExmentKitTestCase
     public function testDisplayFormSetting()
     {
         // Check custom column form
-        $this->visit('/admin/form/ntq_form')
-                ->seePageIs('/admin/form/ntq_form')
+        $this->visit('/admin/form/exmenttest_form')
+                ->seePageIs(admin_url('form/exmenttest_form'))
                 ->see('カスタムフォーム設定')
                 ->seeInElement('th', 'テーブル名(英数字)')
                 ->seeInElement('th', 'テーブル表示名')
                 ->seeInElement('th', 'フォーム表示名')
                 ->seeInElement('th', '操作')
-                ->visit('/admin/form/ntq_form/create')
+                ->visit('/admin/form/exmenttest_form/create')
                 ->seeInElement('h1', 'カスタムフォーム設定')
                 ->seeInElement('label', 'フォーム表示名')
                 ->seeInElement('h3[class=box-title]', 'ヘッダー基本設定')
-                ->seeInElement('h3[class=box-title]', 'テーブル - Ntq Form')
-                ->seeInElement('h3[class=box-title]', '子テーブル - Ntq Form Relation')
+                ->seeInElement('h3[class=box-title]', 'テーブル - Exmenttest Form')
+                ->seeInElement('h3[class=box-title]', '子テーブル - Exmenttest Form Relation')
                 ->seeInElement('label', 'フォームブロック名')
                 ->seeInElement('h4', 'フォーム項目')
                 ->seeInElement('h5', 'フォーム項目 列1')
@@ -94,10 +94,10 @@ class CCustomFormTest extends ExmentKitTestCase
         $pre_cnt = CustomForm::count();
 
         // Create custom form
-        $this->visit('/admin/form/ntq_form/create')
+        $this->visit('/admin/form/exmenttest_form/create')
                 ->type('新しいフォーム', 'form_view_name')
                 ->press('admin-submit')
-                ->seePageIs('/admin/form/ntq_form')
+                ->seePageIs(admin_url('form/exmenttest_form'))
                 ->seeInElement('td', '新しいフォーム')
                 ->assertEquals($pre_cnt + 1, CustomForm::count())
                 ;
@@ -106,11 +106,11 @@ class CCustomFormTest extends ExmentKitTestCase
         $id = array_get($raw, 'id');
 
         // Update custom form
-        $this->visit('/admin/form/ntq_form/'. $id . '/edit')
+        $this->visit('/admin/form/exmenttest_form/'. $id . '/edit')
                 ->seeInField('form_view_name', '新しいフォーム')
                 ->type('更新したフォーム', 'form_view_name')
                 ->press('admin-submit')
-                ->seePageIs('/admin/form/ntq_form')
+                ->seePageIs(admin_url('form/exmenttest_form'))
                 ->seeInElement('td', '更新したフォーム');
     }
 
@@ -143,9 +143,9 @@ class CCustomFormTest extends ExmentKitTestCase
 //                 ->waitForText('New')
 //                 ->clickLink('New')
 //                 ->pause(5000)
-//                 ->type('table_name', 'ntq_form')
-//                 ->type('table_view_name', 'NTQ Form')
-//                 ->type('description', 'NTQ Test table')
+//                 ->type('table_name', 'exmenttest_form')
+//                 ->type('table_view_name', 'EXMENT Form')
+//                 ->type('description', 'EXMENT Test table')
 //                 ->type('color', '#ff0000')
 //                 ->type('icon', 'fa-automobile')
 //                 ->click('.fa.fa-automobile');
@@ -154,8 +154,8 @@ class CCustomFormTest extends ExmentKitTestCase
 //                 ->pause(5000)
 //                 ->assertMissing('.has-error')
 //                 ->assertPathIs('/admin/table')
-//                 ->assertSee('ntq_form')
-//                 ->assertSee('NTQ Form');
+//                 ->assertSee('exmenttest_form')
+//                 ->assertSee('EXMENT Form');
 //         });
 //     }
 
@@ -163,7 +163,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddIntegerColumnTable1()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form/create')
+//             $browser->visit('/admin/column/exmenttest_form/create')
 //                 ->type('column_name', 'integer')
 //                 ->type('column_view_name', 'Integer')
 //                 ->select('column_type', 'integer')
@@ -172,7 +172,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             $browser->script('document.querySelector(".options_number_format.la_checkbox").click();');
 //             $browser->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form')
+//                 ->assertPathIs('/admin/column/exmenttest_form')
 //                 ->assertSee('integer');
 //         });
 //     }
@@ -181,7 +181,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddOneLineTextColumnTable1()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form/create')
+//             $browser->visit('/admin/column/exmenttest_form/create')
 //                 ->type('column_name', 'onelinetext')
 //                 ->type('column_view_name', 'One Line Text')
 //                 ->select('column_type', 'text')
@@ -189,7 +189,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //                 ->click('#available_characters  label.checkbox-inline:nth-child(1) div.icheckbox_minimal-blue')
 //                 ->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form')
+//                 ->assertPathIs('/admin/column/exmenttest_form')
 //                 ->assertSee('onelinetext');
 //         });
 //     }
@@ -198,13 +198,13 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddDateAndTimeColumnTable1()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form/create')
+//             $browser->visit('/admin/column/exmenttest_form/create')
 //                 ->type('column_name', 'dateandtime')
 //                 ->type('column_view_name', 'Date and Time')
 //                 ->select('column_type', 'datetime')
 //                 ->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form')
+//                 ->assertPathIs('/admin/column/exmenttest_form')
 //                 ->assertSee('dateandtime');
 //         });
 //     }
@@ -213,7 +213,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddSelectFromStaticValueColumnTable1()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form/create')
+//             $browser->visit('/admin/column/exmenttest_form/create')
 //                 ->type('column_name', 'selectfromstaticvalue')
 //                 ->type('column_view_name', "Select Froom Static Value")
 //                 ->select('column_type', 'select')
@@ -221,7 +221,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
 //             $browser->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form')
+//                 ->assertPathIs('/admin/column/exmenttest_form')
 //                 ->assertSee('selectfromstaticvalue');
 //         });
 //     }
@@ -230,7 +230,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddSelect2ValueColumnTable1()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form/create')
+//             $browser->visit('/admin/column/exmenttest_form/create')
 //                 ->type('column_name', 'select2value')
 //                 ->type('column_view_name', "Select 2 value")
 //                 ->select('column_type', 'boolean')
@@ -241,7 +241,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
 //             $browser->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form')
+//                 ->assertPathIs('/admin/column/exmenttest_form')
 //                 ->assertSee('select2value');
 //         });
 //     }
@@ -250,13 +250,13 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddYesNoColumnTable1()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form/create')
+//             $browser->visit('/admin/column/exmenttest_form/create')
 //                 ->type('column_name', 'yesno')
 //                 ->type('column_view_name', 'Yes No')
 //                 ->select('column_type', 'yesno')
 //                 ->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form')
+//                 ->assertPathIs('/admin/column/exmenttest_form')
 //                 ->assertSee('yesno');
 //         });
 //     }
@@ -265,14 +265,14 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddImageColumnTable1()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form/create')
+//             $browser->visit('/admin/column/exmenttest_form/create')
 //                 ->type('column_name', 'image')
 //                 ->type('column_view_name', 'Image')
 //                 ->select('column_type', 'image');
 //             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
 //             $browser->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form')
+//                 ->assertPathIs('/admin/column/exmenttest_form')
 //                 ->assertSee('image');
 //         });
 //     }
@@ -285,9 +285,9 @@ class CCustomFormTest extends ExmentKitTestCase
 //                 ->waitForText('New')
 //                 ->clickLink('New')
 //                 ->pause(5000)
-//                 ->type('table_name', 'ntq_form_relation')
-//                 ->type('table_view_name', 'NTQ Form Relation')
-//                 ->type('description', 'NTQ Test table')
+//                 ->type('table_name', 'exmenttest_form_relation')
+//                 ->type('table_view_name', 'EXMENT Form Relation')
+//                 ->type('description', 'EXMENT Test table')
 //                 ->type('color', '#ff0000')
 //                 ->type('icon', 'fa-automobile')
 //                 ->click('.fa.fa-automobile');
@@ -296,8 +296,8 @@ class CCustomFormTest extends ExmentKitTestCase
 //                 ->pause(5000)
 //                 ->assertMissing('.has-error')
 //                 ->assertPathIs('/admin/table')
-//                 ->assertSee('ntq_form_relation')
-//                 ->assertSee('NTQ Form Relation');
+//                 ->assertSee('exmenttest_form_relation')
+//                 ->assertSee('EXMENT Form Relation');
 //         });
 //     }
 
@@ -305,7 +305,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddIntegerColumnTable2()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form_relation/create')
+//             $browser->visit('/admin/column/exmenttest_form_relation/create')
 //                 ->type('column_name', 'integer')
 //                 ->type('column_view_name', 'Integer')
 //                 ->select('column_type', 'integer')
@@ -314,7 +314,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             $browser->script('document.querySelector(".options_number_format.la_checkbox").click();');
 //             $browser->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form_relation')
+//                 ->assertPathIs('/admin/column/exmenttest_form_relation')
 //                 ->assertSee('integer');
 //         });
 //     }
@@ -323,7 +323,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddOneLineTextColumnTable2()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form_relation/create')
+//             $browser->visit('/admin/column/exmenttest_form_relation/create')
 //                 ->type('column_name', 'onelinetext')
 //                 ->type('column_view_name', 'One Line Text')
 //                 ->select('column_type', 'text')
@@ -331,7 +331,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //                 ->click('#available_characters  label.checkbox-inline:nth-child(1) div.icheckbox_minimal-blue')
 //                 ->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form_relation')
+//                 ->assertPathIs('/admin/column/exmenttest_form_relation')
 //                 ->assertSee('onelinetext');
 //         });
 //     }
@@ -340,13 +340,13 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddDateAndTimeColumnTable2()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form_relation/create')
+//             $browser->visit('/admin/column/exmenttest_form_relation/create')
 //                 ->type('column_name', 'dateandtime')
 //                 ->type('column_view_name', 'Date and Time')
 //                 ->select('column_type', 'datetime')
 //                 ->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form_relation')
+//                 ->assertPathIs('/admin/column/exmenttest_form_relation')
 //                 ->assertSee('dateandtime');
 //         });
 //     }
@@ -355,7 +355,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddSelectFromStaticValueColumnTable2()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form_relation/create')
+//             $browser->visit('/admin/column/exmenttest_form_relation/create')
 //                 ->type('column_name', 'selectfromstaticvalue')
 //                 ->type('column_view_name', "Select Froom Static Value")
 //                 ->select('column_type', 'select')
@@ -363,7 +363,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
 //             $browser->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form_relation')
+//                 ->assertPathIs('/admin/column/exmenttest_form_relation')
 //                 ->assertSee('selectfromstaticvalue');
 //         });
 //     }
@@ -372,7 +372,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddSelect2ValueColumnTable2()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form_relation/create')
+//             $browser->visit('/admin/column/exmenttest_form_relation/create')
 //                 ->type('column_name', 'select2value')
 //                 ->type('column_view_name', "Select 2 value")
 //                 ->select('column_type', 'boolean')
@@ -383,7 +383,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
 //             $browser->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form_relation')
+//                 ->assertPathIs('/admin/column/exmenttest_form_relation')
 //                 ->assertSee('select2value');
 //         });
 //     }
@@ -392,13 +392,13 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddYesNoColumnTable2()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form_relation/create')
+//             $browser->visit('/admin/column/exmenttest_form_relation/create')
 //                 ->type('column_name', 'yesno')
 //                 ->type('column_view_name', 'Yes No')
 //                 ->select('column_type', 'yesno')
 //                 ->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form_relation')
+//                 ->assertPathIs('/admin/column/exmenttest_form_relation')
 //                 ->assertSee('yesno');
 //         });
 //     }
@@ -407,14 +407,14 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddImageColumnTable2()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/ntq_form_relation/create')
+//             $browser->visit('/admin/column/exmenttest_form_relation/create')
 //                 ->type('column_name', 'image')
 //                 ->type('column_view_name', 'Image')
 //                 ->select('column_type', 'image');
 //             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
 //             $browser->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/ntq_form_relation')
+//                 ->assertPathIs('/admin/column/exmenttest_form_relation')
 //                 ->assertSee('image');
 //         });
 //     }
@@ -423,17 +423,17 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testAddRelationOneToMany()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/relation/ntq_form/create')
+//             $browser->visit('/admin/relation/exmenttest_form/create')
 //                 ->pause(5000);
 //             $browser->script('$(".child_custom_table_id").val($("option").filter(function() {
-//   return $(this).text() === "NTQ Form Relation";
+//   return $(this).text() === "EXMENT Form Relation";
 // }).first().attr("value")).trigger("change.select2")');
 //             $browser->select('relation_type', 'one_to_many')
 //                 ->press('Submit')
 //                 ->waitForText('Save succeeded !')
-//                 ->assertSeeIn('.table-hover tr:last-child td:nth-child(5)', 'NTQ Form Relation')
+//                 ->assertSeeIn('.table-hover tr:last-child td:nth-child(5)', 'EXMENT Form Relation')
 //                 ->assertSeeIn('.table-hover tr:last-child td:nth-child(6)', 'One to Many')
-//                 ->assertPathIs('/admin/relation/ntq_form');
+//                 ->assertPathIs('/admin/relation/exmenttest_form');
 //         });
 //     }
 
@@ -442,15 +442,15 @@ class CCustomFormTest extends ExmentKitTestCase
 //     {
 //         $this->browse(function (Browser $browser) {
 //             $browser->visit('/admin/table')
-//                 ->assertSee('NTQ Form');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Form"}).closest("tr").find("ins.iCheck-helper").click();');
+//                 ->assertSee('EXMENT Form');
+//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "EXMENT Form"}).closest("tr").find("ins.iCheck-helper").click();');
 //             $browser->press('Change Page')
 //                 ->clickLink('Form Setting')
 //                 ->pause(5000)
 //                 ->assertSee('Custom Form Setting')
 //                 ->assertSee('Define the form display that the user can enter. You can switch between role and users.')
 //                 ->assertSee('Showing 1 to 1 of 1 entries')
-//                 ->assertPathIs('/admin/form/ntq_form');
+//                 ->assertPathIs('/admin/form/exmenttest_form');
 //         });
 //     }
 
@@ -458,7 +458,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testDisplayCreateFormScreen()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/form/ntq_form')
+//             $browser->visit('/admin/form/exmenttest_form')
 //                 ->waitForText('New')
 //                 ->clickLink('New')
 //                 ->pause(5000);
@@ -495,7 +495,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //                 });
 //             });
 //             $browser->with('form div:nth-child(3)', function ($block3) {
-//                 $block3->assertSeeIn('div.box-header .box-title', 'Child Table - NTQ Form Relation')
+//                 $block3->assertSeeIn('div.box-header .box-title', 'Child Table - EXMENT Form Relation')
 //                     ->assertSeeIn('div.box-body', 'Available')
 //                     ->assertMissing('div.box-body div.checked');;
 //             });
@@ -506,18 +506,18 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testEditFormSuccess()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/form/ntq_form')
-//                 ->assertSee('NTQ Form');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Form"}).closest("tr").click();');
+//             $browser->visit('/admin/form/exmenttest_form')
+//                 ->assertSee('EXMENT Form');
+//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "EXMENT Form"}).closest("tr").click();');
 //             $browser->pause(5000)
-//                 ->type('form_view_name', 'NTQ Form View Test')
-//                 ->keys('div.box-custom_form_block:nth-child(2) input[name*="form_block_view_name"]', 'NTQ Form Block Test')
+//                 ->type('form_view_name', 'EXMENT Form View Test')
+//                 ->keys('div.box-custom_form_block:nth-child(2) input[name*="form_block_view_name"]', 'EXMENT Form Block Test')
 //                 ->press('Add All Items')
 //                 ->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/form/ntq_form')
+//                 ->assertPathIs('/admin/form/exmenttest_form')
 //                 ->waitForText('Save succeeded !')
-//                 ->assertSeeIn('.table-hover tr:first-child td:nth-child(3)', 'NTQ Form')
+//                 ->assertSeeIn('.table-hover tr:first-child td:nth-child(3)', 'EXMENT Form')
 //                 ->assertSeeIn('.table-hover tr:first-child td:nth-child(4)', 'Form');
 //         });
 //     }
@@ -526,9 +526,9 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testDisplayData()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/data/ntq_form')
-//                 ->assertSee('NTQ Form')
-//                 ->assertSee('NTQ Test table')
+//             $browser->visit('/admin/data/exmenttest_form')
+//                 ->assertSee('EXMENT Form')
+//                 ->assertSee('EXMENT Test table')
 //                 ->assertSee('Showing to of 0 entries');
 //         });
 //     }
@@ -537,9 +537,9 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testCreateRecord1()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/data/ntq_form/create')
+//             $browser->visit('/admin/data/exmenttest_form/create')
 //                 ->type('value[integer]', 100)
-//                 ->type('value[onelinetext]', "NTQ Test")
+//                 ->type('value[onelinetext]', "EXMENT Test")
 //                 ->keys('input[name*="value[dateandtime]"]', "2018-09-25", '{ENTER}')
 //                 ->click('#embed-value input.select2-search__field')
 //                 ->click('ul.select2-results__options li:first-child');
@@ -554,9 +554,9 @@ class CCustomFormTest extends ExmentKitTestCase
 // //    public function testCreateRecord1()
 // //    {
 // //        $this->browse(function (Browser $browser) {
-// //            $browser->visit('/admin/data/ntq_form/create')
+// //            $browser->visit('/admin/data/exmenttest_form/create')
 // //                ->type('value[integer]', 100)
-// //                ->type('value[onelinetext]', "NTQ Test")
+// //                ->type('value[onelinetext]', "EXMENT Test")
 // //                ->keys('input[name*="value[dateandtime]"]', "2018-09-25", '{ENTER}')
 // //                ->click('#embed-value input.select2-search__field')
 // //                ->click('ul.select2-results__options li:first-child');
@@ -569,9 +569,9 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testCreateRecord2()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/data/ntq_form/create')
+//             $browser->visit('/admin/data/exmenttest_form/create')
 //                 ->type('value[integer]', 99)
-//                 ->type('value[onelinetext]', "NTQ Test 2")
+//                 ->type('value[onelinetext]', "EXMENT Test 2")
 //                 ->keys('input[name*="value[dateandtime]"]', "2018-09-24", '{ENTER}')
 //                 ->click('#embed-value input.select2-search__field')
 //                 ->click('ul.select2-results__options li:last-child');
@@ -583,15 +583,15 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testEditFormScreen()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/form/ntq_form')
-//                 ->assertSee('NTQ Form View Test');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Form View Test Edited"}).closest("tr").click();');
+//             $browser->visit('/admin/form/exmenttest_form')
+//                 ->assertSee('EXMENT Form View Test');
+//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "EXMENT Form View Test Edited"}).closest("tr").click();');
 //             $browser->pause(5000)
 //                 ->with('form div:nth-child(1)', function ($block1) {
-//                     $block1->type('form_view_name', 'NTQ Form View Test Edited');
+//                     $block1->type('form_view_name', 'EXMENT Form View Test Edited');
 //                 });
 //             $browser->with('form div:nth-child(2)', function ($block2) {
-//                 $block2->keys('div.box-body .form-inline input[name*="form_block_view_name"]', ['{CONTROL}', 'a'], 'NTQ Form Block Test Edited');
+//                 $block2->keys('div.box-body .form-inline input[name*="form_block_view_name"]', ['{CONTROL}', 'a'], 'EXMENT Form Block Test Edited');
 //                 $block2->with('div.box-body div[id*="items_default"]', function ($block_item) {
 //                     $block_item->click('ul li:first-child > a')->pause(2000)
 //                         ->click('ul li:nth-child(2) > a')->pause(2000)
@@ -638,9 +638,9 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testCreateRecord()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/data/ntq_form/create')
+//             $browser->visit('/admin/data/exmenttest_form/create')
 //                 ->type('value[integer]', 100)
-//                 ->type('value[onelinetext]', "NTQ Test")
+//                 ->type('value[onelinetext]', "EXMENT Test")
 //                 ->keys('input[name*="value[dateandtime]"]', "2018-09-25", '{ENTER}')
 //                 ->click('#embed-value input.select2-search__field')
 //                 ->click('ul.select2-results__options li:first-child');
@@ -649,7 +649,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             $browser->press('Submit')
 //                 ->pause(5000)
 //                 ->waitForText('Save succeeded !')
-//                 ->assertPathIs('/admin/data/ntq_form');
+//                 ->assertPathIs('/admin/data/exmenttest_form');
 //         });
 //     }
 
@@ -657,9 +657,9 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testEditFormRealationSuccess()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/form/ntq_form')
-//                 ->assertSee('NTQ Form');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Form View Test Edited"}).closest("tr").click();');
+//             $browser->visit('/admin/form/exmenttest_form')
+//                 ->assertSee('EXMENT Form');
+//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "EXMENT Form View Test Edited"}).closest("tr").click();');
 //             $browser->pause(5000);
 //             $browser->with('form div:nth-child(3)', function ($block3) {
 //                 $block3->click('div.box-body div:nth-child(1) .iCheck-helper')
@@ -667,10 +667,10 @@ class CCustomFormTest extends ExmentKitTestCase
 //             });
 //             $browser->press('Submit')
 //                 ->pause(5000)
-//                 ->assertPathIs('/admin/form/ntq_form')
+//                 ->assertPathIs('/admin/form/exmenttest_form')
 //                 ->waitForText('Save succeeded !')
-//                 ->assertSeeIn('.table-hover tr:first-child td:nth-child(3)', 'NTQ Form')
-//                 ->assertSeeIn('.table-hover tr:first-child td:nth-child(4)', 'NTQ Form View Test Edited');
+//                 ->assertSeeIn('.table-hover tr:first-child td:nth-child(3)', 'EXMENT Form')
+//                 ->assertSeeIn('.table-hover tr:first-child td:nth-child(4)', 'EXMENT Form View Test Edited');
 //         });
 //     }
 
@@ -678,8 +678,8 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testColumnRelationTable()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/form/ntq_form');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Form View Test Edited"}).closest("tr").click();');
+//             $browser->visit('/admin/form/exmenttest_form');
+//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "EXMENT Form View Test Edited"}).closest("tr").click();');
 //             $browser->pause(5000);
 //             $browser->with('form div:nth-child(3)', function ($block3) {
 //                 $block3->with('div:nth-child(2)', function ($block_item) {
@@ -700,8 +700,8 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testCheckViewOnlyOneLineTextColumn()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/form/ntq_form');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Form View Test Edited"}).closest("tr").click();');
+//             $browser->visit('/admin/form/exmenttest_form');
+//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "EXMENT Form View Test Edited"}).closest("tr").click();');
 //             $browser->pause(5000);
 //             $browser->with('form div:nth-child(2)', function ($block2) {
 //                 $block2->with('div.box-body div[id*="items_default"]', function ($block_item) {
@@ -712,7 +712,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             });
 //             $browser->press('Submit')
 //                 ->pause(2000);
-//             $browser->visit('/admin/data/ntq_form/create')
+//             $browser->visit('/admin/data/exmenttest_form/create')
 //                 ->with('form div.embed-value-form.fields-group div:nth-child(4)', function ($rowOneLineText) {
 //                     $rowOneLineText->assertVisible('input[readonly]');
 //                 });
@@ -723,8 +723,8 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testUnCheckViewOnlyOneLineTextColumn()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/form/ntq_form');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Form View Test Edited"}).closest("tr").click();');
+//             $browser->visit('/admin/form/exmenttest_form');
+//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "EXMENT Form View Test Edited"}).closest("tr").click();');
 //             $browser->pause(5000);
 //             $browser->with('form div:nth-child(2)', function ($block2) {
 //                 $block2->with('div.box-body div[id*="items_default"]', function ($block_item) {
@@ -733,7 +733,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             });
 //             $browser->press('Submit')
 //                 ->pause(2000);
-//             $browser->visit('/admin/data/ntq_form/create')
+//             $browser->visit('/admin/data/exmenttest_form/create')
 //                 ->with('form div.embed-value-form.fields-group div:nth-child(4)', function ($rowOneLineText) {
 //                     $rowOneLineText->assertMissing('input[readonly]');
 //                 });
@@ -744,8 +744,8 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testCheckHiddenFieldDateAndTimeColumn()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/form/ntq_form');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Form View Test Edited"}).closest("tr").click();');
+//             $browser->visit('/admin/form/exmenttest_form');
+//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "EXMENT Form View Test Edited"}).closest("tr").click();');
 //             $browser->pause(5000);
 //             $browser->with('form div:nth-child(2)', function ($block2) {
 //                 $block2->with('div.box-body div[id*="items_default"]', function ($block_item) {
@@ -754,7 +754,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             });
 //             $browser->press('Submit')
 //                 ->pause(2000);
-//             $browser->visit('/admin/data/ntq_form/create')
+//             $browser->visit('/admin/data/exmenttest_form/create')
 //                 ->with('form div.embed-value-form.fields-group div:nth-child(6)', function ($rowDateAndTime) {
 //                     $rowDateAndTime->assertDontSee('Date and Time');
 //                 });
@@ -765,8 +765,8 @@ class CCustomFormTest extends ExmentKitTestCase
 //     public function testUnCheckHiddenFieldDateAndTimeColumn()
 //     {
 //         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/form/ntq_form');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Form View Test Edited"}).closest("tr").click();');
+//             $browser->visit('/admin/form/exmenttest_form');
+//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "EXMENT Form View Test Edited"}).closest("tr").click();');
 //             $browser->pause(5000);
 //             $browser->with('form div:nth-child(2)', function ($block2) {
 //                 $block2->with('div.box-body div[id*="items_default"]', function ($block_item) {
@@ -775,7 +775,7 @@ class CCustomFormTest extends ExmentKitTestCase
 //             });
 //             $browser->press('Submit')
 //                 ->pause(2000);
-//             $browser->visit('/admin/data/ntq_form/create')
+//             $browser->visit('/admin/data/exmenttest_form/create')
 //                 ->with('form div.embed-value-form.fields-group div:nth-child(6)', function ($rowDateAndTime) {
 //                     $rowDateAndTime->assertSee('Date and Time');
 //                 });
