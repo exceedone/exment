@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ShareTargetType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;

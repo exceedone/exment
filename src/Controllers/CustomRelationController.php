@@ -103,10 +103,10 @@ class CustomRelationController extends AdminControllerTableBase
             $filter->disableIdFilter();
 
             // Add a column filter
-            $filter->equal('child_custom_table', exmtrans("custom_relation.child_custom_table"))->select(function($val){
+            $filter->equal('child_custom_table', exmtrans("custom_relation.child_custom_table"))->select(function ($val) {
                 return CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
             });
-            $filter->equal('relation_type', exmtrans("custom_relation.relation_type"))->select(function($val){
+            $filter->equal('relation_type', exmtrans("custom_relation.relation_type"))->select(function ($val) {
                 return RelationType::transKeyArray('custom_relation.relation_type_options');
             });
         });

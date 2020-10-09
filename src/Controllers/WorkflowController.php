@@ -121,7 +121,6 @@ class WorkflowController extends AdminControllerBase
             $filter->like('workflow_view_name', exmtrans("workflow.workflow_view_name"));
 
             $filter->equal('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->radio(\Exment::getYesNoAllOption());
-
         });
 
         return $grid;

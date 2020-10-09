@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
-use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\NotifyActionTarget;
@@ -105,7 +104,7 @@ class NotifyTarget
     
     public function getLabel()
     {
-        if(isset($this->email)){
+        if (isset($this->email)) {
             return "{$this->name} <{$this->email}>";
         }
 
@@ -169,7 +168,7 @@ class NotifyTarget
 
                 // if select table is organization
                 elseif ($custom_column->column_type == ColumnType::ORGANIZATION) {
-                    collect(static::getModelAsOrganization($v, $custom_column))->each(function($item) use(&$result){
+                    collect(static::getModelAsOrganization($v, $custom_column))->each(function ($item) use (&$result) {
                         $result[] = $item;
                     });
                 }
@@ -200,7 +199,7 @@ class NotifyTarget
         $notifyTarget = new self;
 
         $notifyTarget->email = $email;
-       //$notifyTarget->userCode = $email;
+        //$notifyTarget->userCode = $email;
         $notifyTarget->name = $email;
         $notifyTarget->notifyKey = $email;
         $notifyTarget->joinName = false;
@@ -246,7 +245,7 @@ class NotifyTarget
 
     public static function getModelAsUser(CustomValue $target_value, ?CustomColumn $custom_column = null) : ?NotifyTarget
     {
-        if(is_null($custom_column)){
+        if (is_null($custom_column)) {
             $custom_column = CustomColumn::getEloquent('email', SystemTableName::USER);
         }
         return static::getModelAsSelectTable($target_value, NotifyTargetType::USER, $custom_column);
@@ -278,7 +277,7 @@ class NotifyTarget
         $items = AuthUserOrgHelper::getRoleUserAndOrganizations($custom_value, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
         
         $list = collect();
-        foreach([SystemTableName::USER, SystemTableName::ORGANIZATION] as $key){
+        foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $key) {
             $values = array_get($items, $key);
             
             foreach ($values as $value) {
@@ -294,7 +293,7 @@ class NotifyTarget
     {
         // all target users
         $allUsers = collect();
-        foreach($notify->action_settings as $action_setting){
+        foreach ($notify->action_settings as $action_setting) {
             $allUsers = $allUsers->merge($notify->getNotifyTargetUsers($custom_value, $action_setting));
         }
         $user = collect($allUsers)->first(function ($user) use ($select_target) {
@@ -307,7 +306,7 @@ class NotifyTarget
     {
         // all target users
         $allUsers = collect();
-        foreach($notify->action_settings as $action_setting){
+        foreach ($notify->action_settings as $action_setting) {
             $allUsers = $allUsers->merge($notify->getNotifyTargetUsers($custom_value, $action_setting));
         }
 

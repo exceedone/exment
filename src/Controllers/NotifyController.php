@@ -305,12 +305,11 @@ class NotifyController extends AdminControllerBase
             ])
             ->default(false)
             ->help(exmtrans("notify.help.notify_myself"));
-
         })->disableHeader();
 
         $form->exmheader(exmtrans("notify.header_action"))->hr();
 
-        $form->hasManyJson('action_settings', exmtrans("notify.action_settings"), function($form){
+        $form->hasManyJson('action_settings', exmtrans("notify.action_settings"), function ($form) {
             $form->select('notify_action', exmtrans("notify.notify_action"))
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
             ->required()
@@ -359,7 +358,7 @@ class NotifyController extends AdminControllerBase
                 ])
                 ->help(exmtrans("notify.help.notify_action_target"));
 
-            if(!isset($system_slack_user_column)){
+            if (!isset($system_slack_user_column)) {
                 $form->display('notify_action_target_text', exmtrans("notify.notify_action_target"))
                     ->displayText(exmtrans('notify.help.slack_user_column_not_setting') . \Exment::getMoreTag('notify_webhook', 'notify.mention_setting_manual_id'))
                     ->attribute([
@@ -385,12 +384,11 @@ class NotifyController extends AdminControllerBase
             $tools->append(new Tools\SystemChangePageMenu());
         });
 
-        $form->saving(function(Form $form){
+        $form->saving(function (Form $form) {
             $error = false;
-            if(is_null($form->action_settings)){
+            if (is_null($form->action_settings)) {
                 $error = true;
-            }
-            else{
+            } else {
                 $cnt = collect($form->action_settings)->filter(function ($value) {
                     return $value[Form::REMOVE_FLAG_NAME] != 1;
                 })->count();
@@ -530,5 +528,4 @@ class NotifyController extends AdminControllerBase
             throw $exception;
         }
     }
-
 }

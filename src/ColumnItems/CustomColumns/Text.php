@@ -36,7 +36,7 @@ class Text extends CustomItem
         
         // set regex rule
         $info = $this->getAvailableCharactersInfo();
-        foreach($info['validates'] as $v){
+        foreach ($info['validates'] as $v) {
             $validates[] = $v;
         }
     }
@@ -52,7 +52,8 @@ class Text extends CustomItem
     }
 
 
-    protected function getAvailableCharactersInfo(){
+    protected function getAvailableCharactersInfo()
+    {
         // // regex rules
         $validates = [];
         $help_regexes = [];

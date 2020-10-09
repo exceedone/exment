@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyActionTarget;
-use Exceedone\Exment\Enums\NotifyTargetType;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Notifications\Notifiable;
 use Carbon\Carbon;
@@ -68,7 +67,7 @@ class Notify extends ModelBase
 
     public function getMentionUsers($users)
     {
-        return collect($users)->map(function($user) {
+        return collect($users)->map(function ($user) {
             return $user->slack_id();
         })->filter()->unique()->toArray();
     }
@@ -89,7 +88,7 @@ class Notify extends ModelBase
                 'notify_target_column_value' => $custom_value->getValue($column),
             ];
     
-            foreach($this->action_settings as $action_setting){
+            foreach ($this->action_settings as $action_setting) {
                 $users = $this->getNotifyTargetUsers($custom_value, $action_setting);
 
                 if (NotifyAction::isChatMessage($action_setting)) {
@@ -242,7 +241,6 @@ class Notify extends ModelBase
                 }
             }
         }
-
     }
     
 
@@ -269,7 +267,7 @@ class Notify extends ModelBase
     
             if (in_array(NotifyActionTarget::WORK_USER, $notify_action_target)) {
                 // if this workflow is completed
-                if(!isset($workflow_value) || !$workflow_value->isCompleted()){
+                if (!isset($workflow_value) || !$workflow_value->isCompleted()) {
                     WorkflowStatus::getActionsByFrom($statusTo, $workflow, true)
                     ->each(function ($workflow_action) use (&$users, $custom_value) {
                         $users = $users->merge(
@@ -282,13 +280,13 @@ class Notify extends ModelBase
     
             $loginuser = \Exment::user();
             $users = $users->unique()->filter(function ($user) use ($loginuser) {
-                if(is_nullorempty($loginuser)){
+                if (is_nullorempty($loginuser)) {
                     return true;
                 }
                 if ($this->isNotifyMyself()) {
                     return true;
                 }
-                if($loginuser->getUserId() != $user->getUserId()){
+                if ($loginuser->getUserId() != $user->getUserId()) {
                     return true;
                 }
                 return false;
@@ -561,9 +559,10 @@ class Notify extends ModelBase
      *
      * @return bool
      */
-    protected function isNotifyMyself() : bool{
+    protected function isNotifyMyself() : bool
+    {
         // only CREATE_UPDATE_DATA and WORKFLOW
-        if(!in_array($this->notify_trigger, [NotifyTrigger::CREATE_UPDATE_DATA, NotifyTrigger::WORKFLOW])){
+        if (!in_array($this->notify_trigger, [NotifyTrigger::CREATE_UPDATE_DATA, NotifyTrigger::WORKFLOW])) {
             return true;
         }
         return boolval($this->getTriggerSetting('notify_myself') ?? false);

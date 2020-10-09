@@ -24,8 +24,8 @@ class HasMany extends AdminHasMany
     public function render()
     {
         // remove "asterisk" if has required
-        if(array_has($this->attributes, 'required')){
-            $this->labelClass = array_filter($this->labelClass, function($a){
+        if (array_has($this->attributes, 'required')) {
+            $this->labelClass = array_filter($this->labelClass, function ($a) {
                 return $a !== 'asterisk';
             });
         }
@@ -189,7 +189,7 @@ EOT;
             // if NestedEmbeds, loop hasmany items
             if ($field instanceof NestedEmbeds) {
                 $nestedValues = Arr::get($input, $this->column);
-                if(!is_array($nestedValues)){
+                if (!is_array($nestedValues)) {
                     continue;
                 }
                 foreach ($nestedValues as $nestedKey => $nestedValue) {
@@ -206,9 +206,7 @@ EOT;
                     $attributes,
                     $field->getAttributes()
                 );
-            }
-
-            else{
+            } else {
                 if (!$fieldRules = $field->getRules()) {
                     continue;
                 }
@@ -241,10 +239,9 @@ EOT;
 
         foreach ($rules as $column => $rule) {
             foreach (array_keys($input[$this->column]) as $key) {
-                if($rule['hasmany']){
+                if ($rule['hasmany']) {
                     $newRules["{$this->column}.$key.$column"] = Arr::get($rule['rules'], $key);
-                }
-                else{
+                } else {
                     $newRules["{$this->column}.$key.$column"] = $rule['rules'];
                 }
 

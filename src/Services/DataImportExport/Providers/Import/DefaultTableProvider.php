@@ -222,7 +222,7 @@ class DefaultTableProvider extends ProviderBase
      * @param array $dataObjects
      * @return array
      */
-    protected function getUniqueCheckParams($current_no, $dataObjects) 
+    protected function getUniqueCheckParams($current_no, $dataObjects)
     {
         $siblings = [];
         $ignoreIds = [];
@@ -235,7 +235,7 @@ class DefaultTableProvider extends ProviderBase
             if (isset($model) && !is_null($id = array_get($model, 'id'))) {
                 $ignoreIds[] =  $id;
             }
-        }        
+        }
         return [$siblings, $ignoreIds];
     }
 

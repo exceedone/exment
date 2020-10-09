@@ -30,8 +30,7 @@ trait InitializeFormTrait
         
         if ($isInitialize) {
             $form->exmheader(exmtrans('system.header'))->hr();
-        }
-        else{
+        } else {
             $form->progressTracker()->options($this->getProgressInfo(false));
         }
 
@@ -134,7 +133,8 @@ trait InitializeFormTrait
     }
 
 
-    protected function setNotifyForm($form){
+    protected function setNotifyForm($form)
+    {
         // use mail setting
         $form->exmheader(exmtrans('system.system_mail'))->hr();
         if (!boolval(config('exment.mail_setting_env_force', false))) {
@@ -164,7 +164,6 @@ trait InitializeFormTrait
         $form->select('system_slack_user_column', exmtrans('system.system_slack_user_column'))
             ->help(exmtrans('system.help.system_slack_user_column'))
             ->options($this->getUserOrgSlackColumns('user'));
-
     }
 
 
@@ -306,18 +305,20 @@ EOT;
     }
 
     
-    protected function getUserOrgSlackColumns(string $table_name){
+    protected function getUserOrgSlackColumns(string $table_name)
+    {
         return $this->getUserOrgColumns($table_name, Enums\ColumnType::TEXT);
     }
 
-    protected function getUserOrgColumns(string $table_name, string $column_type){
+    protected function getUserOrgColumns(string $table_name, string $column_type)
+    {
         $custom_table = CustomTable::getEloquent($table_name);
-        if(!$custom_table){
+        if (!$custom_table) {
             return [];
         }
 
         return $custom_table->custom_columns_cache
-            ->filter(function($custom_column) use($column_type){
+            ->filter(function ($custom_column) use ($column_type) {
                 return isMatchString($custom_column->column_type, $column_type);
             })->pluck('column_view_name', 'id');
     }
@@ -349,5 +350,4 @@ EOT;
         
         return $steps;
     }
-
 }

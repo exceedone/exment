@@ -3,8 +3,6 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
-use Exceedone\Exment\Model\Notify;
-use Carbon\Carbon;
 
 class NotifyScheduleCommand extends Command
 {

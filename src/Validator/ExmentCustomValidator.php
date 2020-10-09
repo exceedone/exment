@@ -34,8 +34,8 @@ class ExmentCustomValidator extends AdminValidator
     public function getMessageStrings() : array
     {
         $messages = collect();
-        foreach($this->getMessages() as $messageItems){
-            foreach($messageItems as $message){
+        foreach ($this->getMessages() as $messageItems) {
+            foreach ($messageItems as $message) {
                 $messages->push($message);
             }
         }

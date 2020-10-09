@@ -25,7 +25,7 @@ class Where extends BaseWhere
         $this->input = $this->value = $value;
 
         $func = $this->where;
-        return $this->buildCondition(function($query) use($func, $value){
+        return $this->buildCondition(function ($query) use ($func, $value) {
             $func($query, $value, $this);
         });
     }

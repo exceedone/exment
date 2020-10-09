@@ -51,8 +51,9 @@ class NotifyAction extends EnumBase
         return false;
     }
 
-    public static function getColumnGettingOptions($notify_action){
-        switch($notify_action){
+    public static function getColumnGettingOptions($notify_action)
+    {
+        switch ($notify_action) {
             case static::EMAIL:
                 return [
                     'get_email' => true,
@@ -67,7 +68,7 @@ class NotifyAction extends EnumBase
 
             case static::SLACK:
                 $system_slack_user_column = System::system_slack_user_column();
-                if(is_nullorempty($system_slack_user_column)){
+                if (is_nullorempty($system_slack_user_column)) {
                     return [];
                 }
                 return [

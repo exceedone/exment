@@ -662,7 +662,7 @@ class CustomValueController extends AdminControllerTableBase
         $service = new NotifyService($notify, $targetid, $tableKey, $id);
         $form = $service->getNotifyDialogForm();
         
-        if($form === false){
+        if ($form === false) {
             return getAjaxResponse([
                 'result'  => false,
                 'swal' => exmtrans('common.error'),

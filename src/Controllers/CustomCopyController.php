@@ -108,11 +108,11 @@ class CustomCopyController extends AdminControllerTableBase
         $grid->filter(function ($filter) {
             $filter->disableIdFilter();
 
-            $filter->equal('to_custom_table_id', exmtrans("custom_copy.to_custom_table_view_name"))->select(function(){
+            $filter->equal('to_custom_table_id', exmtrans("custom_copy.to_custom_table_view_name"))->select(function () {
                 return CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
             });
 
-            $filter->exmwhere(function($query, $input){
+            $filter->exmwhere(function ($query, $input) {
                 $query->where('options->label', 'LIKE', $input . '%');
             }, exmtrans("plugin.options.label"));
         });

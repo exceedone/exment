@@ -319,15 +319,15 @@ EOT;
         });
 
         // form validation saving event
-        $form->validatorSavingCallback(function($input, $message, $form){
+        $form->validatorSavingCallback(function ($input, $message, $form) {
             $model = $form->model();
-            if(!$model){
+            if (!$model) {
                 return;
             }
 
-            if(is_array($validateResult = $model->validatorSaving($input, [
+            if (is_array($validateResult = $model->validatorSaving($input, [
                 'column_name_prefix' => 'value.',
-            ]))){
+            ]))) {
                 $message = $message->merge($validateResult);
             }
 
@@ -343,7 +343,7 @@ EOT;
                     continue;
                 }
                 list($custom_relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
-                if(!$custom_relation){
+                if (!$custom_relation) {
                     continue;
                 }
                 if (!method_exists($model, $relation_name)) {
@@ -356,33 +356,33 @@ EOT;
                 $relationValues = array_get($input, $relation_name, []);
 
                 // ignore ids
-                $ignoreIds = collect($relationValues)->filter(function($val, $key){
+                $ignoreIds = collect($relationValues)->filter(function ($val, $key) {
                     return is_int($key);
-                })->map(function($val){
+                })->map(function ($val) {
                     return array_get($val, 'id');
                 })->values()->toArray();
                 
                 // skip _remove_ flg
-                $relationValues = array_filter($relationValues, function($val){
-                    if(array_get($val, Form::REMOVE_FLAG_NAME) == 1){
+                $relationValues = array_filter($relationValues, function ($val) {
+                    if (array_get($val, Form::REMOVE_FLAG_NAME) == 1) {
                         return false;
                     }
                     return true;
                 });
 
                 // loop input's value
-                foreach($relationValues as $relationK => $relationV){
+                foreach ($relationValues as $relationK => $relationV) {
                     $instance = $relation->findOrNew(array_get($relationV, $keyName));
                     // remove self item
-                    $uniqueCheckSiblings = array_filter($relationValues, function($relationValue, $key) use($relationK){
+                    $uniqueCheckSiblings = array_filter($relationValues, function ($relationValue, $key) use ($relationK) {
                         return !isMatchString($relationK, $key);
                     }, ARRAY_FILTER_USE_BOTH);
                     
-                    if(is_array($validateResult = $instance->validatorSaving($relationV, [
+                    if (is_array($validateResult = $instance->validatorSaving($relationV, [
                         'column_name_prefix' => "$relation_name.$relationK.value.",
                         'uniqueCheckSiblings' => array_values($uniqueCheckSiblings),
                         'uniqueCheckIgnoreIds' => $ignoreIds,
-                    ]))){
+                    ]))) {
                         $message = $message->merge($validateResult);
                     }
                 }

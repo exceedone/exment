@@ -40,7 +40,7 @@ class ApiSettingController extends AdminControllerBase
             $filter->disableIdFilter();
 
             $filter->exmwhere(function ($query, $input) {
-                switch($input){
+                switch ($input) {
                     case ApiClientType::API_KEY:
                         $query->where('api_key_client', 1);
                         return;

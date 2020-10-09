@@ -77,7 +77,7 @@ class AuthUserOrgHelper
         $target_table = CustomTable::getEloquent($target_table);
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS_ORGS, $target_table->id);
         
-        return static::_getRoleUserOrOrgQueryTable(SystemTableName::USER, $key, $target_table, $tablePermission, $builder, function($target_ids, $target_table){
+        return static::_getRoleUserOrOrgQueryTable(SystemTableName::USER, $key, $target_table, $tablePermission, $builder, function ($target_ids, $target_table) {
             // joined organization belongs user ----------------------------------------------------
             if (!System::organization_available()) {
                 return $target_ids;
@@ -103,7 +103,8 @@ class AuthUserOrgHelper
     }
 
 
-    protected static function _getRoleUserOrOrgQueryTable($table_name, $key, $target_table, $tablePermission = null, $builder = null, ?\Closure $target_ids_callback = null){
+    protected static function _getRoleUserOrOrgQueryTable($table_name, $key, $target_table, $tablePermission = null, $builder = null, ?\Closure $target_ids_callback = null)
+    {
         if (is_null($target_table)) {
             return [];
         }
@@ -121,7 +122,7 @@ class AuthUserOrgHelper
                 // get user ids
                 $target_ids = static::getRoleUserOrgId($target_table ?? [], $table_name, $tablePermission);
 
-                if($target_ids_callback){
+                if ($target_ids_callback) {
                     $target_ids = $target_ids_callback($target_ids, $target_table);
                 }
 
@@ -175,7 +176,7 @@ class AuthUserOrgHelper
                 $ids[SystemTableName::ORGANIZATION]= $custom_value->value_authoritable_organizations()->pluck('authoritable_target_id')->toArray();
             }
 
-            foreach($ids as $idkey => $idvalue){
+            foreach ($ids as $idkey => $idvalue) {
                 // get custom table's user ids(contains all table and permission role group)
                 $func = $idkey == SystemTableName::USER ? 'getRoleUserAndOrgBelongsUserQueryTable' : 'getRoleOrganizationQueryTable';
                 $queryTable = static::{$func}($custom_value->custom_table, $tablePermission);
