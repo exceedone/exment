@@ -416,7 +416,7 @@ class ExmentServiceProvider extends ServiceProvider
             return;
         }
 
-        Initialize::logDatabase();
+        \Exment::logDatabase();
     }
 
     /**

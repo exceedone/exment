@@ -171,9 +171,9 @@ class SupportForV11 extends Migration
             $table->dropColumn('view_column_table_id');
         });
         // add table name unique index from custom table
-        Schema::table('custom_tables', function (Blueprint $table) {
-            $table->unique(['table_name']);
-        });
+        // Schema::table('custom_tables', function (Blueprint $table) {
+        //     $table->unique(['table_name']);
+        // });
         
         Schema::dropIfExists('custom_view_summaries');
 

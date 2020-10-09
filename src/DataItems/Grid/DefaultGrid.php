@@ -126,7 +126,7 @@ class DefaultGrid extends GridBase
             $className = $item->indexEnabled() ? 'column-' . $item->name() : '';
             $grid->column($name, $item->label())
                 ->sort($item->sortable())
-                //->cast($item->getCastName())
+                ->cast($item->getCastName())
                 ->style($item->gridStyle())
                 ->setClasses($className)
                 ->display(function ($v) use ($item) {

@@ -220,9 +220,7 @@ trait ItemTrait
      */
     public function getSortColumn()
     {
-        // not use cast for sort, because performance.
-        return $this->indexEnabled() ? $this->index() : $this->sqlname();
-        //return $this->getCastColumn();
+        return $this->getCastColumn();
     }
 
     /**
@@ -282,6 +280,11 @@ trait ItemTrait
      *
      */
     public function isNumeric()
+    {
+        return false;
+    }
+    
+    public function isMultipleEnabled()
     {
         return false;
     }
