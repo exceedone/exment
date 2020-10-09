@@ -29,7 +29,8 @@ class CustomViewController extends AdminControllerTableBase
     {
         parent::__construct($custom_table, $request);
         
-        $this->setPageInfo(exmtrans("custom_view.header"), exmtrans("custom_view.header"), exmtrans("custom_view.description"), 'fa-th-list');
+        $title = exmtrans("custom_view.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
+        $this->setPageInfo($title, $title, exmtrans("custom_view.description"), 'fa-th-list');
     }
 
     /**
@@ -99,14 +100,6 @@ class CustomViewController extends AdminControllerTableBase
     protected function grid()
     {
         $grid = new Grid(new CustomView);
-        $grid->column('table_name', exmtrans("custom_table.table_name"))
-            ->displayEscape(function () {
-                return $this->custom_table->table_name;
-            });
-        $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))
-            ->displayEscape(function () {
-                return $this->custom_table->table_view_name;
-            });
         $grid->column('view_view_name', exmtrans("custom_view.view_view_name"))->sortable();
         if ($this->custom_table->hasSystemViewPermission()) {
             $grid->column('view_type', exmtrans("custom_view.view_type"))->sortable()->displayEscape(function ($view_type) {
@@ -114,11 +107,6 @@ class CustomViewController extends AdminControllerTableBase
             });
         }
 
-        // remove filtering system view(for copy)
-        // if (!$this->custom_table->hasSystemViewPermission()) {
-        //     $grid->model()->where('view_type', Enums\ViewType::USER);
-        // }
-        
         $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->displayEscape(function ($view_kind_type) {
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
         });
@@ -172,6 +160,19 @@ class CustomViewController extends AdminControllerTableBase
             $tools->append(new Tools\CustomViewMenuButton($this->custom_table, null, false));
             $tools->append(new Tools\CustomTableMenuButton('view', $this->custom_table));
         });
+        
+        // filter
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+
+            $filter->like('view_view_name', exmtrans("custom_view.view_view_name"));
+            if ($this->custom_table->hasSystemViewPermission()) {
+                $filter->equal('view_type', exmtrans("custom_view.view_type"))->select(Enums\ViewType::transKeyArray("custom_view.custom_view_type_options"));
+            }
+            $filter->equal('view_kind_type', exmtrans("custom_view.view_kind_type"))->select(ViewKindType::transKeyArray('custom_view.custom_view_kind_type_options'));
+        });
+
+
         return $grid;
     }
 

@@ -19,7 +19,9 @@ class CustomFormPriorityController extends AdminControllerTableBase
     public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
-        $this->setPageInfo(exmtrans("custom_form_priority.header"), exmtrans("custom_form_priority.header"), exmtrans("custom_form_priority.description"), 'fa-keyboard-o');
+
+        $title = exmtrans("custom_form_priority.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
+        $this->setPageInfo($title, $title, exmtrans("custom_form_priority.description"), 'fa-keyboard-o');
     }
 
     /**

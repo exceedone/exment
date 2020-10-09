@@ -88,6 +88,13 @@ class RoleGroupController extends AdminControllerBase
                 ->tooltip(exmtrans('role_group.permission_setting'));
             $actions->prepend($linker);
         });
+        
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+            $filter->like('role_group_name', exmtrans("role_group.role_group_name"));
+            $filter->like('role_group_view_name', exmtrans("role_group.role_group_view_name"));
+        });
+
         return $grid;
     }
 

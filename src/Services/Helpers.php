@@ -1575,19 +1575,6 @@ if (!function_exists('getPagerOptions')) {
     }
 }
 
-if (!function_exists('getTrueMark')) {
-    /**
-     * get true mark. If $val is true, output mark
-     */
-    function getTrueMark($val)
-    {
-        if (!boolval($val)) {
-            return null;
-        }
-
-        return config('exment.true_mark', '<i class="fa fa-check"></i>');
-    }
-}
 
 // Excel --------------------------------------------------
 if (!function_exists('getDataFromSheet')) {

@@ -362,4 +362,32 @@ class Exment
 
         return exmtrans('common.help.more_help_here', $url);
     }
+
+
+    /**
+     * get true mark. If $val is true, output mark
+     */
+    public function getTrueMark($val)
+    {
+        if (!boolval($val)) {
+            return null;
+        }
+
+        return config('exment.true_mark', '<i class="fa fa-check"></i>');
+    }
+    
+
+    /**
+     * Get Yes No All array for option.
+     *
+     * @return array
+     */
+    public function getYesNoAllOption() : array
+    {
+        return [
+            '' => 'All',
+            '0' => 'NO',
+            '1' => 'YES',
+        ];
+    }
 }

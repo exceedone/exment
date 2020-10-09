@@ -16,8 +16,6 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginButtonType;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use File;
 
 class PluginController extends AdminControllerBase
 {
@@ -82,6 +80,11 @@ class PluginController extends AdminControllerBase
             $filter->disableIdFilter();
             $filter->like('uuid', exmtrans("plugin.uuid"));
             $filter->like('plugin_name', exmtrans("plugin.plugin_name"));
+            $filter->like('plugin_view_name', exmtrans("plugin.plugin_view_name"));
+
+            $filter->like('author', exmtrans("plugin.author"));
+            $filter->like('version', exmtrans("plugin.version"));
+            $filter->like('active_flg', exmtrans("plugin.active_flg"))->radio(\Exment::getYesNoAllOption());
         });
 
         $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();

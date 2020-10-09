@@ -74,7 +74,7 @@ class WorkflowController extends AdminControllerBase
         });
         $grid->column('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->display(function ($value) {
             if (boolval($value)) {
-                return getTrueMark($value);
+                return \Exment::getTrueMark($value);
             }
 
             return null;
@@ -110,6 +110,18 @@ class WorkflowController extends AdminControllerBase
                 ]));
             }
             $tools->prepend(new Tools\SystemChangePageMenu());
+        });
+
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+            $filter->equal('workflow_type', exmtrans("workflow.workflow_type"))->select(function ($val) {
+                return WorkflowType::transKeyArray('workflow.workflow_type_options');
+            });
+
+            $filter->like('workflow_view_name', exmtrans("workflow.workflow_view_name"));
+
+            $filter->equal('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->radio(\Exment::getYesNoAllOption());
+
         });
 
         return $grid;
