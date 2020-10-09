@@ -9,7 +9,7 @@ use Exceedone\Exment\Database\Query\Processors\MySqlProcessor;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Illuminate\Database\MySqlConnection as BaseConnection;
 
-class MySqlConnection extends BaseConnection
+class MySqlConnection extends BaseConnection implements ConnectionInterface
 {
     use ConnectionTrait;
 
