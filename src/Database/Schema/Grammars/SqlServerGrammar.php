@@ -111,4 +111,26 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         and i.is_unique = :is_unique
         and COL_NAME(ic.object_id, ic.column_id) = :column_name";
     }
+
+    public function compileGetConstraint($tableName)
+    {
+        return "SELECT 
+            OBJECT_NAME([default_object_id]) AS name 
+        FROM 
+            SYS.COLUMNS 
+        WHERE 
+            [object_id] = OBJECT_ID('{$this->wrapTable($tableName)}') 
+        AND 
+            [name] = :column_name";
+    }
+
+    /**
+     *
+     * @return string
+     */
+    public function compileDropConstraint($tableName, $contraintName)
+    {
+        $tableName = $this->wrapTable($tableName);
+        return "ALTER TABLE $tableName DROP CONSTRAINT $contraintName";
+    }
 }

@@ -154,7 +154,7 @@ class ApiTest extends ApiTestBase
         ])->get(admin_urls('api', 'table'))
             ->assertStatus(200)
             ->assertJsonFragment([
-                'table_name' => 'base_info',
+                'table_name' => 'information',
             ])
             ;
     }

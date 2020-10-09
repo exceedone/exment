@@ -70,8 +70,13 @@ class SupportForV330 extends Migration
      */
     public function down()
     {
+        $schema = DB::connection()->getSchemaBuilder();
+        $schema->blueprintResolver(function($table, $callback) {
+            return new ExtendedBlueprint($table, $callback);
+        });
+
         if(Schema::hasTable('login_users')){
-            Schema::table('login_users', function (Blueprint $table) {
+            $schema->table('login_users', function (ExtendedBlueprint $table) {
                 if(Schema::hasColumn('login_users', 'login_type')){
                     $table->dropIndex(['login_type']);
                     $table->dropColumn('login_type');

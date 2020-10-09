@@ -183,6 +183,33 @@ trait BuilderTrait
         return $this->connection->getPostProcessor()->processIndexDefinitions($baseTableName, $results);
     }
     
+
+    /**
+     * get database constraint list
+     *
+     * @param string $tableName
+     * @param string $columnName
+     * @return array
+     */
+    protected function getConstraints($tableName, $columnName) : array
+    {
+        if (!\Schema::hasTable($tableName)) {
+            return [];
+        }
+
+        $baseTableName = $tableName;
+        $tableName = $this->connection->getTablePrefix().$tableName;
+
+        $sql = $this->grammar->compileGetConstraint($tableName);
+        if(is_null($sql)){
+            return [];
+        }
+
+        $results = $this->connection->select($sql, ['column_name' => $columnName]);
+        return $this->connection->getPostProcessor()->processConstraints($results);
+    }
+    
+    
     /**
      * Create Value Table if it not exists.
      *
@@ -264,6 +291,28 @@ trait BuilderTrait
             \Schema::table($db_table_name, function (Blueprint $table) use ($db_column_name) {
                 $table->dropColumn($db_column_name);
             });
+        }
+    }
+    
+    
+    /**
+     * drop constraint list
+     *
+     * @param string $tableName
+     * @param string $columnName
+     * @return void
+     */
+    public function dropConstraints($tableName, $columnName) : void
+    {
+        if (!\Schema::hasTable($tableName)) {
+            return;
+        }
+
+        $constraints = $this->getConstraints($tableName, $columnName);
+        $tableName = $this->connection->getTablePrefix().$tableName;
+        foreach($constraints as $constraint){
+            $sql = $this->grammar->compileDropConstraint($tableName, $constraint);
+            $results = $this->connection->statement($sql);
         }
     }
 }

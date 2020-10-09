@@ -73,4 +73,17 @@ class SqlServerProcessor extends BaseSqlServerProcessor
             ];
         })->toArray();
     }
+
+    /**
+     * Process the results of a constraints listing query.
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processConstraints($results)
+    {
+        return collect($results)->map(function($result){
+            return array_get((array)$result, 'name');
+        })->filter()->toArray();
+    }
 }

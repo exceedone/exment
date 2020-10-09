@@ -158,16 +158,22 @@ class SupportForV11 extends Migration
      */
     public function down()
     {
-        Schema::table('custom_view_columns', function (Blueprint $table) {
+        $schema = DB::connection()->getSchemaBuilder();
+
+        $schema->blueprintResolver(function($table, $callback) {
+            return new ExtendedBlueprint($table, $callback);
+        });
+
+        $schema->table('custom_view_columns', function (ExtendedBlueprint $table) {
             $table->dropColumn('view_column_table_id');
         });
-        Schema::table('custom_view_summaries', function (Blueprint $table) {
+        $schema->table('custom_view_summaries', function (ExtendedBlueprint $table) {
             $table->dropColumn('view_column_table_id');
         });
-        Schema::table('custom_view_filters', function (Blueprint $table) {
+        $schema->table('custom_view_filters', function (ExtendedBlueprint $table) {
             $table->dropColumn('view_column_table_id');
         });
-        Schema::table('custom_view_sorts', function (Blueprint $table) {
+        $schema->table('custom_view_sorts', function (ExtendedBlueprint $table) {
             $table->dropColumn('view_column_table_id');
         });
         // add table name unique index from custom table
@@ -177,7 +183,7 @@ class SupportForV11 extends Migration
         
         Schema::dropIfExists('custom_view_summaries');
 
-        Schema::table('custom_view_columns', function($table) {
+        $schema->table('custom_view_columns', function($table) {
             $table->dropColumn('view_column_name');
         });
         

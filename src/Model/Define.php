@@ -349,7 +349,7 @@ class Define
     public const DATABASE_TYPE = [
         'mysql' => 'MySQL',
         'mariadb' => 'MariaDB',
-        'sqlsrv' => 'SQLServer (β)',
+        'sqlsrv' => 'SQLServer',
     ];
 
     public const DATABASE_VERSION = [

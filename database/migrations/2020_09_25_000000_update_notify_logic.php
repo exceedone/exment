@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Exceedone\Exment\Database\ExtendedBlueprint;
 
 class UpdateNotifyLogic extends Migration
 {
@@ -32,8 +33,13 @@ class UpdateNotifyLogic extends Migration
      */
     public function down()
     {
+        $schema = DB::connection()->getSchemaBuilder();
+        $schema->blueprintResolver(function($table, $callback) {
+            return new ExtendedBlueprint($table, $callback);
+        });
+
         if(Schema::hasTable('notifies')){
-            Schema::table('notifies', function (Blueprint $table) {
+            $schema->table('notifies', function (ExtendedBlueprint $table) {
                 if(Schema::hasColumn('notifies', 'mail_template_id')){
                     $table->dropColumn('mail_template_id');
                 }
