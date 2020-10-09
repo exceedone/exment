@@ -185,30 +185,45 @@ EOT;
 
         /* @var Field $field */
         foreach ($form->fields() as $field) {
-            if (!$fieldRules = $field->getRules()) {
-                continue;
-            }
-
             $column = $field->column();
-
-            if (is_array($column)) {
-                foreach ($column as $key => $name) {
-                    $rules[$name.$key] = $fieldRules;
+            // if NestedEmbeds, loop hasmany items
+            if ($field instanceof NestedEmbeds) {
+                $nestedValues = Arr::get($input, $this->column);
+                if(!is_array($nestedValues)){
+                    continue;
                 }
-
-                $this->resetInputKey($input, $column);
-            } elseif ($field instanceof NestedEmbeds) {
-                foreach ($fieldRules as $key => $fieldRule) {
-                    $rules["$column.$key"] = $fieldRule;
+                foreach ($nestedValues as $nestedKey => $nestedValue) {
+                    if (!$fieldRules = $field->getRules()) {
+                        continue;
+                    }
+                    foreach ($fieldRules as $key => $fieldRule) {
+                        $r = Arr::has($rules, "$column.$key") ? $rules["$column.$key"]['rules'] : [];
+                        $r[$nestedKey] = $fieldRule;
+                        $rules["$column.$key"] = ['hasmany' => true, 'rules' => $r];
+                    }
                 }
                 $attributes = array_merge(
                     $attributes,
                     $field->getAttributes()
                 );
-            } else {
-                $rules[$column] = $fieldRules;
             }
 
+            else{
+                if (!$fieldRules = $field->getRules()) {
+                    continue;
+                }
+    
+                if (is_array($column)) {
+                    foreach ($column as $key => $name) {
+                        $rules[$name.$key] = ['hasmany' => false, 'rules' => $fieldRules];
+                    }
+    
+                    $this->resetInputKey($input, $column);
+                } else {
+                    $rules[$column] = ['hasmany' => false, 'rules' => $fieldRules];
+                }
+            }
+            
             $attributes = array_merge(
                 $attributes,
                 $this->formatValidationAttribute($input, $field->label(), $column)
@@ -226,7 +241,13 @@ EOT;
 
         foreach ($rules as $column => $rule) {
             foreach (array_keys($input[$this->column]) as $key) {
-                $newRules["{$this->column}.$key.$column"] = $rule;
+                if($rule['hasmany']){
+                    $newRules["{$this->column}.$key.$column"] = Arr::get($rule['rules'], $key);
+                }
+                else{
+                    $newRules["{$this->column}.$key.$column"] = $rule['rules'];
+                }
+
                 if (isset($attributes[$column])) {
                     $attributes["{$this->column}.$key.$column"] = $attributes[$column];
                 }
@@ -257,7 +278,7 @@ EOT;
             return $this->count;
         }
 
-        if (!empty($v = $this->value())) {
+        if (!empty($v = $this->getOld())) {
             return count($v);
         }
 

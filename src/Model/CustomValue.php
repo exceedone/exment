@@ -498,19 +498,21 @@ abstract class CustomValue extends ModelBase
      * @param array $input laravel-admin input
      * @return mixed
      */
-    public function validatorSaving($input, bool $asApi = false)
+    public function validatorSaving($input, array $options = [])
     {
-        $options = [
-            'asApi' => $asApi,
+        $options = array_merge([
+            'asApi' => false,
             'appendErrorAllColumn' => true,
-        ];
+            'column_name_prefix' => null,
+            'uniqueCheckSiblings' => [], // unique validation Siblings
+        ], $options);
 
         // validate multiple column set is unique
-        $errors = $this->custom_table->validatorMultiUniques($input, $this, $options);
+        $errors = $this->custom_table->validatorUniques($input, $this, $options);
 
         $errors = array_merge($this->custom_table->validatorCompareColumns($input, $this, $options), $errors);
 
-        $errors = array_merge($this->custom_table->validatorLock($input, $this, $asApi), $errors);
+        $errors = array_merge($this->custom_table->validatorLock($input, $this, $options['asApi']), $errors);
 
         // call plugin validator
         $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this));
