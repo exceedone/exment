@@ -11,109 +11,109 @@ class CustomColumnValidationTest extends UnitTestBase
 {
     use CustomColumnTrait;
     
-    // // required, unneccesarry, etc ----------------------------------------------------
-    // public function testSuccess(){
-    //     $this->executeTestEdit([
-    //         'text' => 'abc',
-    //     ], [
-    //     ]);
-    // }
+    // required, unneccesarry, etc ----------------------------------------------------
+    public function testSuccess(){
+        $this->executeTestEdit([
+            'text' => 'abc',
+        ], [
+        ]);
+    }
 
-    // public function testRequired(){
-    //     $this->executeTestEdit([
-    //     ], [
-    //         'text' => [$this->getErrorMessage('required', 'text')],
-    //     ]);
-    // }
+    public function testRequired(){
+        $this->executeTestEdit([
+        ], [
+            'text' => [$this->getErrorMessage('required', 'text')],
+        ]);
+    }
 
-    // /**
-    //  * Update check,. It's Success
-    //  */
-    // public function testRequiredUpdate(){
-    //     $this->executeTestEdit([
-    //     ], [], [], 1);
-    // }
+    /**
+     * Update check,. It's Success
+     */
+    public function testRequiredUpdate(){
+        $this->executeTestEdit([
+        ], [], [], 1);
+    }
 
-    // public function testUnnecessary(){
-    //     $this->executeTestEdit([
-    //         'xyz' => 'xyz',
-    //         'text' => 'text',
-    //     ], [
-    //         'xyz' => [exmtrans('error.not_contains_column')],
-    //     ]);
-    // }
+    public function testUnnecessary(){
+        $this->executeTestEdit([
+            'xyz' => 'xyz',
+            'text' => 'text',
+        ], [
+            'xyz' => [exmtrans('error.not_contains_column')],
+        ]);
+    }
 
-    // // Text ----------------------------------------------------
-    // public function testSuccessText(){
-    //     $this->executeTestAllColumns(ColumnType::TEXT, [
-    //         ColumnType::TEXT => 'abc',
-    //     ]);
-    // }
-    // public function testSuccessText2(){
-    //     $this->executeTestAllColumns(ColumnType::TEXT, [
-    //         ColumnType::TEXT => 1,
-    //     ]);
-    // }
-    // public function testTextNotString(){
-    //     $this->executeTestAllColumns(ColumnType::TEXT, [
-    //         ColumnType::TEXT => ['abc'],
-    //     ], [
-    //         ColumnType::TEXT => [$this->getErrorMessage('string', ColumnType::TEXT)],
-    //     ]);
-    // }
-
-
-
-    // // Textarea ----------------------------------------------------
-    // public function testSuccessTextarea(){
-    //     $this->executeTestAllColumns(ColumnType::TEXTAREA, [
-    //         ColumnType::TEXTAREA => "abc\r\ndef",
-    //     ]);
-    // }
-    // public function testSuccessTextarea2(){
-    //     $this->executeTestAllColumns(ColumnType::TEXTAREA, [
-    //         ColumnType::TEXTAREA => 1,
-    //     ]);
-    // }
-
-    // public function testTextareaNotString(){
-    //     $this->executeTestAllColumns(ColumnType::TEXTAREA, [
-    //         ColumnType::TEXTAREA => ['abc'],
-    //     ], [ 
-    //         ColumnType::TEXTAREA => [$this->getErrorMessage('string', ColumnType::TEXTAREA)],
-    //     ]);
-    // }
+    // Text ----------------------------------------------------
+    public function testSuccessText(){
+        $this->executeTestAllColumns(ColumnType::TEXT, [
+            ColumnType::TEXT => 'abc',
+        ]);
+    }
+    public function testSuccessText2(){
+        $this->executeTestAllColumns(ColumnType::TEXT, [
+            ColumnType::TEXT => 1,
+        ]);
+    }
+    public function testTextNotString(){
+        $this->executeTestAllColumns(ColumnType::TEXT, [
+            ColumnType::TEXT => ['abc'],
+        ], [
+            ColumnType::TEXT => [$this->getErrorMessage('string', ColumnType::TEXT)],
+        ]);
+    }
 
 
 
+    // Textarea ----------------------------------------------------
+    public function testSuccessTextarea(){
+        $this->executeTestAllColumns(ColumnType::TEXTAREA, [
+            ColumnType::TEXTAREA => "abc\r\ndef",
+        ]);
+    }
+    public function testSuccessTextarea2(){
+        $this->executeTestAllColumns(ColumnType::TEXTAREA, [
+            ColumnType::TEXTAREA => 1,
+        ]);
+    }
 
-    // // Textarea ----------------------------------------------------
-    // public function testSuccessEditor(){
-    //     $this->executeTestAllColumns(ColumnType::EDITOR, [
-    //         ColumnType::EDITOR => "abc\r\ndef",
-    //     ]);
-    // }
-    // public function testSuccessEditor2(){
-    //     $this->executeTestAllColumns(ColumnType::EDITOR, [
-    //         ColumnType::EDITOR => 1,
-    //     ]);
-    // }
-
-    // public function testEditorNotString(){
-    //     $this->executeTestAllColumns(ColumnType::EDITOR, [
-    //         ColumnType::EDITOR => ['abc'],
-    //     ], [ 
-    //         ColumnType::EDITOR => [$this->getErrorMessage('string', ColumnType::EDITOR)],
-    //     ]);
-    // }
+    public function testTextareaNotString(){
+        $this->executeTestAllColumns(ColumnType::TEXTAREA, [
+            ColumnType::TEXTAREA => ['abc'],
+        ], [ 
+            ColumnType::TEXTAREA => [$this->getErrorMessage('string', ColumnType::TEXTAREA)],
+        ]);
+    }
 
 
-    // // Url ----------------------------------------------------
-    // public function testSuccessUrl(){
-    //     $this->executeTestAllColumns(ColumnType::URL, [
-    //         ColumnType::URL => "https://github.com/exceedone/exment",
-    //     ]);
-    // }
+
+
+    // Textarea ----------------------------------------------------
+    public function testSuccessEditor(){
+        $this->executeTestAllColumns(ColumnType::EDITOR, [
+            ColumnType::EDITOR => "abc\r\ndef",
+        ]);
+    }
+    public function testSuccessEditor2(){
+        $this->executeTestAllColumns(ColumnType::EDITOR, [
+            ColumnType::EDITOR => 1,
+        ]);
+    }
+
+    public function testEditorNotString(){
+        $this->executeTestAllColumns(ColumnType::EDITOR, [
+            ColumnType::EDITOR => ['abc'],
+        ], [ 
+            ColumnType::EDITOR => [$this->getErrorMessage('string', ColumnType::EDITOR)],
+        ]);
+    }
+
+
+    // Url ----------------------------------------------------
+    public function testSuccessUrl(){
+        $this->executeTestAllColumns(ColumnType::URL, [
+            ColumnType::URL => "https://github.com/exceedone/exment",
+        ]);
+    }
 
     public function testUrlNotString(){
         $this->executeTestAllColumns(ColumnType::URL, [
