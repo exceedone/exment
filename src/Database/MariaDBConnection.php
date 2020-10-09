@@ -54,4 +54,12 @@ class MariaDBConnection extends MySqlConnection
     {
         return new MariaDBProcessor;
     }
+
+    
+    public function getDatabaseDriverName() : string
+    {
+        return 'MariaDB';
+    }
+
+
 }

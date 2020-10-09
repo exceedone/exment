@@ -164,7 +164,7 @@ class Exment
         return view('exment::widgets.url-tag', [
             'href' => $href,
             'label' => $label,
-            'attributes' => formatAttributes($attributes),
+            'attributes' => \Exment::formatAttributes($attributes),
         ])->render();
     }
 
@@ -440,4 +440,37 @@ class Exment
         }
         return implode(" < ", $functions);
     }
+
+    
+    public function wrapValue($string)
+    {
+        return app('db')->getPdo()->quote($string);
+    }
+
+    public function wrapColumn($string)
+    {
+        return \DB::getQueryGrammar()->wrap($string);
+    }
+
+    public function wrapTable($string)
+    {
+        return \DB::getQueryGrammar()->wrapTable($string);
+    }
+
+    /**
+     * Format the field attributes.
+     *
+     * @return string
+     */
+    public function formatAttributes($attributes)
+    {
+        $html = [];
+
+        foreach ($attributes as $name => $value) {
+            $html[] = $name.'="'.esc_html($value).'"';
+        }
+
+        return implode(' ', $html);
+    }
+    
 }

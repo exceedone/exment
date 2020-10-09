@@ -5,12 +5,19 @@ namespace Exceedone\Exment\Database;
 interface ConnectionInterface
 {
     /**
+     * Get database driver name
+     *
+     * @return string
+     */
+    public function getDatabaseDriverName() : string;
+
+    /**
      * Check execute backup database
      *
      * @return bool
      * @throws BackupRestoreCheckException
      */
-    public function checkBackup();
+    public function checkBackup() : bool;
 
     
     /**

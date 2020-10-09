@@ -268,6 +268,9 @@ class File extends ModelBase
         }
 
         $funcUuid = function ($pathOrUuid) {
+            if(!is_uuid($pathOrUuid)){
+                return null;
+            }
             return static::where('uuid', $pathOrUuid)->first();
         };
         $funcPath = function ($pathOrUuid) {

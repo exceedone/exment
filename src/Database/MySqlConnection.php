@@ -126,13 +126,19 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     }
 
 
+    public function getDatabaseDriverName() : string
+    {
+        return 'MySQL';
+    }
+
+
     /**
      * Check execute backup database
      *
      * @return bool
      * @throws BackupRestoreCheckException
      */
-    public function checkBackup()
+    public function checkBackup() : bool
     {
         $commands = [static::getMysqlDumpPath(), static::getMysqlPath()];
         foreach ($commands as $command) {

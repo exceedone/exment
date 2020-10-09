@@ -135,6 +135,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         switch ($type) {
             case DatabaseDataType::TYPE_DECIMAL:
                 $decimal_digit = array_get($options, 'decimal_digit') ?? 2;
+                $length = ($length > 38 ? 38 : $length);
                 $cast .= "($length, $decimal_digit)";
                 break;
                 

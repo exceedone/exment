@@ -82,10 +82,6 @@ class BackupController extends AdminControllerBase
         // create setting form
         $content->row($this->settingFormBox());
 
-        // ※SQLServerはバックアップ未対応。※一時なので、日本語固定で表示
-        if (config('database.default') == 'sqlsrv') {
-            admin_error('SQL Server未対応', '現在、SQL Serverではバックアップ・リストア未対応です。ご了承ください。');
-        }
         
         return $content;
     }

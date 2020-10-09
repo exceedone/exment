@@ -56,7 +56,7 @@ class ModalMenuButton implements Renderable
             'html' => $this->html,
             'modal_title' => $this->modal_title,
             'menulist' => $this->menulist,
-            'attributes' => formatAttributes($this->attributes)
+            'attributes' => \Exment::formatAttributes($this->attributes)
             
         ])->render();
     }

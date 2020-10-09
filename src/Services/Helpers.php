@@ -124,38 +124,6 @@ if (!function_exists('html_clean')) {
     }
 }
 
-if (!function_exists('esc_sql')) {
-    function esc_sql($string)
-    {
-        return app('db')->getPdo()->quote($string);
-    }
-}
-
-if (!function_exists('esc_sqlTable')) {
-    function esc_sqlTable($string)
-    {
-        return \DB::getQueryGrammar()->wrapTable($string);
-    }
-}
-
-if (!function_exists('formatAttributes')) {
-    /**
-     * Format the field attributes.
-     *
-     * @return string
-     */
-    function formatAttributes($attributes)
-    {
-        $html = [];
-
-        foreach ($attributes as $name => $value) {
-            $html[] = $name.'="'.esc_html($value).'"';
-        }
-
-        return implode(' ', $html);
-    }
-}
-
 if (!function_exists('is_nullorempty')) {
     /**
      * validate string, array, Collection and object.
@@ -968,6 +936,13 @@ if (!function_exists('short_uuid')) {
     function short_uuid()
     {
         return mb_substr(md5(uniqid()), 0, 20);
+    }
+}
+
+if (!function_exists('is_uuid')) {
+    function is_uuid($uuid) : bool
+    {
+        return Uuid::validate($uuid);
     }
 }
 

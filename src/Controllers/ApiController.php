@@ -350,8 +350,7 @@ class ApiController extends AdminControllerBase
     {
         // get notify NotifyNavbar list
         $query = NotifyNavbar::where('target_user_id', \Exment::getUserId())
-            ->where('read_flg', false)
-            ->orderBy('created_at', 'desc');
+            ->where('read_flg', false);
         
         $count = $query->count();
         $list = $query->take(5)->get();

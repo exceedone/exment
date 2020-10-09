@@ -395,7 +395,7 @@ EOT;
                     'dashboard_suuid' => $this->dashboard->suuid,
                     'dashboardboxes_newbuttons' => $dashboardboxes_newbuttons,
                     'icons' => $icons,
-                    'attributes' => isset($dashboard_box) ? formatAttributes($dashboard_box->getBoxHtmlAttr()) : '',
+                    'attributes' => isset($dashboard_box) ? \Exment::formatAttributes($dashboard_box->getBoxHtmlAttr()) : '',
                 ]));
             }
         });
