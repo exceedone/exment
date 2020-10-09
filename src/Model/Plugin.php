@@ -334,7 +334,9 @@ class Plugin extends ModelBase
     /**
      * Putasfile plugin file. upload to crowd.
      *
-     * @param string|null $path file relative path
+     * @param string|null $dirPath file relative path
+     * @param string $fileName
+     * @param mixed $file
      * @param PluginDiskService|null $diskService
      * @return void
      */

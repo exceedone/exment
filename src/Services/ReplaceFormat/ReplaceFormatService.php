@@ -83,7 +83,7 @@ class ReplaceFormatService
                         $str = '';
                     }
 
-                    if (array_key_value_exists('link', $matchOptions)) {
+                    if (array_key_value_exists('link', $matchOptions) && isset($item)) {
                         $str = $item->getLink($str);
                     }
 

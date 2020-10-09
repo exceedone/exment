@@ -7,6 +7,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Form\Show;
+use Exceedone\Exment\Form\Tools\SwalMenuButton;
 use Exceedone\Exment\Grid\Tools\BatchCheck;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\NotifyNavbar;
@@ -44,6 +45,7 @@ class NotifyNavbarController extends AdminControllerBase
         $grid->disableExport();
 
         $grid->tools(function (Grid\Tools $tools) {
+            $tools->append(new SwalMenuButton($this->getMenuList()));
             $tools->batch(function (Grid\Tools\BatchActions $batch) {
                 $batch->add(exmtrans('notify_navbar.all_check'), new BatchCheck());
             });
@@ -61,9 +63,65 @@ class NotifyNavbarController extends AdminControllerBase
                 $actions->prepend($linker);
             }
         });
+        
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+
+            $options = [
+                '' => 'All',
+                0 => exmtrans("notify_navbar.read_flg_options.0"),
+                1 => exmtrans("notify_navbar.read_flg_options.1"),
+            ];
+            $filter->equal('read_flg', exmtrans("notify_navbar.read_flg"))->radio($options);
+
+            $filter->equal('parent_type', exmtrans("notify_navbar.parent_type"))->select(function ($val) {
+                return CustomTable::filterList()->pluck('table_view_name', 'table_view_name');
+            });
+            
+            $filter->like('notify_subject', exmtrans("notify_navbar.notify_subject"));
+        });
+
         return $grid;
     }
 
+
+    /**
+     * create batch processing menu list.
+     *
+     * @return array
+     */
+    protected function getMenuList(): array
+    {
+        $menulist = [];
+        $menulist[] = [
+            'url' => admin_url('notify_navbar/batchAll/read'),
+            'label' => exmtrans('notify_navbar.read_all'),
+            'title' => exmtrans('notify_navbar.batch_all'),
+            'text' => exmtrans('notify_navbar.confirm_text.read_all'),
+            'method' => 'post',
+            'confirm' => trans('admin.confirm'),
+            'cancel' => trans('admin.cancel'),
+        ];
+        $menulist[] = [
+            'url' => admin_url('notify_navbar/batchAll/unread'),
+            'label' => exmtrans('notify_navbar.unread_all'),
+            'title' => exmtrans('notify_navbar.batch_all'),
+            'text' => exmtrans('notify_navbar.confirm_text.unread_all'),
+            'method' => 'post',
+            'confirm' => trans('admin.confirm'),
+            'cancel' => trans('admin.cancel'),
+        ];
+        $menulist[] = [
+            'url' => admin_url('notify_navbar/batchAll/delete'),
+            'label' => exmtrans('notify_navbar.delete_all'),
+            'title' => exmtrans('notify_navbar.batch_all'),
+            'text' => exmtrans('notify_navbar.confirm_text.delete_all'),
+            'method' => 'post',
+            'confirm' => trans('admin.confirm'),
+            'cancel' => trans('admin.cancel'),
+        ];
+        return $menulist;  
+    }
 
     /**
      * Make a form builder.
@@ -101,13 +159,15 @@ class NotifyNavbarController extends AdminControllerBase
             }
         }
 
-        return new Show($model, function (Show $show) use ($id, $custom_value, $custom_table) {
-            $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) use ($custom_table) {
-                if (is_null($parent_type) || is_null($custom_table)) {
-                    return null;
-                }
-                return $custom_table->table_view_name;
-            });
+        return new Show($model, function (Show $show) use ($id, $parent_type, $custom_value, $custom_table) {
+            if (isset($parent_type)) {
+                $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) use ($custom_table) {
+                    if (is_null($parent_type) || is_null($custom_table)) {
+                        return null;
+                    }
+                    return $custom_table->table_view_name;
+                });
+            }
 
             if (isset($custom_value)) {
                 $show->field('target_custom_value', exmtrans('notify_navbar.target_custom_value'))->as(function ($v) use ($custom_value) {
@@ -133,6 +193,50 @@ class NotifyNavbarController extends AdminControllerBase
                 }
             });
         });
+    }
+    
+    /**
+     * batch processing all notifications
+     *
+     * @param Request   $request
+     * @param String    $type
+     * 
+     * @return \Symfony\Component\HttpFoundation\Response Response for ajax json
+     */
+    public function batchAll(Request $request, String $type): \Symfony\Component\HttpFoundation\Response
+    {
+        \DB::beginTransaction();
+        try {
+            switch ($type) {
+                case 'read':
+                    NotifyNavbar::query()->update(['read_flg' => true]);
+                    break;
+                case 'unread':
+                    NotifyNavbar::query()->update(['read_flg' => false]);
+                    break;
+                case 'delete':
+                    NotifyNavbar::query()->delete();
+                    break;
+                default:
+                    throw new \Exception();
+            }
+            
+            \DB::commit();
+
+            return getAjaxResponse([
+                'result'  => true,
+                'toastr' => exmtrans('notify_navbar.message.'.$type.'_succeeded'),
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+        }
+    
+        return getAjaxResponse([
+            'result'  => false,
+            'swal' => exmtrans('common.error'),
+            'swaltext' => exmtrans('notify_navbar.message.batch_error'),
+        ]);
     }
     
     /**

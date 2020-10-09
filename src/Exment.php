@@ -4,10 +4,14 @@ namespace Exceedone\Exment;
 
 use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Enums\UrlTagType;
+use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Illuminate\Support\Facades\Auth;
 use Encore\Admin\Admin;
 
@@ -81,6 +85,25 @@ class Exment
         }
         return null;
     }
+
+
+    /**
+     * Get User Model's ID
+     * "This function name defines Custom value's user and login user. But this function always return Custom value's user
+     *
+     * @return string|int
+     */
+    public function getUserId()
+    {
+        // whether has User
+        $user = \Exment::user();
+        if (empty($user)) {
+            return null;
+        }
+
+        return $user->getUserId();
+    }
+
 
     /**
      * get exment version
@@ -240,5 +263,131 @@ class Exment
         }
 
         return $data;
+    }
+
+    
+    /**
+     * Get mark and value for search
+     *
+     * @param bool $isLike
+     * @param string $q search string
+     * @return array
+     */
+    public function getQueryMarkAndValue($isLike, $q)
+    {
+        // if all search
+        $mark = ($isLike ? 'LIKE' : '=');
+        if (System::filter_search_type() == FilterSearchType::ALL) {
+            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        } else {
+            $value = $q . ($isLike ? '%' : '');
+        }
+
+        return [$mark, $value];
+    }
+
+    
+    /**
+     * search document
+     */
+    public function getSearchDocumentQuery(CustomTable $target_custom_table, ?string $q, $query = null)
+    {
+        if (empty($query)) {
+            $query = $target_custom_table->getValueModel()->query();
+        }
+        return $query->whereExists(function ($query) use ($target_custom_table, $q) {
+            $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
+            $column_document_name = CustomColumn::getEloquent('document_name', $custom_table);
+            $documentDbName = getDBTableName($custom_table);
+            $targetDbName = getDBTableName($target_custom_table);
+
+            // search document name
+            list($mark, $q) = \Exment::getQueryMarkAndValue(true, $q);
+            $query
+                ->select(\DB::raw(1))
+                ->from($documentDbName)
+                ->where($documentDbName . '.' . $column_document_name->getQueryKey(), $mark, $q)
+                ->where("$documentDbName.parent_type", $target_custom_table->table_name)
+                ->whereRaw("$documentDbName.parent_id = $targetDbName.id");
+            ;
+        });
+    }
+
+    /**
+     * Push collection. if $item is \Illuminate\Support\Collection, loop
+     *
+     * @param [type] $item
+     * @return void
+     */
+    public function pushCollection(\Illuminate\Support\Collection $collect, $item) : \Illuminate\Support\Collection
+    {
+        if($item instanceof \Illuminate\Support\Collection){
+            foreach($item as $i){
+                $collect->push($i);
+            }
+        }
+        else{
+            $collect->push($item);
+        }
+
+        return $collect;
+    }
+
+
+    
+    /**
+     * Get manual url
+     *
+     * @param string|null $uri
+     * @return string
+     */
+    public function getManualUrl(?string $uri = null) : string
+    {
+        $manual_url_base = config('exment.manual_url');
+        // if ja, set
+        if (config('app.locale') == 'ja') {
+            $manual_url_base = url_join($manual_url_base, 'ja') . '/';
+        }
+        $manual_url_base = url_join($manual_url_base, $uri);
+        return $manual_url_base;
+    }
+
+
+    public function getMoreTag(?string $uri = null, ?string $id_transkey = null){
+        $url = $this->getManualUrl($uri);
+
+        if($id_transkey){
+            $url .= '#' . exmtrans($id_transkey);
+        }
+
+        return exmtrans('common.help.more_help_here', $url);
+    }
+
+
+    /**
+     * get true mark. If $val is true, output mark
+     */
+    public function getTrueMark($val)
+    {
+        if (!boolval($val)) {
+            return null;
+        }
+
+        return config('exment.true_mark', '<i class="fa fa-check"></i>');
+    }
+    
+
+    /**
+     * Get Yes No All array for option.
+     *
+     * @return array
+     */
+    public function getYesNoAllOption() : array
+    {
+        return [
+            '' => 'All',
+            '0' => 'NO',
+            '1' => 'YES',
+        ];
     }
 }

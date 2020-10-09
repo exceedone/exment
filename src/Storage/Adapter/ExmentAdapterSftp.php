@@ -4,18 +4,9 @@ namespace Exceedone\Exment\Storage\Adapter;
 
 use League\Flysystem\Sftp\SftpAdapter;
 
-use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Enums\Driver;
-
 class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
 {
-    /**
-     * Get URL using File class
-     */
-    public function getUrl($path)
-    {
-        return File::getUrl($path);
-    }
+    use AdapterTrait;
     
     /**
      * get adapter class
@@ -23,10 +14,17 @@ class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
     public static function getAdapter($app, $config, $driverKey)
     {
         $mergeFrom = array_get($config, 'mergeFrom');
-        $mergeConfig = Driver::mergeFileConfig('filesystems.disks.sftp', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig = static::mergeFileConfig('filesystems.disks.sftp', "filesystems.disks.$mergeFrom", $mergeFrom);
         $mergeConfig['driver'] = 'sftp';
 
         $driver = new self($mergeConfig);
         return $driver;
+    }
+    
+    public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array
+    {
+        return [
+            'root' => config('exment.rootpath.sftp.' . $mergeFrom),
+        ];
     }
 }

@@ -6,7 +6,7 @@
 &nbsp;
 
 @if($isAbleRemove)
-<a href="javascript:void(0);" data-exment-delete="{{admin_urls('webapi', 'data', 'comment', $comment->id)}}">
+<a href="javascript:void(0);" data-exment-delete="{{$deleteUrl}}">
     <i class="fa fa-trash"></i>
 </a>
 @endif

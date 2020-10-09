@@ -23,7 +23,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      */
     public function compileGetTableListing()
     {
-        return "show tables";
+        return "show full tables where Table_Type = 'BASE TABLE'";
     }
 
     /**

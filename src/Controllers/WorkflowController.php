@@ -74,7 +74,7 @@ class WorkflowController extends AdminControllerBase
         });
         $grid->column('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->display(function ($value) {
             if (boolval($value)) {
-                return getTrueMark($value);
+                return \Exment::getTrueMark($value);
             }
 
             return null;
@@ -110,6 +110,18 @@ class WorkflowController extends AdminControllerBase
                 ]));
             }
             $tools->prepend(new Tools\SystemChangePageMenu());
+        });
+
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+            $filter->equal('workflow_type', exmtrans("workflow.workflow_type"))->select(function ($val) {
+                return WorkflowType::transKeyArray('workflow.workflow_type_options');
+            });
+
+            $filter->like('workflow_view_name', exmtrans("workflow.workflow_view_name"));
+
+            $filter->equal('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->radio(\Exment::getYesNoAllOption());
+
         });
 
         return $grid;
@@ -190,6 +202,7 @@ class WorkflowController extends AdminControllerBase
         else {
             $form->display('workflow_type', exmtrans('workflow.workflow_type'))
                 ->displayText(WorkflowType::getEnum($workflow->workflow_type)->transKey('workflow.workflow_type_options'))
+                ->escape(false)
                 ;
 
             if ($workflow->workflow_type == WorkflowType::TABLE) {
@@ -266,6 +279,22 @@ class WorkflowController extends AdminControllerBase
                 return redirect($workflow_action_url);
             }
         });
+
+        if (isset($workflow)) {
+            $form->submitRedirect([
+                'value' => 'action_2',
+                'label' => exmtrans('common.redirect_to', exmtrans('workflow.workflow_actions')),
+                'redirect' => function ($resourcesPath, $key) {
+                    return redirect(admin_urls('workflow', $key, 'edit?action=2'));
+                },
+            ])->submitRedirect([
+                'value' => 1,
+                'label' => trans('admin.continue_editing'),
+                'redirect' => function ($resourcesPath, $key) {
+                    return redirect(admin_urls('workflow', $key, 'edit?action=1'));
+                },
+            ]);
+        }
 
         return $form;
     }
@@ -418,6 +447,20 @@ class WorkflowController extends AdminControllerBase
                 return $result;
             }
         });
+
+        $form->submitRedirect([
+            'value' => 'action_1',
+            'label' => exmtrans('common.redirect_to', exmtrans('workflow.workflow_statuses')),
+            'redirect' => function ($resourcesPath, $key) {
+                return redirect(admin_urls('workflow', $key, 'edit?action=1'));
+            },
+        ])->submitRedirect([
+            'value' => 1,
+            'label' => trans('admin.continue_editing'),
+            'redirect' => function ($resourcesPath, $key) {
+                return redirect(admin_urls('workflow', $key, 'edit?action=2'));
+            },
+        ]);
 
         return $form;
     }
@@ -690,11 +733,11 @@ class WorkflowController extends AdminControllerBase
         $notify->notify_view_name = exmtrans('notify.notify_trigger_options.workflow');
         $notify->notify_trigger = NotifyTrigger::WORKFLOW;
         $notify->workflow_id = $workflow->id;
-        $notify->notify_actions = NotifyAction::SHOW_PAGE;
-        $notify->action_settings = [
-            'mail_template_id' => $mail_template->id,
+        $notify->mail_template_id = $mail_template->id;
+        $notify->action_settings = [[
+            'notify_action' => NotifyAction::SHOW_PAGE,
             'notify_action_target' =>  [NotifyActionTarget::WORK_USER]
-        ];
+        ]];
         $notify->save();
     }
 

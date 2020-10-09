@@ -97,8 +97,9 @@ class RelationPivotTableProvider extends ProviderBase
         $relation_name = $this->relation->getRelationName();
         $this->grid->model()->with($relation_name);
 
+        $records = new Collection;
         $this->grid->model()->chunk(function ($data) use (&$records, $relation_name) {
-            if (!isset($records)) {
+            if (is_nullorempty($records)) {
                 $records = new Collection;
             }
             $datalist = $data->map(function ($d) use ($relation_name) {
@@ -107,8 +108,9 @@ class RelationPivotTableProvider extends ProviderBase
             foreach ($datalist as $d) {
                 $records = $records->merge($d);
             }
-        }) ?? [];
+        }) ?? new Collection;
 
+        $this->count = count($records);
         return $records;
     }
 

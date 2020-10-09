@@ -24,7 +24,8 @@ class CustomOperationController extends AdminControllerTableBase
     {
         parent::__construct($custom_table, $request);
         
-        $this->setPageInfo(exmtrans("custom_operation.header"), exmtrans("custom_operation.header"), exmtrans("custom_operation.description"), 'fa-th-list');
+        $title = exmtrans("custom_operation.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
+        $this->setPageInfo($title, $title, exmtrans("custom_operation.description"), 'fa-th-list');
     }
 
     /**
@@ -57,7 +58,7 @@ class CustomOperationController extends AdminControllerTableBase
         if (!$this->hasSystemPermission()) {
             $operation = CustomOperation::getEloquent($id);
 
-            if ($operation->created_user_id != \Exment::user()->getUserId()) {
+            if ($operation->created_user_id != \Exment::getUserId()) {
                 Checker::error();
                 return false;
             }
@@ -89,8 +90,6 @@ class CustomOperationController extends AdminControllerTableBase
     protected function grid()
     {
         $grid = new Grid(new CustomOperation);
-        $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
-        $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('operation_name', exmtrans("custom_operation.operation_name"))->sortable();
         $grid->column('operation_type', exmtrans("custom_operation.operation_type"))->sortable()->displayEscape(function ($val) {
             return collect(toArray($val))->map(function ($v) {
@@ -111,6 +110,14 @@ class CustomOperationController extends AdminControllerTableBase
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\CustomTableMenuButton('operation', $this->custom_table));
         });
+        
+        // filter
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+
+            $filter->like('operation_name', exmtrans("custom_operation.operation_name"));
+        });
+
         return $grid;
     }
 

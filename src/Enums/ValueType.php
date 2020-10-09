@@ -46,7 +46,7 @@ class ValueType extends EnumBase
     }
 
     /**
-     * Filter ApiValueType. Now Only text.
+     * Filter ApiValueType.
      *
      * @return boolean
      */
@@ -56,6 +56,22 @@ class ValueType extends EnumBase
         switch ($enum) {
             case static::TEXT:
             case static::PURE_VALUE:
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Wheether re-get and set custom value.
+     *
+     * @return boolean
+     */
+    public static function isRegetApiCustomValue($valueType)
+    {
+        $enum = static::getEnum($valueType);
+        switch ($enum) {
+            case static::TEXT:
                 return true;
         }
 

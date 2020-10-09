@@ -59,6 +59,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\UpdateCommand',
         'Exceedone\Exment\Console\PublishCommand',
         'Exceedone\Exment\Console\ScheduleCommand',
+        'Exceedone\Exment\Console\NotifyScheduleCommand',
         'Exceedone\Exment\Console\BatchCommand',
         'Exceedone\Exment\Console\BackupCommand',
         'Exceedone\Exment\Console\RestoreCommand',
@@ -69,8 +70,11 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\CheckLangCommand',
         'Exceedone\Exment\Console\NotifyTestCommand',
         'Exceedone\Exment\Console\RefreshDataCommand',
+        'Exceedone\Exment\Console\RefreshTableDataCommand',
         'Exceedone\Exment\Console\ImportCommand',
         'Exceedone\Exment\Console\ExportCommand',
+        'Exceedone\Exment\Console\ExportChunkCommand',
+        'Exceedone\Exment\Console\ResetPasswordCommand',
     ];
 
     /**
@@ -145,6 +149,11 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap',
             'admin.permission',
             'admin.session',
+        ],
+        // Exment not login web page, and simple config, (Almost use image)
+        'admin_anonymous_simple' => [
+            'admin.web-ipfilter',
+            'admin.initialize',
         ],
         // Exment install page
         'admin_install' => [
@@ -344,6 +353,8 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function bootSetting()
     {
+        Initialize::requireBootstrap();
+
         // Extend --------------------------------------------------
         Auth::provider('exment-auth', function ($app, array $config) {
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...

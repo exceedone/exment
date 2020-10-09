@@ -24,7 +24,6 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\CustomValuePageType;
-use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
@@ -34,8 +33,6 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use CustomValueForm;
-
     use HasResourceTableActions{
         HasResourceTableActions::update as updateTrait;
         HasResourceTableActions::store as storeTrait;
@@ -90,6 +87,22 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
         return $this->storeTrait();
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($tableKey, $id)
+    {
+        $request = request();
+        if (($response = $this->firstFlow($request, CustomValuePageType::DELETE, $id)) instanceof Response) {
+            return $response;
+        }
+        return $this->destroyTrait($tableKey, $id);
     }
 
     /**
@@ -279,6 +292,7 @@ class CustomValueController extends AdminControllerTableBase
         return $content;
     }
 
+
     /**
      * compare
      */
@@ -357,6 +371,21 @@ class CustomValueController extends AdminControllerTableBase
         $show_item = $this->custom_form->show_item->id($id);
         return $show_item->addComment($comment);
     }
+
+
+    /**
+     * remove comment.
+     */
+    public function deleteComment(Request $request, $tableKey, $id, $suuid)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->deleteComment($id, $suuid);
+    }
+
 
     /**
      * @param Request $request
@@ -625,7 +654,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
-        $notify = Notify::where('suuid', $targetid)->first();
+        $notify = Notify::where('suuid', $targetid)->where('active_flg', 1)->first();
         if (!isset($notify)) {
             abort(404);
         }
@@ -633,6 +662,14 @@ class CustomValueController extends AdminControllerTableBase
         $service = new NotifyService($notify, $targetid, $tableKey, $id);
         $form = $service->getNotifyDialogForm();
         
+        if($form === false){
+            return getAjaxResponse([
+                'result'  => false,
+                'swal' => exmtrans('common.error'),
+                'swaltext' => exmtrans('notify.message.no_action_target'),
+            ]);
+        }
+
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
@@ -672,6 +709,59 @@ class CustomValueController extends AdminControllerTableBase
         return $this->restore($request, $tableKey, $request->get('id'));
     }
 
+    /**
+     * set notify target users and  get form
+     */
+    public function sendTargetUsers(Request $request, $tableKey, $id = null)
+    {
+        $service = $this->getNotifyService($tableKey, $id);
+        
+        // get target users
+        $target_users = request()->get('target_users');
+
+        $form = $service->getNotifyDialogFormMultiple($target_users);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('custom_value.sendmail.title')
+        ]);
+    }
+
+
+    /**
+     * send mail
+     */
+    public function sendMail(Request $request, $tableKey, $id = null)
+    {
+        $service = $this->getNotifyService($tableKey, $id);
+        
+        return $service->sendNotifyMail($this->custom_table);
+    }
+
+    
+    /**
+     * set share users organizations
+     */
+    public function sendShares(Request $request, $tableKey, $id)
+    {
+        // get customvalue
+        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+        return CustomValueAuthoritable::saveShareDialogForm($custom_value);
+    }
+
+
+    /**
+     * Make a form builder.
+     * @param $id if edit mode, set model id
+     * @return Form
+     */
+    protected function form($id = null)
+    {
+        $form_item = $this->custom_form->form_item;
+        return $form_item->id($id)->form();
+    }
+
     protected function restore(Request $request, $tableKey, $id)
     {
         $ids = stringToArray($id);
@@ -709,44 +799,6 @@ class CustomValueController extends AdminControllerTableBase
         ]);
     }
 
-    /**
-     * set notify target users and  get form
-     */
-    public function sendTargetUsers(Request $request, $tableKey, $id = null)
-    {
-        $service = $this->getNotifyService($tableKey, $id);
-        
-        // get target users
-        $target_users = request()->get('target_users');
-
-        $form = $service->getNotifyDialogFormMultiple($target_users);
-        
-        return getAjaxResponse([
-            'body'  => $form->render(),
-            'script' => $form->getScript(),
-            'title' => exmtrans('custom_value.sendmail.title')
-        ]);
-    }
-    /**
-     * send mail
-     */
-    public function sendMail(Request $request, $tableKey, $id = null)
-    {
-        $service = $this->getNotifyService($tableKey, $id);
-        
-        return $service->sendNotifyMail($this->custom_table);
-    }
-
-    /**
-     * set share users organizations
-     */
-    public function sendShares(Request $request, $tableKey, $id)
-    {
-        // get customvalue
-        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
-        return CustomValueAuthoritable::saveShareDialogForm($custom_value);
-    }
-
     protected function getNotifyService($tableKey, $id)
     {
         $targetid = request()->get('mail_template_id');
@@ -754,7 +806,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
-        $notify = Notify::where('suuid', $targetid)->first();
+        $notify = Notify::where('suuid', $targetid)->where('active_flg', 1)->first();
         if (!isset($notify)) {
             abort(404);
         }
@@ -775,25 +827,6 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
-     * get relation name etc for form block
-     */
-    protected function getRelationName($custom_form_block)
-    {
-        $target_table = $custom_form_block->target_table;
-        // get label hasmany
-        $block_label = $custom_form_block->form_block_view_name;
-        if (!isset($block_label)) {
-            $enum = FormBlockType::getEnum(array_get($custom_form_block, 'form_block_type'));
-            $block_label = exmtrans("custom_form.table_".$enum->lowerKey()."_label") . $target_table->table_view_name;
-        }
-        // get form columns count
-        $form_block_options = array_get($custom_form_block, 'options', []);
-        $relation_name = CustomRelation::getRelationNameByTables($this->custom_table, $target_table);
-
-        return [$relation_name, $block_label];
-    }
-
-    /**
      * First flow. check role and set form and view id etc.
      * different logic for new, update or show
      */
@@ -811,24 +844,25 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->setFormViewInfo($request, $formActionType, $id);
- 
+        
         // id set, checking as update.
         // check for update
         $code = null;
+        $trashed = boolval($request->get('trashed')) || isMatchString($request->get('_scope_'), 'trashed');
         if ($formActionType == CustomValuePageType::CREATE) {
             $code = $this->custom_table->enableCreate(true);
         } elseif ($formActionType == CustomValuePageType::EDIT) {
             $custom_value = $this->custom_table->getValueModel($id);
             $code = $custom_value ? $custom_value->enableEdit(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::SHOW) {
-            $custom_value = $this->custom_table->getValueModel($id, boolval($request->get('trashed')) && $this->custom_table->enableShowTrashed() === true);
+            $custom_value = $this->custom_table->getValueModel($id, $trashed && $this->custom_table->enableShowTrashed() === true);
             $code = $custom_value ? $custom_value->enableAccess(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::GRID) {
             $code = $this->custom_table->enableView();
         } elseif ($formActionType == CustomValuePageType::GRIDMODAL) {
             $code = $this->custom_table->enableAccess();
         } elseif ($formActionType == CustomValuePageType::DELETE) {
-            $custom_value = $this->custom_table->getValueModel($id);
+            $custom_value = $this->custom_table->getValueModel($id, $trashed);
             $code = $custom_value ? $custom_value->enableDelete(true) : $this->custom_table->getNoDataErrorCode($id);
         } elseif ($formActionType == CustomValuePageType::EXPORT) {
             $code = $this->custom_table->enableExport();

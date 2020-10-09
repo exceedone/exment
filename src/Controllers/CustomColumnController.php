@@ -37,7 +37,8 @@ class CustomColumnController extends AdminControllerTableBase
     {
         parent::__construct($custom_table, $request);
         
-        $this->setPageInfo(exmtrans("custom_column.header"), exmtrans("custom_column.header"), exmtrans("custom_column.description"), 'fa-list');
+        $title = exmtrans("custom_column.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
+        $this->setPageInfo($title, $title, exmtrans("custom_column.description"), 'fa-list');
     }
 
     /**
@@ -94,20 +95,22 @@ class CustomColumnController extends AdminControllerTableBase
     protected function grid()
     {
         $grid = new Grid(new CustomColumn);
-        $grid->column('custom_table.table_view_name', exmtrans("custom_table.table"))->sortable();
         $grid->column('column_name', exmtrans("custom_column.column_name"))->sortable();
         $grid->column('column_view_name', exmtrans("custom_column.column_view_name"))->sortable();
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->displayEscape(function ($val) {
             return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
         });
         $grid->column('required', exmtrans("common.required"))->display(function ($val) {
-            return getTrueMark($val);
+            return \Exment::getTrueMark($val);
         });
         $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->display(function ($val) {
-            return getTrueMark($val);
+            return \Exment::getTrueMark($val);
+        });
+        $grid->column('freeword_search', exmtrans("custom_column.options.freeword_search"))->display(function ($val) {
+            return \Exment::getTrueMark($val);
         });
         $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
-            return getTrueMark($val);
+            return \Exment::getTrueMark($val);
         });
         $grid->column('order', exmtrans("custom_column.order"))->editable('number')->sortable();
 
@@ -133,20 +136,26 @@ class CustomColumnController extends AdminControllerTableBase
             // Remove the default id filter
             $filter->disableIdFilter();
             // Add a column filter
-            $filter->equal('column_name', exmtrans("custom_column.column_name"));
-            $filter->equal('column_view_name', exmtrans("custom_column.column_view_name"));
-            $filter->equal('column_type', exmtrans("custom_column.column_type"))->select(function ($val) {
-                return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
-            });
+            $filter->like('column_name', exmtrans("custom_column.column_name"));
+            $filter->like('column_view_name', exmtrans("custom_column.column_view_name"));
+            $filter->equal('column_type', exmtrans("custom_column.column_type"))->select(ColumnType::transArray("custom_column.column_type_options"));
 
-            $keys = ['required' => 'common', 'index_enabled' => 'custom_column.options', 'unique' => 'custom_column.options'];
+            $keys = ['required' => 'common', 'index_enabled' => 'custom_column.options', 'freeword_search' => 'custom_column.options', 'unique' => 'custom_column.options'];
             foreach ($keys as $key => $label) {
-                $filter->where(function ($query) use ($key) {
-                    $query->whereIn("options->$key", [1, "1"]);
-                }, exmtrans("$label.$key"))->radio([
-                    '' => 'All',
-                    '1' => 'YES',
-                ]);
+                $filter->exmwhere(function ($query, $input) use ($key) {
+                    if(is_nullorempty($input)){
+                        return;
+                    }
+                    if(isMatchString($input, 0)){
+                        $query->where(function($query) use($key){
+                            $query->whereIn("options->$key", [0, '0'])
+                                ->orWhereNull("options->$key");
+                        });
+                    }
+                    else{
+                        $query->whereIn("options->$key", [1, '1']);
+                    }
+                }, exmtrans("$label.$key"))->radio(\Exment::getYesNoAllOption());
             }
         });
         return $grid;
@@ -195,7 +204,6 @@ class CustomColumnController extends AdminControllerTableBase
             $id = $form->model()->id;
         }
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
-
         if (!isset($id)) {
             $form->select('column_type', exmtrans("custom_column.column_type"))
                 ->help(exmtrans("custom_column.help.column_type"))
@@ -231,7 +239,7 @@ class CustomColumnController extends AdminControllerTableBase
             $form->display('column_type', exmtrans("custom_column.column_type"))
                 ->displayText(function ($val) {
                     return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
-            });
+                })->escape(false);
             $form->hidden('column_type')->default($column_type);
         }
 
@@ -255,7 +263,8 @@ class CustomColumnController extends AdminControllerTableBase
             $form->switchbool('login_user_default', exmtrans("custom_column.options.login_user_default"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::USER]])])
                 ->help(exmtrans("custom_column.help.login_user_default"));
-            $form->text('placeholder', exmtrans("custom_column.options.placeholder"));
+            $form->text('placeholder', exmtrans("custom_column.options.placeholder"))
+                ->help(exmtrans("custom_column.help.placeholder"));
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
             
             $form->text('min_width', exmtrans("custom_column.options.min_width"))
@@ -552,10 +561,7 @@ class CustomColumnController extends AdminControllerTableBase
         }
 
         $form->saved(function (Form $form) {
-            // create or drop index --------------------------------------------------
             $model = $form->model();
-            $model->alterColumn();
-
             $this->addColumnAfterSaved($model);
         });
 

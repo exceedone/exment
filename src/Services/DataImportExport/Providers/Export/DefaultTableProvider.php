@@ -109,13 +109,14 @@ class DefaultTableProvider extends ProviderBase
      */
     public function getRecords()
     {
+        $records = new Collection;
         $this->grid->applyQuickSearch();
         $this->grid->getFilter()->chunk(function ($data) use (&$records) {
-            if (!isset($records)) {
+            if (is_nullorempty($records)) {
                 $records = new Collection;
             }
             $records = $records->merge($data);
-        }) ?? [];
+        }) ?? new Collection;
 
         if (isset($this->parent_table) && $records->count() > 0) {
             return getModelName($this->name())
@@ -123,6 +124,8 @@ class DefaultTableProvider extends ProviderBase
                 ->where('parent_type', $this->parent_table)
                 ->get();
         }
+
+        $this->count = count($records);
         return $records;
     }
 
@@ -227,8 +230,8 @@ class DefaultTableProvider extends ProviderBase
     /**
      * Get parent target value. Convert to export_column_id
      *
-     * @param CustomColumn $column
      * @param string|int|null $value export id
+     * @param string|int|CustomTable|null $parent_table
      * @return mixed
      */
     protected function getParentExportValue($value, $parent_table)

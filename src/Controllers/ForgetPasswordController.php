@@ -67,6 +67,7 @@ class ForgetPasswordController extends Controller
                         ? $this->sendResetLinkResponse($response)
                         : $this->sendResetLinkFailedResponse($request, $response);
         } catch (\Swift_TransportException $ex) {
+            \Log::error($ex);
             return back()->with('status_error', exmtrans('error.mailsend_failed'));
         }
     }

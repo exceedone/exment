@@ -543,8 +543,8 @@ namespace Exment {
          */
         private static async setModelItem(modeldata: any, $changedata_target: JQuery<Element>, $elem: JQuery<Element>, options: Array<any>) {
             // loop for options
-            for (var i = 0; i < options.length; i++) {
-                var option = options[i];
+            for (let i = 0; i < options.length; i++) {
+                let option = options[i];
                 // if has changedata_to_block, get $elem using changedata_to_block
                 if (hasValue(option.to_block)) {
                     $changedata_target = $(option.to_block);
@@ -554,13 +554,13 @@ namespace Exment {
                     }
                 }
                 // get element
-                var $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
+                let $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
                 if (!hasValue(modeldata)) {
                     await CommonEvent.setValue($elem, null);
                     //$elem.val('');
                 } else {
                     // get element value from model
-                    var from = modeldata['value'][option.from];
+                    let from = modeldata['value'][option.from];
                     await CommonEvent.setValue($elem, from);
                 }
 
@@ -572,15 +572,15 @@ namespace Exment {
             }
 
             // re-loop for options
-            for (var i = 0; i < options.length; i++) {
-                var option = options[i];
+            for (let i = 0; i < options.length; i++) {
+                let option = options[i];
                 $elem = option['elem'];
                 ///// execute calc
-                for (var j = 0; j < CommonEvent.calcDataList.length; j++) {
-                    var calcData = CommonEvent.calcDataList[j];
+                for (let j = 0; j < CommonEvent.calcDataList.length; j++) {
+                    let calcData = CommonEvent.calcDataList[j];
                     // if calcData.key matches option.to, execute cals
                     if (calcData.key == option.to) {
-                        var $filterTo = $elem.filter(calcData.classKey);
+                        let $filterTo = $elem.filter(calcData.classKey);
                         if (hasValue($filterTo)) {
                             await CommonEvent.setCalc($filterTo, calcData.data);
                         }
@@ -714,7 +714,7 @@ namespace Exment {
                     }
 
                     let key = g.key;
-                    let $target = $parent.find(CommonEvent.getClassKey(key));
+                    let $target = $getdata.find(CommonEvent.getClassKey(key));
                     expand[key] = $target.val();
                 }
             }
@@ -790,30 +790,35 @@ namespace Exment {
          */
         private static setFormFilter = ($target: JQuery<Element>) => {
             $target = CommonEvent.getParentRow($target).find('[data-filter]');
-            for (var tIndex = 0; tIndex < $target.length; tIndex++) {
-                var $t = $target.eq(tIndex);
+            for (let tIndex = 0; tIndex < $target.length; tIndex++) {
+                let $t = $target.eq(tIndex);
                 // Get parent element of that input
-                var $parent = CommonEvent.getParentRow($t);
+                let $parent = CommonEvent.getParentRow($t);
                 // Get parent element with row
-                var $eParent = $t.parents('.form-group');
+                let $eParent = $t.parents('.form-group');
 
                 // Get search target key and value
                 try {
-                    var array = $t.data('filter');
+                    let array = $t.data('filter');
                     // if not array, convert array
                     if (!Array.isArray(array)) {
                         array = [array];
                     }
-                    var isShow = true;
-                    var isReadOnly = false;
-                    for (var index = 0; index < array.length; index++) {
-                        var a = array[index];
+                    
+                    // check isshow, isReadOnly, isRequired(default is null:not toggle)
+                    let isShow = true;
+                    let isReadOnly = false;
+                    let isRequired = null;
+
+
+                    for (let index = 0; index < array.length; index++) {
+                        let a = array[index];
                         // Get value of class with that key
                         // if has parent value
-                        var parentCount = a.parent ? a.parent : 0;
+                        let parentCount = a.parent ? a.parent : 0;
                         if (parentCount > 0) {
-                            var $calcParent = $parent;
-                            for (var i = 0; i < parentCount; i++) {
+                            let $calcParent = $parent;
+                            for (let i = 0; i < parentCount; i++) {
                                 $calcParent = CommonEvent.getParentRow($calcParent);
                             }
                             var filterVal = CommonEvent.getFilterVal($calcParent, a);
@@ -855,6 +860,11 @@ namespace Exment {
                                 isReadOnly = true;
                             }
                         }
+
+                        // change isrequired
+                        if(isRequired === null && a.requiredValue){
+                            isRequired = CommonEvent.findValue(filterVal, a.requiredValue);
+                        }
                     }
                     if (isShow) {
                         $eParent.show();
@@ -873,13 +883,27 @@ namespace Exment {
                     }
 
                     // if selectbox, disabled
-                    var propName = $t.prop('type') == 'select-one' || $t.prop('tagName').toLowerCase() == 'select'
+                    const propName = $t.prop('type') == 'select-one' || $t.prop('tagName').toLowerCase() == 'select'
                         ? 'disabled' : 'readonly';
                     if (isReadOnly) {
                         $t.prop(propName, true);
                     } else {
                         if (propName != 'disabled' || isShow){
                             $t.prop(propName, false);
+                        }
+                    }
+
+                    // toggle required
+                    if (isRequired !== null) {
+                        $t.prop('required', isRequired);
+
+                        // find label
+                        let $label = $eParent.find('label');
+                        if(isRequired){
+                            $label.addClass('asterisk');
+                        }
+                        else{
+                            $label.removeClass('asterisk');
                         }
                     }
                 } catch (e) {
@@ -1071,14 +1095,14 @@ namespace Exment {
          */
         private static setValue($target, value) {
             if (!hasValue($target)) { return; }
-            var column_type = $target.data('column_type');
+            let column_type = $target.data('column_type');
             
             // if 'image' or 'file', cannot setValue, continue
             if ($.inArray(column_type, ['file', 'image']) != -1) {
                 return;
             }
 
-            var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']) != -1;
+            let isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']) != -1;
             // if number, remove comma
             if (isNumber) {
                 value = rmcomma(value);
@@ -1087,7 +1111,7 @@ namespace Exment {
             // if integer, floor value
             if (column_type == 'integer') {
                 if(hasValue(value)){
-                    var bn = new BigNumber(value);
+                    let bn = new BigNumber(value);
                     value = bn.integerValue().toPrecision();
                 }
             }
@@ -1095,7 +1119,7 @@ namespace Exment {
             // if 'decimal' or 'currency', floor 
             if ($.inArray(column_type, ['decimal', 'currency']) != -1 && hasValue($target.attr('decimal_digit'))) {
                 if(hasValue(value)){
-                    var bn = new BigNumber(value);
+                    let bn = new BigNumber(value);
                     value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
                 }
             }
@@ -1107,8 +1131,23 @@ namespace Exment {
 
             // switch bootstrapSwitch
             if ($.inArray(column_type, ['boolean', 'yesno']) != -1) {
-                var $bootstrapSwitch = $target.filter('[type="checkbox"]');
+                let $bootstrapSwitch = $target.filter('[type="checkbox"]');
                 $bootstrapSwitch.bootstrapSwitch('toggleReadonly').bootstrapSwitch('state', $bootstrapSwitch.data('onvalue') == value).bootstrapSwitch('toggleReadonly');
+            }
+            
+            // if select2 and has 'data-add-select2-ajax-webapi', call api, and select2 options
+            if ($target.filter('[data-add-select2-ajax-webapi]').length > 0) {
+                let api = URLJoin($target.data('add-select2-ajax-webapi'), value);
+                $.ajax({
+                    type: 'GET',
+                    url: api,
+                    data: {'label': 1},
+                    async: false,
+                    success: function (repsonse) {
+                        let newOption = new Option(repsonse.label, repsonse.id, true, true);
+                        $target.append(newOption);
+                    }
+                });
             }
             
             // set value
@@ -1118,7 +1157,7 @@ namespace Exment {
         /**
          * add select2
          */
-        private static addSelect2() {
+        public static addSelect2() {
             $('[data-add-select2]').not('.added-select2').each(function (index, elem: Element) {
                 let $elem = $(elem);
                 let allowClear = hasValue($elem.data('add-select2-allow-clear')) ? $elem.data('add-select2-allow-clear') : true;

@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
+use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 
 class BackupCommand extends Command
 {
@@ -61,6 +62,9 @@ class BackupCommand extends Command
             $this->backup->initBackupRestore();
 
             return $this->backup->execute($target, $schedule);
+        } catch (BackupRestoreCheckException $e) {
+            $this->error($e->getMessage());
+            return;
         } catch (\Exception $e) {
             throw $e;
         } finally {

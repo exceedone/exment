@@ -30,6 +30,7 @@ use Cache;
 * @method static string|void system_mail_password($arg = null)
 * @method static string|void system_mail_encryption($arg = null)
 * @method static string|void system_mail_from($arg = null)
+* @method static string|void system_mail_body_type($arg = null)
 * @method static boolean|void userview_available($arg = null)
 * @method static boolean|void userdashboard_available($arg = null)
 * @method static string|void default_date_format($arg = null)
@@ -40,6 +41,9 @@ use Cache;
 * @method static int|void password_expiration_days($arg = null)
 * @method static boolean|void first_change_password($arg = null)
 * @method static int|void password_history_cnt($arg = null)
+* @method static string|void login_background_color($arg = null)
+* @method static string|void login_page_image($arg = null)
+* @method static string|void login_page_image_type($arg = null)
 * @method static string|void web_ip_filters($arg = null)
 * @method static string|void api_ip_filters($arg = null)
 * @method static int|void org_joined_type_role_group($arg = null)
@@ -127,8 +131,7 @@ class System extends ModelBase
      * Has Request Settion.
      *
      * @param string $key
-     * @param mixed $value
-     * @return void
+     * @return bool
      */
     public static function hasRequestSession($key)
     {

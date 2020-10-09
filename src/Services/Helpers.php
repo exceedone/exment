@@ -53,13 +53,7 @@ if (!function_exists('exmtrans')) {
 if (!function_exists('getManualUrl')) {
     function getManualUrl($uri = null)
     {
-        $manual_url_base = config('exment.manual_url');
-        // if ja, set
-        if (config('app.locale') == 'ja') {
-            $manual_url_base = url_join($manual_url_base, 'ja') . '/';
-        }
-        $manual_url_base = url_join($manual_url_base, $uri);
-        return $manual_url_base;
+        return \Exment::getManualUrl($uri);
     }
 }
 
@@ -671,7 +665,8 @@ if (!function_exists('array_keys_exists')) {
 if (!function_exists('array_key_value_exists')) {
     /**
      * whether has array_key and array_get
-     * @param mixed $str
+     * @param mixed $key
+     * @param array|\Illuminate\Support\Collection $array
      * @return bool
      */
     function array_key_value_exists($key, $array)
@@ -885,7 +880,7 @@ if (!function_exists('is_list')) {
      * is value is array or Collection
      *
      * @param mixed $value
-     * @return array
+     * @return bool
      */
     function is_list($value) : bool
     {
@@ -1041,6 +1036,17 @@ if (!function_exists('replaceBreak')) {
     function replaceBreak($text, $isescape = true)
     {
         return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $isescape ? esc_html($text) : $text);
+    }
+}
+
+if (!function_exists('replaceBrTag')) {
+    /**
+     * replace <br /> to new line code
+     * @return string
+     */
+    function replaceBrTag($text)
+    {
+        return preg_replace("/<br *\/>/u", "\n", $text);
     }
 }
 
@@ -1569,19 +1575,6 @@ if (!function_exists('getPagerOptions')) {
     }
 }
 
-if (!function_exists('getTrueMark')) {
-    /**
-     * get true mark. If $val is true, output mark
-     */
-    function getTrueMark($val)
-    {
-        if (!boolval($val)) {
-            return null;
-        }
-
-        return config('exment.true_mark', '<i class="fa fa-check"></i>');
-    }
-}
 
 // Excel --------------------------------------------------
 if (!function_exists('getDataFromSheet')) {

@@ -86,13 +86,15 @@ class LoginUserProvider extends ProviderBase
      */
     public function getRecords()
     {
+        $records = new Collection;
         $this->grid->model()->chunk(function ($data) use (&$records) {
-            if (!isset($records)) {
+            if (is_nullorempty($records)) {
                 $records = new Collection;
             }
             $records = $records->merge($data);
-        }) ?? [];
+        }) ?? new Collection;
 
+        $this->count = count($records);
         return $records;
     }
 

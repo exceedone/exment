@@ -12,6 +12,8 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class OrganizationItem extends ConditionItemBase implements ConditionItemInterface
 {
+    use UserOrganizationItemTrait;
+    
     public function getFilterOption()
     {
         return $this->getFilterOptionConditon();
@@ -22,15 +24,11 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
      *
      * @param [type] $target_val
      * @param [type] $key
-     * @return void
+     * @return \Encore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
     {
-        $options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions([
-            'display_table' => $this->custom_table
-        ]);
-        $field = new Field\MultipleSelect($this->elementName, [$this->label]);
-        return $field->options($options);
+        return $this->getChangeFieldUserOrg(CustomTable::getEloquent(SystemTableName::ORGANIZATION), $key, $show_condition_key);
     }
 
     /**
@@ -83,12 +81,12 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
         return in_array($workflow_authority->related_id, $ids);
     }
     
-    public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
+    public static function setWorkflowConditionQuery($query, $tableName, $custom_table)
     {
         $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
-        $query->orWhere(function ($query) use ($ids, $authorityTableName) {
-            $query->whereIn($authorityTableName . '.related_id', $ids)
-                ->where($authorityTableName . '.related_type', ConditionTypeDetail::ORGANIZATION()->lowerkey());
+        $query->orWhere(function ($query) use ($ids) {
+            $query->whereIn('authority_related_id', $ids)
+                ->where('authority_related_type', ConditionTypeDetail::ORGANIZATION()->lowerkey());
         });
     }
 }

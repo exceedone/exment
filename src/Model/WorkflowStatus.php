@@ -55,14 +55,15 @@ class WorkflowStatus extends ModelBase
     /**
      * Get workflow status name
      *
-     * @param [type] $workflow_status
-     * @param [type] $workflow
+     * @param string|null $workflow_status
+     * @param Workflow $workflow
      * @return string|null
      */
     public static function getWorkflowStatusName($workflow_status = null, $workflow = null)
     {
         if (!is_nullorempty($workflow_status) && $workflow_status != Define::WORKFLOW_START_KEYNAME) {
-            return WorkflowStatus::getEloquent($workflow_status)->status_name;
+            $rec = WorkflowStatus::getEloquent($workflow_status);
+            return isset($rec)? $rec->status_name: null;
         }
 
         // get workflow
@@ -76,11 +77,10 @@ class WorkflowStatus extends ModelBase
     /**
      * Get workflow status is completed
      *
-     * @param [type] $workflow_status
-     * @param [type] $workflow
+     * @param string|null $workflow_status
      * @return bool
      */
-    public static function getWorkflowStatusCompleted($workflow_status = null)
+    public static function getWorkflowStatusCompleted($workflow_status = null) : bool
     {
         if (!isset($workflow_status) || $workflow_status == Define::WORKFLOW_START_KEYNAME) {
             return false;
@@ -93,8 +93,9 @@ class WorkflowStatus extends ModelBase
     /**
      * Get workflow actions from status
      *
-     * @param [type] $workflow_status
-     * @param [type] $workflow
+     * @param string $workflow_status
+     * @param Workflow $workflow
+     * @param bool $ignoreReject
      * @return \Illuminate\Support\Collection
      */
     public static function getActionsByFrom($workflow_status = null, $workflow = null, $ignoreReject = false)

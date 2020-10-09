@@ -5,8 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-//use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
@@ -22,7 +20,8 @@ class CustomRelationController extends AdminControllerTableBase
     {
         parent::__construct($custom_table, $request);
         
-        $this->setPageInfo(exmtrans("custom_relation.header"), exmtrans("custom_relation.header"), exmtrans("custom_relation.description"), 'fa-compress');
+        $title = exmtrans("custom_relation.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
+        $this->setPageInfo($title, $title, exmtrans("custom_relation.description"), 'fa-compress');
     }
 
     /**
@@ -96,6 +95,20 @@ class CustomRelationController extends AdminControllerTableBase
         $grid->disableExport();
         $grid->actions(function ($actions) {
             $actions->disableView();
+        });
+        
+        // filter
+        $grid->filter(function ($filter) {
+            // Remove the default id filter
+            $filter->disableIdFilter();
+
+            // Add a column filter
+            $filter->equal('child_custom_table', exmtrans("custom_relation.child_custom_table"))->select(function($val){
+                return CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
+            });
+            $filter->equal('relation_type', exmtrans("custom_relation.relation_type"))->select(function($val){
+                return RelationType::transKeyArray('custom_relation.relation_type_options');
+            });
         });
         return $grid;
     }

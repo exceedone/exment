@@ -347,7 +347,8 @@ class WorkflowAction extends ModelBase
     /**
      * Check has workflow authority
      *
-     * @param [type] $targetUser
+     * @param CustomValue|null $custom_value
+     * @param CustomValue $targetUser
      * @return boolean
      */
     public function hasAuthority($custom_value, $targetUser = null)
@@ -598,7 +599,7 @@ class WorkflowAction extends ModelBase
     /**
      * Get action modal form
      *
-     * @param [type] $custom_value
+     * @param CustomValue $custom_value
      * @return void
      */
     public function actionModal($custom_value)
@@ -633,7 +634,7 @@ class WorkflowAction extends ModelBase
             ->default($this->action_name);
         
         $form->display('status', exmtrans('workflow.status'))
-            ->displayText($showStatus);
+            ->displayText($showStatus)->escape(false);
 
         $next = $this->isActionNext($custom_value);
         $completed = WorkflowStatus::getWorkflowStatusCompleted($statusTo);
@@ -665,7 +666,7 @@ class WorkflowAction extends ModelBase
                             'tag' => true,
                             'only_avatar' => true,
                         ]);
-                    })->implode(exmtrans('common.separate_word')));
+                    })->implode(exmtrans('common.separate_word')))->escape(false);
             }
         }
         

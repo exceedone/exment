@@ -565,6 +565,25 @@ class ApiTest extends ApiTestBase
             ]);
     }
 
+    public function testGetValuesPermissionCheck(){
+        $token = $this->getUser2AccessToken([ApiScope::VALUE_READ]);
+        // update config for test
+        \Config::set('exment.api_max_data_count', 10000);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'custom_value_edit').'?count=1000')
+            ->assertStatus(200);
+        $json = json_decode($response->baseResponse->getContent(), true);
+        // get ids
+        $ids = collect(array_get($json, 'data'))->map(function($j){
+            return array_get($j, 'id');
+        })->toArray();
+
+        $this->checkCustomValuePermission(CustomTable::getEloquent('custom_value_edit'), $ids);
+    }
+
+
     public function testNotFoundGetValues(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
@@ -1209,6 +1228,28 @@ class ApiTest extends ApiTestBase
             ]);
     }
 
+
+    public function testDataQueryPermissionCheck(){
+        $token = $this->getUser2AccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'custom_value_edit', 'query').'?q=index_1&count=100')
+            ->assertStatus(200);
+        $json = json_decode($response->baseResponse->getContent(), true);
+        // get ids
+        $ids = collect(array_get($json, 'data'))->map(function($j){
+            return array_get($j, 'id');
+        })->toArray();
+
+        $this->checkCustomValuePermission(CustomTable::getEloquent('custom_value_edit'), $ids, function($query){
+            $query->where('value->index_text', 'LIKE', 'index_1%');
+        });
+    }
+
+
+
+    // Query column ----------------------------------------------------
     public function testDataQueryColumn(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
@@ -1238,6 +1279,26 @@ class ApiTest extends ApiTestBase
             ->assertStatus(200)
             ->assertJsonCount(4, 'data');
     }
+
+    
+    public function testDataQueryColumnPermissionCheck(){
+        $token = $this->getUser2AccessToken([ApiScope::VALUE_READ]);
+
+        $response = $this->withHeaders([
+            'Authorization' => "Bearer $token",
+        ])->get(admin_urls('api', 'data', 'custom_value_edit', 'query-column').'?q=odd_even%20eq%20odd&count=1000')
+            ->assertStatus(200);
+        $json = json_decode($response->baseResponse->getContent(), true);
+        // get ids
+        $ids = collect(array_get($json, 'data'))->map(function($j){
+            return array_get($j, 'id');
+        })->toArray();
+
+        $this->checkCustomValuePermission(CustomTable::getEloquent('custom_value_edit'), $ids, function($query){
+            $query->where('value->odd_even', 'odd');
+        });
+    }
+
 
     public function testDataQueryColumnNotFound(){
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);

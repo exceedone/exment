@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
+use Exceedone\Exment\Services\Login\LoginService;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
@@ -64,7 +65,7 @@ class LoginUserProvider extends ProviderBase
     
     /**
      * validate imported all data.
-     * @param $data
+     * @param mixed $data
      * @return array
      */
     public function validateImportData($dataObjects)
@@ -85,8 +86,8 @@ class LoginUserProvider extends ProviderBase
     
     /**
      * validate data row
-     * @param $line_no
-     * @param $dataAndModel
+     * @param int $line_no
+     * @param array $dataAndModel
      * @return array
      */
     public function validateDataRow($line_no, $dataAndModel)
@@ -167,19 +168,13 @@ class LoginUserProvider extends ProviderBase
             $update_flg = true;
         }
 
-        // send password
-        if (boolval(array_get($data, 'send_password')) && isset($password)) {
-            $model->login_user->sendPassword($password);
-        }
-
         if ($update_flg) {
-            // first password reset
-            if (System::first_change_password() ||
-                boolval(array_get($data, 'password_reset_flg'))) {
-                $model->login_user->password_reset_flg = true;
-            }
-            $model->login_user->password = $password;
-            $model->login_user->save();
+            // reset password
+            LoginService::resetPassword($model->login_user, [
+                'send_password' => boolval(array_get($data, 'send_password')),
+                'password_reset_flg' => (System::first_change_password() || boolval(array_get($data, 'password_reset_flg'))),
+                'password' => $password,
+            ]);
         }
         return $model;
     }

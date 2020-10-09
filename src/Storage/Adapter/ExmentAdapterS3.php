@@ -4,26 +4,18 @@ namespace Exceedone\Exment\Storage\Adapter;
 
 use Aws\S3\S3Client;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
-use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Enums\Driver;
 
 class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
 {
-    /**
-     * Get URL using File class
-     */
-    public function getUrl($path)
-    {
-        return File::getUrl($path);
-    }
-
+    use AdapterTrait;
+    
     /**
      * get adapter class
      */
     public static function getAdapter($app, $config, $driverKey)
     {
         $mergeFrom = array_get($config, 'mergeFrom');
-        $mergeConfig = Driver::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig = static::mergeFileConfig('filesystems.disks.s3', "filesystems.disks.$mergeFrom", $mergeFrom);
 
         $client = new S3Client([
             'credentials' => [
@@ -35,5 +27,12 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
             'bucket' => array_get($mergeConfig, 'bucket'),
         ]);
         return new self($client, array_get($mergeConfig, 'bucket'));
+    }
+
+    public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array
+    {
+        return [
+            'bucket' => config('exment.rootpath.s3.' . $mergeFrom),
+        ];
     }
 }

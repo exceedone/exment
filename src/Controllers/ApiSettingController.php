@@ -4,14 +4,12 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\ApiClient;
 use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Enums\ApiClientType;
 use Exceedone\Exment\Form\Tools;
-use Laravel\Passport\Client;
 
 class ApiSettingController extends AdminControllerBase
 {
@@ -38,7 +36,29 @@ class ApiSettingController extends AdminControllerBase
             return getUserName($user_id, true);
         });
         
-        $grid->disableFilter();
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+
+            $filter->exmwhere(function ($query, $input) {
+                switch($input){
+                    case ApiClientType::API_KEY:
+                        $query->where('api_key_client', 1);
+                        return;
+                    case ApiClientType::PASSWORD_GRANT:
+                        $query->where('password_client', 1);
+                        return;
+                    case ApiClientType::CLIENT_CREDENTIALS:
+                        $query->where('personal_access_client', 0)->where('password_client', 0)->where('api_key_client', 0);
+                        return;
+                }
+            }, exmtrans("api.client_type_text"))->select(ApiClientType::transArray('api.client_type_options'));
+
+            $filter->like('name', exmtrans("api.app_name"));
+            $filter->like('id', exmtrans("api.client_id"));
+
+            $filter->betweendatetime('created_at', trans('admin.created_at'))->date();
+        });
+
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
@@ -98,7 +118,7 @@ class ApiSettingController extends AdminControllerBase
 
                 $form->display('user_id', exmtrans('common.executed_user'))->displayText(function ($user_id) {
                     return getUserName($user_id, true);
-                })->help(exmtrans('api.help.executed_user'));
+                })->help(exmtrans('api.help.executed_user'))->escape(false);
             }
         }
 
@@ -161,7 +181,7 @@ class ApiSettingController extends AdminControllerBase
             $client = null;
             // for create token
             if (!isset($id)) {
-                $user_id = \Exment::user()->getUserId();
+                $user_id = \Exment::getUserId();
                 $name = $request->get('name');
                 $client_type = $request->get('client_type');
 

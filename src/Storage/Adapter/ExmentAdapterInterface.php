@@ -10,4 +10,6 @@ interface ExmentAdapterInterface
      * get adapter class
      */
     public static function getAdapter($app, $config, $driverKey);
+
+    public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array;
 }

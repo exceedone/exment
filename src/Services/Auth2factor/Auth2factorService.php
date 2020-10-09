@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Auth2factor;
 
 use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
@@ -87,7 +88,9 @@ class Auth2factorService
      *
      * @param string $verify_type
      * @param string $verify_code
-     * @param bool $matchDelete if true, remove match records
+     * @param \Carbon\Carbon $valid_period_datetime
+     * @param string|CustomValue $mail_template
+     * @param array $mail_prms
      * @return bool
      */
     public static function addAndSendVerify($verify_type, $verify_code, $valid_period_datetime, $mail_template, $mail_prms = [])
@@ -118,6 +121,7 @@ class Auth2factorService
         }
         // throw mailsend Exception
         catch (\Swift_TransportException $ex) {
+            \Log::error($ex);
             return false;
         }
     }

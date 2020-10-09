@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
@@ -57,7 +58,7 @@ class SystemController extends AdminControllerBase
         $this->AdminContent($content);
         $form = $this->getInitializeForm('system', false);
         $form->action(admin_url('system'));
-
+  
         $admin_users = System::system_admin_users();
         $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
             ->help(exmtrans('system.help.system_admin_users'))
@@ -69,7 +70,7 @@ class SystemController extends AdminControllerBase
                 ]);
             })->default($admin_users);
 
-        $box = new Box(trans('admin.edit'), $form);
+        $box = new Box(exmtrans('common.basic_setting'), $form);
         
         $box->tools(new Tools\SystemChangePageMenu());
 
@@ -95,9 +96,11 @@ class SystemController extends AdminControllerBase
     {
         $this->AdminContent($content);
 
-        $form = new WidgetForm(System::get_system_values(['advanced']));
+        $form = new WidgetForm(System::get_system_values(['advanced', 'notify']));
         $form->disableReset();
         $form->action(admin_url('system'));
+
+        $form->progressTracker()->options($this->getProgressInfo(true));
         
         $form->hidden('advanced')->default(1);
         $form->ignore('advanced');
@@ -188,26 +191,9 @@ class SystemController extends AdminControllerBase
 
 
         // use mail setting
-        if (!boolval(config('exment.mail_setting_env_force', false))) {
-            $form->exmheader(exmtrans('system.system_mail'))->hr();
+        $this->setNotifyForm($form);
 
-            $form->descriptionHtml(exmtrans("system.help.system_mail"));
 
-            $form->text('system_mail_host', exmtrans("system.system_mail_host"));
-
-            $form->text('system_mail_port', exmtrans("system.system_mail_port"));
-
-            $form->text('system_mail_encryption', exmtrans("system.system_mail_encryption"))
-                ->help(exmtrans("system.help.system_mail_encryption"));
-                
-            $form->text('system_mail_username', exmtrans("system.system_mail_username"));
-
-            $form->password('system_mail_password', exmtrans("system.system_mail_password"));
-            
-            $form->email('system_mail_from', exmtrans("system.system_mail_from"))
-                ->help(exmtrans("system.help.system_mail_from"));
-        }
-       
         $form->exmheader(exmtrans('system.ip_filter'))->hr();
         $form->descriptionHtml(exmtrans("system.help.ip_filter"));
 
@@ -221,36 +207,9 @@ class SystemController extends AdminControllerBase
         $content->row($box);
 
         // sendmail test
-        $box = $this->getsendmailTestBox();
-        $content->row(new Box(exmtrans("system.submit_test_mail"), $box->render()));
+        $content->row($this->getsendmailTestBox());
 
         return $content;
-    }
-
-    /**
-     * get sendmail test box.
-     *
-     * @return Content
-     */
-    protected function getsendmailTestBox()
-    {
-        $form = new WidgetForm();
-        $form->action(admin_urls('system/2factor'));
-        $form->disableReset();
-        $form->disableSubmit();
-
-        $form->descriptionHtml(exmtrans('system.help.test_mail'));
-
-        $form->email('test_mail_to', exmtrans("system.test_mail_to"));
-
-        $form->ajaxButton('test_mail_send_button', exmtrans("system.submit_test_mail"))
-            ->url(admin_urls('system', 'send_testmail'))
-            ->button_class('btn-sm btn-info')
-            ->attribute(['data-senddata' => json_encode(['test_mail_to'])])
-            ->button_label(exmtrans('system.submit_test_mail'))
-            ->send_params('test_mail_to');
-
-        return $form;
     }
 
     /**
@@ -314,7 +273,7 @@ class SystemController extends AdminControllerBase
         try {
             $advanced = $request->has('advanced');
 
-            $result = $this->postInitializeForm($request, ($advanced ? ['advanced'] : ['initialize', 'system']), false, !$advanced);
+            $result = $this->postInitializeForm($request, ($advanced ? ['advanced', 'notify'] : ['initialize', 'system']), false, !$advanced);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }

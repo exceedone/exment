@@ -12,6 +12,8 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 
 class UserItem extends ConditionItemBase implements ConditionItemInterface
 {
+    use UserOrganizationItemTrait;
+
     public function getFilterOption()
     {
         return $this->getFilterOptionConditon();
@@ -22,15 +24,11 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
      *
      * @param [type] $target_val
      * @param [type] $key
-     * @return void
+     * @return \Encore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
     {
-        $options = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
-            'display_table' => $this->custom_table
-        ]);
-        $field = new Field\MultipleSelect($this->elementName, [$this->label]);
-        return $field->options($options);
+        return $this->getChangeFieldUserOrg(CustomTable::getEloquent(SystemTableName::USER), $key, $show_condition_key);
     }
     
     /**
@@ -41,7 +39,7 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
-        $user = \Exment::user()->getUserId();
+        $user = \Exment::getUserId();
         return $this->compareValue($condition, $user);
     }
     
@@ -81,11 +79,11 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
         return $workflow_authority->related_id == $targetUser->id;
     }
 
-    public static function setConditionQuery($query, $tableName, $custom_table, $authorityTableName = SystemTableName::WORKFLOW_AUTHORITY)
+    public static function setWorkflowConditionQuery($query, $tableName, $custom_table)
     {
-        $query->orWhere(function ($query) use ($authorityTableName) {
-            $query->where($authorityTableName . '.related_id', \Exment::user()->getUserId())
-                ->where($authorityTableName . '.related_type', ConditionTypeDetail::USER()->lowerkey());
+        $query->orWhere(function ($query) {
+            $query->where('authority_related_id', \Exment::getUserId())
+                ->where('authority_related_type', ConditionTypeDetail::USER()->lowerkey());
         });
     }
 }

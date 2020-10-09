@@ -10,7 +10,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\ErrorCode;
@@ -63,6 +62,12 @@ abstract class CustomValue extends ModelBase
      * get label only first time.
      */
     protected $_label;
+
+    /**
+     * file uuids.
+     * *NOW only use edtitor images
+     */
+    protected $file_uuids = [];
 
 
     /**
@@ -343,6 +348,21 @@ abstract class CustomValue extends ModelBase
         return $this;
     }
 
+    /**
+     * get or set file_uuids
+     */
+    public function file_uuids($key = null)
+    {
+        // get
+        if (!isset($key)) {
+            return $this->file_uuids;
+        }
+
+        // set
+        $this->file_uuids[] = $key;
+        return $this;
+    }
+
     public function saved_notify($disable_saved_notify)
     {
         $this->saved_notify = $disable_saved_notify;
@@ -384,7 +404,7 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleting(function ($model) {
-            $model->deleted_user_id = \Exment::user()->getUserId();
+            $model->deleted_user_id = \Exment::getUserId();
 
             // saved_notify(as update) disable
             $saved_notify = $model->saved_notify;
@@ -478,19 +498,21 @@ abstract class CustomValue extends ModelBase
      * @param array $input laravel-admin input
      * @return mixed
      */
-    public function validatorSaving($input, bool $asApi = false)
+    public function validatorSaving($input, array $options = [])
     {
-        $options = [
-            'asApi' => $asApi,
+        $options = array_merge([
+            'asApi' => false,
             'appendErrorAllColumn' => true,
-        ];
+            'column_name_prefix' => null,
+            'uniqueCheckSiblings' => [], // unique validation Siblings
+        ], $options);
 
         // validate multiple column set is unique
-        $errors = $this->custom_table->validatorMultiUniques($input, $this, $options);
+        $errors = $this->custom_table->validatorUniques($input, $this, $options);
 
         $errors = array_merge($this->custom_table->validatorCompareColumns($input, $this, $options), $errors);
 
-        $errors = array_merge($this->custom_table->validatorLock($input, $this, $asApi), $errors);
+        $errors = array_merge($this->custom_table->validatorLock($input, $this, $options['asApi']), $errors);
 
         // call plugin validator
         $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this));
@@ -720,7 +742,7 @@ abstract class CustomValue extends ModelBase
 
                 // check has user or org id
                 if ($related_type == SystemTableName::USER) {
-                    return $value['authoritable_target_id'] == \Exment::user()->getUserId();
+                    return $value['authoritable_target_id'] == \Exment::getUserId();
                 } elseif ($related_type == SystemTableName::ORGANIZATION) {
                     $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                     return in_array($value['authoritable_target_id'], \Exment::user()->getOrganizationIds($enum));
@@ -732,12 +754,14 @@ abstract class CustomValue extends ModelBase
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
-            ->where('authoritable_target_id', \Exment::user()->getUserId());
+            ->where('authoritable_target_id', \Exment::getUserId());
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
             $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
             $query = $this
                 ->value_authoritable_organizations()
                 ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds($enum));
+        }else{
+            throw new \Exception;
         }
 
         return $query->get();
@@ -801,6 +825,19 @@ abstract class CustomValue extends ModelBase
     }
 
     /**
+     * Set value for custom column, not check custom column contains.
+     *
+     * @param string|array|Collection $key
+     * @param mixed $val if $key is string, set value
+     * @param boolean $forgetIfNull if true, and val is null, remove DB's column from "value".
+     * @return $this
+     */
+    public function setValueDirectly($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('value', $key, $val, $forgetIfNull);
+    }
+
+    /**
      * Get all column's getValue.
      * "$this->value" : return data on database
      * "$this->getValues()" : return data converting getValue
@@ -818,6 +855,7 @@ abstract class CustomValue extends ModelBase
 
     public function getValue($column, $label = false, $options = [])
     {
+        $time_start = microtime(true);
         if (is_null($column)) {
             return null;
         }
@@ -885,6 +923,7 @@ abstract class CustomValue extends ModelBase
         }
 
         $item->options($options);
+
 
         // get value
         // using ValueType
@@ -1210,7 +1249,8 @@ abstract class CustomValue extends ModelBase
     public function getSearchQuery($q, $options = [])
     {
         $options = $this->getQueryOptions($q, $options);
-        extract($options);
+        $searchColumns = $options['searchColumns'];
+
 
         // if search and not has searchColumns, return null;
         if ($options['executeSearch'] && empty($searchColumns)) {
@@ -1219,7 +1259,9 @@ abstract class CustomValue extends ModelBase
         }
 
         $getQueryFunc = function ($searchColumn, $options) {
-            extract($options);
+            $takeCount = $options['takeCount'];
+
+            $queries = [];
             // if not search, set only pure query
             if (!$options['executeSearch']) {
                 $query = static::query();
@@ -1231,13 +1273,13 @@ abstract class CustomValue extends ModelBase
                     return;
                 }
 
-                foreach ($column_item->getSearchQueries($mark, $value, $takeCount, $q, $options) as $query) {
+                foreach ($column_item->getSearchQueries($options['mark'], $options['value'], $takeCount, $options['q'], $options) as $query) {
                     $query->take($takeCount);
                     $queries[] = $query;
                 }
             } else {
                 $query = static::query();
-                $query->whereOrIn($searchColumn, $mark, $value)->select('id');
+                $query->whereOrIn($searchColumn, $options['mark'], $options['value'])->select('id');
                 $query->take($takeCount);
     
                 $queries[] = $query;
@@ -1245,18 +1287,18 @@ abstract class CustomValue extends ModelBase
             
             foreach ($queries as &$query) {
                 // if has relationColumn, set query filtering
-                if (isset($relationColumn)) {
-                    $relationColumn->setQueryFilter($query, array_get($options, 'relationColumnValue'));
+                if (isset($options['relationColumn'])) {
+                    $options['relationColumn']->setQueryFilter($query, array_get($options, 'relationColumnValue'));
                 }
                 
                 ///// if has display table, filter display table
-                if (isset($display_table)) {
-                    $this->custom_table->filterDisplayTable($query, $display_table, $options);
+                if (isset($options['display_table'])) {
+                    $this->custom_table->filterDisplayTable($query, $options['display_table'], $options);
                 }
 
                 // set custom view's filter
-                if (isset($target_view)) {
-                    $target_view->filterModel($query, ['sort' => false]);
+                if (isset($options['target_view'])) {
+                    $options['target_view']->filterModel($query, ['sort' => false]);
                 }
             }
 
@@ -1282,10 +1324,15 @@ abstract class CustomValue extends ModelBase
         }
         //$subquery->take($takeCount);
 
-        // create main query
-        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+        if ($options['searchDocument'] && boolval(config('exment.search_document', false))) {
+            $subquery->union(\Exment::getSearchDocumentQuery($this->custom_table, $q)->select('id'));
+        }
 
-        return $mainQuery;
+        // create main query
+        // $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+
+        // return $mainQuery;
+        return $subquery;
     }
 
     /**
@@ -1297,10 +1344,8 @@ abstract class CustomValue extends ModelBase
     {
         $options = $this->getQueryOptions($q, $options);
 
-        $query->where(function ($query) use ($options) {
-            extract($options);
-
-            $searchColumns = collect($searchColumns);
+        $query->where(function ($query) use ($options, $q) {
+            $searchColumns = collect($options['searchColumns']);
             for ($i = 0; $i < count($searchColumns); $i++) {
                 $searchColumn = $searchColumns->values()->get($i);
 
@@ -1310,10 +1355,16 @@ abstract class CustomValue extends ModelBase
                         continue;
                     }
                         
-                    $column_item->setSearchOrWhere($query, $mark, $value, $q);
+                    $column_item->setSearchOrWhere($query, $options['mark'], $options['value'], $options['q']);
                 } else {
-                    $query->orWhere($searchColumn, $mark, $value);
+                    $query->orWhere($searchColumn, $options['mark'], $options['value']);
                 }
+            }
+
+            if ($options['searchDocument'] && boolval(config('exment.search_document', false))) {
+                $query->orWhere(function ($query) use ($q) {
+                    \Exment::getSearchDocumentQuery($this->custom_table, $q, $query);
+                });
             }
         });
     }
@@ -1336,34 +1387,40 @@ abstract class CustomValue extends ModelBase
                 'searchColumns' => null,
                 'relation' => false,
                 'executeSearch' => true, // if true, search $q . If false,  not filter.
+                'searchDocument' => false, // is search document.
+
+                // append default
+                'takeCount' => null,
+                'mark' => null,
+                'value' => null,
+                'q' => $q,
             ],
             $options
         );
-        extract($options);
 
         // if selected target column,
-        if (is_null($searchColumns)) {
-            $searchColumns = $this->custom_table->getFreewordSearchColumns();
+        if (!isset($options['searchColumns'])) {
+            $options['searchColumns'] = $this->custom_table->getFreewordSearchColumns();
         }
 
-        if (!isset($searchColumns) || count($searchColumns) == 0) {
+        if (!isset($options['searchColumns']) || count($options['searchColumns']) == 0) {
             return $options;
         }
 
-        list($mark, $value) = $this->getQueryMarkAndValue($isLike, $q, $relation);
+        list($mark, $value) = $this->getQueryMarkAndValue($options['isLike'], $q, $options['relation']);
 
-        if ($relation) {
+        if (boolval($options['relation'])) {
             $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
         } else {
             $takeCount = intval(config('exment.keyword_search_count', 1000));
         }
 
         // if not paginate, only take maxCount
-        if (!$paginate) {
-            $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
+        if (!boolval($options['paginate'])) {
+            $takeCount = !isset($options['maxCount']) ? $takeCount : min($takeCount, $options['maxCount']);
         }
 
-        $options['searchColumns'] = $searchColumns;
+        //$options['searchColumns'] = $searchColumns;
         $options['takeCount'] = $takeCount;
         $options['mark'] = $mark;
         $options['value'] = $value;
@@ -1386,15 +1443,7 @@ abstract class CustomValue extends ModelBase
             return ["=", $q];
         }
 
-        // if all search
-        $mark = ($isLike ? 'LIKE' : '=');
-        if (System::filter_search_type() == FilterSearchType::ALL) {
-            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        } else {
-            $value = $q . ($isLike ? '%' : '');
-        }
-
-        return [$mark, $value];
+        return \Exment::getQueryMarkAndValue($isLike, $q);
     }
 
     /**

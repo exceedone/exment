@@ -79,11 +79,13 @@ class RouteServiceProvider extends ServiceProvider
                 return redirect(admin_url('template'));
             });
             
+            $router->post('notify/setting', 'NotifyController@postNotifySetting');
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
             $router->get('notify/notify_action_target_workflow', 'NotifyController@notify_action_target_workflow');
             $router->post('notify/notifytrigger_template', 'NotifyController@getNotifyTriggerTemplate');
             $router->resource('notify', 'NotifyController');
+            $router->post("notify_navbar/batchAll/{type}", 'NotifyNavbarController@batchAll');
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
@@ -105,6 +107,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('plugin/edit_code/{id}', 'PluginCodeController@edit');
             $router->post('plugin/edit_code/{id}', 'PluginCodeController@store');
             $router->delete('plugin/edit_code/{id}', 'PluginCodeController@delete');
+            $router->get('plugin/{id}/executeBatch', 'PluginController@executeBatch');
 
             $router->get('table/menuModal/{id}', 'CustomTableController@menuModal');
 
@@ -174,6 +177,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
+            $router->delete("data/{tableKey}/{id}/deletecomment/{suuid}", 'CustomValueController@deleteComment');
 
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
@@ -190,9 +194,12 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->get('files/{uuid}', 'FileController@download');
             $router->get('files/{tableKey}/{uuid}', 'FileController@downloadTable');
-            
+
             $router->delete('files/{uuid}', 'FileController@delete');
             $router->delete('files/{tableKey}/{uuid}', 'FileController@deleteTable');
+            
+            $router->post('tmpfiles', 'FileController@uploadTempFile');
+            $router->get('tmpfiles/{uuid}', 'FileController@downloadTempFile');
             
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
@@ -235,7 +242,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
             $router->get('auth/change', 'ChangePasswordController@showChangeForm');
             $router->post('auth/change', 'ChangePasswordController@change');
-            $router->get('favicon', 'FileController@downloadFavicon');
 
             // get config about login provider
             if (canConnection() && hasTable(SystemTableName::LOGIN_SETTINGS)) {
@@ -251,6 +257,17 @@ class RouteServiceProvider extends ServiceProvider
                     $router->post('saml/login/{provider}/acs', 'AuthSamlController@acs')->name('exment.saml_acs');
                 }
             }
+        });
+
+
+        Route::group([
+            'prefix'        => config('admin.route.prefix'),
+            'namespace'     => $this->namespace,
+            'middleware'    => ['adminweb', 'admin_anonymous_simple'],
+        ], function (Router $router) {
+            $router->get('favicon', 'FileController@downloadFavicon');
+            $router->get('auth/login/background', 'FileController@downloadLoginBackground');
+            $router->get('auth/login/header', 'FileController@downloadLoginHeader');
         });
     }
     

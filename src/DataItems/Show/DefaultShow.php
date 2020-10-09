@@ -27,17 +27,13 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\NotifyTrigger;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Services\PartialCrudService;
-use Exceedone\Exment\DataItems\DataTrait;
 
 class DefaultShow extends ShowBase
 {
-    use DataTrait;
-
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
@@ -70,20 +66,22 @@ class DefaultShow extends ShowBase
                 $field->border = false;
             }
 
-            // add parent link if this form is 1:n relation
-            $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
-            if (isset($relation)) {
-                $item = ColumnItems\ParentItem::getItem($relation->child_custom_table);
+            // add parent link
+            $relations = CustomRelation::getRelationsByChild($this->custom_table);
+            if (isset($relations)) {
+                foreach ($relations as $relation) {
+                    $item = ColumnItems\ParentItem::getItemWithParent($relation->child_custom_table, $relation->parent_custom_table);
 
-                $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
-                    if (is_null($this)) {
-                        return '';
+                    $field = $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
+                        if (is_null($this)) {
+                            return '';
+                        }
+                        return $item->setCustomValue($this)->html();
+                    })->setEscape(false);
+
+                    if ($this->modal) {
+                        $field->setWidth(9, 3);
                     }
-                    return $item->setCustomValue($this)->html();
-                })->setEscape(false);
-
-                if ($this->modal) {
-                    $field->setWidth(9, 3);
                 }
             }
 
@@ -228,7 +226,7 @@ class DefaultShow extends ShowBase
 
                             // add hard delete button
                             $tools->prepend(new Tools\SwalInputButton([
-                                'url' => admin_urls("data", $this->custom_table->table_name, $this->custom_value->id),
+                                'url' => admin_urls_query("data", $this->custom_table->table_name, $this->custom_value->id, ['trashed' => 1]),
                                 'label' => exmtrans('custom_value.hard_delete'),
                                 'icon' => 'fa-trash',
                                 'btn_class' => 'btn-danger',
@@ -284,7 +282,7 @@ class DefaultShow extends ShowBase
             }
             ////// relation block
             else {
-                list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
+                list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
                 $target_table = $custom_form_block->target_table;
                 if (!isset($target_table)) {
                     return;
@@ -313,6 +311,7 @@ class DefaultShow extends ShowBase
                 
                 $custom_view = CustomView::getAllData($target_table);
                 $custom_view->setGrid($grid);
+                $custom_view->setValueSort($grid->model());
                 
                 $grid->disableFilter();
                 $grid->disableCreateButton();
@@ -519,6 +518,7 @@ EOT;
 
         // add file uploader
         if ($useFileUpload) {
+            $max_count = config('exment.document_upload_max_count', 5);
             $options = array_merge(Define::FILE_OPTION(), [
                 'showUpload' => true,
                 'showPreview' => true,
@@ -527,21 +527,32 @@ EOT;
                 'uploadExtraData'=> [
                     '_token' => csrf_token()
                 ],
+                'minFileCount' => 1,
+                'maxFileCount' => $max_count,
             ]);
-
-            $options_json = json_encode($options);
 
             $input_id = 'file_data';
 
             $form->multipleFile($input_id, trans('admin.upload'))
                 ->options($options)
                 ->setLabelClass(['d-none'])
+                ->help(exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(getUploadMaxFileSize()), 'max_count' => $max_count]))
                 ->setWidth(12, 0);
             $script = <<<EOT
-    $(".$input_id").on('fileuploaded', function(e, params) {
-        console.log('file uploaded', e, params);
-        $.pjax.reload('#pjax-container');
-    });
+            var uploadCount = null;
+            $(".$input_id").on('filepreupload', function(event, data, previewId, index) {
+                if(uploadCount === null){
+                    uploadCount = data.files.length;
+                }
+            });
+            $(".$input_id").on('fileuploaded', function(e, params, fileId, index) {
+                uploadCount--;
+                console.log('upload uploadCount : ' + uploadCount);
+                console.log('upload index : ' + index);
+                if(0 >= uploadCount){
+                    $.pjax.reload('#pjax-container');
+                }
+            });
 EOT;
 
             Admin::script($script);
@@ -580,7 +591,8 @@ EOT;
                 $html[] = "<p>" . view('exment::form.field.commentline', [
                     'comment' => $comment,
                     'table_name' => $this->custom_table->table_name,
-                    'isAbleRemove' => ($comment->created_user_id == \Exment::user()->getUserId()),
+                    'isAbleRemove' => ($comment->created_user_id == \Exment::getUserId()),
+                    'deleteUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'deletecomment', $comment->suuid),
                 ])->render() . "</p>";
             }
             // loop and add as link
@@ -678,6 +690,13 @@ EOT;
      */
     public function fileupload($httpfiles)
     {
+        if (is_nullorempty($httpfiles)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'message' => exmtrans('common.message.error_execute'),
+            ]);
+        }
+
         // file put(store)
         foreach (toArray($httpfiles) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();
@@ -768,5 +787,25 @@ EOT;
         $url = admin_urls('data', $this->custom_table->table_name, $this->custom_value->id);
         admin_toastr(trans('admin.save_succeeded'));
         return redirect($url);
+    }
+
+ 
+    /**
+     * delete comment.
+     */
+    public function deleteComment($id, $suuid)
+    {
+        if (!empty($suuid)) {
+            // save Comment Model
+            CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel()
+                ->where('suuid', $suuid)
+                ->where('parent_id', $id)
+                ->where('parent_type', $this->custom_table->table_name)
+                ->delete();
+        }
+        return getAjaxResponse([
+            'result' => true,
+            'toastr' => trans('admin.delete_succeeded'),
+        ]);
     }
 }

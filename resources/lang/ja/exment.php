@@ -70,6 +70,7 @@ return [
         'join_or' => 'または',
         'download' => 'ダウンロード',
         'append_to_selectitem' => '追加',
+        'redirect_to' => '%sへ遷移する',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -135,10 +136,10 @@ return [
         'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
         'mistake_keyword' => 'キーワードを正しく入力してください。',
-        'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
+        'mailsend_failed' => 'メール送信に失敗しました。メール設定と、システムログファイルをご確認ください。',
         'size_too_large' => 'ファイル "{name}" (<b>{size} KB</b>) はアップロード可能なサイズ <b>{maxSize} KB</b> を超えています。',
         'disable_delete_row' => '削除できない行が含まれています。',
-        'no_mail_template' => 'メールテンプレートがありません。メールテンプレート設定を確認してください。',
+        'no_mail_template' => '通知テンプレートがありません。通知テンプレート設定を確認してください。',
         'memory_leak' => 'ご利用の操作を行うためのメモリ量が足りませんでした。メモリ量を引き上げる場合、以下のURLを開き、メモリ量を増やしてください。:url',
         'ie_not_supported' => 'Internet ExplorerではExmentを使用できません。',
         'support_browser' => '対応ブラウザ',
@@ -231,8 +232,11 @@ return [
         'system_mail_password' => 'パスワード',
         'system_mail_encryption' => '暗号化形式',
         'system_mail_from' => '送信元アドレス',
+        'system_mail_body_type' => 'メール本文種類',
         'test_mail_to' => 'テストメール送信先',
         'submit_test_mail' => 'テストメール送信',
+        'system_slack' => 'Slack設定',
+        'system_slack_user_column' => 'Slack ID設定列(ユーザー)',
         'grid_pager_count' => 'データ一覧の表示件数',
         'datalist_pager_count' => '検索・ダッシュボードの表示件数',
         'userdashboard_available' => 'ユーザーダッシュボードを使用する',
@@ -251,6 +255,10 @@ return [
         'first_change_password' => '初回ログイン時にパスワードを変更させる',
         'password_expiration_days' => '有効日数',
         'password_history_cnt' => 'パスワードの履歴件数',
+        'login_page_view' => 'ログインページ設定',
+        'login_background_color' => '背景色',
+        'login_page_image' => '背景画像',
+        'login_page_image_type' => '背景画像表示方法',
         'view_dashboard_header' => 'ビュー・ダッシュボード設定',
         'organization_header' => '組織設定',
         'org_joined_type_role_group' => '組織階層設定(役割グループ)',
@@ -332,6 +340,16 @@ return [
             'user_organizationview' => 'ログインユーザーと、所属する組織(閲覧のみ)',
         ],
 
+        'login_page_image_type_options' => [
+            "repeat" => "繰り返し表示",
+            "cover" => "画像サイズをページに合わせて表示",
+        ],
+        
+        'system_mail_body_type_options' => [
+            "html" => "HTML",
+            "plain" => "テキスト",
+        ],
+        
         'help' =>[
             'site_name' => 'ページの左上に表示するサイト名です。',
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
@@ -352,7 +370,9 @@ return [
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
             'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
+            'system_mail_body_type' => '送信するメールの、本文の種類を選択してください。',
             'test_mail' => '入力した送信先にテストメールを送ります。<br /><b>※上記のメール設定を必ず保存してから実行してください。入力途中の設定は無効になります。</b>',
+            'system_slack_user_column' => 'Slack IDを設定する、ユーザーテーブルのカスタム列を選択してください。Slack通知実施時、そのユーザーID宛てに、メンションを追加することができます。',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
             'userdashboard_available' => 'YESにすることで、ログインユーザーが各自でダッシュボードを作成できる、ユーザーダッシュボード機能を使用します。',
@@ -363,6 +383,9 @@ return [
             'password_expiration_days' => 'パスワードの有効日数を設定します。0にした場合は無期限になります。',
             'first_change_password' => 'YESにした場合、ユーザーが初めてログインを行う際に、パスワードを変更する画面を表示します。',
             'password_history_cnt' => '1以上を入力することで、過去に使用したことのある古いパスワードは、入力した件数分、再度登録できなくなります。<br />※0にした場合でも、設定中のパスワードは登録できません。',
+            'login_background_color' => 'ログイン画面の背景色を設定します。',
+            'login_page_image' => 'ログイン画面に背景画像を設定します。',
+            'login_page_image_type' => 'ログイン画面の背景画像を、どのように表示するかを選択します。',
             'org_joined_type_role_group' => '役割グループの「ユーザー・組織設定」に組織を設定したとき、役割の設定範囲で、親子階層の組織を含める範囲を設定します。',
             'org_joined_type_custom_value' => '各カスタムデータの共有設定に組織を設定したとき、データの共有範囲で、親子階層の組織を含めるかどうかをを設定します。',
             'filter_multi_orguser' => 'ログインユーザーが、他のユーザー・組織を表示できる範囲を設定します。※複数の会社をまたいで利用するポータルサイトなど、他のユーザー情報を表示させたくない場合に設定してください。',
@@ -462,6 +485,7 @@ return [
         'select_plugin_file' => 'プラグインを選択',
         'show_plugin_page' => 'プラグインページを表示',
         'edit_plugin' => 'プラグイン編集',
+        'execute_plugin_batch' => 'バッチ実行',
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',
@@ -593,6 +617,7 @@ return [
             'same_filename' => 'そのファイル名のバックアップファイルは、すでに作成されています。',
             'notfound_file' => 'そのファイルはありません。',
             'restore_caution' => '別の環境に移行を行う場合、環境の差異により、問題が発生することがあります。<br>特に、OSが異なる場合(WindowsやLinux)や、データベースの種類(MySQLやMariaDB)、バージョン等が異なる場合は、さまざまな要因により、正常に完了しないことがあります。<br>必ず事前に、確認を行ってください。',
+            'cmd_check_error' => '以下のコマンドが、正常に完了しませんでした。サーバー設定、データベース設定を再確認してください。 :cmd',
         ],
         'help' =>[
             'file_name' => 'バックアップしたzipファイルを選択してください。%s<br>※画面からアップロードできるのは、記載のサイズまでです。それ以上のサイズのファイルをリストアする場合、<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -663,6 +688,7 @@ return [
         'throttle' => 'ログイン試行回数が多すぎます。%s分経過後、再度お試しください。',
         'not_accept_domain' => 'ドメイン :domain でのログインは、許可されていません。',
         'login_button_format' => ':display_nameでログイン',
+        'sso_provider_error_validate' => 'プロバイダから取得したログイン情報に問題がありました。以下の内容をご確認いただき、管理者にお問い合わせください。:errors',
 
         'header' => 'ログイン設定',
         'description' => 'SSO認証や2段階認証など、Exmentのログインの設定を行います。',
@@ -1162,6 +1188,7 @@ return [
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
             'init_only' => 'YESにすることで、1回だけ値を入力可能になります。保存後は、読み取り専用で表示されます。',
             'default' => '新規登録時の、項目の初期値です。',
+            'placeholder' => '入力前のフィールドにガイダンスとして薄い色で表示される文字列です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
             'min_width' => '一覧表示する時の、列の幅の最小値を、整数(px)で入力してください。',
             'max_width' => '一覧表示する時の、列の幅の最大値を、整数(px)で入力してください。',
@@ -1459,6 +1486,8 @@ return [
         'message' => [
             'over_filters_max' => '表示条件は6件以上設定できません。',
             'over_sorts_max' => 'データ並べ替えは6件以上設定できません。',
+            'used_notify_error' => '通知設定で使用しています。事前に削除を行ってください。',
+            'used_column_error' => 'カスタム列設定の絞り込み条件ビューで使用しています。事前に削除を行ってください。',
         ],
 
         'custom_view_button_label' => 'ビュー',
@@ -1680,7 +1709,7 @@ return [
         'header_import' => 'テンプレート - インポート',
         'description' => 'Exmentのテーブル、列、フォーム情報をインポート、またはエクスポートします。',
         'description_export' => 'システムに登録している、テーブル・列・フォーム情報をエクスポートします。このテンプレートファイルは、他のシステムでインポートすることができます。',
-        'description_import' => 'エクスポートされたExmentテンプレート情報を、このシステムにインポートし、テーブル・列・フォーム情報をインストールします。<br />以下の2つの項目から、1つを選択し、実施してください。',
+        'description_import' => 'エクスポートされたExmentテンプレート情報を、このシステムにインポートし、テーブル・列・フォーム情報をインストールします。<br />すでにインストール済のテンプレートから選択するか、新しいテンプレートファイルをアップロードしてください。',
         'template_name' => 'テンプレート名(英数字)',
         'template_view_name' => 'テンプレート表示名',
         'form_description' => 'テンプレート説明文',
@@ -1771,7 +1800,7 @@ return [
             'no_columns_user' => 'カスタム列が登録されていません。管理者に問い合わせし、カスタム列を追加の依頼を行ってください。',
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
             'relation_error' => 'このテーブルは親子関係が設定されているため、削除できません。',
-            'multiple_uniques' => '%sがキーとなるその値は、すでに登録されています。',
+            'multiple_uniques' => 'その%sは、すでに登録されています。',
             'lock_error' => '対象のデータは別のユーザーによって更新されました。画面の更新後、再度入力を行ってください。',
             'lock_error_api' => '対象のデータは別のユーザーによって更新されました。',
             'init_flg' => '保存後、変更はできません。',
@@ -1781,6 +1810,7 @@ return [
             'view_export_page' => '現在表示しているビューの形式で、現在のページのデータをエクスポートします。',
             'template' => 'インポートに使用する、テンプレートファイルをダウンロードします。',
             'import' => 'インポート実行のためのダイアログを表示します。※インポートのためのデータは、「テンプレート出力」か、「エクスポート(すべてのシステム列・カスタム列)」で出力したデータで行ってください。',
+            'document_upload' => 'このデータに関連する添付ファイルをアップロードすることができます。1ファイルの最大ファイルサイズは:max_sizeで、一度に:max_countファイルまでアップロードすることができます。',
     ],
         'message' => [
             'operation_notfound' => '更新対象のデータが見つかりませんでした。',
@@ -1790,6 +1820,7 @@ return [
             'restore' => '復元しますか？',
             'restore_succeeded' => '復元が完了しました！',
             'hard_delete' => '完全に削除しますか？(この操作は復元できません)',
+            'editor_image_oversize' => 'ファイルサイズが大きすぎます。',
         ],
     ],
 
@@ -1817,11 +1848,24 @@ return [
         'target_custom_value' => '対象データ',
         'data_refer' => 'この通知に紐づくデータを表示',
         'all_check' => '一括既読',
+        'read_all' => 'すべての通知を既読にする',
+        'unread_all' => 'すべての通知を未読にする',
+        'delete_all' => 'すべての通知を削除する',
+        'batch_all' => '一括処理',
+        'confirm_text' => [
+            'read_all' => 'すべての通知を既読にします。よろしいですか？',
+            'unread_all' => 'すべての通知を未読にします。よろしいですか？',
+            'delete_all' => 'すべての通知を削除します。よろしいですか？',
+        ],
         'read_flg_options' => [
             '0' => '未読',
             '1' => '既読',
         ],
         'message' => [
+            'batch_error' => '一括処理に失敗しました。システム管理者にお問い合わせください。',
+            'read_succeeded' => 'すべての通知を既読に変更しました。',
+            'unread_succeeded' => 'すべての通知を未読に変更しました。',
+            'delete_succeeded' => 'すべての通知を削除しました。',
             'check_succeeded' => '選択データを既読に変更しました。',
             'check_notfound' => '更新対象のデータが存在しません。',
             'no_newitem' => '新着通知はありません。',
@@ -1846,16 +1890,20 @@ return [
         'notify_day' => '通知日',
         'notify_beforeafter' => '通知前後',
         'notify_hour' => '通知時間',
+        'notify_myself' => '作業実施者にも通知する',
         'notify_action' => '実施アクション',
         'action_settings' => '実施アクション設定',
         'notify_action_target' => '通知対象',
-        'mail_template_id' => 'テンプレート',
+        'mail_template_id' => '通知テンプレート',
         'notify_button_name' => 'ボタン表示名',
         'notify_select' => '送信先選択',
         'message_input' => 'メッセージ入力',
         'webhook_url' => 'Webhook URL',
+        'mention_here' => 'メンバー全員に通知を実施',
+        'mention_setting_manual_id' => 'slack-id設定方法',
 
         'help' => [
+            'active_flg' => '通知を一時的に無効にする場合、NOにしてください。',
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
             'custom_table_id' => '通知を行う条件として使用する、テーブルを選択します。',
             'custom_view_id' => '対象テーブルのデータを絞り込む場合に、条件ビューを指定します。条件ビューは、先にカスタムテーブルの設定画面で作成してください。',
@@ -1864,10 +1912,13 @@ return [
             'trigger_settings' => '通知を行うかどうかの判定を行う、日付・日時のフィールドを選択します。',
             'notify_beforeafter' => '通知を行うのが、登録している日付の「前」か「後」かを選択します。<br/>例：「通知日」が7、「通知前後」が「前」の場合、指定したフィールドの日付の7日前に通知実行',
             'notify_hour' => '通知を実行する時間です。0～23で入力します。 例：「6」と入力した場合、6:00に通知実行',
+            'notify_myself' => 'YESにすることで、通知対象が、作業を実施したログインユーザーであっても、そのログインユーザーに通知を実行します。',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
-            'notify_action_target' => '通知先の対象を選択します。',
-            'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
-            'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 <br/>SlackとTeamsの両立はできません。',
+            'notify_action_target' => '通知先の対象を選択します。※実施アクションが「Eメール」「システム内アラート」の場合、必須になります。',
+            'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前に通知テンプレート画面にて、新規テンプレートを作成してください。',
+            'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 ',
+            'mention_here' => '指定のチャンネルで、ステータスがアクティブになっているメンバー全員に通知を行う、「@here」メンションを送ります。※個別のメンションを行うには、下の「通知対象」項目を設定してください。',
+            'slack_user_column_not_setting' => '※システム設定の「Slack ID設定列(ユーザー)」が登録されていません。Slack IDを登録する列を指定後、通知対象を設定できます。',
         ],
 
         'notify_trigger_options' => [
@@ -1891,6 +1942,10 @@ return [
             'has_roles' => '権限のあるユーザー',
             'created_user' => '作成者',
             'work_user' => '次の作業ユーザー',
+        ],
+
+        'message' => [
+            'no_action_target' => '通知対象がありませんでした。',
         ],
     ],
     
@@ -2015,6 +2070,10 @@ return [
         ],
         'export' => [
             'success_message' => 'エクスポートに成功しました。ディレクトリパス：%s',
+        ],
+        'resetpassword' => [
+            'notify_password' => 'パスワードをリセットしました。新しいパスワード：%s',
+            'success' => 'パスワードをリセットしました。',
         ],
     ],
 

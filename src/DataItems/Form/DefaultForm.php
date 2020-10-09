@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Controllers;
+namespace Exceedone\Exment\DataItems\Form;
 
 use Symfony\Component\HttpFoundation\Response;
 use Encore\Admin\Facades\Admin;
@@ -11,28 +11,37 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomFormBlock;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
 
-trait CustomValueForm
+class DefaultForm extends FormBase
 {
+    public function __construct($custom_table, $custom_form)
+    {
+        $this->custom_table = $custom_table;
+        $this->custom_form = $custom_form;
+    }
+
+
     /**
      * Make a form builder.
      * @param $id if edit mode, set model id
      * @return Form
      */
-    protected function form($id = null)
+    public function form()
     {
         $request = request();
-        $this->setFormViewInfo($request, null, $id);
         
         $classname = getModelName($this->custom_table);
         $form = new Form(new $classname);
 
-        if (isset($id)) {
+        if (isset($this->id)) {
             $form->systemValues()->setWidth(12, 0);
         }
 
@@ -46,7 +55,7 @@ trait CustomValueForm
         // get select_parent
         $select_parent = $request->has('select_parent') ? intval($request->get('select_parent')) : null;
         // set one:many select
-        $this->setParentSelect($request, $form, $select_parent, $id);
+        $this->setParentSelect($request, $form, $select_parent);
 
         $calc_formula_array = [];
         $changedata_array = [];
@@ -62,12 +71,12 @@ trait CustomValueForm
             }
             // when default block, set as normal form columns.
             if ($custom_form_block->form_block_type == FormBlockType::DEFAULT) {
-                $form->embeds('value', exmtrans("common.input"), $this->getCustomFormColumns($form, $custom_form_block, $id))
+                $form->embeds('value', exmtrans("common.input"), $this->getCustomFormColumns($form, $custom_form_block, $this->custom_value))
                     ->disableHeader();
             }
             // one_to_many or manytomany
             else {
-                list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
+                list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
                 $target_table = $custom_form_block->target_table;
                 // if user doesn't have edit permission, hide child block
                 if ($target_table->enableEdit() !== true) {
@@ -82,10 +91,10 @@ trait CustomValueForm
                         $hasmany = $form->hasManyTable(
                             $relation_name,
                             $block_label,
-                            function ($form) use ($custom_form_block, $id) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
-                                    $this->setCustomFormColumns($form, $custom_form_block, $id);
-                                });
+                            function ($form) use ($custom_form_block, $relation_name) {
+                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
+                                    $this->setCustomFormColumns($form, $custom_form_block);
+                                })->setRelationName($relation_name);
                             }
                         )->setTableWidth(12, 0);
                     }
@@ -94,9 +103,9 @@ trait CustomValueForm
                         $hasmany = $form->hasMany(
                             $relation_name,
                             $block_label,
-                            function ($form, $model = null) use ($custom_form_block) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model))
-                                ->disableHeader();
+                            function ($form, $model = null) use ($custom_form_block, $relation, $relation_name) {
+                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
+                                ->disableHeader()->setRelationName($relation_name);
                             }
                         );
                     }
@@ -139,7 +148,7 @@ trait CustomValueForm
             }
         }
 
-        PartialCrudService::setAdminFormOptions($this->custom_table, $form, $id);
+        PartialCrudService::setAdminFormOptions($this->custom_table, $form, $this->id);
 
         // add calc_formula_array and changedata_array info
         if (count($calc_formula_array) > 0) {
@@ -171,22 +180,22 @@ EOT;
         $form->ignore('select_parent');
 
         // add form saving and saved event
-        $this->manageFormSaving($form, $id);
-        $this->manageFormSaved($form, $id, $select_parent);
+        $this->manageFormSaving($form);
+        $this->manageFormSaved($form, $select_parent);
 
         $form->disableReset();
 
         $custom_table = $this->custom_table;
         $custom_form = $this->custom_form;
 
-        $this->manageFormToolButton($form, $id, $custom_table, $custom_form);
+        $this->manageFormToolButton($form, $custom_table, $custom_form);
         return $form;
     }
 
     /**
      * set custom form columns
      */
-    protected function setCustomFormColumns($form, $custom_form_block, $id = null)
+    protected function setCustomFormColumns($form, $custom_form_block)
     {
         $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
@@ -196,8 +205,8 @@ EOT;
             }
 
             $item = $form_column->column_item;
-            if (isset($id)) {
-                $item->id($id);
+            if (isset($this->id)) {
+                $item->id($this->id);
             }
             $form->pushField($item->getAdminField($form_column));
         }
@@ -205,16 +214,22 @@ EOT;
 
     /**
      * set custom form columns
+     *
+     * @param Form $form Laravel-admin's form
+     * @param CustomFormBlock $custom_form_block
+     * @param CustomValue|null $target_custom_value target customvalue. if Child block, this arg is child custom value.
+     * @param CustomRelation|null $this form block's relation
+     * @return array
      */
-    protected function getCustomFormColumns($form, $custom_form_block, $custom_value = null)
+    protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null, ?CustomRelation $relation = null)
     {
         $closures = [];
-        if (is_numeric($custom_value)) {
-            $custom_value = $this->custom_table->getValueModel($custom_value);
+        if (is_numeric($target_custom_value)) {
+            $target_custom_value = $this->custom_table->getValueModel($target_custom_value);
         }
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if (!isset($custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
+            if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                 continue;
             }
 
@@ -228,7 +243,7 @@ EOT;
                 continue;
             }
 
-            $field = $form_column->column_item->setCustomValue($custom_value)->getAdminField($form_column);
+            $field = $form_column->column_item->setCustomValue($target_custom_value)->getAdminField($form_column);
 
             // set $closures using $form_column->column_no
             if (isset($field)) {
@@ -292,18 +307,90 @@ EOT;
     }
 
 
-    protected function manageFormSaving($form, $id = null)
+    protected function manageFormSaving($form)
     {
         // before saving
+        $id = $this->id;
         $form->saving(function ($form) use ($id) {
             $result = PartialCrudService::saving($this->custom_table, $form, $id);
             if ($result instanceof Response) {
                 return $result;
             }
         });
+
+        // form validation saving event
+        $form->validatorSavingCallback(function($input, $message, $form){
+            $model = $form->model();
+            if(!$model){
+                return;
+            }
+
+            if(is_array($validateResult = $model->validatorSaving($input, [
+                'column_name_prefix' => 'value.',
+            ]))){
+                $message = $message->merge($validateResult);
+            }
+
+
+            // validation relations ----------------------------------------------------
+            foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+                // if available is false, continue
+                if (!$custom_form_block->available) {
+                    continue;
+                }
+                // when default block, set as normal form columns.
+                if ($custom_form_block->form_block_type == FormBlockType::DEFAULT) {
+                    continue;
+                }
+                list($custom_relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
+                if(!$custom_relation){
+                    continue;
+                }
+                if (!method_exists($model, $relation_name)) {
+                    continue;
+                }
+    
+                // get relation value
+                $relation = $model->$relation_name();
+                $keyName = $relation->getRelated()->getKeyName();
+                $relationValues = array_get($input, $relation_name, []);
+
+                // ignore ids
+                $ignoreIds = collect($relationValues)->filter(function($val, $key){
+                    return is_int($key);
+                })->map(function($val){
+                    return array_get($val, 'id');
+                })->values()->toArray();
+                
+                // skip _remove_ flg
+                $relationValues = array_filter($relationValues, function($val){
+                    if(array_get($val, Form::REMOVE_FLAG_NAME) == 1){
+                        return false;
+                    }
+                    return true;
+                });
+
+                // loop input's value
+                foreach($relationValues as $relationK => $relationV){
+                    $instance = $relation->findOrNew(array_get($relationV, $keyName));
+                    // remove self item
+                    $uniqueCheckSiblings = array_filter($relationValues, function($relationValue, $key) use($relationK){
+                        return !isMatchString($relationK, $key);
+                    }, ARRAY_FILTER_USE_BOTH);
+                    
+                    if(is_array($validateResult = $instance->validatorSaving($relationV, [
+                        'column_name_prefix' => "$relation_name.$relationK.value.",
+                        'uniqueCheckSiblings' => array_values($uniqueCheckSiblings),
+                        'uniqueCheckIgnoreIds' => $ignoreIds,
+                    ]))){
+                        $message = $message->merge($validateResult);
+                    }
+                }
+            }
+        });
     }
 
-    protected function manageFormSaved($form, $id, $select_parent = null)
+    protected function manageFormSaved($form, $select_parent = null)
     {
         // after saving
         $form->savedInTransaction(function ($form) {
@@ -326,12 +413,13 @@ EOT;
         });
     }
 
-    protected function manageFormToolButton($form, $id, $custom_table, $custom_form)
+    protected function manageFormToolButton($form, $custom_table, $custom_form)
     {
         $form->disableEditingCheck(false);
         $form->disableCreatingCheck(false);
         $form->disableViewCheck(false);
-        
+
+        $id = $this->id;
         $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
             $custom_value = $custom_table->getValueModel($id);
 
@@ -584,25 +672,34 @@ EOT;
         }
     }
 
-    protected function setParentSelect($request, $form, $select_parent, $id)
+    protected function setParentSelect($request, $form, $select_parent)
     {
-        // get select_parent
-        $select_parent = null;
-        if ($request->has('select_parent')) {
-            $select_parent = intval($request->get('select_parent'));
-        }
-        $form->hidden('select_parent')->default($select_parent);
-
-        // add parent select if this form is 1:n relation
-        $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
-        if (!isset($relation)) {
+        // add parent select
+        $relations = CustomRelation::getRelationsByChild($this->custom_table);
+        if (!isset($relations)) {
             return;
         }
+
+        foreach ($relations as $relation) {
+            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+                // set one:many select
+                $this->setParentSelectOneToMany($request, $form, $select_parent, $relation);
+            } else {
+                // set many:many select
+                $this->setParentSelectManyToMany($request, $form, $relation);
+            }
+        }
+    }
+
+    protected function setParentSelectOneToMany($request, $form, $select_parent, $relation)
+    {
         $parent_custom_table = $relation->parent_custom_table;
+
+        $form->hidden('select_parent')->default($select_parent);
         $form->hidden('parent_type')->default($parent_custom_table->table_name);
 
         // if create data and not has $select_parent, select item
-        if (!isset($id) && !isset($select_parent)) {
+        if (!isset($this->id) && !isset($select_parent)) {
             $select = $form->select('parent_id', $parent_custom_table->table_view_name)
             ->options(function ($value) use ($parent_custom_table) {
                 return $parent_custom_table->getSelectOptions([
@@ -634,7 +731,7 @@ EOT;
             if ($request->has('parent_id')) {
                 $parent_id = $request->get('parent_id');
             } else {
-                $parent_id = isset($select_parent) ? $select_parent : getModelName($this->custom_table)::find($id)->parent_id;
+                $parent_id = isset($select_parent) ? $select_parent : getModelName($this->custom_table)::find($this->id)->parent_id;
             }
             $parent_value = $parent_custom_table->getValueModel($parent_id);
 
@@ -643,5 +740,42 @@ EOT;
                 $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label);
             }
         }
+    }
+
+    protected function setParentSelectManyToMany($request, $form, $relation)
+    {
+        $parent_custom_table = $relation->parent_custom_table;
+
+        if ($parent_custom_table->table_name == SystemTableName::ORGANIZATION &&
+            $this->custom_table->table_name == SystemTableName::USER) {
+            return;
+        }
+
+        $pivot_name = $relation->getRelationName();
+
+        $select = $form->multipleSelect($pivot_name, $parent_custom_table->table_view_name)
+            ->options(function ($value) use ($parent_custom_table) {
+                return $parent_custom_table->getSelectOptions([
+                    'selected_value' => $value,
+                    'showMessage_ifDeny' => true,
+                ]);
+            });
+
+        // set select options
+        $select->ajax($parent_custom_table->getOptionAjaxUrl());
+
+        // set buttons
+        $select->buttons([
+            [
+                'label' => trans('admin.search'),
+                'btn_class' => 'btn-info',
+                'icon' => 'fa-search',
+                'attributes' => [
+                    'data-widgetmodal_url' => admin_urls_query('data', $parent_custom_table->table_name, ['modalframe' => 1]),
+                    'data-widgetmodal_expand' => json_encode(['target_column_class' => $pivot_name, 'target_column_multiple' => true]),
+                    'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => $pivot_name]),
+                ],
+            ],
+        ]);
     }
 }

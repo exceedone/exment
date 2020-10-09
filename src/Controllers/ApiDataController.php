@@ -1186,6 +1186,12 @@ class ApiDataController extends AdminControllerTableBase
                 // execute makehidden
                 $results = $target->makeHidden($this->custom_table->getMakeHiddenArray());
 
+                // if need to convert to custom values, call setSelectTableValues, for performance
+                $valuetype = $request->get('valuetype', ValueType::PURE_VALUE);
+                if (ValueType::isRegetApiCustomValue($valuetype)) {
+                    $this->custom_table->setSelectTableValues($results);
+                }
+                
                 $results->map(function ($result) use ($request) {
                     $this->modifyCustomValue($request, $result);
                 });
@@ -1219,8 +1225,8 @@ class ApiDataController extends AdminControllerTableBase
 
         // convert to custom values
         $valuetype = $request->get('valuetype');
-        if ($request->has('valuetype') && ValueType::filterApiValueType($valuetype)) {
-            $custom_value->setValue($custom_value->getValues(ValueType::getEnum($valuetype), ['asApi' => true]));
+        if ($request->has('valuetype') && ValueType::isRegetApiCustomValue($valuetype)) {
+            $custom_value->setValueDirectly($custom_value->getValues(ValueType::getEnum($valuetype), ['asApi' => true]));
         }
 
         if ($request->has('dot') && boolval($request->get('dot'))) {

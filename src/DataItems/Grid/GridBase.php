@@ -76,9 +76,11 @@ abstract class GridBase
         if (is_nullorempty($group_keys)) {
             return null;
         }
+        $group_view = CustomView::findBySuuid(request()->query('group_view'));
+        if (is_nullorempty($group_view)) {
+            return null;
+        }
         
-        // save summary view
-        $custom_view = $this->custom_view;
         // replace view
         $this->custom_view = CustomView::getAllData($this->custom_table);
         $filters = [];
@@ -99,13 +101,12 @@ abstract class GridBase
                 System::setRequestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK, true);
             }
         }
-        $filter_func = function ($model) use ($filters, $custom_view) {
+        $filter_func = function ($model) use ($filters, $group_view) {
+            $group_view->filterModel($model, ['sort' => false]);
             $model->where(function ($query) use ($filters) {
                 foreach ($filters as $filter) {
                     $filter->setValueFilter($query);
                 }
-            })->where(function ($query) use ($custom_view) {
-                $custom_view->setValueFilters($query);
             });
             return $model;
         };

@@ -7,9 +7,9 @@ use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
+use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
@@ -207,6 +207,7 @@ abstract class CustomItem implements ItemInterface
         return $this->getRelationTrait();
     }
 
+
     protected function getTargetValue($custom_value)
     {
         // if options has "summary" (for summary view)
@@ -289,7 +290,7 @@ abstract class CustomItem implements ItemInterface
         }
 
         if (!boolval(array_get($form_column_options, 'hidden')) && $this->initonly() && isset($this->value)) {
-            $field->displayText($this->html());
+            $field->displayText($this->html())->escape(false);
         }
 
         ///////// get common options
@@ -304,7 +305,7 @@ abstract class CustomItem implements ItemInterface
 
         // default (login user)
         if (boolval(array_get($options, 'login_user_default'))) {
-            $field->default(\Exment::user()->getUserId());
+            $field->default(\Exment::getUserId());
         }
 
         // number_format
@@ -317,35 +318,24 @@ abstract class CustomItem implements ItemInterface
             $field->readonly();
         }
 
-        // required
-        if ((boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required')))
-            && $this->required) {
-            $field->required();
-            $field->rules('required');
-        } else {
-            $field->rules('nullable');
-        }
-
         // suggest input
         if (boolval(array_get($options, 'suggest_input'))) {
             $url = admin_urls('webapi/data', $this->custom_table->table_name, 'column', $this->name());
             $field->attribute(['suggest_url' => $url]);
         }
 
-        // set validates
-        $validate_options = [];
-        $validates = $this->getColumnValidates($validate_options, $form_column_options);
-        // set validates
-        if (count($validates)) {
-            $field->rules($validates);
-        }
+        // set validates as callback
+        $_this = $this;
+        $field->rules(function($form) use($_this, $form_column_options, $field){
+            // set validates
+            return $_this->getColumnValidatesCallback($form_column_options, $field);
+        });
 
-        // set help string using result_options
+        // set help string using result_options ----------------------------------------------------
         $help = null;
         if (array_key_value_exists('help', $options)) {
             $help = array_get($options, 'help');
         }
-        $help_regexes = array_get($validate_options, 'help_regexes');
         
         // if initonly is true and has value, not showing help
         if ($this->initonly() && isset($this->value)) {
@@ -354,22 +344,19 @@ abstract class CustomItem implements ItemInterface
         // if initonly is true and now, showing help and cannot edit help
         elseif ($this->initonly() && !isset($this->value)) {
             $help .= exmtrans('common.help.init_flg');
-            if (isset($help_regexes)) {
-                $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
-            }
-        }
-        // if initonly is false, showing help
-        else {
-            if (isset($help_regexes)) {
-                $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
-            }
         }
 
         if (isset($help)) {
             $field->help(esc_html($help));
         }
+        
+        // append help
+        $this->appendHelp($form_column_options, $field);
+
 
         $field->attribute(['data-column_type' => $this->custom_column->column_type]);
+
+        $field->setElementClass("class_" . $this->uniqueName());
 
         return $field;
     }
@@ -382,10 +369,10 @@ abstract class CustomItem implements ItemInterface
         $classname = $this->getAdminFilterClass();
 
         // if where query, call Cloquire
-        if ($classname == Where::class) {
+        if ($classname == ExmWhere::class) {
             $item = $this;
-            $filteritem = new $classname(function ($query) use ($item) {
-                $item->getAdminFilterWhereQuery($query, $this->input);
+            $filteritem = new $classname(function ($query, $input) use ($item) {
+                $item->getAdminFilterWhereQuery($query, $input);
             }, $this->label(), $this->index());
         } else {
             $filteritem = new $classname($this->index(), $this->label());
@@ -526,6 +513,21 @@ abstract class CustomItem implements ItemInterface
     {
     }
 
+    protected function getAppendHelpText($form_column_options) : ?string
+    {
+        return null;
+    }
+
+    protected function appendHelp($form_column_options, Field $field)
+    {
+        $text = $this->getAppendHelpText($form_column_options);
+        if(is_nullorempty($text)){
+            return;
+        }
+
+        $field->appendHelp($text);
+    }
+
     public static function getItem(...$args)
     {
         list($custom_column, $custom_value, $view_column_target) = $args + [null, null, null];
@@ -562,69 +564,29 @@ abstract class CustomItem implements ItemInterface
      * Get column validate array.
      * @param array $result_options
      * @param mixed $form_column_options
+     * @param Field $field
      * @return array
      */
-    protected function getColumnValidates(&$result_options, $form_column_options)
+    public function getColumnValidatesCallback($form_column_options, Field $field)
     {
         $options = array_get($this->custom_column, 'options');
-
         $validates = [];
+        
         // setting options --------------------------------------------------
-        // unique
-        if (boolval(array_get($options, 'unique')) && !boolval(array_get($options, 'multiple_enabled'))) {
-            // add unique field
-            $unique_table_name = getDBTableName($this->custom_table); // database table name
-            $unique_column_name = $this->custom_column->getQueryKey(); // column name
-            
-            $uniqueRules = [$unique_table_name, $unique_column_name];
-            // create rules.if isset id, add
-            $uniqueRules[] = $this->id ?? '';
-            $uniqueRules[] = 'id';
-            // and ignore data deleted_at is NULL
-            $uniqueRules[] = 'deleted_at';
-            $uniqueRules[] = 'NULL';
-            $rules = "unique:".implode(",", $uniqueRules);
-            // add rules
-            $validates[] = $rules;
+        // required
+        if ((boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required')))
+            && $this->required) {
+            $field->required();
+            $validates[] = 'required';
+        } else {
+            $validates[] = 'nullable';
         }
+
+        ///// unique rule moves to validatorSaving logic
 
         // init_flg(for validation)
         if ($this->initonly()) {
             $validates[] = new Validator\InitOnlyRule($this->custom_column, $this->custom_value);
-        }
-
-
-        // // regex rules
-        $help_regexes = [];
-        if (boolval(config('exment.expart_mode', false)) && array_key_value_exists('regex_validate', $options)) {
-            $regex_validate = array_get($options, 'regex_validate');
-            $validates[] = 'regex:/'.$regex_validate.'/u';
-        } elseif (array_key_value_exists('available_characters', $options)) {
-            $difinitions = CustomColumn::getAvailableCharacters();
-
-            $available_characters = stringToArray(array_get($options, 'available_characters') ?? []);
-            $regexes = [];
-            // add regexes using loop
-            foreach ($available_characters as $available_character) {
-                // get available_character define
-                $define = collect($difinitions)->first(function ($d) use ($available_character) {
-                    return array_get($d, 'key') == $available_character;
-                });
-                if (!isset($define)) {
-                    continue;
-                }
-
-                $regexes[] = array_get($define, 'regex');
-                $help_regexes[] = array_get($define, 'label');
-            }
-            if (count($regexes) > 0) {
-                $validates[] = 'regex:/^['.implode("", $regexes).']*$/u';
-            }
-        }
-        
-        // set help_regexes to result_options
-        if (count($help_regexes) > 0) {
-            $result_options['help_regexes'] = $help_regexes;
         }
 
         // set column's validates
@@ -632,6 +594,7 @@ abstract class CustomItem implements ItemInterface
 
         return $validates;
     }
+
 
     /**
      * Compare two values.

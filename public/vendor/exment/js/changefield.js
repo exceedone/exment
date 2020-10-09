@@ -35,6 +35,8 @@ var Exment;
                         if (json.script) {
                             eval(json.script);
                         }
+                        // call add-select2 event
+                        Exment.CommonEvent.addSelect2();
                     },
                 });
             });

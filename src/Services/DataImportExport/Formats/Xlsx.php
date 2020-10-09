@@ -109,7 +109,7 @@ class Xlsx extends FormatBase
     /**
      * Get all sheet's row count
      *
-     * @param [type] $spreadsheet
+     * @param \PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet
      * @return int
      */
     protected function getRowCount($spreadsheet) : int

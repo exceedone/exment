@@ -34,7 +34,7 @@ var Exment;
             getdataKeys = $target.data('widgetmodal_getdata_fieldsgroup');
             if (hasValue(getdataKeys)) {
                 for (var key in getdataKeys) {
-                    data[key] = $target.parents('.fields-group').find('.' + getdataKeys[key]).val();
+                    data[key] = $target.closest('.fields-group').find('.' + getdataKeys[key]).val();
                 }
             }
             // set uuid
@@ -72,6 +72,7 @@ var Exment;
                     Exment.CommonEvent.AddEvent();
                 }
             }).fail(function (res, textStatus, errorThrown) {
+                Exment.CommonEvent.CallbackExmentAjax(res);
             }).always(function (res) {
             });
         }
@@ -302,7 +303,8 @@ var Exment;
                 });
             });
             // set based select item
-            let $baseSelect = $('.' + $target.data('selectitem-target_class'));
+            let widgetmodal_uuid = $target.data('selectitem-widgetmodal_uuid');
+            let $baseSelect = $('[data-widgetmodal_uuid="' + widgetmodal_uuid + '"]').closest('.fields-group').find('.' + $target.data('selectitem-target_class'));
             $baseSelect.val(null);
             for (let i = 0; i < values.length; i++) {
                 let v = values[i];

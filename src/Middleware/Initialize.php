@@ -62,7 +62,7 @@ class Initialize
             static::initializeConfig();
         }
         
-        static::requireBootstrap();
+        //static::requireBootstrap();
 
         return $next($request);
     }
@@ -169,6 +169,11 @@ class Initialize
         Config::set('filesystems.disks.admin_tmp', [
             'driver' => 'local',
             'root' => storage_path('app/admin_tmp'),
+        ]);
+
+        Config::set('filesystems.disks.tmpupload', [
+            'driver' => 'local',
+            'root' => storage_path('app/tmpupload'),
         ]);
 
         Config::set('filesystems.disks.admin', [
@@ -354,7 +359,7 @@ class Initialize
         }
     }
 
-    protected static function requireBootstrap()
+    public static function requireBootstrap()
     {
         $file = config('exment.bootstrap', exment_app_path('bootstrap.php'));
         if (!\File::exists($file)) {
@@ -433,6 +438,8 @@ class Initialize
             'tile'          => Field\Tile::class,
             'hasMany'           => Field\HasMany::class,
             'hasManyTable'           => Field\HasManyTable::class,
+            'hasManyJson'           => Field\HasManyJson::class,
+            'hasManyJsonTable'           => Field\HasManyJsonTable::class,
             //'relationTable'          => Field\RelationTable::class,
             'embeds'          => Field\Embeds::class,
             'nestedEmbeds'          => Field\NestedEmbeds::class,
@@ -452,6 +459,7 @@ class Initialize
         Show::extend('system_values', \Exceedone\Exment\Form\Show\SystemValues::class);
 
         Filter::extend('betweendatetime', \Exceedone\Exment\Grid\Filter\BetweenDatetime::class);
+        Filter::extend('exmwhere', \Exceedone\Exment\Grid\Filter\Where::class);
     }
 
     public static function logDatabase()

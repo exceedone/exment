@@ -378,7 +378,7 @@
             "description": "Manage the message text etc. when sending mail.",
             "options": {
                 "search_enabled": "0",
-                "icon": "fa-envelope",
+                "icon": "fa-bell-o",
                 "color": "#ff9932",
                 "attachment_flg": "0",
                 "comment_flg": "0",

@@ -4,18 +4,9 @@ namespace Exceedone\Exment\Storage\Adapter;
 
 use League\Flysystem\Adapter\Ftp;
 
-use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Enums\Driver;
-
 class ExmentAdapterFtp extends Ftp implements ExmentAdapterInterface
 {
-    /**
-     * Get URL using File class
-     */
-    public function getUrl($path)
-    {
-        return File::getUrl($path);
-    }
+    use AdapterTrait;
     
     /**
      * get adapter class
@@ -23,10 +14,17 @@ class ExmentAdapterFtp extends Ftp implements ExmentAdapterInterface
     public static function getAdapter($app, $config, $driverKey)
     {
         $mergeFrom = array_get($config, 'mergeFrom');
-        $mergeConfig = Driver::mergeFileConfig('filesystems.disks.ftp', "filesystems.disks.$mergeFrom", $mergeFrom);
+        $mergeConfig = static::mergeFileConfig('filesystems.disks.ftp', "filesystems.disks.$mergeFrom", $mergeFrom);
         $mergeConfig['driver'] = 'ftp';
 
         $driver = new self($mergeConfig);
         return $driver;
+    }
+    
+    public static function getMergeConfigKeys(string $mergeFrom, array $options = []) : array
+    {
+        return [
+            'root' => config('exment.rootpath.ftp.' . $mergeFrom),
+        ];
     }
 }

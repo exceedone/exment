@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Services\BackupRestore;
 
-use Illuminate\Console\Command;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Model\System;
@@ -59,6 +58,9 @@ class Restore
     public function execute($file = null, ?bool $tmp = null)
     {
         try {
+            // check backup execute
+            \DB::checkBackup();
+
             // unzip backup file
             $this->unzipFile($file, $tmp);
 
@@ -87,55 +89,15 @@ class Restore
             $this->diskService->deleteTmpDirectory();
         }
     }
+
+
     /**
      * insert table data from backup tsv files.
      *
-     * @param string unzip restore file path
      */
     protected function importTsv()
     {
-        // get tsv files in target folder
-        $files = array_filter(\File::files($this->diskService->tmpDiskItem()->dirFullPath()), function ($file) {
-            return preg_match('/.+\.tsv$/i', $file);
-        });
-
-        try {
-            \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-            // load table data from tsv file
-            foreach ($files as $file) {
-                $table = $file->getBasename('.' . $file->getExtension());
-
-                if (!\Schema::hasTable($table)) {
-                    continue;
-                }
-                \DB::table($table)->truncate();
-
-                $cmd =<<<__EOT__
-                LOAD DATA local INFILE '%s' 
-                INTO TABLE %s 
-                CHARACTER SET 'UTF8' 
-                FIELDS TERMINATED BY '\t' 
-                OPTIONALLY ENCLOSED BY '\"' 
-                ESCAPED BY '\"' 
-                LINES TERMINATED BY '\\n' 
-                IGNORE 1 LINES 
-                SET created_at = nullif(created_at, '0000-00-00 00:00:00'),
-                    updated_at = nullif(updated_at, '0000-00-00 00:00:00'),
-                    deleted_at = nullif(deleted_at, '0000-00-00 00:00:00'),
-                    created_user_id = nullif(created_user_id, 0),
-                    updated_user_id = nullif(updated_user_id, 0),
-                    deleted_user_id = nullif(deleted_user_id, 0),
-                    parent_id = nullif(parent_id, 0)
-__EOT__;
-                $query = sprintf($cmd, addslashes($file->getPathName()), $table);
-                $cnt = \DB::connection()->getpdo()->exec($query);
-
-                //return $cnt;
-            }
-        } finally {
-            \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        }
+        \DB::importTsv($this->diskService->tmpDiskItem()->dirFullPath());
     }
 
     /**
@@ -191,7 +153,11 @@ __EOT__;
                     $stream = $tmpDisk->readStream($file);
                     $disk->delete($path);
                     $disk->writeStream($path, $stream);
-                    fclose($stream);
+                            
+                    try {
+                        fclose($stream);
+                    } catch (\Exception $ex) {
+                    }
                 }
             }
         }
@@ -263,66 +229,14 @@ __EOT__;
 
         return true;
     }
+
+    
     /**
      * restore backup table definition and table data.
      *
-     * @param string unzip folder path
      */
     protected function restoreDatabase()
     {
-        // get all table list about "pivot_"
-        // collect(\Schema::getTableListing())->filter(function ($table) {
-        //     return stripos($table, 'pivot_') === 0;
-        // })->each(function ($table) {
-        //     \Schema::dropIfExists($table);
-        // });
-
-        try {
-            \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-            // get table connect info
-            $host = config('database.connections.mysql.host', '');
-            $username = config('database.connections.mysql.username', '');
-            $password = config('database.connections.mysql.password', '');
-            $database = config('database.connections.mysql.database', '');
-            $dbport = config('database.connections.mysql.port', '');
-
-            $mysqlcmd = sprintf(
-                '%s%s -h %s -u %s --password=%s -P %s %s',
-                config('exment.backup_info.mysql_dir'),
-                'mysql',
-                $host,
-                $username,
-                $password,
-                $dbport,
-                $database
-            );
-
-            // restore table definition
-            $def = path_join($this->diskService->tmpDiskItem()->dirFullPath(), config('exment.backup_info.def_file'));
-            if (\File::exists($def)) {
-                $command = sprintf('%s < %s', $mysqlcmd, $def);
-                exec($command);
-                \File::delete($def);
-            }
-
-            // get insert sql file for each tables
-            $files = array_filter(\File::files($this->diskService->tmpDiskItem()->dirFullPath()), function ($file) {
-                return preg_match('/.+\.sql$/i', $file);
-            });
-
-            foreach ($files as $file) {
-                $command = sprintf('%s < %s', $mysqlcmd, $file->getRealPath());
-                
-                $table = $file->getBasename('.' . $file->getExtension());
-                if (\Schema::hasTable($table)) {
-                    \DB::table($table)->truncate();
-                }
-
-                exec($command);
-            }
-        } finally {
-            \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        }
+        \DB::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath());
     }
 }

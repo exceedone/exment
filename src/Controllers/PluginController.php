@@ -16,8 +16,6 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginButtonType;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use File;
 
 class PluginController extends AdminControllerBase
 {
@@ -51,6 +49,26 @@ class PluginController extends AdminControllerBase
     }
 
     /**
+     * execute batch
+     *
+     * @param Request $request
+     * @param [type] $id
+     * @return void
+     */
+    public function executeBatch(Request $request, $id)
+    {
+        if (!\Exment::user()->hasPermission(Permission::PLUGIN_ACCESS)) {
+            Checker::error();
+            return false;
+        }
+
+        \Artisan::call('exment:batch', ['id' => $id]);
+        
+        admin_toastr(exmtrans('common.message.success_execute'));
+        return back();
+    }
+
+    /**
      * Make a grid builder.
      *
      * @return Grid
@@ -62,6 +80,11 @@ class PluginController extends AdminControllerBase
             $filter->disableIdFilter();
             $filter->like('uuid', exmtrans("plugin.uuid"));
             $filter->like('plugin_name', exmtrans("plugin.plugin_name"));
+            $filter->like('plugin_view_name', exmtrans("plugin.plugin_view_name"));
+
+            $filter->like('author', exmtrans("plugin.author"));
+            $filter->like('version', exmtrans("plugin.version"));
+            $filter->like('active_flg', exmtrans("plugin.active_flg"))->radio(\Exment::getYesNoAllOption());
         });
 
         $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();
@@ -283,6 +306,15 @@ class PluginController extends AdminControllerBase
                     'href' => admin_url($plugin->getRouteUri()),
                     'label' => exmtrans('plugin.show_plugin_page'),
                     'icon' => 'fa-desktop',
+                    'btn_class' => 'btn-purple',
+                ]));
+            }
+            
+            if ($plugin->matchPluginType(PluginType::BATCH)) {
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_urls('plugin', $plugin->id, 'executeBatch'),
+                    'label' => exmtrans('plugin.execute_plugin_batch'),
+                    'icon' => 'fa-exclamation-circle',
                     'btn_class' => 'btn-purple',
                 ]));
             }

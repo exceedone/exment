@@ -37,7 +37,8 @@ class Workflow extends ModelBase
         
     public function notifies()
     {
-        return $this->hasMany(Notify::class, 'workflow_id');
+        return $this->hasMany(Notify::class, 'workflow_id')
+            ->where('active_flg', 1);
     }
 
     protected static function boot()
@@ -142,8 +143,8 @@ class Workflow extends ModelBase
     /**
      * Get workflow filtering active using custom table
      *
-     * @param [type] $custom_table
-     * @return ?Workflow
+     * @param CustomTable $custom_table
+     * @return Workflow|null
      */
     public static function getWorkflowByTable($custom_table)
     {
@@ -232,6 +233,21 @@ class Workflow extends ModelBase
         // check actions
         if (count($this->workflow_actions) == 0) {
             return false;
+        }
+
+        // check action use status is exists
+        $status_list = $this->workflow_statuses->pluck('id');
+        $status_list->push(Define::WORKFLOW_START_KEYNAME);
+
+        foreach ($this->workflow_actions as $workflow_action) {
+            if (!$status_list->contains($workflow_action->status_from)) {
+                return false;
+            }
+            foreach ($workflow_action->workflow_condition_headers as $workflow_condition_header) {
+                if (!$status_list->contains($workflow_condition_header->status_to)) {
+                    return false;
+                }
+            }
         }
 
         return true;

@@ -100,6 +100,17 @@ class WorkflowValue extends ModelBase
     }
     
     /**
+     * this workflow is completed
+     *
+     * @return bool
+     */
+    public function isCompleted() : bool
+    {
+        $statusTo = $this->workflow_status_cache;
+        return WorkflowStatus::getWorkflowStatusCompleted($statusTo);
+    }
+
+    /**
      * Whether already executed workflow
      *
      * @return bool
@@ -113,6 +124,7 @@ class WorkflowValue extends ModelBase
             ->where('workflow_action_id', $action_id)
             ->count() > 0;
     }
+
     
     public function deletingChildren()
     {

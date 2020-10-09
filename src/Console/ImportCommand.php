@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\DataImportExport;
-use \File;
 
 class ImportCommand extends Command
 {

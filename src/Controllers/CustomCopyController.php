@@ -5,8 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-//use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
@@ -24,7 +22,8 @@ class CustomCopyController extends AdminControllerTableBase
     {
         parent::__construct($custom_table, $request);
         
-        $this->setPageInfo(exmtrans("custom_copy.header"), exmtrans("custom_copy.header"), exmtrans("custom_copy.description"), 'fa-copy');
+        $title = exmtrans("custom_copy.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
+        $this->setPageInfo($title, $title, exmtrans("custom_copy.description"), 'fa-copy');
     }
 
     /**
@@ -104,6 +103,20 @@ class CustomCopyController extends AdminControllerTableBase
         $grid->actions(function ($actions) {
             $actions->disableView();
         });
+        
+        // filter
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+
+            $filter->equal('to_custom_table_id', exmtrans("custom_copy.to_custom_table_view_name"))->select(function(){
+                return CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
+            });
+
+            $filter->exmwhere(function($query, $input){
+                $query->where('options->label', 'LIKE', $input . '%');
+            }, exmtrans("plugin.options.label"));
+        });
+
         return $grid;
     }
 

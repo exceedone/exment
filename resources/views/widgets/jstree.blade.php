@@ -10,11 +10,10 @@
             },
         }})
         .on("select_node.jstree", function(e, data){
-            var path = data.instance.get_path(data.node,'/');
             $.ajax({
                 type: "GET",
                 url: "{{ $file_get_url }}",
-                data: "nodepath=" + path,
+                data: "nodeid=" + data.node.id,
                 cache: false,
                 success: function(data){
                     if(data.editor){

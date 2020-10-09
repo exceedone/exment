@@ -257,6 +257,14 @@ return [
     
     /*
     |--------------------------------------------------------------------------
+    | Disable login header logo
+    |--------------------------------------------------------------------------
+    |
+    */
+    'disable_login_header_logo' => env('EXMENT_DISABLE_LOGIN_HEADER_LOGO', false),
+    
+    /*
+    |--------------------------------------------------------------------------
     | Revision Count Default
     |--------------------------------------------------------------------------
     |
@@ -379,6 +387,16 @@ return [
     |
     */
     'custom_value_filter_ajax' => env('EXMENT_CUSTOM_VALUE_FILTER_AJAX', true),
+  
+    /*
+    |--------------------------------------------------------------------------
+    | search document
+    |--------------------------------------------------------------------------
+    |
+    | Whether searching document file
+    |
+    */
+    'search_document' => env('EXMENT_SEARCH_DOCUMENT', false),
   
     /*
     |--------------------------------------------------------------------------
@@ -736,6 +754,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Document upload max count one request
+    |--------------------------------------------------------------------------
+    | 
+    */
+    'document_upload_max_count' => env('EXMENT_DOCUMENT_UPLOAD_MAX_COUNT', 5),
+
+    /*
+    |--------------------------------------------------------------------------
     | Disabled show datalist table button for all user
     |--------------------------------------------------------------------------
     |
@@ -813,5 +839,15 @@ return [
     |
     */
     'html_allowed_editor' => env('EXMENT_HTML_ALLOWED_EDITOR', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | diable upload images
+    |--------------------------------------------------------------------------
+    |
+    | disable paste image
+    |
+    */
+    'diable_upload_images_editor' => env('EXMENT_DIABLE_UPLOAD_IMAGES_EDITOR', false),
 
 ];

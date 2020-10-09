@@ -276,6 +276,8 @@ class CustomViewFilter extends ModelBase
                     case FilterOption::DAY_NEXT_YEAR:
                         $value_day = new Carbon('first day of next year');
                         break;
+                    default:
+                        throw new \Exception; // (Never called this, for set lint).
                 }
                 $model->{$method_name.'YearExment'}($view_column_target, $value_day->year, $isDateTime);
                 break;
@@ -349,10 +351,15 @@ class CustomViewFilter extends ModelBase
         
             // for user --------------------------------------------------
             case FilterOption::USER_EQ_USER:
-                $model->{$method_name}($view_column_target, \Exment::user()->base_user->id);
-                break;
             case FilterOption::USER_NE_USER:
-                $model->{$method_name}($view_column_target, '<>', \Exment::user()->base_user->id);
+                $user_id = \Exment::getUserId();
+                if ($user_id) {
+                    $mark = isMatchString($view_filter_condition, FilterOption::USER_NE_USER) ? '<>' : '=';
+                    $model->{$method_name}($view_column_target, $mark, $user_id);
+                } else {
+                    $model->{$method_name . 'Raw'}('1 = 0');
+                }
+                break;
         }
 
         return $model;

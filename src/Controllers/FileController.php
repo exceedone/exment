@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
 use Illuminate\Support\Facades\Storage;
@@ -107,7 +108,34 @@ class FileController extends AdminControllerBase
      */
     public function downloadFavicon()
     {
-        $record = System::where('system_name', 'site_favicon')->first();
+        return static::downloadFileByKey('site_favicon');
+    }
+
+    /**
+     * Download Login image
+     */
+    public function downloadLoginBackground()
+    {
+        return static::downloadFileByKey('login_page_image');
+    }
+
+    /**
+     * Download Login Header
+     */
+    public function downloadLoginHeader()
+    {
+        return static::downloadFileByKey('site_logo');
+    }
+
+    /**
+     * Download File
+     *
+     * @param string $key
+     * @return mixed
+     */
+    public static function downloadFileByKey(string $key)
+    {
+        $record = System::where('system_name', $key)->first();
 
         if (!isset($record)) {
             abort(404);
@@ -186,6 +214,34 @@ class FileController extends AdminControllerBase
     }
 
     /**
+     * Download temporary upload file
+     */
+    public static function downloadTemp($uuid, $options = [])
+    {
+        $filename = pathinfo($uuid, PATHINFO_FILENAME);
+
+        $exists = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->exists($uuid);
+        
+        if (!$exists) {
+            abort(404);
+        }
+
+        $file = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->get($uuid);
+        $type = Storage::disk(Define::DISKNAME_TEMP_UPLOAD)->mimeType($uuid);
+        // get page name
+        $name = rawurlencode($filename);
+
+        // create response
+        $response = Response::make($file, 200);
+        $response->header("Content-Type", $type);
+
+        // Disposition is attachment because inline is SVG XSS.
+        $response->header('Content-Disposition', "attachment; filename*=UTF-8''$name");
+
+        return $response;
+    }
+
+    /**
      * Delete file and document info
      */
     public static function deleteFile($uuid, $options = [])
@@ -207,7 +263,7 @@ class FileController extends AdminControllerBase
         }
 
         // if not has delete setting, abort 403
-        if (!$options['asApi'] && boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::user()->getUserId()) {
+        if (!$options['asApi'] && boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::getUserId()) {
             abort(403);
         }
 
@@ -254,5 +310,74 @@ class FileController extends AdminControllerBase
             'status'  => true,
             'message' => trans('admin.delete_succeeded'),
         ]);
+    }
+
+    /**
+     *  Delete temporary files that are one day old
+     */
+    protected function removeTempFiles()
+    {
+        $disk = Storage::disk(Define::DISKNAME_TEMP_UPLOAD);
+
+        // get all temporary files
+        $filenames = $disk->files();
+
+        // get file infos
+        $files = collect($filenames)->map(function ($filename) use ($disk) {
+            return [
+                'name' => $filename,
+                'lastModified' => $disk->lastModified($filename),
+            ];
+        })->sortBy('lastModified');
+
+        // remove file
+        foreach ($files->values()->all() as $file) {
+            $past = time() - array_get($file, 'lastModified');
+            if ($past < 24 * 60 * 60) {
+                break;
+            }
+
+            $disk->delete(array_get($file, 'name'));
+        }
+    }
+
+    /**
+     *  upload file as temporary
+     */
+    protected function uploadTempFile(Request $request)
+    {
+        // delete old temporary files
+        $this->removeTempFiles();
+        
+        // check image file. *NOW Only this endpoint is image*
+        $validator = \Validator::make($request->all(), [
+            'file' => 'required|image'
+        ]);
+        if ($validator->fails()) {
+            return response()->json(array_get($validator->errors()->toArray(), 'file'), 400);
+        }
+
+        // get upload file
+        $file = $request->file('file');
+        $original_name = $file->getClientOriginalName();
+        $uuid = make_uuid();
+        // store uploaded file
+        $filename = $file->storeAs('', $uuid, Define::DISKNAME_TEMP_UPLOAD);
+        try {
+            $request->session()->put($uuid, $original_name);
+        } catch (\Exception $e) {
+        }
+        return json_encode(['location' => admin_urls('tmpfiles', basename($filename))]);
+    }
+
+    /**
+     * Download temporary saved file
+     */
+    public function downloadTempFile(Request $request, $uuid)
+    {
+        // delete old temporary files
+        $this->removeTempFiles();
+
+        return static::downloadTemp($uuid);
     }
 }

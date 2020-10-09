@@ -207,7 +207,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $query->where('view_type', $this->view_type);
 
         if ($this->view_type == ViewType::USER) {
-            $query->where('created_user_id', \Exment::user()->getUserId());
+            $query->where('created_user_id', \Exment::getUserId());
         }
     }
 
@@ -451,8 +451,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             // if query has view id, set view.
             $view = static::findBySuuid($suuid);
 
+            // not match table id, reset view
+            if (isset($view) && !isMatchString($view->custom_table_id, $tableObj->id)) {
+                $view = null;
+            }
+
             // set user_setting
-            if (!is_null($user) && !$is_dashboard) {
+            if (isset($view) && !is_null($user) && !$is_dashboard) {
                 $user->setSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]), $suuid);
             }
         }
@@ -461,6 +466,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             // get suuid
             $suuid = $user->getSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]));
             $view = CustomView::findBySuuid($suuid);
+
+            // not match table id, reset view
+            if (isset($view) && !isMatchString($view->custom_table_id, $tableObj->id)) {
+                $view = null;
+            }
         }
         // if url doesn't contain view query, get custom view. first
         if (!isset($view)) {
@@ -904,5 +914,34 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             ->exists();
 
         return $hasEdit;
+    }
+
+    /**
+     * check if target id view can be deleted
+     * @param int|string $id
+     * @return [boolean, string] status, error message.
+     */
+    public static function validateDestroy($id)
+    {
+        // check notify target view
+        $notify_count = Notify::where('custom_view_id', $id)
+            ->count();
+
+        if ($notify_count > 0) {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_view.message.used_notify_error'),
+            ];
+        }
+        // check select_table
+        $column_count = CustomColumn::whereIn('options->select_target_view', [strval($id), intval($id)])
+            ->count();
+
+        if ($column_count > 0) {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_view.message.used_column_error'),
+            ];
+        }
     }
 }

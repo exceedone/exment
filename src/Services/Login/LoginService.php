@@ -22,6 +22,61 @@ use Illuminate\Http\Request;
  */
 class LoginService
 {
+    /**
+     * Reset password. contains send password.
+     *
+     * @param LoginUser|CustomValue $user CustomValue(user) or login user
+     * @param array $options
+     * @return void
+     */
+    public static function resetPassword($user, array $options = [])
+    {
+        $options = array_merge([
+            'send_password' => false,  // whether sending password.
+            'password_reset_flg' => false,  // whether reset password flg first login.
+            'password' => null, // password string.
+        ], $options);
+        
+        $send_password = $options['send_password'];
+        $password_reset_flg = $options['password_reset_flg'];
+        $password = $options['password'];
+
+        // get user
+        if ($user instanceof LoginUser) {
+            $login_user = $user;
+        } elseif ($user instanceof CustomValue) {
+            $login_user = $user->login_user;
+        } else {
+            throw new \Exception('Please input LoginUser or CustomValue.');
+        }
+
+        try {
+            $login_user->password_reset_flg = System::first_change_password() || boolval($password_reset_flg);
+
+            if (is_nullorempty($password)) {
+                $password = make_password();
+            }
+            $login_user->password = $password;
+
+            // mailsend
+            if (boolval($send_password)) {
+                try {
+                    $login_user->sendPassword($password);
+                }
+                // throw mailsend Exception
+                catch (\Swift_TransportException $ex) {
+                    \Log::error($ex);
+                    admin_error(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
+                    return back()->withInput();
+                }
+            }
+            $login_user->save();
+        } catch (\Exception $ex) {
+            throw $ex;
+        }
+    }
+
+
     public static function setToken()
     {
         // get custom login user
@@ -77,8 +132,8 @@ class LoginService
     /**
      * Get custom login validator for synced user.
      *
-     * @param array $array
-     * @return \Validator
+     * @param CustomLoginUserBase $custom_login_user
+     * @return \Illuminate\Contracts\Validation\Validator
      */
     public static function validateCustomLoginSync(CustomLoginUserBase $custom_login_user)
     {
@@ -118,42 +173,18 @@ class LoginService
             return $rules;
         }
 
-        $mapping_user_column = $login_setting->getOption('mapping_user_column');
-        // remove "unique" and initflg class if not key
-        $rules = collect($rules)->mapWithKeys(function ($rule, $key) use ($mapping_user_column) {
-            // same mapping_user_column and r, return same rules
-            if ($mapping_user_column == $key) {
-                return [$key => $rule];
-            }
-
-            $rule = collect($rule)->filter(function ($r) {
-                if ($r instanceof \Exceedone\Exment\Validator\InitOnlyRule) {
-                    return false;
-                }
-                
-                if (!is_string($r)) {
-                    return true;
-                }
-
-                if (strpos($r, 'unique') === 0) {
-                    return false;
-                }
-                return true;
-            })->toArray();
-
-            return [$key => $rule];
-        })->toArray();
-
-        return $rules;
+        // In other cases, no validation will be performed and an empty array will be returned.
+        return [];
     }
     
 
     /**
      * Get login test result.
      *
-     * @param [type] $result
-     * @param [type] $messages
-     * @param [type] $custom_login_user
+     * @param bool $result
+     * @param array $messages
+     * @param array $adminMessages
+     * @param CustomLoginUserBase $custom_login_user
      * @return array
      */
     public static function getLoginResult($result, $messages, $adminMessages = null, ?CustomLoginUserBase $custom_login_user = null)
@@ -402,8 +433,8 @@ class LoginService
      * get login_user from login_users table
      *
      * @param CustomLoginUserBase $custom_login_user
-     * @param [type] $exment_user
-     * @param [type] $socialiteProvider
+     * @param CustomValue|LoginUser $exment_user
+     * @param mixed $socialiteProvider
      * @return LoginUser
      */
     public static function getLoginUser(CustomLoginUserBase $custom_login_user, $exment_user, $socialiteProvider = null) : LoginUser
