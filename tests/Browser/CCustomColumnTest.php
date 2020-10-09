@@ -23,9 +23,8 @@ class CCustomColumnTest extends ExmentKitTestCase
     {
         // Check custom column form
         $this->visit('/admin/column/test')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->see('カスタム列設定')
-                ->seeInElement('th', 'テーブル')
                 ->seeInElement('th', '列名(英数字)')
                 ->seeInElement('th', '列表示名')
                 ->seeInElement('th', '列種類')
@@ -57,7 +56,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '使用可能文字')
                 ->type('256', 'options[string_length]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'onelinetext')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -68,7 +67,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('onelinetext')
             ->seeInField('column_view_name', 'One Line Text')
-            ->seeIsSelected('column_type', 'text')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.text'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[string_length]', 256)
@@ -85,7 +84,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --one line--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'One Line Text Update');
 
         // Check custom column --one line--
@@ -114,7 +113,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('label', '最大文字数')
                 ->type('512', 'options[string_length]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'multilinetext')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -125,7 +124,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('multilinetext')
             ->seeInField('column_view_name', 'Multi Line Text')
-            ->seeIsSelected('column_type', 'textarea')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.textarea'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[string_length]', 512)
@@ -141,7 +140,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Multi line--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Multi Line Text Update');
 
         // Check custom column --Multi line--
@@ -168,7 +167,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->select('editor', 'column_type')
                 ->type('テキストエディタのヘルプ', 'options[help]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'editor_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -179,7 +178,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('editor_col')
             ->seeInField('column_view_name', 'Editor Column')
-            ->seeIsSelected('column_type', 'editor')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.editor'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'テキストエディタのヘルプ')
@@ -193,7 +192,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Editor--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Editor Column Update');
 
         // Check custom column --Editor--
@@ -218,7 +217,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->select('url', 'column_type')
                 ->type('URLのヘルプ', 'options[help]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'url_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -229,7 +228,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('url_col')
             ->seeInField('column_view_name', 'URL Column')
-            ->seeIsSelected('column_type', 'url')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.url'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'URLのヘルプ')
@@ -243,7 +242,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --URL--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'URL Column Update');
 
         // Check custom column --URL--
@@ -268,7 +267,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->select('email', 'column_type')
                 ->type('Emailのヘルプ', 'options[help]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'email_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -279,7 +278,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('email_col')
             ->seeInField('column_view_name', 'Email Column')
-            ->seeIsSelected('column_type', 'email')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.email'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'Emailのヘルプ')
@@ -293,7 +292,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Email--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Email Column Update');
 
         // Check custom column --Email--
@@ -326,7 +325,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type(-12345, 'options[number_min]')
                 ->type(12345, 'options[number_max]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'integer_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -337,7 +336,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('integer_col')
             ->seeInField('column_view_name', 'Integer Column')
-            ->seeIsSelected('column_type', 'textarea')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.textarea'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[default]', 1)
@@ -363,7 +362,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Integer--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Integer Column Update');
 
         // Check custom column --Integer--
@@ -402,7 +401,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type(12345.67, 'options[number_max]')
                 ->type(3, 'options[decimal_digit]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'decimal_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -413,7 +412,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('decimal_col')
             ->seeInField('column_view_name', 'Decimal Column')
-            ->seeIsSelected('column_type', 'textarea')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.textarea'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[default]', 1)
@@ -435,7 +434,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Decimal--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Decimal Column Update');
 
         // Check custom column --decimal line--
@@ -474,7 +473,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type(12345.67, 'options[number_max]')
                 ->type(3, 'options[decimal_digit]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'currency_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -485,7 +484,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('currency_col')
             ->seeInField('column_view_name', 'Currency Column')
-            ->seeIsSelected('column_type', 'currency')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.currency'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[default]', 1)
@@ -511,7 +510,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Currency--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Currency Column Update');
 
         // Check custom column --Currency--
@@ -543,7 +542,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('日付のヘルプ', 'options[help]')
                 ->type('2019/02/19', 'options[default]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'date_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -554,7 +553,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('date_col')
             ->seeInField('column_view_name', 'Date Column')
-            ->seeIsSelected('column_type', 'date')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.date'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '日付のヘルプ')
@@ -569,7 +568,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Date--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Date Column Update');
 
         // Check custom column --Date--
@@ -595,7 +594,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('時間のヘルプ', 'options[help]')
                 ->type('12:34:56', 'options[default]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'time_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -606,7 +605,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('time_col')
             ->seeInField('column_view_name', 'Time Column')
-            ->seeIsSelected('column_type', 'time')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.time'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '時間のヘルプ')
@@ -621,7 +620,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Uptime custom column --Time--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Time Column Uptime');
 
         // Check custom column --Time--
@@ -647,7 +646,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('日付と時間のヘルプ', 'options[help]')
                 ->type('2019/02/19 11:22:33', 'options[default]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'datetime_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -658,7 +657,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('datetime_col')
             ->seeInField('column_view_name', 'DateTime Column')
-            ->seeIsSelected('column_type', 'datetime')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.datetime'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '日付と時間のヘルプ')
@@ -673,7 +672,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Updatetime custom column --DateTime--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'DateTime Column Updatetime');
 
         // Check custom column --DateTime--
@@ -702,7 +701,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type(0, 'options[default]')
                 ->type('選択1'."\n".'選択2'."\n".'選択3', 'options[select_item]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'select_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -713,7 +712,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('select_col')
             ->seeInField('column_view_name', 'Select Column')
-            ->seeIsSelected('column_type', 'select')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.select'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '選択肢のヘルプ')
@@ -729,7 +728,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Select line--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Select Column Update');
 
         // Check custom column --Select line--
@@ -758,7 +757,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type(0, 'options[default]')
                 ->type('0,低い'."\n".'1,通常'."\n".'2,高い', 'options[select_item_valtext]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'select_valtext_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -769,7 +768,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('select_valtext_col')
             ->seeInField('column_view_name', 'Select Value Text Column')
-            ->seeIsSelected('column_type', 'select_valtext')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.select_valtext'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '選択肢（値と見出し）のヘルプ')
@@ -787,7 +786,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Select Value Text--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Select Value Text Column Update');
 
         // Check custom column --Select Value Text--
@@ -819,7 +818,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type(0, 'options[default]')
                 ->select($table_id, 'options[select_target_table]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'select_table_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -830,7 +829,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('select_table_col')
             ->seeInField('column_view_name', 'Select Table Column')
-            ->seeIsSelected('column_type', 'select_table')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.select_table'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '選択肢（テーブル）のヘルプ')
@@ -848,7 +847,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Select Table--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Select Table Column Update');
 
         // Check custom column --Select Table--
@@ -875,7 +874,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('YES・Noのヘルプ', 'options[help]')
                 ->type(0, 'options[default]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'yesno_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -886,7 +885,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('yesno_col')
             ->seeInField('column_view_name', 'YesNo Column')
-            ->seeIsSelected('column_type', 'yesno')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.yesno'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'YES・Noのヘルプ')
@@ -901,7 +900,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --YesNo--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'YesNo Column Update');
 
         // Check custom column --YesNo--
@@ -935,7 +934,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type(2, 'options[false_value]')
                 ->type('２番', 'options[false_label]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'boolean_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -946,7 +945,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('boolean_col')
             ->seeInField('column_view_name', 'Boolean Column')
-            ->seeIsSelected('column_type', 'boolean')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.boolean'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '2値の選択のヘルプ')
@@ -965,7 +964,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Boolean--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Boolean Column Update');
 
         // Check custom column --Boolean--
@@ -993,7 +992,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type(0, 'options[default]')
                 ->select('random25', 'options[auto_number_type]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'auto_number_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -1004,7 +1003,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('auto_number_col')
             ->seeInField('column_view_name', 'AutoNumber Column')
-            ->seeIsSelected('column_type', 'auto_number')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.auto_number'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '採番種類のヘルプ')
@@ -1020,7 +1019,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --AutoNumber--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'AutoNumber Column Update');
 
         // Check custom column --AutoNumber--
@@ -1045,7 +1044,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->select('image', 'column_type')
                 ->type('画像のヘルプ', 'options[help]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'image_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -1056,7 +1055,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('image_col')
             ->seeInField('column_view_name', 'Image Column')
-            ->seeIsSelected('column_type', 'image')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.image'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '画像のヘルプ')
@@ -1070,7 +1069,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Image--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'Image Column Update');
 
         // Check custom column --Image--
@@ -1095,7 +1094,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->select('file', 'column_type')
                 ->type('ファイルのヘルプ', 'options[help]')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'file_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -1106,7 +1105,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('file_col')
             ->seeInField('column_view_name', 'File Column')
-            ->seeIsSelected('column_type', 'file')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.file'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'ファイルのヘルプ')
@@ -1120,7 +1119,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --File--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'File Column Update');
 
         // Check custom column --File--
@@ -1146,7 +1145,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('ユーザーのヘルプ', 'options[help]')
                 ->seeInElement('label', '複数選択を許可する')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'user_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
@@ -1157,7 +1156,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('user_col')
             ->seeInField('column_view_name', 'User Column')
-            ->seeIsSelected('column_type', 'user')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.user'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', 'ユーザーのヘルプ')
@@ -1173,7 +1172,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --User--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->seeInElement('td', 'User Column Update');
 
         // Check custom column --User--
@@ -1200,7 +1199,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('組織のヘルプ', 'options[help]')
                 ->seeInElement('label', '複数選択を許可する')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ->visit('/admin/column/test?page=1&per_page=50')
                 ->seeInElement('td', 'organization_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
@@ -1212,7 +1211,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/'. $id . '/edit')
             ->see('organization_col')
             ->seeInField('column_view_name', 'Organization Column')
-            ->seeIsSelected('column_type', 'organization')
+            ->seeInElement('span', exmtrans('custom_column.column_type_options.organization'))
             ->seeInField('options[index_enabled]', 0)
             ->seeInField('options[required]', 0)
             ->seeInField('options[help]', '組織のヘルプ')
@@ -1228,7 +1227,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         // Update custom column --Organization--
         $this->visit('/admin/column/test/'. $id . '/edit')
                 ->submitForm('admin-submit', $form)
-                ->seePageIs('/admin/column/test')
+                ->seePageIs(admin_url('column/test'))
                 ;
 
         // Check custom column --Organization--
@@ -1248,7 +1247,7 @@ class CCustomColumnTest extends ExmentKitTestCase
         $this->visit('/admin/column/test/create')
                 ->seeInElement('h3[class=box-title]', '作成')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test/create')
+                ->seePageIs(admin_url('column/test/create'))
         ;
     }
 
@@ -1261,889 +1260,8 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->type('One Line Text Duplicate', 'column_view_name')
                 ->select('text', 'column_type')
                 ->press('admin-submit')
-                ->seePageIs('/admin/column/test/create')
+                ->seePageIs(admin_url('column/test/create'))
         ;
     }
-
-
-    // precondition : login success
-//     public function testLoginSuccessWithTrueUsername()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/auth/login')
-//                 ->type('username', 'testuser')
-//                 ->type('password', 'test123456')
-//                 ->press('Login')
-//                 ->waitForText('Login successful')
-//                 ->assertPathIs('/admin')
-//                 ->assertTitle('Dashboard')
-//                 ->assertSee('Dashboard');
-//         });
-//     }
-
-// //     AutoTest_Column_01
-//     public function testDisplayColummSetting()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->assertSee('Custom Column Detail Setting')
-//                 ->assertSee('Setting details with customer list. these define required fields, searchable fields, etc.')
-//                 ->assertSee('Showing to of 0 entries');
-//         });
-//     }
-
-// //     AutoTest_Column_02
-//     public function testDisplayCreateScreen()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->waitForText('New')
-//                 ->clickLink('New')
-//                 ->pause(5000)
-//                 ->assertSeeIn('.box-title', 'Create')
-//                 ->assertSee('Column Name')
-//                 ->assertSee('Column View Name')
-//                 ->assertSee('Column Type')
-//                 ->assertSee('Required')
-//                 ->assertSee('Search Index')
-//                 ->assertSee('PlaceHolder')
-//                 ->assertSee('Use Label');
-//         });
-//     }
-
-//     // AutoTest_Column_03
-//     public function testAddOneLineTextColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'onelinetext' )
-//                 ->type('column_view_name', 'One Line Text')
-//                 ->assertDontSee('Max Length')
-//                 ->assertDontSee('Available Characters')
-//                 ->select('column_type', 'text')
-//                 ->assertSee('Max Length')
-//                 ->assertSee('Available Characters')
-//                 ->type('options[string_length]', '256')
-//                 ->click('#available_characters  label.checkbox-inline:nth-child(1) div.icheckbox_minimal-blue')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('onelinetext');
-//         });
-
-//     }
-
-// //     AutoTest_Column_04
-//     public function testVerifyOneLineTextColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('onelinetext')
-//                 ->assertValue('[name=column_view_name]', 'One Line Text')
-//                 ->assertSelected('column_type', 'text')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=string_length]', 256)
-//                 ->assertValue('#available_characters label.checkbox-inline:nth-child(1) div.checked [name*=available_characters]', 'lower');
-//         });
-
-//     }
-
-// //     AutoTest_Column_05
-//     public function testAddMultiLineTextColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'multilinetext' )
-//                 ->type('column_view_name', 'Multi Line Text')
-//                 ->assertDontSee('Max Length')
-//                 ->select('column_type', 'textarea')
-//                 ->assertSee('Max Length')
-//                 ->type('options[string_length]', '256')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('multilinetext');
-//         });
-//     }
-
-// //     AutoTest_Column_06
-//     public function testVerifyMultiLineTextColumn()
-//     {
-
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('multilinetext')
-//                 ->assertValue('[name=column_view_name]', 'Multi Line Text')
-//                 ->assertSelected('column_type', 'textarea')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=string_length]', 256);
-//         });
-//     }
-
-// //     AutoTest_Column_07
-//     public function testAddDecimalColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'decimal' )
-//                 ->type('column_view_name', 'Decimal')
-//                 ->assertDontSee('Min Number')
-//                 ->assertDontSee('Max Number')
-//                 ->assertDontSee('Use Number Comma String')
-//                 ->select('column_type', 'decimal')
-//                 ->assertSee('Min Number')
-//                 ->assertSee('Max Number')
-//                 ->assertSee('Use Number Comma String')
-//                 ->type('options[number_min]', '10')
-//                 ->type('options[number_max]', '100');
-//             $browser->script('document.querySelector(".options_number_format.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('decimal');
-//         });
-//     }
-
-// //     AutoTest_Column_08
-//     public function testVerifyDecimalColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('decimal')
-//                 ->assertValue('[name=column_view_name]', 'Decimal')
-//                 ->assertSelected('column_type', 'decimal')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=string_length]', 256)
-//                 ->assertValue('[name*=number_min]', 10)
-//                 ->assertValue('[name*=number_max]', 100)
-//                 ->assertValue('[name*=number_format]', 1);
-//         });
-//     }
-
-// //     AutoTest_Column_09
-//     public function testAddURLColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'url' )
-//                 ->type('column_view_name', 'URL')
-//                 ->select('column_type', 'url')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('url');
-//         });
-//     }
-
-// //     AutoTest_Column_10
-//     public function testVerifyURLColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('url')
-//                 ->assertValue('[name=column_view_name]', 'URL')
-//                 ->assertSelected('column_type', 'url')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0);
-//         });
-//     }
-
-// //     AutoTest_Column_11
-//     public function testAddEmailColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'email' )
-//                 ->type('column_view_name', 'Email')
-//                 ->select('column_type', 'email')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('email');
-//         });
-//     }
-
-// //     AutoTest_Column_12
-//     public function testVerifyEmailColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('email')
-//                 ->assertValue('[name=column_view_name]', 'Email')
-//                 ->assertSelected('column_type', 'email')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0);
-//         });
-//     }
-
-// //     AutoTest_Column_13
-//     public function testAddIntegerColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'integer' )
-//                 ->type('column_view_name', 'Integer')
-//                 ->assertDontSee('Min Number')
-//                 ->assertDontSee('Max Number')
-//                 ->assertDontSee('Use Number Comma String')
-//                 ->select('column_type', 'integer')
-//                 ->assertSee('Min Number')
-//                 ->assertSee('Max Number')
-//                 ->assertSee('Use Number Comma String')
-//                 ->type('options[number_min]', '10')
-//                 ->type('options[number_max]', '100');
-//             $browser->script('document.querySelector(".options_number_format.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('integer');
-//         });
-//     }
-
-// //     AutoTest_Column_14
-//     public function testVerifyIntegerColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('integer')
-//                 ->assertValue('[name=column_view_name]', 'Integer')
-//                 ->assertSelected('column_type', 'integer')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=string_length]', 256)
-//                 ->assertValue('[name*=number_min]', 10)
-//                 ->assertValue('[name*=number_max]', 100)
-//                 ->assertValue('[name*=number_format]', 1);
-//         });
-//     }
-
-// // AutoTest_Column_15
-//     public function testAddCalcResultColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'calcresult' )
-//                 ->type('column_view_name', 'Calc Result')
-//                 ->assertDontSee('Calc Formula')
-//                 ->assertDontSee('Use Number Comma String')
-//                 ->select('column_type', 'calc')
-//                 ->assertSee('Calc Formula')
-//                 ->assertSee('Use Number Comma String')
-//                 ->press('変更')
-//                 ->pause(2000)
-//                 ->assertSee('Calc Formula');
-// //                ->click('button[data-val="66"]')
-// //                ->click('button[data-val="69"]');
-//             $browser->script('jQuery(\'.col-target-fixedval\').val(100)');
-//             $browser
-//                 ->pause(2000)
-//                 ->click('button[data-type="fixed"]')
-//                 ->click('button[data-val="plus"]')
-//                 ->click('button[data-val="minus"]')
-//                 ->click('button[data-val="times"]')
-//                 ->click('button[data-val="div"]')
-//                 ->press('Setting')
-//                 ->pause(2000);
-//             $browser->script('document.querySelector(".options_number_format.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('calcresult');
-//         });
-//     }
-
-//     // AutoTest_Column_16
-//     public function testVerifyCalcResultColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('calcresult')
-//                 ->assertValue('[name=column_view_name]', 'Calc Result')
-//                 ->assertSelected('column_type', 'calc')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertSee( "100 ＋ － × ÷")
-//                 ->assertValue('[name*=number_format]', 1)
-//             ;
-//         });
-//     }
-
-//     // AutoTest_Column_17
-//     public function testAddDateColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'date' )
-//                 ->type('column_view_name', 'Date')
-//                 ->select('column_type', 'date')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('date');
-//         });
-//     }
-
-//     // AutoTest_Column_18
-//     public function testVerifyDateColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('date')
-//                 ->assertValue('[name=column_view_name]', 'Date')
-//                 ->assertSelected('column_type', 'date')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0);
-//         });
-//     }
-
-//     // AutoTest_Column_19
-//     public function testAddTimeColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'time' )
-//                 ->type('column_view_name', 'Time')
-//                 ->select('column_type', 'time')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('time');
-//         });
-//     }
-
-//     // AutoTest_Column_20
-//     public function testVerifyTimeColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('time')
-//                 ->assertValue('[name=column_view_name]', 'Time')
-//                 ->assertSelected('column_type', 'time')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0);
-//         });
-//     }
-
-// //     AutoTest_Column_21
-//     public function testAddDateAndTimeColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'dateandtime' )
-//                 ->type('column_view_name', 'Date and Time')
-//                 ->select('column_type', 'datetime')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('dateandtime');
-//         });
-//     }
-
-//     // AutoTest_Column_22
-//     public function testVerifyDateAndTimeColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('dateandtime')
-//                 ->assertValue('[name=column_view_name]', 'Date and Time')
-//                 ->assertSelected('column_type', 'datetime')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0);
-//         });
-//     }
-
-// //     AutoTest_Column_23
-//     public function testAddSelectFromStaticValueColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'selectfromstaticvalue' )
-//                 ->type('column_view_name', "Select Froom Static Value")
-//                 ->assertDontSee('Select Choice')
-//                 ->assertDontSee('Approval Multiple Select')
-//                 ->select('column_type', 'select')
-//                 ->assertSee('Select Choice')
-//                 ->assertSee('Approval Multiple Select')
-//                 ->type('options[select_item]', 'Adult \n Underage');
-//             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('selectfromstaticvalue');
-//         });
-//     }
-
-//     // AutoTest_Column_24
-//     public function testVerifySelectFromStaticValueColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('selectfromstaticvalue')
-//                 ->assertValue('[name=column_view_name]', 'Select Froom Static Value')
-//                 ->assertSelected('column_type', 'select')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=select_item]', 'Adult \n Underage')
-//                 ->assertValue('[name*=multiple_enabled]', 1);
-//         });
-//     }
-
-//     // AutoTest_Column_25
-//     public function testAddSelectSaveValueAndLabelColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'selectsavevalueandlabel' )
-//                 ->type('column_view_name', "Select Save Value and Lable")
-//                 ->assertDontSee('Select Choice')
-//                 ->assertDontSee('Approval Multiple Select')
-//                 ->select('column_type', 'select_valtext')
-//                 ->assertSee('Select Choice')
-//                 ->assertSee('Approval Multiple Select')
-//                 ->type('options[select_item_valtext]', '0,Adult \n 1,Underage');
-//             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('selectsavevalueandlabel');
-//         });
-//     }
-
-//     // AutoTest_Column_26
-//     public function testVerifySelectSaveValueAndLabelColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('selectsavevalueandlabel')
-//                 ->assertValue('[name=column_view_name]', 'Select Save Value and Lable')
-//                 ->assertSelected('column_type', 'select_valtext')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=select_item_valtext]', '0,Adult \n 1,Underage')
-//                 ->assertValue('[name*=multiple_enabled]', 1);
-//         });
-//     }
-
-//     // AutoTest_Column_27
-//     public function testAddSelectFromTableColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'selectfromtable' )
-//                 ->type('column_view_name', "Select Froom Table")
-//                 ->assertDontSee('Select Target Table')
-//                 ->assertDontSee('Approval Multiple Select')
-//                 ->select('column_type', 'select_table')
-//                 ->assertSee('Select Target Table')
-//                 ->assertSee('Approval Multiple Select')
-//                 ->select('options[select_target_table]', 1);
-//             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('selectfromtable');
-//         });
-//     }
-
-//     // AutoTest_Column_28
-//     public function testVerifySelectFromTableColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('selectfromtable')
-//                 ->assertValue('[name=column_view_name]', 'Select Froom Table')
-//                 ->assertSelected('column_type', 'select_table')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertSelected('options[select_target_table]', 1)
-//                 ->assertValue('[name*=multiple_enabled]', 1);
-//         });
-//     }
-
-//     // AutoTest_Column_29
-//     public function testAddYesNoColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'yesno' )
-//                 ->type('column_view_name', 'Yes No')
-//                 ->select('column_type', 'yesno')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('yesno');
-//         });
-//     }
-
-//     // AutoTest_Column_30
-//     public function testVerifyYesNoColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('yesno')
-//                 ->assertValue('[name=column_view_name]', 'Yes No')
-//                 ->assertSelected('column_type', 'yesno')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0);
-//         });
-//     }
-
-//     // AutoTest_Column_31
-//     public function testAddSelect2ValueColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'select2value' )
-//                 ->type('column_view_name', "Select 2 value")
-//                 ->assertDontSee('Select1 Value')
-//                 ->assertDontSee('Select2 Value')
-//                 ->assertDontSee('Select2 Label')
-//                 ->select('column_type', 'boolean')
-//                 ->assertSee('Select1 Value')
-//                 ->assertSee('Select2 Value')
-//                 ->assertSee('Select2 Label')
-//                 ->type('options[true_value]', "value1")
-//                 ->type('options[true_label]', "label1")
-//                 ->type('options[false_value]', "value2")
-//                 ->type('options[false_label]', "label2");
-//             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('select2value');
-//         });
-//     }
-
-//     // AutoTest_Column_32
-//     public function testVerifySelect2ValueColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('select2value')
-//                 ->assertValue('[name=column_view_name]', 'Select 2 value')
-//                 ->assertSelected('column_type', 'boolean')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=true_value]', "value1")
-//                 ->assertValue('[name*=true_label]', "label1")
-//                 ->assertValue('[name*=false_value]', "value2")
-//                 ->assertValue('[name*=false_label]', "label2");
-//         });
-//     }
-
-//     // AutoTest_Column_33
-//     public function testAddAutoNumberColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'autonumber' )
-//                 ->type('column_view_name', 'Auto Number')
-//                 ->assertDontSee('Auto Number Type')
-//                 ->select('column_type', 'auto_number')
-//                 ->assertSee('Auto Number Type')
-//                 ->select('options[auto_number_type]', 'random25')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('autonumber');
-//         });
-//     }
-
-//     // AutoTest_Column_34
-//     public function testVerifyAutoNumberColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('autonumber')
-//                 ->assertValue('[name=column_view_name]', 'Auto Number')
-//                 ->assertSelected('column_type', 'auto_number')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertSelected('options[auto_number_type]', 'random25');
-//         });
-//     }
-
-//     // AutoTest_Column_35
-//     public function testAddImageColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'image' )
-//                 ->type('column_view_name', 'Image')
-//                 ->assertDontSee('Approval Multiple Select')
-//                 ->select('column_type', 'image')
-//                 ->assertSee('Approval Multiple Select');
-//             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('image');
-//         });
-//     }
-
-//     // AutoTest_Column_36
-//     public function testVerifyImageColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('image')
-//                 ->assertValue('[name=column_view_name]', 'Image')
-//                 ->assertSelected('column_type', 'image')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=multiple_enabled]', 1);
-//         });
-//     }
-
-//     // AutoTest_Column_37
-//     public function testAddFileColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'file' )
-//                 ->type('column_view_name', 'File')
-//                 ->assertDontSee('Approval Multiple Select')
-//                 ->select('column_type', 'file')
-//                 ->assertSee('Approval Multiple Select');
-//             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('file');
-//         });
-//     }
-
-//     // AutoTest_Column_38
-//     public function testVerifyFileColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('file')
-//                 ->assertValue('[name=column_view_name]', 'File')
-//                 ->assertSelected('column_type', 'file')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=multiple_enabled]', 1);
-//         });
-//     }
-
-//     // AutoTest_Column_39
-//     public function testAddUserColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'user' )
-//                 ->type('column_view_name', 'User')
-//                 ->assertDontSee('Approval Multiple Select')
-//                 ->select('column_type', 'user')
-//                 ->assertSee('Approval Multiple Select');
-//             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('user');
-//         });
-//     }
-
-//     // AutoTest_Column_40
-//     public function testVerifyUserColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('user')
-//                 ->assertValue('[name=column_view_name]', 'User')
-//                 ->assertSelected('column_type', 'user')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=multiple_enabled]', 1);
-//         });
-//     }
-
-//     // AutoTest_Column_41
-//     public function testAddOrganizationColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'organization' )
-//                 ->type('column_view_name', 'Organization')
-//                 ->assertDontSee('Approval Multiple Select')
-//                 ->select('column_type', 'organization')
-//                 ->assertSee('Approval Multiple Select');
-//             $browser->script('document.querySelector(".options_multiple_enabled.la_checkbox").click();');
-//             $browser->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('organization');
-//         });
-//     }
-
-//     // AutoTest_Column_42
-//     public function testVerifyOrganizationColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('organization')
-//                 ->assertValue('[name=column_view_name]', 'Organization')
-//                 ->assertSelected('column_type', 'organization')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0)
-//                 ->assertValue('[name*=multiple_enabled]', 1);
-//         });
-//     }
-
-//     // AutoTest_Column_43
-//     public function testAddDocumentColumnSuccess()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->type('column_name', 'document' )
-//                 ->type('column_view_name', 'Document')
-//                 ->select('column_type', 'document')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertPathIs('/admin/column/test')
-//                 ->assertSee('document');
-//         });
-//     }
-
-//     // AutoTest_Column_44
-//     public function testVerifyDocumentColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->click('table tr:last-child .fa.fa-edit')
-//                 ->pause(5000)
-//                 ->assertSee('document')
-//                 ->assertValue('[name=column_view_name]', 'Document')
-//                 ->assertSelected('column_type', 'document')
-//                 ->assertValue('[name*=search_enabled]', 0)
-//                 ->assertValue('[name*=required]', 0)
-//                 ->assertValue('[name*=use_label_flg]', 0);
-//         });
-//     }
-
-//     // AutoTest_Column_45
-//     public function testAddFailWithMissingInfo()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->assertSeeIn('.box-title', 'Create')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertVisible('.has-error')
-//                 ->assertSee('The column name field is required.')
-//                 ->assertSee('The column view name field is required.')
-//                 ->assertSee('The column type field is required.');
-//         });
-//     }
-
-//     // AutoTest_Column_46
-//     public function testAddFailWithExistedColumnName()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test/create')
-//                 ->assertSeeIn('.box-title', 'Create')
-//                 ->type('column_name', 'onelinetext')
-//                 ->press('Submit')
-//                 ->pause(5000)
-//                 ->assertVisible('.has-error')
-//                 ->assertSee('validation.unique_in_table');
-//         });
-//     }
-
-//     // AutoTest_Column_47
-//     public function testEditOneLineTextColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')
-//                 ->assertSee('onelinetext');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "onelinetext"}).closest("tr").click();');
-//             $browser->pause(5000)
-//                 ->type('column_view_name', 'One Line Text Edited')
-//                 ->select('column_type', 'text')
-//                 ->press('Submit')
-//                 ->waitForText('Save Successful')
-//                 ->assertSee('One Line Text Edited')
-//                 ->assertPathIs('/admin/column/test');
-//         });
-//     }
-
-//     // AutoTest_Column_48
-//     public function testDropOneLineTextColumn()
-//     {
-//         $this->browse(function (Browser $browser) {
-//             $browser->visit('/admin/column/test')->assertSee('onelinetext');
-//             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "onelinetext"}).closest("tr").find("a.grid-row-delete").click();');
-//             $browser->pause(5000)
-//                 ->press('Confirm')
-// 				->waitForText('Delete succeeded !')
-//                 ->press('Ok')
-//                 ->assertDontSee('onelinetext')
-//                 ->assertPathIs('/admin/column/test');
-//         });
-//     }
 }
 

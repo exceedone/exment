@@ -31,12 +31,5 @@ abstract class ExmentKitTestCase extends BaseTestCase
     protected function login($id = null)
     {
         $this->be(LoginUser::find($id?? 1));
-        // precondition : login success
-        // $this->visit('/admin/auth/logout')
-        //         ->visit('/admin/auth/login')
-        //         ->type('admin', 'username')
-        //         ->type('adminadmin', 'password')
-        //         ->press('ログイン')
-        //         ->seePageIs('/admin');
     }
 }
