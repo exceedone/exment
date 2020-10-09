@@ -6,7 +6,6 @@ use Illuminate\Notifications\Notifiable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\NotifyNavbar;
-use Exceedone\Exment\Notifications;
 
 class NavbarSender
 {

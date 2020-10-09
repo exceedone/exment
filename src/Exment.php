@@ -321,12 +321,11 @@ class Exment
      */
     public function pushCollection(\Illuminate\Support\Collection $collect, $item) : \Illuminate\Support\Collection
     {
-        if($item instanceof \Illuminate\Support\Collection){
-            foreach($item as $i){
+        if ($item instanceof \Illuminate\Support\Collection) {
+            foreach ($item as $i) {
                 $collect->push($i);
             }
-        }
-        else{
+        } else {
             $collect->push($item);
         }
 
@@ -353,10 +352,11 @@ class Exment
     }
 
 
-    public function getMoreTag(?string $uri = null, ?string $id_transkey = null){
+    public function getMoreTag(?string $uri = null, ?string $id_transkey = null)
+    {
         $url = $this->getManualUrl($uri);
 
-        if($id_transkey){
+        if ($id_transkey) {
             $url .= '#' . exmtrans($id_transkey);
         }
 

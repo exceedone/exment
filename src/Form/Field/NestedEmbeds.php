@@ -33,7 +33,8 @@ class NestedEmbeds extends Embeds
         return $this->nestedForm;
     }
 
-    public function setRelationName($relationName){
+    public function setRelationName($relationName)
+    {
         $this->relationName = $relationName;
 
         return $this;

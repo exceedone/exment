@@ -80,7 +80,7 @@ class WorkflowValueView
             ->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
             ->where('ignore_work', 0)
             ->where(function ($query) {
-                $query->where(function ($query)  {
+                $query->where(function ($query) {
                     $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
                         ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
                     ;

@@ -26,7 +26,7 @@ class ParentItem implements ItemInterface
     protected $custom_relation;
     
     /**
-     * specifying the parent table 
+     * specifying the parent table
      */
     protected $target_parent = false;
     
@@ -58,7 +58,7 @@ class ParentItem implements ItemInterface
     {
         if (array_get($this->options, 'grid_column')) {
             return 'parent_id';
-        } else if ($this->target_parent) {
+        } elseif ($this->target_parent) {
             return 'parent_id_'.$this->parent_table->table_name.'_'.$this->custom_table->table_name;
         } else {
             return 'parent_id_'.$this->custom_table->table_name;

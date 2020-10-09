@@ -47,11 +47,11 @@ class NotifyService
     {
         // get target users
         $values = collect();
-        foreach($this->notify->action_settings as $action_setting){
+        foreach ($this->notify->action_settings as $action_setting) {
             $values = $values->merge($this->notify->getNotifyTargetUsers($this->custom_value, $action_setting));
         }
 
-        if(!$this->hasNotifyUserByButton($values)){
+        if (!$this->hasNotifyUserByButton($values)) {
             return false;
         }
 
@@ -127,7 +127,7 @@ class NotifyService
         }
 
         $notifyTargets = collect($notifyTargets);
-        if(!$this->hasNotifyUserByButton($notifyTargets)){
+        if (!$this->hasNotifyUserByButton($notifyTargets)) {
             return false;
         }
 
@@ -257,19 +257,18 @@ class NotifyService
     protected function hasNotifyUserByButton(\Illuminate\Support\Collection $values) : bool
     {
         // Exists user, return true
-        if($values->count() > 0){
+        if ($values->count() > 0) {
             return true;
         }
 
         // contains webhook, return true.
-        if(collect($this->notify->action_settings)->contains(function($action_setting){
+        if (collect($this->notify->action_settings)->contains(function ($action_setting) {
             return NotifyAction::isChatMessage($notify_action);
-        })){
+        })) {
             return true;
         }
 
         return false;
-        
     }
 
 
@@ -287,14 +286,14 @@ class NotifyService
         });
 
         // contains webhook, Append label.
-        if(collect($this->notify->action_settings)->contains(function($action_setting){
-            return isMatchString(NotifyAction::SLACK,  array_get($action_setting, 'notify_action'));
-        })){
+        if (collect($this->notify->action_settings)->contains(function ($action_setting) {
+            return isMatchString(NotifyAction::SLACK, array_get($action_setting, 'notify_action'));
+        })) {
             $targets->push(exmtrans('notify.notify_action_options.slack'));
         }
-        if(collect($this->notify->action_settings)->contains(function($action_setting){
-            return isMatchString(NotifyAction::MICROSOFT_TEAMS,  array_get($action_setting, 'notify_action'));
-        })){
+        if (collect($this->notify->action_settings)->contains(function ($action_setting) {
+            return isMatchString(NotifyAction::MICROSOFT_TEAMS, array_get($action_setting, 'notify_action'));
+        })) {
             $targets->push(exmtrans('notify.notify_action_options.microsoft_teams'));
         }
 
@@ -371,17 +370,16 @@ class NotifyService
         ]);
 
         // get loop data for action_setting
-        if(!isset($params['action_setting'])){
+        if (!isset($params['action_setting'])) {
             $action_settings = array_get($notify, 'action_settings', []);
-        }
-        else{
+        } else {
             $action_settings = [$params['action_setting']];
         }
 
         // get notify actions
-        foreach($action_settings as $action_setting){
+        foreach ($action_settings as $action_setting) {
             $notify_action = array_get($action_setting, 'notify_action');
-            if(is_nullorempty($notify_action)){
+            if (is_nullorempty($notify_action)) {
                 continue;
             }
 
@@ -684,7 +682,7 @@ class NotifyService
             $items[] = ['id' => $k, 'text' => $v];
         }
 
-        if($options['as_workflow']){
+        if ($options['as_workflow']) {
             return $items;
         }
         
@@ -696,43 +694,43 @@ class NotifyService
         $custom_columns = $custom_table->custom_columns_cache;
 
         $column_items = [];
-        foreach($custom_columns as $custom_column){
-            if($options['get_email']){
-                if(ismatchString($custom_column->column_type, ColumnType::EMAIL)){
+        foreach ($custom_columns as $custom_column) {
+            if ($options['get_email']) {
+                if (ismatchString($custom_column->column_type, ColumnType::EMAIL)) {
                     $column_items[] = $custom_column;
                     continue;
                 }
             }
 
-            if($options['get_user']){
-                if(ismatchString($custom_column->column_type, ColumnType::USER)){
+            if ($options['get_user']) {
+                if (ismatchString($custom_column->column_type, ColumnType::USER)) {
                     $column_items[] = $custom_column;
                     continue;
                 }
             }
 
-            if($options['get_organization']){
-                if(ismatchString($custom_column->column_type, ColumnType::ORGANIZATION)){
+            if ($options['get_organization']) {
+                if (ismatchString($custom_column->column_type, ColumnType::ORGANIZATION)) {
                     $column_items[] = $custom_column;
                     continue;
                 }
             }
             
-            if($options['get_select_table_email']){
-                // if select table, getting column 
-                if(ColumnType::isSelectTable($custom_column->column_type)){
+            if ($options['get_select_table_email']) {
+                // if select table, getting column
+                if (ColumnType::isSelectTable($custom_column->column_type)) {
                     $select_target_table = $custom_column->select_target_table;
-                    if($select_target_table && $select_target_table->custom_columns_cache->contains(function($custom_column){
+                    if ($select_target_table && $select_target_table->custom_columns_cache->contains(function ($custom_column) {
                         return ismatchString($custom_column->column_type, ColumnType::EMAIL);
-                    })){
-                        $column_items[] = $custom_column;  
-                        continue; 
+                    })) {
+                        $column_items[] = $custom_column;
+                        continue;
                     }
                 }
             }
         }
 
-        foreach($column_items as $column_item){
+        foreach ($column_items as $column_item) {
             $items[] = ['id' => $column_item->id, 'text' => exmtrans('common.custom_column') . ' : ' . $column_item->column_view_name];
         }
 

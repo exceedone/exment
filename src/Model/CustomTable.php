@@ -371,9 +371,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $results = collect();
         // First, single column setting ----------------------------------------------------
-        $this->custom_columns_cache->filter(function($custom_column){
+        $this->custom_columns_cache->filter(function ($custom_column) {
             return boolval(array_get($custom_column->options, 'unique')) && !boolval(array_get($custom_column->options, 'multiple_enabled'));
-        })->each(function($custom_column) use($results){
+        })->each(function ($custom_column) use ($results) {
             $results->push([
                 // set as "unique1" array
                 'unique1' => $custom_column,
@@ -391,11 +391,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
 
             return true;
-        }, false)->each(function($custom_column_multi) use($results){
+        }, false)->each(function ($custom_column_multi) use ($results) {
             $i = [];
             foreach ([1,2,3] as $key) {
                 $value = $custom_column_multi->{"unique${key}"};
-                if(is_nullorempty($value)){
+                if (is_nullorempty($value)) {
                     continue;
                 }
                 $custom_column = CustomColumn::getEloquent($value);
@@ -405,7 +405,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $i["unique${key}"] = $custom_column;
             }
 
-            if(is_nullorempty($i)){
+            if (is_nullorempty($i)) {
                 return;
             }
 
@@ -767,25 +767,25 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // check input data
             $is_duplicate = collect($options['uniqueCheckSiblings'])
-                ->contains(function($row) use($input, $unique_column, &$column_keys){
-                foreach ([1,2,3] as $key) {
-                    if (is_null($column_id = array_get($unique_column, "unique{$key}"))) {
-                        continue;
+                ->contains(function ($row) use ($input, $unique_column, &$column_keys) {
+                    foreach ([1,2,3] as $key) {
+                        if (is_null($column_id = array_get($unique_column, "unique{$key}"))) {
+                            continue;
+                        }
+                        $column = CustomColumn::getEloquent($column_id);
+                        if (is_null($column)) {
+                            continue;
+                        }
+                        // get input value
+                        $value = array_get($input, 'value.' . $column->column_name);
+                        $other = array_get($row, 'value.' . $column->column_name);
+                        if ($value != $other) {
+                            return false;
+                        }
+                        $column_keys[] = $column;
                     }
-                    $column = CustomColumn::getEloquent($column_id);
-                    if (is_null($column)) {
-                        continue;
-                    }
-                    // get input value
-                    $value = array_get($input, 'value.' . $column->column_name);
-                    $other = array_get($row, 'value.' . $column->column_name);
-                    if ($value != $other) {
-                        return false;
-                    }
-                    $column_keys[] = $column;
-                }
-                return !empty($column_keys);
-            });
+                    return !empty($column_keys);
+                });
 
             if (!$is_duplicate) {
                 $column_keys = [];
@@ -1718,7 +1718,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'custom_column' => null,
                 'notAjax' => false,
                 'callQuery' => true,
-            ], $options
+            ],
+            $options
         );
 
         // if not ajax, return true

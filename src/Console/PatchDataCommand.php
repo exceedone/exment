@@ -1244,16 +1244,16 @@ class PatchDataCommand extends Command
     {
         Model\Notify::get()
         ->each(function ($notify) {
-            $notify_actions = array_filter(stringToArray($notify->notify_actions), function($notify_action){
+            $notify_actions = array_filter(stringToArray($notify->notify_actions), function ($notify_action) {
                 return !is_nullorempty($notify_action);
             });
-            if(count($notify_actions) == 0){
+            if (count($notify_actions) == 0) {
                 $notify_actions = [Enums\NotifyAction::SHOW_PAGE];
             }
 
             $action_settings_array = [];
 
-            foreach($notify_actions as $notify_action){
+            foreach ($notify_actions as $notify_action) {
                 $action_settings = $notify->action_settings;
                 $item = [
                     'notify_action' => $notify_action,
@@ -1275,6 +1275,5 @@ class PatchDataCommand extends Command
                     $notify->setTriggerSetting('notify_myself', true)->save();
                 });
         }
-
     }
 }

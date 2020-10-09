@@ -326,7 +326,7 @@ abstract class CustomItem implements ItemInterface
 
         // set validates as callback
         $_this = $this;
-        $field->rules(function($form) use($_this, $form_column_options, $field){
+        $field->rules(function ($form) use ($_this, $form_column_options, $field) {
             // set validates
             return $_this->getColumnValidatesCallback($form_column_options, $field);
         });
@@ -521,7 +521,7 @@ abstract class CustomItem implements ItemInterface
     protected function appendHelp($form_column_options, Field $field)
     {
         $text = $this->getAppendHelpText($form_column_options);
-        if(is_nullorempty($text)){
+        if (is_nullorempty($text)) {
             return;
         }
 

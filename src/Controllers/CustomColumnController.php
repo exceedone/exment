@@ -143,16 +143,15 @@ class CustomColumnController extends AdminControllerTableBase
             $keys = ['required' => 'common', 'index_enabled' => 'custom_column.options', 'freeword_search' => 'custom_column.options', 'unique' => 'custom_column.options'];
             foreach ($keys as $key => $label) {
                 $filter->exmwhere(function ($query, $input) use ($key) {
-                    if(is_nullorempty($input)){
+                    if (is_nullorempty($input)) {
                         return;
                     }
-                    if(isMatchString($input, 0)){
-                        $query->where(function($query) use($key){
+                    if (isMatchString($input, 0)) {
+                        $query->where(function ($query) use ($key) {
                             $query->whereIn("options->$key", [0, '0'])
                                 ->orWhereNull("options->$key");
                         });
-                    }
-                    else{
+                    } else {
                         $query->whereIn("options->$key", [1, '1']);
                     }
                 }, exmtrans("$label.$key"))->radio(\Exment::getYesNoAllOption());

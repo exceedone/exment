@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Admin;
 use Encore\Admin\Form\NestedForm;
 use Illuminate\Support\Arr;
 
@@ -36,7 +35,7 @@ trait HasManyJsonTrait
             return !is_nullorempty($item);
         })->values();
 
-        if(is_nullorempty($values)){
+        if (is_nullorempty($values)) {
             return null;
         }
 
@@ -54,7 +53,7 @@ trait HasManyJsonTrait
     {
         $forms = [];
 
-        if(!is_null($this->relatedValue)){
+        if (!is_null($this->relatedValue)) {
             foreach ($this->relatedValue as $index => $data) {
                 $forms[$index] = $this->buildNestedForm($this->column, $this->builder, null, $index)
                     ->fill($data, $index);
@@ -67,9 +66,9 @@ trait HasManyJsonTrait
 
         $model = $this->form->model();
 
-        if(is_null($this->value)){
+        if (is_null($this->value)) {
             $this->value = [];
-        }elseif(is_string($this->value) && is_json($this->value)){
+        } elseif (is_string($this->value) && is_json($this->value)) {
             $this->value = json_decode($this->value, true);
         }
 
@@ -88,20 +87,19 @@ trait HasManyJsonTrait
                 }
 
                 // If has value, reset forms
-                if($index === 0){
+                if ($index === 0) {
                     $forms = [];
                 }
                 
                 $forms[$key] = $this->buildNestedForm($this->column, $this->builder, $data, $index)
                     ->fill($data, $index);
-                    $index++;
+                $index++;
             }
         } else {
             foreach ($this->value as $index => $data) {
-                if(is_int($index)){
+                if (is_int($index)) {
                     $key = make_uuid();
-                }
-                else{
+                } else {
                     $key = $index;
                 }
                 // $key = Arr::get($data, $relation->getRelated()->getKeyName());
@@ -111,7 +109,7 @@ trait HasManyJsonTrait
                 // }
 
                 // If has value, reset forms
-                if($index === 0){
+                if ($index === 0) {
                     $forms = [];
                 }
                 

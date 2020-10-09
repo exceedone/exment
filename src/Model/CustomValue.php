@@ -760,7 +760,7 @@ abstract class CustomValue extends ModelBase
             $query = $this
                 ->value_authoritable_organizations()
                 ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds($enum));
-        }else{
+        } else {
             throw new \Exception;
         }
 

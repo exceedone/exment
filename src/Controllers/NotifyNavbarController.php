@@ -120,7 +120,7 @@ class NotifyNavbarController extends AdminControllerBase
             'confirm' => trans('admin.confirm'),
             'cancel' => trans('admin.cancel'),
         ];
-        return $menulist;  
+        return $menulist;
     }
 
     /**
@@ -200,7 +200,7 @@ class NotifyNavbarController extends AdminControllerBase
      *
      * @param Request   $request
      * @param String    $type
-     * 
+     *
      * @return \Symfony\Component\HttpFoundation\Response Response for ajax json
      */
     public function batchAll(Request $request, String $type): \Symfony\Component\HttpFoundation\Response
@@ -227,7 +227,6 @@ class NotifyNavbarController extends AdminControllerBase
                 'result'  => true,
                 'toastr' => exmtrans('notify_navbar.message.'.$type.'_succeeded'),
             ]);
-
         } catch (\Exception $e) {
             \DB::rollback();
         }
