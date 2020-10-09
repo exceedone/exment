@@ -323,12 +323,8 @@ abstract class CustomItem implements ItemInterface
             $field->attribute(['suggest_url' => $url]);
         }
 
-        // set validates as callback
-        $_this = $this;
-        $field->rules(function ($form) use ($_this, $form_column_options, $field) {
-            // set validates
-            return $_this->getColumnValidatesCallback($form_column_options, $field);
-        });
+        // set validates
+        $field->rules($this->getColumnValidates($form_column_options, $field));
 
         // set help string using result_options ----------------------------------------------------
         $help = null;
@@ -542,7 +538,7 @@ abstract class CustomItem implements ItemInterface
      * @param Field $field
      * @return array
      */
-    public function getColumnValidatesCallback($form_column_options, Field $field)
+    public function getColumnValidates($form_column_options, Field $field)
     {
         $options = array_get($this->custom_column, 'options');
         $validates = [];
