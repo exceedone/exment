@@ -1934,10 +1934,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // checking id
-        $isId = !collect(toArray($selected_value))->filter()->contains(function($s){
+        $isId = !collect(toArray($selected_value))->filter()->contains(function ($s) {
             return !is_numeric($s);
         });
-        if(!$isId){
+        if (!$isId) {
             return $items;
         }
         

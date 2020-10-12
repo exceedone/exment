@@ -432,7 +432,8 @@ abstract class CustomItem implements ItemInterface
         return $grammar->getColumnTypeString($type);
     }
 
-    protected function getCastOptions(){
+    protected function getCastOptions()
+    {
         return [DatabaseDataType::TYPE_STRING, false, []];
     }
 

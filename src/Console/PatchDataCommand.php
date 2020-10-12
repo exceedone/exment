@@ -276,7 +276,8 @@ class PatchDataCommand extends Command
         $this->reAlterIndex($index_custom_columns);
     }
 
-    protected function reAlterIndex($index_custom_columns){
+    protected function reAlterIndex($index_custom_columns)
+    {
         foreach ($index_custom_columns as  $index_custom_column) {
             $db_table_name = getDBTableName($index_custom_column->custom_table);
             $db_column_name = $index_custom_column->getIndexColumnName(false);

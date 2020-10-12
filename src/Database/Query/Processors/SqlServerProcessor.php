@@ -18,7 +18,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
 
         // match regex
         preg_match('/\d+\.\d+\.\d+\.\d+/u', $string, $m);
-        if(!$m){
+        if (!$m) {
             return null;
         }
         return $m[0];
@@ -82,7 +82,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
      */
     public function processConstraints($results)
     {
-        return collect($results)->map(function($result){
+        return collect($results)->map(function ($result) {
             return array_get((array)$result, 'name');
         })->filter()->toArray();
     }

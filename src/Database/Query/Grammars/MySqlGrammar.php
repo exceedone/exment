@@ -46,7 +46,8 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
      *
      * @return bool
      */
-    public function isSupportWhereInMultiple() : bool{
+    public function isSupportWhereInMultiple() : bool
+    {
         return true;
     }
     
@@ -65,9 +66,9 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
     {
         $index = $this->wrap($column);
 
-        if($isNot){
+        if ($isNot) {
             $queryStr = "NOT FIND_IN_SET(?, IFNULL(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ''))";
-        }else{
+        } else {
             $queryStr = "FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
         }
         

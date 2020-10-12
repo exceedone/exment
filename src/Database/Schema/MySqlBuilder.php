@@ -8,7 +8,8 @@ class MySqlBuilder extends BaseBuilder
 {
     use BuilderTrait;
 
-    protected function getUniqueIndexDefinitionsSelect($sql, $tableName, $columnName, $unique){
+    protected function getUniqueIndexDefinitionsSelect($sql, $tableName, $columnName, $unique)
+    {
         return $this->connection->select($sql, ['column_name' => $columnName, 'is_unique' => $unique]);
     }
 }

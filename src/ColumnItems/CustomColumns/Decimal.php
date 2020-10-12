@@ -109,7 +109,8 @@ class Decimal extends CustomItem
     /**
      * get cast Options
      */
-    protected function getCastOptions(){
+    protected function getCastOptions()
+    {
         if (array_has($this->custom_column, 'options.decimal_digit')) {
             return [DatabaseDataType::TYPE_DECIMAL, true, [
                 'length' => 50,

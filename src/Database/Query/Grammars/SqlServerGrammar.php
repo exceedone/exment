@@ -16,7 +16,8 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
      *
      * @return bool
      */
-    public function isSupportWhereInMultiple() : bool{
+    public function isSupportWhereInMultiple() : bool
+    {
         return false;
     }
     
@@ -45,7 +46,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         $fromRaw = "$tableNameWrap as $tableNameWrapAs CROSS APPLY $queryStr AS CROSS_APPLY_TABLE";
 
         $func = $isNot ? 'whereNotExists' : 'whereExists';
-        $builder->{$func}(function ($query) use($values, $fromRaw, $tableNameAs, $tableNameWrap, $tableNameWrapAs) {
+        $builder->{$func}(function ($query) use ($values, $fromRaw, $tableNameAs, $tableNameWrap, $tableNameWrapAs) {
             $query->select(\DB::raw(1))
                 ->fromRaw($fromRaw)
                 ->whereRaw("$tableNameWrapAs.id = $tableNameWrap.id")

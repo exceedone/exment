@@ -205,7 +205,7 @@ class Initialize
         ]);
 
         // mysql setting
-        if(defined('PDO::MYSQL_ATTR_LOCAL_INFILE')){
+        if (defined('PDO::MYSQL_ATTR_LOCAL_INFILE')) {
             Config::set('database.connections.mysql.strict', false);
             Config::set('database.connections.mysql.options', [
                 PDO::ATTR_CASE => PDO::CASE_LOWER,

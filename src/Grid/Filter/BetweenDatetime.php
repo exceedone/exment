@@ -52,7 +52,8 @@ class BetweenDatetime extends Between
         return $this->buildCondition($column, $value);
     }
 
-    protected function convertValue($value){
+    protected function convertValue($value)
+    {
         if (isset($value['end'])) {
             $end = \Carbon\Carbon::parse($value['end'])->addDay(1);
             $value['end'] = $end->format('Y-m-d');

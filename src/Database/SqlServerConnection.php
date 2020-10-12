@@ -93,7 +93,9 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
      *
      * @param string $dirFullPath restore file path
      */
-    public function importTsv($dirFullPath){}
+    public function importTsv($dirFullPath)
+    {
+    }
 
     
     public function createView($viewName, $query)
@@ -102,7 +104,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
         $sql = "CREATE OR ALTER VIEW $viewName AS " . $query->toSql();
 
         ///// maybe sql server cannot replace bindings... so replace
-        foreach($query->getBindings() as $binding){
+        foreach ($query->getBindings() as $binding) {
             $sql = preg_replace('/\?/', \Exment::wrapValue($binding), $sql, 1);
         }
 

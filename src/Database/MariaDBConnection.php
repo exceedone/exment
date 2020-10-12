@@ -60,6 +60,4 @@ class MariaDBConnection extends MySqlConnection
     {
         return 'MariaDB';
     }
-
-
 }

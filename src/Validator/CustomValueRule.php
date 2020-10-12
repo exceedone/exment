@@ -34,7 +34,7 @@ class CustomValueRule implements Rule
         $value = array_filter(stringToArray($value));
 
         foreach ($value as $v) {
-            if(!is_numeric($v)){
+            if (!is_numeric($v)) {
                 return false;
             }
             // get target table's value (use request session)

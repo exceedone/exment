@@ -83,7 +83,7 @@ trait ExtendedBuilderTrait
      */
     public function whereInMultiple(array $columns, $values, bool $zeroQueryIfEmpty = false)
     {
-        if(count($columns) !== 2){
+        if (count($columns) !== 2) {
             throw new \Exception('Now whereInMultiple is only support 2 columns.');
         }
         if (boolval($zeroQueryIfEmpty) && empty($values)) {
@@ -91,7 +91,7 @@ trait ExtendedBuilderTrait
         }
 
         // is suport where in multiple ----------------------------------------------------
-        if($this->query->grammar->isSupportWhereInMultiple()){
+        if ($this->query->grammar->isSupportWhereInMultiple()) {
             $columns = $this->query->grammar->wrapWhereInMultiple($columns);
             list($bindStrings, $binds) = $this->query->grammar->bindValueWhereInMultiple($values);
     
@@ -110,10 +110,10 @@ trait ExtendedBuilderTrait
             return $item[0];
         });
 
-        $ids = $subquery->where(function($query) use($groups, $columns){
-            foreach($groups as $key => $group){
-                $query->orWhere(function($query) use($key, $group, $columns){
-                    $values = collect($group)->map(function($g){
+        $ids = $subquery->where(function ($query) use ($groups, $columns) {
+            foreach ($groups as $key => $group) {
+                $query->orWhere(function ($query) use ($key, $group, $columns) {
+                    $values = collect($group)->map(function ($g) {
                         return $g[1];
                     })->toArray();
                     $query->where($columns[0], $key)
@@ -184,8 +184,8 @@ trait ExtendedBuilderTrait
     }
     
 
-    protected function _whereInArrayString($column, $values, bool $isOr = false, bool $isNot = false){
-        
+    protected function _whereInArrayString($column, $values, bool $isOr = false, bool $isNot = false)
+    {
         if (is_null($values)) {
             return $this->whereRaw('1 = 0');
         }
@@ -223,20 +223,20 @@ trait ExtendedBuilderTrait
     }
 
 
-    protected function _between($column, array $values, $startMark, $endMark, bool $isOr = false){
+    protected function _between($column, array $values, $startMark, $endMark, bool $isOr = false)
+    {
         $values = array_values($values);
 
         if (count($values) < 2) {
             return $this->whereRaw('1 = 0');
         }
 
-        if($isOr){
-            $this->query->orWhere(function($query) use($column, $startMark, $endMark, $values){
+        if ($isOr) {
+            $this->query->orWhere(function ($query) use ($column, $startMark, $endMark, $values) {
                 $this->query->where($column, $startMark, $values[0]);
                 $this->query->where($column, $endMark, $values[1]);
             });
-        }
-        else{
+        } else {
             $this->query->where($column, $startMark, $values[0]);
             $this->query->where($column, $endMark, $values[1]);
         }
@@ -354,7 +354,7 @@ trait ExtendedBuilderTrait
             return $this->whereRaw('1 = 0');
         }
 
-        if(is_string($value)){
+        if (is_string($value)) {
             $value = Carbon::parse($value);
         }
 
@@ -370,7 +370,7 @@ trait ExtendedBuilderTrait
             return $this->whereRaw('1 = 0');
         }
 
-        if(is_string($value)){
+        if (is_string($value)) {
             $value = Carbon::parse($value);
         }
 
@@ -387,7 +387,7 @@ trait ExtendedBuilderTrait
             return $this->whereRaw('1 = 0');
         }
 
-        if(is_string($value)){
+        if (is_string($value)) {
             $value = Carbon::parse($value);
         }
 
@@ -400,7 +400,7 @@ trait ExtendedBuilderTrait
 
     protected function _setWhereDate(string $column, $values, bool $isDatetime, bool $isOr = false)
     {
-        if($isDatetime){
+        if ($isDatetime) {
             $start = $values['datetime'][0];
             $end = $values['datetime'][1];
             $values = [
@@ -426,16 +426,15 @@ trait ExtendedBuilderTrait
             return $this->whereRaw('1 = 0');
         }
 
-        if(is_string($value)){
+        if (is_string($value)) {
             $value = Carbon::parse($value);
         }
 
-        if($isDatetime){
+        if ($isDatetime) {
             $date = (in_array($mark, ['<', '<=']) ? $value->copy()->addDay(1) : $value);
             return $this->where($column, $mark, $date);
         }
 
         return $this->where($column, $mark, $value);
     }
-    
 }

@@ -86,5 +86,4 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
     {
         return null;
     }
-
 }

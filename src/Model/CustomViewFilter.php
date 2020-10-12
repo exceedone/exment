@@ -338,12 +338,12 @@ class CustomViewFilter extends ModelBase
             case FilterOption::SELECT_EXISTS:
             case FilterOption::SELECT_NOT_EXISTS:
                 // if as multiple search
-                if($isMultiple){
+                if ($isMultiple) {
                     $method_name_suffix = isMatchString($view_filter_condition, FilterOption::SELECT_EXISTS) ? 'InArrayString' : 'NotInArrayString';
                     $model->{$method_name.$method_name_suffix}($view_column_target, $condition_value_text);
                 }
                 // if default
-                else{
+                else {
                     $mark = isMatchString($view_filter_condition, FilterOption::SELECT_EXISTS) ? '=' : '<>';
                     $model->{$method_name . 'OrIn'}($view_column_target, $mark, $condition_value_text);
                 }

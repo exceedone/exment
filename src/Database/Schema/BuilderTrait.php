@@ -201,7 +201,7 @@ trait BuilderTrait
         $tableName = $this->connection->getTablePrefix().$tableName;
 
         $sql = $this->grammar->compileGetConstraint($tableName);
-        if(is_null($sql)){
+        if (is_null($sql)) {
             return [];
         }
 
@@ -310,7 +310,7 @@ trait BuilderTrait
 
         $constraints = $this->getConstraints($tableName, $columnName);
         $tableName = $this->connection->getTablePrefix().$tableName;
-        foreach($constraints as $constraint){
+        foreach ($constraints as $constraint) {
             $sql = $this->grammar->compileDropConstraint($tableName, $constraint);
             $results = $this->connection->statement($sql);
         }

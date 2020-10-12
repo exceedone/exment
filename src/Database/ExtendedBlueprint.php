@@ -26,9 +26,8 @@ class ExtendedBlueprint extends Blueprint
     {
         $columns = is_array($columns) ? $columns : func_get_args();
 
-        foreach($columns as $column){
+        foreach ($columns as $column) {
             \Schema::dropConstraints($this->table, $column);
         }
     }
-
 }

@@ -400,7 +400,7 @@ class Exment
     {
         \DB::listen(function ($query) {
             $sql = $query->sql;
-            foreach($query->bindings as $binding){
+            foreach ($query->bindings as $binding) {
                 if ($binding instanceof \DateTime) {
                     $binding = $binding->format('Y-m-d H:i:s');
                 } elseif ($binding instanceof EnumBase) {
@@ -472,5 +472,4 @@ class Exment
 
         return implode(' ', $html);
     }
-    
 }
