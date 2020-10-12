@@ -388,6 +388,12 @@ EOT;
                 }
             }
         });
+        
+        // form prepare callback event
+        $form->prepareCallback(function ($input) {
+            array_forget($input, 'updated_at');
+            return $input;
+        });
     }
 
     protected function manageFormSaved($form, $select_parent = null)

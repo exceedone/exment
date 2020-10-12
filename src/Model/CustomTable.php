@@ -888,21 +888,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (!array_key_value_exists('updated_at', $input)) {
             return [];
         }
+        $display_updated_at = \Carbon\Carbon::parse($input['updated_at']);
 
         if (is_nullorempty($custom_value)) {
             return [];
         }
-
-        $errors = [];
-
         // re-get updated_at value
-        $updated_at = $this->getValueModel()->query()->select(['updated_at'])->find($custom_value->id)->updated_at ?? null;
-
-        if (!isset($updated_at)) {
+        $data_updated_at = $this->getValueModel()->query()->select(['updated_at'])->find($custom_value->id)->updated_at ?? null;
+        if (!isset($data_updated_at)) {
             return [];
         }
 
-        if (\Carbon\Carbon::parse($input['updated_at']) != $updated_at) {
+        $errors = [];
+        if (!isMatchString($display_updated_at->format('Y-m-d H:i:s'), $data_updated_at->format('Y-m-d H:i:s'))) {
             $errors["updated_at"] = [$asApi ? exmtrans('custom_value.help.lock_error_api') : exmtrans('custom_value.help.lock_error')];
 
             if (!$asApi) {
