@@ -395,6 +395,7 @@ class TestDataSeeder extends Seeder
                         ['column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_view_all->id]],
                         ['column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
                         ['column_type' => ColumnType::BOOLEAN, 'options' => ['index_enabled' => '1', 'true_value' => 'ok', 'true_label' => 'OK', 'false_value' => 'ng', 'false_label' => 'NG']],
+                        ['column_type' => ColumnType::AUTO_NUMBER, 'options' => ['index_enabled' => '1', 'auto_number_type' => 'random25']],
                         ['column_type' => ColumnType::IMAGE, 'options' => []],
                         ['column_type' => ColumnType::FILE, 'options' => []],
                         ['column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
