@@ -498,7 +498,7 @@ abstract class CustomValue extends ModelBase
      * @param array $input laravel-admin input
      * @return mixed
      */
-    public function validatorSaving($input, array $options = [])
+    public function validateSaving($input, array $options = [])
     {
         $options = array_merge([
             'asApi' => false,

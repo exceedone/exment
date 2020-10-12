@@ -325,7 +325,7 @@ EOT;
                 return;
             }
 
-            if (is_array($validateResult = $model->validatorSaving($input, [
+            if (is_array($validateResult = $model->validateSaving($input, [
                 'column_name_prefix' => 'value.',
             ]))) {
                 $message = $message->merge($validateResult);
