@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -206,15 +205,17 @@ class Initialize
         ]);
 
         // mysql setting
-        Config::set('database.connections.mysql.strict', false);
-        Config::set('database.connections.mysql.options', [
-            PDO::ATTR_CASE => PDO::CASE_LOWER,
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
-            PDO::ATTR_STRINGIFY_FETCHES => true,
-            PDO::ATTR_EMULATE_PREPARES => true,
-            PDO::MYSQL_ATTR_LOCAL_INFILE => true,
-        ]);
+        if(defined('PDO::MYSQL_ATTR_LOCAL_INFILE')){
+            Config::set('database.connections.mysql.strict', false);
+            Config::set('database.connections.mysql.options', [
+                PDO::ATTR_CASE => PDO::CASE_LOWER,
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
+                PDO::ATTR_STRINGIFY_FETCHES => true,
+                PDO::ATTR_EMULATE_PREPARES => true,
+                PDO::MYSQL_ATTR_LOCAL_INFILE => true,
+            ]);
+        }
 
         // mariadb setting
         Config::set('database.connections.mariadb', Config::get('database.connections.mysql'));
