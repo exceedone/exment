@@ -130,6 +130,8 @@ class NotifyController extends AdminControllerBase
                     return true;
                 })->pluck('workflow_view_name', 'id');
             });
+
+            $filter->equal('active_flg', exmtrans("plugin.active_flg"))->radio(\Exment::getYesNoAllOption());
         });
 
 
