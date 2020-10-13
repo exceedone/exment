@@ -338,8 +338,8 @@ EOT;
                 if (!$custom_form_block->available) {
                     continue;
                 }
-                // when default block, set as normal form columns.
-                if ($custom_form_block->form_block_type == FormBlockType::DEFAULT) {
+                // when not 1:n, set as normal form columns.
+                if (!isMatchString($custom_form_block->form_block_type, FormBlockType::ONE_TO_MANY)) {
                     continue;
                 }
                 list($custom_relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
