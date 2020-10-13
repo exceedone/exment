@@ -64,6 +64,7 @@ use Cache;
 * @method static boolean|void sso_jit($arg = null)
 * @method static string|void sso_accept_mail_domain($arg = null)
 * @method static array|void jit_rolegroups($arg = null)
+* @method static string|void system_slack_user_column($arg = null)
  */
 class System extends ModelBase
 {

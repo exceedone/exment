@@ -31,11 +31,21 @@ trait ConnectionTrait
     /**
      * Check mariadb
      *
-     * @return void
+     * @return bool
      */
     public function isMariaDB()
     {
         return $this->getSchemaBuilder()->isMariaDB();
+    }
+
+    /**
+     * Check SqlServer
+     *
+     * @return bool
+     */
+    public function isSqlServer()
+    {
+        return $this->getSchemaBuilder()->isSqlServer();
     }
 
     public function canConnection()

@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Database\Query\Grammars;
 
+use Exceedone\Exment\Enums\GroupCondition;
+
 interface GrammarInterface
 {
     /**

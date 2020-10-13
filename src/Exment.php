@@ -3,6 +3,7 @@
 namespace Exceedone\Exment;
 
 use Exceedone\Exment\Validator as ExmentValidator;
+use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;

@@ -16,11 +16,21 @@ class SqlServerBuilder extends BaseBuilder
     /**
      * Check mariadb
      *
-     * @return void
+     * @return bool
      */
     public function isMariaDB()
     {
         return false;
+    }
+
+    /**
+     * Check sqlserver
+     *
+     * @return bool
+     */
+    public function isSqlServer()
+    {
+        return true;
     }
 
     /**

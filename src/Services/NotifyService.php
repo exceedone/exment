@@ -263,7 +263,7 @@ class NotifyService
 
         // contains webhook, return true.
         if (collect($this->notify->action_settings)->contains(function ($action_setting) {
-            return NotifyAction::isChatMessage($notify_action);
+            return NotifyAction::isChatMessage($action_setting);
         })) {
             return true;
         }

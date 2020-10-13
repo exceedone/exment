@@ -21,5 +21,9 @@ class OrderScope implements Scope
     public function apply(Builder $builder, Model $model)
     {
         $builder->orderBy($this->column, $this->direction);
+
+        if(\DB::isSqlServer()){
+            $builder->orderBy('id', 'asc');
+        }
     }
 }

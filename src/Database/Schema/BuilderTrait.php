@@ -97,6 +97,16 @@ trait BuilderTrait
         return $this->connection->getPostProcessor()->processIsMariaDB($results);
     }
 
+    /**
+     * Check sqlserver
+     *
+     * @return bool
+     */
+    public function isSqlServer()
+    {
+        return false;
+    }
+
     public function hasIndex($tableName, $columnName, $indexName)
     {
         $indexes = $this->getIndexDefinitions($tableName, $columnName);

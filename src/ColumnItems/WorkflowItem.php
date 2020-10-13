@@ -186,7 +186,7 @@ class WorkflowItem extends SystemItem
         
         /////// second query. not has workflow value's custom value
         $subquery2 = \DB::table($tableName)
-            ->join(SystemTableName::VIEW_WORKFLOW_START, function ($join) use ($tableName, $custom_table) {
+            ->join(SystemTableName::VIEW_WORKFLOW_START, function ($join) use ($custom_table) {
                 $join->where(SystemTableName::VIEW_WORKFLOW_START . '.workflow_table_id', $custom_table->id)
                     ;
             })
