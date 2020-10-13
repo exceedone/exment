@@ -378,7 +378,7 @@ EOT;
                         return !isMatchString($relationK, $key);
                     }, ARRAY_FILTER_USE_BOTH);
                     
-                    if (is_array($validateResult = $instance->validatorSaving($relationV, [
+                    if (is_array($validateResult = $instance->validateSaving($relationV, [
                         'column_name_prefix' => "$relation_name.$relationK.value.",
                         'uniqueCheckSiblings' => array_values($uniqueCheckSiblings),
                         'uniqueCheckIgnoreIds' => $ignoreIds,
