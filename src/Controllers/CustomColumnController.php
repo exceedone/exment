@@ -170,7 +170,7 @@ class CustomColumnController extends AdminControllerTableBase
         $controller = $this;
         $form = new Form(new CustomColumn);
         // set script
-        $ver = getExmentCurrentVersion();
+        $ver = \Exment::getExmentCurrentVersion();
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }

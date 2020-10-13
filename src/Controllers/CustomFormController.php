@@ -311,7 +311,7 @@ class CustomFormController extends AdminControllerTableBase
         }
         
         // get exment version
-        $ver = getExmentCurrentVersion();
+        $ver = \Exment::getExmentCurrentVersion();
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }

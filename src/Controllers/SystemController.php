@@ -218,8 +218,8 @@ class SystemController extends AdminControllerBase
      */
     protected function getVersionBox()
     {
-        list($latest, $current) = getExmentVersion();
-        $version = checkLatestVersion();
+        list($latest, $current) = \Exment::getExmentVersion();
+        $version = \Exment::checkLatestVersion();
         $showLink = false;
 
         if ($version == SystemVersion::ERROR) {

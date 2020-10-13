@@ -7,14 +7,21 @@ use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\File;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Encore\Admin\Admin;
+use Webpatser\Uuid\Uuid;
+use Carbon\Carbon;
+use Mews\Purifier\Facades\Purifier;
 
 /**
  * Class Admin.
@@ -111,11 +118,151 @@ class Exment
      */
     public function version($getFromComposer = true)
     {
-        list($latest, $current) = getExmentVersion($getFromComposer);
+        list($latest, $current) = $this->getExmentVersion($getFromComposer);
         return $current;
     }
 
 
+    /**
+     * getExmentVersion using session and composer
+     *
+     * @return array $latest: new version in package, $current: this version in server
+     */
+    public function getExmentVersion($getFromComposer = true)
+    {
+        try {
+            try {
+                $version_json = Cache::get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+            } catch (\Exception $e) {
+            }
+    
+            $latest = null;
+            $current = null;
+            if (isset($version_json)) {
+                $version = json_decode($version_json, true);
+                $latest = array_get($version, 'latest');
+                $current = array_get($version, 'current');
+            }
+            
+            if ((empty($latest) || empty($current))) {
+                // get current version from composer.lock
+                $composer_lock = base_path('composer.lock');
+                if (!\File::exists($composer_lock)) {
+                    return [null, null];
+                }
+
+                $contents = \File::get($composer_lock);
+                $json = json_decode($contents, true);
+                if (!$json) {
+                    return [null, null];
+                }
+                
+                // get exment info
+                $packages = array_get($json, 'packages');
+                $exment = collect($packages)->filter(function ($package) {
+                    return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
+                })->first();
+                if (!isset($exment)) {
+                    return [null, null];
+                }
+                $current = array_get($exment, 'version');
+                
+                // if outside api is not permitted, return only current
+                if (!System::outside_api() || !$getFromComposer) {
+                    return [null, $current];
+                }
+
+                // if already executed
+                if (Cache::has(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE)) {
+                    return [null, $current];
+                }
+
+                //// get latest version
+                $client = new \GuzzleHttp\Client();
+                $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
+                    'http_errors' => false,
+                    'timeout' => 3, // Response timeout
+                    'connect_timeout' => 3, // Connection timeout
+                ]);
+
+                Cache::put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE, true, Define::CACHE_CLEAR_MINUTE);
+
+                $contents = $response->getBody()->getContents();
+                if ($response->getStatusCode() != 200) {
+                    return [null, null];
+                }
+
+                $json = json_decode($contents, true);
+                if (!$json) {
+                    return [null, null];
+                }
+                $packages = array_get($json, 'packages.'.Define::COMPOSER_PACKAGE_NAME);
+                if (!$packages) {
+                    return [null, null];
+                }
+
+                // sort by timestamp
+                $sortedPackages = collect($packages)->sortByDesc('time');
+                foreach ($sortedPackages as $key => $package) {
+                    // if version is "dev-", continue
+                    if (substr($key, 0, 4) == 'dev-') {
+                        continue;
+                    }
+                    $latest = $key;
+                    break;
+                }
+                
+                try {
+                    Cache::put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+                        'latest' => $latest, 'current' => $current
+                    ]), Define::CACHE_CLEAR_MINUTE);
+                } catch (\Exception $e) {
+                }
+            }
+        } catch (\Exception $e) {
+            Cache::put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE, true, Define::CACHE_CLEAR_MINUTE);
+        }
+        
+        return [$latest ?? null, $current ?? null];
+    }
+    
+    
+    /**
+     * getExmentCurrentVersion
+     *
+     * @return string|null this version in server
+     */
+    public function getExmentCurrentVersion()
+    {
+        return $this->getExmentVersion(false)[1];
+    }
+
+
+    /**
+     * check exment's next version
+     *
+     * @return array $latest: new version in package, $current: this version in server
+     */
+    public function checkLatestVersion()
+    {
+        list($latest, $current) = $this->getExmentVersion();
+        $latest = trim($latest, 'v');
+        $current = trim($current, 'v');
+        
+        if (empty($latest) || empty($current)) {
+            return SystemVersion::ERROR;
+        } elseif (strpos($current, 'dev-') === 0) {
+            return SystemVersion::DEV;
+        } elseif ($latest === $current) {
+            return SystemVersion::LATEST;
+            $message = exmtrans("system.version_latest");
+            $icon = 'check-square';
+            $bgColor = 'blue';
+        } else {
+            return SystemVersion::HAS_NEXT;
+        }
+    }
+    
 
 
 

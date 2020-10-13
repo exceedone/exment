@@ -412,9 +412,9 @@ EOT;
             return;
         }
 
-        $versionCheck = checkLatestVersion();
+        $versionCheck = \Exment::checkLatestVersion();
         if ($versionCheck == SystemVersion::HAS_NEXT) {
-            list($latest, $current) = getExmentVersion();
+            list($latest, $current) = \Exment::getExmentVersion();
             admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'.getManualUrl('update').'" target="_blank">'.exmtrans("system.update_guide").'</a>');
         }
     }
