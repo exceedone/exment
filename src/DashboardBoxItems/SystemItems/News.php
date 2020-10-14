@@ -24,6 +24,91 @@ class News
             $this->outputApi = false;
             return;
         }
+    }
+
+    /**
+     * get header
+     */
+    public function header()
+    {
+        return null;
+    }
+    
+    /**
+     * get footer
+     */
+    public function footer()
+    {
+        if (!$this->outputApi) {
+            return null;
+        }
+        $link = Define::EXMENT_NEWS_LINK;
+        $label = trans('admin.list');
+        return "<div style='padding:8px;'><a href='{$link}' target='_blank'>{$label}</a></div>";
+    }
+    
+    /**
+     * get html body
+     */
+    public function body()
+    {
+        if (!$this->outputApi) {
+            return exmtrans('error.disabled_outside_api');
+        }
+
+        $this->setItems();
+
+        // get table items
+        $headers = [
+            exmtrans('common.published_date'),
+            trans('admin.title'),
+        ];
+        $bodies = [];
+        
+        foreach ($this->items as $item) {
+            $date = \Carbon\Carbon::parse(array_get($item, 'date'))->format(config('admin.date_format'));
+            $link = array_get($item, 'link');
+            $title = array_get($item, 'title.rendered');
+            $bodies[] = [
+                $date,
+                "<a href='{$link}' target='_blank'>{$title}</a>",
+            ];
+        }
+
+        $widgetTable = new WidgetTable($headers, $bodies);
+
+        return $widgetTable->render() ?? null;
+    }
+
+    /**
+     * Get wordpress query string
+     *
+     * @return array query string array
+     */
+    protected function getQuery()
+    {
+        $request = request();
+
+        // get querystring
+        $query = [
+            'categories' => 6,
+            'per_page' => System::datalist_pager_count() ?? 5,
+            'page' => $request->get('page') ?? 1,
+        ];
+
+        return $query;
+    }
+
+
+    /**
+     * Set exment news items
+     *
+     * @return void
+     */
+    protected function setItems(){
+        if(!\is_nullorempty($this->items)){
+            return;
+        }
 
         try {
             // get update news from session
@@ -66,76 +151,5 @@ class News
         } catch (\Exception $ex) {
             \Log::error($ex);
         }
-    }
-
-    /**
-     * get header
-     */
-    public function header()
-    {
-        return null;
-    }
-    
-    /**
-     * get footer
-     */
-    public function footer()
-    {
-        if (!$this->outputApi) {
-            return null;
-        }
-        $link = Define::EXMENT_NEWS_LINK;
-        $label = trans('admin.list');
-        return "<div style='padding:8px;'><a href='{$link}' target='_blank'>{$label}</a></div>";
-    }
-    
-    /**
-     * get html body
-     */
-    public function body()
-    {
-        if (!$this->outputApi) {
-            return exmtrans('error.disabled_outside_api');
-        }
-
-        // get table items
-        $headers = [
-            exmtrans('common.published_date'),
-            trans('admin.title'),
-        ];
-        $bodies = [];
-        
-        foreach ($this->items as $item) {
-            $date = \Carbon\Carbon::parse(array_get($item, 'date'))->format(config('admin.date_format'));
-            $link = array_get($item, 'link');
-            $title = array_get($item, 'title.rendered');
-            $bodies[] = [
-                $date,
-                "<a href='{$link}' target='_blank'>{$title}</a>",
-            ];
-        }
-
-        $widgetTable = new WidgetTable($headers, $bodies);
-
-        return $widgetTable->render() ?? null;
-    }
-
-    /**
-     * Get wordpress query string
-     *
-     * @return array query string array
-     */
-    protected function getQuery()
-    {
-        $request = request();
-
-        // get querystring
-        $query = [
-            'categories' => 6,
-            'per_page' => System::datalist_pager_count() ?? 5,
-            'page' => $request->get('page') ?? 1,
-        ];
-
-        return $query;
     }
 }
