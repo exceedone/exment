@@ -44,9 +44,6 @@ class ListItem implements ItemInterface
         if (!isset($this->custom_view)) {
             return;
         }
-
-        // get paginate
-        $this->setPaginate();
     }
 
     /**
@@ -63,6 +60,9 @@ class ListItem implements ItemInterface
      */
     public function body()
     {
+        // get paginate
+        $this->setPaginate();
+
         if (($result = $this->hasPermission()) !== true) {
             return $result;
         }
@@ -96,6 +96,9 @@ class ListItem implements ItemInterface
      */
     public function footer()
     {
+        // get paginate
+        $this->setPaginate();
+        
         if (($result = $this->hasPermission()) !== true) {
             return null;
         }
@@ -169,9 +172,13 @@ class ListItem implements ItemInterface
      */
     protected function setPaginate()
     {
+        if(isset($this->paginate)){
+            return;
+        }
+
         // if table not found, break
         if (!isset($this->custom_table) || !isset($this->custom_view)) {
-            return null;
+            return;
         }
 
         // if not access permission
