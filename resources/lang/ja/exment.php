@@ -2084,9 +2084,9 @@ return [
         'condition_value' => '条件値',
         'condition_join' => '条件の結合',
         'condition_type_options' => [
-            'user' => 'ユーザー',
-            'organization' => '組織',
-            'role' => '役割グループ',
+            'user' => 'ログインユーザー',
+            'organization' => 'ログインユーザーの所属組織',
+            'role' => 'ログインユーザーの役割グループ',
             'system' => 'システム',
             'column' => '列の値',
             'form' => '画面の種類',
