@@ -2080,7 +2080,7 @@ return [
 
     'condition' => [
         'condition_target' => '条件項目',
-        'condition_key' => '検索条件',
+        'condition_key' => '条件',
         'condition_value' => '条件値',
         'condition_join' => '条件の結合',
         'condition_type_options' => [
