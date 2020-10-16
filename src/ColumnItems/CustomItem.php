@@ -419,7 +419,7 @@ abstract class CustomItem implements ItemInterface
     {
         list($type, $addOption, $options) = $this->getCastOptions();
         // if DatabaseDataType::TYPE_STRING, return null
-        if(isMatchString($type, DatabaseDataType::TYPE_STRING)){
+        if (isMatchString($type, DatabaseDataType::TYPE_STRING)) {
             return null;
         }
 

@@ -156,7 +156,7 @@ class DashboardBoxController extends AdminControllerBase
         // get dashboard_id from query "dashboard_suuid"
         if (isset($id)) {
             $dashboard_box = DashboardBox::getEloquent($id);
-            if(!isset($dashboard_box)){
+            if (!isset($dashboard_box)) {
                 Checker::notFoundOrDeny();
                 return false;
             }

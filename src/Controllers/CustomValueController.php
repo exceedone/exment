@@ -100,10 +100,10 @@ class CustomValueController extends AdminControllerTableBase
     {
         $request = request();
         // if destory, id is comma string
-        foreach(stringtoArray($id) as $i){
+        foreach (stringtoArray($id) as $i) {
             if (($response = $this->firstFlow($request, CustomValuePageType::DELETE, $i)) instanceof Response) {
                 return $response;
-            }    
+            }
         }
         
         return $this->destroyTrait($tableKey, $id);

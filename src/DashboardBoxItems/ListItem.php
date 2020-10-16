@@ -172,7 +172,7 @@ class ListItem implements ItemInterface
      */
     protected function setPaginate()
     {
-        if(isset($this->paginate)){
+        if (isset($this->paginate)) {
             return;
         }
 

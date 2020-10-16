@@ -22,7 +22,7 @@ class OrderScope implements Scope
     {
         $builder->orderBy($this->column, $this->direction);
 
-        if(\ExmentDB::isSqlServer() && !$this->hasOrderById($builder)){
+        if (\ExmentDB::isSqlServer() && !$this->hasOrderById($builder)) {
             $builder->orderBy('id', 'asc');
         }
     }
@@ -34,13 +34,14 @@ class OrderScope implements Scope
      * @param Builder $builder
      * @return boolean
      */
-    protected function hasOrderById(Builder $builder){
-        if(empty($builder->getQuery()->orders)){
+    protected function hasOrderById(Builder $builder)
+    {
+        if (empty($builder->getQuery()->orders)) {
             return false;
         }
 
-        foreach($builder->getQuery()->orders as $order){
-            if(isMatchString(array_get($order, 'column'), 'id')){
+        foreach ($builder->getQuery()->orders as $order) {
+            if (isMatchString(array_get($order, 'column'), 'id')) {
                 return true;
             }
         }

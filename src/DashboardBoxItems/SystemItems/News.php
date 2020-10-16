@@ -105,8 +105,9 @@ class News
      *
      * @return void
      */
-    protected function setItems(){
-        if(!\is_nullorempty($this->items)){
+    protected function setItems()
+    {
+        if (!\is_nullorempty($this->items)) {
             return;
         }
 

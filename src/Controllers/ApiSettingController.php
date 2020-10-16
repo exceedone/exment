@@ -79,7 +79,7 @@ class ApiSettingController extends AdminControllerBase
     {
         $form = new Form(new ApiClient);
         $client = ApiClient::find($id);
-        if(isset($id) && !isset($client)){
+        if (isset($id) && !isset($client)) {
             Checker::notFoundOrDeny();
             return false;
         }

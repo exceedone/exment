@@ -33,8 +33,8 @@ namespace Exceedone\Exment\Facades;
  * @method static void importTsv($dirFullPath)
  * @method static void createView($viewName, $query)
  * @method static void dropView($viewName)
- * 
- * 
+ *
+ *
  * @see \Illuminate\Database\DatabaseManager
  * @see \Illuminate\Database\Connection
  */

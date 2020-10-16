@@ -116,7 +116,7 @@ class FilterOption extends EnumBase
                 static::SELECT_EXISTS,
                 static::SELECT_NOT_EXISTS,
                 static::NOT_NULL,
-                static::NULL,                
+                static::NULL,
             ],
             FilterType::FILE => [
                 static::NOT_NULL,
@@ -176,16 +176,17 @@ class FilterOption extends EnumBase
             ],
         ];
 
-        return collect($options)->mapWithKeys(function($keys, $fiterType){
-            return [$fiterType => collect($keys)->map(function($key){
+        return collect($options)->mapWithKeys(function ($keys, $fiterType) {
+            return [$fiterType => collect($keys)->map(function ($key) {
                 return ['id' => $key, 'name' => static::getTransName($key)];
             })->toArray()];
         })->toArray();
     }
 
 
-    protected static function getTransName($key){
-        switch($key){
+    protected static function getTransName($key)
+    {
+        switch ($key) {
             case static::COMPARE_GT: return 'gt';
             case static::COMPARE_GTE: return 'gte';
             case static::COMPARE_LT: return 'lt';
@@ -228,7 +229,7 @@ class FilterOption extends EnumBase
             case static::USER_NE_USER: return 'ne-user';
             case static::USER_NOT_NULL: return 'not-null';
             case static::USER_NULL: return 'null';
-        }   
+        }
     }
     
     public static function getCompareOptions($enum)
@@ -278,8 +279,8 @@ class FilterOption extends EnumBase
         }
 
         $transName = static::getTransName($condition_key);
-        foreach(['condition.condition_key_options', 'custom_view.filter_condition_options'] as $key){
-            if(\Lang::has("exment::exment.$key.$transName")){
+        foreach (['condition.condition_key_options', 'custom_view.filter_condition_options'] as $key) {
+            if (\Lang::has("exment::exment.$key.$transName")) {
                 return \Lang::get("exment::exment.$key.$transName");
             }
         }
