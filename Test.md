@@ -50,12 +50,18 @@ composer require league/flysystem-aws-s3-v3 ~1.0
 composer require league/flysystem-azure-blob-storage ~0.1.6
 ```
 
+- Copy setting file. / 以下のファイルを、プロジェクトのルートフォルダにコピーします。
+
+```
+vendor/exceedone/exment/phpstan.neon.dist
+```
+
 ### Setup and execute / 設定・実行
 
 - Please execute this command.  / 以下のコマンドを実行してください。  
 
 ```
-php artisan code:analyse --paths="vendor/exceedone/exment" --level=1
+./vendor/bin/phpstan analyse
 ```
 
 
