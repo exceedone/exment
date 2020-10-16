@@ -29,5 +29,7 @@ class ExtendedBlueprint extends Blueprint
         foreach ($columns as $column) {
             \Schema::dropConstraints($this->table, $column);
         }
+
+        return parent::dropColumn($columns);
     }
 }
