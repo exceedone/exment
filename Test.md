@@ -1,7 +1,9 @@
 # Test / テスト
 How to test. / テスト実行方法です。  
 
-## Install for test (Only first) / インストール(初回のみ) 
+## Browser, Unit, Feature Test / ブラウザ・単体・結合テスト
+
+### Install (Only first) / インストール(初回のみ) 
 - Please execute this command.  / 以下のコマンドを実行してください。  
 
 ```
@@ -10,7 +12,7 @@ composer require laravel/browser-kit-testing=~4.2
 ```
 
 
-## Setup test / テスト設定
+### Setup and execute test / テスト設定・実行
 - Please execute this command.   / 以下のコマンドを実行してください。  
 <span style="color:red;">CAUTION: If execute this command, reset all data. / 注意：以下のコマンドを実行すると、全てのデータがリセットされます。</span>
 
@@ -24,6 +26,48 @@ php artisan exment:inittest
 .\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Browser
 .\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Unit
 .\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Feature
+```
+
+## Lint
+Execute Lint (PHPStan / Laratisan) and perform syntax check etc. / Lint(PHPStan / Laratisan)を実行し、構文チェックなどを行います。  
+*Some syntaxes have some deficiencies that do not affect the execution results. It is being corrected at any time. / ※一部の構文で、実行結果に影響のない不備が残っています。随時修正中です。
+
+### Install (Only first) / インストール(初回のみ) 
+- Please execute this command.  / 以下のコマンドを実行してください。  
+
+```
+# for lint / Lintのライブラリ
+composer require --dev nunomaduro/larastan=^0.4.*
+
+# for Exment related libraries / Exmentの関連ライブラリ
+composer require pragmarx/google2fa
+composer require simplesoftwareio/simple-qrcode=^2.0.0
+composer require laravel/socialite=~3.3.0
+composer require aacotroneo/laravel-saml2
+composer require adldap2/adldap2-laravel
+```
+
+### Setup and execute / 設定・実行
+- Please execute this command.  / 以下のコマンドを実行してください。  
+
+```
+.\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Browser
+.\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Unit
+.\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Feature
+```
+
+## Setup test / テスト設定
+- Please execute this command.   / 以下のコマンドを実行してください。  
+<span style="color:red;">CAUTION: If execute this command, reset all data. / 注意：以下のコマンドを実行すると、全てのデータがリセットされます。</span>
+
+```
+php artisan exment:inittest
+```
+
+- Please execute this command.  / 以下のコマンドを実行してください。  
+
+```
+php artisan code:analyse --paths="packages/exceedone/exment" --level=1
 ```
 
 
