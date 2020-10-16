@@ -13,8 +13,8 @@ class WorkflowValueView extends Migration
      */
     public function up()
     {
-        \DB::createView(SystemTableName::VIEW_WORKFLOW_VALUE_UNION, View\WorkflowValueView::createWorkflowValueUnionView());
-        \DB::createView(SystemTableName::VIEW_WORKFLOW_START, View\WorkflowStartView::createWorkflowStartView());
+        \ExmentDB::createView(SystemTableName::VIEW_WORKFLOW_VALUE_UNION, View\WorkflowValueView::createWorkflowValueUnionView());
+        \ExmentDB::createView(SystemTableName::VIEW_WORKFLOW_START, View\WorkflowStartView::createWorkflowStartView());
     }
 
     /**
@@ -24,8 +24,8 @@ class WorkflowValueView extends Migration
      */
     public function down()
     {
-        \DB::dropView(SystemTableName::VIEW_WORKFLOW_VALUE_UNION);
-        \DB::dropView(SystemTableName::VIEW_WORKFLOW_START);
+        \ExmentDB::dropView(SystemTableName::VIEW_WORKFLOW_VALUE_UNION);
+        \ExmentDB::dropView(SystemTableName::VIEW_WORKFLOW_START);
         //
     }
 }

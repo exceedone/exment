@@ -42,7 +42,8 @@
                 "Exceedone\\Exment\\ExmentServiceProvider"
             ],
             "aliases": {
-                "Exment": "Exceedone\\Exment\\Facades\\ExmentFacade"
+                "Exment": "Exceedone\\Exment\\Facades\\ExmentFacade",
+                "ExmentDB": "Exceedone\\Exment\\Facades\\ExmentDBFacade"
             }
         }
     }

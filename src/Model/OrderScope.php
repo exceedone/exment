@@ -22,7 +22,7 @@ class OrderScope implements Scope
     {
         $builder->orderBy($this->column, $this->direction);
 
-        if(\DB::isSqlServer() && !$this->hasOrderById($builder)){
+        if(\ExmentDB::isSqlServer() && !$this->hasOrderById($builder)){
             $builder->orderBy('id', 'asc');
         }
     }

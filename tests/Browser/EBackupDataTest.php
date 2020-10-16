@@ -32,7 +32,7 @@ class EBackupDataTest extends ExmentKitTestCase
         ;
 
         try{
-            !\DB::checkBackup();
+            !\ExmentDB::checkBackup();
         }catch(BackupRestoreCheckException $ex){
             $this->assertTrue(true);
             return;
@@ -56,7 +56,7 @@ class EBackupDataTest extends ExmentKitTestCase
     public function testDisplayBackupData()
     {
         try{
-            !\DB::checkBackup();
+            !\ExmentDB::checkBackup();
         }catch(BackupRestoreCheckException $ex){
             $this->assertTrue(true);
             return;
@@ -110,7 +110,7 @@ class EBackupDataTest extends ExmentKitTestCase
     public function testBackupConfigSave()
     {
         try{
-            !\DB::checkBackup();
+            !\ExmentDB::checkBackup();
         }catch(BackupRestoreCheckException $ex){
             $this->assertTrue(true);
             return;
@@ -162,7 +162,7 @@ class EBackupDataTest extends ExmentKitTestCase
     public function testBackupNoTarget()
     {
         try{
-            !\DB::checkBackup();
+            !\ExmentDB::checkBackup();
         }catch(BackupRestoreCheckException $ex){
             $this->assertTrue(true);
             return;
@@ -191,7 +191,7 @@ class EBackupDataTest extends ExmentKitTestCase
     protected function backupData()
     {
         try{
-            !\DB::checkBackup();
+            !\ExmentDB::checkBackup();
         }catch(BackupRestoreCheckException $ex){
             $this->assertTrue(true);
             return;
@@ -216,7 +216,7 @@ class EBackupDataTest extends ExmentKitTestCase
     protected function restoreData()
     {
         try{
-            !\DB::checkBackup();
+            !\ExmentDB::checkBackup();
         }catch(BackupRestoreCheckException $ex){
             $this->assertTrue(true);
             return;

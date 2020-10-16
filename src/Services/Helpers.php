@@ -1103,7 +1103,7 @@ if (!function_exists('canConnection')) {
         // Use session. Not request session
         return System::cache(Define::SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE, function () {
             // get all table names
-            return DB::canConnection();
+            return \ExmentDB::canConnection();
         }, true);
     }
 }

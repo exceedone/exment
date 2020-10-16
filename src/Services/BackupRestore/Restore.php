@@ -59,7 +59,7 @@ class Restore
     {
         try {
             // check backup execute
-            \DB::checkBackup();
+            \ExmentDB::checkBackup();
 
             // unzip backup file
             $this->unzipFile($file, $tmp);
@@ -97,7 +97,7 @@ class Restore
      */
     protected function importTsv()
     {
-        \DB::importTsv($this->diskService->tmpDiskItem()->dirFullPath());
+        \ExmentDB::importTsv($this->diskService->tmpDiskItem()->dirFullPath());
     }
 
     /**
@@ -237,6 +237,6 @@ class Restore
      */
     protected function restoreDatabase()
     {
-        \DB::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath());
+        \ExmentDB::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath());
     }
 }
