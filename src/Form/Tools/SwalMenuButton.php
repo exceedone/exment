@@ -18,6 +18,8 @@ class SwalMenuButton implements Renderable
      */
     protected $menulist = [];
 
+    protected $attributes = [];
+
     public function __construct(array $menulist = [], array $options = [])
     {
         $this->menulist = $menulist;

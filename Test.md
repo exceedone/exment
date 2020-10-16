@@ -45,29 +45,17 @@ composer require simplesoftwareio/simple-qrcode=^2.0.0
 composer require laravel/socialite=~3.3.0
 composer require aacotroneo/laravel-saml2
 composer require adldap2/adldap2-laravel
+composer require league/flysystem-sftp ~1.0
+composer require league/flysystem-aws-s3-v3 ~1.0
+composer require league/flysystem-azure-blob-storage ~0.1.6
 ```
 
 ### Setup and execute / 設定・実行
-- Please execute this command.  / 以下のコマンドを実行してください。  
-
-```
-.\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Browser
-.\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Unit
-.\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Feature
-```
-
-## Setup test / テスト設定
-- Please execute this command.   / 以下のコマンドを実行してください。  
-<span style="color:red;">CAUTION: If execute this command, reset all data. / 注意：以下のコマンドを実行すると、全てのデータがリセットされます。</span>
-
-```
-php artisan exment:inittest
-```
 
 - Please execute this command.  / 以下のコマンドを実行してください。  
 
 ```
-php artisan code:analyse --paths="packages/exceedone/exment" --level=1
+php artisan code:analyse --paths="vendor/exceedone/exment" --level=1
 ```
 
 

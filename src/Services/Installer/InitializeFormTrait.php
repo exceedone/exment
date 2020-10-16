@@ -109,7 +109,7 @@ trait InitializeFormTrait
     /**
      * get sendmail test box.
      *
-     * @return Content
+     * @return WidgetForm
      */
     protected function getsendmailTestBox()
     {

@@ -450,8 +450,8 @@ class Initialize
             'systemValues'          => Field\SystemValues::class,
             
             ///// workflow
-            'workflowStatusSelects'          => Field\WorkFlow\StatusSelects::class,
-            'workflowOptions'          => Field\WorkFlow\Options::class,
+            'workflowStatusSelects'          => Field\Workflow\StatusSelects::class,
+            'workflowOptions'          => Field\Workflow\Options::class,
         ];
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);

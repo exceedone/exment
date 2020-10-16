@@ -168,7 +168,7 @@ class NotifyTarget
 
                 // if select table is organization
                 elseif ($custom_column->column_type == ColumnType::ORGANIZATION) {
-                    collect(static::getModelAsOrganization($v, $custom_column))->each(function ($item) use (&$result) {
+                    collect(static::getModelsAsOrganization($v, $custom_column))->each(function ($item) use (&$result) {
                         $result[] = $item;
                     });
                 }
@@ -180,7 +180,7 @@ class NotifyTarget
                 
                 // if select table(cotains user)
                 elseif (ColumnType::isSelectTable($custom_column->column_type)) {
-                    $result[] = static::getModelAsSelectTable($user, NotifyTargetType::EMAIL_COLUMN, $custom_column);
+                    $result[] = static::getModelAsSelectTable($v, NotifyTargetType::EMAIL_COLUMN, $custom_column);
                 }
             }
         }
@@ -216,14 +216,14 @@ class NotifyTarget
      */
     public static function getModelAsSelectTable(CustomValue $target_value, string $notify_target, ?CustomColumn $custom_column = null) : ?NotifyTarget
     {
-        if (!isset($target_value)) {
+        if (is_nullorempty($target_value)) {
             return null;
         }
 
         // get 'slack_id' custom column
         $slack_id_column = System::system_slack_user_column();
         $slack_id_column = CustomColumn::getEloquent($slack_id_column, SystemTableName::USER);
-        if (isset($slack_id_column)) {
+        if (!is_nullorempty($slack_id_column)) {
             $slack_id = $target_value->getValue($slack_id_column);
         }
         

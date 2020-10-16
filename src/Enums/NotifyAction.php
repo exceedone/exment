@@ -19,7 +19,7 @@ class NotifyAction extends EnumBase
      */
     public static function isChatMessage($action_setting) : bool
     {
-        if (!isset($action_setting)) {
+        if (is_nullorempty($action_setting)) {
             return false;
         }
         $notify_action = is_array($action_setting) ? array_get($action_setting, 'notify_action') : $action_setting;
@@ -40,7 +40,7 @@ class NotifyAction extends EnumBase
      */
     public static function isUserTarget($action_setting) : bool
     {
-        if (!isset($action_setting)) {
+        if (is_nullorempty($action_setting)) {
             return false;
         }
         $notify_action = is_array($action_setting) ? array_get($action_setting, 'notify_action') : $action_setting;

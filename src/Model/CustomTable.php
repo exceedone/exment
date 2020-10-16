@@ -758,7 +758,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // getting custom_table's unique columns(contains simgle, multiple)
         $unique_columns = $this->getUniqueColumns();
 
-        if (!isset($unique_columns) || count($unique_columns) == 0) {
+        if (is_nullorempty($unique_columns) || count($unique_columns) == 0) {
             return $errors;
         }
 
