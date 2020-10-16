@@ -198,7 +198,7 @@ class DefaultShow extends ShowBase
                         foreach ($copyButtons as $copyButton) {
                             $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $this->custom_value->id);
                         
-                            $tools->append($b->toHtml());
+                            $tools->append($b->render());
                         }
                         foreach ($notifies as $notify) {
                             if ($notify->isNotifyTarget($this->custom_value, NotifyTrigger::BUTTON)) {
