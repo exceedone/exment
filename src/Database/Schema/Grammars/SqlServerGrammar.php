@@ -4,8 +4,18 @@ namespace Exceedone\Exment\Database\Schema\Grammars;
 
 use Illuminate\Database\Schema\Grammars\SqlServerGrammar as BaseGrammar;
 
-class SqlServerGrammar extends BaseGrammar
+class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 {
+    /**
+     * Compile the query to get version
+     *
+     * @return string
+     */
+    public function compileGetVersion()
+    {
+        return 'SELECT @@VERSION;';
+    }
+
     /**
      * Compile the query to show tables
      *
@@ -62,7 +72,7 @@ class SqlServerGrammar extends BaseGrammar
         return "if object_id('{$this->wrapTable($tableName)}') is null select * into {$this->wrapTable($tableName)} from custom_relation_values";
     }
     
-    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name)
+    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type)
     {
         // ALTER TABLE
         $as_value = "JSON_VALUE(\"value\",'$.$json_column_name')";
@@ -85,7 +95,6 @@ class SqlServerGrammar extends BaseGrammar
 
     protected function _compileGetIndex($tableName, $unique)
     {
-        $unique_key = boolval($unique) ? 1 : 0;
         return "select
             COL_NAME(ic.object_id, ic.column_id) as column_name,
             i.is_unique as is_unique,
@@ -99,7 +108,29 @@ class SqlServerGrammar extends BaseGrammar
         where
             i.type = 2
         and i.object_id = OBJECT_ID('{$this->wrapTable($tableName)}')
-        and i.is_unique = {$unique_key}
-        and COL_NAME(ic.object_id, ic.column_id) = ?";
+        and i.is_unique = :is_unique
+        and COL_NAME(ic.object_id, ic.column_id) = :column_name";
+    }
+
+    public function compileGetConstraint($tableName)
+    {
+        return "SELECT 
+            OBJECT_NAME([default_object_id]) AS name 
+        FROM 
+            SYS.COLUMNS 
+        WHERE 
+            [object_id] = OBJECT_ID('{$this->wrapTable($tableName)}') 
+        AND 
+            [name] = :column_name";
+    }
+
+    /**
+     *
+     * @return string
+     */
+    public function compileDropConstraint($tableName, $contraintName)
+    {
+        $tableName = $this->wrapTable($tableName);
+        return "ALTER TABLE $tableName DROP CONSTRAINT $contraintName";
     }
 }

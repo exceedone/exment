@@ -59,6 +59,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\UpdateCommand',
         'Exceedone\Exment\Console\PublishCommand',
         'Exceedone\Exment\Console\ScheduleCommand',
+        'Exceedone\Exment\Console\NotifyScheduleCommand',
         'Exceedone\Exment\Console\BatchCommand',
         'Exceedone\Exment\Console\BackupCommand',
         'Exceedone\Exment\Console\RestoreCommand',
@@ -399,6 +400,9 @@ class ExmentServiceProvider extends ServiceProvider
         Connection::resolverFor('sqlsrv', function (...$parameters) {
             return new ExmentDatabase\SqlServerConnection(...$parameters);
         });
+        Connection::resolverFor('pgsql', function (...$parameters) {
+            return new ExmentDatabase\PostgresConnection(...$parameters);
+        });
     }
 
     /**
@@ -412,7 +416,7 @@ class ExmentServiceProvider extends ServiceProvider
             return;
         }
 
-        Initialize::logDatabase();
+        \Exment::logDatabase();
     }
 
     /**

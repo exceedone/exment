@@ -284,6 +284,11 @@ trait ItemTrait
         return false;
     }
     
+    public function isMultipleEnabled()
+    {
+        return false;
+    }
+    
     /**
      * Get Search queries for free text search
      *

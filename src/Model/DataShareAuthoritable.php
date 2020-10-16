@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ShareTargetType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Carbon\Carbon;
@@ -202,16 +201,6 @@ class DataShareAuthoritable extends ModelBase
             \DB::commit();
 
             System::clearCache();
-
-            // // send notify
-            // $shares = collect($shares)->map(function ($share) {
-            //     return CustomTable::getEloquent($share['authoritable_user_org_type'])->getValueModel($share['authoritable_target_id']);
-            // });
-            
-            // // loop for $notifies
-            // foreach ($custom_value->custom_table->notifies as $notify) {
-            //     $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE, ['targetUserOrgs' => $shares]);
-            // }
 
             return getAjaxResponse([
                 'result'  => true,

@@ -9,7 +9,7 @@ use Exceedone\Exment\Database\Query\Processors\MySqlProcessor;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Illuminate\Database\MySqlConnection as BaseConnection;
 
-class MySqlConnection extends BaseConnection
+class MySqlConnection extends BaseConnection implements ConnectionInterface
 {
     use ConnectionTrait;
 
@@ -126,13 +126,19 @@ class MySqlConnection extends BaseConnection
     }
 
 
+    public function getDatabaseDriverName() : string
+    {
+        return 'MySQL';
+    }
+
+
     /**
      * Check execute backup database
      *
      * @return bool
      * @throws BackupRestoreCheckException
      */
-    public function checkBackup()
+    public function checkBackup() : bool
     {
         $commands = [static::getMysqlDumpPath(), static::getMysqlPath()];
         foreach ($commands as $command) {
@@ -256,7 +262,6 @@ class MySqlConnection extends BaseConnection
             });
 
             foreach ($files as $file) {
-
                 $command = sprintf('%s < %s', $mysqlcmd, $file->getRealPath());
                 
                 $table = $file->getBasename('.' . $file->getExtension());
@@ -325,14 +330,16 @@ __EOT__;
 
 
 
-    public function createView($viewName, $query){
+    public function createView($viewName, $query)
+    {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
         \DB::statement("
             CREATE OR REPLACE VIEW $viewName 
             AS " . $query->toSql(), $query->getBindings());
     }
 
-    public function dropView($viewName){
+    public function dropView($viewName)
+    {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
         \DB::statement("DROP VIEW IF EXISTS " . $viewName);
     }

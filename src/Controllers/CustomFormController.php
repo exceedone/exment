@@ -34,7 +34,9 @@ class CustomFormController extends AdminControllerTableBase
     public function __construct(?CustomTable $custom_table, Request $request)
     {
         parent::__construct($custom_table, $request);
-        $this->setPageInfo(exmtrans("custom_form.header"), exmtrans("custom_form.header"), exmtrans("custom_form.description"), 'fa-keyboard-o');
+        
+        $title = exmtrans("custom_form.header") . ' : ' . ($custom_table ? $custom_table->table_view_name : null);
+        $this->setPageInfo($title, $title, exmtrans("custom_form.description"), 'fa-keyboard-o');
     }
 
     /**
@@ -90,6 +92,7 @@ class CustomFormController extends AdminControllerTableBase
             $actions->disableView();
             // $actions->disableDelete();
         });
+        
         return $grid;
     }
 
@@ -233,7 +236,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('form_view_name', exmtrans("custom_form.form_view_name"))->sortable();
         $grid->column('default_flg', exmtrans("custom_form.default_flg"))->sortable()->display(function ($val) {
-            return getTrueMark($val);
+            return \Exment::getTrueMark($val);
         });
 
         if (isset($this->custom_table)) {
@@ -262,6 +265,18 @@ class CustomFormController extends AdminControllerTableBase
                 ->tooltip(exmtrans('common.copy_item', exmtrans('custom_form.default_form_name')));
             $actions->prepend($linker);
         });
+        
+        // filter
+        $grid->filter(function ($filter) {
+            // Remove the default id filter
+            $filter->disableIdFilter();
+
+            // Add a column filter
+            $filter->like('form_view_name', exmtrans("custom_form.form_view_name"));
+            
+            $filter->equal('default_flg', exmtrans("custom_form.default_flg"))->radio(\Exment::getYesNoAllOption());
+        });
+
         return $grid;
     }
     
@@ -296,7 +311,7 @@ class CustomFormController extends AdminControllerTableBase
         }
         
         // get exment version
-        $ver = getExmentCurrentVersion();
+        $ver = \Exment::getExmentCurrentVersion();
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }

@@ -12,6 +12,7 @@ use Carbon\Carbon;
 class ScheduleCommand extends Command
 {
     use CommandTrait;
+    use NotifyScheduleTrait;
 
     /**
      * The console command name.
@@ -60,6 +61,7 @@ class ScheduleCommand extends Command
         $hh = Carbon::now()->format('G');
         $notifies = Notify::where('notify_trigger', NotifyTrigger::TIME)
             ->where('trigger_settings->notify_hour', $hh)
+            ->where('active_flg', 1)
             ->get();
 
         // loop for $notifies

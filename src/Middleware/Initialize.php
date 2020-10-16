@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -206,15 +205,17 @@ class Initialize
         ]);
 
         // mysql setting
-        Config::set('database.connections.mysql.strict', false);
-        Config::set('database.connections.mysql.options', [
-            PDO::ATTR_CASE => PDO::CASE_LOWER,
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
-            PDO::ATTR_STRINGIFY_FETCHES => true,
-            PDO::ATTR_EMULATE_PREPARES => true,
-            PDO::MYSQL_ATTR_LOCAL_INFILE => true,
-        ]);
+        if (defined('PDO::MYSQL_ATTR_LOCAL_INFILE')) {
+            Config::set('database.connections.mysql.strict', false);
+            Config::set('database.connections.mysql.options', [
+                PDO::ATTR_CASE => PDO::CASE_LOWER,
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
+                PDO::ATTR_STRINGIFY_FETCHES => true,
+                PDO::ATTR_EMULATE_PREPARES => true,
+                PDO::MYSQL_ATTR_LOCAL_INFILE => true,
+            ]);
+        }
 
         // mariadb setting
         Config::set('database.connections.mariadb', Config::get('database.connections.mysql'));
@@ -438,6 +439,8 @@ class Initialize
             'tile'          => Field\Tile::class,
             'hasMany'           => Field\HasMany::class,
             'hasManyTable'           => Field\HasManyTable::class,
+            'hasManyJson'           => Field\HasManyJson::class,
+            'hasManyJsonTable'           => Field\HasManyJsonTable::class,
             //'relationTable'          => Field\RelationTable::class,
             'embeds'          => Field\Embeds::class,
             'nestedEmbeds'          => Field\NestedEmbeds::class,
@@ -447,8 +450,8 @@ class Initialize
             'systemValues'          => Field\SystemValues::class,
             
             ///// workflow
-            'workflowStatusSelects'          => Field\WorkFlow\StatusSelects::class,
-            'workflowOptions'          => Field\WorkFlow\Options::class,
+            'workflowStatusSelects'          => Field\Workflow\StatusSelects::class,
+            'workflowOptions'          => Field\Workflow\Options::class,
         ];
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);
@@ -458,51 +461,5 @@ class Initialize
 
         Filter::extend('betweendatetime', \Exceedone\Exment\Grid\Filter\BetweenDatetime::class);
         Filter::extend('exmwhere', \Exceedone\Exment\Grid\Filter\Where::class);
-    }
-
-    public static function logDatabase()
-    {
-        \DB::listen(function ($query) {
-            $sql = $query->sql;
-            for ($i = 0; $i < count($query->bindings); $i++) {
-                $binding = $query->bindings[$i];
-                if ($binding instanceof \DateTime) {
-                    $binding = $binding->format('Y-m-d H:i:s');
-                } elseif ($binding instanceof EnumBase) {
-                    $binding = $binding->toString();
-                }
-                $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
-            }
-
-            $log_string = "TIME:{$query->time}ms;    SQL: $sql";
-            if (boolval(config('exment.debugmode_sqlfunction', false))) {
-                $function = static::getFunctionName();
-                $log_string .= ";    function: $function";
-            } elseif (boolval(config('exment.debugmode_sqlfunction1', false))) {
-                $function = static::getFunctionName(true);
-                $log_string .= ";    function: $function";
-            }
-
-            exmDebugLog($log_string);
-        });
-    }
-
-    protected static function getFunctionName($oneFunction = false)
-    {
-        $bt = debug_backtrace();
-        $functions = [];
-        $i = 0;
-        foreach ($bt as $b) {
-            if ($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false) {
-                $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
-            }
-
-            if ($oneFunction && count($functions) >= 1) {
-                break;
-            }
-
-            $i++;
-        }
-        return implode(" < ", $functions);
     }
 }

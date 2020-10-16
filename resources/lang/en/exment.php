@@ -81,6 +81,7 @@ return [
             'import_success' => 'Success Import!',
             'import_error' => 'Success Error. Please Check Error Message.',
             'notfound' => 'Data Not Found.',
+            'notfound_or_deny' => 'Data Not Found or Not Permission.',
             'wrongdata' => 'Data is wrong. Please check url.',
             'wrongconfig' => 'Wrong config.json.',
             'exists_row' => 'Be sure to enter at least one line of %s.',
@@ -236,6 +237,8 @@ return [
         'system_mail_body_type' => 'Mail Body Type',
         'test_mail_to' => 'TestMail Send To',
         'submit_test_mail' => 'Send TestMail',
+        'system_slack' => 'Slack Setting',
+        'system_slack_user_column' => 'Slack ID Setting Column(User)',
         'grid_pager_count' => 'Number of displayed data list',
         'datalist_pager_count' => 'Number of displayed search and dashboard',
         'userdashboard_available' => 'Use User Dashboard',
@@ -371,6 +374,7 @@ return [
             'system_mail_encryption' => 'Enter the mail encryption protocol format in lower case. (ssl, tls etc)',
             'system_mail_body_type' => 'Please select the type of body of the email you want to send.',
             'test_mail' => 'Send a test email to the destination you entered. <br /> <b>*Be sure to save the above email settings before executing. The settings during input are invalid. </b>',
+            'system_slack_user_column' => 'Select a custom column in your user table to set your Slack ID. Mentions can be added to the user ID when Slack notification is executed.',
             'template' => 'If select these templates, install tables, columns and forms.',
             'role_one_user_organization' => 'Please register one or more users or organizations for permission.',
             'userdashboard_available' => 'If set to YES, the user dashboard function will be used, which allows logged-in users to create their own dashboards.',
@@ -617,6 +621,7 @@ return [
             'notfound_file' => 'Not found the file.',
             'restore_caution' => 'When migrating to another environment, problems may occur due to the difference between the original environment and the destination environment.<br>In particular, if the OS is different (Windows or Linux), the type of database (MySQL or MariaDB), the version, etc., it will not be completed normally due to various factors.<br>Be sure to check in advance.',
             'cmd_check_error' => 'The following command did not complete successfully. Please double check the server settings and database settings.  :cmd',
+            'not_support_driver' => 'Currently, %s does not support backup / restore. Please note.',
         ],
         'help' =>[
             'file_name' => 'Please select the backup zip file.%s<br>*Up to the size listed can be uploaded from the screen. If you want to restore larger files, please refer to <a href="%s" target="_blank">here <i class="fa fa-external-link"></i></a>.',
@@ -1846,11 +1851,24 @@ return [
         'target_custom_value' => 'Target data',
         'data_refer' => 'Display data linked to this notification',
         'all_check' => 'Make it bulk read',
+        'read_all' => 'Mark all notifications as read',
+        'unread_all' => 'Mark all notifications unread',
+        'delete_all' => 'Delete all notifications',
+        'batch_all' => 'batch processing',
+        'confirm_text' => [
+            'read_all' => 'Mark all notifications as read. Is it OK?',
+            'unread_all' => 'Marks all notifications unread. Is it OK?',
+            'delete_all' => 'Delete all notifications. Is it OK?',
+        ],
         'read_flg_options' => [
             '0' => 'Unread',
             '1' => 'Read',
         ],
         'message' => [
+            'batch_error' => 'Batch processing has failed. Please contact your system administrator.',
+            'read_succeeded' => 'Changed all notifications to read.',
+            'unread_succeeded' => 'Changed all notifications to unread.',
+            'delete_succeeded' => 'Removed all notifications.',
             'check_succeeded' => 'The selected data has been changed to read.',
             'check_notfound' => 'There is no data to update.',
             'no_newitem' => 'There is no new arrival notification.',
@@ -1875,6 +1893,7 @@ return [
         'notify_day' => 'Notification date',
         'notify_beforeafter' => 'Before and After Notification',
         'notify_hour' => 'Notification Date',
+        'notify_myself' => 'Notify the worker',
         'notify_action' => 'Notify Action',
         'action_settings' => 'Notify Action Setting',
         'notify_action_target' => 'Notify Target',
@@ -1883,8 +1902,11 @@ return [
         'notify_select' => 'Select Notify Target',
         'message_input' => 'Input Message',
         'webhook_url' => 'Webhook URL',
+        'mention_here' => 'Notify all members',
+        'mention_setting_manual_id' => 'slack-idsettingmethod',
 
         'help' => [
+            'active_flg' => 'If you want to temporarily disable notifications, set it to NO.',
             'notify_day' => 'Please enter the date of the notification. By inputting "0", will notify you on the day.',
             'custom_table_id' => 'Select the table to use as the condition to notify.',
             'custom_view_id' => 'Specify the condition view when you want to narrow the data of the target table. Please create the condition view on the custom table setting screen first.',
@@ -1892,11 +1914,14 @@ return [
             'notify_trigger' => 'Please select the content to be notified trigger.',
             'trigger_settings' => 'Select the datetime or date field for judging whether to notify.',
             'notify_beforeafter' => 'Choose whether to notify you that you are "before" or "after" of the date you are registering.<br />Ex: If "Notification date" is 7, "before and after notification" is "before", notification is executed 7 days before the date of the specified field.',
+            'notify_myself' => 'By setting YES, even if the notification target is the logged-in user who performed the work, the notification will be executed to that logged-in user.',
             'notify_hour' => 'The time to execute the notification. Enter from 0 to 23. Ex: When entering "6", execute notification at 6:00',
             'notify_action' => 'Please select the notification action to be done when the conditions are met.',
             'notify_action_target' => 'Select the target of notification destination.',
             'mail_template_id' => 'Select the template of the mail to send. When creating a new one, please create a new template in the mail template screen beforehand.',
             'webhook_url' => 'To make Slack or Teams notifications, you need to get a webhook URL. <a href="%s" target="_blank">Learn more</a> <br/>Slack and Teams are not compatible.',
+            'mention_here' => 'Sends an @here mention that notifies all members with active status on the specified channel. * To perform individual mentions, set the "Notification target" item below.',
+            'slack_user_column_not_setting' => '*The "Slack ID setting column (user)" in the system settings is not registered. After specifying the column to register Slack ID, you can set the notification target.',
         ],
 
         'notify_trigger_options' => [
@@ -1920,6 +1945,10 @@ return [
             'has_roles' => 'Have the Role User',
             'created_user' => 'Create User',
             'work_user' => 'Next Work User',
+        ],
+
+        'message' => [
+            'no_action_target' => 'There was no notification target.',
         ],
     ],
     

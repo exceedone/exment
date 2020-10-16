@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Grid\Filter;
 
 use Illuminate\Support\Arr;
 use Encore\Admin\Grid\Filter\Between;
-use Exceedone\Exment\Enums\GroupCondition;
 
 class BetweenDatetime extends Between
 {
@@ -12,8 +11,6 @@ class BetweenDatetime extends Between
      * {@inheritdoc}
      */
     protected $view = 'admin::filter.betweenDatetime';
-
-    protected $group_condition;
 
     /**
      * Get condition of this filter.
@@ -38,34 +35,30 @@ class BetweenDatetime extends Between
             return;
         }
 
-        if (isset($this->group_condition)) {
-            $column = \DB::raw(\DB::getQueryGrammar()
-                ->getDateFormatString($this->group_condition, $this->column, false, false));
-        } else {
-            $column = $this->column;
-        }
+        $value = $this->convertValue($value);
 
+        $column = $this->column;
+        
         if (!isset($value['start'])) {
-            return $this->buildCondition($column, '<=', $value['end']);
+            return $this->buildCondition($column, '<', $value['end']);
         }
 
         if (!isset($value['end'])) {
             return $this->buildCondition($column, '>=', $value['start']);
         }
 
-        $this->query = 'whereBetween';
+        $this->query = 'whereBetweenLt';
 
-        return $this->buildCondition($column, $this->value);
+        return $this->buildCondition($column, $value);
     }
 
-    /**
-     * Date filter.
-     *
-     * @return \DateTime
-     */
-    public function date()
+    protected function convertValue($value)
     {
-        $this->group_condition = GroupCondition::YMD;
-        return parent::date();
+        if (isset($value['end'])) {
+            $end = \Carbon\Carbon::parse($value['end'])->addDay(1);
+            $value['end'] = $end->format('Y-m-d');
+        }
+
+        return $value;
     }
 }

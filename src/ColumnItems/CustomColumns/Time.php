@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Validator;
+use Exceedone\Exment\Enums\DatabaseDataType;
 
 class Time extends Date
 {
@@ -31,6 +32,14 @@ class Time extends Date
     protected function setValidates(&$validates, $form_column_options)
     {
         $validates[] = new Validator\TimeRule();
+    }
+
+    /**
+     * get cast Options
+     */
+    protected function getCastOptions()
+    {
+        return [DatabaseDataType::TYPE_TIME, true, []];
     }
 
     /**

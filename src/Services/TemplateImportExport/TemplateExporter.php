@@ -94,7 +94,7 @@ class TemplateExporter
             $config['template_name'] = $template_name;
 
             // get version
-            list($latest, $current) = getExmentVersion();
+            list($latest, $current) = \Exment::getExmentVersion();
             if (isset($current)) {
                 $config['version'] = $current;
             }

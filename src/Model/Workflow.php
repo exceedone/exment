@@ -37,7 +37,8 @@ class Workflow extends ModelBase
         
     public function notifies()
     {
-        return $this->hasMany(Notify::class, 'workflow_id');
+        return $this->hasMany(Notify::class, 'workflow_id')
+            ->where('active_flg', 1);
     }
 
     protected static function boot()

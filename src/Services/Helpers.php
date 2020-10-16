@@ -10,12 +10,9 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\ErrorCode;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Carbon\Carbon;
@@ -53,13 +50,7 @@ if (!function_exists('exmtrans')) {
 if (!function_exists('getManualUrl')) {
     function getManualUrl($uri = null)
     {
-        $manual_url_base = config('exment.manual_url');
-        // if ja, set
-        if (config('app.locale') == 'ja') {
-            $manual_url_base = url_join($manual_url_base, 'ja') . '/';
-        }
-        $manual_url_base = url_join($manual_url_base, $uri);
-        return $manual_url_base;
+        return \Exment::getManualUrl($uri);
     }
 }
 
@@ -127,38 +118,6 @@ if (!function_exists('html_clean')) {
         } catch (\Exception $ex) {
             return null;
         }
-    }
-}
-
-if (!function_exists('esc_sql')) {
-    function esc_sql($string)
-    {
-        return app('db')->getPdo()->quote($string);
-    }
-}
-
-if (!function_exists('esc_sqlTable')) {
-    function esc_sqlTable($string)
-    {
-        return \DB::getQueryGrammar()->wrapTable($string);
-    }
-}
-
-if (!function_exists('formatAttributes')) {
-    /**
-     * Format the field attributes.
-     *
-     * @return string
-     */
-    function formatAttributes($attributes)
-    {
-        $html = [];
-
-        foreach ($attributes as $name => $value) {
-            $html[] = $name.'="'.esc_html($value).'"';
-        }
-
-        return implode(' ', $html);
     }
 }
 
@@ -548,17 +507,6 @@ if (!function_exists('getUploadMaxFileSize')) {
 
         // return byte size
         return $minsize * 1024 * 1024;
-    }
-}
-
-if (!function_exists('isApiEndpoint')) {
-    /**
-     * this url is ApiEndpoint
-     */
-    function isApiEndpoint()
-    {
-        $basePath = ltrim(admin_base_path(), '/');
-        return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
     }
 }
 
@@ -977,6 +925,13 @@ if (!function_exists('short_uuid')) {
     }
 }
 
+if (!function_exists('is_uuid')) {
+    function is_uuid($uuid) : bool
+    {
+        return Uuid::validate($uuid);
+    }
+}
+
 if (!function_exists('make_licensecode')) {
     function make_licensecode()
     {
@@ -1148,7 +1103,7 @@ if (!function_exists('canConnection')) {
         // Use session. Not request session
         return System::cache(Define::SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE, function () {
             // get all table names
-            return DB::canConnection();
+            return \ExmentDB::canConnection();
         }, true);
     }
 }
@@ -1417,152 +1372,6 @@ if (!function_exists('downloadFile')) {
     }
 }
 
-
-if (!function_exists('getExmentVersion')) {
-    /**
-     * getExmentVersion using session and composer
-     *
-     * @return array $latest: new version in package, $current: this version in server
-     */
-    function getExmentVersion($getFromComposer = true)
-    {
-        try {
-            try {
-                $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
-            } catch (\Exception $e) {
-            }
-    
-            $latest = null;
-            $current = null;
-            if (isset($version_json)) {
-                $version = json_decode($version_json, true);
-                $latest = array_get($version, 'latest');
-                $current = array_get($version, 'current');
-            }
-            
-            if ((empty($latest) || empty($current))) {
-                // get current version from composer.lock
-                $composer_lock = base_path('composer.lock');
-                if (!\File::exists($composer_lock)) {
-                    return [null, null];
-                }
-
-                $contents = \File::get($composer_lock);
-                $json = json_decode($contents, true);
-                if (!$json) {
-                    return [null, null];
-                }
-                
-                // get exment info
-                $packages = array_get($json, 'packages');
-                $exment = collect($packages)->filter(function ($package) {
-                    return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
-                })->first();
-                if (!isset($exment)) {
-                    return [null, null];
-                }
-                $current = array_get($exment, 'version');
-                
-                // if outside api is not permitted, return only current
-                if (!System::outside_api() || !$getFromComposer) {
-                    return [null, $current];
-                }
-
-                // if already executed
-                if (session()->has(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE)) {
-                    return [null, $current];
-                }
-
-                //// get latest version
-                $client = new \GuzzleHttp\Client();
-                $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
-                    'http_errors' => false,
-                    'timeout' => 3, // Response timeout
-                    'connect_timeout' => 3, // Connection timeout
-                ]);
-
-                session([Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE => true]);
-
-                $contents = $response->getBody()->getContents();
-                if ($response->getStatusCode() != 200) {
-                    return [null, null];
-                }
-
-                $json = json_decode($contents, true);
-                if (!$json) {
-                    return [null, null];
-                }
-                $packages = array_get($json, 'packages.'.Define::COMPOSER_PACKAGE_NAME);
-                if (!$packages) {
-                    return [null, null];
-                }
-
-                // sort by timestamp
-                $sortedPackages = collect($packages)->sortByDesc('time');
-                foreach ($sortedPackages as $key => $package) {
-                    // if version is "dev-", continue
-                    if (substr($key, 0, 4) == 'dev-') {
-                        continue;
-                    }
-                    $latest = $key;
-                    break;
-                }
-                
-                try {
-                    session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
-                        'latest' => $latest, 'current' => $current
-                    ]));
-                } catch (\Exception $e) {
-                }
-            }
-        } catch (\Exception $e) {
-            session([Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE => true]);
-        }
-        
-        return [$latest ?? null, $current ?? null];
-    }
-}
-
-
-if (!function_exists('getExmentCurrentVersion')) {
-    /**
-     * getExmentCurrentVersion
-     *
-     * @return string|null this version in server
-     */
-    function getExmentCurrentVersion()
-    {
-        return getExmentVersion(false)[1];
-    }
-}
-
-if (!function_exists('checkLatestVersion')) {
-    /**
-     * check exment's next version
-     *
-     * @return array $latest: new version in package, $current: this version in server
-     */
-    function checkLatestVersion()
-    {
-        list($latest, $current) = getExmentVersion();
-        $latest = trim($latest, 'v');
-        $current = trim($current, 'v');
-        
-        if (empty($latest) || empty($current)) {
-            return SystemVersion::ERROR;
-        } elseif (strpos($current, 'dev-') === 0) {
-            return SystemVersion::DEV;
-        } elseif ($latest === $current) {
-            return SystemVersion::LATEST;
-            $message = exmtrans("system.version_latest");
-            $icon = 'check-square';
-            $bgColor = 'blue';
-        } else {
-            return SystemVersion::HAS_NEXT;
-        }
-    }
-}
-
 if (!function_exists('getPagerOptions')) {
     /**
      * get pager select options
@@ -1581,19 +1390,6 @@ if (!function_exists('getPagerOptions')) {
     }
 }
 
-if (!function_exists('getTrueMark')) {
-    /**
-     * get true mark. If $val is true, output mark
-     */
-    function getTrueMark($val)
-    {
-        if (!boolval($val)) {
-            return null;
-        }
-
-        return config('exment.true_mark', '<i class="fa fa-check"></i>');
-    }
-}
 
 // Excel --------------------------------------------------
 if (!function_exists('getDataFromSheet')) {

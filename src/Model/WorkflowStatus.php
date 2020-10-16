@@ -80,7 +80,7 @@ class WorkflowStatus extends ModelBase
      * @param string|null $workflow_status
      * @return bool
      */
-    public static function getWorkflowStatusCompleted($workflow_status = null)
+    public static function getWorkflowStatusCompleted($workflow_status = null) : bool
     {
         if (!isset($workflow_status) || $workflow_status == Define::WORKFLOW_START_KEYNAME) {
             return false;

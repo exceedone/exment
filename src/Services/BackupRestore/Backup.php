@@ -26,7 +26,7 @@ class Backup
      */
     public function check()
     {
-        return \DB::checkBackup();
+        return \ExmentDB::checkBackup();
     }
 
     /**
@@ -39,7 +39,7 @@ class Backup
     {
         try {
             // check backup execute
-            \DB::checkBackup();
+            \ExmentDB::checkBackup();
 
             $target = $target ?? BackupTarget::arrays();
 
@@ -53,7 +53,7 @@ class Backup
     
             // backup database tables
             if (in_array(BackupTarget::DATABASE, $target)) {
-                \DB::backupDatabase($this->diskService->tmpDiskItem()->dirFullPath());
+                \ExmentDB::backupDatabase($this->diskService->tmpDiskItem()->dirFullPath());
             }
     
             // backup directory

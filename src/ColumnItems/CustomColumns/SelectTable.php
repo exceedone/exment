@@ -41,7 +41,7 @@ class SelectTable extends CustomItem
 
         // convert array or not, using multiple_enabled
         $v = toArray($this->value);
-        if (boolval(array_get($this->custom_column, 'options.multiple_enabled', false))) {
+        if ($this->isMultipleEnabled()) {
             return $v;
         }
         return count($v) == 0 ? null : $v[0];
@@ -52,19 +52,19 @@ class SelectTable extends CustomItem
      */
     public function sortable()
     {
-        if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
+        if ($this->isMultipleEnabled()) {
             return false;
         }
         return parent::sortable();
     }
 
     /**
-     * get cast name for sort
+     * get cast Options
      */
-    public function getCastName()
+    protected function getCastOptions()
     {
-        $grammar = \DB::getQueryGrammar();
-        return $grammar->getCastString(DatabaseDataType::TYPE_INTEGER, true);
+        $type = $this->isMultipleEnabled() ? DatabaseDataType::TYPE_STRING_MULTIPLE : DatabaseDataType::TYPE_INTEGER;
+        return [$type, false, []];
     }
 
     public function getSelectTable()
@@ -154,7 +154,7 @@ class SelectTable extends CustomItem
     
     protected function getAdminFieldClass()
     {
-        if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
+        if ($this->isMultipleEnabled()) {
             return Field\MultipleSelect::class;
         } else {
             return Field\Select::class;
@@ -163,7 +163,7 @@ class SelectTable extends CustomItem
     
     protected function getAdminFilterClass()
     {
-        if (boolval($this->custom_column->getOption('multiple_enabled'))) {
+        if ($this->isMultipleEnabled()) {
             return ExmWhere::class;
         }
         return Filter\Equal::class;
@@ -532,7 +532,7 @@ class SelectTable extends CustomItem
      */
     public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])
     {
-        if (!boolval($this->custom_column->getOption('multiple_enabled'))) {
+        if (!$this->isMultipleEnabled()) {
             return parent::getSearchQueries($mark, $value, $takeCount, $q, $options);
         }
 
@@ -542,5 +542,10 @@ class SelectTable extends CustomItem
         $query->take($takeCount)->select('id');
 
         return [$query];
+    }
+    
+    public function isMultipleEnabled()
+    {
+        return boolval(array_get($this->custom_column, 'options.multiple_enabled', false));
     }
 }

@@ -58,7 +58,7 @@ class ApiTest extends ApiTestBase
         ])->get(admin_urls('api', 'version'))
             ->assertStatus(200)
             ->assertJson([
-                'version' => getExmentCurrentVersion()
+                'version' => \Exment::getExmentCurrentVersion()
             ]);
     }
 
@@ -70,7 +70,7 @@ class ApiTest extends ApiTestBase
         ])->get(admin_urls('api', 'version'))
             ->assertStatus(200)
             ->assertJson([
-                'version' => getExmentCurrentVersion()
+                'version' => \Exment::getExmentCurrentVersion()
             ]);
     }
 
@@ -154,7 +154,7 @@ class ApiTest extends ApiTestBase
         ])->get(admin_urls('api', 'table'))
             ->assertStatus(200)
             ->assertJsonFragment([
-                'table_name' => 'base_info',
+                'table_name' => 'information',
             ])
             ;
     }

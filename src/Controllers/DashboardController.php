@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Auth\Permission as Checker;
+use Exceedone\Exment\Auth\Permission as Checker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -54,8 +54,8 @@ class DashboardController extends AdminControllerBase
         
         // check has system permission
         $dashboard = Dashboard::find($id);
-        if (!$dashboard->hasEditPermission()) {
-            Checker::error();
+        if (!$dashboard || !$dashboard->hasEditPermission()) {
+            Checker::notFoundOrDeny();
             return false;
         }
 
@@ -395,7 +395,7 @@ EOT;
                     'dashboard_suuid' => $this->dashboard->suuid,
                     'dashboardboxes_newbuttons' => $dashboardboxes_newbuttons,
                     'icons' => $icons,
-                    'attributes' => isset($dashboard_box) ? formatAttributes($dashboard_box->getBoxHtmlAttr()) : '',
+                    'attributes' => isset($dashboard_box) ? \Exment::formatAttributes($dashboard_box->getBoxHtmlAttr()) : '',
                 ]));
             }
         });
@@ -412,9 +412,9 @@ EOT;
             return;
         }
 
-        $versionCheck = checkLatestVersion();
+        $versionCheck = \Exment::checkLatestVersion();
         if ($versionCheck == SystemVersion::HAS_NEXT) {
-            list($latest, $current) = getExmentVersion();
+            list($latest, $current) = \Exment::getExmentVersion();
             admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'.getManualUrl('update').'" target="_blank">'.exmtrans("system.update_guide").'</a>');
         }
     }

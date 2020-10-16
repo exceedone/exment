@@ -360,22 +360,22 @@ class DefaultGrid extends GridBase
         $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
         $table_view_name = $relation->parent_custom_table->table_view_name;
 
-        $relationQuery = function ($query) use ($relation) {
+        $relationQuery = function ($query, $input) use ($relation) {
             if ($relation->relation_type == RelationType::ONE_TO_MANY) {
-                RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $this->input);
+                RelationTable::setQueryOneMany($query, $relation->parent_custom_table, $input);
             } else {
-                RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $this->input);
+                RelationTable::setQueryManyMany($query, $relation->parent_custom_table, $relation->child_custom_table, $input);
             }
         };
 
         // set relation
         if (isset($ajax)) {
             $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $ajax) {
-                $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
+                $filter->exmwhere($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
             };
         } else {
             $filterItems[] = function ($filter) use ($relationQuery, $table_view_name, $options) {
-                $filter->where($relationQuery, $table_view_name)->select($options);
+                $filter->exmwhere($relationQuery, $table_view_name)->select($options);
             };
         }
     }

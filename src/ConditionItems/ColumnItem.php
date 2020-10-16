@@ -10,7 +10,6 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Form\Field\ChangeField;
 use Exceedone\Exment\Validator\ChangeFieldRule;
 use Encore\Admin\Form\Field;

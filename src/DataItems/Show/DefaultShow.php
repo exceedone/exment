@@ -27,17 +27,13 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\NotifyTrigger;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Services\PartialCrudService;
-use Exceedone\Exment\DataItems\DataTrait;
 
 class DefaultShow extends ShowBase
 {
-    use DataTrait;
-
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
@@ -202,7 +198,7 @@ class DefaultShow extends ShowBase
                         foreach ($copyButtons as $copyButton) {
                             $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $this->custom_value->id);
                         
-                            $tools->append($b->toHtml());
+                            $tools->append($b->render());
                         }
                         foreach ($notifies as $notify) {
                             if ($notify->isNotifyTarget($this->custom_value, NotifyTrigger::BUTTON)) {
@@ -286,7 +282,7 @@ class DefaultShow extends ShowBase
             }
             ////// relation block
             else {
-                list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
+                list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
                 $target_table = $custom_form_block->target_table;
                 if (!isset($target_table)) {
                     return;
@@ -303,7 +299,7 @@ class DefaultShow extends ShowBase
                 // one to many
                 if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
                     // append filter
-                    $grid->model()->where('parent_id', $this->custom_value->id);
+                    $grid->model()->where('parent_id', $this->custom_value->id)->where('parent_type', $this->custom_table->table_name);
                 }
                 // one to many
                 elseif ($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY) {

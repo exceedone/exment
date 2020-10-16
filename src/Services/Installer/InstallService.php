@@ -39,7 +39,7 @@ class InstallService
 
     public static function getStatus()
     {
-        if (\DB::canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && CustomTable::count() > 0) {
+        if (\ExmentDB::canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && CustomTable::count() > 0) {
             return InitializeStatus::INITIALIZE;
         }
         
@@ -47,7 +47,7 @@ class InstallService
             return InitializeStatus::LANG;
         }
 
-        if (!\DB::canConnection()) {
+        if (!\ExmentDB::canConnection()) {
             return InitializeStatus::DATABASE;
         }
 

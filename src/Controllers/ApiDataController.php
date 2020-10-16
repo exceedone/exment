@@ -983,7 +983,7 @@ class ApiDataController extends AdminControllerTableBase
 
             // clone model for re use
             $query = $this->getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column ?? null);
-            $data = $query->get();
+            $data = $query->take(config('exment.calendar_max_size_count', 300))->get();
 
             foreach ($data as $row) {
                 $task = [

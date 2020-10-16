@@ -79,11 +79,13 @@ class RouteServiceProvider extends ServiceProvider
                 return redirect(admin_url('template'));
             });
             
+            $router->post('notify/setting', 'NotifyController@postNotifySetting');
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
             $router->get('notify/notify_action_target_workflow', 'NotifyController@notify_action_target_workflow');
             $router->post('notify/notifytrigger_template', 'NotifyController@getNotifyTriggerTemplate');
             $router->resource('notify', 'NotifyController');
+            $router->post("notify_navbar/batchAll/{type}", 'NotifyNavbarController@batchAll');
             $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');

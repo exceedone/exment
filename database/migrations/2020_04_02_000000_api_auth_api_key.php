@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Exceedone\Exment\Database\ExtendedBlueprint;
 
 class ApiAuthApiKey extends Migration
 {
@@ -38,8 +39,13 @@ class ApiAuthApiKey extends Migration
      */
     public function down()
     {
+        $schema = DB::connection()->getSchemaBuilder();
+        $schema->blueprintResolver(function($table, $callback) {
+            return new ExtendedBlueprint($table, $callback);
+        });
+
         if(Schema::hasTable('oauth_clients')){
-            Schema::table('oauth_clients', function (Blueprint $table) {
+            $schema->table('oauth_clients', function (ExtendedBlueprint $table) {
                 if(Schema::hasColumn('oauth_clients', 'api_key_client')){
                     $table->dropColumn('api_key_client');
                 }

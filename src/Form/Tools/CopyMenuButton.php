@@ -2,12 +2,13 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
+use Illuminate\Contracts\Support\Renderable;
 use Encore\Admin\Facades\Admin;
 
 /**
  * Copy menu button.
  */
-class CopyMenuButton
+class CopyMenuButton implements Renderable
 {
     protected $copy;
     protected $custom_table;
@@ -68,7 +69,12 @@ EOT;
 EOT;
     }
 
-    public function toHtml()
+    /**
+     * render html
+     *
+     * @return string
+     */
+    public function render()
     {
         // get label
         if (!is_null(array_get($this->copy, 'options.label'))) {
@@ -101,13 +107,5 @@ EOT;
             'button_class' => $button_class,
             'icon' => array_get($this->copy, 'options.icon') ?? '',
         ])->render();
-    }
-    
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return $this->render()->render() ?? '';
     }
 }

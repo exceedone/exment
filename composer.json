@@ -11,10 +11,6 @@
             "homepage": "https://www.exceedone.co.jp/"
         },
         {
-            "name": "NTQ Solution",
-            "homepage": "https://jp.ntq-solution.com.vn/"
-        },
-        {
             "name": "Hiroshi Sato",
             "homepage": "https://hirossyi.net/"
         }
@@ -46,7 +42,8 @@
                 "Exceedone\\Exment\\ExmentServiceProvider"
             ],
             "aliases": {
-                "Exment": "Exceedone\\Exment\\Facades\\ExmentFacade"
+                "Exment": "Exceedone\\Exment\\Facades\\ExmentFacade",
+                "ExmentDB": "Exceedone\\Exment\\Facades\\ExmentDBFacade"
             }
         }
     }

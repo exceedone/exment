@@ -94,7 +94,7 @@ namespace Exment {
                     Exment.CommonEvent.AddEvent();
                 }
             }).fail(function( res, textStatus, errorThrown ) {
-                
+                Exment.CommonEvent.CallbackExmentAjax(res);
             }).always(function(res){
             });
 

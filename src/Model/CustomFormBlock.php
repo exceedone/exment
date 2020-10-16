@@ -70,6 +70,27 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         return false;
     }
 
+    
+    /**
+     * get relation name etc for form block
+     */
+    public function getRelationInfo()
+    {
+        $target_table = $this->target_table;
+        // get label hasmany
+        $block_label = $this->form_block_view_name;
+        if (!isset($block_label)) {
+            $enum = FormBlockType::getEnum(array_get($this, 'form_block_type'));
+            $block_label = exmtrans("custom_form.table_".$enum->lowerKey()."_label") . $target_table->table_view_name;
+        }
+        // get form columns count
+        $form_block_options = array_get($this, 'options', []);
+        $relation = CustomRelation::getRelationByParentChild($this->custom_form->custom_table, $target_table);
+        $relation_name = $relation ? $relation->getRelationName() : null;
+        
+        return [$relation, $relation_name, $block_label];
+    }
+
     protected static function importReplaceJson(&$json, $options = [])
     {
         // get custom table

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator\SelectRule;
+use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
@@ -68,6 +69,15 @@ class Select extends CustomItem
         return Filter\Equal::class;
     }
 
+    /**
+     * get cast Options
+     */
+    protected function getCastOptions()
+    {
+        $type = $this->isMultipleEnabled() ? DatabaseDataType::TYPE_STRING_MULTIPLE : DatabaseDataType::TYPE_STRING;
+        return [$type, false, []];
+    }
+
     protected function setAdminOptions(&$field, $form_column_options)
     {
         $field->options($this->custom_column->createSelectOptions());
@@ -98,5 +108,10 @@ class Select extends CustomItem
     public function getAdminFilterWhereQuery($query, $input)
     {
         $this->getSelectFilterQuery($query, $input);
+    }
+    
+    public function isMultipleEnabled()
+    {
+        return boolval(array_get($this->custom_column, 'options.multiple_enabled', false));
     }
 }

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Exceedone\Exment\Database\ExtendedBlueprint;
 
 class AppendViewColumnSuuid extends Migration
 {
@@ -38,16 +39,23 @@ class AppendViewColumnSuuid extends Migration
      */
     public function down()
     {
+        $schema = DB::connection()->getSchemaBuilder();
+        $schema->blueprintResolver(function($table, $callback) {
+            return new ExtendedBlueprint($table, $callback);
+        });
+
         if(Schema::hasTable('custom_view_columns')){
-            Schema::table('custom_view_columns', function (Blueprint $table) {
+            $schema->table('custom_view_columns', function (ExtendedBlueprint $table) {
                 if(Schema::hasColumn('custom_view_columns', 'suuid')){
+                    $table->dropIndex(['suuid']);
                     $table->dropColumn('suuid');
                 }
             });
         }
         if(Schema::hasTable('custom_view_summaries')){
-            Schema::table('custom_view_summaries', function (Blueprint $table) {
+            $schema->table('custom_view_summaries', function (ExtendedBlueprint $table) {
                 if(Schema::hasColumn('custom_view_summaries', 'suuid')){
+                    $table->dropIndex(['suuid']);
                     $table->dropColumn('suuid');
                 }
             });

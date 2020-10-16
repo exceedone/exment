@@ -161,7 +161,7 @@ class WorkflowItem extends SystemItem
 
         /////// first query. has workflow value's custom value
         $subquery = \DB::table($tableName)
-            ->join(SystemTableName::VIEW_WORKFLOW_VALUE_UNION, function ($join) use($tableName, $custom_table) {
+            ->join(SystemTableName::VIEW_WORKFLOW_VALUE_UNION, function ($join) use ($tableName, $custom_table) {
                 $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.custom_value_id', "$tableName.id")
                     ->where(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.custom_value_type', $custom_table->table_name)
                     ->where(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.workflow_table_id', $custom_table->id)
@@ -186,7 +186,7 @@ class WorkflowItem extends SystemItem
         
         /////// second query. not has workflow value's custom value
         $subquery2 = \DB::table($tableName)
-            ->join(SystemTableName::VIEW_WORKFLOW_START, function ($join) use($tableName, $custom_table) {
+            ->join(SystemTableName::VIEW_WORKFLOW_START, function ($join) use ($custom_table) {
                 $join->where(SystemTableName::VIEW_WORKFLOW_START . '.workflow_table_id', $custom_table->id)
                     ;
             })
@@ -194,7 +194,7 @@ class WorkflowItem extends SystemItem
             ->whereNotExists(function ($query) use ($tableName, $custom_table) {
                 $query->select(\DB::raw(1))
                     ->from(SystemTableName::WORKFLOW_VALUE)
-                    ->whereColumn(SystemTableName::WORKFLOW_VALUE . '.morph_id',  "$tableName.id")
+                    ->whereColumn(SystemTableName::WORKFLOW_VALUE . '.morph_id', "$tableName.id")
                     ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
                     ->where(SystemTableName::WORKFLOW_VALUE . '.latest_flg', 1)
                     ;

@@ -99,9 +99,13 @@ class CustomValueController extends AdminControllerTableBase
     public function destroy($tableKey, $id)
     {
         $request = request();
-        if (($response = $this->firstFlow($request, CustomValuePageType::DELETE, $id)) instanceof Response) {
-            return $response;
+        // if destory, id is comma string
+        foreach (stringtoArray($id) as $i) {
+            if (($response = $this->firstFlow($request, CustomValuePageType::DELETE, $i)) instanceof Response) {
+                return $response;
+            }
         }
+        
         return $this->destroyTrait($tableKey, $id);
     }
 
@@ -654,7 +658,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
-        $notify = Notify::where('suuid', $targetid)->first();
+        $notify = Notify::where('suuid', $targetid)->where('active_flg', 1)->first();
         if (!isset($notify)) {
             abort(404);
         }
@@ -662,6 +666,14 @@ class CustomValueController extends AdminControllerTableBase
         $service = new NotifyService($notify, $targetid, $tableKey, $id);
         $form = $service->getNotifyDialogForm();
         
+        if ($form === false) {
+            return getAjaxResponse([
+                'result'  => false,
+                'swal' => exmtrans('common.error'),
+                'swaltext' => exmtrans('notify.message.no_action_target'),
+            ]);
+        }
+
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
@@ -798,7 +810,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
-        $notify = Notify::where('suuid', $targetid)->first();
+        $notify = Notify::where('suuid', $targetid)->where('active_flg', 1)->first();
         if (!isset($notify)) {
             abort(404);
         }

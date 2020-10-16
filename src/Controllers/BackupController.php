@@ -82,10 +82,6 @@ class BackupController extends AdminControllerBase
         // create setting form
         $content->row($this->settingFormBox());
 
-        // ※SQLServerはバックアップ未対応。※一時なので、日本語固定で表示
-        if (config('database.default') == 'sqlsrv') {
-            admin_error('SQL Server未対応', '現在、SQL Serverではバックアップ・リストア未対応です。ご了承ください。');
-        }
         
         return $content;
     }
@@ -272,7 +268,7 @@ class BackupController extends AdminControllerBase
         if (isset($file_key)) {
             $form->display('restore_zipfile', exmtrans('backup.restore_zipfile'))
                 ->setWidth(8, 3)
-                ->displayText("$file_key.zip");
+                ->displayText("$file_key.zip")->escape(false);
             $form->hidden('restore_zipfile')->default($file_key);
         } else {
             $form->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
@@ -295,7 +291,7 @@ class BackupController extends AdminControllerBase
 
         $form->display('restore_caution', exmtrans('backup.restore_caution'))
             ->setWidth(8, 3)
-            ->displayText(exmtrans('backup.message.restore_caution'));
+            ->displayText(exmtrans('backup.message.restore_caution'))->escape(false);
 
         return getAjaxResponse([
             'body'  => $form->render(),

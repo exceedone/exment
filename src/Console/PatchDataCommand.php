@@ -83,6 +83,9 @@ class PatchDataCommand extends Command
             case 'alter_index_hyphen':
                 $this->reAlterIndexContainsHyphen();
                 return;
+            case 'alter_index_all':
+                $this->reAlterIndexAll();
+                return;
             case '2factor':
                 $this->import2factorTemplate();
                 return;
@@ -166,6 +169,9 @@ class PatchDataCommand extends Command
                 return;
             case 'patch_view_dashboard':
                 $this->patchViewDashboard();
+                return;
+            case 'update_notify_difinition':
+                $this->updateNotifyDifinition();
                 return;
         }
 
@@ -255,15 +261,32 @@ class PatchDataCommand extends Command
     {
         // get index contains hyphen
         $index_custom_columns = CustomColumn::indexEnabled()->where('column_name', 'LIKE', '%-%')->get();
-        
+        $this->reAlterIndex($index_custom_columns);
+    }
+
+    /**
+     * re-alter Index all
+     *
+     * @return void
+     */
+    protected function reAlterIndexAll()
+    {
+        // get index contains hyphen
+        $index_custom_columns = CustomColumn::indexEnabled()->get();
+        $this->reAlterIndex($index_custom_columns);
+    }
+
+    protected function reAlterIndex($index_custom_columns)
+    {
         foreach ($index_custom_columns as  $index_custom_column) {
             $db_table_name = getDBTableName($index_custom_column->custom_table);
             $db_column_name = $index_custom_column->getIndexColumnName(false);
             $index_name = "index_$db_column_name";
             $column_name = $index_custom_column->column_name;
+            $column_type = $index_custom_column->column_item->getVirtualColumnTypeName();
 
             \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
-            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
+            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $column_type);
         }
     }
     
@@ -1215,5 +1238,43 @@ class PatchDataCommand extends Command
         // update system value
         System::userdashboard_available(!boolval(config('exment.userdashboard_disabled', true)));
         System::userview_available(!boolval(config('exment.userview_disabled', true)));
+    }
+
+
+    protected function updateNotifyDifinition()
+    {
+        Model\Notify::get()
+        ->each(function ($notify) {
+            $notify_actions = array_filter(stringToArray($notify->notify_actions), function ($notify_action) {
+                return !is_nullorempty($notify_action);
+            });
+            if (count($notify_actions) == 0) {
+                $notify_actions = [Enums\NotifyAction::SHOW_PAGE];
+            }
+
+            $action_settings_array = [];
+
+            foreach ($notify_actions as $notify_action) {
+                $action_settings = $notify->action_settings;
+                $item = [
+                    'notify_action' => $notify_action,
+                    'webhook_url' => array_get($action_settings, 'webhook_url'),
+                    'notify_action_target' => array_get($action_settings, 'notify_action_target'),
+                ];
+
+                $action_settings_array[] = $item;
+            }
+
+            $notify->mail_template_id = array_get($notify->action_settings, 'mail_template_id');
+            $notify->action_settings = $action_settings_array;
+            $notify->save();
+        });
+
+        if (!boolval(config('exment.notify_skip_self_target', true))) {
+            Model\Notify::whereIn('notify_trigger', [Enums\NotifyTrigger::CREATE_UPDATE_DATA, Enums\NotifyTrigger::WORKFLOW])->get()
+                ->each(function ($notify) {
+                    $notify->setTriggerSetting('notify_myself', true)->save();
+                });
+        }
     }
 }

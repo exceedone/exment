@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Database\Schema\Grammars;
 
 use Illuminate\Database\Schema\Grammars\MySqlGrammar as BaseGrammar;
 
-class MySqlGrammar extends BaseGrammar
+class MySqlGrammar extends BaseGrammar implements GrammarInterface
 {
     /**
      * Compile the query to get version
@@ -56,7 +56,7 @@ class MySqlGrammar extends BaseGrammar
         return "create table if not exists {$this->wrapTable($tableName)} like custom_relation_values";
     }
     
-    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name)
+    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type)
     {
         // ALTER TABLE
         $as_value = "json_unquote(json_extract({$this->wrap('value')},'$.\"{$json_column_name}\"'))";
@@ -79,7 +79,11 @@ class MySqlGrammar extends BaseGrammar
 
     protected function _compileGetIndex($tableName, $unique)
     {
-        $unique_key = boolval($unique) ? 0 : 1;
-        return "show index from {$this->wrapTable($tableName)} where non_unique = $unique_key and column_name = ?";
+        return "show index from {$this->wrapTable($tableName)} where non_unique = :is_unique and column_name = :column_name";
+    }
+    
+    public function compileGetConstraint($tableName)
+    {
+        return null;
     }
 }

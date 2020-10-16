@@ -54,7 +54,7 @@ class MicrosoftTeamsSender
     public function send()
     {
         // replace word
-        $teams_content = static::editContent($this->subject, $this->body);
+        $teams_content = $this->editContent();
         // send slack message
         $this->notify(new Jobs\MicrosoftTeamsJob($this->subject, $teams_content));
     }
@@ -62,9 +62,9 @@ class MicrosoftTeamsSender
     /**
      * replace url to slack format.
      */
-    protected static function editContent($subject, $body)
+    protected function editContent()
     {
-        $content = $body;
+        $content = $this->body;
         preg_match_all(Define::RULES_REGEX_LINK_FORMAT, $content, $matches);
 
         if (isset($matches)) {

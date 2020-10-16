@@ -177,6 +177,8 @@ class WorkflowAction extends ModelBase
      */
     protected function setActionAuthority()
     {
+        $this->syncOriginal();
+        
         $work_target_type = array_get($this->work_targets, 'work_target_type');
         if (isset($work_target_type)) {
             $this->setOption('work_target_type', $work_target_type);
@@ -634,7 +636,7 @@ class WorkflowAction extends ModelBase
             ->default($this->action_name);
         
         $form->display('status', exmtrans('workflow.status'))
-            ->displayText($showStatus);
+            ->displayText($showStatus)->escape(false);
 
         $next = $this->isActionNext($custom_value);
         $completed = WorkflowStatus::getWorkflowStatusCompleted($statusTo);
@@ -666,7 +668,7 @@ class WorkflowAction extends ModelBase
                             'tag' => true,
                             'only_avatar' => true,
                         ]);
-                    })->implode(exmtrans('common.separate_word')));
+                    })->implode(exmtrans('common.separate_word')))->escape(false);
             }
         }
         

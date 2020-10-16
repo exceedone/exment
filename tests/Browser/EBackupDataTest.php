@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Browser;
 use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 
 class EBackupDataTest extends ExmentKitTestCase
 {
@@ -29,6 +30,14 @@ class EBackupDataTest extends ExmentKitTestCase
         // save config
         $this->post('/admin/backup/setting', $data)
         ;
+
+        try{
+            !\ExmentDB::checkBackup();
+        }catch(BackupRestoreCheckException $ex){
+            $this->assertTrue(true);
+            return;
+        }
+
         // check config update
         $this->visit('/admin/backup')
                 ->seePageIs('/admin/backup')
@@ -46,6 +55,13 @@ class EBackupDataTest extends ExmentKitTestCase
      */
     public function testDisplayBackupData()
     {
+        try{
+            !\ExmentDB::checkBackup();
+        }catch(BackupRestoreCheckException $ex){
+            $this->assertTrue(true);
+            return;
+        }
+
         $this->visit('/admin/backup')
                 ->seePageIs('/admin/backup')
                 ->seeInElement('h1', 'バックアップ一覧')
@@ -93,6 +109,13 @@ class EBackupDataTest extends ExmentKitTestCase
      */
     public function testBackupConfigSave()
     {
+        try{
+            !\ExmentDB::checkBackup();
+        }catch(BackupRestoreCheckException $ex){
+            $this->assertTrue(true);
+            return;
+        }
+
         // 画面に送信ボタンが2つあるため、ボタン押下はできない
         $data = [
             'backup_target' => ['log'],
@@ -138,6 +161,13 @@ class EBackupDataTest extends ExmentKitTestCase
      */
     public function testBackupNoTarget()
     {
+        try{
+            !\ExmentDB::checkBackup();
+        }catch(BackupRestoreCheckException $ex){
+            $this->assertTrue(true);
+            return;
+        }
+
         $backup_enable_automatic = System::backup_enable_automatic();
         $data = [
             'backup_target' => [],
@@ -160,6 +190,13 @@ class EBackupDataTest extends ExmentKitTestCase
 
     protected function backupData()
     {
+        try{
+            !\ExmentDB::checkBackup();
+        }catch(BackupRestoreCheckException $ex){
+            $this->assertTrue(true);
+            return;
+        }
+
         $cnt = count($this->getArchiveFiles());
         // Check backup data count (before)
         $this->visit('/admin/backup')
@@ -178,6 +215,13 @@ class EBackupDataTest extends ExmentKitTestCase
 
     protected function restoreData()
     {
+        try{
+            !\ExmentDB::checkBackup();
+        }catch(BackupRestoreCheckException $ex){
+            $this->assertTrue(true);
+            return;
+        }
+        
         // get latest backup file
         $files = $this->getArchiveFiles();
         rsort($files);
@@ -204,5 +248,4 @@ class EBackupDataTest extends ExmentKitTestCase
         });
         return $files;
     }
-
 }

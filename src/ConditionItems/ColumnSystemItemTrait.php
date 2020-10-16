@@ -38,7 +38,7 @@ trait ColumnSystemItemTrait
 
         $value_type = null;
 
-        if (isset($key) && boolval($show_condition_key)) {
+        if (!is_nullorempty($key) && boolval($show_condition_key)) {
             $value_type = FilterOption::VALUE_TYPE($key);
 
             if ($value_type == 'none') {

@@ -38,12 +38,11 @@ class Date extends CustomItem
     }
 
     /**
-     * get cast name for sort
+     * get cast Options
      */
-    public function getCastName()
+    protected function getCastOptions()
     {
-        $grammar = \DB::getQueryGrammar();
-        return $grammar->getCastString(DatabaseDataType::TYPE_DATE, true);
+        return [DatabaseDataType::TYPE_DATE, true, []];
     }
 
     protected function getDisplayFormat()
@@ -89,7 +88,7 @@ class Date extends CustomItem
     
     protected function getAdminFilterClass()
     {
-        return Filter\BetweenDatetime::class;
+        return Filter\BetweenDate::class;
     }
 
     protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)

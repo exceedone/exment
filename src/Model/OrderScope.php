@@ -21,5 +21,31 @@ class OrderScope implements Scope
     public function apply(Builder $builder, Model $model)
     {
         $builder->orderBy($this->column, $this->direction);
+
+        if (\ExmentDB::isSqlServer() && !$this->hasOrderById($builder)) {
+            $builder->orderBy('id', 'asc');
+        }
+    }
+
+
+    /**
+     * Whether builder has orderby and has id column
+     *
+     * @param Builder $builder
+     * @return boolean
+     */
+    protected function hasOrderById(Builder $builder)
+    {
+        if (empty($builder->getQuery()->orders)) {
+            return false;
+        }
+
+        foreach ($builder->getQuery()->orders as $order) {
+            if (isMatchString(array_get($order, 'column'), 'id')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

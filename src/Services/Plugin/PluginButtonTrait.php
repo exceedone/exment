@@ -25,7 +25,7 @@ trait PluginButtonTrait
         
         if ($custom_value instanceof CustomValue) {
             $this->custom_value = $custom_value;
-        } elseif (isset($custom_value) && isset($custom_table)) {
+        } elseif (!is_nullorempty($custom_value) && !is_nullorempty($custom_table)) {
             $this->custom_value = $custom_table->getValueModel($custom_value);
         }
     }

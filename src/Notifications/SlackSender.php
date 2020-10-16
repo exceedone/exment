@@ -16,6 +16,8 @@ class SlackSender
     protected $subject;
     protected $body;
     protected $webhook_url;
+    protected $mention_here = false;
+    protected $mention_users = [];
     
     /**
      * Create a new notification instance.
@@ -26,6 +28,8 @@ class SlackSender
     {
         $this->name = $options['webhook_name'] ?? config('exment.slack_from_name') ?? System::site_name();
         $this->icon = $options['webhook_icon'] ?? config('exment.slack_from_icon') ?? ':information_source:';
+        $this->mention_here = $options['mention_here'] ?? false;
+        $this->mention_users = $options['mention_users'] ?? [];
         $this->subject = $subject;
         $this->body = $body;
         $this->webhook_url = $webhook_url;
@@ -58,7 +62,7 @@ class SlackSender
     public function send()
     {
         // replace word
-        $slack_content = static::editContent($this->subject, $this->body);
+        $slack_content = $this->editContent();
         // send slack message
         $this->notify(new Jobs\SlackSendJob($this->name, $this->icon, $slack_content));
     }
@@ -66,9 +70,23 @@ class SlackSender
     /**
      * replace url to slack format.
      */
-    public static function editContent($subject, $body)
+    protected function editContent()
     {
-        $content = $subject . "\n*************************\n" . $body;
+        $content = $this->subject . "\n*************************\n" . $this->body;
+
+        $mentions = [];
+        if ($this->mention_here) {
+            $mentions[] = '<!here>';
+        }
+        foreach ($this->mention_users as $mention_user) {
+            if (is_nullorempty($mention_user)) {
+                continue;
+            }
+            $mentions[] = "<@$mention_user>";
+        }
+        if (!empty($mentions)) {
+            $content = implode(' ', $mentions) . "\n". $content;
+        }
 
         preg_match_all(Define::RULES_REGEX_LINK_FORMAT, $content, $matches);
 

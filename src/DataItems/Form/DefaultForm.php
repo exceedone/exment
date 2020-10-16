@@ -19,12 +19,9 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
-use Exceedone\Exment\DataItems\DataTrait;
 
 class DefaultForm extends FormBase
 {
-    use DataTrait;
-
     public function __construct($custom_table, $custom_form)
     {
         $this->custom_table = $custom_table;
@@ -79,7 +76,7 @@ class DefaultForm extends FormBase
             }
             // one_to_many or manytomany
             else {
-                list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
+                list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
                 $target_table = $custom_form_block->target_table;
                 // if user doesn't have edit permission, hide child block
                 if ($target_table->enableEdit() !== true) {
@@ -94,10 +91,10 @@ class DefaultForm extends FormBase
                         $hasmany = $form->hasManyTable(
                             $relation_name,
                             $block_label,
-                            function ($form) use ($custom_form_block) {
+                            function ($form) use ($custom_form_block, $relation_name) {
                                 $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
                                     $this->setCustomFormColumns($form, $custom_form_block);
-                                });
+                                })->setRelationName($relation_name);
                             }
                         )->setTableWidth(12, 0);
                     }
@@ -106,9 +103,9 @@ class DefaultForm extends FormBase
                         $hasmany = $form->hasMany(
                             $relation_name,
                             $block_label,
-                            function ($form, $model = null) use ($custom_form_block) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model))
-                                ->disableHeader();
+                            function ($form, $model = null) use ($custom_form_block, $relation, $relation_name) {
+                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
+                                ->disableHeader()->setRelationName($relation_name);
                             }
                         );
                     }
@@ -221,9 +218,10 @@ EOT;
      * @param Form $form Laravel-admin's form
      * @param CustomFormBlock $custom_form_block
      * @param CustomValue|null $target_custom_value target customvalue. if Child block, this arg is child custom value.
+     * @param CustomRelation|null $this form block's relation
      * @return array
      */
-    protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null)
+    protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null, ?CustomRelation $relation = null)
     {
         $closures = [];
         if (is_numeric($target_custom_value)) {
@@ -318,6 +316,83 @@ EOT;
             if ($result instanceof Response) {
                 return $result;
             }
+        });
+
+        // form validation saving event
+        $form->validatorSavingCallback(function ($input, $message, $form) {
+            $model = $form->model();
+            if (!$model) {
+                return;
+            }
+
+            if (is_array($validateResult = $model->validateSaving($input, [
+                'column_name_prefix' => 'value.',
+            ]))) {
+                $message = $message->merge($validateResult);
+            }
+
+
+            // validation relations ----------------------------------------------------
+            foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+                // if available is false, continue
+                if (!$custom_form_block->available) {
+                    continue;
+                }
+                // when not 1:n, set as normal form columns.
+                if (!isMatchString($custom_form_block->form_block_type, FormBlockType::ONE_TO_MANY)) {
+                    continue;
+                }
+                list($custom_relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo();
+                if (!$custom_relation) {
+                    continue;
+                }
+                if (!method_exists($model, $relation_name)) {
+                    continue;
+                }
+    
+                // get relation value
+                $relation = $model->$relation_name();
+                $keyName = $relation->getRelated()->getKeyName();
+                $relationValues = array_get($input, $relation_name, []);
+
+                // ignore ids
+                $ignoreIds = collect($relationValues)->filter(function ($val, $key) {
+                    return is_int($key);
+                })->map(function ($val) {
+                    return array_get($val, 'id');
+                })->values()->toArray();
+                
+                // skip _remove_ flg
+                $relationValues = array_filter($relationValues, function ($val) {
+                    if (array_get($val, Form::REMOVE_FLAG_NAME) == 1) {
+                        return false;
+                    }
+                    return true;
+                });
+
+                // loop input's value
+                foreach ($relationValues as $relationK => $relationV) {
+                    $instance = $relation->findOrNew(array_get($relationV, $keyName));
+                    // remove self item
+                    $uniqueCheckSiblings = array_filter($relationValues, function ($relationValue, $key) use ($relationK) {
+                        return !isMatchString($relationK, $key);
+                    }, ARRAY_FILTER_USE_BOTH);
+                    
+                    if (is_array($validateResult = $instance->validateSaving($relationV, [
+                        'column_name_prefix' => "$relation_name.$relationK.value.",
+                        'uniqueCheckSiblings' => array_values($uniqueCheckSiblings),
+                        'uniqueCheckIgnoreIds' => $ignoreIds,
+                    ]))) {
+                        $message = $message->merge($validateResult);
+                    }
+                }
+            }
+        });
+        
+        // form prepare callback event
+        $form->prepareCallback(function ($input) {
+            array_forget($input, 'updated_at');
+            return $input;
         });
     }
 

@@ -3,9 +3,11 @@
 namespace Exceedone\Exment;
 
 use Exceedone\Exment\Validator as ExmentValidator;
+use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -13,6 +15,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Encore\Admin\Admin;
 
 /**
@@ -32,7 +35,7 @@ class Exment
 
     public static function error($request, $exception, $callback)
     {
-        if (isApiEndpoint()) {
+        if (\Exment::isApiEndpoint()) {
             return $callback($request, $exception);
         }
         if (!$request->pjax() && $request->ajax()) {
@@ -51,7 +54,7 @@ class Exment
         try {
             // whether has User
             $user = \Exment::user();
-            if (!isset($user)) {
+            if (!$user) {
                 return $callback($request, $exception);
             }
 
@@ -72,11 +75,8 @@ class Exment
         if (is_null($guards)) {
             $guards = ['adminapi', 'admin'];
         }
-        if (is_string($guards)) {
-            $guards = [$guards];
-        }
-        
-        foreach ($guards as $guard) {
+
+        foreach (stringToArray($guards) as $guard) {
             # code...
             $user = Auth::guard($guard)->user();
             if (isset($user)) {
@@ -110,11 +110,151 @@ class Exment
      */
     public function version($getFromComposer = true)
     {
-        list($latest, $current) = getExmentVersion($getFromComposer);
+        list($latest, $current) = $this->getExmentVersion($getFromComposer);
         return $current;
     }
 
 
+    /**
+     * getExmentVersion using session and composer
+     *
+     * @return array $latest: new version in package, $current: this version in server
+     */
+    public function getExmentVersion($getFromComposer = true)
+    {
+        try {
+            try {
+                $version_json = Cache::get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+            } catch (\Exception $e) {
+            }
+    
+            $latest = null;
+            $current = null;
+            if (isset($version_json)) {
+                $version = json_decode($version_json, true);
+                $latest = array_get($version, 'latest');
+                $current = array_get($version, 'current');
+            }
+            
+            if ((empty($latest) || empty($current))) {
+                // get current version from composer.lock
+                $composer_lock = base_path('composer.lock');
+                if (!\File::exists($composer_lock)) {
+                    return [null, null];
+                }
+
+                $contents = \File::get($composer_lock);
+                $json = json_decode($contents, true);
+                if (!$json) {
+                    return [null, null];
+                }
+                
+                // get exment info
+                $packages = array_get($json, 'packages');
+                $exment = collect($packages)->filter(function ($package) {
+                    return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
+                })->first();
+                if (!isset($exment)) {
+                    return [null, null];
+                }
+                $current = array_get($exment, 'version');
+                
+                // if outside api is not permitted, return only current
+                if (!System::outside_api() || !$getFromComposer) {
+                    return [null, $current];
+                }
+
+                // if already executed
+                if (Cache::has(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE)) {
+                    return [null, $current];
+                }
+
+                //// get latest version
+                $client = new \GuzzleHttp\Client();
+                $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
+                    'http_errors' => false,
+                    'timeout' => 3, // Response timeout
+                    'connect_timeout' => 3, // Connection timeout
+                ]);
+
+                Cache::put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE, true, Define::CACHE_CLEAR_MINUTE);
+
+                $contents = $response->getBody()->getContents();
+                if ($response->getStatusCode() != 200) {
+                    return [null, null];
+                }
+
+                $json = json_decode($contents, true);
+                if (!$json) {
+                    return [null, null];
+                }
+                $packages = array_get($json, 'packages.'.Define::COMPOSER_PACKAGE_NAME);
+                if (!$packages) {
+                    return [null, null];
+                }
+
+                // sort by timestamp
+                $sortedPackages = collect($packages)->sortByDesc('time');
+                foreach ($sortedPackages as $key => $package) {
+                    // if version is "dev-", continue
+                    if (substr($key, 0, 4) == 'dev-') {
+                        continue;
+                    }
+                    $latest = $key;
+                    break;
+                }
+                
+                try {
+                    Cache::put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+                        'latest' => $latest, 'current' => $current
+                    ]), Define::CACHE_CLEAR_MINUTE);
+                } catch (\Exception $e) {
+                }
+            }
+        } catch (\Exception $e) {
+            Cache::put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE, true, Define::CACHE_CLEAR_MINUTE);
+        }
+        
+        return [$latest ?? null, $current ?? null];
+    }
+    
+    
+    /**
+     * getExmentCurrentVersion
+     *
+     * @return string|null this version in server
+     */
+    public function getExmentCurrentVersion()
+    {
+        return $this->getExmentVersion(false)[1];
+    }
+
+
+    /**
+     * check exment's next version
+     *
+     * @return array $latest: new version in package, $current: this version in server
+     */
+    public function checkLatestVersion()
+    {
+        list($latest, $current) = $this->getExmentVersion();
+        $latest = trim($latest, 'v');
+        $current = trim($current, 'v');
+        
+        if (empty($latest) || empty($current)) {
+            return SystemVersion::ERROR;
+        } elseif (strpos($current, 'dev-') === 0) {
+            return SystemVersion::DEV;
+        } elseif ($latest === $current) {
+            return SystemVersion::LATEST;
+            $message = exmtrans("system.version_latest");
+            $icon = 'check-square';
+            $bgColor = 'blue';
+        } else {
+            return SystemVersion::HAS_NEXT;
+        }
+    }
+    
 
 
 
@@ -164,7 +304,7 @@ class Exment
         return view('exment::widgets.url-tag', [
             'href' => $href,
             'label' => $label,
-            'attributes' => formatAttributes($attributes),
+            'attributes' => \Exment::formatAttributes($attributes),
         ])->render();
     }
 
@@ -311,5 +451,175 @@ class Exment
                 ->whereRaw("$documentDbName.parent_id = $targetDbName.id");
             ;
         });
+    }
+
+    /**
+     * Push collection. if $item is \Illuminate\Support\Collection, loop
+     *
+     * @param [type] $item
+     * @return void
+     */
+    public function pushCollection(\Illuminate\Support\Collection $collect, $item) : \Illuminate\Support\Collection
+    {
+        if ($item instanceof \Illuminate\Support\Collection) {
+            foreach ($item as $i) {
+                $collect->push($i);
+            }
+        } else {
+            $collect->push($item);
+        }
+
+        return $collect;
+    }
+
+
+    
+    /**
+     * Get manual url
+     *
+     * @param string|null $uri
+     * @return string
+     */
+    public function getManualUrl(?string $uri = null) : string
+    {
+        $manual_url_base = config('exment.manual_url');
+        // if ja, set
+        if (config('app.locale') == 'ja') {
+            $manual_url_base = url_join($manual_url_base, 'ja') . '/';
+        }
+        $manual_url_base = url_join($manual_url_base, $uri);
+        return $manual_url_base;
+    }
+
+
+    public function getMoreTag(?string $uri = null, ?string $id_transkey = null)
+    {
+        $url = $this->getManualUrl($uri);
+
+        if ($id_transkey) {
+            $url .= '#' . exmtrans($id_transkey);
+        }
+
+        return exmtrans('common.help.more_help_here', $url);
+    }
+
+
+    /**
+     * get true mark. If $val is true, output mark
+     */
+    public function getTrueMark($val)
+    {
+        if (!boolval($val)) {
+            return null;
+        }
+
+        return config('exment.true_mark', '<i class="fa fa-check"></i>');
+    }
+    
+
+    /**
+     * Get Yes No All array for option.
+     *
+     * @return array
+     */
+    public function getYesNoAllOption() : array
+    {
+        return [
+            '' => 'All',
+            '0' => 'NO',
+            '1' => 'YES',
+        ];
+    }
+
+    /**
+     * Output log database
+     *
+     * @return void
+     */
+    public static function logDatabase()
+    {
+        \DB::listen(function ($query) {
+            $sql = $query->sql;
+            foreach ($query->bindings as $binding) {
+                if ($binding instanceof \DateTime) {
+                    $binding = $binding->format('Y-m-d H:i:s');
+                } elseif ($binding instanceof EnumBase) {
+                    $binding = $binding->toString();
+                }
+                $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
+            }
+
+            $log_string = "TIME:{$query->time}ms;    SQL: $sql";
+            if (boolval(config('exment.debugmode_sqlfunction', false))) {
+                $function = static::getFunctionName();
+                $log_string .= ";    function: $function";
+            } elseif (boolval(config('exment.debugmode_sqlfunction1', false))) {
+                $function = static::getFunctionName(true);
+                $log_string .= ";    function: $function";
+            }
+
+            exmDebugLog($log_string);
+        });
+    }
+
+    protected static function getFunctionName($oneFunction = false)
+    {
+        $bt = debug_backtrace();
+        $functions = [];
+        $i = 0;
+        foreach ($bt as $b) {
+            if ($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false) {
+                $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
+            }
+
+            if ($oneFunction && count($functions) >= 1) {
+                break;
+            }
+
+            $i++;
+        }
+        return implode(" < ", $functions);
+    }
+
+    
+    public function wrapValue($string)
+    {
+        return app('db')->getPdo()->quote($string);
+    }
+
+    public function wrapColumn($string)
+    {
+        return \DB::getQueryGrammar()->wrap($string);
+    }
+
+    public function wrapTable($string)
+    {
+        return \DB::getQueryGrammar()->wrapTable($string);
+    }
+
+    /**
+     * Format the field attributes.
+     *
+     * @return string
+     */
+    public function formatAttributes($attributes)
+    {
+        $html = [];
+
+        foreach ($attributes as $name => $value) {
+            $html[] = $name.'="'.esc_html($value).'"';
+        }
+
+        return implode(' ', $html);
+    }
+
+    
+    /**
+     * this url is ApiEndpoint
+     */
+    public function isApiEndpoint()
+    {
+        $basePath = ltrim(admin_base_path(), '/');
+        return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
     }
 }

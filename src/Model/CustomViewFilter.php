@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterSearchType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Carbon\Carbon;
 
@@ -118,6 +119,8 @@ class CustomViewFilter extends ModelBase
         $condition_value_text = $this->view_filter_condition_value_text;
         $view_filter_condition = $this->view_filter_condition;
         $method_name = $or_option ? 'orWhere': 'where';
+        $isDateTime = false;
+        $isMultiple = false;
         
         if ($this->view_column_type == ConditionType::WORKFLOW) {
             return WorkflowItem::scopeWorkflow($model, $this->view_column_target_id, $this->custom_table, $view_filter_condition, $condition_value_text, $or_option);
@@ -126,11 +129,15 @@ class CustomViewFilter extends ModelBase
         if ($this->view_column_type == ConditionType::COLUMN) {
             $column_column = CustomColumn::getEloquent($view_column_target);
             $view_column_target = isset($column_column) ? $column_column->getIndexColumnName() : null;
+            $isDateTime = isset($column_column) ? isMatchString($column_column->column_type, ColumnType::DATETIME) : false;
+            $isMultiple = isset($column_column) ? $column_column->column_item->isMultipleEnabled() : false;
         } elseif ($this->view_column_type == ConditionType::PARENT_ID) {
             //TODO: set as 1:n. develop as n:n
             $view_column_target = 'parent_id';
         } elseif ($this->view_column_type == ConditionType::SYSTEM) {
-            $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['sqlname'] ?? null;
+            $systemOption = SystemColumn::getOption(['id' => $view_column_target]);
+            $view_column_target = $systemOption['sqlname'] ?? null;
+            $isDateTime = isMatchString($systemOption['type'] ?? null, 'datetime');
         }
 
         if (!isset($view_column_target)) {
@@ -231,7 +238,7 @@ class CustomViewFilter extends ModelBase
                         $value_day = Carbon::tomorrow();
                         break;
                 }
-                $model->{$method_name.'Date'}($view_column_target, $value_day);
+                $model->{"{$method_name}DateExment"}($view_column_target, $value_day, $isDateTime);
                 break;
                 
             // date equal month
@@ -251,11 +258,7 @@ class CustomViewFilter extends ModelBase
                         $value_day = new Carbon('first day of next month');
                         break;
                 }
-                $model->{$method_name}(function ($query) use ($view_column_target, $value_day) {
-                    $query
-                        ->whereYear($view_column_target, $value_day->year)
-                        ->whereMonth($view_column_target, $value_day->month);
-                });
+                $model->{"{$method_name}YearMonthExment"}($view_column_target, $value_day, $isDateTime);
                 break;
                 
             // date equal year
@@ -276,7 +279,7 @@ class CustomViewFilter extends ModelBase
                     default:
                         throw new \Exception; // (Never called this, for set lint).
                 }
-                $model->{$method_name.'Year'}($view_column_target, $value_day->year);
+                $model->{$method_name.'YearExment'}($view_column_target, $value_day->year, $isDateTime);
                 break;
                 
             // date and X days before or after
@@ -326,30 +329,24 @@ class CustomViewFilter extends ModelBase
                         $mark = "<=";
                         break;
                 }
-                $model->{$method_name.'Date'}($view_column_target, $mark, $target_day);
+                $model->{$method_name.'DateMarkExment'}($view_column_target, $target_day, $mark, $isDateTime);
                 break;
                 
+
+
             // for select --------------------------------------------------
             case FilterOption::SELECT_EXISTS:
-                $raw = "JSON_SEARCH($view_column_target, 'one', '$condition_value_text')";
-                $model->{$method_name}(function ($query) use ($view_column_target, $raw, $condition_value_text) {
-                    $query->where(function ($qry) use ($view_column_target, $raw) {
-                        $qry->where($view_column_target, 'LIKE', '[%]')
-                            ->whereNotNull(\DB::raw($raw));
-                    })->orWhere($view_column_target, $condition_value_text);
-                });
-                break;
             case FilterOption::SELECT_NOT_EXISTS:
-                $raw = "JSON_SEARCH($view_column_target, 'one', '$condition_value_text')";
-                $model->{$method_name}(function ($query) use ($view_column_target, $raw, $condition_value_text) {
-                    $query->where(function ($qry) use ($view_column_target, $raw) {
-                        $qry->where($view_column_target, 'LIKE', '[%]')
-                            ->whereNull(\DB::raw($raw));
-                    })->orWhere(function ($qry) use ($view_column_target, $condition_value_text) {
-                        $qry->where($view_column_target, 'NOT LIKE', '[%]')
-                            ->where($view_column_target, '<>', $condition_value_text);
-                    });
-                });
+                // if as multiple search
+                if ($isMultiple) {
+                    $method_name_suffix = isMatchString($view_filter_condition, FilterOption::SELECT_EXISTS) ? 'InArrayString' : 'NotInArrayString';
+                    $model->{$method_name.$method_name_suffix}($view_column_target, $condition_value_text);
+                }
+                // if default
+                else {
+                    $mark = isMatchString($view_filter_condition, FilterOption::SELECT_EXISTS) ? '=' : '<>';
+                    $model->{$method_name . 'OrIn'}($view_column_target, $mark, $condition_value_text);
+                }
                 break;
         
             // for user --------------------------------------------------

@@ -7,8 +7,9 @@ use Exceedone\Exment\Database\Schema\Grammars\SqlServerGrammar as SchemaGrammar;
 use Exceedone\Exment\Database\Schema\SqlServerBuilder;
 use Exceedone\Exment\Database\Query\Processors\SqlServerProcessor;
 use Illuminate\Database\SqlServerConnection as BaseConnection;
+use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 
-class SqlServerConnection extends BaseConnection
+class SqlServerConnection extends BaseConnection implements ConnectionInterface
 {
     use ConnectionTrait;
     
@@ -26,34 +27,6 @@ class SqlServerConnection extends BaseConnection
         return new SqlServerBuilder($this);
     }
 
-    public function backupDatabase($tempDir)
-    {
-        // get table connect info
-        $host = config('database.connections.sqlsrv.host', '');
-        $username = config('database.connections.sqlsrv.username', '');
-        $password = config('database.connections.sqlsrv.password', '');
-        $dbport = config('database.connections.sqlsrv.port', '');
-        $database = config('database.connections.sqlsrv.database', '');
-        
-        $hostPort = $host . (isset($dbport) ? ','.$dbport : '');
-
-        $file = path_join($tempDir, 'table_definition.bak');
-            
-        // cannot execute this
-        $sqlcmd = config('exment.backup_info.sqlcmd_dir', '') . 'sqlcmd';
-        $command = sprintf(
-            '%s -S "%s" -U %s -P %s -Q "BACKUP DATABASE %s TO DISK = N\'%s\' WITH INIT"',
-            $sqlcmd,
-            $hostPort,
-            $username,
-            $password,
-            $database,
-            $file
-        );
-
-        $ret = exec($command);
-    }
-    
     /**
      * Get the default schema grammar instance.
      *
@@ -82,5 +55,66 @@ class SqlServerConnection extends BaseConnection
     protected function getDefaultPostProcessor()
     {
         return new SqlServerProcessor;
+    }
+
+
+    public function getDatabaseDriverName() : string
+    {
+        return 'SQL Server';
+    }
+
+    /**
+     * Check execute backup database
+     *
+     * @return bool
+     * @throws BackupRestoreCheckException
+     */
+    public function checkBackup() : bool
+    {
+        throw new BackupRestoreCheckException(exmtrans('backup.message.not_support_driver', $this->getDatabaseDriverName()));
+    }
+    
+    public function backupDatabase($tempDir)
+    {
+    }
+    
+    /**
+     * Restore database
+     *
+     * @param string $dirFullPath contains dir path
+     * @return void
+     */
+    public function restoreDatabase($dirFullPath)
+    {
+    }
+
+    /**
+     * insert table data from backup tsv files.
+     *
+     * @param string $dirFullPath restore file path
+     */
+    public function importTsv($dirFullPath)
+    {
+    }
+
+    
+    public function createView($viewName, $query)
+    {
+        $viewName = $this->getQueryGrammar()->wrapTable($viewName);
+        $sql = "CREATE OR ALTER VIEW $viewName AS " . $query->toSql();
+
+        ///// maybe sql server cannot replace bindings... so replace
+        foreach ($query->getBindings() as $binding) {
+            $sql = preg_replace('/\?/', \Exment::wrapValue($binding), $sql, 1);
+        }
+
+        \DB::statement($sql);
+    }
+
+
+    public function dropView($viewName)
+    {
+        $viewName = $this->getQueryGrammar()->wrapTable($viewName);
+        \DB::statement("DROP VIEW IF EXISTS " . $viewName);
     }
 }

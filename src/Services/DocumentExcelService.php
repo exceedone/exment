@@ -77,13 +77,7 @@ class DocumentExcelService
             $sheet->setShowGridlines($showGridlines[$i]);
         }
 
-        if ($this->document_type == DocumentType::EXCEL) {
-            $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        } else {
-            $writer = new Document\ExmentMpdf($spreadsheet);
-            $writer->setTempDir(getFullpath(path_join('tmp', 'document'), 'local', true));
-        }
-
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $this->saveFile($writer);
 
         // remove tmpfile

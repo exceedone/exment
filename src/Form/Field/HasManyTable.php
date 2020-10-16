@@ -15,7 +15,7 @@ class HasManyTable extends HasMany
 {
     protected $tablecolumnwidths = [];
     protected $count = null;
-    protected $header = true;
+    protected $enableHeader = true;
 
     /**
      * Show row up down button
@@ -112,7 +112,7 @@ class HasManyTable extends HasMany
     
     public function disableHeader()
     {
-        $this->header = false;
+        $this->enableHeader = false;
 
         return $this;
     }
@@ -220,7 +220,7 @@ class HasManyTable extends HasMany
          */
         $script = <<<EOT
 var $indexName = {$count};
-$('#has-many-table-{$this->column}').off('click', '.add').on('click', '.add', function () {
+$('#has-many-table-{$this->column}').off('click.admin_add', '.add').on('click.admin_add', '.add', function () {
     var tpl = $('template.{$this->column}-tpl');
 
     $indexName++;
@@ -232,7 +232,7 @@ $('#has-many-table-{$this->column}').off('click', '.add').on('click', '.add', fu
     {$this->countscript}
 });
 
-$('#has-many-table-{$this->column}').off('click', '.remove').on('click', '.remove', function () {
+$('#has-many-table-{$this->column}').off('click.admin_remove', '.remove').on('click.admin_remove', '.remove', function () {
     var row = $(this).closest('.has-many-table-{$this->column}-row');
     row.find('input,textarea,select').removeAttr('required max min maxlength pattern');
     row.hide();
@@ -240,7 +240,7 @@ $('#has-many-table-{$this->column}').off('click', '.remove').on('click', '.remov
     {$this->countscript}
 });
 
-$('#has-many-table-{$this->column}').off('click', '.row-move').on('click', '.row-move', function(ev){
+$('#has-many-table-{$this->column}').off('click.admin_row_remove', '.row-move').on('click.admin_row_remove', '.row-move', function(ev){
     var row = $(ev.target).closest('tr');
     var isup = $(ev.target).closest('.row-move').hasClass('row-move-up');
     
@@ -275,13 +275,14 @@ $('#has-many-table-{$this->column}').off('click', '.row-move').on('click', '.row
 });
 
 $("button[type='submit']").click(function(){
-    if ($('#has-many-table-{$this->column}-table').attr('required') != undefined) {
-        var cnt = $('#has-many-table-{$this->column}-table tr.has-many-table-{$this->column}-row').filter(':visible').length;
-        if (cnt == 0) { 
-            swal("$title", "$message", "error");
-            return false;
-        };
+    if ($('#has-many-table-{$this->column}-table').attr('required') === undefined) {
+        return true;
     }
+    var cnt = $('#has-many-table-{$this->column}-table tr.has-many-table-{$this->column}-row').filter(':visible').length;
+    if (cnt == 0) { 
+        swal("$title", "$message", "error");
+        return false;
+    };
     return true;
 });
 
@@ -366,7 +367,7 @@ EOT;
         $this->setupScript($script);
 
         // get field class
-        $grandParent = get_parent_class(get_parent_class(get_parent_class($this)));
+        $grandParent = $this->getParentRenderClass();
         return $grandParent::render()->with([
             'forms'        => $relatedforms,
             'template'     => $template,
@@ -381,8 +382,14 @@ EOT;
             'description' => $this->description,
             'escapeDescription' => $this->escapeDescription,
             'options'      => $this->options,
-            'header' => $this->header,
+            'enableHeader' => $this->enableHeader,
             'hideDeleteButtonRow' => $this->hideDeleteButtonRow,
         ]);
+    }
+
+    
+    protected function getParentRenderClass()
+    {
+        return get_parent_class(get_parent_class(get_parent_class($this)));
     }
 }

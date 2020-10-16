@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Model\Condition;
@@ -31,7 +32,6 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Workflow;
 use Illuminate\Database\Seeder;
 
 class TestDataSeeder extends Seeder
@@ -244,7 +244,7 @@ class TestDataSeeder extends Seeder
 
                     $relationName = CustomRelation::getRelationNamebyTables($parent_table, $custom_table);
 
-                    $parent_custom_value_ids->each(function ($parent_custom_value_id) use ($relationName, $custom_value, $custom_table) {
+                    $parent_custom_value_ids->each(function ($parent_custom_value_id) use ($relationName, $custom_value) {
                         \DB::table($relationName)->insert([
                             'parent_id' => $parent_custom_value_id,
                             'child_id' => $custom_value->id,
@@ -292,7 +292,7 @@ class TestDataSeeder extends Seeder
                         $custom_columns[] = $custom_column;
                     }
                 },
-                'createValueCallback' => function ($custom_value) use ($relationItem) {
+                'createValueCallback' => function ($custom_value) {
                 }
             ]);
             $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $pivot_table]);
@@ -395,6 +395,7 @@ class TestDataSeeder extends Seeder
                         ['column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_view_all->id]],
                         ['column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
                         ['column_type' => ColumnType::BOOLEAN, 'options' => ['index_enabled' => '1', 'true_value' => 'ok', 'true_label' => 'OK', 'false_value' => 'ng', 'false_label' => 'NG']],
+                        ['column_type' => ColumnType::AUTO_NUMBER, 'options' => ['index_enabled' => '1', 'auto_number_type' => 'random25']],
                         ['column_type' => ColumnType::IMAGE, 'options' => []],
                         ['column_type' => ColumnType::FILE, 'options' => []],
                         ['column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
@@ -483,8 +484,8 @@ class TestDataSeeder extends Seeder
      * Create custom tables
      *
      * @param array $users
-     * @param stirng $menu menu id
-     * @return void
+     * @param string $menu menu id
+     * @return array
      */
     protected function createTables($users, $menu)
     {
@@ -553,7 +554,7 @@ class TestDataSeeder extends Seeder
      */
     protected function createTable($keyName, $options = [])
     {
-        extract(array_merge([
+        $options = array_merge([
             'users' => [], // users who can has permission
             'menuParentId' => 0, // menu's parent id
             'customTableOptions' => [], // saving customtable option
@@ -563,8 +564,18 @@ class TestDataSeeder extends Seeder
             'createRelationCallback' => null, // if not null, callback as creating relations
             'createValue' => true, // if false, not creating default values
             'createValueCallback' => null, // if not null, callback as creting value
-        ], $options));
+        ], $options);
 
+        $users = $options['users'];
+        $menuParentId = $options['menuParentId'];
+        $customTableOptions = $options['customTableOptions'];
+        $createColumn = $options['createColumn'];
+        $createColumnCallback = $options['createColumnCallback'];
+        $createColumnFirstCallback = $options['createColumnFirstCallback'];
+        $createRelationCallback = $options['createRelationCallback'];
+        $createValue = $options['createValue'];
+        $createValueCallback = $options['createValueCallback'];
+        
         $customTableOptions = array_merge([
             'search_enabled' => 1,
         ], $customTableOptions);
@@ -704,17 +715,17 @@ class TestDataSeeder extends Seeder
 
     protected function createValue($custom_table, $options = [])
     {
-        extract(array_merge([
+        $options = array_merge([
             'users' => [], // users who can has permission
             'count' => 10, // testdata count
             'notify_id' => null,
             'createValueSavingCallback' => null, // if not null, callback when saving value
             'createValueSavedCallback' => null, // if not null, callback when saved value
-        ], $options));
+        ], $options);
 
         $custom_values = [];
         System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
-        foreach ($users as $key => $user) {
+        foreach ($options['users'] as $key => $user) {
             \Auth::guard('admin')->attempt([
                 'username' => $key,
                 'password' => array_get($user, 'password')
@@ -722,7 +733,7 @@ class TestDataSeeder extends Seeder
 
             $user_id = array_get($user, 'id');
 
-            for ($i = 1; $i <= $count; $i++) {
+            for ($i = 1; $i <= $options['count']; $i++) {
                 $custom_value = $custom_table->getValueModel();
                 $custom_value->setValue("text", 'test_'.$user_id);
                 $custom_value->setValue("user", $user_id);
@@ -734,22 +745,22 @@ class TestDataSeeder extends Seeder
                 $custom_value->created_user_id = $user_id;
                 $custom_value->updated_user_id = $user_id;
 
-                if (isset($createValueSavingCallback)) {
-                    $createValueSavingCallback($custom_value, $custom_table, $user, $i, $options);
+                if (isset($options['createValueSavingCallback'])) {
+                    $options['createValueSavingCallback']($custom_value, $custom_table, $user, $i, $options);
                 }
 
                 $custom_value->save();
 
-                if (isset($createValueSavedCallback)) {
-                    $createValueSavedCallback($custom_value, $custom_table, $user, $i, $options);
+                if (isset($options['createValueSavedCallback'])) {
+                    $options['createValueSavedCallback']($custom_value, $custom_table, $user, $i, $options);
                 }
 
                 if ($user_id == 3) {
                     // no notify for User2
                 } elseif ($i == 5) {
-                    $this->createNotifyNavbar($custom_table, $notify_id, $custom_value, 1);
+                    $this->createNotifyNavbar($custom_table, $options['notify_id'], $custom_value, 1);
                 } elseif ($i == 10) {
-                    $this->createNotifyNavbar($custom_table, $notify_id, $custom_value, 0);
+                    $this->createNotifyNavbar($custom_table, $options['notify_id'], $custom_value, 0);
                 }
 
                 $custom_values[] = $custom_value;
@@ -770,9 +781,11 @@ class TestDataSeeder extends Seeder
         $notify->notify_view_name = $custom_table->table_name . '_notify';
         $notify->custom_table_id = $custom_table->id;
         $notify->notify_trigger = 2;
-        $notify->action_settings = [
+        $notify->mail_template_id = 6;
+        $notify->action_settings = [[
+            "notify_action" => NotifyAction::SHOW_PAGE,
             "notify_action_target" => ["created_user"],
-            "mail_template_id" => "6"];
+        ]];
         $notify->save();
         return $notify->id;
     }

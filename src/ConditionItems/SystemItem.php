@@ -5,7 +5,6 @@ namespace Exceedone\Exment\ConditionItems;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 
 class SystemItem extends ConditionItemBase implements ConditionItemInterface

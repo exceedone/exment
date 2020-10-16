@@ -1012,7 +1012,7 @@ var Exment;
                     $getdata = CommonEvent.getParentRow($parent);
                 }
                 let key = g.key;
-                let $target = $parent.find(CommonEvent.getClassKey(key));
+                let $target = $getdata.find(CommonEvent.getClassKey(key));
                 expand[key] = $target.val();
             }
         }
@@ -1036,29 +1036,31 @@ var Exment;
      */
     CommonEvent.setFormFilter = ($target) => {
         $target = CommonEvent.getParentRow($target).find('[data-filter]');
-        for (var tIndex = 0; tIndex < $target.length; tIndex++) {
-            var $t = $target.eq(tIndex);
+        for (let tIndex = 0; tIndex < $target.length; tIndex++) {
+            let $t = $target.eq(tIndex);
             // Get parent element of that input
-            var $parent = CommonEvent.getParentRow($t);
+            let $parent = CommonEvent.getParentRow($t);
             // Get parent element with row
-            var $eParent = $t.parents('.form-group');
+            let $eParent = $t.parents('.form-group');
             // Get search target key and value
             try {
-                var array = $t.data('filter');
+                let array = $t.data('filter');
                 // if not array, convert array
                 if (!Array.isArray(array)) {
                     array = [array];
                 }
-                var isShow = true;
-                var isReadOnly = false;
-                for (var index = 0; index < array.length; index++) {
-                    var a = array[index];
+                // check isshow, isReadOnly, isRequired(default is null:not toggle)
+                let isShow = true;
+                let isReadOnly = false;
+                let isRequired = null;
+                for (let index = 0; index < array.length; index++) {
+                    let a = array[index];
                     // Get value of class with that key
                     // if has parent value
-                    var parentCount = a.parent ? a.parent : 0;
+                    let parentCount = a.parent ? a.parent : 0;
                     if (parentCount > 0) {
-                        var $calcParent = $parent;
-                        for (var i = 0; i < parentCount; i++) {
+                        let $calcParent = $parent;
+                        for (let i = 0; i < parentCount; i++) {
                             $calcParent = CommonEvent.getParentRow($calcParent);
                         }
                         var filterVal = CommonEvent.getFilterVal($calcParent, a);
@@ -1097,6 +1099,10 @@ var Exment;
                             isReadOnly = true;
                         }
                     }
+                    // change isrequired
+                    if (isRequired === null && a.requiredValue) {
+                        isRequired = CommonEvent.findValue(filterVal, a.requiredValue);
+                    }
                 }
                 if (isShow) {
                     $eParent.show();
@@ -1116,7 +1122,7 @@ var Exment;
                     //$t.val('');
                 }
                 // if selectbox, disabled
-                var propName = $t.prop('type') == 'select-one' || $t.prop('tagName').toLowerCase() == 'select'
+                const propName = $t.prop('type') == 'select-one' || $t.prop('tagName').toLowerCase() == 'select'
                     ? 'disabled' : 'readonly';
                 if (isReadOnly) {
                     $t.prop(propName, true);
@@ -1124,6 +1130,18 @@ var Exment;
                 else {
                     if (propName != 'disabled' || isShow) {
                         $t.prop(propName, false);
+                    }
+                }
+                // toggle required
+                if (isRequired !== null) {
+                    $t.prop('required', isRequired);
+                    // find label
+                    let $label = $eParent.find('label');
+                    if (isRequired) {
+                        $label.addClass('asterisk');
+                    }
+                    else {
+                        $label.removeClass('asterisk');
                     }
                 }
             }

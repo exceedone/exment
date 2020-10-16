@@ -16,6 +16,13 @@ class ApiKey extends Model
 
     public $timestamps = false;
     
+    protected $primary_key = 'key';
+
+    protected $keyType = 'string';
+    
+    public $incrementing = false;
+
+
     /**
      * Get all of the authentication codes for the client.
      *

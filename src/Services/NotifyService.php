@@ -3,18 +3,18 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
-use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Notifications;
+use Exceedone\Exment\Enums\NotifyActionTarget;
 
 /**
  * Notify dialog, send mail etc.
@@ -41,16 +41,23 @@ class NotifyService
     /**
      * Get dialog form for send mail
      *
-     * @return ModalForm
+     * @return ModalForm|false
      */
     public function getNotifyDialogForm()
     {
         // get target users
-        $users = $this->notify->getNotifyTargetUsers($this->custom_value)->filter();
+        $values = collect();
+        foreach ($this->notify->action_settings as $action_setting) {
+            $values = $values->merge($this->notify->getNotifyTargetUsers($this->custom_value, $action_setting));
+        }
+
+        if (!$this->hasNotifyUserByButton($values)) {
+            return false;
+        }
 
         // if only one data, get form for detail
-        if (count($users) <= 1) {
-            return $this->getSendForm($users);
+        if (count($values) <= 1) {
+            return $this->getSendForm($values);
         }
         
         // create form fields
@@ -68,8 +75,8 @@ class NotifyService
         $form->progressTracker()->options($this->getProgressInfo(true));
 
         $options = [];
-        foreach ($users as $user) {
-            $options[$user->notifyKey()] = $user->getLabel();
+        foreach ($values as $value) {
+            $options[$value->notifyKey()] = $value->getLabel();
         }
 
         // select target users
@@ -119,14 +126,18 @@ class NotifyService
             abort(404);
         }
 
-        $replace = count($notifyTargets) == 1;
+        $notifyTargets = collect($notifyTargets);
+        if (!$this->hasNotifyUserByButton($notifyTargets)) {
+            return false;
+        }
+
+        $replace = $notifyTargets->count() == 1;
         $mail_subject = array_get($mail_template->value, 'mail_subject');
         $mail_body = $mail_template->getJoinedBody();
 
-        $notifyTarget = implode(exmtrans("common.separate_word"), collect($notifyTargets)->map(function ($notifyTarget) {
-            return $notifyTarget->getLabel();
-        })->toArray());
-        $notifyTargetJson = json_encode(collect($notifyTargets)->map(function ($notifyTarget) {
+        $notifyTarget = $this->getNotifyTargetLabel($notifyTargets);
+
+        $notifyTargetJson = json_encode($notifyTargets->map(function ($notifyTarget) {
             return $notifyTarget->notifyKey();
         })->toArray());
 
@@ -148,9 +159,7 @@ class NotifyService
             $form->progressTracker()->options($this->getProgressInfo(false));
         }
 
-        if (in_array(NotifyAction::EMAIL, $this->notify->notify_actions)) {
-            $form->display(exmtrans('custom_value.sendmail.mail_to'))->default($notifyTarget);
-        }
+        $form->display(exmtrans('custom_value.sendmail.mail_to'))->default($notifyTarget);
         $form->hidden('target_users')->default($notifyTargetJson);
 
         $form->text('mail_title', exmtrans('custom_value.sendmail.mail_title'))
@@ -210,7 +219,7 @@ class NotifyService
         if (isset($title) && isset($message)) {
             try {
                 $this->notify->notifyButtonClick($this->custom_value, $target_user_keys, $title, $message, $attachments);
-            } catch (\Swift_RfcComplianceException $ex) {
+            } catch (\Swift_TransportException $ex) {
                 return getAjaxResponse([
                     'result'  => false,
                     'errors' => ['send_error_message' => ['type' => 'input',
@@ -237,6 +246,61 @@ class NotifyService
             ]);
         }
     }
+    
+
+    /**
+     * has notify User By Button action
+     *
+     * @param \Illuminate\Support\Collection $values
+     * @return boolean
+     */
+    protected function hasNotifyUserByButton(\Illuminate\Support\Collection $values) : bool
+    {
+        // Exists user, return true
+        if ($values->count() > 0) {
+            return true;
+        }
+
+        // contains webhook, return true.
+        if (collect($this->notify->action_settings)->contains(function ($action_setting) {
+            return NotifyAction::isChatMessage($action_setting);
+        })) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * get notify target label
+     *
+     * @param \Illuminate\Support\Collection $notifyTargets
+     * @return string
+     */
+    protected function getNotifyTargetLabel(\Illuminate\Support\Collection $notifyTargets) : string
+    {
+        $targets = clone $notifyTargets;
+        $targets = $targets->map(function ($notifyTarget) {
+            return $notifyTarget->getLabel();
+        });
+
+        // contains webhook, Append label.
+        if (collect($this->notify->action_settings)->contains(function ($action_setting) {
+            return isMatchString(NotifyAction::SLACK, array_get($action_setting, 'notify_action'));
+        })) {
+            $targets->push(exmtrans('notify.notify_action_options.slack'));
+        }
+        if (collect($this->notify->action_settings)->contains(function ($action_setting) {
+            return isMatchString(NotifyAction::MICROSOFT_TEAMS, array_get($action_setting, 'notify_action'));
+        })) {
+            $targets->push(exmtrans('notify.notify_action_options.microsoft_teams'));
+        }
+
+        return $targets->implode(exmtrans("common.separate_word"));
+    }
+
+
     
     /**
      * Execute Notify test
@@ -290,23 +354,39 @@ class NotifyService
                 'subject' => null,
                 'body' => null,
                 'is_chat' => false,
+                'mention_here' => false,
+                'mention_users' => [],
+                'action_setting' => null,
             ],
             $params
         );
         $params['notify'] = $notify;
         $custom_value = $params['custom_value'];
 
+        Plugin::pluginExecuteEvent(PluginEventTrigger::NOTIFY_EXECUTING, $custom_value->custom_table, [
+            'custom_table' => $custom_value->custom_table,
+            'custom_value' => $custom_value,
+            'notify' => $notify,
+        ]);
+
+        // get loop data for action_setting
+        if (!isset($params['action_setting'])) {
+            $action_settings = array_get($notify, 'action_settings', []);
+        } else {
+            $action_settings = [$params['action_setting']];
+        }
+
         // get notify actions
-        $notify_actions = $notify->notify_actions;
-        foreach ($notify_actions as $notify_action) {
+        foreach ($action_settings as $action_setting) {
+            $notify_action = array_get($action_setting, 'notify_action');
+            if (is_nullorempty($notify_action)) {
+                continue;
+            }
+
             if (NotifyAction::isChatMessage($notify_action) != $params['is_chat']) {
                 continue;
             }
-            Plugin::pluginExecuteEvent(PluginEventTrigger::NOTIFY_EXECUTING, $custom_value->custom_table, [
-                'custom_table' => $custom_value->custom_table,
-                'custom_value' => $custom_value,
-                'notify' => $notify,
-            ]);
+            
             switch ($notify_action) {
                 case NotifyAction::EMAIL:
                     static::notifyMail($params);
@@ -317,24 +397,24 @@ class NotifyService
                     break;
 
                 case NotifyAction::SLACK:
-                    // replace word
+                    $params['webhook_url'] = array_get($action_setting, 'webhook_url');
                     static::notifySlack($params);
                     break;
     
                 case NotifyAction::MICROSOFT_TEAMS:
-                    // replace word
+                    $params['webhook_url'] = array_get($action_setting, 'webhook_url');
                     static::notifyTeams($params);
                     break;
             }
-
-            Plugin::pluginExecuteEvent(PluginEventTrigger::NOTIFY_EXECUTED, $custom_value->custom_table, [
-                'custom_table' => $custom_value->custom_table,
-                'custom_value' => $custom_value,
-                'notify' => $notify,
-            ]);
             // call notified trigger operations
             //CustomOperation::operationExecuteEvent(CustomOperationType::NOTIFIED, $custom_value, true);
         }
+
+        Plugin::pluginExecuteEvent(PluginEventTrigger::NOTIFY_EXECUTED, $custom_value->custom_table, [
+            'custom_table' => $custom_value->custom_table,
+            'custom_value' => $custom_value,
+            'notify' => $notify,
+        ]);
     }
 
     /**
@@ -418,21 +498,6 @@ class NotifyService
         $replaceOptions = $params['replaceOptions'];
 
 
-        if ($user instanceof CustomValue) {
-            $id = $user->getUserId();
-        } elseif ($user instanceof NotifyTarget) {
-            $id = $user->id();
-        } elseif (is_numeric($user)) {
-            $id = $user;
-        }
-
-        if (!isset($id)) {
-            return;
-        }
-
-        // save data
-        $login_user = \Exment::user();
-
         // replace system:site_name to custom_value label
         if (isset($custom_value)) {
             array_set($prms, 'system.site_name', $custom_value->label);
@@ -442,19 +507,10 @@ class NotifyService
         $mail_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
         $mail_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
 
-        $notify_navbar = new NotifyNavbar;
-        $notify_navbar->notify_id = array_get($notify, 'id', -1);
-
-        if (isset($custom_value)) {
-            $notify_navbar->parent_id = array_get($custom_value, 'id');
-            $notify_navbar->parent_type = $custom_value->custom_table->table_name;
-        }
-
-        $notify_navbar->notify_subject = $mail_subject;
-        $notify_navbar->notify_body = $mail_body;
-        $notify_navbar->target_user_id = $id;
-        $notify_navbar->trigger_user_id = isset($login_user) ? $login_user->getUserId() : null;
-        $notify_navbar->save();
+        Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params)
+            ->custom_value($custom_value)
+            ->user($user)
+            ->send();
     }
 
 
@@ -497,22 +553,21 @@ class NotifyService
                 'subject' => null,
                 'body' => null,
                 'replaceOptions' => [],
+                'mention_here' => false,
+                'mention_users' => [],
             ],
             $params
         );
         static::replaceSubjectBody($params);
 
         $webhook_url = $params['webhook_url'];
-        if (!isset($webhook_url) && isset($params['notify'])) {
-            $webhook_url = array_get($params['notify']->action_settings, 'webhook_url');
-        }
 
         // replace word
         $slack_subject = static::replaceWord($params['subject'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
         $slack_body = static::replaceWord($params['body'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
 
         // send message
-        $options = ['webhook_name' => $params['webhook_name'], 'webhook_icon' => $params['webhook_icon']];
+        $options = ['webhook_name' => $params['webhook_name'], 'webhook_icon' => $params['webhook_icon'], 'mention_here' => $params['mention_here'], 'mention_users' => $params['mention_users']];
         $className::make($webhook_url, $slack_subject, $slack_body, $options)->send();
     }
 
@@ -535,7 +590,7 @@ class NotifyService
 
         // get template
         if (!isset($mail_template) && isset($notify)) {
-            $mail_template = array_get($notify->action_settings, 'mail_template_id');
+            $mail_template = array_get($notify, 'mail_template_id');
         }
         
         if (is_numeric($mail_template)) {
@@ -600,5 +655,85 @@ class NotifyService
         $target = replaceTextFromFormat($target, $custom_value, $replaceOptions);
 
         return $target;
+    }
+
+
+    public static function getNotifyTargetColumns($custom_table, $notify_action, array $options = [])
+    {
+        // get notify options by notify action
+        $options = array_merge(NotifyAction::getColumnGettingOptions($notify_action), $options);
+        $options = array_merge([
+            'as_workflow' => false,
+            'as_default' => false,
+            
+            'get_email' => false,
+            'get_select_table_email' => false,
+            'get_user' => false,
+            'get_organization' => false,
+        ], $options);
+
+        if (!isset($notify_action)) {
+            return [];
+        }
+
+        $array = getTransArray(($options['as_workflow'] ? NotifyActionTarget::ACTION_TARGET_WORKFLOW() :  NotifyActionTarget::ACTION_TARGET_CUSTOM_TABLE()), 'notify.notify_action_target_options');
+        $items = [];
+        foreach ($array as $k => $v) {
+            $items[] = ['id' => $k, 'text' => $v];
+        }
+
+        if ($options['as_workflow']) {
+            return $items;
+        }
+        
+        $custom_table = CustomTable::getEloquent($custom_table);
+        if (!isset($custom_table)) {
+            return [];
+        }
+
+        $custom_columns = $custom_table->custom_columns_cache;
+
+        $column_items = [];
+        foreach ($custom_columns as $custom_column) {
+            if ($options['get_email']) {
+                if (ismatchString($custom_column->column_type, ColumnType::EMAIL)) {
+                    $column_items[] = $custom_column;
+                    continue;
+                }
+            }
+
+            if ($options['get_user']) {
+                if (ismatchString($custom_column->column_type, ColumnType::USER)) {
+                    $column_items[] = $custom_column;
+                    continue;
+                }
+            }
+
+            if ($options['get_organization']) {
+                if (ismatchString($custom_column->column_type, ColumnType::ORGANIZATION)) {
+                    $column_items[] = $custom_column;
+                    continue;
+                }
+            }
+            
+            if ($options['get_select_table_email']) {
+                // if select table, getting column
+                if (ColumnType::isSelectTable($custom_column->column_type)) {
+                    $select_target_table = $custom_column->select_target_table;
+                    if ($select_target_table && $select_target_table->custom_columns_cache->contains(function ($custom_column) {
+                        return ismatchString($custom_column->column_type, ColumnType::EMAIL);
+                    })) {
+                        $column_items[] = $custom_column;
+                        continue;
+                    }
+                }
+            }
+        }
+
+        foreach ($column_items as $column_item) {
+            $items[] = ['id' => $column_item->id, 'text' => exmtrans('common.custom_column') . ' : ' . $column_item->column_view_name];
+        }
+
+        return $items;
     }
 }

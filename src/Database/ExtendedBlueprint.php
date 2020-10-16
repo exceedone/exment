@@ -14,4 +14,20 @@ class ExtendedBlueprint extends Blueprint
         $this->unsignedInteger('created_user_id', $precision)->nullable();
         $this->unsignedInteger('updated_user_id', $precision)->nullable();
     }
+
+
+    /**
+     * Indicate that the given columns should be dropped.
+     * *If sql server, first drop default.
+     *
+     * @param  array|mixed  $columns
+     */
+    public function dropColumn($columns)
+    {
+        $columns = is_array($columns) ? $columns : func_get_args();
+
+        foreach ($columns as $column) {
+            \Schema::dropConstraints($this->table, $column);
+        }
+    }
 }

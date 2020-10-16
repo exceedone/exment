@@ -7,6 +7,24 @@ use Illuminate\Database\Query\Processors\SqlServerProcessor as BaseSqlServerProc
 class SqlServerProcessor extends BaseSqlServerProcessor
 {
     /**
+     * Process the results of a get version.
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processGetVersion($results)
+    {
+        $string = collect((array)$results[0])->first();
+
+        // match regex
+        preg_match('/\d+\.\d+\.\d+\.\d+/u', $string, $m);
+        if (!$m) {
+            return null;
+        }
+        return $m[0];
+    }
+
+    /**
      * Process the results of a table listing query.
      *
      * @param  array  $results
@@ -54,5 +72,18 @@ class SqlServerProcessor extends BaseSqlServerProcessor
                 'unique' => boolval($result->is_unique),
             ];
         })->toArray();
+    }
+
+    /**
+     * Process the results of a constraints listing query.
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processConstraints($results)
+    {
+        return collect($results)->map(function ($result) {
+            return array_get((array)$result, 'name');
+        })->filter()->toArray();
     }
 }

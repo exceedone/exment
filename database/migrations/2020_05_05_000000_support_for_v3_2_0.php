@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Exceedone\Exment\Database\ExtendedBlueprint;
 
 class SupportForV320 extends Migration
 {
@@ -35,12 +36,17 @@ class SupportForV320 extends Migration
      */
     public function down()
     {
-        Schema::table('workflow_condition_headers', function($table) {
+        $schema = DB::connection()->getSchemaBuilder();
+        $schema->blueprintResolver(function($table, $callback) {
+            return new ExtendedBlueprint($table, $callback);
+        });
+
+        $schema->table('workflow_condition_headers', function($table) {
             if (Schema::hasColumn('workflow_condition_headers', 'options')) {
                 $table->dropColumn('options');
             }
         });
-        Schema::table('custom_form_priorities', function($table) {
+        $schema->table('custom_form_priorities', function($table) {
             if (Schema::hasColumn('custom_form_priorities', 'options')) {
                 $table->dropColumn('options');
             }

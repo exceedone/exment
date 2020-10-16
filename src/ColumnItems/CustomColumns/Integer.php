@@ -78,11 +78,10 @@ class Integer extends CustomItem
     }
 
     /**
-     * get cast name for sort
+     * get cast Options
      */
-    public function getCastName()
+    protected function getCastOptions()
     {
-        $grammar = \DB::getQueryGrammar();
-        return $grammar->getCastString(DatabaseDataType::TYPE_INTEGER, true);
+        return[DatabaseDataType::TYPE_INTEGER, true, []];
     }
 }
