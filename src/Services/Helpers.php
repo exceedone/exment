@@ -510,17 +510,6 @@ if (!function_exists('getUploadMaxFileSize')) {
     }
 }
 
-if (!function_exists('isApiEndpoint')) {
-    /**
-     * this url is ApiEndpoint
-     */
-    function isApiEndpoint()
-    {
-        $basePath = ltrim(admin_base_path(), '/');
-        return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
-    }
-}
-
 if (!function_exists('isMatchRequest')) {
     /**
      * Is match uri from request

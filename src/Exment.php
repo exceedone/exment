@@ -40,7 +40,7 @@ class Exment
 
     public static function error($request, $exception, $callback)
     {
-        if (isApiEndpoint()) {
+        if (\Exment::isApiEndpoint()) {
             return $callback($request, $exception);
         }
         if (!$request->pjax() && $request->ajax()) {
@@ -59,7 +59,7 @@ class Exment
         try {
             // whether has User
             $user = \Exment::user();
-            if (!isset($user)) {
+            if (!$user) {
                 return $callback($request, $exception);
             }
 
@@ -80,11 +80,8 @@ class Exment
         if (is_null($guards)) {
             $guards = ['adminapi', 'admin'];
         }
-        if (is_string($guards)) {
-            $guards = [$guards];
-        }
-        
-        foreach ($guards as $guard) {
+
+        foreach (stringToArray($guards) as $guard) {
             # code...
             $user = Auth::guard($guard)->user();
             if (isset($user)) {
@@ -619,5 +616,15 @@ class Exment
         }
 
         return implode(' ', $html);
+    }
+
+    
+    /**
+     * this url is ApiEndpoint
+     */
+    public function isApiEndpoint()
+    {
+        $basePath = ltrim(admin_base_path(), '/');
+        return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
     }
 }
