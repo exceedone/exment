@@ -81,6 +81,7 @@ return [
             'import_success' => 'Success Import!',
             'import_error' => 'Success Error. Please Check Error Message.',
             'notfound' => 'Data Not Found.',
+            'notfound_or_deny' => 'Data Not Found or Not Permission.',
             'wrongdata' => 'Data is wrong. Please check url.',
             'wrongconfig' => 'Wrong config.json.',
             'exists_row' => 'Be sure to enter at least one line of %s.',

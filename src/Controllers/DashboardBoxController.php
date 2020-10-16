@@ -4,9 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Layout\Content;
-//use Encore\Admin\Controllers\HasResourceActions;
-use Encore\Admin\Widgets\Box;
-//use Encore\Admin\Widgets\Form;
+use Exceedone\Exment\Auth\Permission as Checker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
@@ -158,6 +156,11 @@ class DashboardBoxController extends AdminControllerBase
         // get dashboard_id from query "dashboard_suuid"
         if (isset($id)) {
             $dashboard_box = DashboardBox::getEloquent($id);
+            if(!isset($dashboard_box)){
+                Checker::notFoundOrDeny();
+                return false;
+            }
+
             $dashboard = $dashboard_box->dashboard;
             return [$dashboard, $dashboard_box->dashboard_box_type, $dashboard_box->row_no, $dashboard_box->column_no];
         }

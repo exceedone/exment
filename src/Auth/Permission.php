@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission as PermissionEnum;
+use Encore\Admin\Auth\Permission as AdminPermission;
 
 class Permission
 {
@@ -80,6 +81,22 @@ class Permission
     public static function bootingShouldPass(callable $callback)
     {
         static::$bootingShouldPasses[] = $callback;
+    }
+
+    /**
+     * Send not found or deny error.
+     */
+    public static function notFoundOrDeny()
+    {
+        return AdminPermission::error(exmtrans('common.message.notfound_or_deny'));
+    }
+
+    /**
+     * Send error response page.
+     */
+    public static function error($message = null)
+    {
+        return AdminPermission::error($message);
     }
 
     /**

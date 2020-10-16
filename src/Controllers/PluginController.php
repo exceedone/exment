@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Auth\Permission as Checker;
+use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
@@ -192,8 +192,8 @@ class PluginController extends AdminControllerBase
     protected function form($id = null, $isDelete = false)
     {
         $plugin = Plugin::getEloquent($id);
-        if (!$plugin->hasPermission(Permission::PLUGIN_SETTING)) {
-            Checker::error();
+        if (!$plugin || !$plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+            Checker::notFoundOrDeny();
             return false;
         }
 

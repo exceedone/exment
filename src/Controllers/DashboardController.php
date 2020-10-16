@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Auth\Permission as Checker;
+use Exceedone\Exment\Auth\Permission as Checker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -54,8 +54,8 @@ class DashboardController extends AdminControllerBase
         
         // check has system permission
         $dashboard = Dashboard::find($id);
-        if (!$dashboard->hasEditPermission()) {
-            Checker::error();
+        if (!$dashboard || !$dashboard->hasEditPermission()) {
+            Checker::notFoundOrDeny();
             return false;
         }
 

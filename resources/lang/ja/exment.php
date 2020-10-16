@@ -81,6 +81,7 @@ return [
             'import_success' => 'インポート完了しました！',
             'import_error' => 'インポートに失敗しました。',
             'notfound' => 'データが存在しません。',
+            'notfound_or_deny' => 'データが存在しないか、権限がありません。',
             'wrongdata' => 'データが不正です。URLをご確認ください。',
             'wrongconfig' => 'config.jsonファイルが不正です',
             'exists_row' => '%sは必ず1行以上入力してください。',

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\ApiClient;
 use Exceedone\Exment\Model\ApiClientRepository;
+use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Enums\ApiClientType;
 use Exceedone\Exment\Form\Tools;
 
@@ -78,6 +79,10 @@ class ApiSettingController extends AdminControllerBase
     {
         $form = new Form(new ApiClient);
         $client = ApiClient::find($id);
+        if(isset($id) && !isset($client)){
+            Checker::notFoundOrDeny();
+            return false;
+        }
         
         $form->descriptionHtml(exmtrans('common.help.more_help'));
 
