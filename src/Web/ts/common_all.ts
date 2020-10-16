@@ -16,6 +16,11 @@ namespace Exment {
                 // not working ".prop('disabled', true)" ... why??
                 $(ev.target).closest('.click_disabled').attr('disabled', 'true');
             });
+            
+            $(document).off('submit', 'form.click_disabled_submit').on('submit', 'form.click_disabled_submit', {}, function(ev){
+                $('form.click_disabled_submit [type="submit"]').attr('disabled', 'true');
+                return true;
+            });
         }
         
         public static AddEvent() {

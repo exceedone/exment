@@ -22,6 +22,8 @@ class InitializeForm
         $form = $this->getInitializeForm('initialize', true);
         $form->action(admin_url('initialize'));
         $form->disablePjax();
+        $form->attribute(['class' => 'form-horizontal click_disabled_submit']);
+
         // ID and password --------------------------------------------------
         $form->exmheader(exmtrans('system.administrator'))->hr();
         $form->text('user_code', exmtrans('user.user_code'))->required()->help(exmtrans('common.help_code'));
