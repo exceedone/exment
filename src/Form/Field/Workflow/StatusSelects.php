@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Form\Field\WorkFlow;
+namespace Exceedone\Exment\Form\Field\Workflow;
 
 use Encore\Admin\Form\Field\Select;
 
