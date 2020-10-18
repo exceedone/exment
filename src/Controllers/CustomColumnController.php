@@ -106,7 +106,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->display(function ($val) {
             return \Exment::getTrueMark($val);
         });
-        $grid->column('freeword_search', exmtrans("custom_column.options.freeword_search"))->display(function ($val) {
+        $grid->column('options->freeword_search', exmtrans("custom_column.options.freeword_search"))->display(function ($val) {
             return \Exment::getTrueMark($val);
         });
         $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
