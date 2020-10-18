@@ -133,3 +133,22 @@ php artisan serve
 
 # issues
 Please write issues using English or Japanese.  / issuesには英語または日本語で記載してください。
+
+
+# Other repositories
+
+- **[Manual](https://github.com/exceedone/exment-manual)**  
+For exment manual page.
+
+- **[Update Batch](https://github.com/exment-git/batch-update)**  
+Update batch.
+
+- **[Auto Composer](https://github.com/exment-git/auto-composer)**  
+Call auto composer.
+
+- **[Docker](https://github.com/exment-git/docker-exment)**  
+Exment dockers.
+
+- **[Plugin Sample](https://github.com/exment-git/plugin-sample)**  
+Exment plugin's samples.
+
