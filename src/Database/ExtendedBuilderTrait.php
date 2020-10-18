@@ -392,7 +392,7 @@ trait ExtendedBuilderTrait
         }
 
         return $this->_setWhereDate($column, [
-            'date' => [Carbon::create($value->year, $value->month, 1), Carbon::create($value->year, $value->month, 1)->addDay(-1)],
+            'date' => [Carbon::create($value->year, $value->month, 1), Carbon::create($value->year, $value->month + 1, 1)->addDay(-1)],
             'datetime' => [Carbon::create($value->year, $value->month, 1), Carbon::create($value->year, $value->month + 1, 1)],
         ], $isDatetime, $isOr);
     }
@@ -407,7 +407,7 @@ trait ExtendedBuilderTrait
                 $start->format('Y-m-d'),
                 $end->format('Y-m-d'),
             ];
-            return $this->_between($column, $values, '>=', '<');
+            return $this->_between($column, $values, '>=', '<', $isOr);
         }
         
         $start = $values['date'][0];
