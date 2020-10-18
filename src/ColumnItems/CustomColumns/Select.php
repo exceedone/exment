@@ -110,8 +110,19 @@ class Select extends CustomItem
         $this->getSelectFilterQuery($query, $input);
     }
     
+    /**
+     * sortable for grid
+     */
+    public function sortable()
+    {
+        if ($this->isMultipleEnabled()) {
+            return false;
+        }
+        return parent::sortable();
+    }
+
     public function isMultipleEnabled()
     {
-        return boolval(array_get($this->custom_column, 'options.multiple_enabled', false));
+        return $this->isMultipleEnabledTrait();
     }
 }

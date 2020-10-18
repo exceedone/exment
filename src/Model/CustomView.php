@@ -701,6 +701,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 if (!isset($column_item)) {
                     break;
                 }
+                // if cannot sort column, break
+                if(!$column_item->sortable()){
+                    break;
+                }
+
                 // $view_column_target is wraped
                 $view_column_target = $column_item->getSortColumn();
                 $sort_order = $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc';

@@ -546,6 +546,6 @@ class SelectTable extends CustomItem
     
     public function isMultipleEnabled()
     {
-        return boolval(array_get($this->custom_column, 'options.multiple_enabled', false));
+        return $this->isMultipleEnabledTrait();
     }
 }
