@@ -38,6 +38,7 @@ class Permission extends EnumBase
     public const AVAILABLE_ALL_EDIT_CUSTOM_VALUE = [self::CUSTOM_TABLE, self::CUSTOM_VALUE_EDIT_ALL];
     public const AVAILABLE_ACCESS_ROLE_GROUP = [self::ROLE_GROUP_ALL, self::ROLE_GROUP_PERMISSION, self::ROLE_GROUP_USER_ORGANIZATION];
     public const AVAILABLE_API = [self::API_ALL, self::API];
+    public const AVAILABLE_CUSTOM_FORM = [self::CUSTOM_TABLE, self::CUSTOM_FORM];
 
     public const SYSTEM_ROLE_PERMISSIONS = [
         self::CUSTOM_TABLE,

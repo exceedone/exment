@@ -285,7 +285,7 @@ class Permission
                 if (!$this->matchEndPointTable($endpoint)) {
                     return false;
                 }
-                return array_key_exists('custom_form', $this->permission_details);
+                return array_key_exists('custom_table', $this->permission_details) || array_key_exists('custom_form', $this->permission_details);
             case "view":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);

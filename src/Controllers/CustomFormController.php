@@ -47,7 +47,7 @@ class CustomFormController extends AdminControllerTableBase
     public function index(Request $request, Content $content)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_CUSTOM_FORM)) {
             return;
         }
         $this->AdminContent($content);
@@ -128,7 +128,7 @@ class CustomFormController extends AdminControllerTableBase
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_CUSTOM_FORM)) {
             return;
         }
         if (!$this->validateTableAndId(CustomForm::class, $id, 'form')) {
@@ -147,7 +147,7 @@ class CustomFormController extends AdminControllerTableBase
     public function create(Request $request, Content $content)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_CUSTOM_FORM)) {
             return;
         }
 
