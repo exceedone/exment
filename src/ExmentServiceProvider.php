@@ -314,6 +314,14 @@ class ExmentServiceProvider extends ServiceProvider
         if (!$this->app->runningInConsole()) {
             $this->commands(\Laravel\Passport\Console\KeysCommand::class);
         }
+
+        if (config('admin.https') || config('admin.secure')) {
+            \URL::forceScheme('https');
+            $this->app['request']->server->set('HTTPS', true);
+        }
+        if(boolval(config('admin.use_app_url', false))){
+            \URL::forceRootUrl(config('app.url'));
+        }
     }
 
     protected function bootSchedule()

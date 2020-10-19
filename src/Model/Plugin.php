@@ -708,7 +708,9 @@ class Plugin extends ModelBase
         // get namespace
         $patterns = ['@plugins/([^/\?]+)@', '@dashboardbox/plugin/([^/\?]+)@'];
         foreach ($patterns as $pattern) {
-            preg_match($pattern, request()->url(), $matches);
+            // Please use \URL::current(). Consider reverse proxy.
+            //preg_match($pattern, request()->url(), $matches);
+            preg_match($pattern, \URL::current(), $matches);
 
             if (!isset($matches) || count($matches) <= 1) {
                 continue;
