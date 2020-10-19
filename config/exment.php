@@ -850,4 +850,28 @@ return [
     */
     'diable_upload_images_editor' => env('EXMENT_DIABLE_UPLOAD_IMAGES_EDITOR', false),
 
+
+
+
+
+  
+    /*
+    |--------------------------------------------------------------------------
+    | Reverse Proxy IPs
+    |--------------------------------------------------------------------------
+    |
+    | Set trust proxy IPs.
+    | *This config doesn't want to copy backup restore, so set key is ADMIN_, not EXMENT_.*
+    */  
+    'trust_proxy_ips' => env('ADMIN_TRUST_PROXY_IPS', null),
+  
+    /*
+    |--------------------------------------------------------------------------
+    | Reverse Proxy headers
+    |--------------------------------------------------------------------------
+    |
+    | Set trust proxy headers. set as Request::{name}.
+    | *This config doesn't want to copy backup restore, so set key is ADMIN_, not EXMENT_.*
+    */  
+    'trust_proxy_headers' => env('ADMIN_TRUST_PROXY_HEADERS', null),
 ];

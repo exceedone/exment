@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Http\Kernel;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
@@ -76,6 +77,19 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\ExportChunkCommand',
         'Exceedone\Exment\Console\ResetPasswordCommand',
     ];
+
+    
+    /**
+     * The application's global HTTP middleware stack.
+     *
+     * These middleware are run during every request to your application.
+     *
+     * @var array
+     */
+    protected $middleware = [
+        \Exceedone\Exment\Middleware\TrustProxies::class,
+    ];
+
 
     /**
      * The application's route middleware.
@@ -243,6 +257,12 @@ class ExmentServiceProvider extends ServiceProvider
             'exment'
         );
         
+        // register global middleware.
+        $kernel = $this->app->make(Kernel::class);
+        foreach($this->middleware as $middleware){
+            $kernel->pushMiddleware($middleware);
+        }
+
         // register route middleware.
         foreach ($this->routeMiddleware as $key => $middleware) {
             app('router')->aliasMiddleware($key, $middleware);
