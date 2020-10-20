@@ -30,8 +30,11 @@ class TrustProxies extends BaseTrustProxies
         if(!is_nullorempty($ips)){
             $this->proxies = $ips;
         }
+
         if(!is_nullorempty($headers)){
             $this->headers = constant("\Illuminate\Http\Request::$headers");
+        }else{
+            $this->headers = \Illuminate\Http\Request::HEADER_X_FORWARDED_ALL;
         }
 
         $this->setTrustedProxyIpAddresses($request);
