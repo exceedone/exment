@@ -88,6 +88,7 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $middleware = [
         \Exceedone\Exment\Middleware\TrustProxies::class,
+        \Exceedone\Exment\Middleware\ExmentDebug::class,
     ];
 
 
@@ -231,7 +232,6 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootApp();
         $this->bootSetting();
         $this->bootDatabase();
-        $this->bootDebug();
         $this->bootSchedule();
 
         $this->publish();
@@ -431,20 +431,6 @@ class ExmentServiceProvider extends ServiceProvider
         Connection::resolverFor('pgsql', function (...$parameters) {
             return new ExmentDatabase\PostgresConnection(...$parameters);
         });
-    }
-
-    /**
-     * Boot database for Debug. if config.exment.debugmode -> true, show sql to larabel.log
-     *
-     * @return void
-     */
-    protected function bootDebug()
-    {
-        if (!boolval(config('exment.debugmode', false))) {
-            return;
-        }
-
-        \Exment::logDatabase();
     }
 
     /**

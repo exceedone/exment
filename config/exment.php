@@ -49,13 +49,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | exment debug mode
+    | exment debug mode request
     |--------------------------------------------------------------------------
     |
-    | if true, output sql log to laravel.log
+    | if true, log request in laravel.log
     |
     */
-    'debugmode' => env('EXMENT_DEBUG_MODE', false),
+    'debugmode_request' => env('EXMENT_DEBUG_MODE_REQUEST', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | exment debug mode sql
+    |--------------------------------------------------------------------------
+    |
+    | if true, log sql in laravel.log
+    |
+    */
+    'debugmode_sql' => env('EXMENT_DEBUG_MODE_SQL', false),
 
     /*
     |--------------------------------------------------------------------------
