@@ -1087,6 +1087,9 @@ return [
                 'lte' => 'AはB以下である', 
             ],
             
+            'compare_column_options' => [
+                'system_date' => '**システム日付', 
+            ],
         ],
     ],
     
