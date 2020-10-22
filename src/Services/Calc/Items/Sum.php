@@ -62,12 +62,13 @@ class Sum extends ItemBase
             return;
         }
         foreach ($child_relations as $child_relation) {
-            $child_columns = $child_table->custom_columns_cache->filter(function ($column, $child_table) {
-                return in_array(array_get($column, 'column_type'), ColumnType::COLUMN_TYPE_CALC());
-            })->map(function ($column) use ($child_table, $child_table_name) {
-                return static::getItem($column, $custom_table, $child_relation);
-            })->each(function($column) use($options){
-                $options->push($column);
+            $child_custom_table = $child_relation->child_custom_table;
+            $child_columns = $child_custom_table->custom_columns_cache->filter(function ($custom_column) {
+                return in_array(array_get($custom_column, 'column_type'), ColumnType::COLUMN_TYPE_CALC());
+            })->map(function ($custom_column) use ($custom_table, $child_custom_table) {
+                return static::getItem($custom_column, $custom_table, $child_custom_table);
+            })->each(function($custom_column) use($options){
+                $options->push($custom_column);
             });
        }
    }

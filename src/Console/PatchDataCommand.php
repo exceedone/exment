@@ -1317,9 +1317,16 @@ class PatchDataCommand extends Command
                         return $symbol['symbolkey'] == $val;
                     });
 
-                    if(isset($symbol)){
-                        $calcStrings->push($symbol['val']);
+                    if(!isset($symbol)){
+                        $calcStrings = collect();
+                        break;
                     }
+                    $calcStrings->push($symbol['val']);
+                    continue;
+                }
+
+                if($type == 'fixed'){
+                    $calcStrings->push($val);
                     continue;
                 }
 

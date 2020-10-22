@@ -55,16 +55,16 @@ class SelectTable extends ItemBase
 
 
     public static function setCalcCustomColumnOptions($options, $id, $custom_table){
-        $custom_table->custom_columns_cache->each(function ($column) use ($id, $options) {
-            if (isset($id) && $id == array_get($column, 'id')) {
+        $custom_table->custom_columns_cache->each(function ($custom_column) use ($id, $custom_table, $options) {
+            if (isset($id) && $id == array_get($custom_column, 'id')) {
                 return;
             }
-            if (!ColumnType::isSelectTable(array_get($column, 'column_type'))) {
+            if (!ColumnType::isSelectTable(array_get($custom_column, 'column_type'))) {
                 return;
             }
 
             // get select table's calc column
-            $column->select_target_table->custom_columns_cache->filter(function ($select_target_column) use ($id) {
+            $custom_column->select_target_table->custom_columns_cache->filter(function ($select_target_column) use ($custom_table, $id) {
                 if (isset($id) && $id == array_get($select_target_column, 'id')) {
                     return false;
                 }
@@ -73,8 +73,8 @@ class SelectTable extends ItemBase
                 }
     
                 return true;
-            })->each(function ($select_target_column) use ($column, $options) {
-                $options->push(static::getItem($column, $custom_table, $select_target_column));
+            })->each(function ($select_target_column) use ($custom_column, $custom_table, $options) {
+                $options->push(static::getItem($custom_column, $custom_table, $select_target_column));
             });
         });
     }

@@ -1,10 +1,8 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Exceedone\Exment\Database\View;
-use Exceedone\Exment\Enums\SystemTableName;
 
-class WorkflowValueView extends Migration
+class SupportForV380 extends Migration
 {
     /**
      * Run the migrations.
