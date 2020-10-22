@@ -93,7 +93,11 @@
                                 @if($custom_form_column['form_column_target_id'] == "1")
                                 {{ Form::text("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][text]", array_get($custom_form_column, 'options.text'), ['class' => 'form-control']) }}
                                 @else
-                                {{ Form::textarea("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][text]", array_get($custom_form_column, 'options.text'), ['rows' => 3, 'class' => 'form-control']) }}
+                                <p class="input_texthtml-label" style="padding-top: 7px;">
+                                    {{get_omitted_string(array_get($custom_form_column, 'options.text'))}}
+                                </p>
+                                <button type="button" class="btn btn-sm btn-default input_texthtml-modal">@lang('admin.edit')</button> 
+                                {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][text]", array_get($custom_form_column, 'options.text'), ['class' => 'input_texthtml']) }}
                                 @endif
                             </div>
                     </div>
@@ -105,7 +109,11 @@
                                 <i class="fa fa-info-circle" data-help-text="{{exmtrans('custom_form.help.html')}}" data-help-title="{{exmtrans('custom_form.html')}}"></i>
                             </span>
                             <div class="col-sm-9">
-                                {{ Form::textarea("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][html]", array_get($custom_form_column, 'options.html'), ['rows' => 4, 'class' => 'form-control']) }}
+                                <p class="input_texthtml-label" style="padding-top: 7px;">
+                                    {{get_omitted_string(array_get($custom_form_column, 'options.html'))}}
+                                </p>
+                                <button type="button" class="btn btn-sm btn-default input_texthtml-modal">@lang('admin.edit')</button> 
+                                {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][html]", array_get($custom_form_column, 'options.html'), ['class' => 'input_texthtml']) }}
                             </div>
                     </div>
                     @endif

@@ -27,10 +27,11 @@
         </div>
         <div class="modal-footer">
             <div class="col-sm-12">
-                    <button id="relation_filter-button-reset" type="button" class="btn btn-default">{{trans('admin.reset')}}</button>
-                    <button id="relation_filter-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
+                <button type="button" class="btn btn-default pull-left modal-close" data-dismiss="modal">{{trans('admin.close')}}</button>
+                <button id="relation_filter-button-reset" type="button" class="btn btn-default pull-left">{{trans('admin.reset')}}</button>
+                <button id="relation_filter-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
 
-                    <input type="hidden" class="target_header_column_name" />
+                <input type="hidden" class="target_header_column_name" />
             </div>
         </div>
     </div>

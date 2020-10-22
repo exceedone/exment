@@ -6,12 +6,15 @@ var Exment;
             $('.box-custom_form_block').on('click', '.delete', {}, CustomFromEvent.deleteColumn);
             $('.box-custom_form_block').on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
             $('.box-custom_form_block').on('click', '.changedata-modal', {}, CustomFromEvent.changedataModalEvent);
+            $('.box-custom_form_block').on('click', '.input_texthtml-modal', {}, CustomFromEvent.editTextHtmlModalEvent);
             $('.box-custom_form_block').on('click', '.relation_filter-modal', {}, CustomFromEvent.relationfilterModalEvent);
             $(document).off('change.custom_form', '.changedata_target_column').on('change.custom_form', '.changedata_target_column', {}, CustomFromEvent.changedataColumnEvent);
             $(document).off('click.custom_form', '#changedata-button-setting').on('click.custom_form', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
             $(document).off('click.custom_form', '#changedata-button-reset').on('click.custom_form', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
             $(document).off('click.custom_form', '#relation_filter-button-setting').on('click.custom_form', '#relation_filter-button-setting', {}, CustomFromEvent.relationfilterSetting);
             $(document).off('click.custom_form', '#relation_filter-button-reset').on('click.custom_form', '#relation_filter-button-reset', {}, CustomFromEvent.relationfilterReset);
+            $(document).off('click.custom_form', '#textinput-button-setting').on('click.custom_form', '#textinput-button-setting', {}, CustomFromEvent.textinputSetting);
+            $(document).off('click.custom_form', '#textinput-button-reset').on('click.custom_form', '#textinput-button-reset', {}, CustomFromEvent.textinputReset);
             CustomFromEvent.addDragEvent();
             CustomFromEvent.addCollapseEvent();
             CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
@@ -36,6 +39,7 @@ var Exment;
                     helper: d.data('draggable_clone') ? 'clone' : '',
                     revert: "invalid",
                     droppable: "drop",
+                    distance: 40,
                     stop: (event, ui) => {
                         var $ul = ui.helper.closest('.draggables');
                         // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
@@ -86,7 +90,9 @@ var Exment;
             });
             // add sorable event (only left column)
             $(".custom_form_column_items.draggables")
-                .sortable({})
+                .sortable({
+                distance: 40,
+            })
                 // add 1to2 or 2to1 draagable event
                 .each(function (index, elem) {
                 var d = $(elem);
@@ -124,6 +130,7 @@ var Exment;
                     //cursor: 'move',
                     revert: "invalid",
                     droppable: "drop",
+                    distance: 40,
                     stop: (event, ui) => {
                         // reset draageble target
                         CustomFromEvent.setDragItemEvent(ui.helper, false);
@@ -482,6 +489,34 @@ var Exment;
         $target_li.find('.relation_filter_target_column_id').val($('.relation_filter_target_column').val());
         $target_li.find('.relation_filter_available').show();
         $('#form-relation_filter-modal').modal('hide');
+    };
+    CustomFromEvent.editTextHtmlModalEvent = (ev) => {
+        let $target_li = $(ev.target).closest('.custom_form_column_item');
+        let $val = $target_li.find('.input_texthtml');
+        CustomFromEvent.$targetLi = $target_li;
+        $('#form-textinput-modal').find('#textinput-modal-textarea').val($val.val());
+        $('#form-textinput-modal').modal('show');
+    };
+    /**
+     */
+    CustomFromEvent.textinputReset = (ev) => {
+        let $target_li = CustomFromEvent.$targetLi;
+        $target_li.find('.input_texthtml').val('');
+        $target_li.find('.input_texthtml-label').text('');
+        $('#form-textinput-modal').modal('hide');
+    };
+    /**
+     * Settng changedata Setting
+     */
+    CustomFromEvent.textinputSetting = (ev) => {
+        let $target_li = CustomFromEvent.$targetLi;
+        $target_li.find('.input_texthtml').val($('#textinput-modal-textarea').val());
+        let slice = $('#textinput-modal-textarea').val().slice(0, 50);
+        if (slice.length >= 50) {
+            slice += '...';
+        }
+        $target_li.find('.input_texthtml-label').text(slice);
+        $('#form-textinput-modal').modal('hide');
     };
     Exment.CustomFromEvent = CustomFromEvent;
 })(Exment || (Exment = {}));

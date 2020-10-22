@@ -204,12 +204,10 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <div class="col-sm-12">
-                        <button id="changedata-button-reset" type="button" class="btn btn-default">{{trans('admin.reset')}}</button>
-                        <button id="changedata-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
-
-                        <input type="hidden" class="target_header_column_name" />
-                </div>
+                <button type="button" class="btn btn-default pull-left modal-close" data-dismiss="modal">{{trans('admin.close')}}</button>
+                <button id="changedata-button-reset" type="button" class="btn btn-default pull-left">{{trans('admin.reset')}}</button>
+                <button id="changedata-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
+                <input type="hidden" class="target_header_column_name" />
             </div>
         </div>
     </div>
@@ -218,5 +216,27 @@
 
 <div class="modal fade" id="form-relation_filter-modal" data-backdrop="static">
 </div>
+
+
+<div class="modal fade" id="form-textinput-modal" data-backdrop="static">
+    <div class="modal-dialog modal-xl" >
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+                <h4 class="modal-title" id="modal-label">{{trans('admin.edit')}}</h4>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <textarea id="textinput-modal-textarea" class="w-100" rows="20"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left modal-close" data-dismiss="modal">{{trans('admin.close')}}</button>
+                <button id="textinput-button-reset" type="button" class="btn btn-default pull-left">{{trans('admin.reset')}}</button>
+                <button id="textinput-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <script type="text/javascript" src="{{ $js }}"></script>
