@@ -43,41 +43,71 @@ var Exment;
                     let $to = $targetBox.find(Exment.CommonEvent.getClassKey(calc_formula.target_column));
                     // get options 
                     let options = calc_formula.params;
-                    for (let j = 0; j < options.length; j++) {
-                        let val = 0;
-                        // calc option
-                        let option = options[j];
-                        // when dynamic value, get value
-                        if (option.type == 'dynamic') {
-                            val = rmcomma($formulaBox.find(Exment.CommonEvent.getClassKey(option.formula_column)).val());
+                    let precision = yield CalcEvent.executeCalc(formula_string, options, $formulaBox);
+                    Exment.CommonEvent.setValue($to, precision);
+                }
+            });
+        }
+        static executeCalc(formula_string, options, $formulaBox) {
+            return __awaiter(this, void 0, void 0, function* () {
+                let notCalc = false;
+                for (let j = 0; j < options.length; j++) {
+                    let val = 0;
+                    // calc option
+                    let option = options[j];
+                    // when dynamic value, get value
+                    if (option.type == 'dynamic') {
+                        val = rmcomma($formulaBox.find(Exment.CommonEvent.getClassKey(option.formula_column)).val());
+                        if (!hasValue(val)) {
+                            notCalc = true;
+                            break;
+                        }
+                    }
+                    // when summary value, get value
+                    else if (option.type == 'summary' || option.type == 'sum') {
+                        let sum_count = 0;
+                        $('.box-body').find('.has-many-' + option.child_relation_name + '-form:visible, .has-many-table-' + option.child_relation_name + '-row:visible')
+                            .find(Exment.CommonEvent.getClassKey(option.formula_column))
+                            .each(function () {
+                            if (hasValue($(this).val())) {
+                                sum_count += pInt($(this).val());
+                            }
+                        });
+                        val = sum_count;
+                    }
+                    // when count value, get count
+                    else if (option.type == 'count') {
+                        val = $('.box-body').find('.has-many-' + option.child_relation_name + '-form:visible, .has-many-table-' + option.child_relation_name + '-row:visible').length;
+                        if (!hasValue(val)) {
+                            val = 0;
+                        }
+                    }
+                    // when select_table value, get value from table
+                    else if (option.type == 'select_table') {
+                        // find select target table
+                        let $select = $formulaBox.find(Exment.CommonEvent.getClassKey(option.select_pivot_column));
+                        let table_name = $select.data('target_table_name');
+                        // get selected table model
+                        let model = yield Exment.CommonEvent.findModel(table_name, $select.val());
+                        // get value
+                        if (hasValue(model)) {
+                            val = model['value'][option.formula_column];
                             if (!hasValue(val)) {
                                 notCalc = true;
                                 break;
                             }
                         }
-                        // when summary value, get value
-                        else if (option.type == 'summary' || option.type == 'sum') {
-                            let sum_count = 0;
-                            $('.box-body').find('.has-many-' + option.child_relation_name + '-form:visible, .has-many-table-' + option.child_relation_name + '-row:visible')
-                                .find(Exment.CommonEvent.getClassKey(option.formula_column))
-                                .each(function () {
-                                if (hasValue($(this).val())) {
-                                    sum_count += pInt($(this).val());
-                                }
-                            });
-                            val = sum_count;
+                        else {
+                            notCalc = true;
+                            break;
                         }
-                        // when count value, get count
-                        else if (option.type == 'count') {
-                            val = $('.box-body').find('.has-many-' + option.child_relation_name + '-form:visible, .has-many-table-' + option.child_relation_name + '-row:visible').length;
-                            if (!hasValue(val)) {
-                                val = 0;
-                            }
-                        }
-                        // when select_table value, get value from table
-                        else if (option.type == 'select_table') {
-                            // find select target table
-                            let $select = $formulaBox.find(Exment.CommonEvent.getClassKey(option.select_pivot_column));
+                    }
+                    // when parent value, get value from parent_id or parent form
+                    else if (option.type == 'parent') {
+                        // find parent target table
+                        let $select = $formulaBox.find('.parent_id');
+                        // if has $select, this default form, so call CommonEvent.findModel
+                        if (hasValue($select)) {
                             let table_name = $select.data('target_table_name');
                             // get selected table model
                             let model = yield Exment.CommonEvent.findModel(table_name, $select.val());
@@ -94,48 +124,23 @@ var Exment;
                                 break;
                             }
                         }
-                        // when parent value, get value from parent_id or parent form
-                        else if (option.type == 'parent') {
-                            // find parent target table
-                            let $select = $formulaBox.find('.parent_id');
-                            // if has $select, this default form, so call CommonEvent.findModel
-                            if (hasValue($select)) {
-                                let table_name = $select.data('target_table_name');
-                                // get selected table model
-                                let model = yield Exment.CommonEvent.findModel(table_name, $select.val());
-                                // get value
-                                if (hasValue(model)) {
-                                    val = model['value'][option.formula_column];
-                                    if (!hasValue(val)) {
-                                        notCalc = true;
-                                        break;
-                                    }
-                                }
-                                else {
-                                    notCalc = true;
-                                    break;
-                                }
-                            }
-                            // if not parent id, almost 1:n form, so get parent form
-                            else {
-                                let $parentBox = CalcEvent.getBlockElement('');
-                                val = rmcomma($parentBox.find(Exment.CommonEvent.getClassKey(option.formula_column)).val());
-                                if (!hasValue(val)) {
-                                    notCalc = true;
-                                    break;
-                                }
+                        // if not parent id, almost 1:n form, so get parent form
+                        else {
+                            let $parentBox = CalcEvent.getBlockElement('');
+                            val = rmcomma($parentBox.find(Exment.CommonEvent.getClassKey(option.formula_column)).val());
+                            if (!hasValue(val)) {
+                                notCalc = true;
+                                break;
                             }
                         }
-                        // replace value
-                        formula_string = formula_string.replace(option.key, val);
                     }
-                    if (notCalc || !CalcEvent.validateMathFormula(formula_string)) {
-                        Exment.CommonEvent.setValue($to, null);
-                        continue;
-                    }
-                    let precision = math.evaluate(formula_string);
-                    Exment.CommonEvent.setValue($to, precision);
+                    // replace value
+                    formula_string = formula_string.replace(option.key, val);
                 }
+                if (notCalc) {
+                    return null;
+                }
+                return math.evaluate(formula_string);
             });
         }
         /**
@@ -150,26 +155,6 @@ var Exment;
                 return $('.box-body .parent_id').closest('.form-group');
             }
             return $('.box-body .hasmanyblock-' + block_name);
-        }
-        /**
-         * Get block name by element
-         * @param $elem
-         */
-        static getblock_name($elem) {
-            let $hasmany = $elem.closest('.has-many-table,.has-many');
-            // not hasmany, return empty
-            if (!hasValue($hasmany)) {
-                return '';
-            }
-            let classList = $hasmany.get(0).classList;
-            for (let key in classList) {
-                let c = classList[key];
-                let found = c.match('/^hasmanyblock-/g');
-                if (found) {
-                    return c.replace('hasmanyblock-', '');
-                }
-            }
-            return '';
         }
         /**
          * validate formula string
