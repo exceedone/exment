@@ -55,6 +55,8 @@ return [
         'column' => 'Column',
         'row_up' => 'Row Up',
         'row_down' => 'Row Down',
+        'open' => 'Open',
+        'open_blank' => 'Open Blank',
         'pager_count' => 'Pager Count',
         'system' => 'System',
         'custom_table' => 'Custom Table',

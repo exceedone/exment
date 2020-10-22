@@ -55,6 +55,8 @@ return [
         'column' => '列',
         'row_up' => '1行上へ',
         'row_down' => '1行下へ',
+        'open' => '開く',
+        'open_blank' => '新規ウィンドウで開く',
         'pager_count' => '表示件数',
         'system' => 'システム',
         'custom_table' => 'カスタムテーブル',
