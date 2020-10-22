@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
+use Exceedone\Exment\Services\Calc\Items as CalcItems;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
@@ -172,6 +173,9 @@ class PatchDataCommand extends Command
                 return;
             case 'update_notify_difinition':
                 $this->updateNotifyDifinition();
+                return;
+            case 'update_calc_formula':
+                $this->updateCalcFormula();
                 return;
         }
 
@@ -1276,5 +1280,103 @@ class PatchDataCommand extends Command
                     $notify->setTriggerSetting('notify_myself', true)->save();
                 });
         }
+    }
+
+
+    /**
+     * Update $calc_formula array to string
+     *
+     * @return void
+     */
+    protected function updateCalcFormula()
+    {
+        Model\CustomColumn::get()
+        ->each(function ($custom_column) {
+            $calc_formulas = $custom_column->getOption('calc_formula');
+            if(is_nullorempty($calc_formulas) || isMatchString($calc_formulas, 'null')){
+                return true;
+            }
+
+            if (!is_array($calc_formulas) && is_json($calc_formulas)) {
+                $calc_formulas = json_decode($calc_formulas, true);
+            }
+            elseif(is_string($calc_formulas)){
+                return true;
+            }
+
+            // set culc string as Collection (alfer join.)
+            $calcStrings = collect();
+            foreach ($calc_formulas as $calc_formula) {
+                $type = array_get($calc_formula, 'type');
+                $val = array_get($calc_formula, 'val');
+
+                // if symbol, set val from definition array.
+                if($type == 'symbol'){
+                    $symbols = \Exceedone\Exment\Services\Calc\CalcService::getSymbols();
+                    $symbol = collect($symbols)->first(function($symbol) use($val){
+                        return $symbol['symbolkey'] == $val;
+                    });
+
+                    if(isset($symbol)){
+                        $calcStrings->push($symbol['val']);
+                    }
+                    continue;
+                }
+
+                // get formula column
+                $formula_column = Model\CustomColumn::getEloquent($val);
+                if(!$formula_column && $type != 'count'){
+                    $calcStrings = collect();
+                    break;
+                }
+                $child_custom_table = CustomTable::getEloquent(array_get($calc_formula, 'table'));
+
+                // get calcitem
+                $item = null;
+                switch ($type) {
+                    case 'count':
+                    case 'summary':
+                        if(!$child_custom_table){
+                            $calcStrings = collect();
+                            break 2;
+                        }
+                        if($type == 'count'){
+                            $item = CalcItems\Count::getItem($custom_column->custom_table_cache, $child_custom_table);
+                        }
+                        else{
+                            $item = CalcItems\Sum::getItem($formula_column, $custom_column->custom_table_cache, $child_custom_table);
+                        }
+                        break;
+                    case 'dynamic':
+                        $item = CalcItems\Dynamic::getItem($formula_column, $custom_column->custom_table_cache);
+                        break;
+                    case 'select_table':
+                        $pivot_column = CustomColumn::getEloquent(array_get($calc_formula, 'from'));
+                        if(!$pivot_column){
+                            $calcStrings = collect();
+                            break 2;
+                        }
+                        $item = CalcItems\SelectTable::getItem($formula_column, $custom_column->custom_table_cache, $pivot_column);
+                        break;
+                }
+
+                if(!isset($item)){
+                    $calcStrings = collect();
+                    break;
+                }
+                $calcStrings->push($item->val());
+            }
+
+            if(is_nullorempty($calcStrings)){
+                $calcString = null;
+            }
+            else{
+                $calcString = $calcStrings->implode(' ');
+            }
+
+            $custom_column->setOption('calc_formula', $calcString);
+            $custom_column->save();
+        });
+
     }
 }

@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\Services\Calc\CalcService;
 
 class DefaultForm extends FormBase
 {
@@ -60,8 +61,7 @@ class DefaultForm extends FormBase
         $calc_formula_array = [];
         $changedata_array = [];
         $relatedlinkage_array = [];
-        $count_detail_array = [];
-        $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array, $count_detail_array);
+        $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array);
 
         // loop for custom form blocks
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
@@ -109,9 +109,6 @@ class DefaultForm extends FormBase
                             }
                         );
                     }
-                    if (array_key_exists($relation_name, $count_detail_array)) {
-                        $hasmany->setCountScript(array_get($count_detail_array, $relation_name));
-                    }
                 }
                 // n:n
                 else {
@@ -155,7 +152,7 @@ class DefaultForm extends FormBase
             $json = json_encode($calc_formula_array);
             $script = <<<EOT
             var json = $json;
-            Exment.CommonEvent.setCalcEvent(json);
+            Exment.CalcEvent.setCalcEvent(json);
 EOT;
             Admin::script($script);
         }
@@ -271,9 +268,14 @@ EOT;
     /**
      * set custom form columns
      */
-    protected function setCustomFormEvents(&$calc_formula_array, &$changedata_array, &$relatedlinkage_array, &$count_detail_array)
+    protected function setCustomFormEvents(&$calc_formula_array, &$changedata_array, &$relatedlinkage_array)
     {
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+            // set calc rule for javascript
+            $relation = $custom_form_block->getRelationInfo()[0];
+            $calc_formula_key = $relation ? $relation->getRelationName() : '';
+            $calc_formula_array[$calc_formula_key] = CalcService::getCalcFormArray($this->custom_table, $custom_form_block);
+
             foreach ($custom_form_block->custom_form_columns as $form_column) {
                 if ($form_column->form_column_type != FormColumnType::COLUMN) {
                     continue;
@@ -285,11 +287,6 @@ EOT;
                 $form_column_options = $form_column->options;
                 $options = $column->options;
                 
-                // set calc rule for javascript
-                if (array_key_value_exists('calc_formula', $options)) {
-                    $is_default = $custom_form_block->form_block_type == FormBlockType::DEFAULT;
-                    $this->setCalcFormulaArray($column, $options, $calc_formula_array, $count_detail_array, $is_default);
-                }
                 // data changedata
                 // if set form_column_options changedata_target_column_id, and changedata_column_id
                 if (array_key_value_exists('changedata_target_column_id', $form_column_options) && array_key_value_exists('changedata_column_id', $form_column_options)) {
@@ -474,83 +471,6 @@ EOT;
         });
     }
     
-    /**
-     * Create calc formula info.
-     */
-    protected function setCalcFormulaArray($column, $options, &$calc_formula_array, &$count_detail_array, $is_default = true)
-    {
-        if (is_null($calc_formula_array)) {
-            $calc_formula_array = [];
-        }
-        // get format for calc formula
-        $option_calc_formulas = array_get($options, "calc_formula");
-        if ($option_calc_formulas == "null") {
-            return;
-        } //TODO:why???
-        if (!is_array($option_calc_formulas) && is_json($option_calc_formulas)) {
-            $option_calc_formulas = json_decode($option_calc_formulas, true);
-        }
-
-        // keys for calc trigger on display
-        $keys = [];
-        // loop $option_calc_formulas and get column_name
-        foreach ($option_calc_formulas as &$option_calc_formula) {
-            $child_select_table = array_get($option_calc_formula, 'table');
-            if (isset($child_select_table)) {
-                $option_calc_formula['relation_name'] = CustomRelation::getRelationNameByTables($this->custom_table, $child_select_table);
-            }
-            switch (array_get($option_calc_formula, 'type')) {
-                case 'count':
-                    if (array_has($option_calc_formula, 'relation_name')) {
-                        $relation_name = $option_calc_formula['relation_name'];
-                        if (!array_has($count_detail_array, $relation_name)) {
-                            $count_detail_array[$relation_name] = [];
-                        }
-                        $count_detail_array[$relation_name][] =  [
-                            'options' => $option_calc_formulas,
-                            'to' => $column->column_name,
-                            'is_default' => $is_default
-                        ];
-                    }
-                    break;
-                case 'dynamic':
-                case 'summary':
-                case 'select_table':
-                    // set column name
-                    $formula_column = CustomColumn::getEloquent(array_get($option_calc_formula, 'val'));
-                    // get column name as key
-                    $key = $formula_column->column_name ?? null;
-                    if (!isset($key)) {
-                        break;
-                    }
-                    $keys[] = $key;
-                    // set $option_calc_formula val using key
-                    $option_calc_formula['val'] = $key;
-
-                    // if select table, set from value
-                    if ($option_calc_formula['type'] == 'select_table') {
-                        $column_from = CustomColumn::getEloquent(array_get($option_calc_formula, 'from'));
-                        $option_calc_formula['from'] = $column_from->column_name ?? null;
-                    }
-                    break;
-            }
-        }
-
-        $keys = array_unique($keys);
-        // loop for $keys and set $calc_formula_array
-        foreach ($keys as $key) {
-            // if not exists $key in $calc_formula_array, set as array
-            if (!array_has($calc_formula_array, $key)) {
-                $calc_formula_array[$key] = [];
-            }
-            // set $calc_formula_array
-            $calc_formula_array[$key][] = [
-                'options' => $option_calc_formulas,
-                'to' => $column->column_name,
-                'is_default' => $is_default
-            ];
-        }
-    }
 
     /**
      * set change data array.

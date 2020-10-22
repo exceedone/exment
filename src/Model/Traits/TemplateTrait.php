@@ -94,11 +94,6 @@ trait TemplateTrait
 
         $templateItems = static::$templateItems;
 
-        // if class_methods replaceTemplateSpecially, execute
-        if (method_exists($this, 'replaceTemplateSpecially')) {
-            $array = $this->{'replaceTemplateSpecially'}($array);
-        }
-
         // replace value id to name
         if (array_key_exists('uniqueKeyReplaces', $templateItems)) {
             foreach (array_get($templateItems, 'uniqueKeyReplaces', []) as $uniqueKeyReplace) {
