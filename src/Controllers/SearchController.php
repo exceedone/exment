@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SearchType;
+use Exceedone\Exment\Auth\Permission as Checker;
 
 class SearchController extends AdminControllerBase
 {
@@ -246,6 +247,11 @@ class SearchController extends AdminControllerBase
         // get seleted name
         $table = CustomTable::getEloquent($request->input('table_name'));
         $model = getModelName($table)::find($request->input('value_id'));
+        if(!$model){
+            Checker::notFoundOrDeny();
+            return;
+        }
+        
         // get target tables
         $targetTables = $this->getSearchTargetRelationTable($table);
         // if if only self table, and query "relation"(force showing relation), then redirect show page
