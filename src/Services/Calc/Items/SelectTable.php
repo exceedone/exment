@@ -11,13 +11,14 @@ use Exceedone\Exment\Enums\ColumnType;
 class SelectTable extends ItemBase
 {
     /**
+     * select pivot column. *This column is in this custom table.*
      * @var CustomColumn
      */
-    public $select_target_column;
+    public $select_pivot_column;
     
-    public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomColumn $select_target_column){
+    public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomColumn $select_pivot_column){
         parent::__construct($custom_column, $custom_table);
-        $this->select_target_column = $select_target_column;
+        $this->select_pivot_column = $select_pivot_column;
     }
     
     public function type(){
@@ -25,22 +26,35 @@ class SelectTable extends ItemBase
     }
 
     public function text(){
-        return array_get($this->custom_column, 'column_view_name') . '/' . array_get($this->select_target_column, 'column_view_name');
+        return array_get($this->select_pivot_column, 'column_view_name') . '/' . array_get($this->custom_column, 'column_view_name');
     }
 
     public function val(){
-        return '${select_table:' . array_get($this->select_target_column, 'column_name') . '.' . array_get($this->custom_column, 'column_name') . '}';
+        return '${select_table:' . array_get($this->select_pivot_column, 'column_name') . '.' . array_get($this->custom_column, 'column_name') . '}';
     }
 
     public function toArray(){
         return array_merge([
-            'pivot_column' => $this->select_target_column ? $this->select_target_column->column_name : null,
+            'select_pivot_column' => $this->select_pivot_column ? $this->select_pivot_column->column_name : null,
         ], parent::toArray());
     }
 
+    /**
+     * Get triggered event key names
+     *
+     * @return array
+     */
+    public function getTriggeredKeys() : array
+    {
+        return [
+            'trigger_block' => 'default',
+            'trigger_column' => $this->select_pivot_column ? $this->select_pivot_column->column_name : null,
+        ];
+    }
 
-    public static function getItem($custom_column, $custom_table, ?CustomColumn $select_target_column){
-        return new self($custom_column, $custom_table, $select_target_column);
+
+    public static function getItem($custom_column, $custom_table, ?CustomColumn $select_pivot_column){
+        return new self($custom_column, $custom_table, $select_pivot_column);
     }
 
 
@@ -64,17 +78,17 @@ class SelectTable extends ItemBase
             }
 
             // get select table's calc column
-            $custom_column->select_target_table->custom_columns_cache->filter(function ($select_target_column) use ($custom_table, $id) {
-                if (isset($id) && $id == array_get($select_target_column, 'id')) {
+            $custom_column->select_target_table->custom_columns_cache->filter(function ($select_pivot_column) use ($custom_table, $id) {
+                if (isset($id) && $id == array_get($select_pivot_column, 'id')) {
                     return false;
                 }
-                if (!ColumnType::isCalc(array_get($select_target_column, 'column_type'))) {
+                if (!ColumnType::isCalc(array_get($select_pivot_column, 'column_type'))) {
                     return false;
                 }
     
                 return true;
             })->each(function ($select_target_column) use ($custom_column, $custom_table, $options) {
-                $options->push(static::getItem($custom_column, $custom_table, $select_target_column));
+                $options->push(static::getItem($select_target_column, $custom_table, $custom_column));
             });
         });
     }

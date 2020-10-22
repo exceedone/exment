@@ -3,6 +3,8 @@ namespace Exceedone\Exment\Services\Calc;
 
 use Exceedone\Exment\Services\Calc\Items;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomFormBlock;
+use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 
 /**
@@ -49,7 +51,7 @@ class CalcService
      *     'child_relation_name': if relation is 1:n, set child relation name.
      *     'pivot_column': if select_table, set pivot culumn's name.
      */
-    public static function getCalcFormArray(CustomTable $custom_table, $custom_form_block)
+    public static function getCalcFormArray(CustomTable $custom_table, CustomFormBlock $custom_form_block)
     {
         $calc_formulas = [];
         $calc_counts = [];
@@ -72,8 +74,8 @@ class CalcService
                 continue;
             }
 
-            $params = static::getCalcParamsFromString($option_calc_formula, $custom_column->custom_table_cache);
-            foreach($params as &$param){
+            $params = static::getCalcParamsFromString($option_calc_formula, $custom_column->custom_table_cache, $custom_form_block);
+            foreach($params as $param){
                 // set column name
                 $formula_column = array_get($param, 'custom_column');
                 // get column name as key
@@ -82,14 +84,11 @@ class CalcService
                     continue;
                 }
 
-                // get key name. key is "child_relation_name : dafault" - "column_name"
-                $block_key = array_get($param, 'child_relation_name', 'default');
-                $formula_key_name = $block_key . '-' . $column_name;
-
+                $formula_key_name = $param['trigger_block'] . '-' . $column_name;
                 if(!array_has($calc_formulas, $formula_key_name)){
                     $calc_formulas[$formula_key_name] = [
-                        'block_key' => $block_key,
-                        'formula_column' => $column_name,
+                        'trigger_block' => $param['trigger_block'],
+                        'trigger_column' => $param['trigger_column'],
                         'formulas' => [],
                     ];
                 }
@@ -102,13 +101,16 @@ class CalcService
 
             // if contains type "count", set 'calc_counts'
             if(collect($params)->contains(function($param){
-                return \isMatchString(array_get($param, 'type'), 'count');
+                return in_array(array_get($param, 'type'), ['count', 'parent']);
             })){
                 $child_relation_name = array_get($param, 'child_relation_name');
+                if(is_nullorempty($child_relation_name)){
+                    continue;
+                }
                 
                 if(!array_has($calc_counts, $child_relation_name)){
                     $calc_counts[$child_relation_name] = [
-                        'block_key' => 'deafult',
+                        'block_key' => 'default',
                         'formulas' => [],
                     ];
                 }
@@ -143,7 +145,7 @@ class CalcService
      *     'target_relation_name': If type is summary, box and triggered box is defferent, so set trigger relation name.
      * ]
      */
-    protected static function getCalcParamsFromString($value, CustomTable $custom_table) : array
+    protected static function getCalcParamsFromString($value, CustomTable $custom_table, ?CustomFormBlock $custom_form_block = null) : array
     {
         if(is_nullorempty($value)){
             return [];
@@ -164,6 +166,9 @@ class CalcService
             '\$\{select_table:(?<key>.+?)\}' => function($splits) use($custom_table){
                 return Items\SelectTable::getItemBySplits($splits, $custom_table);
             }, 
+            '\$\{parent:(?<key>.+?)\}' => function($splits) use($custom_table, $custom_form_block){
+                return Items\ParentColumn::getItemBySplits($splits, $custom_table, $custom_form_block);
+            }, 
         ];
 
         foreach($regs as $regKey => $regFunc){
@@ -180,12 +185,12 @@ class CalcService
                 if(!$result){
                     continue;
                 }
-                $result = $result->toArray();
+                $arr = $result->toArray();
 
-                $result['key'] = $m;
-                $result['inner_key'] = $matched['key'][$index];
+                $arr['key'] = $m;
+                $arr['inner_key'] = $matched['key'][$index];
 
-                $results[] = $result;
+                $results[] = $arr;
             }
         }
 
@@ -212,6 +217,7 @@ class CalcService
         Items\SelectTable::setCalcCustomColumnOptions($options, $id, $custom_table);
         Items\Count::setCalcCustomColumnOptions($options, $id, $custom_table);
         Items\Sum::setCalcCustomColumnOptions($options, $id, $custom_table);
+        Items\ParentColumn::setCalcCustomColumnOptions($options, $id, $custom_table);
 
         return $options;
     }

@@ -46,12 +46,26 @@ class Sum extends ItemBase
         return new self($custom_column, $custom_table, $child_table);
     }
 
+
+    /**
+     * Get triggered event key names
+     *
+     * @return array
+     */
+    public function getTriggeredKeys() : array
+    {
+        return [
+            'trigger_block' => $this->getChildRelationName() ?? 'default',
+            'trigger_column' => $this->custom_column ? $this->custom_column->column_name : null,
+        ];
+    }
+
+
     public function toArray(){
-        $child_relation_name = CustomRelation::getRelationNameByTables($this->custom_table, $this->child_custom_table);
 
         return array_merge([
             'child_table' => $this->child_custom_table,
-            'child_relation_name' => $child_relation_name,
+            'child_relation_name' => $this->getChildRelationName(),
         ], parent::toArray());
     }
 
@@ -71,5 +85,9 @@ class Sum extends ItemBase
                 $options->push($custom_column);
             });
        }
+   }
+
+   protected function getChildRelationName(){
+       return CustomRelation::getRelationNameByTables($this->custom_table, $this->child_custom_table);
    }
 }

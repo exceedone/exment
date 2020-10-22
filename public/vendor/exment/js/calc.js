@@ -77,13 +77,13 @@ var Exment;
                         // when select_table value, get value from table
                         else if (option.type == 'select_table') {
                             // find select target table
-                            var $select = $formulaBox.find(Exment.CommonEvent.getClassKey(option.formula_column));
-                            var table_name = $select.data('target_table_name');
+                            let $select = $formulaBox.find(Exment.CommonEvent.getClassKey(option.select_pivot_column));
+                            let table_name = $select.data('target_table_name');
                             // get selected table model
-                            var model = yield Exment.CommonEvent.findModel(table_name, $select.val());
+                            let model = yield Exment.CommonEvent.findModel(table_name, $select.val());
                             // get value
                             if (hasValue(model)) {
-                                val = model['value'][option.pivot_column];
+                                val = model['value'][option.formula_column];
                                 if (!hasValue(val)) {
                                     notCalc = true;
                                     break;
@@ -92,6 +92,38 @@ var Exment;
                             else {
                                 notCalc = true;
                                 break;
+                            }
+                        }
+                        // when parent value, get value from parent_id or parent form
+                        else if (option.type == 'parent') {
+                            // find parent target table
+                            let $select = $formulaBox.find('.parent_id');
+                            // if has $select, this default form, so call CommonEvent.findModel
+                            if (hasValue($select)) {
+                                let table_name = $select.data('target_table_name');
+                                // get selected table model
+                                let model = yield Exment.CommonEvent.findModel(table_name, $select.val());
+                                // get value
+                                if (hasValue(model)) {
+                                    val = model['value'][option.formula_column];
+                                    if (!hasValue(val)) {
+                                        notCalc = true;
+                                        break;
+                                    }
+                                }
+                                else {
+                                    notCalc = true;
+                                    break;
+                                }
+                            }
+                            // if not parent id, almost 1:n form, so get parent form
+                            else {
+                                let $parentBox = CalcEvent.getBlockElement('');
+                                val = rmcomma($parentBox.find(Exment.CommonEvent.getClassKey(option.formula_column)).val());
+                                if (!hasValue(val)) {
+                                    notCalc = true;
+                                    break;
+                                }
                             }
                         }
                         // replace value
@@ -111,9 +143,13 @@ var Exment;
          * @param block_name block name
          */
         static getBlockElement(block_name) {
-            return !hasValue(block_name) || block_name == 'default' ?
-                $('.box-body >.fields-group > .embed-value') :
-                $('.box-body .hasmanyblock-' + block_name);
+            if (!hasValue(block_name) || block_name == 'default') {
+                return $('.box-body >.fields-group > .embed-value');
+            }
+            if (block_name == 'parent_id') {
+                return $('.box-body .parent_id').closest('.form-group');
+            }
+            return $('.box-body .hasmanyblock-' + block_name);
         }
         /**
          * Get block name by element
@@ -177,9 +213,9 @@ var Exment;
                 // target box is sets result calc.
                 let $box = CalcEvent.getBlockElement(block_name);
                 // formula box is triggered calc.
-                let $formulaBox = CalcEvent.getBlockElement(calc_formula.block_key);
+                let $formulaBox = CalcEvent.getBlockElement(calc_formula.trigger_block);
                 // data change event
-                $formulaBox.on('change.exment_calc', Exment.CommonEvent.getClassKey(calc_formula.formula_column), { data: blockData, calc_formula: calc_formula, box: $box }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                $formulaBox.on('change.exment_calc', Exment.CommonEvent.getClassKey(calc_formula.trigger_column), { data: blockData, calc_formula: calc_formula, box: $box }, (ev) => __awaiter(this, void 0, void 0, function* () {
                     if (ev.originalEvent && ev.originalEvent.isTrusted) {
                         CalcEvent.loopcount = 0;
                     }
@@ -188,14 +224,14 @@ var Exment;
                 // set event for plus minus button
                 $box.on('click.exment_calc_plusminus', '.btn-number-plus,.btn-number-minus', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(this, void 0, void 0, function* () {
                     // call only has $target. $target is autocalc's key
-                    let $target = $(ev.target).closest('.input-group').find(Exment.CommonEvent.getClassKey(ev.data.data.formula_column));
+                    let $target = $(ev.target).closest('.input-group').find(Exment.CommonEvent.getClassKey(ev.data.data.trigger_column));
                     if (!hasValue($target)) {
                         return;
                     }
                     yield $target.trigger('change.exment_calc');
                 }));
             }
-            // calc event
+            // count event
             for (let child_relation_name in blockData.calc_counts) {
                 let $box = CalcEvent.getBlockElement(block_name);
                 let calc_count = blockData.calc_counts[child_relation_name];

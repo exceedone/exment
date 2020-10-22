@@ -40,6 +40,19 @@ class Count extends ItemBase
         return new self($custom_table, $child_table);
     }
 
+    /**
+     * Get triggered event key names
+     *
+     * @return array
+     */
+    public function getTriggeredKeys() : array
+    {
+        return [
+            'trigger_block' => 'default',
+            'trigger_column' => null, // count is not called field
+        ];
+    }
+
     public function toArray(){
         $child_relation_name = CustomRelation::getRelationNameByTables($this->custom_table, $this->child_custom_table);
 
