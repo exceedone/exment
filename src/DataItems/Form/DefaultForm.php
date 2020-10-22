@@ -233,12 +233,6 @@ EOT;
                 continue;
             }
 
-            if ($form_column->form_column_type == FormColumnType::OTHER) {
-                if (FormColumnType::getOption(['id' => $form_column->form_column_target_id])['view_only'] ?? false) {
-                    continue;
-                }
-            }
-            
             if (is_null($form_column->column_item)) {
                 continue;
             }

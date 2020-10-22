@@ -268,8 +268,10 @@ abstract class CustomItem implements ItemInterface
         // if hidden setting, add hidden field
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
-        } elseif ($this->initonly() && isset($this->value)) {
+        } elseif ($this->initonly()) {
             $classname = ExmentField\Display::class;
+        } elseif ($this->viewonly($form_column_options)) {
+            $classname = ExmentField\ViewOnly::class;
         } else {
             // get field
             $classname = $this->getAdminFieldClass();
@@ -289,8 +291,16 @@ abstract class CustomItem implements ItemInterface
             $this->setAdminOptions($field, $form_column_options);
         }
 
-        if (!boolval(array_get($form_column_options, 'hidden')) && $this->initonly() && isset($this->value)) {
-            $field->displayText($this->html())->escape(false);
+        if (!boolval(array_get($form_column_options, 'hidden'))) {
+            if($this->initonly()){
+                $field->displayText($this->html())->escape(false);
+            }
+            elseif($this->viewonly($form_column_options) && !isset($this->value)){
+                // if view only and create, set default value
+                $this->value = array_get($options, 'default');
+                $field->displayText($this->html())->escape(false)->prepareDefault();
+                $this->value = null;
+            }
         }
 
         ///////// get common options
@@ -313,8 +323,8 @@ abstract class CustomItem implements ItemInterface
             $field->attribute(['number_format' => true]);
         }
 
-        // // readonly
-        if (boolval(array_get($form_column_options, 'view_only'))) {
+        // readonly
+        if ($this->readonly($form_column_options)) {
             $field->readonly();
         }
 
@@ -334,11 +344,11 @@ abstract class CustomItem implements ItemInterface
         }
         
         // if initonly is true and has value, not showing help
-        if ($this->initonly() && isset($this->value)) {
+        if ($this->initonly()) {
             $help = null;
         }
         // if initonly is true and now, showing help and cannot edit help
-        elseif ($this->initonly() && !isset($this->value)) {
+        elseif (boolval(array_get($this->custom_column->options, 'init_only'))) {
             $help .= exmtrans('common.help.init_flg');
         }
 
@@ -462,11 +472,11 @@ abstract class CustomItem implements ItemInterface
 
     protected function disableEdit($form_column_options)
     {
-        if ($this->initonly() && isset($this->value)) {
+        if ($this->initonly()) {
             return true;
         }
 
-        if (boolval(array_get($form_column_options, 'view_only'))) {
+        if ($this->readonly($form_column_options)) {
             return true;
         }
         
@@ -576,8 +586,7 @@ abstract class CustomItem implements ItemInterface
         
         // setting options --------------------------------------------------
         // required
-        if ((boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required')))
-            && $this->required) {
+        if ($this->required($form_column_options)) {
             $field->required();
             $validates[] = 'required';
         } else {
@@ -609,20 +618,38 @@ abstract class CustomItem implements ItemInterface
     protected function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
-        $required = boolval(array_get($this->custom_column->options, 'required'));
 
-        // if init only, required, and set value, set $this->required is false
-        if ($initOnly && isset($this->value)) {
-            $this->required = false;
+        return $initOnly && isset($this->value);
+    }
+
+    protected function readonly($form_column_options)
+    {
+        return boolval(array_get($form_column_options, 'read_only'));
+    }
+
+    protected function viewonly($form_column_options)
+    {
+        return boolval(array_get($form_column_options, 'view_only'));
+    }
+
+    protected function required($form_column_options)
+    {
+        if($this->initonly() || $this->viewonly($form_column_options)){
+            return false;
         }
-        return $initOnly;
+        if(!$this->required){
+            return false;
+        }
+
+        $options = array_get($this->custom_column, 'options');
+        return boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required'));
     }
 
     protected function isSetAdminOptions($form_column_options)
     {
         if (boolval(array_get($form_column_options, 'hidden'))) {
             return false;
-        } elseif ($this->initonly() && isset($this->value)) {
+        } elseif ($this->initonly()) {
             return false;
         }
 

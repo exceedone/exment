@@ -1256,7 +1256,7 @@ return [
         'suggest_column_label' => 'Table Column',
         'suggest_other_label' => 'Other',
         'form_block_name' => 'Form Block Name',
-        'view_only' => 'View Only',
+        'read_only' => 'View Only',
         'hidden' => 'Hidden Field',
         'required' => 'Required',
         'text' => 'Text',

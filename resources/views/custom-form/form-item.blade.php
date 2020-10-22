@@ -24,7 +24,19 @@
             <div class="form-horizontal">
                     @if($custom_form_column['form_column_type'] == '0')
                     <div class="form-group">
-                        <span class="small control-label col-sm-5">{{exmtrans('custom_form.view_only')}}</span>
+                        <span class="small control-label col-sm-5">
+                            {{exmtrans('custom_form.read_only')}}
+                            <i class="fa fa-info-circle" data-help-text="{{exmtrans('custom_form.help.read_only')}}" data-help-title="{{exmtrans('custom_form.read_only')}}"></i>
+                        </span>
+                        <div class="col-sm-7" style="padding-top:4px;">
+                        {{ Form::checkbox("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][read_only]", 1, array_get($custom_form_column, 'options.read_only'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__read_only_{$loop->index}", 'class' => 'icheck']) }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <span class="small control-label col-sm-5">
+                            {{exmtrans('custom_form.view_only')}}
+                            <i class="fa fa-info-circle" data-help-text="{{exmtrans('custom_form.help.view_only')}}" data-help-title="{{exmtrans('custom_form.view_only')}}"></i>
+                        </span>
                         <div class="col-sm-7" style="padding-top:4px;">
                         {{ Form::checkbox("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][view_only]", 1, array_get($custom_form_column, 'options.view_only'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__view_only_{$loop->index}", 'class' => 'icheck']) }}
                         </div>
