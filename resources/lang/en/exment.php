@@ -57,6 +57,8 @@ return [
         'row_down' => 'Row Down',
         'open' => 'Open',
         'open_blank' => 'Open Blank',
+        'open_all' => 'Open All',
+        'close_all' => 'Close All',
         'pager_count' => 'Pager Count',
         'system' => 'System',
         'custom_table' => 'Custom Table',
@@ -1258,7 +1260,8 @@ return [
         'suggest_column_label' => 'Table Column',
         'suggest_other_label' => 'Other',
         'form_block_name' => 'Form Block Name',
-        'read_only' => 'View Only',
+        'read_only' => 'Read Only',
+        'view_only' => 'View Only',
         'hidden' => 'Hidden Field',
         'required' => 'Required',
         'text' => 'Text',
@@ -1300,6 +1303,8 @@ return [
             'changedata_no_item' => '*There are no columns in the table whose column type is "Select (From Table)", "User", and "Organization". Register these columns if you want to use data linkage settings.',
             'relation_filter_no_item' => '*The parent of column "%s" or the table to be referenced does not exist.',
             'html' => 'Enter the HTML to display.<span class="red">*The entered HTML will be embedded as it is. It also runs the script. Please be careful when inputting.</span>',
+            'read_only' => 'It will be displayed on the screen as a read-only item. You can rewrite the value by the data related setting, set the calculation formula, and get the value by the calculation formula of other items.',
+            'view_only' => 'It is displayed on the screen as a display-only item. It is not possible to rewrite the value by the data related setting or get the value by the calculation formula of other items.',
         ],
 
         'message' => [

@@ -96,7 +96,13 @@
                 <div class="col-xs-12 col-md-6 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="1">
 
-                    <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}1</h5>
+                    <h5 class="bold">
+                        {{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}1
+                        
+                        &nbsp;
+                        <button type="button" class="btn btn-default btn-xs" data-toggle-expanded-value="false"><i class="fa fa-angle-double-down" aria-hidden="true"></i>{{exmtrans('common.open_all')}}</button>
+                        <button type="button" class="btn btn-default btn-xs" data-toggle-expanded-value="true"><i class="fa fa-angle-double-up" aria-hidden="true"></i>{{exmtrans('common.close_all')}}</button>
+                    </h5>
                     <ul class="custom_form_column_items draggables ul_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" data-connecttosortable="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
                         @foreach($custom_form_block['custom_form_columns'] as $custom_form_column)
                         @if(array_get($custom_form_column, 'column_no') != 1) @continue @endif
@@ -107,7 +113,13 @@
                 <div class="col-xs-12 col-md-6 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="2">
 
-                    <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}2</h5>
+                    <h5 class="bold">
+                        {{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}2
+                        
+                        &nbsp;
+                        <button type="button" class="btn btn-default btn-xs" data-toggle-expanded-value="false"><i class="fa fa-angle-double-down" aria-hidden="true"></i>{{exmtrans('common.open_all')}}</button>
+                        <button type="button" class="btn btn-default btn-xs" data-toggle-expanded-value="true"><i class="fa fa-angle-double-up" aria-hidden="true"></i>{{exmtrans('common.close_all')}}</button>
+                    </h5>
                     <ul class="custom_form_column_items draggables ul_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" data-connecttosortable="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
                         @foreach($custom_form_block['custom_form_columns'] as $custom_form_column)
                         @if(array_get($custom_form_column, 'column_no') != 2) @continue @endif

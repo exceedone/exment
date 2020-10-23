@@ -10,7 +10,8 @@ namespace Exment {
             $('.box-custom_form_block').on('click', '.changedata-modal', {}, CustomFromEvent.changedataModalEvent);
             $('.box-custom_form_block').on('click', '.input_texthtml-modal', {}, CustomFromEvent.editTextHtmlModalEvent);
             $('.box-custom_form_block').on('click', '.relation_filter-modal', {}, CustomFromEvent.relationfilterModalEvent);
-            
+            $('.box-custom_form_block').on('click.custom_form', '[data-toggle-expanded-value]', {}, CustomFromEvent.toggoleListOpenClose);
+
             $(document).off('change.custom_form', '.changedata_target_column').on('change.custom_form', '.changedata_target_column', {}, CustomFromEvent.changedataColumnEvent);
             $(document).off('click.custom_form', '#changedata-button-setting').on('click.custom_form', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
             $(document).off('click.custom_form', '#changedata-button-reset').on('click.custom_form', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
@@ -30,6 +31,16 @@ namespace Exment {
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
             });
+        }
+
+        /**
+         * Add All item button event
+         */
+        private static toggoleListOpenClose = (ev) => {
+            const $button = $(ev.target).closest('[data-toggle-expanded-value]');
+            const expanded = $button.data('toggle-expanded-value')
+            const $li = $button.closest('.custom_form_column_block').find('li [data-toggle="collapse"]').filter('[aria-expanded="' + expanded + '"]');
+            $li.trigger('click');
         }
 
         /**

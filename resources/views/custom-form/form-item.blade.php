@@ -15,6 +15,7 @@
             data-toggle="collapse" 
             data-parent="#{{$custom_form_column['toggle_key_name']}}" 
             href="#{{$custom_form_column['toggle_key_name']}}"
+            aria-expanded="false"
             style="display:{{!boolval($suggest) ? 'block' : 'none'}};">
             <i class="fa fa-chevron-down"></i>
         </a>

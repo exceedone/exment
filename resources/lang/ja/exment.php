@@ -57,6 +57,8 @@ return [
         'row_down' => '1行下へ',
         'open' => '開く',
         'open_blank' => '新規ウィンドウで開く',
+        'open_all' => 'すべて開く',
+        'close_all' => 'すべて閉じる',
         'pager_count' => '表示件数',
         'system' => 'システム',
         'custom_table' => 'カスタムテーブル',
