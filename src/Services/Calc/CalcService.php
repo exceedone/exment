@@ -167,7 +167,7 @@ class CalcService
                 return Items\SelectTable::getItemBySplits($splits, $custom_table);
             }, 
             '\$\{parent:(?<key>.+?)\}' => function($splits) use($custom_table, $custom_form_block){
-                return Items\ParentColumn::getItemBySplits($splits, $custom_table, $custom_form_block);
+                return Items\ParentItem::getItemBySplits($splits, $custom_table, $custom_form_block);
             }, 
         ];
 
@@ -217,7 +217,7 @@ class CalcService
         Items\SelectTable::setCalcCustomColumnOptions($options, $id, $custom_table);
         Items\Count::setCalcCustomColumnOptions($options, $id, $custom_table);
         Items\Sum::setCalcCustomColumnOptions($options, $id, $custom_table);
-        Items\ParentColumn::setCalcCustomColumnOptions($options, $id, $custom_table);
+        Items\ParentItem::setCalcCustomColumnOptions($options, $id, $custom_table);
 
         return $options;
     }

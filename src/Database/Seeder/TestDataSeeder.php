@@ -743,6 +743,7 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
                 $custom_value->setValue("date", \Carbon\Carbon::now());
                 $custom_value->setValue("init_text", 'init_text');
+                $custom_value->setValue("integer", $i);
                 $custom_value->created_user_id = $user_id;
                 $custom_value->updated_user_id = $user_id;
 

@@ -79,7 +79,7 @@ namespace Exment {
                     var help_url = URLJoin(manual_base_uri, help.help_uri);
                     $manual.prop('href', help_url);
                     // chenge color
-                    $manual.children('i').addClass('help_personal');
+                    //$manual.children('i').addClass('help_personal');
                     return;
                 }
             }

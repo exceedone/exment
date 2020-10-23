@@ -12,7 +12,7 @@ use Exceedone\Exment\Enums\FormBlockType;
 /**
  * Calc service. column calc, js, etc...
  */
-class ParentColumn extends ItemBase
+class ParentItem extends ItemBase
 {
     /**
      * @var CustomTable
@@ -53,7 +53,7 @@ class ParentColumn extends ItemBase
 
     public function val()
     {
-        return '${parent:' . array_get($this->parent_table, 'table_name') . '.' . array_get($this->custom_column, 'column_name') . '}';
+        return '${parent:' . array_get($this->custom_column, 'column_name') . '}';
     }
 
     public static function getItem(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomTable $parent_table)
@@ -63,11 +63,12 @@ class ParentColumn extends ItemBase
 
     public static function getItemBySplits($splits, ?CustomTable $custom_table, ?CustomFormBlock $custom_form_block)
     {
-        if (count($splits) < 2) {
-            return [];
+        $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
+        if (!$relation) {
+            return null;
         }
-        $parent_table = CustomTable::getEloquent($splits[0]);
-        $custom_column = CustomColumn::getEloquent($splits[1], $parent_table);
+        $parent_table = $relation->parent_custom_table;
+        $custom_column = CustomColumn::getEloquent($splits[0], $parent_table);
         $item = new self($custom_column, $custom_table, $parent_table);
 
         $item->setCustomFormBlock($custom_form_block);
