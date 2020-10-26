@@ -1358,12 +1358,12 @@ class PatchDataCommand extends Command
                         $item = CalcItems\Dynamic::getItem($formula_column, $custom_column->custom_table_cache);
                         break;
                     case 'select_table':
-                        $pivot_column = CustomColumn::getEloquent(array_get($calc_formula, 'from'));
-                        if(!$pivot_column){
+                        $target_column = CustomColumn::getEloquent(array_get($calc_formula, 'from'));
+                        if(!$target_column){
                             $calcStrings = collect();
                             break 2;
                         }
-                        $item = CalcItems\SelectTable::getItem($formula_column, $custom_column->custom_table_cache, $pivot_column);
+                        $item = CalcItems\SelectTable::getItem($target_column, $custom_column->custom_table_cache, $formula_column);
                         break;
                 }
 
