@@ -1087,7 +1087,10 @@ return [
                 'gte' => 'A is greater than or equal to B', 
                 'lte' => 'A is less than or equal to B', 
             ],
-            
+
+            'compare_column_options' => [
+                'system_date' => 'System Date', 
+            ],            
         ],
     ],
     

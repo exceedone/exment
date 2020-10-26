@@ -1088,7 +1088,7 @@ return [
             ],
             
             'compare_column_options' => [
-                'system_date' => '**システム日付', 
+                'system_date' => 'システム日付', 
             ],
         ],
     ],
