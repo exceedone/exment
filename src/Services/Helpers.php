@@ -717,7 +717,8 @@ if (!function_exists('jsonToArray')) {
 
 if (!function_exists('stringToArray')) {
     /**
-     * string(as comma) to array
+     * string(as comma): to array
+     * Collection : $collect->toArray()
      *
      * @param mixed $string
      * @return array
@@ -731,6 +732,10 @@ if (!function_exists('stringToArray')) {
         // convert json to array
         if (is_array($value)) {
             return $value;
+        }
+
+        if ($value instanceof \Illuminate\Support\Collection) {
+            return $value->toArray();
         }
 
         $array = explode(',', $value);
