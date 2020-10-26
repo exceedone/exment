@@ -10,7 +10,8 @@ trait TestTrait
     /**
      * Assert that the response is a superset of the given JSON.
      *
-     * @param  array  $data
+     * @param  array  $data1
+     * @param  array  $data2
      * @param  bool  $strict
      * @return $this
      */
@@ -49,7 +50,7 @@ trait TestTrait
      *
      * @param CustomTable $custom_table
      * @param array $ids
-     * @param boolean $filterCallback filtering query
+     * @param \Closure|null $filterCallback
      * @return void
      */
     protected function checkCustomValuePermission(CustomTable $custom_table, $ids, ?\Closure $filterCallback = null)

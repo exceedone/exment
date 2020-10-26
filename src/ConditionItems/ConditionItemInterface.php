@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
-use Encore\Admin\Form\Field;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\WorkflowAuthority;
 
 interface ConditionItemInterface
 {
@@ -45,11 +45,14 @@ interface ConditionItemInterface
      */
     public function getChangeField($key, $show_condition_key = true);
     
+
     /**
-     * Check has workflow authority
+     * Check has workflow authority with this item.
      *
-     * @param CustomValue $custom_value
+     * @param WorkflowAuthority $workflow_authority
+     * @param CustomValue|null $custom_value
+     * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority($workflow_authority, $custom_value, $targetUser);
+    public function hasAuthority(WorkflowAuthority $workflow_authority, ?CustomValue $custom_value, $targetUser);
 }

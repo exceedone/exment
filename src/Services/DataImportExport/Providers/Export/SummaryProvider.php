@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
+use Illuminate\Database\Eloquent\Collection;
+
 class SummaryProvider extends DefaultTableProvider
 {
     protected $custom_view;
@@ -67,7 +69,7 @@ class SummaryProvider extends DefaultTableProvider
     /**
      * get target chunk records
      */
-    public function getRecords()
+    public function getRecords() : Collection
     {
         $this->grid->applyQuickSearch();
         $records = collect($this->grid->getFilter()->execute(false));

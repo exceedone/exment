@@ -232,9 +232,9 @@ abstract class CustomValue extends ModelBase
     /**
      * Get dynamic relation value for custom value.
      *
-     * @param CustomValue $custom_value
+     * @param int $custom_relation_id
      * @param boolean $isCallAsParent
-     * @return void
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany | \Illuminate\Database\Eloquent\Relations\MorphMany | \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function getDynamicRelationValue(int $custom_relation_id, bool $isCallAsParent)
     {
@@ -444,7 +444,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Call saved event
      *
-     * @param [type] $isCreate
+     * @param bool $isCreate
      * @return void
      */
     protected function savedEvent($isCreate)
@@ -940,7 +940,6 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get vustom_value's label
-     * @param CustomValue $custom_value
      * @return string
      */
     public function getLabel()
@@ -1111,7 +1110,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Get document list
      *
-     * @return void
+     * @return Collection
      */
     public function getDocuments($options = [])
     {
@@ -1245,7 +1244,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Get Query for text search.
      *
-     * @return void
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function getSearchQuery($q, $options = [])
     {
@@ -1540,7 +1539,7 @@ abstract class CustomValue extends ModelBase
     /**
      * User can delete this custom value
      *
-     * @param $checkFormAction if true, check as display
+     * @param bool $checkFormAction if true, check as display
      */
     public function enableDelete($checkFormAction = false)
     {

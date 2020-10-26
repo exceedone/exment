@@ -32,9 +32,10 @@ class NavbarSender
     /**
      * Initialize $this
      *
-     * @param string $webhook_url
+     * @param string $notify_id
      * @param string $subject
      * @param string $body
+     * @param array $options
      * @return SlackSender
      */
     public static function make($notify_id, $subject, $body, $options) : NavbarSender

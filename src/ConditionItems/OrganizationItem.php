@@ -6,6 +6,7 @@ use Encore\Admin\Form\Field;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -69,13 +70,16 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
         return $result . ($showFilter ? FilterOption::getConditionKeyText($key) : '');
     }
     
+    
     /**
-     * Check has workflow authority
+     * Check has workflow authority with this item.
      *
-     * @param CustomValue $custom_value
+     * @param WorkflowAuthority $workflow_authority
+     * @param CustomValue|null $custom_value
+     * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority($workflow_authority, $custom_value, $targetUser)
+    public function hasAuthority(WorkflowAuthority $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         $ids = $targetUser->belong_organizations->pluck('id')->toArray();
         return in_array($workflow_authority->related_id, $ids);

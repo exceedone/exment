@@ -694,7 +694,7 @@ if (!function_exists('jsonToArray')) {
     /**
      * json to array
      *
-     * @param mixed $string
+     * @param mixed $value
      * @return array
      */
     function jsonToArray($value)
@@ -720,7 +720,7 @@ if (!function_exists('stringToArray')) {
      * string(as comma): to array
      * Collection : $collect->toArray()
      *
-     * @param mixed $string
+     * @param mixed $value
      * @return array
      */
     function stringToArray($value)

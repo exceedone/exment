@@ -74,7 +74,10 @@ class File extends ModelBase
 
     /**
      * get the file url
-     * @return void
+     *
+     * @param string $path file path
+     * @param boolean|null $asApi
+     * @return string|null
      */
     public static function getUrl($path, ?bool $asApi = false) : ?string
     {
@@ -215,13 +218,13 @@ class File extends ModelBase
         return $file;
     }
     
+    
     /**
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
-     * @param  string  $content file content
-     * @param  string  $disk disk name
-     * @param  string  $path directory path
-     * @return string|false
+     * @param [type] $content
+     * @param string $dirname
+     * @return File
      */
     public static function store($content, $dirname)
     {

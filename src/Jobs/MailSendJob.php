@@ -14,6 +14,7 @@ use Exceedone\Exment\Services\ZipService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class MailSendJob implements ShouldQueue
 {
@@ -178,7 +179,7 @@ class MailSendJob implements ShouldQueue
     /**
      * Get User Mail Address
      *
-     * @param [type] $users
+     * @param string|array|Collection $users
      * @return array
      */
     protected function getAddress($users)

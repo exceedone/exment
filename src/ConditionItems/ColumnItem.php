@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ConditionItems;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
@@ -147,13 +148,16 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         return $custom_column->column_view_name ?? null;
     }
 
+
     /**
-     * Check has workflow authority
+     * Check has workflow authority with this item.
      *
-     * @param CustomValue $custom_value
+     * @param WorkflowAuthority $workflow_authority
+     * @param CustomValue|null $custom_value
+     * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority($workflow_authority, $custom_value, $targetUser)
+    public function hasAuthority(WorkflowAuthority $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         $custom_column = CustomColumn::find($workflow_authority->related_id);
         if (!ColumnType::isUserOrganization($custom_column->column_type)) {
