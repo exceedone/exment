@@ -3,7 +3,6 @@
 namespace Exceedone\Exment;
 
 use Exceedone\Exment\Validator as ExmentValidator;
-use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -537,57 +536,6 @@ class Exment
             '1' => 'YES',
         ];
     }
-
-    /**
-     * Output log database
-     *
-     * @return void
-     */
-    public static function logDatabase()
-    {
-        \DB::listen(function ($query) {
-            $sql = $query->sql;
-            foreach ($query->bindings as $binding) {
-                if ($binding instanceof \DateTime) {
-                    $binding = $binding->format('Y-m-d H:i:s');
-                } elseif ($binding instanceof EnumBase) {
-                    $binding = $binding->toString();
-                }
-                $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
-            }
-
-            $log_string = "TIME:{$query->time}ms;    SQL: $sql";
-            if (boolval(config('exment.debugmode_sqlfunction', false))) {
-                $function = static::getFunctionName();
-                $log_string .= ";    function: $function";
-            } elseif (boolval(config('exment.debugmode_sqlfunction1', false))) {
-                $function = static::getFunctionName(true);
-                $log_string .= ";    function: $function";
-            }
-
-            exmDebugLog($log_string);
-        });
-    }
-
-    protected static function getFunctionName($oneFunction = false)
-    {
-        $bt = debug_backtrace();
-        $functions = [];
-        $i = 0;
-        foreach ($bt as $b) {
-            if ($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false) {
-                $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
-            }
-
-            if ($oneFunction && count($functions) >= 1) {
-                break;
-            }
-
-            $i++;
-        }
-        return implode(" < ", $functions);
-    }
-
     
     public function wrapValue($string)
     {

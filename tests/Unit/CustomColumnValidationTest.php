@@ -523,21 +523,27 @@ class CustomColumnValidationTest extends UnitTestBase
         $this->executeTestAllColumns(ColumnType::SELECT, [
             ColumnType::SELECT => 'abcabc',
         ], [
-            ColumnType::SELECT => [$this->getErrorMessage('in', ColumnType::SELECT)],
+            ColumnType::SELECT => [$this->getErrorMessage('in', ColumnType::SELECT, [
+                'values' => 'foo、bar、baz',
+            ])],
         ]);
     }
     public function testSelectNot2(){
         $this->executeTestAllColumns(ColumnType::SELECT, [
             ColumnType::SELECT => 'foo,abcabc',
         ], [
-            ColumnType::SELECT => [$this->getErrorMessage('in', ColumnType::SELECT)],
+            ColumnType::SELECT => [$this->getErrorMessage('in', ColumnType::SELECT, [
+                'values' => 'foo、bar、baz',
+            ])],
         ]);
     }
     public function testSelectNot3(){
         $this->executeTestAllColumns(ColumnType::SELECT, [
             ColumnType::SELECT => ['foo','abcabc'],
         ], [
-            ColumnType::SELECT => [$this->getErrorMessage('in', ColumnType::SELECT)],
+            ColumnType::SELECT => [$this->getErrorMessage('in', ColumnType::SELECT, [
+                'values' => 'foo、bar、baz',
+            ])],
         ]);
     }
 
@@ -580,35 +586,45 @@ class CustomColumnValidationTest extends UnitTestBase
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
             ColumnType::SELECT_VALTEXT => 'abcabc',
         ], [
-            ColumnType::SELECT_VALTEXT => [$this->getErrorMessage('in', ColumnType::SELECT_VALTEXT)],
+            ColumnType::SELECT_VALTEXT => [$this->getErrorMessage('in', ColumnType::SELECT_VALTEXT, [
+                'values' => 'FOO、BAR、BAZ',
+            ])],
         ]);
     }
     public function testSelectValTextNot2(){
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
             ColumnType::SELECT_VALTEXT => 'abcabc,foo',
         ], [
-            ColumnType::SELECT_VALTEXT => [$this->getErrorMessage('in', ColumnType::SELECT_VALTEXT)],
+            ColumnType::SELECT_VALTEXT => [$this->getErrorMessage('in', ColumnType::SELECT_VALTEXT, [
+                'values' => 'FOO、BAR、BAZ',
+            ])],
         ]);
     }
     public function testSelectValTextNot3(){
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
             ColumnType::SELECT_VALTEXT => 'abcabc,FOO',
         ], [
-            ColumnType::SELECT_VALTEXT => [$this->getErrorMessage('in', ColumnType::SELECT_VALTEXT)],
+            ColumnType::SELECT_VALTEXT => [$this->getErrorMessage('in', ColumnType::SELECT_VALTEXT, [
+                'values' => 'FOO、BAR、BAZ',
+            ])],
         ]);
     }
     public function testSelectValTextNot4(){
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
             ColumnType::SELECT_VALTEXT => ['abcabc','foo'],
         ], [
-            ColumnType::SELECT_VALTEXT => [$this->getErrorMessage('in', ColumnType::SELECT_VALTEXT)],
+            ColumnType::SELECT_VALTEXT => [$this->getErrorMessage('in', ColumnType::SELECT_VALTEXT, [
+                'values' => 'FOO、BAR、BAZ',
+            ])],
         ]);
     }
     public function testSelectValTextNot5(){
         $this->executeTestAllColumns(ColumnType::SELECT_VALTEXT, [
             ColumnType::SELECT_VALTEXT => ['abcabc', 'FOO'],
         ], [
-            ColumnType::SELECT_VALTEXT => [$this->getErrorMessage('in', ColumnType::SELECT_VALTEXT)],
+            ColumnType::SELECT_VALTEXT => [$this->getErrorMessage('in', ColumnType::SELECT_VALTEXT, [
+                'values' => 'FOO、BAR、BAZ',
+            ])],
         ]);
     }
 

@@ -698,6 +698,7 @@ class DefaultGrid extends GridBase
     {
         $grid->column('modal_selectitem', trans('admin.action'))->display(function ($a, $b, $model) {
             return view('exment::tools.selectitem-button', [
+                'model' => $model,
                 'value' => $model->id,
                 'valueLabel' => $model->getLabel(),
                 'label' => exmtrans('common.append_to_selectitem'),

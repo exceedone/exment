@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Http\Kernel;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
@@ -76,6 +77,20 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\ExportChunkCommand',
         'Exceedone\Exment\Console\ResetPasswordCommand',
     ];
+
+    
+    /**
+     * The application's global HTTP middleware stack.
+     *
+     * These middleware are run during every request to your application.
+     *
+     * @var array
+     */
+    protected $middleware = [
+        \Exceedone\Exment\Middleware\TrustProxies::class,
+        \Exceedone\Exment\Middleware\ExmentDebug::class,
+    ];
+
 
     /**
      * The application's route middleware.
@@ -217,7 +232,6 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootApp();
         $this->bootSetting();
         $this->bootDatabase();
-        $this->bootDebug();
         $this->bootSchedule();
 
         $this->publish();
@@ -243,6 +257,12 @@ class ExmentServiceProvider extends ServiceProvider
             'exment'
         );
         
+        // register global middleware.
+        $kernel = $this->app->make(Kernel::class);
+        foreach ($this->middleware as $middleware) {
+            $kernel->pushMiddleware($middleware);
+        }
+
         // register route middleware.
         foreach ($this->routeMiddleware as $key => $middleware) {
             app('router')->aliasMiddleware($key, $middleware);
@@ -319,7 +339,7 @@ class ExmentServiceProvider extends ServiceProvider
             \URL::forceScheme('https');
             $this->app['request']->server->set('HTTPS', true);
         }
-        if(boolval(config('admin.use_app_url', false))){
+        if (boolval(config('admin.use_app_url', false))) {
             \URL::forceRootUrl(config('app.url'));
         }
     }
@@ -411,20 +431,6 @@ class ExmentServiceProvider extends ServiceProvider
         Connection::resolverFor('pgsql', function (...$parameters) {
             return new ExmentDatabase\PostgresConnection(...$parameters);
         });
-    }
-
-    /**
-     * Boot database for Debug. if config.exment.debugmode -> true, show sql to larabel.log
-     *
-     * @return void
-     */
-    protected function bootDebug()
-    {
-        if (!boolval(config('exment.debugmode', false))) {
-            return;
-        }
-
-        \Exment::logDatabase();
     }
 
     /**
