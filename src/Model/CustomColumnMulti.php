@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\CompareColumnType;
 use Exceedone\Exment\Enums\FilterOption;
 
 /**
@@ -228,6 +229,9 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
 
     public function getCompareColumn2Attribute()
     {
+        if (in_array($this->compare_column2_id, CompareColumnType::arrays())) {
+            return $this->compare_column2_id;
+        }
         return CustomColumn::getEloquent($this->compare_column2_id);
     }
 
@@ -270,6 +274,10 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
 
         // get value function
         $getValueFunc = function ($input, $column, $custom_value) {
+            if (is_string($column)) {
+                return CompareColumnType::getCompareValue($column);
+            }
+
             // if key has value in input
             if (array_has($input, 'value.' . $column->column_name)) {
                 return array_get($input, 'value.' . $column->column_name);
@@ -331,9 +339,22 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
 
     public function getCompareErrorMessage($transKey, $column1, $column2)
     {
+        $attribute1 = null;
+        $attribute2 = null;
+        if ($column1 instanceof CustomColumn) {
+            $attribute1 = $column1->column_view_name;
+        }
+        if ($column2 instanceof CustomColumn) {
+            $attribute2 = $column2->column_view_name;
+        } else if (is_string($column2)) {
+            $enum = CompareColumnType::getEnum($column2);
+            if ($enum) {
+                $attribute2 = $enum->transKey('custom_table.custom_column_multi.compare_column_options');
+            }
+        }
         return exmtrans($transKey, [
-            'attribute1' => $column1->column_view_name,
-            'attribute2' => $column2->column_view_name,
+            'attribute1' => $attribute1,
+            'attribute2' => $attribute2,
         ]);
     }
 
