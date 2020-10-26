@@ -34,10 +34,7 @@ class SelectRule implements Rule
             return true;
         }
 
-        if (is_string($value)) {
-            $value = explode(',', $value);
-        }
-
+        $value = stringToArray($value);
         $value = array_filter($value);
 
         if (is_array($value)) {
@@ -60,6 +57,6 @@ class SelectRule implements Rule
      */
     public function message()
     {
-        return trans('validation.in');
+        return trans('validation.in', ['values' => implode(exmtrans('common.separate_word'), $this->keys)]);
     }
 }

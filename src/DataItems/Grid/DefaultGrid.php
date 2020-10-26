@@ -123,7 +123,7 @@ class DefaultGrid extends GridBase
                     'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
                 ]);
             $name = $item->indexEnabled() ? $item->index() : $item->uniqueName();
-            $className = $item->indexEnabled() ? 'column-' . $item->name() : '';
+            $className = 'column-' . $item->name();
             $grid->column($name, $item->label())
                 ->sort($item->sortable())
                 ->cast($item->getCastName())
