@@ -23,22 +23,21 @@ class TrustProxies extends BaseTrustProxies
         // get config
         $ips = config('exment.trust_proxy_ips', []);
         $headers = config('exment.trust_proxy_headers');
-        if(is_nullorempty($ips) && is_nullorempty($headers)){
+        if (is_nullorempty($ips) && is_nullorempty($headers)) {
             return $next($request);
         }
 
-        if(!is_nullorempty($ips)){
+        if (!is_nullorempty($ips)) {
             if ($ips === '*' || $ips === '**') {
                 $this->proxies = $ips;
-            }
-            else{
+            } else {
                 $this->proxies = stringToArray($ips);
             }
         }
 
-        if(!is_nullorempty($headers)){
+        if (!is_nullorempty($headers)) {
             $this->headers = constant("\Illuminate\Http\Request::$headers");
-        }else{
+        } else {
             $this->headers = \Illuminate\Http\Request::HEADER_X_FORWARDED_ALL;
         }
 

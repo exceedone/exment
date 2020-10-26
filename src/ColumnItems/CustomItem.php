@@ -292,10 +292,9 @@ abstract class CustomItem implements ItemInterface
         }
 
         if (!boolval(array_get($form_column_options, 'hidden'))) {
-            if($this->initonly()){
+            if ($this->initonly()) {
                 $field->displayText($this->html())->escape(false);
-            }
-            elseif($this->viewonly($form_column_options) && !isset($this->value)){
+            } elseif ($this->viewonly($form_column_options) && !isset($this->value)) {
                 // if view only and create, set default value
                 $this->value = array_get($options, 'default');
                 $field->displayText($this->html())->escape(false)->prepareDefault();
@@ -634,10 +633,10 @@ abstract class CustomItem implements ItemInterface
 
     protected function required($form_column_options)
     {
-        if($this->initonly() || $this->viewonly($form_column_options)){
+        if ($this->initonly() || $this->viewonly($form_column_options)) {
             return false;
         }
-        if(!$this->required){
+        if (!$this->required) {
             return false;
         }
 

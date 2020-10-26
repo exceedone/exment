@@ -8,7 +8,8 @@ class ViewOnly extends Display
 
     protected $prepareDefault = false;
 
-    public function prepareDefault(){
+    public function prepareDefault()
+    {
         $this->prepareDefault = true;
         return $this;
     }

@@ -259,7 +259,7 @@ class ExmentServiceProvider extends ServiceProvider
         
         // register global middleware.
         $kernel = $this->app->make(Kernel::class);
-        foreach($this->middleware as $middleware){
+        foreach ($this->middleware as $middleware) {
             $kernel->pushMiddleware($middleware);
         }
 
@@ -339,7 +339,7 @@ class ExmentServiceProvider extends ServiceProvider
             \URL::forceScheme('https');
             $this->app['request']->server->set('HTTPS', true);
         }
-        if(boolval(config('admin.use_app_url', false))){
+        if (boolval(config('admin.use_app_url', false))) {
             \URL::forceRootUrl(config('app.url'));
         }
     }

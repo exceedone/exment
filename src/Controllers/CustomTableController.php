@@ -463,11 +463,11 @@ HTML;
     protected function getColumnsSelectOptions($custom_table, $selectOptions = [])
     {
         $options = collect(CompareColumnType::transArray('custom_table.custom_column_multi.compare_column_options'))
-            ->mapWithKeys(function($val, $key){
+            ->mapWithKeys(function ($val, $key) {
                 return [$key => "**{$val}"];
             })->toArray();
         return $options + $custom_table->getColumnsSelectOptions($selectOptions);
-    } 
+    }
 
     /**
      * Edit interface.

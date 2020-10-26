@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Middleware;
 
-use Closure;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\EnumBase;
 
@@ -62,11 +61,10 @@ class ExmentDebug
      */
     protected function logRequest($request)
     {
-        $input = collect($request->input())->map(function($value, $key){
-            if(in_array($key, LogOperation::getHideColumns())){
+        $input = collect($request->input())->map(function ($value, $key) {
+            if (in_array($key, LogOperation::getHideColumns())) {
                 return "$key:xxxx";
-            }
-            else{
+            } else {
                 return "$key:$value";
             }
         })->implode(', ');
@@ -94,5 +92,4 @@ class ExmentDebug
         }
         return implode(" < ", $functions);
     }
-
 }

@@ -247,7 +247,7 @@ class SearchController extends AdminControllerBase
         // get seleted name
         $table = CustomTable::getEloquent($request->input('table_name'));
         $model = getModelName($table)::find($request->input('value_id'));
-        if(!$model){
+        if (!$model) {
             Checker::notFoundOrDeny();
             return;
         }

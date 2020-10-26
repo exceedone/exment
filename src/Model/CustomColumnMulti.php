@@ -346,7 +346,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         }
         if ($column2 instanceof CustomColumn) {
             $attribute2 = $column2->column_view_name;
-        } else if (is_string($column2)) {
+        } elseif (is_string($column2)) {
             $enum = CompareColumnType::getEnum($column2);
             if ($enum) {
                 $attribute2 = $enum->transKey('custom_table.custom_column_multi.compare_column_options');

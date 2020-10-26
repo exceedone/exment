@@ -702,7 +702,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                     break;
                 }
                 // if cannot sort column, break
-                if(!$column_item->sortable()){
+                if (!$column_item->sortable()) {
                     break;
                 }
 

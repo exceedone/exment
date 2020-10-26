@@ -1255,10 +1255,10 @@ class PatchDataCommand extends Command
             $read_only = array_get($custom_form_column, 'options.read_only');
             $view_only = array_get($custom_form_column, 'options.view_only');
 
-            if(!is_null($read_only)){
+            if (!is_null($read_only)) {
                 return;
             }
-            if(boolval($view_only)){
+            if (boolval($view_only)) {
                 $custom_form_column->setOption('read_only', "1")
                     ->forgetOption('view_only')
                     ->save();
