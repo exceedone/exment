@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Calc\Items;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\FormBlockType;
 
 /**
  * Calc service. column calc, js, etc...
@@ -46,8 +47,9 @@ class SelectTable extends ItemBase
      */
     public function getTriggeredKeys() : array
     {
+        $trigger_block = (!$this->custom_form_block || $this->custom_form_block->form_block_type == FormBlockType::DEFAULT) ? 'default' : $this->getRelationName();
         return [
-            'trigger_block' => 'default',
+            'trigger_block' => $trigger_block,
             'trigger_column' => $this->select_pivot_column ? $this->select_pivot_column->column_name : null,
         ];
     }
@@ -63,7 +65,7 @@ class SelectTable extends ItemBase
             return [];
         }
         $pivot_custom_column = CustomColumn::getEloquent($splits[0], $custom_table);
-        $custom_column = CustomColumn::getEloquent($splits[1], $pivot_custom_column ? $pivot_custom_column->custom_table_id : null);
+        $custom_column = CustomColumn::getEloquent($splits[1], $pivot_custom_column ? $pivot_custom_column->select_target_table : null);
         return new self($custom_column, $custom_table, $pivot_custom_column);
     }
 

@@ -42,8 +42,8 @@ class Sum extends ItemBase
             return null;
         }
         $child_table = CustomTable::getEloquent($splits[0]);
-        $custom_column = CustomColumn::getEloquent($splits[1], $custom_table);
-        return new self($custom_column, $custom_table, $child_table);
+        $child_custom_column = CustomColumn::getEloquent($splits[1], $child_table);
+        return new self($child_custom_column, $custom_table, $child_table);
     }
 
 
@@ -55,17 +55,17 @@ class Sum extends ItemBase
     public function getTriggeredKeys() : array
     {
         return [
-            'trigger_block' => $this->getChildRelationName() ?? 'default',
+            'trigger_block' => $this->getRelationName() ?? 'default',
             'trigger_column' => $this->custom_column ? $this->custom_column->column_name : null,
         ];
     }
 
 
-    public function toArray(){
-
+    public function toArray()
+    {
         return array_merge([
             'child_table' => $this->child_custom_table,
-            'child_relation_name' => $this->getChildRelationName(),
+            'child_relation_name' => $this->getRelationName(),
         ], parent::toArray());
     }
 
@@ -87,7 +87,7 @@ class Sum extends ItemBase
        }
    }
 
-   protected function getChildRelationName(){
+   protected function getRelationName(){
        return CustomRelation::getRelationNameByTables($this->custom_table, $this->child_custom_table);
    }
 }

@@ -166,8 +166,8 @@ class CalcService
             '\$\{select_table:(?<key>.+?)\}' => function($splits) use($custom_table){
                 return Items\SelectTable::getItemBySplits($splits, $custom_table);
             }, 
-            '\$\{parent:(?<key>.+?)\}' => function($splits) use($custom_table, $custom_form_block){
-                return Items\ParentItem::getItemBySplits($splits, $custom_table, $custom_form_block);
+            '\$\{parent:(?<key>.+?)\}' => function($splits) use($custom_table){
+                return Items\ParentItem::getItemBySplits($splits, $custom_table);
             }, 
         ];
 
@@ -181,11 +181,11 @@ class CalcService
             foreach($matched[0] as $index => $m){
                 // split "."
                 $splits = explode(".", $matched['key'][$index]);
-                $result = $regFunc($splits);
-                if(!$result){
+                $item = $regFunc($splits);
+                if(!$item){
                     continue;
                 }
-                $arr = $result->toArray();
+                $arr = $item->setCustomFormBlock($custom_form_block)->toArray();
 
                 $arr['key'] = $m;
                 $arr['inner_key'] = $matched['key'][$index];

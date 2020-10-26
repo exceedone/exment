@@ -3,6 +3,7 @@ namespace Exceedone\Exment\Services\Calc\Items;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomFormBlock;
 
 /**
  * Calc service. column calc, js, etc...
@@ -25,6 +26,11 @@ abstract class ItemBase implements CalcInterface
      * @var CustomTable
      */
     protected $custom_table;
+    
+    /**
+     * @var CustomFormBlock
+     */
+    public $custom_form_block;
     
     public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table){
         $this->custom_column = $custom_column;
@@ -58,4 +64,22 @@ abstract class ItemBase implements CalcInterface
             'displayText' => $this->displayText(),
         ], $this->getTriggeredKeys());
     }
+
+    
+    public function setCustomFormBlock($custom_form_block)
+    {
+        $this->custom_form_block = $custom_form_block;
+        return $this;
+    }
+    
+    public function getCustomFormBlock()
+    {
+        return $this->custom_form_block;
+    }
+
+    protected function getRelationName()
+    {
+        return $this->custom_form_block ? $this->custom_form_block->getRelationInfo()[1] : null;
+    }
+
 }

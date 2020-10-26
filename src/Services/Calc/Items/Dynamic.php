@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Calc\Items;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\FormBlockType;
 
 /**
  * Calc service. column calc, js, etc...
@@ -19,7 +20,7 @@ class Dynamic extends ItemBase
     }
 
     public function text(){
-        return array_get($this->custom_column, 'column_view_name') . "(" . array_get($this->custom_column, 'column_name') . ")";
+        return array_get($this->custom_column, 'column_view_name');
     }
 
     public function val(){
@@ -35,6 +36,21 @@ class Dynamic extends ItemBase
         return new self($custom_column, $custom_table);
     }
     
+
+    /**
+     * Get triggered event key names
+     *
+     * @return array
+     */
+    public function getTriggeredKeys() : array
+    {
+        $trigger_block = (!$this->custom_form_block || $this->custom_form_block->form_block_type == FormBlockType::DEFAULT) ? 'default' : $this->getRelationName();
+        return [
+            'trigger_block' => $trigger_block,
+            'trigger_column' => array_get($this->custom_column, 'column_name'),
+        ];
+    }
+
 
     public static function setCalcCustomColumnOptions($options, $id, $custom_table){
         // get calc options

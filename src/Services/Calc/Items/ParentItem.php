@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Services\Calc\Items;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -19,28 +18,12 @@ class ParentItem extends ItemBase
      */
     public $parent_table;
 
-    /**
-     * @var CustomFormBlock
-     */
-    public $custom_form_block;
-    
     public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomTable $parent_table)
     {
         parent::__construct($custom_column, $custom_table);
         $this->parent_table = $parent_table;
     }
     
-    public function setCustomFormBlock($custom_form_block)
-    {
-        $this->custom_form_block = $custom_form_block;
-        return $this;
-    }
-    
-    public function getCustomFormBlock()
-    {
-        return $this->custom_form_block;
-    }
-
     public function type()
     {
         return 'parent';
@@ -61,7 +44,7 @@ class ParentItem extends ItemBase
         return new self($custom_column, $custom_table, $parent_table);
     }
 
-    public static function getItemBySplits($splits, ?CustomTable $custom_table, ?CustomFormBlock $custom_form_block)
+    public static function getItemBySplits($splits, ?CustomTable $custom_table)
     {
         $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
         if (!$relation) {
@@ -71,7 +54,6 @@ class ParentItem extends ItemBase
         $custom_column = CustomColumn::getEloquent($splits[0], $parent_table);
         $item = new self($custom_column, $custom_table, $parent_table);
 
-        $item->setCustomFormBlock($custom_form_block);
         return $item;
     }
 
@@ -91,13 +73,33 @@ class ParentItem extends ItemBase
      */
     public function getTriggeredKeys() : array
     {
-        if (!$this->custom_form_block || $this->custom_form_block->form_block_type == FormBlockType::DEFAULT) {
-            return [
-                'trigger_block' => 'parent_id',
-                'trigger_column' => 'parent_id',
-            ];
+        if($this->custom_form_block){
+            // if has block, and form_block_type is default, this block is child table only form.
+            // (Ex. "parent" and "child" table, and this form is only "child" form).
+            if($this->custom_form_block->form_block_type == FormBlockType::DEFAULT){
+                return [
+                    'trigger_block' => 'parent_id',
+                    'trigger_column' => 'parent_id',
+                ];
+            }
+            // if has block, and form_block_type is not default, Check custom column and custom table.
+            // (Ex. "parent" and "child" table, and this form is "parent" form and contains child).
+            else{
+                // If same column's table id and custom table's id, this form is child
+                if(isMatchString($this->custom_column->custom_table_id, $this->custom_table->id)){
+                    return [
+                        'trigger_block' => $this->getRelationName(),
+                        'trigger_column' => array_get($this->custom_column, 'column_name'),
+                    ];
+                }
+                // else not match is, block is default.
+                return [
+                    'trigger_block' => 'default',
+                    'trigger_column' => array_get($this->custom_column, 'column_name'),
+                ];
+            }
         }
-
+        
         return [
             'trigger_block' => 'default',
             'trigger_column' => array_get($this->custom_column, 'column_name'),
