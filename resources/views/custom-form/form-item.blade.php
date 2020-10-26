@@ -15,6 +15,7 @@
             data-toggle="collapse" 
             data-parent="#{{$custom_form_column['toggle_key_name']}}" 
             href="#{{$custom_form_column['toggle_key_name']}}"
+            aria-expanded="false"
             style="display:{{!boolval($suggest) ? 'block' : 'none'}};">
             <i class="fa fa-chevron-down"></i>
         </a>
@@ -24,7 +25,19 @@
             <div class="form-horizontal">
                     @if($custom_form_column['form_column_type'] == '0')
                     <div class="form-group">
-                        <span class="small control-label col-sm-5">{{exmtrans('custom_form.view_only')}}</span>
+                        <span class="small control-label col-sm-5">
+                            {{exmtrans('custom_form.read_only')}}
+                            <i class="fa fa-info-circle" data-help-text="{{exmtrans('custom_form.help.read_only')}}" data-help-title="{{exmtrans('custom_form.read_only')}}"></i>
+                        </span>
+                        <div class="col-sm-7" style="padding-top:4px;">
+                        {{ Form::checkbox("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][read_only]", 1, array_get($custom_form_column, 'options.read_only'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__read_only_{$loop->index}", 'class' => 'icheck']) }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <span class="small control-label col-sm-5">
+                            {{exmtrans('custom_form.view_only')}}
+                            <i class="fa fa-info-circle" data-help-text="{{exmtrans('custom_form.help.view_only')}}" data-help-title="{{exmtrans('custom_form.view_only')}}"></i>
+                        </span>
                         <div class="col-sm-7" style="padding-top:4px;">
                         {{ Form::checkbox("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][view_only]", 1, array_get($custom_form_column, 'options.view_only'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__view_only_{$loop->index}", 'class' => 'icheck']) }}
                         </div>
@@ -81,7 +94,11 @@
                                 @if($custom_form_column['form_column_target_id'] == "1")
                                 {{ Form::text("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][text]", array_get($custom_form_column, 'options.text'), ['class' => 'form-control']) }}
                                 @else
-                                {{ Form::textarea("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][text]", array_get($custom_form_column, 'options.text'), ['rows' => 3, 'class' => 'form-control']) }}
+                                <p class="input_texthtml-label" style="padding-top: 7px;">
+                                    {{get_omitted_string(array_get($custom_form_column, 'options.text'))}}
+                                </p>
+                                <button type="button" class="btn btn-sm btn-default input_texthtml-modal">@lang('admin.edit')</button> 
+                                {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][text]", array_get($custom_form_column, 'options.text'), ['class' => 'input_texthtml']) }}
                                 @endif
                             </div>
                     </div>
@@ -93,7 +110,11 @@
                                 <i class="fa fa-info-circle" data-help-text="{{exmtrans('custom_form.help.html')}}" data-help-title="{{exmtrans('custom_form.html')}}"></i>
                             </span>
                             <div class="col-sm-9">
-                                {{ Form::textarea("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][html]", array_get($custom_form_column, 'options.html'), ['rows' => 4, 'class' => 'form-control']) }}
+                                <p class="input_texthtml-label" style="padding-top: 7px;">
+                                    {{get_omitted_string(array_get($custom_form_column, 'options.html'))}}
+                                </p>
+                                <button type="button" class="btn btn-sm btn-default input_texthtml-modal">@lang('admin.edit')</button> 
+                                {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][html]", array_get($custom_form_column, 'options.html'), ['class' => 'input_texthtml']) }}
                             </div>
                     </div>
                     @endif

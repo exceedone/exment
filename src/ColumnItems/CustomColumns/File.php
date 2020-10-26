@@ -4,7 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
-use Encore\Admin\Grid\Filter\Where;
+use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -92,7 +92,7 @@ class File extends CustomItem
     
     protected function getAdminFilterClass()
     {
-        return Where::class;
+        return ExmWhere::class;
     }
 
     protected function setAdminOptions(&$field, $form_column_options)

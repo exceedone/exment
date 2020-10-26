@@ -1284,6 +1284,8 @@ class ApiTest extends ApiTestBase
     public function testDataQueryColumnPermissionCheck(){
         $token = $this->getUser2AccessToken([ApiScope::VALUE_READ]);
 
+        \Config::set('exment.api_max_data_count', 10000);
+
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->get(admin_urls('api', 'data', 'custom_value_edit', 'query-column').'?q=odd_even%20eq%20odd&count=1000')

@@ -173,6 +173,9 @@ class PatchDataCommand extends Command
             case 'update_notify_difinition':
                 $this->updateNotifyDifinition();
                 return;
+            case 'patch_view_only':
+                $this->patchViewOnly();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -1238,6 +1241,29 @@ class PatchDataCommand extends Command
         // update system value
         System::userdashboard_available(!boolval(config('exment.userdashboard_disabled', true)));
         System::userview_available(!boolval(config('exment.userview_disabled', true)));
+    }
+
+
+    /**
+     *
+     * @return void
+     */
+    protected function patchViewOnly()
+    {
+        Model\CustomFormColumn::get()
+        ->each(function ($custom_form_column) {
+            $read_only = array_get($custom_form_column, 'options.read_only');
+            $view_only = array_get($custom_form_column, 'options.view_only');
+
+            if (!is_null($read_only)) {
+                return;
+            }
+            if (boolval($view_only)) {
+                $custom_form_column->setOption('read_only', "1")
+                    ->forgetOption('view_only')
+                    ->save();
+            }
+        });
     }
 
 

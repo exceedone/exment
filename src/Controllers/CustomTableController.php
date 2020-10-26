@@ -28,6 +28,7 @@ use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\ShareTrigger;
 use Exceedone\Exment\Enums\SharePermission;
+use Exceedone\Exment\Enums\CompareColumnType;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -385,7 +386,7 @@ HTML;
                     })->pluck('label', 'id');
                 });
             $form->select('compare_column2_id', exmtrans("custom_table.custom_column_multi.compare_column2_id"))->required()
-                ->options($custom_table->getColumnsSelectOptions([
+                ->options($this->getColumnsSelectOptions($custom_table, [
                     'include_system' => false,
                 ]));
             $form->hidden('multisetting_type')->default(MultisettingType::COMPARE_COLUMNS);
@@ -452,7 +453,22 @@ HTML;
 
         return $form;
     }
-    
+
+    /**
+     * get columns select options.include system date
+     * @param CustomTable $custom_table
+     * @param array $selectOptions
+     * @param option items
+     */
+    protected function getColumnsSelectOptions($custom_table, $selectOptions = [])
+    {
+        $options = collect(CompareColumnType::transArray('custom_table.custom_column_multi.compare_column_options'))
+            ->mapWithKeys(function ($val, $key) {
+                return [$key => "**{$val}"];
+            })->toArray();
+        return $options + $custom_table->getColumnsSelectOptions($selectOptions);
+    }
+
     /**
      * Edit interface.
      *

@@ -1,7 +1,15 @@
 # Test / テスト
 How to test. / テスト実行方法です。  
 
-## Browser, Unit, Feature Test / ブラウザ・単体・結合テスト
+## Create test data / テストデータ作成
+
+- Please execute this command.   / 以下のコマンドを実行してください。  
+<span style="color:red;">CAUTION: If execute this command, reset all data. / 注意：以下のコマンドを実行すると、全てのデータがリセットされます。</span>
+
+```
+php artisan exment:inittest
+```
+
 
 ### Install (Only first) / インストール(初回のみ) 
 - Please execute this command.  / 以下のコマンドを実行してください。  
@@ -11,14 +19,9 @@ composer require symfony/css-selector=~4.2
 composer require laravel/browser-kit-testing=~4.2
 ```
 
+## Browser, Unit, Feature Test / ブラウザ・単体・結合テスト
 
-### Setup and execute test / テスト設定・実行
-- Please execute this command.   / 以下のコマンドを実行してください。  
-<span style="color:red;">CAUTION: If execute this command, reset all data. / 注意：以下のコマンドを実行すると、全てのデータがリセットされます。</span>
-
-```
-php artisan exment:inittest
-```
+### Setup and execute test / テスト実行
 
 - Please execute this command.  / 以下のコマンドを実行してください。  
 

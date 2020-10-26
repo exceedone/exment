@@ -49,13 +49,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | exment debug mode
+    | exment debug mode request
     |--------------------------------------------------------------------------
     |
-    | if true, output sql log to laravel.log
+    | if true, log request in laravel.log
     |
     */
-    'debugmode' => env('EXMENT_DEBUG_MODE', false),
+    'debugmode_request' => env('EXMENT_DEBUG_MODE_REQUEST', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | exment debug mode sql
+    |--------------------------------------------------------------------------
+    |
+    | if true, log sql in laravel.log
+    |
+    */
+    'debugmode_sql' => env('EXMENT_DEBUG_MODE_SQL', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -850,4 +860,28 @@ return [
     */
     'diable_upload_images_editor' => env('EXMENT_DIABLE_UPLOAD_IMAGES_EDITOR', false),
 
+
+
+
+
+  
+    /*
+    |--------------------------------------------------------------------------
+    | Reverse Proxy IPs
+    |--------------------------------------------------------------------------
+    |
+    | Set trust proxy IPs.
+    | *This config doesn't want to copy backup restore, so set key is ADMIN_, not EXMENT_.*
+    */  
+    'trust_proxy_ips' => env('ADMIN_TRUST_PROXY_IPS', null),
+  
+    /*
+    |--------------------------------------------------------------------------
+    | Reverse Proxy headers
+    |--------------------------------------------------------------------------
+    |
+    | Set trust proxy headers. set as Request::{name}.
+    | *This config doesn't want to copy backup restore, so set key is ADMIN_, not EXMENT_.*
+    */  
+    'trust_proxy_headers' => env('ADMIN_TRUST_PROXY_HEADERS', null),
 ];

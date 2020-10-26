@@ -264,7 +264,7 @@ class FilterOption extends EnumBase
             case static::USER_EQ:
             case static::SELECT_EXISTS:
             case static::DAY_ON:
-            case static::USER_EQ_USER:
+            //case static::USER_EQ_USER:
                 return '';
             case static::NE:
             case static::SELECT_NOT_EXISTS:

@@ -304,7 +304,7 @@ class Define
         ]],
         ['name' => 'column', 'href' => 'column/:table_name', 'icon' => 'fa-list', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column', 'description' => 'custom_column.description'],
         ['name' => 'relation', 'href' => 'relation/:table_name', 'icon' => 'fa-compress', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation', 'description' => 'custom_relation.description'],
-        ['name' => 'form', 'href' => 'form/:table_name', 'icon' => 'fa-keyboard-o', 'roles' => [Permission::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form', 'description' => 'custom_form.description'],
+        ['name' => 'form', 'href' => 'form/:table_name', 'icon' => 'fa-keyboard-o', 'roles' => Permission::AVAILABLE_CUSTOM_FORM, 'exmtrans' => 'change_page_menu.custom_form', 'description' => 'custom_form.description'],
         ['name' => 'view', 'href' => 'view/:table_name', 'icon' => 'fa-th-list', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_view', 'description' => 'custom_view.description'],
         ['name' => 'copy', 'href' => 'copy/:table_name', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy', 'description' => 'custom_copy.description'],
         ['name' => 'operation', 'href' => 'operation/:table_name', 'icon' => 'fa-reply-all', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_operation', 'description' => 'custom_operation.description'],
