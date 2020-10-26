@@ -96,7 +96,13 @@
                 <div class="col-xs-12 col-md-6 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="1">
 
-                    <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}1</h5>
+                    <h5 class="bold">
+                        {{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}1
+                        
+                        &nbsp;
+                        <button type="button" class="btn btn-default btn-xs" data-toggle-expanded-value="false"><i class="fa fa-angle-double-down" aria-hidden="true"></i>{{exmtrans('common.open_all')}}</button>
+                        <button type="button" class="btn btn-default btn-xs" data-toggle-expanded-value="true"><i class="fa fa-angle-double-up" aria-hidden="true"></i>{{exmtrans('common.close_all')}}</button>
+                    </h5>
                     <ul class="custom_form_column_items draggables ul_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" data-connecttosortable="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
                         @foreach($custom_form_block['custom_form_columns'] as $custom_form_column)
                         @if(array_get($custom_form_column, 'column_no') != 1) @continue @endif
@@ -107,7 +113,13 @@
                 <div class="col-xs-12 col-md-6 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="2">
 
-                    <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}2</h5>
+                    <h5 class="bold">
+                        {{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}2
+                        
+                        &nbsp;
+                        <button type="button" class="btn btn-default btn-xs" data-toggle-expanded-value="false"><i class="fa fa-angle-double-down" aria-hidden="true"></i>{{exmtrans('common.open_all')}}</button>
+                        <button type="button" class="btn btn-default btn-xs" data-toggle-expanded-value="true"><i class="fa fa-angle-double-up" aria-hidden="true"></i>{{exmtrans('common.close_all')}}</button>
+                    </h5>
                     <ul class="custom_form_column_items draggables ul_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" data-connecttosortable="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
                         @foreach($custom_form_block['custom_form_columns'] as $custom_form_column)
                         @if(array_get($custom_form_column, 'column_no') != 2) @continue @endif
@@ -204,12 +216,10 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <div class="col-sm-12">
-                        <button id="changedata-button-reset" type="button" class="btn btn-default">{{trans('admin.reset')}}</button>
-                        <button id="changedata-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
-
-                        <input type="hidden" class="target_header_column_name" />
-                </div>
+                <button type="button" class="btn btn-default pull-left modal-close" data-dismiss="modal">{{trans('admin.close')}}</button>
+                <button id="changedata-button-reset" type="button" class="btn btn-default pull-left">{{trans('admin.reset')}}</button>
+                <button id="changedata-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
+                <input type="hidden" class="target_header_column_name" />
             </div>
         </div>
     </div>
@@ -218,5 +228,27 @@
 
 <div class="modal fade" id="form-relation_filter-modal" data-backdrop="static">
 </div>
+
+
+<div class="modal fade" id="form-textinput-modal" data-backdrop="static">
+    <div class="modal-dialog modal-xl" >
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+                <h4 class="modal-title" id="modal-label">{{trans('admin.edit')}}</h4>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <textarea id="textinput-modal-textarea" class="w-100" rows="20"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left modal-close" data-dismiss="modal">{{trans('admin.close')}}</button>
+                <button id="textinput-button-reset" type="button" class="btn btn-default pull-left">{{trans('admin.reset')}}</button>
+                <button id="textinput-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <script type="text/javascript" src="{{ $js }}"></script>

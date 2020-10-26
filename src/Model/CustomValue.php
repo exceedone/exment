@@ -1047,6 +1047,7 @@ abstract class CustomValue extends ModelBase
                 'add_avatar' => false,
                 'only_avatar' => false,
                 'asApi' => false,
+                'blank' => false,
             ],
             $options
         );
