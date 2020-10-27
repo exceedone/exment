@@ -609,6 +609,7 @@ class TestDataSeeder extends Seeder
                 ['column_name' => 'file', 'column_view_name' => 'file', 'column_type' => ColumnType::FILE, 'options' => []],
                 ['column_name' => 'date', 'column_view_name' => 'date', 'column_type' => ColumnType::DATE, 'options' => []],
                 ['column_name' => 'integer', 'column_view_name' => 'integer', 'column_type' => ColumnType::INTEGER, 'options' => []],
+                ['column_name' => 'currency', 'column_view_name' => 'currency', 'column_type' => ColumnType::CURRENCY, 'options' => ['currency_symbol' => 'JPY1']],
                 ['column_name' => 'init_text', 'column_view_name' => 'init_text', 'column_type' => ColumnType::TEXT, 'options' => ['init_only' => '1']],
             ];
     
@@ -744,6 +745,7 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("date", \Carbon\Carbon::now());
                 $custom_value->setValue("init_text", 'init_text');
                 $custom_value->setValue("integer", $i);
+                $custom_value->setValue("currency", $i * 100);
                 $custom_value->created_user_id = $user_id;
                 $custom_value->updated_user_id = $user_id;
 

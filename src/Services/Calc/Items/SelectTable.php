@@ -27,7 +27,7 @@ class SelectTable extends ItemBase
     }
 
     public function text(){
-        return array_get($this->select_pivot_column, 'column_view_name') . '/' . array_get($this->custom_column, 'column_view_name');
+        return exmtrans('custom_column.calc_text.select_table', array_get($this->select_pivot_column, 'column_view_name'), array_get($this->custom_column, 'column_view_name'));
     }
 
     public function val(){

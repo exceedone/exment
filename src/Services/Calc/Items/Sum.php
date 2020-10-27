@@ -26,7 +26,7 @@ class Sum extends ItemBase
     }
 
     public function text(){
-        return exmtrans('custom_column.child_sum_text', array_get($this->child_custom_table, 'table_view_name'), array_get($this->custom_column, 'column_view_name'));
+        return exmtrans('custom_column.calc_text.child_sum', array_get($this->child_custom_table, 'table_view_name'), array_get($this->custom_column, 'column_view_name'));
     }
 
     public function val(){

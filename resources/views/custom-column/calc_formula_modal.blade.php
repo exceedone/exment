@@ -71,6 +71,7 @@
         margin-top: 2px;
         margin-bottom: 2px;
         white-space: normal;
+        word-break: break-all;
     }
     .col-value-item-remove{
         cursor: pointer;

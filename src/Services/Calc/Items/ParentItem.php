@@ -31,7 +31,7 @@ class ParentItem extends ItemBase
 
     public function text()
     {
-        return array_get($this->parent_table, 'table_view_name') . '/' . array_get($this->custom_column, 'column_view_name');
+        return exmtrans('custom_column.calc_text.parent', array_get($this->custom_column, 'column_view_name'));
     }
 
     public function val()

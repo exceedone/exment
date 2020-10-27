@@ -1108,13 +1108,17 @@ return [
         'add_custom_view_flg' => '既定のビューに追加する',
         'add_table_label_flg' => '見出し列に追加する',
         'auto_number_format_rule' => '自動採番フォーマットのルール',
-        'child_count_text' => '%s:件数',
-        'child_sum_text' => '%s:%s(合計)',
         'symbols' => [
             'plus' => '＋',
             'minus' => '－',
             'times' => '×',
             'div' => '÷',
+        ],
+        'calc_text' => [
+            'child_count' => '件数 : %s',
+            'child_sum' => '合計 : %s->%s',
+            'parent' => '親データ : %s',
+            'select_table' => '参照 : %s->%s',
         ],
         'options' => [
             'header' => '詳細オプション',
