@@ -24,6 +24,12 @@ class NestedEmbeds extends Embeds
     {
         parent::__construct($column, $arguments);
     }
+
+    /**
+     * Get NestedEmbeddedForm.
+     *
+     * @return NestedEmbeddedForm
+     */
     protected function buildEmbeddedForm()
     {
         if (!isset($this->nestedForm)) {

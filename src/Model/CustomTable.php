@@ -1458,11 +1458,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Append to query for filtering workflow
      *
-     * @param [type] $query
-     * @param CustomView $custom_view
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param CustomView|null $custom_view
      * @return void
      */
-    public function appendWorkflowSubQuery($query, $custom_view)
+    public function appendWorkflowSubQuery($query, ?CustomView $custom_view)
     {
         if (
             System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
@@ -1782,9 +1782,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @param \Encore\Admin\Form\Field $field
      * @param array $options
-     * @return void
+     * @return \Encore\Admin\Form\Field
      */
-    public function setSelectTableField(\Encore\Admin\Form\Field $field, array $options = [])
+    public function setSelectTableField(\Encore\Admin\Form\Field $field, array $options = []) : \Encore\Admin\Form\Field
     {
         $options = array_merge([
             'custom_value' => null, // select custom value, if called custom value's select table
@@ -1883,7 +1883,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * get ajax url for options for select, multipleselect.
      *
      * @param array $options
-     * @param string|null url
+     * @return string|null url
      */
     public function getOptionAjaxUrl($options = [])
     {
@@ -2069,7 +2069,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * 'include_workflow': whether getting workflow column
      * 'include_form_type': whether getting form type(show, create, edit)
      * @param array $selectOptions
-     * @param array option items
+     * @return array option items
      */
     //public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
     public function getColumnsSelectOptions($selectOptions = [])
@@ -2761,7 +2761,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can access this custom value
      *
-     * @return void
+     * @return bool|ErrorCode
      */
     public function enableAccess()
     {

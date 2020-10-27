@@ -15,11 +15,9 @@ class ApiClientRepository extends ClientRepository
     /**
      * Store a new client for api key.
      *
-     * @param  int  $userId
-     * @param  string  $name
-     * @param  string  $redirect
-     * @param  bool  $personalAccess
-     * @param  bool  $password
+     * @param int $userId
+     * @param string $name
+     * @param bool|string $redirect
      * @return \Laravel\Passport\Client
      */
     public function createApiKey($userId, $name, $redirect)

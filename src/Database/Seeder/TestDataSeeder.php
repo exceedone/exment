@@ -484,7 +484,7 @@ class TestDataSeeder extends Seeder
      * Create custom tables
      *
      * @param array $users
-     * @param string $menu menu id
+     * @param Menu $menu menu model
      * @return array
      */
     protected function createTables($users, $menu)

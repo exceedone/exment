@@ -307,7 +307,7 @@ abstract class CustomValue extends ModelBase
     /**
      * get workflow histories
      *
-     * @return void
+     * @return Collection
      */
     public function getWorkflowHistories($appendsStatus = false)
     {
@@ -1481,7 +1481,7 @@ abstract class CustomValue extends ModelBase
     /**
      * User can access this custom value
      *
-     * @return void
+     * @return bool|ErrorCode
      */
     public function enableAccess()
     {
@@ -1499,7 +1499,8 @@ abstract class CustomValue extends ModelBase
     /**
      * User can edit this custom value
      *
-     * @return void
+     * @param bool $checkFormAction if true, check as display
+     * @return bool|ErrorCode
      */
     public function enableEdit($checkFormAction = false)
     {
@@ -1540,6 +1541,7 @@ abstract class CustomValue extends ModelBase
      * User can delete this custom value
      *
      * @param bool $checkFormAction if true, check as display
+     * @return bool|ErrorCode
      */
     public function enableDelete($checkFormAction = false)
     {
@@ -1573,6 +1575,7 @@ abstract class CustomValue extends ModelBase
     
     /**
      * User can share this custom value
+     * @return bool
      */
     public function enableShare()
     {

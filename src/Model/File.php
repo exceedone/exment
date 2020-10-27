@@ -99,11 +99,16 @@ class File extends ModelBase
         return admin_url($name);
     }
 
+
     /**
      * Save file info to database.
      * *Please call this function before store file.
-     * @param string $fileName
-     * @return File saved file path
+     *
+     * @param string $dirname directory name
+     * @param string $filename file name
+     * @param string $unique_filename unique file name.
+     * @param boolean $override if override same file on server
+     * @return File
      */
     public static function saveFileInfo(string $dirname, string $filename = null, string $unique_filename = null, $override = false)
     {
@@ -209,7 +214,7 @@ class File extends ModelBase
      *
      * @param  string  $path directory and file path(Please join.)
      * @param  string  $content set item content
-     * @return string|false
+     * @return File
      */
     public static function put($path, $content, $override = false)
     {
@@ -232,14 +237,13 @@ class File extends ModelBase
         $content->store($file->local_dirname, config('admin.upload.disk'));
         return $file;
     }
-    
+
     /**
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
-     * @param  string  $content file content
+     * @param [type] $content
      * @param  string  $dirname directory path
      * @param  string  $name file name. the name is shown by display
-     * @param  string  $local_filename local file name.
      * @param  bool  $override if file already exists, override
      * @return File
      */
@@ -257,8 +261,8 @@ class File extends ModelBase
     /**
      * Get file model using path or uuid
      *
-     * @param [type] $pathOrUuids
-     * @return ?\Exceedone\Exment\Model\File
+     * @param string|File $pathOrUuids
+     * @return File|null
      */
     public static function getData($pathOrUuids)
     {

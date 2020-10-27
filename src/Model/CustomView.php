@@ -240,7 +240,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      *
      * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
      * @param array $options
-     * @return
+     * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
      */
     public function getQuery($query, array $options = [])
     {

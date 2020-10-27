@@ -105,8 +105,8 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * get condition value text.
      *
-     * @param CustomValue $custom_value
-     * @return boolean
+     * @param Condition $condition
+     * @return string
      */
     public function getConditionText(Condition $condition)
     {
@@ -187,8 +187,8 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      * Set condition query. For data list and use workflow status
      *
      * @param [type] $query
-     * @param [type] $tableName
-     * @param [type] $custom_table
+     * @param string $tableName
+     * @param CustomTable $custom_table
      * @return void
      */
     public static function setWorkflowConditionQuery($query, $tableName, $custom_table)

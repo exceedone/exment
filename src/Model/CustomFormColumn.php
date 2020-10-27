@@ -176,7 +176,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     /**
      * replace options change data
      *
-     * @param [type] $json
+     * @param array $json
      * @param string $table_key_name
      * @param string $column_key_name
      * @param string $column_key_id

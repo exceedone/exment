@@ -36,7 +36,7 @@ class NavbarSender
      * @param string $subject
      * @param string $body
      * @param array $options
-     * @return SlackSender
+     * @return NavbarSender
      */
     public static function make($notify_id, $subject, $body, $options) : NavbarSender
     {

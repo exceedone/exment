@@ -40,11 +40,15 @@ class CustomCopyController extends AdminControllerTableBase
         return parent::index($request, $content);
     }
 
+    
     /**
-     * Edit interface.
+     * Edit
      *
-     * @param $id
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @param string $tableKey
+     * @param string|int|null $id
+     * @return void|Response
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {

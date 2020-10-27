@@ -153,7 +153,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
 
     /**
      * Get relation name.
-     * @param CustomRelation $relation_obj
+     * 
      * @return string
      */
     public function getRelationName()
@@ -163,8 +163,8 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
 
     /**
      * Get relation name using parent and child table.
-     * @param $parent
-     * @param $child
+     * @param CustomTable|string|null $parent
+     * @param CustomTable|string|null $child
      * @return string
      */
     public static function getRelationNamebyTables($parent, $child)

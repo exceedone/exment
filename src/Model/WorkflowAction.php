@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\WorkflowNextType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
+use Symfony\Component\HttpFoundation\Response;
 
 class WorkflowAction extends ModelBase
 {
@@ -390,7 +391,7 @@ class WorkflowAction extends ModelBase
      * @param boolean $orgAsUser if true, convert organization to users
      * @param boolean $getAsDefine if true, contains label "created_user", etc
      * @param boolean $getValueAutorities if true, get value authority
-     * @return boolean
+     * @return \Illuminate\Support\Collection
      */
     public function getAuthorityTargets($custom_value, $orgAsUser = false, $getAsDefine = false, $getValueAutorities = true)
     {
@@ -602,7 +603,7 @@ class WorkflowAction extends ModelBase
      * Get action modal form
      *
      * @param CustomValue $custom_value
-     * @return void
+     * @return Response
      */
     public function actionModal($custom_value)
     {

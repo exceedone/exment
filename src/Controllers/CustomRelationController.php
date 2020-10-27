@@ -38,11 +38,15 @@ class CustomRelationController extends AdminControllerTableBase
         return parent::index($request, $content);
     }
 
+
     /**
-     * Edit interface.
+     * Edit
      *
-     * @param $id
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @param string $tableKey
+     * @param string|int|null $id
+     * @return Response|null
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {

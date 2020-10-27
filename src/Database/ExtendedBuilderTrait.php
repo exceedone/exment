@@ -7,14 +7,14 @@ use Carbon\Carbon;
 /**
  *
  * @property mixed $query
+ * @property mixed $model
  */
 trait ExtendedBuilderTrait
 {
     /**
      * Update a removing json key.
      *
-     * @param  string  $targetColumn
-     * @param  string  $removingJsonKey
+     * @param  string  $key
      * @return int
      */
     public function updateRemovingJsonKey(string $key)

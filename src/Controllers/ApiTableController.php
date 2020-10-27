@@ -45,10 +45,14 @@ class ApiTableController extends AdminControllerTableBase
         return $this->custom_columns;
     }
 
+
     /**
      * get column data by id
-     * @param mixed $id
-     * @return mixed
+     *
+     * @param Request $request
+     * @param string $tableKey
+     * @param string $column_name
+     * @return CustomColumn|\Symfony\Component\HttpFoundation\Response
      */
     public function tableColumn(Request $request, $tableKey, $column_name)
     {

@@ -54,12 +54,16 @@ class CustomColumnController extends AdminControllerTableBase
         }
         return parent::index($request, $content);
     }
-
+    
+    
     /**
-     * Edit interface.
+     * Edit
      *
-     * @param $id
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @param string $tableKey
+     * @param string|int|null $id
+     * @return void|Response
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
@@ -112,7 +116,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
             return \Exment::getTrueMark($val);
         });
-        $grid->column('order', exmtrans("custom_column.order"))->editable('number')->sortable();
+        $grid->column('order', exmtrans("custom_column.order"))->sortable()->editable();
 
         if (isset($this->custom_table)) {
             $grid->model()->where('custom_table_id', $this->custom_table->id);
@@ -825,7 +829,7 @@ class CustomColumnController extends AdminControllerTableBase
     /**
      * Get import export select list
      *
-     * @return void
+     * @return array
      */
     protected function getImportExportColumnSelect($select_table, $form, $id, $isImport = true)
     {

@@ -53,9 +53,9 @@ class FormDataItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * Get change field
      *
-     * @param [type] $target_val
-     * @param [type] $key
-     * @return void
+     * @param string $key
+     * @param bool $show_condition_key
+     * @return \Encore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
     {
