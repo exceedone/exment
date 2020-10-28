@@ -34,7 +34,7 @@ namespace Exment {
                         if(ev.originalEvent && (ev.originalEvent as any).isTrusted){
                             CalcEvent.loopcount = 0;
                         }
-                        await CalcEvent.setCalc($formulaBox, ev.data.calc_formula, ev.data.box);
+                        await CalcEvent.setCalc($formulaBox, ev.data.calc_formula, $(ev.target), ev.data.box);
                     });
 
                     // set event for plus minus button
@@ -56,7 +56,7 @@ namespace Exment {
                     
                     // add laravel-admin row plusminus event
                     $childbox.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { calc_count: calc_count }, async (ev) => {
-                        await CalcEvent.setCalc($box, ev.data.calc_count);
+                        await CalcEvent.setCalc($box, ev.data.calc_count, $(ev.target));
                     });
                 }
             }
@@ -68,7 +68,7 @@ namespace Exment {
          * data : has "to" and "options". options has properties "val" and "type"
          * 
          */
-        private static async setCalc($formulaBox: JQuery<Element>, calc_formulas, $targetBox: JQuery<Element> = null) {
+        private static async setCalc($formulaBox: JQuery<Element>, calc_formulas, $target: JQuery<Element> = null, $targetBox: JQuery<Element> = null) {
             if (!hasValue(calc_formulas)) {
                 return;
             }
@@ -80,6 +80,8 @@ namespace Exment {
                 throw 'calc loop count is over 100. Please check calc setting.';
             }
             CalcEvent.loopcount++;
+
+            $formulaBox = CalcEvent.getBlockByField($target);
 
             if(!hasValue($targetBox)){
                 $targetBox = $formulaBox;
@@ -214,6 +216,19 @@ namespace Exment {
                 return $('.box-body .parent_id').closest('.form-group');
             }
             return $('.box-body .hasmanyblock-' + block_name);
+        }
+
+        /**
+         * Get form block erea by event element. (hasmany or default form)
+         * @param $target event called target
+         */
+        private static getBlockByField($target : JQuery<HTMLElement>) : JQuery<HTMLElement>{
+            // if has has-many-table-row or has-many-form, get parent 
+            let $parent = $target.closest('.has-many-table-row,.has-many-form');
+            if(hasValue($parent)){
+                return $parent;
+            }
+            return $('.box-body >.fields-group > .embed-value');
         }
 
 

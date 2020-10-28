@@ -15,7 +15,7 @@ var Exment;
          * data : has "to" and "options". options has properties "val" and "type"
          *
          */
-        static setCalc($formulaBox, calc_formulas, $targetBox = null) {
+        static setCalc($formulaBox, calc_formulas, $target = null, $targetBox = null) {
             return __awaiter(this, void 0, void 0, function* () {
                 if (!hasValue(calc_formulas)) {
                     return;
@@ -28,6 +28,7 @@ var Exment;
                     throw 'calc loop count is over 100. Please check calc setting.';
                 }
                 CalcEvent.loopcount++;
+                $formulaBox = CalcEvent.getBlockByField($target);
                 if (!hasValue($targetBox)) {
                     $targetBox = $formulaBox;
                 }
@@ -157,6 +158,18 @@ var Exment;
             return $('.box-body .hasmanyblock-' + block_name);
         }
         /**
+         * Get form block erea by event element. (hasmany or default form)
+         * @param $target event called target
+         */
+        static getBlockByField($target) {
+            // if has has-many-table-row or has-many-form, get parent 
+            let $parent = $target.closest('.has-many-table-row,.has-many-form');
+            if (hasValue($parent)) {
+                return $parent;
+            }
+            return $('.box-body >.fields-group > .embed-value');
+        }
+        /**
          * validate formula string
          * @param formula
          */
@@ -204,7 +217,7 @@ var Exment;
                     if (ev.originalEvent && ev.originalEvent.isTrusted) {
                         CalcEvent.loopcount = 0;
                     }
-                    yield CalcEvent.setCalc($formulaBox, ev.data.calc_formula, ev.data.box);
+                    yield CalcEvent.setCalc($formulaBox, ev.data.calc_formula, $(ev.target), ev.data.box);
                 }));
                 // set event for plus minus button
                 $box.on('click.exment_calc_plusminus', '.btn-number-plus,.btn-number-minus', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(this, void 0, void 0, function* () {
@@ -223,7 +236,7 @@ var Exment;
                 let $childbox = $('.box-body').find('.hasmanyblock-' + child_relation_name);
                 // add laravel-admin row plusminus event
                 $childbox.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { calc_count: calc_count }, (ev) => __awaiter(this, void 0, void 0, function* () {
-                    yield CalcEvent.setCalc($box, ev.data.calc_count);
+                    yield CalcEvent.setCalc($box, ev.data.calc_count, $(ev.target));
                 }));
             }
         }

@@ -42,7 +42,7 @@
             </thead>
             <tbody>
             @foreach($forms as $pk => $form)
-            <tr class="has-many-table-{{$column}}-row">
+            <tr class="has-many-table-{{$column}}-row has-many-table-row">
                 @foreach($form['tableitems'] as $tableitem)
                 <td style="vertical-align:middle;">{!! $tableitem->render() !!}</td>
                 @endforeach
@@ -90,7 +90,7 @@
 
     </div>
     <template class="{{$column}}-tpl">
-        <tr class="has-many-table-{{$column}}-row">
+        <tr class="has-many-table-{{$column}}-row has-many-table-row">
             @foreach($tableitems as $tableitem)
                 <td style="vertical-align:middle;">{!! $tableitem->render() !!}</td>
             @endforeach
