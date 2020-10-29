@@ -35,6 +35,7 @@ var Exment;
                     throw 'calc loop count is over 100. Please check calc setting.';
                 }
                 CalcEvent.loopcount++;
+                // console.log("---------------------------");
                 let $targetBoxs = CalcEvent.getBlockElement(calc_formula.target_block);
                 // get to list. if 1:n form and target is n, $tos is multiple.
                 let $tos = CalcEvent.getTargetFields($trigger, $targetBoxs, calc_formula);
@@ -48,6 +49,9 @@ var Exment;
                         if (!hasValue(formula_string)) {
                             continue;
                         }
+                        // console.log("loopcount : " + CalcEvent.loopcount + ", target_block : " + calc_formula.target_block);
+                        // console.log("loopcount : " + CalcEvent.loopcount + ", target_column : " + calc_formula.target_column);
+                        // console.log($to);
                         // get options 
                         let options = formula.params;
                         let $targetBox = CalcEvent.getBlockByField($to, $targetBoxs);
@@ -65,11 +69,13 @@ var Exment;
          */
         static executeCalc(formula_string, params, $targetBox) {
             return __awaiter(this, void 0, void 0, function* () {
+                // console.log("loopcount : " + CalcEvent.loopcount + ", formula_string : " + formula_string);
                 let notCalc = false;
                 for (let j = 0; j < params.length; j++) {
                     let val = 0;
                     // calc option
                     let param = params[j];
+                    // console.log("loopcount : " + CalcEvent.loopcount + ", j : " + j + ", formula_column : " + param.formula_column + ", type : " + param.type);
                     // when dynamic value, get value
                     if (param.type == 'dynamic') {
                         val = rmcomma($targetBox.find(Exment.CommonEvent.getClassKey(param.formula_column)).val());
@@ -158,13 +164,16 @@ var Exment;
                 return math.evaluate(formula_string);
             });
         }
+        static getDefaultBox() {
+            return $('.box-body >.fields-group > .embed-value');
+        }
         /**
          * Get form block erea. (hasmany or default form)
          * @param block_name block name
          */
         static getBlockElement(block_name) {
             if (!hasValue(block_name) || block_name == 'default') {
-                return $('.box-body >.fields-group > .embed-value');
+                return CalcEvent.getDefaultBox();
             }
             if (block_name == 'parent_id') {
                 return $('.box-body .parent_id').closest('.form-group');
@@ -185,15 +194,19 @@ var Exment;
             if (hasValue($parent)) {
                 return $parent;
             }
-            return $('.box-body >.fields-group > .embed-value');
+            return CalcEvent.getDefaultBox();
         }
         /**
          * Get target field.
-         * (1) form is 1:n and trigger is n, return closest child.
-         * (2) form is 1:n and trigger is 1, return children item.
-         * (3) Otherwise, return 1.
+         * (1) calc_formula is summary, return parent.
+         * (2) form is 1:n and trigger is n, return closest child.
+         * (3) form is 1:n and trigger is 1, return children item.
+         * (4) Otherwise, return 1.
          */
         static getTargetFields($trigger, $targetBox, calc_formula) {
+            if (calc_formula.type == 'sum' || calc_formula.type == 'summary') {
+                return CalcEvent.getDefaultBox().find(Exment.CommonEvent.getClassKey(calc_formula.target_column));
+            }
             // if has has-many-table-row or has-many-form, only return child to 
             let $closest = $trigger.closest('.has-many-table-row,.has-many-form');
             if (hasValue($closest)) {
@@ -222,6 +235,9 @@ var Exment;
                 throw e;
             }
         }
+        static resetLoopConnt() {
+            CalcEvent.loopcount = 0;
+        }
     }
     CalcEvent.calcDataList = [];
     CalcEvent.loopcount = 0;
@@ -245,7 +261,7 @@ var Exment;
                 let $triggerBox = CalcEvent.getBlockElement(calc_formula.trigger_block);
                 $triggerBox.on('change.exment_calc', Exment.CommonEvent.getClassKey(calc_formula.trigger_column), { calc_formula: calc_formula }, (ev) => __awaiter(this, void 0, void 0, function* () {
                     if (ev.originalEvent && ev.originalEvent.isTrusted) {
-                        CalcEvent.loopcount = 0;
+                        CalcEvent.resetLoopConnt();
                     }
                     yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
                 }));
@@ -261,7 +277,6 @@ var Exment;
             }
             // count event
             for (let child_relation_name in blockData.calc_counts) {
-                let $box = CalcEvent.getBlockElement(block_name);
                 let calc_count = blockData.calc_counts[child_relation_name];
                 let $childbox = $('.box-body').find('.hasmanyblock-' + child_relation_name);
                 // add laravel-admin row plusminus event

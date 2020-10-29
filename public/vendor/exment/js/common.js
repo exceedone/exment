@@ -368,6 +368,7 @@ var Exment;
                 var data = datalist[key];
                 // set change event
                 $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                    Exment.CalcEvent.resetLoopConnt();
                     yield CommonEvent.changeModelData($(ev.target), ev.data.data);
                 }));
                 // if hasvalue to_block, add event when click add button
@@ -702,8 +703,12 @@ var Exment;
                     }
                 });
             }
-            // set value
-            $target.val(value).trigger('change');
+            // set value and trigger next
+            let isChange = !isMatchString(value, $target.val());
+            $target.val(value);
+            if (isChange) {
+                $target.trigger('change');
+            }
         }
         /**
          * add select2
@@ -1046,6 +1051,12 @@ const hasValue = (obj) => {
         return false;
     }
     return true;
+};
+const isMatchString = (val1, val2) => {
+    if (!hasValue(val1) && !hasValue(val2)) {
+        return true;
+    }
+    return val1 == val2;
 };
 const comma = (x) => {
     if (x === null || x === undefined) {
