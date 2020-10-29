@@ -25,6 +25,8 @@ class BackupTarget extends EnumBase
                 $target = null;
             } elseif (count($target) >= 3 && $target[1] == 'storage' && $target[2] == 'logs') {
                 $target = static::LOG;
+            } elseif (count($target) >= 4 && $target[1] == 'storage' && $target[2] == 'app' && $target[3] == 'plugins') {
+                $target = static::PLUGIN;
             } else {
                 $target = $target[1];
             }
