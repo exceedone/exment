@@ -56,6 +56,7 @@ class CalcService
         $calc_formulas = [];
         $calc_counts = [];
         
+        $relationInfo = $custom_form_block ? $custom_form_block->getRelationInfo() : null;
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             if ($form_column->form_column_type != FormColumnType::COLUMN) {
                 continue;
@@ -89,13 +90,15 @@ class CalcService
                     $calc_formulas[$formula_key_name] = [
                         'trigger_block' => $param['trigger_block'],
                         'trigger_column' => $param['trigger_column'],
+                        'target_column' => $custom_column->column_name,
+                        'target_block' => $relationInfo ? $relationInfo[1] : 'default',
                         'formulas' => [],
                     ];
                 }
+
                 $calc_formulas[$formula_key_name]['formulas'][] = [
                     'formula_string' => $option_calc_formula,
                     'params' => $params,
-                    'target_column' => $custom_column->column_name,
                 ];
             }
 
@@ -112,13 +115,13 @@ class CalcService
                     $calc_counts[$child_relation_name] = [
                         'block_key' => 'default',
                         'formulas' => [],
+                        'target_column' => $custom_column->column_name,
                     ];
                 }
                 $calc_counts[$child_relation_name]['formulas'][] = [
                     'child_relation_name' => $child_relation_name,
                     'formula_string' => $option_calc_formula,
                     'params' => $params,
-                    'target_column' => $custom_column->column_name,
                 ];
             }
         }
