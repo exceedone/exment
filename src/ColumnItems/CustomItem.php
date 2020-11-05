@@ -293,7 +293,7 @@ abstract class CustomItem implements ItemInterface
 
         if (!boolval(array_get($form_column_options, 'hidden'))) {
             if ($this->initonly()) {
-                $field->displayText($this->html())->escape(false)->prepareDefault();
+                $field->displayText($this->html())->escape(false)->default($this->value)->prepareDefault();
             } elseif ($this->viewonly($form_column_options) && !isset($this->value)) {
                 // if view only and create, set default value
                 $this->value = array_get($options, 'default');
