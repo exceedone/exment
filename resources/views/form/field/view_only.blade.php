@@ -23,7 +23,7 @@
         </div>
 
         @if($prepareDefault)
-        <input type="hidden" name="{{$name}}" />
+        <input type="hidden" name="{{$name}}" value="{{$default}}" class="{{$class}}" data-disable-setvalue="1" />
         @endif
 
         @include('admin::form.help-block')
