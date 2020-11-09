@@ -92,6 +92,7 @@ class CalcService
                         'trigger_column' => $param['trigger_column'],
                         'target_column' => $custom_column->column_name,
                         'target_block' => $relationInfo ? $relationInfo[1] : 'default',
+                        'type' => array_get($param, 'type'),
                         'formulas' => [],
                     ];
                 }
@@ -114,8 +115,9 @@ class CalcService
                 if(!array_has($calc_counts, $child_relation_name)){
                     $calc_counts[$child_relation_name] = [
                         'block_key' => 'default',
-                        'formulas' => [],
                         'target_column' => $custom_column->column_name,
+                        'type' => 'summary',
+                        'formulas' => [],
                     ];
                 }
                 $calc_counts[$child_relation_name]['formulas'][] = [
