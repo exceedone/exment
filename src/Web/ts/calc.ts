@@ -277,10 +277,7 @@ namespace Exment {
                 let result = math.evaluate(formula);
                 return true;
             }catch(e){
-                if(e instanceof SyntaxError){
-                    return false;
-                }
-                throw e;
+                return false;
             }
         }
     }

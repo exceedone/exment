@@ -216,10 +216,7 @@ var Exment;
                 return true;
             }
             catch (e) {
-                if (e instanceof SyntaxError) {
-                    return false;
-                }
-                throw e;
+                return false;
             }
         }
     }
