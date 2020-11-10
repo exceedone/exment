@@ -178,11 +178,22 @@ class MailSender extends SenderBase
     /**
      * Get to address.
      *
-     * @return string
+     * @return string|null
      */
     public function getTo()
     {
-        return $this->to;
+        return arrayToString(\Exment::getAddress($this->to));
+    }
+
+    /**
+     * Get the value of the notifiable's primary key.
+     *
+     * @return 
+     * @return string|null
+     */
+    public function getKey()
+    {
+        return $this->getTo();
     }
 
     /**
@@ -215,13 +226,4 @@ class MailSender extends SenderBase
         return true;
     }
     
-    /**
-     * Get the value of the notifiable's primary key.
-     *
-     * @return String
-     */
-    public function getKey()
-    {
-        return $this->to;
-    }
 }

@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyNavbar;
+use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Jobs;
@@ -17,24 +18,159 @@ class NotifyTest extends UnitTestBase
 {
     public function testNotifyMail()
     {
-        Notification::fake();
-        Notification::assertNothingSent();
-    
         $subject = 'テスト';
         $body = '本文です';
         $to = 'foobar@test.com';
 
-        $notifiable = NotifyService::notifyMail([
+        $this->_testNotifyMail([
             'subject' => $subject,
             'body' => $body,
             'to' => $to,
-        ]);
+        ], function($notifiable) use($to, $subject, $body) {
+            return ($notifiable->getTo() == $to) &&
+                ($notifiable->getSubject() == $subject) &&
+                ($notifiable->getBody() == $body);
+        });
+    }
+
+    public function testNotifyMail2()
+    {
+        $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'data_saved_notify')->first();
+
+        $subject = $mail_template->getValue('mail_subject');
+        $body = $mail_template->getValue('mail_body');
+        $to = 'foobar@test.com';
+
+        $this->_testNotifyMail([
+            'mail_template' => $mail_template,
+            'to' => $to,
+        ], function($notifiable) use($to, $subject, $body) {
+            return ($notifiable->getTo() == $to) &&
+                ($notifiable->getSubject() == $subject) &&
+                ($notifiable->getBody() == $body);
+        });
+    }
+
+    public function testNotifyMail3()
+    {
+        $subject = 'テスト';
+        $body = '本文です';
+        $to = ['foobar@test.com', 'foobar2@test.com'];
+
+        $this->_testNotifyMail([
+            'subject' => $subject,
+            'body' => $body,
+            'to' => $to,
+        ], function($notifiable) use($to, $subject, $body) {
+            return ($notifiable->getTo() == arrayToString($to)) &&
+                ($notifiable->getSubject() == $subject) &&
+                ($notifiable->getBody() == $body);
+        });
+    }
+
+    public function testNotifyMail4()
+    {
+        $subject = 'テスト';
+        $body = '本文です';
+        $to = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
+
+        $this->_testNotifyMail([
+            'subject' => $subject,
+            'body' => $body,
+            'to' => $to,
+        ], function($notifiable) use($to, $subject, $body) {
+            return ($notifiable->getTo() == arrayToString(\Exment::getAddress($to))) &&
+                ($notifiable->getSubject() == $subject) &&
+                ($notifiable->getBody() == $body);
+        });
+    }
+
+    public function testNotifyMail5()
+    {
+        $subject = 'テスト';
+        $body = '本文です';
+        $to = [CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2), CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC)];
+
+        $this->_testNotifyMail([
+            'subject' => $subject,
+            'body' => $body,
+            'to' => $to,
+        ], function($notifiable) use($to, $subject, $body) {
+            return ($notifiable->getTo() == arrayToString(\Exment::getAddress($to))) &&
+                ($notifiable->getSubject() == $subject) &&
+                ($notifiable->getBody() == $body);
+        });
+    }
+
+    public function testNotifyMail6()
+    {
+        $subject = 'テスト';
+        $body = '本文です';
+        $to = NotifyTarget::getModelAsUser(CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2));
+
+        $this->_testNotifyMail([
+            'subject' => $subject,
+            'body' => $body,
+            'to' => $to,
+        ], function($notifiable) use($to, $subject, $body) {
+            return ($notifiable->getTo() == arrayToString(\Exment::getAddress($to))) &&
+                ($notifiable->getSubject() == $subject) &&
+                ($notifiable->getBody() == $body);
+        });
+    }
+
+    public function testNotifyMail7()
+    {
+        $subject = 'テスト';
+        $body = '本文です';
+        $to = [NotifyTarget::getModelAsUser(CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2)), NotifyTarget::getModelAsUser(CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC))];
+
+        $this->_testNotifyMail([
+            'subject' => $subject,
+            'body' => $body,
+            'to' => $to,
+        ], function($notifiable) use($to, $subject, $body) {
+            return ($notifiable->getTo() == arrayToString(\Exment::getAddress($to))) &&
+                ($notifiable->getSubject() == $subject) &&
+                ($notifiable->getBody() == $body);
+        });
+    }
+
+    // public function testNotifyMail3()
+    // {
+    //     $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'data_saved_notify')->first();
+
+    //     $subject = 'テスト ${prms1} ${prms2}';
+    //     $body = '本文です。${prms3} ${prms4}';
+    //     $to = 'foobar@test.com';
+
+    //     $this->_testNotifyMail([
+    //         'subject' => $subject,
+    //         'body' => $body,
+    //         'to' => $to,
+    //         'prms' => [
+    //             'prms1' => 'AAA',
+    //             'prms2' => 'BBB',
+    //             'prms3' => 'CCC',
+    //             'prms4' => 'DDD',
+    //         ],
+    //     ], function($notifiable) use($to) {
+    //         return ($notifiable->getTo() ==  $to) &&
+    //             ($notifiable->getSubject() == 'テスト AAA BBB') &&
+    //             ($notifiable->getBody() == '本文です。CCC DDD');
+    //     });
+    // }
+
+    protected function _testNotifyMail(array $params, \Closure $checkCallback)
+    {
+        Notification::fake();
+        Notification::assertNothingSent();
+
+        $notifiable = NotifyService::notifyMail($params);
 
         Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
-            function($notification, $channels, $notifiable) use($to, $subject, $body) {
-                return ($notifiable->getTo() == $to) &&
-                    ($notifiable->getSubject() == $subject) &&
-                    ($notifiable->getBody() == $body);
+            function($notification, $channels, $notifiable) use($checkCallback) {
+                return $checkCallback($notifiable);
             });
     }
 
