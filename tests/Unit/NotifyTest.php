@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Illuminate\Support\Facades\Notification;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Notify;
@@ -156,6 +157,36 @@ class NotifyTest extends UnitTestBase
         });
     }
     
+
+    public function testNotifyMailAttachment()
+    {
+        $subject = 'テスト';
+        $body = '本文です';
+        $to = 'foobar@test.com';
+
+        // get file
+        $file = Model\File::whereNotNull('parent_id')->whereNotNull('parent_type')
+            ->first();
+        if(!$file){
+            return;
+        }
+
+        $this->_testNotifyMail([
+            'subject' => $subject,
+            'body' => $body,
+            'to' => $to,
+            'attach_files' => [$file],
+        ], function($notifiable) use($to, $subject, $body, $file) {
+            if(($notifiable->getTo() != $to) ||
+                ($notifiable->getSubject() != $subject) ||
+                ($notifiable->getBody() != $body)){
+                    return false;
+                };
+
+            return count($notifiable->getAttachments()) == 1 && $notifiable->getAttachments()[0]->id == $file->id;
+        });
+    }
+
 
     public function testNotifySlack()
     {

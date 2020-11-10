@@ -186,6 +186,16 @@ class MailSender extends SenderBase
     }
 
     /**
+     * Get attachments
+     *
+     * @return array|null
+     */
+    public function getAttachments()
+    {
+        return $this->attachments;
+    }
+    
+    /**
      * Get the value of the notifiable's primary key.
      *
      * @return 
