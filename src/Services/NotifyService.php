@@ -471,9 +471,9 @@ class NotifyService
      * Notify navbar
      *
      * @param array $params
-     * @return void
+     * @return Notifications\SenderBase
      */
-    public static function notifyNavbar(array $params = [])
+    public static function notifyNavbar(array $params = []) : Notifications\SenderBase
     {
         $params = array_merge(
             [
@@ -509,10 +509,12 @@ class NotifyService
         $mail_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
         $mail_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
 
-        Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params)
-            ->custom_value($custom_value)
+        $sender = Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params);
+        $sender->custom_value($custom_value)
             ->user($user)
             ->send();
+
+        return $sender;
     }
 
 

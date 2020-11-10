@@ -195,4 +195,36 @@ class NotifyTest extends UnitTestBase
         $this->assertEquals(array_get($data, 'notify_body'), $body);
     }
 
+
+    // Test as executeNotifyAction ----------------------------------------------------
+    public function testNotifyUpdateAction()
+    {
+        // Login user.
+        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $user = \Exment::user()->base_user;
+
+        $notify = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)->first();
+        $custom_table = CustomTable::find($notify->custom_table_id);
+        $custom_value = $custom_table->getValueModel()
+            ->where('created_user_id', '<>', $user->id)->first();
+        $target_user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
+
+        $subject = 'テスト';
+        $body = '本文です';
+        NotifyService::executeNotifyAction($notify, [
+            'custom_value' => $custom_value,
+            'subject' => $subject,
+            'body' => $body,
+            'user' => $target_user,
+        ]);
+        
+        $data = NotifyNavbar::withoutGlobalScopes()
+            ->where('notify_id', $notify->id)->orderBy('created_at', 'desc')->orderBy('id', 'desc')->first();
+        $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
+        $this->assertEquals(array_get($data, 'parent_id'), $custom_value->id);
+        $this->assertEquals(array_get($data, 'target_user_id'), $target_user->id);
+        $this->assertEquals(array_get($data, 'trigger_user_id'), $user->id);
+        $this->assertEquals(array_get($data, 'notify_subject'), $subject);
+        $this->assertEquals(array_get($data, 'notify_body'), $body);
+    }
 }
