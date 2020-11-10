@@ -607,8 +607,9 @@ class TestDataSeeder extends Seeder
                 ['column_name' => 'odd_even', 'column_view_name' => 'odd_even', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
                 ['column_name' => 'multiples_of_3', 'column_view_name' => 'multiples_of_3', 'column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
                 ['column_name' => 'file', 'column_view_name' => 'file', 'column_type' => ColumnType::FILE, 'options' => []],
-                ['column_name' => 'date', 'column_view_name' => 'date', 'column_type' => ColumnType::DATE, 'options' => []],
+                ['column_name' => 'date', 'column_view_name' => 'date', 'column_type' => ColumnType::DATE, 'options' => ['index_enabled' => '1']],
                 ['column_name' => 'init_text', 'column_view_name' => 'init_text', 'column_type' => ColumnType::TEXT, 'options' => ['init_only' => '1']],
+                ['column_name' => 'null_text', 'column_view_name' => 'null_text', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
             ];
     
             foreach ($columns as $column) {
@@ -732,6 +733,7 @@ class TestDataSeeder extends Seeder
             ]);
 
             $user_id = array_get($user, 'id');
+            $today = \Carbon\Carbon::now();
 
             for ($i = 1; $i <= $options['count']; $i++) {
                 $custom_value = $custom_table->getValueModel();
@@ -740,8 +742,17 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("index_text", 'index_'.$user_id.'_'.$i);
                 $custom_value->setValue("odd_even", ($i % 2 == 0 ? 'even' : 'odd'));
                 $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
-                $custom_value->setValue("date", \Carbon\Carbon::now());
+                $date_value = null;
+                if ($user_id % 2 == 0) {
+                    if ($i !== 1) {
+                        $date_value = \Carbon\Carbon::create(2018, 12, 28)->addDay($i);
+                    }
+                } else {
+                    $date_value = \Carbon\Carbon::now()->addDay($i-4);
+                }
+                $custom_value->setValue("date", $date_value);
                 $custom_value->setValue("init_text", 'init_text');
+                $custom_value->setValue("null_text", rand(0, 1) == 0? null: 'null_text_'.$user_id);
                 $custom_value->created_user_id = $user_id;
                 $custom_value->updated_user_id = $user_id;
 
