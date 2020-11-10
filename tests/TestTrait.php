@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests;
 
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Tests\TestDefine;
 
 trait TestTrait
 {
@@ -70,5 +71,52 @@ trait TestTrait
 
             $this->assertTrue($hasPermission === $custom_table->hasPermissionData($all_custom_value->id), "id {$all_custom_value->id}'s permission expects {$hasPermissionString}, but wrong.");
         }
+    }
+
+    
+    protected function getTextDirPath() : string
+    {
+        $dir = storage_path('app/tests');
+        if(!\File::exists($dir)){
+            \File::makeDirectory($dir);
+        }
+
+        return $dir;
+    }
+
+    protected function getTextFilePath($fileName = 'file.txt') : string
+    {
+        $dir = $this->getTextDirPath();
+
+        // create file
+        $file = path_join($dir, $fileName);
+        if(!\File::exists($file)){
+            \File::put($file, TestDefine::FILE_BASE64);
+        }
+        return $file;
+    }
+
+    protected function getTextImagePath($imageName = 'image.png'){
+        $dir = $this->getTextDirPath();
+        // create file
+        $file = path_join($dir, $imageName);
+        if(!\File::exists($file)){
+            // convert to base64. This string is 1*1 rad color's image
+            $f = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAANSURBVBhXY3gro/IfAAVUAi3GPZKdAAAAAElFTkSuQmCC');
+            \File::put($file, $f);
+        }
+        return $file;
+    }
+    
+    protected function getTextFileObject($fileName = 'file.txt')
+    {
+        $file = $this->getTextFilePath($fileName);
+        return \File::get($file);
+    }
+
+    protected function getTextImageObject($imageName = 'image.png')
+    {
+        $file = $this->getTextImagePath($imageName);
+        return \File::get($file);
     }
 }

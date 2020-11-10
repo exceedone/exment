@@ -136,44 +136,25 @@ class NotifyTest extends UnitTestBase
         });
     }
 
-    // public function testNotifyMail3()
-    // {
-    //     $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'data_saved_notify')->first();
-
-    //     $subject = 'テスト ${prms1} ${prms2}';
-    //     $body = '本文です。${prms3} ${prms4}';
-    //     $to = 'foobar@test.com';
-
-    //     $this->_testNotifyMail([
-    //         'subject' => $subject,
-    //         'body' => $body,
-    //         'to' => $to,
-    //         'prms' => [
-    //             'prms1' => 'AAA',
-    //             'prms2' => 'BBB',
-    //             'prms3' => 'CCC',
-    //             'prms4' => 'DDD',
-    //         ],
-    //     ], function($notifiable) use($to) {
-    //         return ($notifiable->getTo() ==  $to) &&
-    //             ($notifiable->getSubject() == 'テスト AAA BBB') &&
-    //             ($notifiable->getBody() == '本文です。CCC DDD');
-    //     });
-    // }
-
-    protected function _testNotifyMail(array $params, \Closure $checkCallback)
+    public function testNotifyMailDisdableHistory()
     {
-        Notification::fake();
-        Notification::assertNothingSent();
+        $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'password_notify')->first();
 
-        $notifiable = NotifyService::notifyMail($params);
+        $subject = $mail_template->getValue('mail_subject');
+        $body = $mail_template->getValue('mail_body');
+        $to = 'foobar@test.com';
 
-        Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
-            function($notification, $channels, $notifiable) use($checkCallback) {
-                return $checkCallback($notifiable);
-            });
+        $this->_testNotifyMail([
+            'subject' => $subject,
+            'body' => $body,
+            'to' => $to,
+            'disableHistoryBody' => true,
+        ], function($notifiable) use($to, $subject, $body) {
+            return ($notifiable->getTo() == arrayToString(\Exment::getAddress($to))) &&
+                ($notifiable->getSubject() == $subject) &&
+                ($notifiable->getBody() == $body);
+        });
     }
-
     
 
     public function testNotifySlack()
@@ -362,5 +343,19 @@ class NotifyTest extends UnitTestBase
         $this->assertEquals(array_get($data, 'trigger_user_id'), $user->id);
         $this->assertEquals(array_get($data, 'notify_subject'), $subject);
         $this->assertEquals(array_get($data, 'notify_body'), $body);
+    }
+
+    
+    protected function _testNotifyMail(array $params, \Closure $checkCallback)
+    {
+        Notification::fake();
+        Notification::assertNothingSent();
+
+        $notifiable = NotifyService::notifyMail($params);
+
+        Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
+            function($notification, $channels, $notifiable) use($checkCallback) {
+                return $checkCallback($notifiable);
+            });
     }
 }

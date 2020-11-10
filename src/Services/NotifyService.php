@@ -437,6 +437,7 @@ class NotifyService
                 'cc' => [],
                 'bcc' => [],
                 'attach_files' => null,
+                'disableHistoryBody' => false,
                 'replaceOptions' => [],
             ],
             $params
@@ -446,6 +447,10 @@ class NotifyService
         // send mail
         try {
             $sender = Notifications\MailSender::make($params['mail_template'], $params['user'] ?? $params['to']);
+            if(boolval($params['disableHistoryBody'])){
+                $sender->disableHistoryBody();
+            }
+            
             $sender->prms($params['prms'])
                 ->user($params['user'])
                 ->to($params['to'])

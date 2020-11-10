@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests;
 class TestDefine
 {
     public const TESTDATA_USER_LOGINID_ADMIN = '1'; // admin
+    public const TESTDATA_USER_LOGINID_USER1 = '2'; // user1
     public const TESTDATA_USER_LOGINID_USER2 = '3'; // user2
     public const TESTDATA_USER_LOGINID_DEV1_USERC = '7'; //dev1-userC
 
@@ -41,6 +42,8 @@ class TestDefine
     public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX = 'user_relation_filter_ajax';
     public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX_VIEW = 'user_relation_filter_ajax_view';
     
+    public const FILE_BASE64 = 'dGVzdA=='; //"test" text file.
+
     public const TESTDATA_COLUMN_NAMES = [
         'default' => [
             'default' => self::TESTDATA_COLUMN_NAME_CHILD,
