@@ -4,8 +4,6 @@ namespace Exceedone\Exment\Notifications;
 
 trait WebhookTrait
 {
-    protected $subject;
-    protected $body;
     protected $webhook_url;
 
     /**
@@ -21,30 +19,10 @@ trait WebhookTrait
     /**
      * Get the webhook url.
      *
-     * @return String
+     * @return string
      */
     public function getWebhookUrl()
     {
         return $this->webhook_url;
-    }
-
-    /**
-     * Get the subject of message.
-     *
-     * @return String
-     */
-    public function getSubject()
-    {
-        return $this->subject;
-    }
-
-    /**
-     * Get the body of message.
-     *
-     * @return String
-     */
-    public function getBody()
-    {
-        return $this->body;
     }
 }

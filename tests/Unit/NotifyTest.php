@@ -15,8 +15,30 @@ use Carbon\Carbon;
 
 class NotifyTest extends UnitTestBase
 {
-    // TODO : Now notify mail is not Notifiable, If support Notifiable, append test. ----------------------------------------------------
+    public function testNotifyMail()
+    {
+        Notification::fake();
+        Notification::assertNothingSent();
+    
+        $subject = 'テスト';
+        $body = '本文です';
+        $to = 'foobar@test.com';
 
+        $notifiable = NotifyService::notifyMail([
+            'subject' => $subject,
+            'body' => $body,
+            'to' => $to,
+        ]);
+
+        Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
+            function($notification, $channels, $notifiable) use($to, $subject, $body) {
+                return ($notifiable->getTo() == $to) &&
+                    ($notifiable->getSubject() == $subject) &&
+                    ($notifiable->getBody() == $body);
+            });
+    }
+
+    
 
     public function testNotifySlack()
     {
@@ -40,6 +62,7 @@ class NotifyTest extends UnitTestBase
                     ($notifiable->getBody() == $body);
             });
     }
+
 
     public function testNotifyTeams()
     {

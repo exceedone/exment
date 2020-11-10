@@ -421,7 +421,7 @@ class NotifyService
      * Notify email
      *
      * @param array $params
-     * @return void
+     * @return Notifications\SenderBase
      */
     public static function notifyMail(array $params = [])
     {
@@ -445,18 +445,20 @@ class NotifyService
 
         // send mail
         try {
-            Notifications\MailSender::make($params['mail_template'], $params['user'] ?? $params['to'])
-            ->prms($params['prms'])
-            ->user($params['user'])
-            ->to($params['to'])
-            ->custom_value($params['custom_value'])
-            ->subject($params['subject'])
-            ->body($params['body'])
-            ->cc($params['cc'])
-            ->bcc($params['bcc'])
-            ->attachments($params['attach_files'])
-            ->replaceOptions($params['replaceOptions'])
-            ->send();
+            $sender = Notifications\MailSender::make($params['mail_template'], $params['user'] ?? $params['to']);
+            $sender->prms($params['prms'])
+                ->user($params['user'])
+                ->to($params['to'])
+                ->custom_value($params['custom_value'])
+                ->subject($params['subject'])
+                ->body($params['body'])
+                ->cc($params['cc'])
+                ->bcc($params['bcc'])
+                ->attachments($params['attach_files'])
+                ->replaceOptions($params['replaceOptions'])
+                ->send();
+
+            return $sender;
         }
         // throw mailsend Exception
         catch (\Swift_TransportException $ex) {
@@ -519,7 +521,7 @@ class NotifyService
      * Notify slack
      *
      * @param array $params
-     * @return Notifications\SenderInterface
+     * @return Notifications\SenderBase
      */
     public static function notifySlack(array $params = [])
     {
@@ -531,7 +533,7 @@ class NotifyService
      * Notify teams
      *
      * @param array $params
-     * @return Notifications\SenderInterface
+     * @return Notifications\SenderBase
      */
     public static function notifyTeams(array $params = [])
     {
@@ -544,9 +546,9 @@ class NotifyService
      *
      * @param array $params
      * @param string $className
-     * @return Notifications\SenderInterface
+     * @return Notifications\SenderBase
      */
-    protected static function notifyWebHook(array $params, string $className) : Notifications\SenderInterface
+    protected static function notifyWebHook(array $params, string $className) : Notifications\SenderBase
     {
         $params = array_merge(
             [

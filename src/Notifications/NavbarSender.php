@@ -7,13 +7,11 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\NotifyNavbar;
 
-class NavbarSender implements SenderInterface
+class NavbarSender extends SenderBase
 {
     use Notifiable;
     
     protected $notify_id;
-    protected $subject;
-    protected $body;
     protected $custom_value;
     protected $user;
     

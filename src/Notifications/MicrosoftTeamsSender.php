@@ -6,7 +6,7 @@ use Illuminate\Notifications\Notifiable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Jobs;
 
-class MicrosoftTeamsSender implements SenderInterface
+class MicrosoftTeamsSender extends SenderBase
 {
     use Notifiable;
     use WebhookTrait;

@@ -13,9 +13,10 @@ use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\ZipService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Notifications\Notification;
 use Carbon\Carbon;
 
-class MailSendJob implements ShouldQueue
+class MailSendJob extends Notification implements ShouldQueue
 {
     use JobTrait;
 
@@ -57,7 +58,24 @@ class MailSendJob implements ShouldQueue
         }
     }
 
-    public function handle()
+    /**
+     * Get the notification's delivery channels.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function via($notifiable)
+    {
+        return ['mail'];
+    }
+
+    /**
+     * Build the mail representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return \Illuminate\Notifications\Messages\MailMessage
+     */
+    public function toMail($notifiable)
     {
         $this->sendMail();
 
@@ -77,6 +95,8 @@ class MailSendJob implements ShouldQueue
             $this->saveMailSendHistory();
         }
     }
+
+
     protected function sendMail($subject = null, $body = null, $noAttach = false)
     {
         $tmpZipPath = null;

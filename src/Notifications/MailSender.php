@@ -8,18 +8,19 @@ use Exceedone\Exment\Jobs\MailSendJob;
 use Illuminate\Support\Facades\Mail;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
 use Exceedone\Exment\Services\NotifyService;
+use Illuminate\Notifications\Notifiable;
 
 /**
  * Send Mail System
  */
-class MailSender implements SenderInterface
+class MailSender extends SenderBase
 {
+    use Notifiable;
+
     protected $from;
     protected $to;
     protected $cc;
     protected $bcc;
-    protected $subject;
-    protected $body;
     protected $attachments;
 
     protected $mail_template;
@@ -175,6 +176,16 @@ class MailSender implements SenderInterface
     }
     
     /**
+     * Get to address.
+     *
+     * @return string
+     */
+    public function getTo()
+    {
+        return $this->to;
+    }
+
+    /**
      * Send Mail
      *
      */
@@ -184,9 +195,7 @@ class MailSender implements SenderInterface
         $subject = NotifyService::replaceWord($this->subject, $this->custom_value, $this->prms, $this->replaceOptions);
         $body = NotifyService::replaceWord($this->body, $this->custom_value, $this->prms, $this->replaceOptions);
 
-        // dispatch jobs
-        MailSendJob::dispatch(
-            $this->from,
+        $job = new MailSendJob($this->from,
             $this->to,
             $subject,
             $body,
@@ -201,6 +210,8 @@ class MailSender implements SenderInterface
                 'prms' => $this->prms,
             ]
         );
+        $this->notify($job);
+
         return true;
     }
     

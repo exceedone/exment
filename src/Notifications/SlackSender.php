@@ -7,7 +7,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Jobs;
 
-class SlackSender implements SenderInterface
+class SlackSender extends SenderBase
 {
     use Notifiable;
     use WebhookTrait;
