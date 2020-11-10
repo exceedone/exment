@@ -657,6 +657,10 @@ var Exment;
                 return;
             }
             let column_type = $target.data('column_type');
+            // if has data-disable-setvalue, return (For use view only)
+            if (pBool($target.data('disable-setvalue'))) {
+                return;
+            }
             // if 'image' or 'file', cannot setValue, continue
             if ($.inArray(column_type, ['file', 'image']) != -1) {
                 return;

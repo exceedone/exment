@@ -78,7 +78,7 @@ class Tinymce extends Textarea
             'valid_elements' => $this->getValidElements(),
             'convert_urls' => false,
             'paste_enable_default_filters' => false,
-            'paste_data_images' => false,
+            'paste_data_images' => $enableImage,
         ], $this->config);
 
         if ($enableImage) {

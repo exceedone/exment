@@ -1562,7 +1562,7 @@ abstract class CustomValue extends ModelBase
         }
         
         if (method_exists($this, 'disabled_delete_trait') && $this->disabled_delete_trait()) {
-            return ErrorCode::DELETE_DISABLED;
+            return ErrorCode::DELETE_DISABLED();
         }
         
         if (!is_null($parent_value = $this->getParentValue()) && ($code = $parent_value->enableDelete($checkFormAction)) !== true) {
