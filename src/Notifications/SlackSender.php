@@ -7,15 +7,13 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Jobs;
 
-class SlackSender
+class SlackSender implements SenderInterface
 {
     use Notifiable;
+    use WebhookTrait;
     
     protected $name;
     protected $icon;
-    protected $subject;
-    protected $body;
-    protected $webhook_url;
     protected $mention_here = false;
     protected $mention_users = [];
     

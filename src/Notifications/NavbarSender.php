@@ -7,7 +7,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\NotifyNavbar;
 
-class NavbarSender
+class NavbarSender implements SenderInterface
 {
     use Notifiable;
     

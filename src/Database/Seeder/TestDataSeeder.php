@@ -680,6 +680,9 @@ class TestDataSeeder extends Seeder
         $notify_id = $this->createNotify($custom_table);
         $options['notify_id'] = $notify_id;
 
+        $notify_button_id = $this->createNotifyButton($custom_table);
+        $notify_limit_id = $this->createNotifyLimit($custom_table);
+
         if (isset($createValueCallback)) {
             $options['custom_values'] = $createValueCallback($custom_table, $options);
         } elseif ($createValue) {
@@ -782,6 +785,60 @@ class TestDataSeeder extends Seeder
         $notify->custom_table_id = $custom_table->id;
         $notify->notify_trigger = 2;
         $notify->mail_template_id = 6;
+        $notify->trigger_settings = [
+            "notify_saved_trigger" => ["created","updated","deleted","shared","comment","attachmented"]
+        ];
+        $notify->action_settings = [[
+            "notify_action" => NotifyAction::SHOW_PAGE,
+            "notify_action_target" => ["created_user"],
+        ]];
+        $notify->save();
+        return $notify->id;
+    }
+
+    /**
+     * Create Notify
+     *
+     * @return string|int notify id
+     */
+    protected function createNotifyButton($custom_table)
+    {
+        $notify = new Notify;
+        $notify->notify_view_name = $custom_table->table_name . '_notify_button';
+        $notify->custom_table_id = $custom_table->id;
+        $notify->notify_trigger = 3;
+        $notify->mail_template_id = 5;
+        $notify->trigger_settings = [
+            "notify_button_name" => "let's notify"];
+        $notify->action_settings = [[
+            "notify_action" => NotifyAction::SHOW_PAGE,
+            "notify_action_target" => ["created_user"],
+        ]];
+        $notify->save();
+        return $notify->id;
+    }
+
+    /**
+     * Create Notify
+     *
+     * @return string|int notify id
+     */
+    protected function createNotifyLimit($custom_table)
+    {
+        $column = CustomColumn::getEloquent('date', $custom_table);
+        if (!isset($column)) return null;
+        $notify = new Notify;
+        $notify->notify_view_name = $custom_table->table_name . '_notify_limit';
+        $notify->custom_table_id = $custom_table->id;
+        $notify->notify_trigger = 1;
+        $notify->mail_template_id = 5;
+        $notify->trigger_settings = [
+            "notify_target_column" => $column->id,
+            "notify_day" => '0',
+            "notify_beforeafter" => '-1',
+            "notify_hour" => '2',
+            "notify_myself" => '0',
+        ];
         $notify->action_settings = [[
             "notify_action" => NotifyAction::SHOW_PAGE,
             "notify_action_target" => ["created_user"],

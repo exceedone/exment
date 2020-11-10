@@ -519,7 +519,7 @@ class NotifyService
      * Notify slack
      *
      * @param array $params
-     * @return void
+     * @return Notifications\SenderInterface
      */
     public static function notifySlack(array $params = [])
     {
@@ -531,7 +531,7 @@ class NotifyService
      * Notify teams
      *
      * @param array $params
-     * @return void
+     * @return Notifications\SenderInterface
      */
     public static function notifyTeams(array $params = [])
     {
@@ -539,7 +539,14 @@ class NotifyService
     }
 
 
-    protected static function notifyWebHook(array $params, string $className)
+    /**
+     * Notify webhool
+     *
+     * @param array $params
+     * @param string $className
+     * @return Notifications\SenderInterface
+     */
+    protected static function notifyWebHook(array $params, string $className) : Notifications\SenderInterface
     {
         $params = array_merge(
             [
@@ -568,7 +575,10 @@ class NotifyService
 
         // send message
         $options = ['webhook_name' => $params['webhook_name'], 'webhook_icon' => $params['webhook_icon'], 'mention_here' => $params['mention_here'], 'mention_users' => $params['mention_users']];
-        $className::make($webhook_url, $slack_subject, $slack_body, $options)->send();
+        $sender = $className::make($webhook_url, $slack_subject, $slack_body, $options);
+        $sender->send();
+
+        return $sender;
     }
 
 

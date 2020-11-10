@@ -12,7 +12,7 @@ use Exceedone\Exment\Services\NotifyService;
 /**
  * Send Mail System
  */
-class MailSender
+class MailSender implements SenderInterface
 {
     protected $from;
     protected $to;
@@ -202,5 +202,15 @@ class MailSender
             ]
         );
         return true;
+    }
+    
+    /**
+     * Get the value of the notifiable's primary key.
+     *
+     * @return String
+     */
+    public function getKey()
+    {
+        return $this->to;
     }
 }
