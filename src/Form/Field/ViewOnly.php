@@ -27,6 +27,7 @@ class ViewOnly extends Display
     {
         return parent::render()->with([
             'prepareDefault'   => $this->prepareDefault,
+            'default'          => $this->default,
         ]);
     }
 }

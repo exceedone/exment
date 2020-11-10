@@ -208,7 +208,8 @@ class FileController extends AdminControllerBase
         $response->header("Content-Type", $type);
 
         // Disposition is attachment because inline is SVG XSS.
-        $response->header('Content-Disposition', "attachment; filename*=UTF-8''$name");
+        $disposition = static::isDispositionInline($name) ? 'inline' : 'attachment';
+        $response->header('Content-Disposition', "$disposition; filename*=UTF-8''$name");
 
         return $response;
     }
@@ -379,5 +380,28 @@ class FileController extends AdminControllerBase
         $this->removeTempFiles();
 
         return static::downloadTemp($uuid);
+    }
+
+    
+    /**
+     * Whether this file downloads as inline
+     *
+     * @param string $fileName
+     * @return boolean
+     */
+    protected static function isDispositionInline($fileName) : bool
+    {
+        $ext = pathinfo($fileName, PATHINFO_EXTENSION);
+        if(is_nullorempty($ext)){
+            return false;
+        }
+        
+        // get inlines
+        $inlines = stringToArray(config('exment.file_download_inline_extensions', []));
+        $inlines = collect($inlines)->map(function($inline){
+            return strtolower($inline);
+        })->filter()->toArray();
+
+        return in_array(strtolower($ext), $inlines);
     }
 }
