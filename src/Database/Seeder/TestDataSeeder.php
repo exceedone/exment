@@ -32,6 +32,7 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Database\Seeder;
 
 class TestDataSeeder extends Seeder
@@ -60,6 +61,8 @@ class TestDataSeeder extends Seeder
         $this->createAllColumnsTable($menu);
 
         $this->createApiSetting();
+
+        $this->createMailTemplate();
     }
 
     protected function createSystem()
@@ -766,6 +769,14 @@ class TestDataSeeder extends Seeder
                     $this->createNotifyNavbar($custom_table, $options['notify_id'], $custom_value, 0);
                 }
 
+
+                // set attachment
+                if($i === 1){
+                    Model\File::storeAs(TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt')
+                        ->saveCustomValue($custom_value->id, null, $custom_table)
+                        ->saveDocumentModel($custom_value, 'test.txt');
+                }
+
                 $custom_values[] = $custom_value;
             }
         }
@@ -773,6 +784,22 @@ class TestDataSeeder extends Seeder
         return $custom_values;
     }
     
+    
+    protected function createMailTemplate()
+    {
+        $custom_table = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE);
+        $custom_value = $custom_table->getValueModel();
+
+        $custom_value->setValue([
+            'mail_key_name' => 'test_template_1',
+            'mail_view_name' => 'test_template_1',
+            'mail_template_type' => 'body',
+            'mail_subject' => 'test_mail_1',
+            'mail_body' => 'test_mail_1',
+        ])->save();
+    }
+    
+
     /**
      * Create Notify
      *
@@ -815,11 +842,16 @@ class TestDataSeeder extends Seeder
                 'view_name' => "let's notify multiple",
                 'action_settings' => [[
                     "notify_action" => NotifyAction::SHOW_PAGE,
-                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
-                ], [
-                    "notify_action" => NotifyAction::EMAIL,
                     "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER, Enums\NotifyActionTarget::HAS_ROLES],
-                ], ],
+                ]],
+            ],
+            [
+                'name' => $custom_table->table_name . '_notify_button_email',
+                'view_name' => "let's notify email",
+                'action_settings' => [[
+                    "notify_action" => NotifyAction::EMAIL,
+                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
+                ]],
             ],
         ];
 

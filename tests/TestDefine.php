@@ -44,6 +44,7 @@ class TestDefine
     public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX_VIEW = 'user_relation_filter_ajax_view';
     
     public const FILE_BASE64 = 'dGVzdA=='; //"test" text file.
+    public const FILE_TESTSTRING = 'This is test file'; //text file.
 
     public const TESTDATA_COLUMN_NAMES = [
         'default' => [

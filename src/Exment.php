@@ -367,33 +367,7 @@ class Exment
         return exmtrans('user.help.password');
     }
 
-    /**
-     * Get User Mail Address
-     *
-     * @param string|array|CustomValue|NotifyTarget $users
-     * @return array
-     */
-    public function getAddress($users)
-    {
-        // Convert "," string to array
-        if (is_string($users)) {
-            $users = stringToArray($users);
-        } elseif (!is_list($users)) {
-            $users = [$users];
-        }
-        $addresses = [];
-        foreach ($users as $user) {
-            if ($user instanceof CustomValue) {
-                $addresses[] = $user->getValue('email');
-            } elseif ($user instanceof NotifyTarget) {
-                $addresses[] = $user->email();
-            } else {
-                $addresses[] = $user;
-            }
-        }
-        return $addresses;
-    }
-
+    
     /**
      * get Data from excel sheet
      */

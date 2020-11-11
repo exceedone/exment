@@ -105,10 +105,10 @@ class MailSendJob extends Notification implements ShouldQueue
             $subject = $subject ?? $this->subject;
             $body = $body ?? $this->body;
 
-            $message->to(\Exment::getAddress($this->to))->subject($subject);
-            $message->from(\Exment::getAddress($this->from));
-            $message->cc(\Exment::getAddress($this->cc));
-            $message->bcc(\Exment::getAddress($this->bcc));
+            $message->to(NotifyService::getAddress($this->to))->subject($subject);
+            $message->from(NotifyService::getAddress($this->from));
+            $message->cc(NotifyService::getAddress($this->cc));
+            $message->bcc(NotifyService::getAddress($this->bcc));
 
             // set attachment
             if (!$noAttach && collect($this->attachments)->count() > 0) {
@@ -168,10 +168,10 @@ class MailSendJob extends Notification implements ShouldQueue
         $modelname = getModelName(SystemTableName::MAIL_SEND_LOG);
         $model = new $modelname;
 
-        $model->setValue('mail_from', implode(",", \Exment::getAddress($this->from)) ?? null);
-        $model->setValue('mail_to', implode(",", \Exment::getAddress($this->to)) ?? null);
-        $model->setValue('mail_cc', implode(",", \Exment::getAddress($this->cc)) ?? null);
-        $model->setValue('mail_bcc', implode(",", \Exment::getAddress($this->bcc)) ?? null);
+        $model->setValue('mail_from', implode(",", NotifyService::getAddress($this->from)) ?? null);
+        $model->setValue('mail_to', implode(",", NotifyService::getAddress($this->to)) ?? null);
+        $model->setValue('mail_cc', implode(",", NotifyService::getAddress($this->cc)) ?? null);
+        $model->setValue('mail_bcc', implode(",", NotifyService::getAddress($this->bcc)) ?? null);
         $model->setValue('mail_subject', $this->subject);
         $model->setValue('mail_template', $this->mail_template->id);
         $model->setValue('send_datetime', Carbon::now()->format('Y-m-d H:i:s'));

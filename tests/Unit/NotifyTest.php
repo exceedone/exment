@@ -80,7 +80,7 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
             'to' => $to,
         ], function($notifiable) use($to, $subject, $body) {
-            return ($notifiable->getTo() == arrayToString(\Exment::getAddress($to))) &&
+            return ($notifiable->getTo() == arrayToString(NotifyService::getAddress($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
         });
@@ -97,7 +97,7 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
             'to' => $to,
         ], function($notifiable) use($to, $subject, $body) {
-            return ($notifiable->getTo() == arrayToString(\Exment::getAddress($to))) &&
+            return ($notifiable->getTo() == arrayToString(NotifyService::getAddress($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
         });
@@ -114,7 +114,7 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
             'to' => $to,
         ], function($notifiable) use($to, $subject, $body) {
-            return ($notifiable->getTo() == arrayToString(\Exment::getAddress($to))) &&
+            return ($notifiable->getTo() == arrayToString(NotifyService::getAddress($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
         });
@@ -131,7 +131,7 @@ class NotifyTest extends UnitTestBase
             'body' => $body,
             'to' => $to,
         ], function($notifiable) use($to, $subject, $body) {
-            return ($notifiable->getTo() == arrayToString(\Exment::getAddress($to))) &&
+            return ($notifiable->getTo() == arrayToString(NotifyService::getAddress($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
         });
@@ -151,7 +151,7 @@ class NotifyTest extends UnitTestBase
             'to' => $to,
             'disableHistoryBody' => true,
         ], function($notifiable) use($to, $subject, $body) {
-            return ($notifiable->getTo() == arrayToString(\Exment::getAddress($to))) &&
+            return ($notifiable->getTo() == arrayToString(NotifyService::getAddress($to))) &&
                 ($notifiable->getSubject() == $subject) &&
                 ($notifiable->getBody() == $body);
         });
