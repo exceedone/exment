@@ -370,6 +370,10 @@ trait ExtendedBuilderTrait
             return $this->whereRaw('1 = 0');
         }
 
+        if (preg_match("|^\d{4}$|", $value)) {
+            $value = Carbon::create($value, 1, 1);
+        }
+
         if (is_string($value)) {
             $value = Carbon::parse($value);
         }

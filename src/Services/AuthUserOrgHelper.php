@@ -29,16 +29,16 @@ class AuthUserOrgHelper
     public static function getRoleOrganizationQueryTable($target_table, $tablePermission = null, $builder = null)
     {
         if (!System::organization_available()) {
-            return [];
+            return null;
         }
 
         if (is_null($target_table)) {
-            return [];
+            return null;
         }
 
         $target_table = CustomTable::getEloquent($target_table);
         if (is_null($target_table)) {
-            return [];
+            return null;
         }
 
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS, $target_table->id);
@@ -55,7 +55,7 @@ class AuthUserOrgHelper
     {
         $target_table = CustomTable::getEloquent($target_table);
         if (is_null($target_table)) {
-            return [];
+            return null;
         }
 
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS, $target_table->id);
@@ -72,7 +72,7 @@ class AuthUserOrgHelper
     public static function getRoleUserAndOrgBelongsUserQueryTable($target_table, $tablePermission = null, $builder = null)
     {
         if (is_null($target_table)) {
-            return [];
+            return null;
         }
         $target_table = CustomTable::getEloquent($target_table);
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS_ORGS, $target_table->id);
@@ -84,8 +84,8 @@ class AuthUserOrgHelper
             }
 
             // and get authoritiable organization
-            $organizations = static::getRoleOrganizationQueryTable($target_table)
-                ->get() ?? [];
+            $orgQuery = $organizations = static::getRoleOrganizationQueryTable($target_table);
+            $organizations = $orgQuery ? $orgQuery->get() : [];
             foreach ($organizations as $organization) {
                 // get JoinedOrgFilterType. this method is for org_joined_type_role_group. get users for has role groups.
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ONLY_JOIN);
@@ -180,10 +180,12 @@ class AuthUserOrgHelper
                 // get custom table's user ids(contains all table and permission role group)
                 $func = $idkey == SystemTableName::USER ? 'getRoleUserAndOrgBelongsUserQueryTable' : 'getRoleOrganizationQueryTable';
                 $queryTable = static::{$func}($custom_value->custom_table, $tablePermission);
-                $queryTable->withoutGlobalScope(CustomValueModelScope::class);
+                if(!is_nullorempty($queryTable)){
+                    $queryTable->withoutGlobalScope(CustomValueModelScope::class);
 
-                $tablename = getDBTableName($idkey);
-                $ids[$idkey] = array_merge($queryTable->pluck("$tablename.id")->toArray(), $ids[$idkey]);
+                    $tablename = getDBTableName($idkey);
+                    $ids[$idkey] = array_merge($queryTable->pluck("$tablename.id")->toArray(), $ids[$idkey]);
+                }
 
                 // get real value
                 $results[$idkey] = getModelName($idkey)::query()
