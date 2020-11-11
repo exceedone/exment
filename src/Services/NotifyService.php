@@ -763,12 +763,12 @@ class NotifyService
 
     
     /**
-     * Get User Mail Address
+     * Get User Mail Address list
      *
      * @param string|array|CustomValue|NotifyTarget $users
      * @return array
      */
-    public static function getAddress($users)
+    public static function getAddresses($users)
     {
         // Convert "," string to array
         if (is_string($users)) {

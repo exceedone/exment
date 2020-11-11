@@ -182,7 +182,7 @@ class MailSender extends SenderBase
      */
     public function getTo()
     {
-        return arrayToString(NotifyService::getAddress($this->to));
+        return arrayToString(NotifyService::getAddresses($this->to));
     }
 
     /**
