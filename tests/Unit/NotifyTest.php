@@ -34,9 +34,9 @@ class NotifyTest extends UnitTestBase
         });
     }
 
-    public function testNotifyMail2()
+    public function testNotifyMailTemplate()
     {
-        $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'data_saved_notify')->first();
+        $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'test_template_1')->first();
 
         $subject = $mail_template->getValue('mail_subject');
         $body = $mail_template->getValue('mail_body');
@@ -45,6 +45,28 @@ class NotifyTest extends UnitTestBase
         $this->_testNotifyMail([
             'mail_template' => $mail_template,
             'to' => $to,
+        ], function($notifiable) use($to, $subject, $body) {
+            return ($notifiable->getTo() == $to) &&
+                ($notifiable->getSubject() == $subject) &&
+                ($notifiable->getBody() == $body);
+        });
+    }
+
+    public function testNotifyMailTemplateParams()
+    {
+        $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'test_template_2')->first();
+
+        $subject = 'test_mail_2 AAA BBB';
+        $body = $subject;
+        $to = 'foobar@test.com';
+
+        $this->_testNotifyMail([
+            'mail_template' => $mail_template,
+            'to' => $to,
+            'prms' => [
+                'prms1' => 'AAA',
+                'prms2' => 'BBB',
+            ],
         ], function($notifiable) use($to, $subject, $body) {
             return ($notifiable->getTo() == $to) &&
                 ($notifiable->getSubject() == $subject) &&
@@ -139,7 +161,7 @@ class NotifyTest extends UnitTestBase
 
     public function testNotifyMailDisdableHistory()
     {
-        $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'password_notify')->first();
+        $mail_template = CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', 'test_template_1')->first();
 
         $subject = $mail_template->getValue('mail_subject');
         $body = $mail_template->getValue('mail_body');
@@ -164,6 +186,9 @@ class NotifyTest extends UnitTestBase
         $body = '本文です';
         $to = 'foobar@test.com';
 
+        // noot use archive
+        \Config::set('exment.archive_attachment', false);
+
         // get file
         $file = Model\File::whereNotNull('parent_id')->whereNotNull('parent_type')
             ->first();
@@ -183,7 +208,7 @@ class NotifyTest extends UnitTestBase
                     return false;
                 };
 
-            return count($notifiable->getAttachments()) == 1 && $notifiable->getAttachments()[0]->id == $file->id;
+            return count($notifiable->getAttachments()) == 1 && $notifiable->getAttachments()[0]->filename == $file->filename;
         });
     }
 

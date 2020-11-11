@@ -768,7 +768,7 @@ class NotifyService
      * @param string|array|CustomValue|NotifyTarget $users
      * @return array
      */
-    public static function getAddresses($users)
+    public static function getAddresses($users) : array
     {
         // Convert "," string to array
         if (is_string($users)) {

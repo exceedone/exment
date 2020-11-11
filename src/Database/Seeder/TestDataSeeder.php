@@ -794,14 +794,21 @@ class TestDataSeeder extends Seeder
     protected function createMailTemplate()
     {
         $custom_table = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE);
-        $custom_value = $custom_table->getValueModel();
 
-        $custom_value->setValue([
+        $custom_table->getValueModel()->setValue([
             'mail_key_name' => 'test_template_1',
             'mail_view_name' => 'test_template_1',
             'mail_template_type' => 'body',
             'mail_subject' => 'test_mail_1',
             'mail_body' => 'test_mail_1',
+        ])->save();
+
+        $custom_table->getValueModel()->setValue([
+            'mail_key_name' => 'test_template_2',
+            'mail_view_name' => 'test_template_2',
+            'mail_template_type' => 'body',
+            'mail_subject' => 'test_mail_2 ${prms1} ${prms2}',
+            'mail_body' => 'test_mail_2 ${prms1} ${prms2}',
         ])->save();
     }
     
