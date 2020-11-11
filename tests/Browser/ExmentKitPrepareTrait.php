@@ -19,7 +19,7 @@ trait ExmentKitPrepareTrait
             'relation_type' => $relation_type,
         ];
         // Create custom relation
-        $this->visit("/admin/relation/$parent_table/create")
+        $this->visit(admin_url("relation/$parent_table/create"))
                 ->submitForm('admin-submit', $data)
                 ->seePageIs('/admin/relation/' . $parent_table)
                 ->seeInElement('td', array_get($row, 'table_view_name'));
@@ -52,7 +52,7 @@ trait ExmentKitPrepareTrait
             'options[all_user_editable_flg]' => '1'
         ];
         // Create custom table
-        $this->visit('/admin/table/create')
+        $this->visit(admin_url('table/create'))
                 ->submitForm('admin-submit', $data)
                 ->seePageIs($redirectPath);
     }
@@ -190,9 +190,9 @@ trait ExmentKitPrepareTrait
         foreach($col_data as $data){
             if (is_null($targets) || in_array(array_get($data, 'column_type'), $targets)){
                 // Create custom column
-                $this->visit("/admin/column/$table_name")
+                $this->visit(admin_url("column/$table_name"))
                         ->seePageIs("/admin/column/$table_name")
-                        ->visit("/admin/column/$table_name/create")
+                        ->visit(admin_url("column/$table_name/create"))
                         ->submitForm('admin-submit', $data)
                         ->seePageIs("/admin/column/$table_name")
                         ->seeInElement('td', array_get($data, 'column_view_name'));

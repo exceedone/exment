@@ -11,8 +11,8 @@ class ALoginOutTest extends ExmentKitTestCase
      */
     public function testLoginFailWithWrongUsernameAndPass()
     {
-        $this->visit('/admin/auth/logout')
-                ->visit('/admin/auth/login')
+        $this->visit(admin_url('auth/logout'))
+                ->visit(admin_url('auth/login'))
                 ->type('abcde', 'username')
                 ->type('abcde', 'password')
                 ->press('ログイン')
@@ -25,7 +25,7 @@ class ALoginOutTest extends ExmentKitTestCase
      */
     public function testLoginFailWithWrongPass()
     {
-        $this->visit('/admin/auth/login')
+        $this->visit(admin_url('auth/login'))
                 ->type('testuser', 'username')
                 ->type('abcde', 'password')
                 ->press('ログイン')
@@ -38,7 +38,7 @@ class ALoginOutTest extends ExmentKitTestCase
      */
     public function testLoginFailWithWrongId()
     {
-        $this->visit('/admin/auth/login')
+        $this->visit(admin_url('auth/login'))
                 ->type('abcde', 'username')
                 ->type('test123456', 'password')
                 ->press('ログイン')
@@ -51,7 +51,7 @@ class ALoginOutTest extends ExmentKitTestCase
      */
     public function testLoginSuccessUserCode()
     {
-        $this->visit('/admin/auth/login')
+        $this->visit(admin_url('auth/login'))
                 ->type('user1', 'username')
                 ->type('user1user1', 'password')
                 ->press('ログイン')
@@ -64,8 +64,8 @@ class ALoginOutTest extends ExmentKitTestCase
      */
     public function testLoginSuccessEmail()
     {
-        $this->visit('/admin/auth/logout')
-                ->visit('/admin/auth/login')
+        $this->visit(admin_url('auth/logout'))
+                ->visit(admin_url('auth/login'))
                 ->type('user2@user.foobar.test', 'username')
                 ->type('user2user2', 'password')
                 ->press('ログイン')
