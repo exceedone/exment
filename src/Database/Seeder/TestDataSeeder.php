@@ -680,8 +680,8 @@ class TestDataSeeder extends Seeder
         $notify_id = $this->createNotify($custom_table);
         $options['notify_id'] = $notify_id;
 
-        $notify_button_id = $this->createNotifyButton($custom_table);
-        $notify_limit_id = $this->createNotifyLimit($custom_table);
+        $this->createNotifyButton($custom_table);
+        $this->createNotifyLimit($custom_table);
 
         if (isset($createValueCallback)) {
             $options['custom_values'] = $createValueCallback($custom_table, $options);
@@ -790,7 +790,7 @@ class TestDataSeeder extends Seeder
         ];
         $notify->action_settings = [[
             "notify_action" => NotifyAction::SHOW_PAGE,
-            "notify_action_target" => ["created_user"],
+            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
         ]];
         $notify->save();
         return $notify->id;
@@ -798,24 +798,42 @@ class TestDataSeeder extends Seeder
 
     /**
      * Create Notify
-     *
-     * @return string|int notify id
      */
     protected function createNotifyButton($custom_table)
     {
-        $notify = new Notify;
-        $notify->notify_view_name = $custom_table->table_name . '_notify_button';
-        $notify->custom_table_id = $custom_table->id;
-        $notify->notify_trigger = 3;
-        $notify->mail_template_id = 5;
-        $notify->trigger_settings = [
-            "notify_button_name" => "let's notify"];
-        $notify->action_settings = [[
-            "notify_action" => NotifyAction::SHOW_PAGE,
-            "notify_action_target" => ["created_user"],
-        ]];
-        $notify->save();
-        return $notify->id;
+        $items = [
+            [
+                'name' => $custom_table->table_name . '_notify_button_single',
+                'view_name' => "let's notify single",
+                'action_settings' => [[
+                    "notify_action" => NotifyAction::SHOW_PAGE,
+                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
+                ]],
+            ],
+            [
+                'name' => $custom_table->table_name . '_notify_button_multiple',
+                'view_name' => "let's notify multiple",
+                'action_settings' => [[
+                    "notify_action" => NotifyAction::SHOW_PAGE,
+                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
+                ], [
+                    "notify_action" => NotifyAction::EMAIL,
+                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER, Enums\NotifyActionTarget::HAS_ROLES],
+                ], ],
+            ],
+        ];
+
+        foreach($items as $item){
+            $notify = new Notify;
+            $notify->notify_view_name = $item['name'];
+            $notify->custom_table_id = $custom_table->id;
+            $notify->notify_trigger = 3;
+            $notify->mail_template_id = 5;
+            $notify->trigger_settings = [
+                "notify_button_name" => $item['view_name']];
+            $notify->action_settings = $item['action_settings'];
+            $notify->save();
+        }
     }
 
     /**
@@ -841,7 +859,7 @@ class TestDataSeeder extends Seeder
         ];
         $notify->action_settings = [[
             "notify_action" => NotifyAction::SHOW_PAGE,
-            "notify_action_target" => ["created_user"],
+            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
         ]];
         $notify->save();
         return $notify->id;

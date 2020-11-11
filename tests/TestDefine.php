@@ -10,6 +10,7 @@ class TestDefine
     public const TESTDATA_USER_LOGINID_DEV1_USERC = '7'; //dev1-userC
 
     public const TESTDATA_TABLE_NAME_VIEW_ALL = 'custom_value_view_all';
+    public const TESTDATA_TABLE_NAME_EDIT = 'custom_value_edit';
     public const TESTDATA_TABLE_NAME_VIEW = 'custom_value_view';
     
     public const TESTDATA_TABLE_NAME_PARENT_TABLE = 'parent_table';
