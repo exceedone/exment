@@ -32,6 +32,7 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Database\Seeder;
 
 class TestDataSeeder extends Seeder
@@ -60,6 +61,8 @@ class TestDataSeeder extends Seeder
         $this->createAllColumnsTable($menu);
 
         $this->createApiSetting();
+
+        $this->createMailTemplate();
     }
 
     protected function createSystem()
@@ -372,11 +375,12 @@ class TestDataSeeder extends Seeder
     protected function createAllColumnsTable($menu)
     {
         $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
+        $custom_table_edit = CustomTable::getEloquent('custom_value_edit');
         // cerate table
         $custom_table = $this->createTable('all_columns_table', [
                 'menuParentId' => $menu->id,
                 'count' => 0,
-                'createColumnCallback' => function ($custom_table, &$custom_columns) use ($custom_table_view_all) {
+                'createColumnCallback' => function ($custom_table, &$custom_columns) use ($custom_table_view_all, $custom_table_edit) {
                     // creating relation column
                     $columns = [
                         ['column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
@@ -393,6 +397,7 @@ class TestDataSeeder extends Seeder
                         ['column_type' => ColumnType::SELECT, 'options' => ['index_enabled' => '1', 'select_item' => "foo\r\nbar\r\nbaz"]],
                         ['column_type' => ColumnType::SELECT_VALTEXT, 'options' => ['index_enabled' => '1', 'select_item_valtext' => "foo,FOO\r\nbar,BAR\r\nbaz,BAZ"]],
                         ['column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_view_all->id]],
+                        ['column_name' => 'select_table_2', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_edit->id]],
                         ['column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
                         ['column_type' => ColumnType::BOOLEAN, 'options' => ['index_enabled' => '1', 'true_value' => 'ok', 'true_label' => 'OK', 'false_value' => 'ng', 'false_label' => 'NG']],
                         ['column_type' => ColumnType::AUTO_NUMBER, 'options' => ['index_enabled' => '1', 'auto_number_type' => 'random25']],
@@ -405,8 +410,8 @@ class TestDataSeeder extends Seeder
                     foreach ($columns as $column) {
                         $custom_column = CustomColumn::create([
                             'custom_table_id' => $custom_table->id,
-                            'column_name' => $column['column_type'],
-                            'column_view_name' => $column['column_type'],
+                            'column_name' => $column['column_name'] ?? $column['column_type'],
+                            'column_view_name' => $column['column_name'] ?? $column['column_type'],
                             'column_type' => $column['column_type'],
                             'options' => $column['options'],
                         ]);
@@ -608,6 +613,8 @@ class TestDataSeeder extends Seeder
                 ['column_name' => 'multiples_of_3', 'column_view_name' => 'multiples_of_3', 'column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
                 ['column_name' => 'file', 'column_view_name' => 'file', 'column_type' => ColumnType::FILE, 'options' => []],
                 ['column_name' => 'date', 'column_view_name' => 'date', 'column_type' => ColumnType::DATE, 'options' => []],
+                ['column_name' => 'integer', 'column_view_name' => 'integer', 'column_type' => ColumnType::INTEGER, 'options' => []],
+                ['column_name' => 'currency', 'column_view_name' => 'currency', 'column_type' => ColumnType::CURRENCY, 'options' => ['currency_symbol' => 'JPY1']],
                 ['column_name' => 'init_text', 'column_view_name' => 'init_text', 'column_type' => ColumnType::TEXT, 'options' => ['init_only' => '1']],
             ];
     
@@ -680,6 +687,9 @@ class TestDataSeeder extends Seeder
         $notify_id = $this->createNotify($custom_table);
         $options['notify_id'] = $notify_id;
 
+        $this->createNotifyButton($custom_table);
+        $this->createNotifyLimit($custom_table);
+
         if (isset($createValueCallback)) {
             $options['custom_values'] = $createValueCallback($custom_table, $options);
         } elseif ($createValue) {
@@ -742,6 +752,8 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
                 $custom_value->setValue("date", \Carbon\Carbon::now());
                 $custom_value->setValue("init_text", 'init_text');
+                $custom_value->setValue("integer", $i);
+                $custom_value->setValue("currency", $i * 100);
                 $custom_value->created_user_id = $user_id;
                 $custom_value->updated_user_id = $user_id;
 
@@ -763,6 +775,14 @@ class TestDataSeeder extends Seeder
                     $this->createNotifyNavbar($custom_table, $options['notify_id'], $custom_value, 0);
                 }
 
+
+                // set attachment
+                if($i === 1){
+                    Model\File::storeAs(TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt')
+                        ->saveCustomValue($custom_value->id, null, $custom_table)
+                        ->saveDocumentModel($custom_value, 'test.txt');
+                }
+
                 $custom_values[] = $custom_value;
             }
         }
@@ -770,6 +790,22 @@ class TestDataSeeder extends Seeder
         return $custom_values;
     }
     
+    
+    protected function createMailTemplate()
+    {
+        $custom_table = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE);
+        $custom_value = $custom_table->getValueModel();
+
+        $custom_value->setValue([
+            'mail_key_name' => 'test_template_1',
+            'mail_view_name' => 'test_template_1',
+            'mail_template_type' => 'body',
+            'mail_subject' => 'test_mail_1',
+            'mail_body' => 'test_mail_1',
+        ])->save();
+    }
+    
+
     /**
      * Create Notify
      *
@@ -782,9 +818,86 @@ class TestDataSeeder extends Seeder
         $notify->custom_table_id = $custom_table->id;
         $notify->notify_trigger = 2;
         $notify->mail_template_id = 6;
+        $notify->trigger_settings = [
+            "notify_saved_trigger" => ["created","updated","deleted","shared","comment","attachmented"]
+        ];
         $notify->action_settings = [[
             "notify_action" => NotifyAction::SHOW_PAGE,
-            "notify_action_target" => ["created_user"],
+            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
+        ]];
+        $notify->save();
+        return $notify->id;
+    }
+
+    /**
+     * Create Notify
+     */
+    protected function createNotifyButton($custom_table)
+    {
+        $items = [
+            [
+                'name' => $custom_table->table_name . '_notify_button_single',
+                'view_name' => "let's notify single",
+                'action_settings' => [[
+                    "notify_action" => NotifyAction::SHOW_PAGE,
+                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
+                ]],
+            ],
+            [
+                'name' => $custom_table->table_name . '_notify_button_multiple',
+                'view_name' => "let's notify multiple",
+                'action_settings' => [[
+                    "notify_action" => NotifyAction::SHOW_PAGE,
+                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER, Enums\NotifyActionTarget::HAS_ROLES],
+                ]],
+            ],
+            [
+                'name' => $custom_table->table_name . '_notify_button_email',
+                'view_name' => "let's notify email",
+                'action_settings' => [[
+                    "notify_action" => NotifyAction::EMAIL,
+                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
+                ]],
+            ],
+        ];
+
+        foreach($items as $item){
+            $notify = new Notify;
+            $notify->notify_view_name = $item['name'];
+            $notify->custom_table_id = $custom_table->id;
+            $notify->notify_trigger = 3;
+            $notify->mail_template_id = 5;
+            $notify->trigger_settings = [
+                "notify_button_name" => $item['view_name']];
+            $notify->action_settings = $item['action_settings'];
+            $notify->save();
+        }
+    }
+
+    /**
+     * Create Notify
+     *
+     * @return string|int notify id
+     */
+    protected function createNotifyLimit($custom_table)
+    {
+        $column = CustomColumn::getEloquent('date', $custom_table);
+        if (!isset($column)) return null;
+        $notify = new Notify;
+        $notify->notify_view_name = $custom_table->table_name . '_notify_limit';
+        $notify->custom_table_id = $custom_table->id;
+        $notify->notify_trigger = 1;
+        $notify->mail_template_id = 5;
+        $notify->trigger_settings = [
+            "notify_target_column" => $column->id,
+            "notify_day" => '0',
+            "notify_beforeafter" => '-1',
+            "notify_hour" => '2',
+            "notify_myself" => '0',
+        ];
+        $notify->action_settings = [[
+            "notify_action" => NotifyAction::SHOW_PAGE,
+            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
         ]];
         $notify->save();
         return $notify->id;

@@ -175,7 +175,7 @@ class NotifyTarget
 
                 // if select table is user
                 elseif ($custom_column->column_type == ColumnType::USER) {
-                    $result[] = static::getModelAsUser($v, $custom_column);
+                    $result[] = static::getModelAsUser($v);
                 }
                 
                 // if select table(cotains user)

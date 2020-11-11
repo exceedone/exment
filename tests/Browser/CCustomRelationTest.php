@@ -32,14 +32,14 @@ class CCustomRelationTest extends ExmentKitTestCase
     public function testDisplayRelationSetting()
     {
         // Check custom column form
-        $this->visit('/admin/relation/exmenttest_contract')
+        $this->visit(admin_url('relation/exmenttest_contract'))
                 ->seePageIs(admin_url('relation/exmenttest_contract'))
                 ->see('リレーション設定')
                 ->seeInElement('th', '親テーブル')
                 ->seeInElement('th', '子テーブル')
                 ->seeInElement('th', 'リレーション種類')
                 ->seeInElement('th', '操作')
-                ->visit('/admin/relation/exmenttest_contract/create')
+                ->visit(admin_url('relation/exmenttest_contract/create'))
                 ->seeInElement('h1', 'リレーション設定')
                 ->seeInElement('h3[class=box-title]', '作成')
                 ->seeInElement('label', '親テーブル')
@@ -59,7 +59,7 @@ class CCustomRelationTest extends ExmentKitTestCase
         $pre_cnt = CustomRelation::count();
 
         // Create custom relation
-        $this->visit('/admin/relation/exmenttest_contract/create')
+        $this->visit(admin_url('relation/exmenttest_contract/create'))
                 ->select($child_id, 'child_custom_table_id')
                 ->select('1', 'relation_type')
                 ->press('admin-submit')
@@ -73,7 +73,7 @@ class CCustomRelationTest extends ExmentKitTestCase
         $id = array_get($row, 'id');
 
         // Edit custom relation
-        $this->visit('/admin/relation/exmenttest_contract/'. $id . '/edit')
+        $this->visit(admin_url('relation/exmenttest_contract/'. $id . '/edit'))
                 ->seeIsSelected('child_custom_table_id', $child_id)
                 ->seeIsSelected('relation_type', '1')
                 ->select('2', 'relation_type')
@@ -95,7 +95,7 @@ class CCustomRelationTest extends ExmentKitTestCase
         $pre_cnt = CustomRelation::count();
 
         // Create custom relation
-        $this->visit('/admin/relation/exmenttest_contract/create')
+        $this->visit(admin_url('relation/exmenttest_contract/create'))
                 ->select($child_id, 'child_custom_table_id')
                 ->select('2', 'relation_type')
                 ->press('admin-submit')
@@ -109,7 +109,7 @@ class CCustomRelationTest extends ExmentKitTestCase
         $id = array_get($row, 'id');
 
         // Check custom relation
-        $this->visit('/admin/relation/exmenttest_contract/'. $id . '/edit')
+        $this->visit(admin_url('relation/exmenttest_contract/'. $id . '/edit'))
                 ->seeIsSelected('child_custom_table_id', $child_id)
                 ->seeIsSelected('relation_type', '2')
         ;

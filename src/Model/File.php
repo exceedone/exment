@@ -110,7 +110,7 @@ class File extends ModelBase
      * @param boolean $override if override same file on server
      * @return File
      */
-    public static function saveFileInfo(string $dirname, string $filename = null, string $unique_filename = null, $override = false)
+    public static function saveFileInfo(string $dirname, string $filename = null, string $unique_filename = null, $override = false) : File
     {
         $uuid = make_uuid();
 
@@ -227,7 +227,7 @@ class File extends ModelBase
     /**
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
-     * @param [type] $content
+     * @param  \Illuminate\Http\UploadedFile $content file content
      * @param string $dirname
      * @return File
      */
@@ -241,13 +241,13 @@ class File extends ModelBase
     /**
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
-     * @param [type] $content
+     * @param  string|\Illuminate\Http\UploadedFile $content file content
      * @param  string  $dirname directory path
      * @param  string  $name file name. the name is shown by display
      * @param  bool  $override if file already exists, override
      * @return File
      */
-    public static function storeAs($content, $dirname, $name, $override = false)
+    public static function storeAs($content, string $dirname, string $name, bool $override = false) : File
     {
         $file = static::saveFileInfo($dirname, $name, null, $override);
         if (is_string($content)) {

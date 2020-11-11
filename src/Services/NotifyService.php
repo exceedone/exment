@@ -3,11 +3,12 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\CustomOperationType;
-use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\PluginEventTrigger;
@@ -174,11 +175,14 @@ class NotifyService
         $options = ExmentFile::where('parent_type', $tableKey)
             ->where('parent_id', $id)->get()->pluck('filename', 'uuid');
 
-        if (in_array(NotifyAction::EMAIL, $this->notify->notify_actions)) {
+        if(collect($this->notify->action_settings)->contains(function($notify_action){
+            return isMatchString(array_get($notify_action, 'notify_action'), NotifyAction::EMAIL);
+        }))
+        {
             $form->multipleSelect('mail_attachment', exmtrans('custom_value.sendmail.attachment'))
                 ->options($options);
         }
-
+    
         $form->textarea('send_error_message', exmtrans('custom_value.sendmail.send_error_message'))
             ->attribute(['readonly' => true, 'placeholder' => ''])
             ->rows(1)
@@ -227,6 +231,7 @@ class NotifyService
                     ]],
                 ]);
             } catch (\Exception $ex) {
+                \Log::error($ex);
                 return getAjaxResponse([
                     'result'  => false,
                     'errors' => ['send_error_message' => ['type' => 'input',
@@ -421,7 +426,7 @@ class NotifyService
      * Notify email
      *
      * @param array $params
-     * @return void
+     * @return Notifications\SenderBase
      */
     public static function notifyMail(array $params = [])
     {
@@ -437,6 +442,7 @@ class NotifyService
                 'cc' => [],
                 'bcc' => [],
                 'attach_files' => null,
+                'disableHistoryBody' => false,
                 'replaceOptions' => [],
             ],
             $params
@@ -445,18 +451,24 @@ class NotifyService
 
         // send mail
         try {
-            Notifications\MailSender::make($params['mail_template'], $params['user'] ?? $params['to'])
-            ->prms($params['prms'])
-            ->user($params['user'])
-            ->to($params['to'])
-            ->custom_value($params['custom_value'])
-            ->subject($params['subject'])
-            ->body($params['body'])
-            ->cc($params['cc'])
-            ->bcc($params['bcc'])
-            ->attachments($params['attach_files'])
-            ->replaceOptions($params['replaceOptions'])
-            ->send();
+            $sender = Notifications\MailSender::make($params['mail_template'], $params['user'] ?? $params['to']);
+            if(boolval($params['disableHistoryBody'])){
+                $sender->disableHistoryBody();
+            }
+            
+            $sender->prms($params['prms'])
+                ->user($params['user'])
+                ->to($params['to'])
+                ->custom_value($params['custom_value'])
+                ->subject($params['subject'])
+                ->body($params['body'])
+                ->cc($params['cc'])
+                ->bcc($params['bcc'])
+                ->attachments($params['attach_files'])
+                ->replaceOptions($params['replaceOptions'])
+                ->send();
+
+            return $sender;
         }
         // throw mailsend Exception
         catch (\Swift_TransportException $ex) {
@@ -469,9 +481,9 @@ class NotifyService
      * Notify navbar
      *
      * @param array $params
-     * @return void
+     * @return Notifications\SenderBase
      */
-    public static function notifyNavbar(array $params = [])
+    public static function notifyNavbar(array $params = []) : Notifications\SenderBase
     {
         $params = array_merge(
             [
@@ -507,10 +519,12 @@ class NotifyService
         $mail_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
         $mail_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
 
-        Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params)
-            ->custom_value($custom_value)
+        $sender = Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params);
+        $sender->custom_value($custom_value)
             ->user($user)
             ->send();
+
+        return $sender;
     }
 
 
@@ -519,7 +533,7 @@ class NotifyService
      * Notify slack
      *
      * @param array $params
-     * @return void
+     * @return Notifications\SenderBase
      */
     public static function notifySlack(array $params = [])
     {
@@ -531,7 +545,7 @@ class NotifyService
      * Notify teams
      *
      * @param array $params
-     * @return void
+     * @return Notifications\SenderBase
      */
     public static function notifyTeams(array $params = [])
     {
@@ -539,7 +553,14 @@ class NotifyService
     }
 
 
-    protected static function notifyWebHook(array $params, string $className)
+    /**
+     * Notify webhool
+     *
+     * @param array $params
+     * @param string $className
+     * @return Notifications\SenderBase
+     */
+    protected static function notifyWebHook(array $params, string $className) : Notifications\SenderBase
     {
         $params = array_merge(
             [
@@ -568,7 +589,10 @@ class NotifyService
 
         // send message
         $options = ['webhook_name' => $params['webhook_name'], 'webhook_icon' => $params['webhook_icon'], 'mention_here' => $params['mention_here'], 'mention_users' => $params['mention_users']];
-        $className::make($webhook_url, $slack_subject, $slack_body, $options)->send();
+        $sender = $className::make($webhook_url, $slack_subject, $slack_body, $options);
+        $sender->send();
+
+        return $sender;
     }
 
 
@@ -735,5 +759,33 @@ class NotifyService
         }
 
         return $items;
+    }
+
+    
+    /**
+     * Get User Mail Address
+     *
+     * @param string|array|CustomValue|NotifyTarget $users
+     * @return array
+     */
+    public static function getAddress($users)
+    {
+        // Convert "," string to array
+        if (is_string($users)) {
+            $users = stringToArray($users);
+        } elseif (!is_list($users)) {
+            $users = [$users];
+        }
+        $addresses = [];
+        foreach ($users as $user) {
+            if ($user instanceof CustomValue) {
+                $addresses[] = $user->getValue('email');
+            } elseif ($user instanceof NotifyTarget) {
+                $addresses[] = $user->email();
+            } else {
+                $addresses[] = $user;
+            }
+        }
+        return $addresses;
     }
 }
