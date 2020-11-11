@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Unit;
 
 use Illuminate\Validation\ValidationException;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Tests\TestDefine;
 
@@ -702,6 +703,26 @@ class CustomColumnValidationTest extends UnitTestBase
         ]);
     }
 
+    /**
+     * Test for custom table edit. Not has permission
+     *
+     * @return void
+     */
+    public function testSelectTableNot5(){
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->executeTestAllColumns(ColumnType::SELECT_TABLE, [
+            'select_table_2' => ['1', '2'],
+        ], [
+            'select_table_2' => [
+                exmtrans('validation.not_has_custom_value', [
+                    'table_view_name' => CustomTable::getEloquent('custom_value_edit')->table_view_name,
+                    'attribute' => 'select_table_2',
+                    'value' => null,
+                ]),
+            ],
+        ]);
+    }
+
 
     // YESNO ----------------------------------------------------
     public function testSuccessYesNo(){
@@ -877,5 +898,11 @@ class CustomColumnValidationTest extends UnitTestBase
     protected function getErrorMessage($validatekey, $column, array $messages = []){
         $array = array_merge($messages, ['attribute' => $column]);
         return trans("validation.$validatekey", $array);
+    }
+
+    // ...
+    protected function login($id = null)
+    {
+        $this->be(LoginUser::find($id ?? 1));
     }
 }
