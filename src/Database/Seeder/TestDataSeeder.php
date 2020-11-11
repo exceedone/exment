@@ -742,15 +742,7 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("index_text", 'index_'.$user_id.'_'.$i);
                 $custom_value->setValue("odd_even", ($i % 2 == 0 ? 'even' : 'odd'));
                 $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
-                $date_value = null;
-                if ($user_id % 2 == 0) {
-                    if ($i !== 1) {
-                        $date_value = \Carbon\Carbon::create(2018, 12, 28)->addDay($i);
-                    }
-                } else {
-                    $date_value = \Carbon\Carbon::now()->addDay($i-4);
-                }
-                $custom_value->setValue("date", $date_value);
+                $custom_value->setValue("date", $this->getDateValue($i));
                 $custom_value->setValue("init_text", 'init_text');
                 $custom_value->setValue("null_text", rand(0, 1) == 0? null: 'null_text_'.$user_id);
                 $custom_value->created_user_id = $user_id;
@@ -779,6 +771,33 @@ class TestDataSeeder extends Seeder
         }
 
         return $custom_values;
+    }
+    
+    /**
+     * Create date value
+     *
+     * @return int index
+     */
+    protected function getDateValue($index)
+    {
+        $now = \Carbon\Carbon::now();
+        switch ($index % 7)
+        {
+            case 0:
+                return null;
+            case 1:
+                return $now->addDays($index-4);
+            case 2:
+                return \Carbon\Carbon::create($now->year+1, rand(1,12), rand(1,28));
+            case 3:
+                return \Carbon\Carbon::create($now->year-1, rand(1,12), rand(1,28));
+            case 4:
+                return \Carbon\Carbon::create($now->year, $now->month+1, rand(1,28));
+            case 5:
+                return \Carbon\Carbon::create($now->year, $now->month-1, rand(1,28));
+            default:
+                return \Carbon\Carbon::create(2019, 12, 28)->addDays($index);
+        }
     }
     
     /**

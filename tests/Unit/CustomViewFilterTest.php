@@ -335,20 +335,80 @@ class CustomViewFilterTest extends UnitTestBase
     //     }
     // }
 
+    // /**
+    //  * FilterOption = DAY THIS MONTH
+    //  */
+    // public function testFuncFilterDayThisMonth()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $array = $this->getColumnFilterData('date', FilterOption::DAY_THIS_MONTH);
+
+    //         foreach ($array as $data) {
+    //             $date = \Carbon\Carbon::parse(array_get($data, 'value.date'));
+    //             $this->assertTrue($date->isCurrentMonth());
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = DAY LAST MONTH
+    //  */
+    // public function testFuncFilterDayLastMonth()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $array = $this->getColumnFilterData('date', FilterOption::DAY_LAST_MONTH);
+
+    //         foreach ($array as $data) {
+    //             $date = \Carbon\Carbon::parse(array_get($data, 'value.date'));
+    //             $this->assertTrue($date->isLastMonth());
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = DAY NEXT MONTH
+    //  */
+    // public function testFuncFilterDayNextMonth()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $array = $this->getColumnFilterData('date', FilterOption::DAY_NEXT_MONTH);
+
+    //         foreach ($array as $data) {
+    //             $date = \Carbon\Carbon::parse(array_get($data, 'value.date'));
+    //             $this->assertTrue($date->isNextMonth());
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
     /**
-     * FilterOption = DAY THIS MONTH
+     * FilterOption = DAY THIS YEAR
      */
-    public function testFuncFilterDayThisMonth()
+    public function testFuncFilterDayThisYear()
     {
         $this->init();
 
         DB::beginTransaction();
         try {
-            $array = $this->getColumnFilterData('date', FilterOption::DAY_THIS_MONTH);
+            $array = $this->getColumnFilterData('date', FilterOption::DAY_THIS_YEAR);
 
             foreach ($array as $data) {
                 $date = \Carbon\Carbon::parse(array_get($data, 'value.date'));
-                $this->assertTrue($date->isCurrentMonth());
+                $this->assertTrue($date->isCurrentYear());
             }
         } finally {
             DB::rollback();
@@ -356,19 +416,39 @@ class CustomViewFilterTest extends UnitTestBase
     }
 
     /**
-     * FilterOption = DAY LAST MONTH
+     * FilterOption = DAY LAST YEAR
      */
-    public function testFuncFilterDayLastMonth()
+    public function testFuncFilterDayLastYear()
     {
         $this->init();
 
         DB::beginTransaction();
         try {
-            $array = $this->getColumnFilterData('date', FilterOption::DAY_LAST_MONTH);
+            $array = $this->getColumnFilterData('date', FilterOption::DAY_LAST_YEAR);
 
             foreach ($array as $data) {
                 $date = \Carbon\Carbon::parse(array_get($data, 'value.date'));
-                $this->assertTrue($date->isLastMonth());
+                $this->assertTrue($date->isLastYear());
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = DAY NEXT YEAR
+     */
+    public function testFuncFilterDayNextYear()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $array = $this->getColumnFilterData('date', FilterOption::DAY_NEXT_YEAR);
+
+            foreach ($array as $data) {
+                $date = \Carbon\Carbon::parse(array_get($data, 'value.date'));
+                $this->assertTrue($date->isNextYear());
             }
         } finally {
             DB::rollback();
