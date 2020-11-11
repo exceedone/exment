@@ -24,7 +24,7 @@ class DCustomDataTest extends ExmentKitTestCase
      */
     public function testPrepareTestTable() {
         $this->createCustomTable('exmenttest_data');
-        Storage::disk(config('admin.upload.disk'))->deleteDirectory('exmenttest_data');
+        deleteDirectory(Storage::disk(config('admin.upload.disk')), 'exmenttest_data');
     }
 
     /**
