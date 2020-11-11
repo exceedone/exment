@@ -181,7 +181,7 @@ class NotifyService
             $form->multipleSelect('mail_attachment', exmtrans('custom_value.sendmail.attachment'))
                 ->options($options);
         }
-
+    
         $form->textarea('send_error_message', exmtrans('custom_value.sendmail.send_error_message'))
             ->attribute(['readonly' => true, 'placeholder' => ''])
             ->rows(1)
