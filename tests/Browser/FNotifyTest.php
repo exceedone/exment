@@ -162,14 +162,7 @@ class FNotifyTest extends ExmentKitTestCase
         return $domDocument;
     }
 
-    protected function getPostDomDocument(string $url, array $data) : \DOMDocument
-    {
-        // check config update
-        $response = $this->post($url, $data);
-        return $this->_getDomDocument($response);
-    }
-
-
+    
     protected function hasContainsHtml(\DOMDocument $domDocument, string $tagName, \Closure $callback) : bool
     {
         $selects = $domDocument->getElementsByTagName($tagName);

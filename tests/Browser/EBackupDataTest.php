@@ -228,7 +228,7 @@ class EBackupDataTest extends ExmentKitTestCase
         // get latest backup file
         $files = $this->getArchiveFiles();
         rsort($files);
-
+        
         if (count($files) > 0) {
             $file = pathinfo($files[0], PATHINFO_FILENAME);
             // Restore data
@@ -245,10 +245,18 @@ class EBackupDataTest extends ExmentKitTestCase
     protected function getArchiveFiles()
     {
         // get all archive files
-        $files = array_filter(Storage::disk('backup')->files('list'), function ($file)
-        {
-            return preg_match('/list\/' . Define::RULES_REGEX_BACKUP_FILENAME . '\.zip$/i', $file);
-        });
+        $disk = Storage::disk('backup');
+        $files = collect($disk->files('list'))->map(function ($filename) use ($disk) {
+            return [
+                'name' => $filename,
+                'lastModified' => $disk->lastModified($filename),
+            ];
+        })
+        ->sortBy('lastModified')
+        ->map(function($file){
+            return $file['name'];
+        })->toArray();
+
         return $files;
     }
 }

@@ -1524,7 +1524,7 @@ class ApiTest extends ApiTestBase
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
-        $document = $custom_value->getDocuments()->first();
+        $document = $custom_value->getDocuments()->sortBy('id')->first();
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
@@ -1540,7 +1540,7 @@ class ApiTest extends ApiTestBase
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
 
         $custom_value = CustomTable::getEloquent('custom_value_edit')->getValueModel(1);
-        $document = $custom_value->getDocuments()->first();
+        $document = $custom_value->getDocuments()->sortBy('id')->first();
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
