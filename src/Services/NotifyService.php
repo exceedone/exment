@@ -174,11 +174,14 @@ class NotifyService
         $options = ExmentFile::where('parent_type', $tableKey)
             ->where('parent_id', $id)->get()->pluck('filename', 'uuid');
 
-        if (in_array(NotifyAction::EMAIL, $this->notify->notify_actions)) {
+        if(collect($this->notify->action_settings)->contains(function($notify_action){
+            return isMatchString(array_get($notify_action, 'notify_action'), NotifyAction::EMAIL);
+        }))
+        {
             $form->multipleSelect('mail_attachment', exmtrans('custom_value.sendmail.attachment'))
                 ->options($options);
         }
-
+    
         $form->textarea('send_error_message', exmtrans('custom_value.sendmail.send_error_message'))
             ->attribute(['readonly' => true, 'placeholder' => ''])
             ->rows(1)
