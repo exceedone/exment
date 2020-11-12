@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\Plugin;
@@ -778,16 +779,18 @@ class NotifyService
         } elseif (!is_list($users)) {
             $users = [$users];
         }
-        $addresses = [];
+        $addresses = collect();
         foreach ($users as $user) {
             if ($user instanceof CustomValue) {
-                $addresses[] = $user->getValue('email');
+                $addresses->push($user->getValue('email'));
+            } elseif ($user instanceof LoginUser) {
+                $addresses->push($user->email);
             } elseif ($user instanceof NotifyTarget) {
-                $addresses[] = $user->email();
+                $addresses->push($user->email());
             } else {
-                $addresses[] = $user;
+                $addresses->push($user);
             }
         }
-        return $addresses;
+        return $addresses->filter()->unique()->toArray();
     }
 }
