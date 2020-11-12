@@ -206,6 +206,7 @@ class SelectTable extends CustomItem
                         'target_view_id' => $this->custom_column->getOption('select_target_view'),
                         'display_table_id' => $this->custom_table->id,
                         'linkage' => $linkage_expand,
+                        'target_column_multiple' => $field instanceof \Encore\Admin\Form\Field\MultipleSelect ? 1 : 0,
                     ]),
                     'data-widgetmodal_getdata_fieldsgroup' => json_encode(['selected_items' => 'class_' . $this->uniqueName()]),
                 ],
@@ -547,5 +548,9 @@ class SelectTable extends CustomItem
     public function isMultipleEnabled()
     {
         return $this->isMultipleEnabledTrait();
+    }
+    protected function getFilterFieldClass()
+    {
+        return Field\Select::class;
     }
 }
