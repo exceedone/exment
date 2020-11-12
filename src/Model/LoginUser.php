@@ -126,20 +126,22 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     /**
      * send Password
      */
-    protected function send($is_newuser)
+    protected function send(bool $is_newuser) : ?MailSender
     {
         if (!isset($this->send_password)) {
-            return;
+            return null;
         }
         $user = $this->base_user;
         $prms = [];
         $prms['user'] = $this->base_user->value;
         $prms['user']['password'] = $this->send_password;
-        MailSender::make($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN, $user)
+        $sender = MailSender::make($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN, $user)
             ->prms($prms)
             ->user($user)
-            ->disableHistoryBody()
-            ->send();
+            ->disableHistoryBody();
+        $sender->send();
+
+        return $sender;
     }
 
     /**
