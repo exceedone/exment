@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Carbon\Carbon;
 
 class Notify extends ModelBase
@@ -575,14 +576,14 @@ class Notify extends ModelBase
      * Unique users. unique key is mail address.
      *
      * @param array|Collection $users
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
-    protected function uniqueUsers($users)
+    protected function uniqueUsers($users) : Collection
     {
-        collect($users)->unique(function($user){
+        return collect($users)->unique(function($user){
             $addresses = NotifyService::getAddress($user);
             return is_nullorempty($addresses) ? null : $addresses[0];
-        })->filter()->toArray();
+        })->filter();
     }
 
     protected static function boot()
