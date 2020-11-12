@@ -769,6 +769,7 @@ if (!function_exists('toArray')) {
             return $value->toArray();
         }
 
+        //TODO: I think this should not call $model->toArray()...
         if ($value instanceof \Illuminate\Database\Eloquent\Model) {
             return $value->toArray();
         }

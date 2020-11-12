@@ -12,19 +12,19 @@ class MailInfo
     protected $from;
     
     /**
-     * @var string|array
+     * @var array
      */
-    protected $to;
+    protected $to = [];
     
     /**
-     * @var string|array|null
+     * @var array
      */
-    protected $cc;
+    protected $cc = [];
     
     /**
-     * @var string|array|null
+     * @var array
      */
-    protected $bcc;
+    protected $bcc = [];
 
     /**
      * @var string
@@ -150,19 +150,19 @@ class MailInfo
 
     public function setTo($to)
     {
-        $this->to = $to;
+        $this->to = array_merge($this->to, $this->convertArray($to));
         return $this;
     }
 
     public function setCc($cc)
     {
-        $this->cc = $cc;
+        $this->cc = array_merge($this->cc, $this->convertArray($cc));
         return $this;
     }
 
     public function setBcc($bcc)
     {
-        $this->bcc = $bcc;
+        $this->bcc = array_merge($this->bcc, $this->convertArray($bcc));
         return $this;
     }
 
@@ -211,6 +211,14 @@ class MailInfo
         }
 
         return $this;
+    }
+
+
+    protected function convertArray($value){
+        if($value instanceof \Illuminate\Database\Eloquent\Model){
+            return [$value];
+        }
+        return toArray($value);
     }
 
 }

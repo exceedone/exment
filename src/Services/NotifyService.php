@@ -776,16 +776,16 @@ class NotifyService
         } elseif (!is_list($users)) {
             $users = [$users];
         }
-        $addresses = [];
+        $addresses = collect();
         foreach ($users as $user) {
             if ($user instanceof CustomValue) {
-                $addresses[] = $user->getValue('email');
+                $addresses->push($user->getValue('email'));
             } elseif ($user instanceof NotifyTarget) {
-                $addresses[] = $user->email();
+                $addresses->push($user->email());
             } else {
-                $addresses[] = $user;
+                $addresses->push($user);
             }
         }
-        return $addresses;
+        return $addresses->filter()->unique()->toArray();
     }
 }
