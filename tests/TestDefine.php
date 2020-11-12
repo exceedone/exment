@@ -46,6 +46,8 @@ class TestDefine
     public const FILE_BASE64 = 'dGVzdA=='; //"test" text file.
     public const FILE_TESTSTRING = 'This is test file'; //text file.
 
+    public const TESTDATA_DUMMY_EMAIL = 'foobar@test.com';
+
     public const TESTDATA_COLUMN_NAMES = [
         'default' => [
             'default' => self::TESTDATA_COLUMN_NAME_CHILD,

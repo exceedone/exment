@@ -12,11 +12,26 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Tests\TestDefine;
+use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Jobs;
 use Carbon\Carbon;
 
 class NotifyTest extends UnitTestBase
 {
+    use TestTrait;
+
+    protected function init(bool $fake)
+    {
+        $this->initAllTest();
+        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
+
+        if($fake){
+            Notification::fake();
+            Notification::assertNothingSent();
+        }
+    }
+
+
     public function testNotifyMail()
     {
         $subject = 'テスト';
@@ -215,8 +230,7 @@ class NotifyTest extends UnitTestBase
 
     public function testNotifySlack()
     {
-        Notification::fake();
-        Notification::assertNothingSent();
+        $this->init(true);
     
         $webhook_url = 'https://hooks.slack.com/services/XXXXX/YYYY';
         $subject = 'テスト';
@@ -239,9 +253,8 @@ class NotifyTest extends UnitTestBase
 
     public function testNotifyTeams()
     {
-        Notification::fake();
-        Notification::assertNothingSent();
-    
+        $this->init(true);
+
         $webhook_url = 'https://outlook.office.com/webhook/XXXXX/YYYYYY';
         $subject = 'テスト';
         $body = '本文です';
@@ -262,6 +275,8 @@ class NotifyTest extends UnitTestBase
 
     public function testNotifyNavbar()
     {
+        $this->init(false);
+        
         $user = CustomTable::getEloquent('user')->getValueModel()->first();
         $subject = 'テスト';
         $body = '本文です';
@@ -302,11 +317,12 @@ class NotifyTest extends UnitTestBase
 
     public function testNotifySchedule()
     {
+        $this->init(false);
+
         $hh = Carbon::now()->format('G');
         $target_date = Carbon::today()->addDay(100)->format('Y-m-d');
 
         // Login user.
-        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         $user_id = \Exment::user()->base_user_id;
 
         // change notify setting
@@ -335,8 +351,9 @@ class NotifyTest extends UnitTestBase
 
     public function testNotifyButton()
     {
+        $this->init(false);
+
         // Login user.
-        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         $user_id = \Exment::user()->base_user_id;
 
         $notify = Notify::where('notify_trigger', NotifyTrigger::BUTTON)->first();
@@ -372,8 +389,9 @@ class NotifyTest extends UnitTestBase
     // Test as executeNotifyAction ----------------------------------------------------
     public function testNotifyUpdateAction()
     {
+        $this->init(false);
+
         // Login user.
-        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         $user = \Exment::user()->base_user;
 
         $notify = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)->first();
@@ -401,11 +419,32 @@ class NotifyTest extends UnitTestBase
         $this->assertEquals(array_get($data, 'notify_body'), $body);
     }
 
+
+    /**
+     * Check notify test mail
+     *
+     * @return void
+     */
+    public function testNotifyTestMail()
+    {
+        $this->init(true);
+        
+        $notifiable = NotifyService::executeTestNotify([
+            'type' => 'mail',
+            'to' => TestDefine::TESTDATA_DUMMY_EMAIL,
+        ]);
+
+        Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
+            function($notification, $channels, $notifiable) {
+                return ($notifiable->getTo() == TestDefine::TESTDATA_DUMMY_EMAIL) &&
+                    ($notifiable->getSubject() == 'Exment TestMail') &&
+                    ($notifiable->getBody() == 'Exment TestMail');
+            });
+    }
     
     protected function _testNotifyMail(array $params, \Closure $checkCallback)
     {
-        Notification::fake();
-        Notification::assertNothingSent();
+        $this->init(true);
 
         $notifiable = NotifyService::notifyMail($params);
 

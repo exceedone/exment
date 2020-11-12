@@ -120,4 +120,17 @@ trait TestTrait
         $file = $this->getTextImagePath($imageName);
         return \File::get($file);
     }
+
+    
+    protected function callProtectedMethod($obj, $methodName, ...$args){
+        $method = new \ReflectionMethod(get_class($obj), $methodName);
+        $method->setAccessible(true);
+        return $method->invoke($obj, ...$args);
+    }
+
+    protected function callStaticProtectedMethod($className, $methodName, ...$args){
+        $method = new \ReflectionMethod($className, $methodName);
+        $method->setAccessible(true);
+        return $method->invokeArgs(null, $args);
+    }
 }

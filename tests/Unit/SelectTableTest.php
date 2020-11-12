@@ -454,10 +454,4 @@ class SelectTableTest extends UnitTestBase
     protected function isMatchIds($correct1, $correct2){
         return $correct1->diff($correct2)->count() === 0 && $correct2->diff($correct1)->count() === 0;
     }
-
-    protected function callProtectedMethod($obj, $methodName, ...$args){
-        $method = new \ReflectionMethod(get_class($obj), $methodName);
-        $method->setAccessible(true);
-        return $method->invoke($obj, ...$args);
-    }
 }

@@ -311,9 +311,9 @@ class NotifyService
      * Execute Notify test
      *
      * @param array $params
-     * @return void
+     * @return Notifications\SenderBase
      */
-    public static function executeTestNotify($params = [])
+    public static function executeTestNotify($params = []) : Notifications\SenderBase
     {
         $params = array_merge(
             [
@@ -332,10 +332,12 @@ class NotifyService
 
         // send mail
         try {
-            Notifications\MailSender::make(null, $to)
-                ->subject($subject)
+            $sender = Notifications\MailSender::make(null, $to);
+            $sender->subject($subject)
                 ->body($body)
                 ->send();
+
+            return $sender;
         }
         // throw mailsend Exception
         catch (\Swift_TransportException $ex) {

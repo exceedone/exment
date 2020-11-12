@@ -23,12 +23,14 @@ trait CanResetPassword
      * @param  string  $token
      * @return void
      */
-    public function sendPasswordResetNotification($token)
+    public function sendPasswordResetNotification($token) : MailSender
     {
-        MailSender::make(MailKeyName::RESET_PASSWORD, $this->getEmailForPasswordReset())
+        $sender = MailSender::make(MailKeyName::RESET_PASSWORD, $this->getEmailForPasswordReset())
             ->prms([
                 'system.password_reset_url' => admin_url("auth/reset/".$token)
-            ])
-            ->send();
+            ]);
+        $sender->send();
+
+        return $sender;
     }
 }
