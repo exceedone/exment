@@ -761,6 +761,17 @@ class NotifyService
         return $items;
     }
 
+    /**
+     * Get User Mail Address. Only single item.
+     *
+     * @param string|array|CustomValue|NotifyTarget $user
+     * @return array
+     */
+    public static function getAddress($user) : ?string
+    {
+        $result = static::getAddresses($user);
+        return is_nullorempty($result) ? null : $result[0];
+    }
     
     /**
      * Get User Mail Address list
