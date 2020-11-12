@@ -6,9 +6,7 @@ use Tests\TestCase;
 use Illuminate\Support\Facades\Notification;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyNavbar;
-use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 
@@ -16,18 +14,25 @@ class NotifyTest extends TestCase
 {
     use TestTrait;
 
-    protected function init()
+    protected function init(bool $fake)
     {
         $this->initAllTest();
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1));
 
-        // Notification::fake();
-        // Notification::assertNothingSent();
+        if($fake){
+            Notification::fake();
+            Notification::assertNothingSent();
+        }
     }
 
-    public function testNotifyOnlyOneUser()
+    /**
+     * Check custom value notify user only once.
+     *
+     * @return void
+     */
+    public function testNotifyCustomValueCreateOnlyOnce()
     {
-        $this->init();
+        $this->init(false);
         
         // save custom value
         $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT)->getValueModel();
@@ -42,6 +47,5 @@ class NotifyTest extends TestCase
 
         $this->assertTrue($data->count() === 1, 'NotifyNavbar count excepts 1, but count is ' . $data->count());
     }
-
 
 }
