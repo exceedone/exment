@@ -33,6 +33,7 @@ use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Config;
 
 class TestDataSeeder extends Seeder
 {
@@ -45,6 +46,8 @@ class TestDataSeeder extends Seeder
      */
     public function run()
     {
+        Config::set('exment.column_index_enabled_count', 25);
+
         $this->createSystem();
 
         $users = $this->createUserOrg();
@@ -398,11 +401,13 @@ class TestDataSeeder extends Seeder
                         ['column_type' => ColumnType::AUTO_NUMBER, 'options' => ['index_enabled' => '1', 'auto_number_type' => 'random25']],
                         ['column_type' => ColumnType::IMAGE, 'options' => []],
                         ['column_type' => ColumnType::FILE, 'options' => []],
-                        ['column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
-                        ['column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1']],
+                        ['column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1']],
                         ['column_name' => 'select_multiple', 'column_type' => ColumnType::SELECT, 'options' => ['index_enabled' => '1', 'select_item' => "foo\r\nbar\r\nbaz",'multiple_enabled' => '1']],
                         ['column_name' => 'select_valtext_multiple', 'column_type' => ColumnType::SELECT_VALTEXT, 'options' => ['index_enabled' => '1', 'select_item_valtext' => "foo,FOO\r\nbar,BAR\r\nbaz,BAZ",'multiple_enabled' => '1']],
                         ['column_name' => 'select_table_multiple', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_view_all->id,'multiple_enabled' => '1']],
+                        ['column_name' => 'user_multiple', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1','multiple_enabled' => '1', 'showing_all_user_organizations' => '1']],
+                        ['column_name' => 'organization_multiple', 'column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1','multiple_enabled' => '1']],
                     ];
 
                     foreach ($columns as $column) {
@@ -431,17 +436,23 @@ class TestDataSeeder extends Seeder
                             $custom_value = $custom_table->getValueModel();
                             $custom_value->setValue("text", rand(0, 1) == 0? null: 'text_'.$i);
                             $custom_value->setValue("user", ($i % 3 == 0 ? null : $user_id));
-                            $custom_value->setValue("yesno", $i % 2);
-                            $custom_value->setValue("boolean", ($i % 4 == 0 ? 'ng' : 'ok'));
+                            $custom_value->setValue("organization", rand(1, 7));
+                            $custom_value->setValue("yesno", rand(0, 1));
+                            $custom_value->setValue("boolean", (rand(0, 3) == 0 ? 'ng' : 'ok'));
                             $custom_value->setValue("date", $this->getDateValue($user_id, $i));
+                            $custom_value->setValue("time", \Carbon\Carbon::createFromTime($user_id, $i, $i)->format('H:i:s'));
+                            $custom_value->setValue("datetime", \Carbon\Carbon::now()->addSeconds(rand(-500000, 500000))->format('Y-m-d H:i:s'));
                             $custom_value->setValue("integer", $i * ($user_id % 2 == 0 ? $user_id: -$user_id) * 100);
                             $custom_value->setValue("decimal", $i * ($user_id % 2 == 0 ? $user_id: -$user_id) / 100);
+                            $custom_value->setValue("currency", rand(0, 1000000) / 10);
                             $custom_value->setValue("select", ($i % 3 == 0 ? 'foo' : ($i % 3 == 1 ? 'baz' : 'bar')));
                             $custom_value->setValue("select_valtext", ($i % 3 == 0 ? 'bar' : ($i % 3 == 1 ? 'baz' : 'foo')));
                             $custom_value->setValue("select_table", $i);
                             $custom_value->setValue("select_multiple", $this->getMultipleSelectValue());
                             $custom_value->setValue("select_valtext_multiple", $this->getMultipleSelectValue());
-                            $custom_value->setValue("select_table_multiple", $this->getMultipleSelectValue(range(1, 10)));
+                            $custom_value->setValue("select_table_multiple", $this->getMultipleSelectValue(range(1, 10), 5));
+                            $custom_value->setValue("user_multiple", $this->getMultipleSelectValue(range(1, 10), 5));
+                            $custom_value->setValue("organization_multiple", $this->getMultipleSelectValue(range(1, 7), 5));
                             $custom_value->created_user_id = $user_id;
                             $custom_value->updated_user_id = $user_id;
                             $custom_value->save();
@@ -461,11 +472,11 @@ class TestDataSeeder extends Seeder
      * 
      * @return array
      */
-    protected function getMultipleSelectValue($array = ['foo','bar','baz'])
+    protected function getMultipleSelectValue($array = ['foo','bar','baz'], $randMax = 1)
     {
         $result = [];
         foreach($array as $val) {
-            if (rand(0, 1) == 1) {
+            if (rand(0, $randMax) == 1) {
                 $result[] = $val;
             }
         }
@@ -919,7 +930,7 @@ class TestDataSeeder extends Seeder
                         FilterOption::EQ,
                         1
                     );
-                } elseif ($custom_column->column_type == ColumnType::USER) {
+                } elseif ($custom_column->column_type == ColumnType::USER && !boolval($custom_column->getOption('multiple_enabled'))) {
                     $this->createCustomViewFilter(
                         $custom_view->id,
                         ConditionType::COLUMN,

@@ -3,6 +3,7 @@ namespace Exceedone\Exment\Tests\Unit;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Model\CustomColumn;
@@ -648,6 +649,131 @@ class CustomViewFilterTest extends UnitTestBase
     // }
 
     // /**
+    //  * FilterOption = Time
+    //  */
+    // public function testFuncFilterTimeEq()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [[
+    //             'column_name' => 'time',
+    //             'filter_condition' => FilterOption::EQ,
+    //             'filter_value_text' => '02:02:02'
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $this->assertTrue(array_get($data, 'value.time') == $filter_settings[0]['filter_value_text']);
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption <> Time
+    //  */
+    // public function testFuncFilterTimeNe()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [[
+    //             'column_name' => 'time',
+    //             'filter_condition' => FilterOption::NE,
+    //             'filter_value_text' => '02:02:02'
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $this->assertTrue(array_get($data, 'value.time') !== $filter_settings[0]['filter_value_text']);
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = DateTime
+    //  */
+    // public function testFuncFilterDateTimeOn()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [[
+    //             'column_name' => 'datetime',
+    //             'filter_condition' => FilterOption::DAY_ON,
+    //             'filter_value_text' => \Carbon\Carbon::today()->format('Y-m-d')
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $date = \Carbon\Carbon::parse(array_get($data, 'value.datetime'));
+    //             $this->assertTrue($date->format('Y-m-d') == $filter_settings[0]['filter_value_text']);
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption >= DateTime
+    //  */
+    // public function testFuncFilterDateTimeOnOrAfter()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [[
+    //             'column_name' => 'datetime',
+    //             'filter_condition' => FilterOption::DAY_ON_OR_AFTER,
+    //             'filter_value_text' => \Carbon\Carbon::today()->format('Y-m-d')
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $date = \Carbon\Carbon::parse(array_get($data, 'value.datetime'));
+    //             $diff = \Carbon\Carbon::today()->diffInDays($date, false);
+    //             $this->assertTrue($diff >= 0);
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption <= DateTime
+    //  */
+    // public function testFuncFilterDateTimeOnOrBefore()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [[
+    //             'column_name' => 'datetime',
+    //             'filter_condition' => FilterOption::DAY_ON_OR_BEFORE,
+    //             'filter_value_text' => \Carbon\Carbon::today()->format('Y-m-d')
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $date = \Carbon\Carbon::parse(array_get($data, 'value.datetime'));
+    //             $diff = \Carbon\Carbon::today()->diffInDays($date, false);
+    //             $this->assertTrue($diff <= 0);
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
     //  * FilterOption = USER_EQ
     //  */
     // public function testFuncFilterUserEq()
@@ -792,6 +918,127 @@ class CustomViewFilterTest extends UnitTestBase
     // }
 
     // /**
+    //  * FilterOption = SELECT_EXISTS(user/multiple)
+    //  */
+    // public function testFuncFilterUserEqMulti()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $target_value = TestDefine::TESTDATA_USER_LOGINID_USER2;
+    //         $filter_settings = [[
+    //             'column_name' => 'user_multiple',
+    //             'filter_condition' => FilterOption::SELECT_EXISTS,
+    //             'filter_value_text' => $target_value
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $this->assertTrue(in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.user_multiple')));
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = NOT_NULL(user/multiple)
+    //  */
+    // public function testFuncFilterUserNotNullMulti()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [[
+    //             'column_name' => 'user_multiple',
+    //             'filter_condition' => FilterOption::NOT_NULL,
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $this->assertTrue(!empty(array_get($data, 'value.user_multiple')));
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = SELECT_EXISTS(organization)
+    //  */
+    // public function testFuncFilterOrganizationExists()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $target_value = TestDefine::TESTDATA_ORGANIZATION_DEV;
+    //         $filter_settings = [[
+    //             'column_name' => 'organization',
+    //             'filter_condition' => FilterOption::SELECT_EXISTS,
+    //             'filter_value_text' => $target_value
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $this->assertTrue(array_get($data, 'value.organization') == $target_value);
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = SELECT_NOT_EXISTS(organization/multiple)
+    //  */
+    // public function testFuncFilterOrganizationNotExists()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $target_value = TestDefine::TESTDATA_ORGANIZATION_DEV;
+    //         $filter_settings = [[
+    //             'column_name' => 'organization_multiple',
+    //             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+    //             'filter_value_text' => $target_value
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $this->assertFalse(in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.organization_multiple')));
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = NULL(organization/multiple)
+    //  */
+    // public function testFuncFilterOrganizationNullMulti()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [[
+    //             'column_name' => 'organization_multiple',
+    //             'filter_condition' => FilterOption::NULL,
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $this->assertTrue(empty(array_get($data, 'value.organization_multiple')));
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
     //  * FilterOption = NUMBER_GT
     //  */
     // public function testFuncFilterNumberGt()
@@ -888,30 +1135,30 @@ class CustomViewFilterTest extends UnitTestBase
     //     }
     // }
 
-    /**
-     * FilterOption = NUMBER_GT
-     */
-    public function testFuncFilterNumberGtDec()
-    {
-        $this->init();
+    // /**
+    //  * FilterOption = NUMBER_GT
+    //  */
+    // public function testFuncFilterNumberGtDec()
+    // {
+    //     $this->init();
 
-        DB::beginTransaction();
-        try {
-            $target_value = 0.36;
-            $filter_settings = [[
-                'column_name' => 'decimal',
-                'filter_condition' => FilterOption::NUMBER_GT,
-                'filter_value_text' => "$target_value"
-            ]];
-            $array = $this->getColumnFilterData($filter_settings);
+    //     DB::beginTransaction();
+    //     try {
+    //         $target_value = 0.36;
+    //         $filter_settings = [[
+    //             'column_name' => 'decimal',
+    //             'filter_condition' => FilterOption::NUMBER_GT,
+    //             'filter_value_text' => "$target_value"
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
-            foreach ($array as $data) {
-                $this->assertTrue(array_get($data, 'value.decimal') > $target_value);
-            }
-        } finally {
-            DB::rollback();
-        }
-    }
+    //         foreach ($array as $data) {
+    //             $this->assertTrue(array_get($data, 'value.decimal') > $target_value);
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
 
     // /**
     //  * FilterOption = NUMBER_LT
@@ -923,10 +1170,15 @@ class CustomViewFilterTest extends UnitTestBase
     //     DB::beginTransaction();
     //     try {
     //         $target_value = 0.36;
-    //         $array = $this->getColumnFilterData('decimal', FilterOption::NUMBER_LT, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'decimal',
+    //             'filter_condition' => FilterOption::NUMBER_LT,
+    //             'filter_value_text' => "$target_value"
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
-    //             $this->assertTrue(array_get($data, 'value.decimal') < $filter_settings[0]['filter_value_text']);
+    //             $this->assertTrue(array_get($data, 'value.decimal') < $target_value);
     //         }
     //     } finally {
     //         DB::rollback();
@@ -944,10 +1196,15 @@ class CustomViewFilterTest extends UnitTestBase
     //     DB::beginTransaction();
     //     try {
     //         $target_value = 0.36;
-    //         $array = $this->getColumnFilterData('decimal', FilterOption::NUMBER_GTE, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'decimal',
+    //             'filter_condition' => FilterOption::NUMBER_GTE,
+    //             'filter_value_text' => "$target_value"
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
-    //             $this->assertTrue(array_get($data, 'value.decimal') >= $filter_settings[0]['filter_value_text']);
+    //             $this->assertTrue(array_get($data, 'value.decimal') >= $target_value);
     //         }
     //     } finally {
     //         DB::rollback();
@@ -964,10 +1221,15 @@ class CustomViewFilterTest extends UnitTestBase
     //     DB::beginTransaction();
     //     try {
     //         $target_value = 0.36;
-    //         $array = $this->getColumnFilterData('decimal', FilterOption::NUMBER_LTE, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'decimal',
+    //             'filter_condition' => FilterOption::NUMBER_LTE,
+    //             'filter_value_text' => "$target_value"
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
-    //             $this->assertTrue(array_get($data, 'value.decimal') <= $filter_settings[0]['filter_value_text']);
+    //             $this->assertTrue(array_get($data, 'value.decimal') <= $target_value);
     //         }
     //     } finally {
     //         DB::rollback();
@@ -983,8 +1245,12 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 'bar';
-    //         $array = $this->getColumnFilterData('select', FilterOption::SELECT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select',
+    //             'filter_condition' => FilterOption::SELECT_EXISTS,
+    //             'filter_value_text' => 'bar'
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
     //             $this->assertTrue(array_get($data, 'value.select') === $filter_settings[0]['filter_value_text']);
@@ -1003,8 +1269,12 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 'bar';
-    //         $array = $this->getColumnFilterData('select', FilterOption::SELECT_NOT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select',
+    //             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+    //             'filter_value_text' => 'bar'
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
     //             $this->assertTrue(array_get($data, 'value.select') !== $filter_settings[0]['filter_value_text']);
@@ -1023,8 +1293,12 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 'bar';
-    //         $array = $this->getColumnFilterData('select_valtext', FilterOption::SELECT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select_valtext',
+    //             'filter_condition' => FilterOption::SELECT_EXISTS,
+    //             'filter_value_text' => 'bar'
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
     //             $this->assertTrue(array_get($data, 'value.select_valtext') === $filter_settings[0]['filter_value_text']);
@@ -1043,8 +1317,12 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 'bar';
-    //         $array = $this->getColumnFilterData('select_valtext', FilterOption::SELECT_NOT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select_valtext',
+    //             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+    //             'filter_value_text' => 'bar'
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
     //             $this->assertTrue(array_get($data, 'value.select_valtext') !== $filter_settings[0]['filter_value_text']);
@@ -1063,8 +1341,12 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 2;
-    //         $array = $this->getColumnFilterData('select_table', FilterOption::SELECT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select_table',
+    //             'filter_condition' => FilterOption::SELECT_EXISTS,
+    //             'filter_value_text' => 2
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
     //             $this->assertTrue(array_get($data, 'value.select_table') === $filter_settings[0]['filter_value_text']);
@@ -1083,8 +1365,12 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 2;
-    //         $array = $this->getColumnFilterData('select_table', FilterOption::SELECT_NOT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select_table',
+    //             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+    //             'filter_value_text' => 2
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
     //             $this->assertTrue(array_get($data, 'value.select_table') !== $filter_settings[0]['filter_value_text']);
@@ -1103,11 +1389,15 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 'bar';
-    //         $array = $this->getColumnFilterData('select_multiple', FilterOption::SELECT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select_multiple',
+    //             'filter_condition' => FilterOption::SELECT_EXISTS,
+    //             'filter_value_text' => 'bar'
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
-    //             $this->assertTrue(in_array($target_value, array_get($data, 'value.select_multiple')));
+    //             $this->assertTrue(in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_multiple')));
     //         }
     //     } finally {
     //         DB::rollback();
@@ -1123,11 +1413,15 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 'foo';
-    //         $array = $this->getColumnFilterData('select_multiple', FilterOption::SELECT_NOT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select_multiple',
+    //             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+    //             'filter_value_text' => 'foo'
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
-    //             $this->assertFalse(in_array($target_value, array_get($data, 'value.select_multiple')));
+    //             $this->assertFalse(in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_multiple')));
     //         }
     //     } finally {
     //         DB::rollback();
@@ -1143,11 +1437,15 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 'bar';
-    //         $array = $this->getColumnFilterData('select_valtext_multiple', FilterOption::SELECT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select_valtext_multiple',
+    //             'filter_condition' => FilterOption::SELECT_EXISTS,
+    //             'filter_value_text' => 'bar'
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
-    //             $this->assertTrue(in_array($target_value, array_get($data, 'value.select_valtext_multiple')));
+    //             $this->assertTrue(in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_valtext_multiple')));
     //         }
     //     } finally {
     //         DB::rollback();
@@ -1163,11 +1461,15 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 'baz';
-    //         $array = $this->getColumnFilterData('select_valtext_multiple', FilterOption::SELECT_NOT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select_valtext_multiple',
+    //             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+    //             'filter_value_text' => 'baz'
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
-    //             $this->assertFalse(in_array($target_value, array_get($data, 'value.select_valtext_multiple')));
+    //             $this->assertFalse(in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_valtext_multiple')));
     //         }
     //     } finally {
     //         DB::rollback();
@@ -1183,11 +1485,15 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 2;
-    //         $array = $this->getColumnFilterData('select_table_multiple', FilterOption::SELECT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select_table_multiple',
+    //             'filter_condition' => FilterOption::SELECT_EXISTS,
+    //             'filter_value_text' => 2
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
-    //             $this->assertTrue(in_array($target_value, array_get($data, 'value.select_table_multiple')));
+    //             $this->assertTrue(in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_table_multiple')));
     //         }
     //     } finally {
     //         DB::rollback();
@@ -1203,11 +1509,91 @@ class CustomViewFilterTest extends UnitTestBase
 
     //     DB::beginTransaction();
     //     try {
-    //         $target_value = 4;
-    //         $array = $this->getColumnFilterData('select_table_multiple', FilterOption::SELECT_NOT_EXISTS, $target_value);
+    //         $filter_settings = [[
+    //             'column_name' => 'select_table_multiple',
+    //             'filter_condition' => FilterOption::SELECT_NOT_EXISTS,
+    //             'filter_value_text' => 4
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
 
     //         foreach ($array as $data) {
-    //             $this->assertFalse(in_array($target_value, array_get($data, 'value.select_table_multiple')));
+    //             $this->assertFalse(in_array($filter_settings[0]['filter_value_text'], array_get($data, 'value.select_table_multiple')));
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = like id
+    //  */
+    // public function testFuncFilterIdLike()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [[
+    //             'column_name' => 'id',
+    //             'condition_type' => ConditionType::SYSTEM,
+    //             'filter_condition' => FilterOption::LIKE,
+    //             'filter_value_text' => 8
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $this->assertTrue(strpos(strval(array_get($data, 'id')), strval($filter_settings[0]['filter_value_text'])) === 0);
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = created_at
+    //  */
+    // public function testFuncFilterCreatedAtDayOn()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [[
+    //             'column_name' => 'created_at',
+    //             'condition_type' => ConditionType::SYSTEM,
+    //             'filter_condition' => FilterOption::DAY_ON,
+    //             'filter_value_text' => \Carbon\Carbon::now()->format('Y-m-d')
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $date = \Carbon\Carbon::parse(array_get($data, 'created_at'));
+    //             $this->assertTrue($date->isSameDay(\Carbon\Carbon::today()));
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = updated_at is today
+    //  */
+    // public function testFuncFilterUpdatedAtToday()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [[
+    //             'column_name' => 'updated_at',
+    //             'condition_type' => ConditionType::SYSTEM,
+    //             'filter_condition' => FilterOption::DAY_TODAY,
+    //         ]];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $date = \Carbon\Carbon::parse(array_get($data, 'updated_at'));
+    //             $this->assertTrue($date->isSameDay(\Carbon\Carbon::today()));
     //         }
     //     } finally {
     //         DB::rollback();
@@ -1215,40 +1601,137 @@ class CustomViewFilterTest extends UnitTestBase
     // }
 
     /**
-     * FilterOption = multiple filter condition (join AND)
+     * FilterOption = created_user is login user
      */
-    public function testFuncFilterMultipleAnd()
+    public function testFuncFilterCreatedUserEqUser()
     {
         $this->init();
 
         DB::beginTransaction();
         try {
-            $filter_settings = [];
-            $filter_settings[] = [
-                'column_name' => 'date',
-                'filter_condition' => FilterOption::DAY_TODAY_OR_AFTER,
-            ];
-            $filter_settings[] = [
-                'column_name' => 'integer',
-                'filter_condition' => FilterOption::NUMBER_GT,
-                'filter_value_text' => 100
-            ];
-            $filter_settings[] = [
-                'column_name' => 'select_valtext_multiple',
-                'filter_condition' => FilterOption::SELECT_EXISTS,
-                'filter_value_text' => 'foo'
-            ];
+            $filter_settings = [[
+                'column_name' => 'created_user',
+                'condition_type' => ConditionType::SYSTEM,
+                'filter_condition' => FilterOption::USER_EQ_USER,
+            ]];
             $array = $this->getColumnFilterData($filter_settings);
 
+            $user_id = \Exment::getUserId();
             foreach ($array as $data) {
-                $this->assertTrue(array_get($data, 'value.date') >= \Carbon\Carbon::now()->format('Y-m-d'));
-                $this->assertTrue(array_get($data, 'value.integer') > 100);
-                $this->assertTrue(in_array('foo', array_get($data, 'value.select_valtext_multiple')));
+                $this->assertTrue(array_get($data, 'created_user_id') == $user_id);
             }
         } finally {
             DB::rollback();
         }
     }
+
+    /**
+     * FilterOption = updated_user is not target user
+     */
+    public function testFuncFilterUpdatedUserNe()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $filter_settings = [[
+                'column_name' => 'updated_user',
+                'condition_type' => ConditionType::SYSTEM,
+                'filter_condition' => FilterOption::NE,
+                'filter_value_text' => TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC
+            ]];
+            $array = $this->getColumnFilterData($filter_settings);
+
+            foreach ($array as $data) {
+                $this->assertTrue(array_get($data, 'updated_user_id') !== TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC);
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    // /**
+    //  * FilterOption = multiple filter condition (join AND)
+    //  */
+    // public function testFuncFilterMultipleAnd()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [];
+    //         $filter_settings[] = [
+    //             'column_name' => 'date',
+    //             'filter_condition' => FilterOption::DAY_TODAY_OR_AFTER,
+    //         ];
+    //         $filter_settings[] = [
+    //             'column_name' => 'integer',
+    //             'filter_condition' => FilterOption::NUMBER_GT,
+    //             'filter_value_text' => 100
+    //         ];
+    //         $filter_settings[] = [
+    //             'column_name' => 'select_valtext_multiple',
+    //             'filter_condition' => FilterOption::SELECT_EXISTS,
+    //             'filter_value_text' => 'foo'
+    //         ];
+    //         $array = $this->getColumnFilterData($filter_settings);
+
+    //         foreach ($array as $data) {
+    //             $this->assertTrue(array_get($data, 'value.date') >= \Carbon\Carbon::now()->format('Y-m-d'));
+    //             $this->assertTrue(array_get($data, 'value.integer') > 100);
+    //             $this->assertTrue(in_array('foo', array_get($data, 'value.select_valtext_multiple')));
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = multiple filter condition (join OR)
+    //  */
+    // public function testFuncFilterMultipleOr()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $filter_settings = [];
+    //         $filter_settings[] = [
+    //             'column_name' => 'datetime',
+    //             'filter_condition' => FilterOption::DAY_TODAY,
+    //         ];
+    //         $filter_settings[] = [
+    //             'column_name' => 'boolean',
+    //             'filter_condition' => FilterOption::EQ,
+    //             'filter_value_text' => 'ng'
+    //         ];
+    //         $filter_settings[] = [
+    //             'column_name' => 'currency',
+    //             'filter_condition' => FilterOption::NUMBER_GT,
+    //             'filter_value_text' => 70000
+    //         ];
+    //         $array = $this->getColumnFilterData($filter_settings, ['condition_join' => 'or']);
+
+    //         $not_all = false;
+    //         foreach ($array as $data) {
+    //             $cnt = 0;
+    //             if (array_get($data, 'value.datetime') >= \Carbon\Carbon::now()->format('Y-m-d')) {
+    //                 $cnt++;
+    //             }
+    //             if (array_get($data, 'value.currency') > 70000) {
+    //                 $cnt++;
+    //             }
+    //             if (array_get($data, 'value.boolean') == 'ng') {
+    //                 $cnt++;
+    //             }
+    //             $this->assertTrue($cnt > 0);
+    //             if ($cnt < 3) $not_all = true;
+    //         }
+    //         $this->assertTrue($not_all);
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
 
     protected function init(){
         System::clearCache();
@@ -1280,12 +1763,17 @@ class CustomViewFilterTest extends UnitTestBase
 
         foreach ($filter_settings as $filter_setting)
         {
-            $custom_column = CustomColumn::getEloquent($filter_setting['column_name'], $custom_table);
+            if (isset($filter_setting['condition_type']) && $filter_setting['condition_type'] == ConditionType::SYSTEM) {
+                $column_id = SystemColumn::getOption(['name' => $filter_setting['column_name']])['id'];
+            } else {
+                $custom_column = CustomColumn::getEloquent($filter_setting['column_name'], $custom_table);
+                $column_id = $custom_column->id;
+            }
             $custom_view_filter = $this->createCustomViewFilter(
                 $custom_view->id,
-                ConditionType::COLUMN,
+                $filter_setting['condition_type'] ?? ConditionType::COLUMN,
                 $custom_table->id,
-                $custom_column->id,
+                $column_id,
                 $filter_setting['filter_condition'],
                 $filter_setting['filter_value_text'] ?? null,
             );
