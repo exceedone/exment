@@ -580,7 +580,7 @@ class Notify extends ModelBase
     protected function uniqueUsers($users)
     {
         collect($users)->unique(function($user){
-            $addresses = NotifyService::getAddresses($user);
+            $addresses = NotifyService::getAddress($user);
             return is_nullorempty($addresses) ? null : $addresses[0];
         })->filter()->toArray();
     }
