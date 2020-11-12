@@ -109,6 +109,7 @@ class Notify extends ModelBase
                     continue;
                 }
         
+                $users = $this->uniqueUsers($users);
                 foreach ($users as $user) {
                     // send mail
                     try {
@@ -218,6 +219,7 @@ class Notify extends ModelBase
                 continue;
             }
 
+            $users = $this->uniqueUsers($users);
             foreach ($users as $user) {
                 if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user)) {
                     continue;
@@ -326,6 +328,7 @@ class Notify extends ModelBase
                 continue;
             }
     
+            $users = $this->uniqueUsers($users);
             foreach ($users as $user) {
                 // send mail
                 try {
@@ -568,6 +571,20 @@ class Notify extends ModelBase
         return boolval($this->getTriggerSetting('notify_myself') ?? false);
     }
     
+    /**
+     * Unique users. unique key is mail address.
+     *
+     * @param array|Collection $users
+     * @return \Illuminate\Support\Collection
+     */
+    protected function uniqueUsers($users)
+    {
+        collect($users)->unique(function($user){
+            $addresses = NotifyService::getAddresses($user);
+            return is_nullorempty($addresses) ? null : $addresses[0];
+        })->filter()->toArray();
+    }
+
     protected static function boot()
     {
         parent::boot();

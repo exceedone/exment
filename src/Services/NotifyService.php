@@ -3,6 +3,7 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Enums\NotifyAction;
@@ -738,5 +739,33 @@ class NotifyService
         }
 
         return $items;
+    }
+    
+
+    /**
+     * Get User Mail Address
+     *
+     * @param string|array|CustomValue|NotifyTarget $users
+     * @return array
+     */
+    public static function getAddress($users)
+    {
+        // Convert "," string to array
+        if (is_string($users)) {
+            $users = stringToArray($users);
+        } elseif (!is_list($users)) {
+            $users = [$users];
+        }
+        $addresses = [];
+        foreach ($users as $user) {
+            if ($user instanceof CustomValue) {
+                $addresses[] = $user->getValue('email');
+            } elseif ($user instanceof NotifyTarget) {
+                $addresses[] = $user->email();
+            } else {
+                $addresses[] = $user;
+            }
+        }
+        return $addresses;
     }
 }
