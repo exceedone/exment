@@ -93,4 +93,15 @@ class NavbarSender extends SenderBase
             $parent_type
         ));
     }
+
+    /**
+     * Get the value of the notifiable's primary key.
+     *
+     * @return 
+     * @return string|null
+     */
+    public function getKey()
+    {
+        return $this->custom_value ? $this->custom_value->id : null;
+    }
 }

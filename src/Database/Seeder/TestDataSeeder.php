@@ -816,14 +816,15 @@ class TestDataSeeder extends Seeder
         $notify = new Notify;
         $notify->notify_view_name = $custom_table->table_name . '_notify';
         $notify->custom_table_id = $custom_table->id;
-        $notify->notify_trigger = 2;
+        $notify->notify_trigger = Enums\NotifyTrigger::CREATE_UPDATE_DATA;
         $notify->mail_template_id = 6;
         $notify->trigger_settings = [
-            "notify_saved_trigger" => ["created","updated","deleted","shared","comment","attachmented"]
+            "notify_saved_trigger" => ["created","updated","deleted","shared","comment","attachmented"],
+            'notify_myself' => true,
         ];
         $notify->action_settings = [[
             "notify_action" => NotifyAction::SHOW_PAGE,
-            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
+            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER, Enums\NotifyActionTarget::HAS_ROLES],
         ]];
         $notify->save();
         return $notify->id;
@@ -865,7 +866,7 @@ class TestDataSeeder extends Seeder
             $notify = new Notify;
             $notify->notify_view_name = $item['name'];
             $notify->custom_table_id = $custom_table->id;
-            $notify->notify_trigger = 3;
+            $notify->notify_trigger = Enums\NotifyTrigger::BUTTON;
             $notify->mail_template_id = 5;
             $notify->trigger_settings = [
                 "notify_button_name" => $item['view_name']];
