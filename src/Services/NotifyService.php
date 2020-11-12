@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\Plugin;
@@ -793,10 +794,16 @@ class NotifyService
         foreach ($users as $user) {
             if ($user instanceof CustomValue) {
                 $addresses->push($user->getValue('email'));
+            } elseif ($user instanceof LoginUser) {
+                $addresses->push($user->email);
             } elseif ($user instanceof NotifyTarget) {
                 $addresses->push($user->email());
-            } else {
+            } elseif(is_string($user)) {
                 $addresses->push($user);
+            }
+            else{
+                // wrong class. checking value!!
+                throw new \Exception('getAddress value is wrong!');
             }
         }
         return $addresses->filter()->unique()->toArray();
