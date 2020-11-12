@@ -64,7 +64,7 @@ class NotifyTest extends TestCase
 
         $user = \Exment::user();
         $password = make_password();
-        $mail_template = $this->getMailTemplate($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD);
+        $mail_template = $this->getMailTemplate($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN);
 
         $user->sendPassword($password);
 
@@ -72,12 +72,18 @@ class NotifyTest extends TestCase
         $notifiable = $this->callProtectedMethod($user, 'send', $is_newuser);
 
         Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
-            function($notification, $channels, $notifiable) use($mail_template, $user, $password) {
-                return ($notifiable->getTo() == $user->email) &&
-                ($notifiable->getSubject() == $mail_template->getValue('mail_subject'))
-                //($notifiable->getBody() == $mail_template->getValue('mail_body'))
-                ;
-            });
+        function($notification, $channels, $notifiable) use($mail_template, $user, $password) {
+            if(!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)){
+                return false;
+            }
+
+            // contains token in body
+            if(strpos($notifiable->getBody(), $password) === false){
+                return false;
+            }
+
+            return true;
+        });
     }
 
 
@@ -97,12 +103,18 @@ class NotifyTest extends TestCase
         $notifiable = $user->sendPasswordResetNotification($token);
 
         Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
-            function($notification, $channels, $notifiable) use($mail_template, $user, $token) {
-                return ($notifiable->getTo() == $user->email) &&
-                    ($notifiable->getSubject() == $mail_template->getValue('mail_subject'))
-                    //($notifiable->getBody() == $mail_template->getValue('mail_body'))
-                    ;
-            });
+        function($notification, $channels, $notifiable) use($mail_template, $user, $token) {
+            if(!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)){
+                return false;
+            }
+
+            // contains token in body
+            if(strpos($notifiable->getBody(), $token) === false){
+                return false;
+            }
+
+            return true;
+        });
     }
 
     
@@ -130,11 +142,17 @@ class NotifyTest extends TestCase
         ]);
 
         Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
-            function($notification, $channels, $notifiable) use($mail_template, $user) {
-                return ($notifiable->getTo() == $user->email) &&
-                    ($notifiable->getSubject() == $mail_template->getValue('mail_subject'))
-                    //($notifiable->getBody() == $mail_template->getValue('mail_body'))
-                    ;
+            function($notification, $channels, $notifiable) use($mail_template, $user, $verify_code) {
+                if(!isMatchString($notifiable->getTo(), $user->email) || !isMatchString($notifiable->getMailTemplateId(), $mail_template->id)){
+                    return false;
+                }
+
+                // contains token in $verify_code
+                if(strpos($notifiable->getBody(), strval($verify_code)) === false){
+                    return false;
+                }
+
+                return true;
             });
     }
 
