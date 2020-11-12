@@ -765,8 +765,12 @@ class NotifyService
                 $addresses->push($user->email);
             } elseif ($user instanceof NotifyTarget) {
                 $addresses->push($user->email());
-            } else {
+            } elseif(is_string($user)) {
                 $addresses->push($user);
+            }
+            else{
+                // wrong class. checking value!!
+                throw new \Exception('getAddress value is wrong!');
             }
         }
         return $addresses->filter()->unique()->toArray();
