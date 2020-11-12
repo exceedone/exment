@@ -30,6 +30,57 @@ class NotifyTest extends TestCase
         }
     }
 
+
+    /**
+     * test password notify
+     *
+     * @return void
+     */
+    public function testNotifyPasswordLoginUserCreate()
+    {
+        $this->_testNotifyPasswordLoginUserSaved(true);
+    }
+
+
+    /**
+     * test password notify
+     *
+     * @return void
+     */
+    public function testNotifyPasswordLoginUserUpdate()
+    {
+        $this->_testNotifyPasswordLoginUserSaved(false);
+    }
+
+
+    /**
+     * test password notify login user saved
+     *
+     * @return void
+     */
+    protected function _testNotifyPasswordLoginUserSaved(bool $is_newuser)
+    {
+        $this->init(true);
+
+        $user = \Exment::user();
+        $password = make_password();
+        $mail_template = $this->getMailTemplate($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD);
+
+        $user->sendPassword($password);
+
+        // execute send password
+        $notifiable = $this->callProtectedMethod($user, 'send', $is_newuser);
+
+        Notification::assertSentTo($notifiable, Jobs\MailSendJob::class, 
+            function($notification, $channels, $notifiable) use($mail_template, $user, $password) {
+                return ($notifiable->getTo() == $user->email) &&
+                ($notifiable->getSubject() == $mail_template->getValue('mail_subject'))
+                //($notifiable->getBody() == $mail_template->getValue('mail_body'))
+                ;
+            });
+    }
+
+
     /**
      * test password reset notify
      *
