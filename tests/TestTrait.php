@@ -36,6 +36,19 @@ trait TestTrait
     }
 
     /**
+     * Skip test temporarily.
+     *
+     * @param \Closure $skipMatchFunc Checking function. Please return boolean.
+     * @param string $messsage showing message why this test is skipped.
+     * @return void
+     */
+    protected function skipTempTestIfTrue(\Closure $skipMatchFunc, string $messsage = null){
+        if($skipMatchFunc()){
+            $this->markTestSkipped('This function is temporarily skipped. ' . $messsage);
+        }
+    }
+
+    /**
      * Initialize all test
      *
      * @return void
