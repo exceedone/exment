@@ -267,42 +267,7 @@ class WorkflowAction extends ModelBase
         $status_to = $this->getStatusToId($custom_value);
         \DB::transaction(function () use ($custom_value, $data, $is_edit, &$workflow_value, &$status_to, $next) {
             $status_from = $custom_value->workflow_value->workflow_status_to_id ?? null;
-            $morph_type = $custom_value->custom_table->table_name;
-            $morph_id = $custom_value->id;
-
-            // update old WorkflowValue
-            WorkflowValue::where([
-                'morph_type' => $morph_type,
-                'morph_id' => $morph_id,
-                'latest_flg' => true
-            ])->update(['latest_flg' => false]);
-
-            // if next, update action_executed_flg to false
-            if ($next === true) {
-                WorkflowValue::where([
-                    'morph_type' => $morph_type,
-                    'morph_id' => $morph_id,
-                    'action_executed_flg' => true
-                ])->update(['action_executed_flg' => false]);
-            }
-
-            $createData = [
-                'workflow_id' => array_get($this, 'workflow_id'),
-                'morph_type' => $morph_type,
-                'morph_id' => $morph_id,
-                'workflow_action_id' => $this->id,
-                'workflow_status_from_id' => $status_from == Define::WORKFLOW_START_KEYNAME ? null : $status_from,
-                'workflow_status_to_id' => $status_to == Define::WORKFLOW_START_KEYNAME ? null : $status_to,
-                'latest_flg' => 1
-            ];
-            $createData['comment'] = array_get($data, 'comment');
-
-            // if not next, update action_executed_flg to true
-            if ($next !== true) {
-                $createData['action_executed_flg'] = true;
-            }
-    
-            $workflow_value = WorkflowValue::create($createData);
+            $workflow_value = $this->forwardWorkflowValue($custom_value, $status_from, $status_to, $next, array_get($data, 'comment'));
 
             // if contains next_work_users, set workflow_value_authorities
             if (array_key_value_exists('next_work_users', $data)) {
@@ -344,6 +309,59 @@ class WorkflowAction extends ModelBase
         ]);
 
         return $workflow_value;
+    }
+
+    /**
+     * Forward workflow value.
+     * (1)Update old workflow value's status.
+     * (2)Create new workflow status
+     *
+     * @param CustomValue $custom_value
+     * @param string|null $status_from
+     * @param string|null $status_to
+     * @param boolean|array $next
+     * @param string $comment
+     * @return WorkflowValue created workflow value
+     */
+    protected function forwardWorkflowValue(CustomValue $custom_value, $status_from, $status_to, $next, $comment = null) : WorkflowValue
+    { 
+        $status_from = $custom_value->workflow_value->workflow_status_to_id ?? null;
+        $morph_type = $custom_value->custom_table->table_name;
+        $morph_id = $custom_value->id;
+
+        // update old WorkflowValue
+        WorkflowValue::where([
+            'morph_type' => $morph_type,
+            'morph_id' => $morph_id,
+            'latest_flg' => true
+        ])->update(['latest_flg' => false]);
+
+        // if next, update action_executed_flg to false
+        if ($next === true) {
+            WorkflowValue::where([
+                'morph_type' => $morph_type,
+                'morph_id' => $morph_id,
+                'action_executed_flg' => true
+            ])->update(['action_executed_flg' => false]);
+        }
+
+        $createData = [
+            'workflow_id' => array_get($this, 'workflow_id'),
+            'morph_type' => $morph_type,
+            'morph_id' => $morph_id,
+            'workflow_action_id' => $this->id,
+            'workflow_status_from_id' => $status_from == Define::WORKFLOW_START_KEYNAME ? null : $status_from,
+            'workflow_status_to_id' => $status_to == Define::WORKFLOW_START_KEYNAME ? null : $status_to,
+            'latest_flg' => 1,
+        ];
+        $createData['comment'] = $comment;
+
+        // if not next, update action_executed_flg to true
+        if ($next !== true) {
+            $createData['action_executed_flg'] = true;
+        }
+
+        return WorkflowValue::create($createData);
     }
 
     /**
