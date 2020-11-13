@@ -21,7 +21,7 @@ class FNotifyTest extends ExmentKitTestCase
     }
 
     /**
-     * test notify button test
+     * test notify button html 
      */
     public function testNotifyButtonHtml()
     {
@@ -45,12 +45,14 @@ class FNotifyTest extends ExmentKitTestCase
     
     
     /**
-     * test notify button test, and attachment
+     * test notify button test html, and attachment
      */
     public function testNotifyButtonHtmlAttachment()
     {
         // get value
+        $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
         $file = Model\File::whereNotNull('parent_id')->whereNotNull('parent_type')
+            ->where('parent_type', $custom_table->table_name)
             ->first();
         $custom_table = Model\CustomTable::getEloquent($file->parent_type);
         $custom_value = $custom_table->getValueModel($file->parent_id);
