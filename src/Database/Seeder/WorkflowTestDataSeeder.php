@@ -531,7 +531,7 @@ class WorkflowTestDataSeeder extends Seeder
         $notify->mail_template_id = $this->getMailTemplateFromKey(Enums\MailKeyName::WORKFLOW_NOTIFY)->id;
         $notify->action_settings = [[
             "notify_action" => Enums\NotifyAction::SHOW_PAGE,
-            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
+            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER, Enums\NotifyActionTarget::WORK_USER],
         ]];
         $notify->save();
     }

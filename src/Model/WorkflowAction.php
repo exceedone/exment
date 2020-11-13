@@ -265,9 +265,8 @@ class WorkflowAction extends ModelBase
 
         $workflow_value = null;
         $status_to = $this->getStatusToId($custom_value);
-        \DB::transaction(function () use ($custom_value, $data, $is_edit, &$workflow_value, &$status_to, $next) {
-            $status_from = $custom_value->workflow_value->workflow_status_to_id ?? null;
-            $workflow_value = $this->forwardWorkflowValue($custom_value, $status_from, $status_to, $next, array_get($data, 'comment'));
+        \DB::transaction(function () use ($custom_value, $data, $is_edit, &$workflow_value, &$status_to) {
+            $workflow_value = $this->forwardWorkflowValue($custom_value, $data);
 
             // if contains next_work_users, set workflow_value_authorities
             if (array_key_value_exists('next_work_users', $data)) {
@@ -317,14 +316,13 @@ class WorkflowAction extends ModelBase
      * (2)Create new workflow status
      *
      * @param CustomValue $custom_value
-     * @param string|null $status_from
-     * @param string|null $status_to
-     * @param boolean|array $next
-     * @param string $comment
+     * @param array $data comment
      * @return WorkflowValue created workflow value
      */
-    protected function forwardWorkflowValue(CustomValue $custom_value, $status_from, $status_to, $next, $comment = null) : WorkflowValue
+    protected function forwardWorkflowValue(CustomValue $custom_value, array $data = []) : WorkflowValue
     { 
+        $next = $this->isActionNext($custom_value);
+        $status_to = $this->getStatusToId($custom_value);
         $status_from = $custom_value->workflow_value->workflow_status_to_id ?? null;
         $morph_type = $custom_value->custom_table->table_name;
         $morph_id = $custom_value->id;
@@ -354,7 +352,7 @@ class WorkflowAction extends ModelBase
             'workflow_status_to_id' => $status_to == Define::WORKFLOW_START_KEYNAME ? null : $status_to,
             'latest_flg' => 1,
         ];
-        $createData['comment'] = $comment;
+        $createData['comment'] = array_get($data, 'comment');
 
         // if not next, update action_executed_flg to true
         if ($next !== true) {

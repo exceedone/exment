@@ -213,6 +213,64 @@ class NotifyTest extends TestCase
     }
 
 
+    
+    public function testNotifyWorkflow()
+    {
+        $this->init(false);
+        $user_id = \Exment::user()->base_user_id;
+        
+        $workflow = Model\Workflow::where('workflow_view_name', 'workflow_common_company')->first();
+        $workflow_action = Model\WorkflowAction::where('action_name', 'middle_action')->where('workflow_id', $workflow->id)->first();
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+
+        // create customvalue
+        $custom_value = $custom_table->getValueModel()->setValue([
+            'text' => 'test',
+        ]);
+        $custom_value->save();
+
+        // execute action and create workflow value
+        $workflow_value = $this->callProtectedMethod($workflow_action, 'forwardWorkflowValue', $custom_value);
+        // reget custom value
+        $custom_value = $custom_table->getValueModel()->find($custom_value->id);
+
+        // get notify users
+        $status_to = $workflow_action->getStatusToId($custom_value);
+        $users = collect();
+        Model\WorkflowStatus::getActionsByFrom($status_to, $workflow, true)
+            ->each(function ($workflow_action) use (&$users, $custom_value) {
+                $users = $users->merge(
+                    $workflow_action->getAuthorityTargets($custom_value, true),
+                    $users
+                );
+            });
+        $this->assertTrue($users->count() > 0, "Next user not contains.");
+
+        // call notify
+        $notify = Notify::where('notify_trigger', NotifyTrigger::WORKFLOW)->where('notify_view_name', 'workflow_common_company')->first();
+        $notify->notifyWorkflow($custom_value, $workflow_action, $workflow_value, $status_to);
+
+        $mail_template = $this->getMailTemplate(MailKeyName::WORKFLOW_NOTIFY);
+        foreach($users as $user){
+            $data = NotifyNavbar::withoutGlobalScopes()
+                ->where('notify_id', $notify->id)
+                ->where('parent_type', $custom_table->table_name)
+                ->where('parent_id', $custom_value->id)
+                ->where('target_user_id', $user->id)
+                ->orderBy('created_at', 'desc')->get();
+            $this->assertTrue($data->count() > 0, "Notify data not contains.");
+                
+            foreach($data as $d){
+                $this->assertEquals(array_get($d, 'parent_type'), $custom_table->table_name);
+                $this->assertEquals(array_get($d, 'parent_id'), $custom_value->id);
+                $this->assertEquals(array_get($d, 'target_user_id'), $user->id);
+                $this->assertEquals(array_get($d, 'trigger_user_id'), $user_id);
+            }
+        }
+
+    }
+
+
     /**
      * Check custom value notify user only once.
      *
@@ -239,5 +297,6 @@ class NotifyTest extends TestCase
     protected function getMailTemplate($keyName){
         return CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', $keyName)->first();
     }
+
 
 }
