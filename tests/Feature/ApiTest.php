@@ -1375,10 +1375,11 @@ class ApiTest extends ApiTestBase
     public function testGetNotify(){
         $token = $this->getAdminAccessToken([ApiScope::NOTIFY_READ]);
         $itemCount = NotifyNavbar::withoutGlobalScopes()->where('read_flg', 0)->where('target_user_id', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->count();
+        \Config::set('exment.api_max_data_count', 10000);
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls_query('api', 'notify', ['count' => 100]))
+        ])->get(admin_urls_query('api', 'notify', ['count' => 10000]))
             ->assertStatus(200)
             ->assertJsonCount($itemCount, 'data');
     }
@@ -1386,10 +1387,11 @@ class ApiTest extends ApiTestBase
     public function testGetNotifyAll(){
         $token = $this->getAdminAccessToken([ApiScope::NOTIFY_WRITE]);
         $itemCount = NotifyNavbar::withoutGlobalScopes()->where('target_user_id', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->count();
+        \Config::set('exment.api_max_data_count', 10000);
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls_query('api', 'notify', ['count' => 100, 'all' => 1]))
+        ])->get(admin_urls_query('api', 'notify', ['count' => 10000, 'all' => 1]))
             ->assertStatus(200)
             ->assertJsonCount($itemCount, 'data');
     }
@@ -1533,7 +1535,7 @@ class ApiTest extends ApiTestBase
 
         $file = $response->baseResponse->getContent();
 
-        $this->assertMatch($file, 'test');
+        $this->assertMatch($file, TestDefine::FILE_TESTSTRING);
     }
 
     public function testDownloadFileJson(){
@@ -1550,7 +1552,7 @@ class ApiTest extends ApiTestBase
         $json = json_decode($response->baseResponse->getContent(), true);
 
         $this->assertMatch(array_get($json, 'name'), $document->label);
-        $this->assertMatch(array_get($json, 'base64'), base64_encode('test'));
+        $this->assertMatch(array_get($json, 'base64'), base64_encode(TestDefine::FILE_TESTSTRING));
     }
 
     public function testNoPermissionCreateDocument(){
