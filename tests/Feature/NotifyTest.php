@@ -4,12 +4,15 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Tests\TestCase;
 use Illuminate\Support\Facades\Notification;
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\NotifyNavbar;
+use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Jobs;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Carbon\Carbon;
@@ -156,6 +159,136 @@ class NotifyTest extends TestCase
             });
     }
 
+
+    public function testNotifySchedule()
+    {
+        $this->init(false);
+
+        $hh = Carbon::now()->format('G');
+        $target_date = Carbon::today()->addDay(100)->format('Y-m-d');
+
+        // Login user.
+        $user_id = \Exment::user()->base_user_id;
+
+        // change notify setting
+        $notify = Notify::where('notify_trigger', NotifyTrigger::TIME)->first();
+        $notify->setTriggerSetting('notify_hour', $hh);
+        $notify->setTriggerSetting('notify_day', 100);
+        $notify->setTriggerSetting('notify_beforeafter', -1);
+        $notify->save();
+
+        // change target data's date value
+        $custom_table = CustomTable::find($notify->custom_table_id);
+        $model = $custom_table->getValueModel()
+            ->where('created_user_id', '<>', $user_id)->first();
+        $model->update([
+            'value->date' => $target_date,
+        ]);
+
+        \Artisan::call('exment:notifyschedule');
+
+        $data = NotifyNavbar::withoutGlobalScopes()->orderBy('created_at', 'desc')->first();
+        $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
+        $this->assertEquals(array_get($data, 'parent_id'), $model->id);
+        $this->assertEquals(array_get($data, 'target_user_id'), $model->created_user_id);
+        $this->assertEquals(array_get($data, 'trigger_user_id'), $user_id);
+    }
+
+    public function testNotifyButton()
+    {
+        $this->init(false);
+
+        // Login user.
+        $user_id = \Exment::user()->base_user_id;
+
+        $notify = Notify::where('notify_trigger', NotifyTrigger::BUTTON)->first();
+        $custom_table = CustomTable::find($notify->custom_table_id);
+        $custom_value = $custom_table->getValueModel()
+            ->where('created_user_id', '<>', $user_id)->first();
+
+        // get target users
+        $target_user_keys = collect();
+        foreach ($notify->action_settings as $action_setting) {
+            $values = $notify->getNotifyTargetUsers($custom_value, $action_setting);
+            foreach ($values as $value) {
+                $target_user_keys->push($value->notifyKey());
+            }
+        }
+        $target_user_keys = $target_user_keys->unique()->toArray();
+
+        $subject = 'テスト';
+        $body = '本文です';
+        $notify->notifyButtonClick($custom_value, $target_user_keys, $subject, $body);
+
+        $data = NotifyNavbar::withoutGlobalScopes()
+            ->where('notify_id', $notify->id)->orderBy('created_at', 'desc')->first();
+        $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
+        $this->assertEquals(array_get($data, 'parent_id'), $custom_value->id);
+        $this->assertEquals(array_get($data, 'target_user_id'), $custom_value->created_user_id);
+        $this->assertEquals(array_get($data, 'trigger_user_id'), $user_id);
+        $this->assertEquals(array_get($data, 'notify_subject'), $subject);
+        $this->assertEquals(array_get($data, 'notify_body'), $body);
+    }
+
+
+    
+    public function testNotifyWorkflow()
+    {
+        $this->init(false);
+        $user_id = \Exment::user()->base_user_id;
+        
+        $workflow = Model\Workflow::where('workflow_view_name', 'workflow_common_company')->first();
+        $workflow_action = Model\WorkflowAction::where('action_name', 'middle_action')->where('workflow_id', $workflow->id)->first();
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+
+        // create customvalue
+        $custom_value = $custom_table->getValueModel()->setValue([
+            'text' => 'test',
+        ]);
+        $custom_value->save();
+
+        // execute action and create workflow value
+        $workflow_value = $this->callProtectedMethod($workflow_action, 'forwardWorkflowValue', $custom_value);
+        // reget custom value
+        $custom_value = $custom_table->getValueModel()->find($custom_value->id);
+
+        // get notify users
+        $status_to = $workflow_action->getStatusToId($custom_value);
+        $users = collect();
+        Model\WorkflowStatus::getActionsByFrom($status_to, $workflow, true)
+            ->each(function ($workflow_action) use (&$users, $custom_value) {
+                $users = $users->merge(
+                    $workflow_action->getAuthorityTargets($custom_value, true),
+                    $users
+                );
+            });
+        $this->assertTrue($users->count() > 0, "Next user not contains.");
+
+        // call notify
+        $notify = Notify::where('notify_trigger', NotifyTrigger::WORKFLOW)->where('notify_view_name', 'workflow_common_company')->first();
+        $notify->notifyWorkflow($custom_value, $workflow_action, $workflow_value, $status_to);
+
+        $mail_template = $this->getMailTemplate(MailKeyName::WORKFLOW_NOTIFY);
+        foreach($users as $user){
+            $data = NotifyNavbar::withoutGlobalScopes()
+                ->where('notify_id', $notify->id)
+                ->where('parent_type', $custom_table->table_name)
+                ->where('parent_id', $custom_value->id)
+                ->where('target_user_id', $user->id)
+                ->orderBy('created_at', 'desc')->get();
+            $this->assertTrue($data->count() > 0, "Notify data not contains.");
+                
+            foreach($data as $d){
+                $this->assertEquals(array_get($d, 'parent_type'), $custom_table->table_name);
+                $this->assertEquals(array_get($d, 'parent_id'), $custom_value->id);
+                $this->assertEquals(array_get($d, 'target_user_id'), $user->id);
+                $this->assertEquals(array_get($d, 'trigger_user_id'), $user_id);
+            }
+        }
+
+    }
+
+
     /**
      * Check custom value notify user only once.
      *
@@ -182,5 +315,6 @@ class NotifyTest extends TestCase
     protected function getMailTemplate($keyName){
         return CustomTable::getEloquent('mail_template')->getValueModel()->where('value->mail_key_name', $keyName)->first();
     }
+
 
 }
