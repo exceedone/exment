@@ -27,7 +27,7 @@ class MailSender extends SenderBase
     protected $replaceOptions = [];
 
     
-    public function __construct($mail_key_name, $to)
+    public function __construct($mail_template, $to)
     {
         $this->mailInfo = new MailInfo;
         $this->mailHistory = new MailHistory;
@@ -37,7 +37,7 @@ class MailSender extends SenderBase
         $this->setUsePassword(boolval(config('exment.archive_attachment', false)));
 
         // get mail template
-        $mail_template = $this->getMailTemplateFromKey($mail_key_name);
+        $mail_template = $this->getMailTemplateFromKey($mail_template);
         if(!is_nullorempty($mail_template)){
             $this->mailHistory->setMailTemplate($mail_template);
             $this->setSubject($mail_template->getValue('mail_subject'));
@@ -45,9 +45,9 @@ class MailSender extends SenderBase
         }
     }
 
-    public static function make($mail_key_name, $to)
+    public static function make($mail_template, $to)
     {
-        $sender = new MailSender($mail_key_name, $to);
+        $sender = new MailSender($mail_template, $to);
         
         return $sender;
     }
@@ -288,29 +288,29 @@ class MailSender extends SenderBase
     /**
      * Get mail template from key
      *
-     * @param string|null $mail_key_name
+     * @param CustomValue|string|null $mail_template
      * @return CustomValue|null
      */
-    protected function getMailTemplateFromKey(?string $mail_key_name) : ?CustomValue
+    protected function getMailTemplateFromKey($mail_template) : ?CustomValue
     {
-        if (is_null($mail_key_name)) {
+        if (is_null($mail_template)) {
             return null;
-        } elseif ($mail_key_name instanceof CustomValue) {
-            return $mail_key_name;
+        } elseif ($mail_template instanceof CustomValue) {
+            return $mail_template;
         } 
         
-        $mail_template = null;
-        if (is_numeric($mail_key_name)) {
-            $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_key_name);
+        $result = null;
+        if (is_numeric($mail_template)) {
+            $result = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
         } else {
-            $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)
-                ::where('value->mail_key_name', $mail_key_name)->first();
+            $result = getModelName(SystemTableName::MAIL_TEMPLATE)
+                ::where('value->mail_key_name', $mail_template)->first();
         }
         // if not found, return exception
-        if (is_null($mail_template)) {
-            throw new NoMailTemplateException($mail_key_name);
+        if (is_null($result)) {
+            throw new NoMailTemplateException($mail_template);
         }
 
-        return $mail_template;
+        return $result;
     }
 }

@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
 class OrganizationItem extends ConditionItemBase implements ConditionItemInterface
 {
@@ -74,12 +75,12 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
     /**
      * Check has workflow authority with this item.
      *
-     * @param WorkflowAuthority $workflow_authority
+     * @param WorkflowAuthorityInterface $workflow_authority
      * @param CustomValue|null $custom_value
      * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority(WorkflowAuthority $workflow_authority, ?CustomValue $custom_value, $targetUser)
+    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         $ids = $targetUser->belong_organizations->pluck('id')->toArray();
         return in_array($workflow_authority->related_id, $ids);

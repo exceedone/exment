@@ -4,7 +4,7 @@ namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
-use Exceedone\Exment\Model\WorkflowAuthority;
+use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
 interface ConditionItemInterface
 {
@@ -49,10 +49,10 @@ interface ConditionItemInterface
     /**
      * Check has workflow authority with this item.
      *
-     * @param WorkflowAuthority $workflow_authority
+     * @param WorkflowAuthorityInterface $workflow_authority
      * @param CustomValue|null $custom_value
      * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority(WorkflowAuthority $workflow_authority, ?CustomValue $custom_value, $targetUser);
+    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser);
 }

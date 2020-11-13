@@ -215,10 +215,9 @@ class MailInfo
 
 
     protected function convertArray($value){
-        if($value instanceof \Illuminate\Database\Eloquent\Model){
+        if($value instanceof \Illuminate\Database\Eloquent\Model || $value instanceof \Exceedone\Exment\Model\NotifyTarget){
             return [$value];
         }
         return toArray($value);
     }
-
 }

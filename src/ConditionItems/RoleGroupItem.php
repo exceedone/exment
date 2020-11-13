@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\WorkflowAuthority;
+use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
 class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
 {
@@ -71,12 +72,12 @@ class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * Check has workflow authority with this item.
      *
-     * @param WorkflowAuthority $workflow_authority
+     * @param WorkflowAuthorityInterface $workflow_authority
      * @param CustomValue|null $custom_value
      * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority(WorkflowAuthority $workflow_authority, ?CustomValue $custom_value, $targetUser)
+    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         $ids = $targetUser->belong_role_groups->pluck('id')->toArray();
         return in_array($workflow_authority->related_id, $ids);

@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\WorkflowAuthority;
+use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
@@ -73,12 +74,12 @@ class UserItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * Check has workflow authority with this item.
      *
-     * @param WorkflowAuthority $workflow_authority
+     * @param WorkflowAuthorityInterface $workflow_authority
      * @param CustomValue|null $custom_value
      * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority(WorkflowAuthority $workflow_authority, ?CustomValue $custom_value, $targetUser)
+    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         return $workflow_authority->related_id == $targetUser->id;
     }
