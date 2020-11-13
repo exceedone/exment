@@ -494,7 +494,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * validation custom_value using each column setting.
-     * *If use this function, Please check customMessages.
+     * *If use this function, Please check appendMessages.
      *
      * @param array $value input value
      * @param ?CustomValue $custom_value matched custom_value
@@ -559,7 +559,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         if (count($errors) > 0) {
-            $validator->setCustomMessages($errors);
+            $validator->appendMessages($errors);
         }
 
         return $validator;
