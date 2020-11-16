@@ -10,8 +10,6 @@ class BatchUpdate extends BatchAction
 
     /**
      * Create a new Tools instance.
-     *
-     * @param Grid $grid
      */
     public function __construct($operation)
     {

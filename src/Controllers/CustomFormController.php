@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Custom Form Controller
@@ -70,7 +71,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->setResource(admin_urls('formpriority', $this->custom_table->table_name));
         $grid->column('form_priority_text', exmtrans("custom_form.priority.form_priority_text"));
         $grid->column('form_view_name', exmtrans("custom_form.priority.form_view_name"));
-        $grid->column('order', exmtrans("custom_form.priority.order"))->editable('number');
+        $grid->column('order', exmtrans("custom_form.priority.order"))->editable();
 
         if (isset($this->custom_table)) {
             $grid->model()
@@ -96,11 +97,14 @@ class CustomFormController extends AdminControllerTableBase
         return $grid;
     }
 
+
     /**
      * priority update interface.
      *
-     * @param $tableKey
-     * @param $id
+     * @param Request $request
+     * @param string $tableKey
+     * @param string|int|null $id
+     * @return void
      */
     public function priority(Request $request, $tableKey, $id)
     {
@@ -118,12 +122,16 @@ class CustomFormController extends AdminControllerTableBase
             //            return back()->withInput();
         }
     }
+    
 
     /**
-     * Edit interface.
+     * Edit
      *
-     * @param $id
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @param string $tableKey
+     * @param string|int|null $id
+     * @return void|Response
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {

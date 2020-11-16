@@ -21,7 +21,7 @@ class BCustomTableTest extends ExmentKitTestCase
      */
     public function testDisplayInstalledTable()
     {
-        $this->visit('/admin/table')
+        $this->visit(admin_url('table'))
                 ->seeInElement('th', 'テーブル名(英数字)')
                 ->seeInElement('th', 'テーブル表示名')
                 ->seeInElement('th', '操作')
@@ -39,7 +39,7 @@ class BCustomTableTest extends ExmentKitTestCase
      */
     public function testDisplayCustomTableCreate()
     {
-        $this->visit('/admin/table/create')
+        $this->visit(admin_url('table/create'))
                 ->seePageIs(admin_url('table/create'))
                 ->seeInElement('h1', 'カスタムテーブル設定')
                 ->seeInElement('h3[class=box-title]', '作成')
@@ -69,9 +69,9 @@ class BCustomTableTest extends ExmentKitTestCase
         $pre_cnt = CustomTable::count();
 
         // Create custom table
-        $this->visit('/admin/table')
+        $this->visit(admin_url('table'))
                 ->seePageIs(admin_url('table'))
-                ->visit('/admin/table/create')
+                ->visit(admin_url('table/create'))
                 ->type('test', 'table_name')
                 ->type('test table', 'table_view_name')
                 ->type('test description', 'description')
@@ -93,7 +93,7 @@ class BCustomTableTest extends ExmentKitTestCase
         $id = array_get($row, 'id');
 
         // Update custom table
-        $this->visit('/admin/table/'. $id . '/edit')
+        $this->visit(admin_url('table/'. $id . '/edit'))
                 ->seeInField('options[search_enabled]', '1')
                 ->seeInField('options[attachment_flg]', '1')
                 ->seeInField('options[revision_flg]', '1')
@@ -102,7 +102,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 ->type('#00ff00', 'options[color]')
                 ->press('admin-submit')
                 ->seePageIs(admin_url('table'))
-                ->visit('/admin/table/?per_page=100')
+                ->visit(admin_url('table/?per_page=100'))
                 ->seeInElement('td', 'test table update')
         ;
 
@@ -118,7 +118,7 @@ class BCustomTableTest extends ExmentKitTestCase
                 'options[all_user_accessable_flg]' => 1,
         ];
         // Update custom table
-        $this->visit('/admin/table/'. $id . '/edit')
+        $this->visit(admin_url('table/'. $id . '/edit'))
                 ->submitForm('admin-submit', $data)
                 ->seePageIs(admin_url('table'))
         ;

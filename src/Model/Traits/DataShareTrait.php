@@ -44,7 +44,7 @@ trait DataShareTrait
                 
             $options = $options->merge(collect($optionItem)->mapWithKeys(function ($i, $k) use ($key) {
                 return [$key . '_' . $k => $i];
-            }), $options);
+            }));
          
             // add ajax
             if (isset($ajaxItem)) {

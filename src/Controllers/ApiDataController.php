@@ -92,7 +92,7 @@ class ApiDataController extends AdminControllerTableBase
 
     /**
      * find match data for select ajax
-     * @param mixed $id
+     * @param Request $request
      * @return mixed
      */
     public function dataSelect(Request $request)
@@ -206,7 +206,8 @@ class ApiDataController extends AdminControllerTableBase
     /**
      * find match data by column query
      * use form select ajax
-     * @param mixed $id
+     * @param Request $request
+     * @param string $tableKey
      * @return mixed
      */
     public function dataQueryColumn(Request $request, $tableKey)
@@ -1289,7 +1290,7 @@ class ApiDataController extends AdminControllerTableBase
      * Set order by query
      *
      * @param [type] $query
-     * @param [type] $orderby_list
+     * @param array $orderby_list
      * @return void
      */
     protected function setOrderByQuery($query, $orderby_list)

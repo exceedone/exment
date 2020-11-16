@@ -125,7 +125,7 @@ class Condition extends ModelBase
      * get work conditions.
      * *Convert to "_X" format to array. ex.enabled_0
      *
-     * @param [type] $work_conditions
+     * @param array $work_conditions
      * @return array
      */
     public static function getWorkConditions($work_conditions)

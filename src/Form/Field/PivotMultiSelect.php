@@ -8,6 +8,10 @@ use Encore\Admin\Form\Field\MultipleSelect;
 class PivotMultiSelect extends MultipleSelect
 {
     protected $view = 'admin::form.multipleselect';
+
+    /**
+     * @var array
+     */
     protected $pivot;
 
     public function __construct($column, $arguments = array())
@@ -19,7 +23,7 @@ class PivotMultiSelect extends MultipleSelect
     /**
      * add pivot function
      *
-     * @param $value
+     * @param array $pivot
      *
      * @return mixed
      */
@@ -32,7 +36,7 @@ class PivotMultiSelect extends MultipleSelect
     /**
      * Prepare for a field value before update or insert.
      *
-     * @param $value
+     * @param mixed $value
      *
      * @return mixed
      */

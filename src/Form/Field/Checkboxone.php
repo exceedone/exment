@@ -22,11 +22,11 @@ class Checkboxone extends Field
     /**
      * Set options.
      *
-     * @param array|callable|string $options
+     * @param array|callable|string $option
      *
      * @return $this|mixed
      */
-    public function option($option = array())
+    public function option($option = [])
     {
         if (count($option) == 0) {
             return $this;

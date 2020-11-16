@@ -180,7 +180,7 @@ class AuthUserOrgHelper
                 // get custom table's user ids(contains all table and permission role group)
                 $func = $idkey == SystemTableName::USER ? 'getRoleUserAndOrgBelongsUserQueryTable' : 'getRoleOrganizationQueryTable';
                 $queryTable = static::{$func}($custom_value->custom_table, $tablePermission);
-                if(!is_nullorempty($queryTable)){
+                if (!is_nullorempty($queryTable)) {
                     $queryTable->withoutGlobalScope(CustomValueModelScope::class);
 
                     $tablename = getDBTableName($idkey);
@@ -406,7 +406,7 @@ class AuthUserOrgHelper
     /**
      * Filtering user. Only join. set by filter_multi_user.
      *
-     * @param [type] $builder
+     * @param \Illuminate\Database\Eloquent\Builder $builder
      * @param CustomValue|LoginUser $user
      * @param string $db_table_name
      * @return void
@@ -439,9 +439,9 @@ class AuthUserOrgHelper
     /**
      * Filtering user. Only join. set by filter_multi_user.
      *
-     * @param [type] $builder
-     * @param [type] $user
-     * @param [type] $db_table_name
+     * @param \Illuminate\Database\Eloquent\Builder $builder
+     * @param CustomValue|LoginUser $user
+     * @param string $db_table_name
      * @return void
      */
     public static function filterOrganizationOnlyJoin($builder, $user, $db_table_name)

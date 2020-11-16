@@ -137,7 +137,7 @@ class CustomColumnImportValueTest extends UnitTestBase
      * Check import value result
      *
      * @param array $v
-     * @param [type] $matchedValue
+     * @param mixed $matchedValue
      * @param boolean $result
      * @return void
      */

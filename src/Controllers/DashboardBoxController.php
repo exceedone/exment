@@ -204,9 +204,13 @@ class DashboardBoxController extends AdminControllerBase
         return [$dashboard, $dashboard_box_type, $row_no, $column_no];
     }
     
+    
     /**
      * get views using table id
-     * @param mixed custon_table id
+     *
+     * @param Request $request
+     * @param string $dashboard_type
+     * @return array
      */
     public function tableViews(Request $request, $dashboard_type)
     {

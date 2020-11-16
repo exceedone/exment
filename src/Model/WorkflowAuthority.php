@@ -3,8 +3,9 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ConditionTypeDetail;
+use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
-class WorkflowAuthority extends ModelBase
+class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
 {
     use Traits\UseRequestSessionTrait;
 

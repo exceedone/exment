@@ -6,6 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomCopy;
@@ -40,11 +41,15 @@ class CustomCopyController extends AdminControllerTableBase
         return parent::index($request, $content);
     }
 
+    
     /**
-     * Edit interface.
+     * Edit
      *
-     * @param $id
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @param string $tableKey
+     * @param string|int|null $id
+     * @return void|Response
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {

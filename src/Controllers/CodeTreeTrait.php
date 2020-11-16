@@ -15,7 +15,7 @@ trait CodeTreeTrait
      *
      * @param string $folder
      * @param string $parent
-     * @param array &$json
+     * @param array $json
      * @param bool $root is root as.
      */
     protected function setDirectoryNodes($folder, $parent, &$json, bool $root = false)

@@ -107,7 +107,7 @@ class DefaultTableProvider extends ProviderBase
     /**
      * get target chunk records
      */
-    public function getRecords()
+    public function getRecords() : Collection
     {
         $records = new Collection;
         $this->grid->applyQuickSearch();

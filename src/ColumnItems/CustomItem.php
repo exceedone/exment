@@ -573,7 +573,6 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * Get column validate array.
-     * @param array $result_options
      * @param mixed $form_column_options
      * @param Field $field
      * @return array

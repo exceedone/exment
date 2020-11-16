@@ -16,19 +16,41 @@ class ExmentCustomValidator extends AdminValidator
 {
     use ColumnOptionQueryTrait;
 
+    /**
+     * The appended messages.
+     *
+     * @var aray
+     */
+    protected $appendedMessages = [];
+
     public function passes()
     {
-        return parent::passes() && count($this->customMessages) == 0;
+        return parent::passes() && count($this->appendedMessages) == 0;
     }
 
     public function fails()
     {
-        return parent::fails() || count($this->customMessages) > 0;
+        return parent::fails() || count($this->appendedMessages) > 0;
     }
 
     public function getMessages()
     {
-        return array_merge($this->errors()->messages(), $this->customMessages);
+        return array_merge($this->errors()->messages(), $this->appendedMessages);
+    }
+
+    /**
+     * Append messages
+     *
+     * @param array $errors
+     * @return self
+     */
+    public function appendMessages(array $errors)
+    {
+        foreach ($errors as $key => $error) {
+            $this->appendedMessages[$key] = $error;
+        }
+
+        return $this;
     }
 
     public function getMessageStrings() : array
