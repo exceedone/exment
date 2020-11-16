@@ -48,6 +48,13 @@ class Embeds extends AdminField\Embeds
         return $this->setFormField($form);
     }
 
+    
+    /**
+     * Set form field.
+     *
+     * @param EmbeddedForm $form
+     * @return EmbeddedForm
+     */
     protected function setFormField($form)
     {
         // reset

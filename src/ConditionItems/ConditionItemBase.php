@@ -21,7 +21,7 @@ use Carbon\Carbon;
  * @method mixed getChangeField($key, $show_condition_key = true)
  * @method string getText($key, $value, $showFilter = true)
  */
-abstract class ConditionItemBase
+abstract class ConditionItemBase implements ConditionItemInterface
 {
     protected $custom_table;
     protected $target;
@@ -201,8 +201,8 @@ abstract class ConditionItemBase
     /**
      * compare condition value and saved value
      *
-     * @param [type] $condition
-     * @param [type] $value
+     * @param Condition $condition
+     * @param mixed $value
      * @return bool
      */
     protected function compareValue($condition, $value)
@@ -327,8 +327,8 @@ abstract class ConditionItemBase
     /**
      * get condition value text.
      *
-     * @param CustomValue $custom_value
-     * @return boolean
+     * @param Condition $condition
+     * @return string
      */
     public function getConditionText(Condition $condition)
     {

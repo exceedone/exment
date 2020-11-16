@@ -4,7 +4,9 @@ namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
@@ -104,8 +106,8 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * get condition value text.
      *
-     * @param CustomValue $custom_value
-     * @return boolean
+     * @param Condition $condition
+     * @return string
      */
     public function getConditionText(Condition $condition)
     {
@@ -147,13 +149,16 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         return $custom_column->column_view_name ?? null;
     }
 
+
     /**
-     * Check has workflow authority
+     * Check has workflow authority with this item.
      *
-     * @param CustomValue $custom_value
+     * @param WorkflowAuthorityInterface $workflow_authority
+     * @param CustomValue|null $custom_value
+     * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority($workflow_authority, $custom_value, $targetUser)
+    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         $custom_column = CustomColumn::find($workflow_authority->related_id);
         if (!ColumnType::isUserOrganization($custom_column->column_type)) {
@@ -183,8 +188,8 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      * Set condition query. For data list and use workflow status
      *
      * @param [type] $query
-     * @param [type] $tableName
-     * @param [type] $custom_table
+     * @param string $tableName
+     * @param CustomTable $custom_table
      * @return void
      */
     public static function setWorkflowConditionQuery($query, $tableName, $custom_table)

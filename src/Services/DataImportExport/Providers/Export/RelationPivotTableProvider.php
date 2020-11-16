@@ -91,7 +91,7 @@ class RelationPivotTableProvider extends ProviderBase
     /**
      * get target chunk records
      */
-    public function getRecords()
+    public function getRecords() : Collection
     {
         // get base records
         $relation_name = $this->relation->getRelationName();

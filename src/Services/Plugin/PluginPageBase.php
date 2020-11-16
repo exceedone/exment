@@ -32,7 +32,7 @@ class PluginPageBase extends PluginPublicBase
     /**
      * Get route uri for page
      *
-     * @return void
+     * @return string
      */
     public function getRouteUri($endpoint = null)
     {

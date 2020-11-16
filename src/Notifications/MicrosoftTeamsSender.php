@@ -6,13 +6,10 @@ use Illuminate\Notifications\Notifiable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Jobs;
 
-class MicrosoftTeamsSender
+class MicrosoftTeamsSender extends SenderBase
 {
     use Notifiable;
-
-    protected $subject;
-    protected $body;
-    protected $webhook_url;
+    use WebhookTrait;
 
     /**
      * Create a new notification instance.

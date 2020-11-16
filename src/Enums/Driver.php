@@ -33,9 +33,10 @@ class Driver extends EnumBase
     /**
      * Get Exment Driver
      *
-     * @param [type] $app
-     * @param [type] $config
-     * @return void
+     * @param mixed $app
+     * @param array $config
+     * @param string $driverKey
+     * @return Filesystem
      */
     public static function getExmentDriver($app, $config, $driverKey)
     {

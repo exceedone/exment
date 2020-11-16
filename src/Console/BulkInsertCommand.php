@@ -227,7 +227,7 @@ class BulkInsertCommand extends Command
     /**
      * insert table data from tsv files.
      *
-     * @param string temporary file path stored work tsv files
+     * @param string $file temporary file path stored work tsv files
      */
     private function importTsv($file)
     {

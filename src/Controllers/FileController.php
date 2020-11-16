@@ -392,13 +392,13 @@ class FileController extends AdminControllerBase
     protected static function isDispositionInline($fileName) : bool
     {
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
-        if(is_nullorempty($ext)){
+        if (is_nullorempty($ext)) {
             return false;
         }
         
         // get inlines
         $inlines = stringToArray(config('exment.file_download_inline_extensions', []));
-        $inlines = collect($inlines)->map(function($inline){
+        $inlines = collect($inlines)->map(function ($inline) {
             return strtolower($inline);
         })->filter()->toArray();
 

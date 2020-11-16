@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
-class WorkflowValueAuthority extends ModelBase
+use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
+
+class WorkflowValueAuthority extends ModelBase implements WorkflowAuthorityInterface
 {
 }

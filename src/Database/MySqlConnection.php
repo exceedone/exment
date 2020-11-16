@@ -63,7 +63,8 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * dumpDatabase mysqldump for backup table definition or table data.
      *
-     * @param string backup target table (default:null)
+     * @param string $tempDir backup target table (default:null)
+     * @param string $table
      * @return void
      */
     protected function dumpDatabase($tempDir, $table = null)

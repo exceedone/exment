@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
+use Illuminate\Database\Eloquent\Collection;
+
 abstract class ProviderBase
 {
     
@@ -49,4 +51,6 @@ abstract class ProviderBase
     {
         return $this->count;
     }
+
+    abstract public function getRecords() : Collection;
 }

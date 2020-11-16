@@ -238,9 +238,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * Get database query
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
      * @param array $options
-     * @return
+     * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
      */
     public function getQuery($query, array $options = [])
     {
@@ -641,10 +641,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * copy from default view columns
      *
-     * @param [type] $fromView copied target view
+     * @param CustomView|null $fromView copied target view
      * @return void
      */
-    public function copyFromDefaultViewColumns($fromView)
+    public function copyFromDefaultViewColumns(?CustomView $fromView)
     {
         $view_columns = [];
 
@@ -759,7 +759,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * get view columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
-     * @param $is_number
+     * @param bool $is_y
      */
     public function getViewColumnsSelectOptions(bool $is_y) : array
     {
@@ -924,7 +924,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * check if target id view can be deleted
      * @param int|string $id
-     * @return [boolean, string] status, error message.
+     * @return array [boolean, string] status, error message.
      */
     public static function validateDestroy($id)
     {

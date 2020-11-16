@@ -479,7 +479,7 @@ class NotifyController extends AdminControllerBase
     /**
      * validate permission edit notify
      *
-     * @param [type] $id
+     * @param string|int|null $id
      * @return boolean
      */
     protected function hasPermissionEdit($id)

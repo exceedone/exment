@@ -53,7 +53,7 @@ trait InstallUpdateTrait
     /**
      * Get stub contents.
      *
-     * @param $name
+     * @param string $name
      *
      * @return string
      */

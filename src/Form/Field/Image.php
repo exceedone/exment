@@ -17,7 +17,7 @@ class Image extends \Encore\Admin\Form\Field\Image
      * If name already exists, rename it.
      * *override
      *
-     * @param $file
+     * @param UploadedFile $file
      *
      * @return void
      */

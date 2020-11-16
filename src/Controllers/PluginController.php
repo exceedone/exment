@@ -52,7 +52,7 @@ class PluginController extends AdminControllerBase
      * execute batch
      *
      * @param Request $request
-     * @param [type] $id
+     * @param string|int|null $id
      * @return void
      */
     public function executeBatch(Request $request, $id)
@@ -327,7 +327,7 @@ class PluginController extends AdminControllerBase
     /**
      * Get plugin custom option
      *
-     * @param [type] $plugin
+     * @param Plugin|null $plugin
      * @return void
      */
     protected function setCustomOptionForm($plugin, &$form)

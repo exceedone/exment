@@ -9,6 +9,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Layout\Row;
 use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
@@ -66,7 +67,7 @@ class CustomTableController extends AdminControllerBase
         $grid = new Grid(new CustomTable);
         $grid->column('table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
-        $grid->column('order', exmtrans("custom_table.order"))->editable('number')->sortable();
+        $grid->column('order', exmtrans("custom_table.order"))->sortable()->editable();
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();
@@ -458,7 +459,7 @@ HTML;
      * get columns select options.include system date
      * @param CustomTable $custom_table
      * @param array $selectOptions
-     * @param option items
+     * @param array items
      */
     protected function getColumnsSelectOptions($custom_table, $selectOptions = [])
     {
@@ -590,8 +591,14 @@ HTML;
     {
         return CustomTable::validateDestroy($id);
     }
+
+    
     /**
      * Showing menu modal
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return Response
      */
     public function menuModal(Request $request, $id)
     {

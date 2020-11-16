@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\RoleGroup;
+use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
 class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
 {
@@ -55,9 +56,9 @@ class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * Get change field
      *
-     * @param [type] $target_val
-     * @param [type] $key
-     * @return void
+     * @param string $key
+     * @param bool $show_condition_key
+     * @return \Encore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
     {
@@ -66,13 +67,16 @@ class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
         return $field->options($options);
     }
 
+    
     /**
-     * Check has workflow authority
+     * Check has workflow authority with this item.
      *
-     * @param CustomValue $custom_value
+     * @param WorkflowAuthorityInterface $workflow_authority
+     * @param CustomValue|null $custom_value
+     * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority($workflow_authority, $custom_value, $targetUser)
+    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         $ids = $targetUser->belong_role_groups->pluck('id')->toArray();
         return in_array($workflow_authority->related_id, $ids);

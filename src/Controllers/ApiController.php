@@ -33,8 +33,8 @@ class ApiController extends AdminControllerBase
 
     /**
      * get login user info
-     * @param mixed $id
-     * @return mixed
+     * @param Request $request
+     * @return array|null
      */
     public function me(Request $request)
     {
@@ -221,7 +221,7 @@ class ApiController extends AdminControllerBase
      * 1. find column and get column info
      * 2. get column target table
      * 3. get columns that belongs to target table
-     * @param mixed select_table custon_column id
+     * @param mixed $id select_table custon_column id
      */
     public function targetBelongsColumns($id)
     {
@@ -428,8 +428,7 @@ class ApiController extends AdminControllerBase
                         'id' => $key . '_' . $value->id,
                         'text' => $value->label,
                     ];
-                }),
-                $results
+                })
             );
         }
 
