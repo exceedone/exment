@@ -17,7 +17,7 @@ class Decimal extends CustomItem
             $this->value = parseFloat($this->value);
             if (array_has($this->custom_column, 'options.decimal_digit')) {
                 $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-                $this->value = floor($this->value * pow(10, $digit)) / pow(10, $digit);
+                $this->value = floorDigit($this->value, $digit);
             }
         }
         return $this;
