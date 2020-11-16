@@ -21,14 +21,20 @@ class DocumentExcelService
     protected $document_type;
     protected $uniqueFileName;
 
+    /**
+     * CustomValue
+     *
+     * @var CustomValue
+     */
     protected $model;
+    
     /**
      * construct
+     *
      * @param CustomValue $model
      * @param string $tempfilename
      * @param string $outputfilename
      * @param string $document_type
-     * @param $document
      */
     public function __construct($model, $tempfilename, $outputfilename, $document_type)
     {

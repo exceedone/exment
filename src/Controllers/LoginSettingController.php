@@ -396,7 +396,7 @@ class LoginSettingController extends AdminControllerBase
      * Showing login test modal
      *
      * @param Request $request
-     * @param [type] $id
+     * @param string|int|null $id
      * @return void
      */
     public function loginTestModal(Request $request, $id)
@@ -417,7 +417,7 @@ class LoginSettingController extends AdminControllerBase
      * execute login test for form
      *
      * @param Request $request
-     * @param [type] $id
+     * @param string|int|null $id
      * @return void
      */
     public function loginTestForm(Request $request, $id)
@@ -431,7 +431,7 @@ class LoginSettingController extends AdminControllerBase
      * execute login test for SSO
      *
      * @param Request $request
-     * @param [type] $id
+     * @param string|int|null $id
      * @return void
      */
     public function loginTestSso(Request $request, $id)
@@ -464,7 +464,7 @@ class LoginSettingController extends AdminControllerBase
      * execute login test for callback
      *
      * @param Request $request
-     * @param [type] $id
+     * @param string|int|null $id
      * @return void
      */
     public function loginTestCallback(Request $request, Content $content, $id)
@@ -501,7 +501,7 @@ class LoginSettingController extends AdminControllerBase
      * Active login setting
      *
      * @param Request $request
-     * @param [type] $id
+     * @param string|int|null $id
      * @return void
      */
     public function activate(Request $request, $id)
@@ -520,7 +520,7 @@ class LoginSettingController extends AdminControllerBase
      * Deactive login setting
      *
      * @param Request $request
-     * @param [type] $id
+     * @param string|int|null $id
      * @return void
      */
     public function deactivate(Request $request, $id)

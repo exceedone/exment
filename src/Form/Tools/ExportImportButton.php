@@ -72,7 +72,7 @@ class ExportImportButton extends ModalTileMenuButton
     /**
      * Set custom table.
      *
-     * @param Grid $grid
+     * @param CustomTable $custom_table
      *
      * @return $this
      */

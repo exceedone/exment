@@ -240,7 +240,9 @@ class DefaultTableProvider extends ProviderBase
     }
 
     /**
-     * @param $data
+     * 
+     *
+     * @param array $data
      * @return array
      */
     public function dataProcessing($data)
@@ -259,10 +261,13 @@ class DefaultTableProvider extends ProviderBase
         return $data_custom;
     }
 
+    
     /**
      * Data processing before getting model using imported data
      *
-     * @param $data
+     * @param array $data
+     * @param int $line_no
+     * @param array $options
      * @return array
      */
     public function dataProcessingFirst($data, $line_no, $options = [])

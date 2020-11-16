@@ -114,9 +114,9 @@ class ValueModal extends Field
     /**
      * Set ajax.
      *
-     * @param string $text
+     * @param string $ajax
      *
-     * @return $this|mixed
+     * @return $this
      */
     public function ajax($ajax = '')
     {
@@ -140,7 +140,7 @@ class ValueModal extends Field
     /**
      * Set button class.
      *
-     * @param string $buttonlabel
+     * @param string $buttonClass
      *
      * @return $this
      */
@@ -229,8 +229,8 @@ EOT;
     /**
      * Callback hidden value
      *
-     * @param string $script
-     * @return $this|mixed
+     * @param string $hiddenFormat
+     * @return $this
      */
     public function hiddenFormat($hiddenFormat)
     {

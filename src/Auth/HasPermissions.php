@@ -2,7 +2,6 @@
 namespace Exceedone\Exment\Auth;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Authenticatable;
 use Exceedone\Exment\Auth\Permission as AuthPermission;
 use Exceedone\Exment\Model\System;

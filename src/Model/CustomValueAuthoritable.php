@@ -77,11 +77,11 @@ class CustomValueAuthoritable extends ModelBase
     /**
      * Set Custom Value Authoritable after custom value save
      *
-     * @param [CustomValue] $custom_value
-     * @param [ShareTrigger] $share_trigger_type
+     * @param CustomValue $custom_value
+     * @param mixed $share_trigger_type
      * @return void
      */
-    public static function setValueAuthoritableEx($custom_value, $share_trigger_type)
+    public static function setValueAuthoritableEx(CustomValue $custom_value, $share_trigger_type)
     {
         $custom_table = $custom_value->custom_table;
         if (is_nullorempty($custom_table->share_settings)) {
@@ -405,7 +405,7 @@ class CustomValueAuthoritable extends ModelBase
                 
             $options = $options->merge(collect($optionItem)->mapWithKeys(function ($i, $k) use ($key) {
                 return [$key . '_' . $k => $i];
-            }), $options);
+            }));
          
             // add ajax
             if (isset($ajaxItem)) {
@@ -419,10 +419,11 @@ class CustomValueAuthoritable extends ModelBase
     /**
      * get listbox options default
      *
-     * @param [type] $custom_value
+     * @param CustomValue $custom_value
+     * @param string $permission
      * @return array user and organization default options
      */
-    protected static function getUserOrgSelectDefault($custom_value, $permission)
+    protected static function getUserOrgSelectDefault(CustomValue $custom_value, $permission)
     {
         $custom_table = $custom_value->custom_table;
         $table_name = $custom_table->table_name;

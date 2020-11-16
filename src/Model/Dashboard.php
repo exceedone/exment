@@ -53,8 +53,8 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     /**
      * Get dashboard items selecting row
      *
-     * @param [type] $row_no
-     * @return void
+     * @param int $row_no
+     * @return \Illuminate\Support\Collection
      */
     public function dashboard_row_boxes($row_no)
     {
@@ -218,7 +218,6 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     /**
      * Check this login user has edit permission this dashboard
      *
-     * @param [type] $id
      * @return boolean
      */
     public function hasEditPermission()

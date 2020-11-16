@@ -64,7 +64,7 @@ class DiskServiceItem
     protected function initializeDirectory()
     {
         if (!is_null($this->dirName) && !$this->disk->exists($this->dirName)) {
-            $this->disk->makeDirectory($this->dirName, 0755, true);
+            $this->disk->makeDirectory($this->dirName);
         }
     }
 

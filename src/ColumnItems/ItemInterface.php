@@ -25,6 +25,11 @@ interface ItemInterface
     public function value();
 
     /**
+     * get pure value.
+     */
+    public function pureValue();
+
+    /**
      * get text(for display)
      */
     public function text();

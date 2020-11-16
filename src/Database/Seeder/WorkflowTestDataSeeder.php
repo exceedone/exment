@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Database\Seeder;
 
 use Illuminate\Database\Seeder;
+use Exceedone\Exment\Model;
+use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowTable;
 use Exceedone\Exment\Model\WorkflowStatus;
@@ -12,7 +14,9 @@ use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\WorkflowConditionHeader;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
+
 
 class WorkflowTestDataSeeder extends Seeder
 {
@@ -491,6 +495,8 @@ class WorkflowTestDataSeeder extends Seeder
                     }
                 }
             }
+
+            $this->createNotify($workflowObj);
         }
         
         // add for organization work user
@@ -504,5 +510,29 @@ class WorkflowTestDataSeeder extends Seeder
         $wfValue->latest_flg = 1;
 
         $wfValue->save();
+    }
+
+
+    /**
+     * Create workflow notify
+     *
+     * @param Workflow $workflow
+     * @return void
+     */
+    protected function createNotify(Workflow $workflow)
+    {
+        if (!boolval($workflow->setting_completed_flg)) {
+            return false;
+        }
+        $notify = new Notify;
+        $notify->notify_view_name = $workflow->workflow_view_name;
+        $notify->workflow_id = $workflow->id;
+        $notify->notify_trigger = Enums\NotifyTrigger::WORKFLOW;
+        $notify->mail_template_id = $this->getMailTemplateFromKey(Enums\MailKeyName::WORKFLOW_NOTIFY)->id;
+        $notify->action_settings = [[
+            "notify_action" => Enums\NotifyAction::SHOW_PAGE,
+            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER, Enums\NotifyActionTarget::WORK_USER],
+        ]];
+        $notify->save();
     }
 }

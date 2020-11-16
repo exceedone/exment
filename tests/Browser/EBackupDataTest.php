@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Browser;
 use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 
 class EBackupDataTest extends ExmentKitTestCase
@@ -39,8 +40,8 @@ class EBackupDataTest extends ExmentKitTestCase
         }
 
         // check config update
-        $this->visit('/admin/backup')
-                ->seePageIs('/admin/backup')
+        $this->visit(admin_url('backup'))
+                ->seePageIs(admin_url('backup'))
                 ->seeInField('backup_enable_automatic', '0')
                 ->seeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=database][checked]')
                 ->seeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=plugin][checked]')
@@ -62,8 +63,8 @@ class EBackupDataTest extends ExmentKitTestCase
             return;
         }
 
-        $this->visit('/admin/backup')
-                ->seePageIs('/admin/backup')
+        $this->visit(admin_url('backup'))
+                ->seePageIs(admin_url('backup'))
                 ->seeInElement('h1', 'バックアップ一覧')
                 ->seeInElement('h3[class=box-title]', 'バックアップ設定')
                 ->seeInElement('label', 'バックアップ対象')
@@ -124,11 +125,11 @@ class EBackupDataTest extends ExmentKitTestCase
             'backup_automatic_term' => 7,
         ];
         // save config
-        $this->post('/admin/backup/setting', $data)
-        ;
+        $response = $this->post(admin_url('backup/setting'), $data);
+
         // check config update
-        $this->visit('/admin/backup')
-                ->seePageIs('/admin/backup')
+        $this->visit(admin_url('backup'))
+                ->seePageIs(admin_url('backup'))
                 ->seeInField('backup_enable_automatic', '1')
                 ->seeInField('backup_automatic_hour', '20')
                 ->seeInField('backup_automatic_term', '7')
@@ -168,24 +169,26 @@ class EBackupDataTest extends ExmentKitTestCase
             return;
         }
 
+        $backup_target = System::backup_target();
         $backup_enable_automatic = System::backup_enable_automatic();
         $data = [
             'backup_target' => [],
             'backup_enable_automatic' => $backup_enable_automatic ? 0 : 1,
         ];
         // save config(fail)
-        $this->post('/admin/backup/setting', $data)
-        ;
+        $this->post(admin_url('backup/setting'), $data);
+
         // check config no change
-        $this->visit('/admin/backup')
-                ->seePageIs('/admin/backup')
-                ->seeInField('backup_enable_automatic', $backup_enable_automatic ? 1 : 0)
-                ->dontSeeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=database][checked]')
-                ->dontSeeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=plugin][checked]')
-                ->dontSeeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=attachment][checked]')
-                ->seeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=log][checked]')
-                ->dontSeeElement('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=config][checked]')
-        ;
+        $this->visit(admin_url('backup'))
+                ->seePageIs(admin_url('backup'))
+                ->seeInField('backup_enable_automatic', $backup_enable_automatic ? 1 : 0);
+        
+        // loop target
+        $targets = BackupTarget::toArray();
+        foreach($targets as $target){
+            $func = in_array($target, $backup_target) ? 'seeElement' : 'dontSeeElement';
+            $this->{$func}('div[id=backup_target] input[type=checkbox][name="backup_target[]"][value=' . $target . '][checked]');
+        }
     }
 
     protected function backupData()
@@ -199,7 +202,7 @@ class EBackupDataTest extends ExmentKitTestCase
 
         $cnt = count($this->getArchiveFiles());
         // Check backup data count (before)
-        $this->visit('/admin/backup')
+        $this->visit(admin_url('backup'))
             ->seeElementCount('tr[class=tableHoverLinkEvent]', $cnt)
         ;
 
@@ -208,7 +211,7 @@ class EBackupDataTest extends ExmentKitTestCase
         ;
 
         // Check backup data count (after)
-        $this->visit('/admin/backup')
+        $this->visit(admin_url('backup'))
             ->seeElementCount('tr[class=tableHoverLinkEvent]', $cnt + 1)
         ;
     }
@@ -225,7 +228,7 @@ class EBackupDataTest extends ExmentKitTestCase
         // get latest backup file
         $files = $this->getArchiveFiles();
         rsort($files);
-
+        
         if (count($files) > 0) {
             $file = pathinfo($files[0], PATHINFO_FILENAME);
             // Restore data
@@ -242,10 +245,18 @@ class EBackupDataTest extends ExmentKitTestCase
     protected function getArchiveFiles()
     {
         // get all archive files
-        $files = array_filter(Storage::disk('backup')->files('list'), function ($file)
-        {
-            return preg_match('/list\/' . Define::RULES_REGEX_BACKUP_FILENAME . '\.zip$/i', $file);
-        });
+        $disk = Storage::disk('backup');
+        $files = collect($disk->files('list'))->map(function ($filename) use ($disk) {
+            return [
+                'name' => $filename,
+                'lastModified' => $disk->lastModified($filename),
+            ];
+        })
+        ->sortBy('lastModified')
+        ->map(function($file){
+            return $file['name'];
+        })->toArray();
+
         return $files;
     }
 }

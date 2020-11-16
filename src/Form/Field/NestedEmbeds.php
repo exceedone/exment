@@ -24,6 +24,12 @@ class NestedEmbeds extends Embeds
     {
         parent::__construct($column, $arguments);
     }
+
+    /**
+     * Get NestedEmbeddedForm.
+     *
+     * @return NestedEmbeddedForm
+     */
     protected function buildEmbeddedForm()
     {
         if (!isset($this->nestedForm)) {
@@ -100,7 +106,7 @@ class NestedEmbeds extends Embeds
     {
         $render = parent::render();
         $script = $this->buildEmbeddedForm()->getScripts();
-        if (isset($script)) {
+        if (!is_nullorempty($script)) {
             $this->script = $script;
         }
 

@@ -18,7 +18,7 @@ class ViewKindType extends EnumBase
     /**
      * Accept view kind type for datalist
      *
-     * @param [type] $view_kind_type
+     * @param string $view_kind_type
      * @return bool
      */
     public static function acceptApiList($view_kind_type)
@@ -29,7 +29,7 @@ class ViewKindType extends EnumBase
     /**
      * Accept view kind type for datalist
      *
-     * @param [type] $view_kind_type
+     * @param string $view_kind_type
      * @return bool
      */
     public static function acceptApiData($view_kind_type)

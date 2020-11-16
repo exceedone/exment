@@ -28,8 +28,8 @@ class CheckboxTable extends Checkbox
      *     'disables' => disable items. set value name.
      * ]
      *
-     * @param [type] $items
-     * @return void
+     * @param array $items
+     * @return $this
      */
     public function items($items)
     {
@@ -41,8 +41,8 @@ class CheckboxTable extends Checkbox
     /**
      * header help
      *
-     * @param [type] $headerHelp
-     * @return void
+     * @param string $headerHelps
+     * @return $this
      */
     public function headerHelp($headerHelps)
     {
