@@ -11,11 +11,13 @@ use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\ZipService;
+use Exceedone\Exment\Notifications\Mail\MailChannel;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Notifications\Notification;
 use Carbon\Carbon;
 
-class MailSendJob implements ShouldQueue
+class MailSendJob extends Notification implements ShouldQueue
 {
     use JobTrait;
 
@@ -57,7 +59,24 @@ class MailSendJob implements ShouldQueue
         }
     }
 
-    public function handle()
+    /**
+     * Get the notification's delivery channels.
+     *
+     * @param  mixed  $notifiable
+     * @return array
+     */
+    public function via($notifiable)
+    {
+        return [MailChannel::class];
+    }
+
+    /**
+     * Build the mail representation of the notification.
+     *
+     * @param  mixed  $notifiable
+     * @return \Illuminate\Notifications\Messages\MailMessage
+     */
+    public function toMail($notifiable)
     {
         $this->sendMail();
 
@@ -77,6 +96,8 @@ class MailSendJob implements ShouldQueue
             $this->saveMailSendHistory();
         }
     }
+
+
     protected function sendMail($subject = null, $body = null, $noAttach = false)
     {
         $tmpZipPath = null;
@@ -84,10 +105,10 @@ class MailSendJob implements ShouldQueue
             $subject = $subject ?? $this->subject;
             $body = $body ?? $this->body;
 
-            $message->to($this->getAddress($this->to))->subject($subject);
-            $message->from($this->getAddress($this->from));
-            $message->cc($this->getAddress($this->cc));
-            $message->bcc($this->getAddress($this->bcc));
+            $message->to(NotifyService::getAddress($this->to))->subject($subject);
+            $message->from(NotifyService::getAddress($this->from));
+            $message->cc(NotifyService::getAddress($this->cc));
+            $message->bcc(NotifyService::getAddress($this->bcc));
 
             // set attachment
             if (!$noAttach && collect($this->attachments)->count() > 0) {
@@ -147,10 +168,10 @@ class MailSendJob implements ShouldQueue
         $modelname = getModelName(SystemTableName::MAIL_SEND_LOG);
         $model = new $modelname;
 
-        $model->setValue('mail_from', implode(",", $this->getAddress($this->from)) ?? null);
-        $model->setValue('mail_to', implode(",", $this->getAddress($this->to)) ?? null);
-        $model->setValue('mail_cc', implode(",", $this->getAddress($this->cc)) ?? null);
-        $model->setValue('mail_bcc', implode(",", $this->getAddress($this->bcc)) ?? null);
+        $model->setValue('mail_from', implode(",", NotifyService::getAddress($this->from)) ?? null);
+        $model->setValue('mail_to', implode(",", NotifyService::getAddress($this->to)) ?? null);
+        $model->setValue('mail_cc', implode(",", NotifyService::getAddress($this->cc)) ?? null);
+        $model->setValue('mail_bcc', implode(",", NotifyService::getAddress($this->bcc)) ?? null);
         $model->setValue('mail_subject', $this->subject);
         $model->setValue('mail_template', $this->mail_template->id);
         $model->setValue('send_datetime', Carbon::now()->format('Y-m-d H:i:s'));
@@ -174,34 +195,6 @@ class MailSendJob implements ShouldQueue
         
         $model->save();
     }
-    
-    /**
-     * Get User Mail Address
-     *
-     * @param [type] $users
-     * @return array
-     */
-    protected function getAddress($users)
-    {
-        // Convert "," string to array
-        if (is_string($users)) {
-            $users = stringToArray($users);
-        } elseif (!is_list($users)) {
-            $users = [$users];
-        }
-        $addresses = [];
-        foreach ($users as $user) {
-            if ($user instanceof CustomValue) {
-                $addresses[] = $user->getValue('email');
-            } elseif ($user instanceof NotifyTarget) {
-                $addresses[] = $user->email();
-            } else {
-                $addresses[] = $user;
-            }
-        }
-        return $addresses;
-    }
-
 
     /**
      * Replace body break to <br/>, or <br /> to \n

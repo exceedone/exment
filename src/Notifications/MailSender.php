@@ -8,18 +8,19 @@ use Exceedone\Exment\Jobs\MailSendJob;
 use Illuminate\Support\Facades\Mail;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
 use Exceedone\Exment\Services\NotifyService;
+use Illuminate\Notifications\Notifiable;
 
 /**
  * Send Mail System
  */
-class MailSender
+class MailSender extends SenderBase
 {
+    use Notifiable;
+
     protected $from;
     protected $to;
     protected $cc;
     protected $bcc;
-    protected $subject;
-    protected $body;
     protected $attachments;
 
     protected $mail_template;
@@ -175,6 +176,37 @@ class MailSender
     }
     
     /**
+     * Get to address.
+     *
+     * @return string|null
+     */
+    public function getTo()
+    {
+        return arrayToString(NotifyService::getAddress($this->to));
+    }
+
+    /**
+     * Get attachments
+     *
+     * @return array|null
+     */
+    public function getAttachments()
+    {
+        return $this->attachments;
+    }
+    
+    /**
+     * Get the value of the notifiable's primary key.
+     *
+     * @return 
+     * @return string|null
+     */
+    public function getKey()
+    {
+        return $this->getTo();
+    }
+
+    /**
      * Send Mail
      *
      */
@@ -184,9 +216,7 @@ class MailSender
         $subject = NotifyService::replaceWord($this->subject, $this->custom_value, $this->prms, $this->replaceOptions);
         $body = NotifyService::replaceWord($this->body, $this->custom_value, $this->prms, $this->replaceOptions);
 
-        // dispatch jobs
-        MailSendJob::dispatch(
-            $this->from,
+        $job = new MailSendJob($this->from,
             $this->to,
             $subject,
             $body,
@@ -201,6 +231,9 @@ class MailSender
                 'prms' => $this->prms,
             ]
         );
+        $this->notify($job);
+
         return true;
     }
+    
 }
