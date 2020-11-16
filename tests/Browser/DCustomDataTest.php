@@ -49,7 +49,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 'value[user_name]' => 'Test User 2',
                 'value[email]' => 'test2@test.com',
             ];
-            $this->visit('/admin/data/user/create')
+            $this->visit(admin_url('data/user/create'))
                     ->submitForm('admin-submit', $data)
                     ->seePageIs('/admin/data/user')
             ;
@@ -72,7 +72,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 'value[organization_code]' => 'EX1',
                 'value[organization_name]' => 'EX_NAME1',
             ];
-            $this->visit('/admin/data/organization/create')
+            $this->visit(admin_url('data/organization/create'))
                     ->submitForm('admin-submit', $data)
                     ->seePageIs('/admin/data/organization')
             ;
@@ -80,7 +80,7 @@ class DCustomDataTest extends ExmentKitTestCase
                 'value[organization_code]' => 'EX2',
                 'value[organization_name]' => 'EX_NAME2',
             ];
-            $this->visit('/admin/data/organization/create')
+            $this->visit(admin_url('data/organization/create'))
                     ->submitForm('admin-submit', $data)
                     ->seePageIs('/admin/data/organization')
             ;
@@ -102,7 +102,7 @@ class DCustomDataTest extends ExmentKitTestCase
         // Create custom data
         $filePath = $this->getTextFilePath();
         //$imagePath = $this->getTextImagePath();
-        $this->visit('/admin/data/exmenttest_data/create')
+        $this->visit(admin_url('data/exmenttest_data/create'))
                 ->type(99, 'value[integer]')
                 ->type('EXMENT Test Data 1', 'value[onelinetext]')
                 ->type('2019-02-27 10:45:03', 'value[dateandtime]')
@@ -126,7 +126,7 @@ class DCustomDataTest extends ExmentKitTestCase
         // Get new data row
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('created_at', 'desc')->first();
         // Check custom data
-        $this->visit('/admin/data/exmenttest_data/'. $row->id . '/edit')
+        $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 ->seeInField('value[integer]', 99)
                 ->seeInField('value[onelinetext]', 'EXMENT Test Data 1')
                 ->seeInField('value[dateandtime]', '2019-02-27 10:45:03')
@@ -161,12 +161,12 @@ class DCustomDataTest extends ExmentKitTestCase
             'value[select2value]' => 'value1',
             'value[yesno]' => 1,
         ];
-        $this->visit('/admin/data/exmenttest_data/'. $row->id . '/edit')
+        $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 ->submitForm('admin-submit', $data)
                 ->seePageIs('/admin/data/exmenttest_data')
         ;
         // Check custom data
-        $this->visit('/admin/data/exmenttest_data/'. $row->id . '/edit')
+        $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 ->seeInField('value[select2value]', 'value1')
                 ->seeInField('value[yesno]', 1)
         ;
@@ -183,7 +183,7 @@ class DCustomDataTest extends ExmentKitTestCase
         $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('created_at', 'desc')->first();
 
         // Update custom data
-        $this->visit('/admin/data/exmenttest_data/'. $row->id . '/edit')
+        $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 ->type(100, 'value[integer]')
                 ->type('EXMENT Test Data 1 Edited', 'value[onelinetext]')
                 ->type('EXMENT Test Data Multiline Text', 'value[multiplelinetext]')
@@ -203,7 +203,7 @@ class DCustomDataTest extends ExmentKitTestCase
         ;
 
         // Check custom data
-        $this->visit('/admin/data/exmenttest_data/'. $row->id . '/edit')
+        $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 ->seeInField('value[integer]', 100)
                 ->seeInField('value[decimal]', 10.11)
                 ->seeInField('value[onelinetext]', 'EXMENT Test Data 1 Edited')

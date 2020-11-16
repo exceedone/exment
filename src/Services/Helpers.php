@@ -176,6 +176,26 @@ if (!function_exists('parseFloat')) {
     }
 }
 
+
+if (!function_exists('floorDigit')) {
+    /**
+     * Truncate to decimal $digit digit.
+     *
+     * @param int|double|null $num
+     * @param int $digit
+     * @return double|int
+     */
+    function floorDigit($num, int $digit)
+    {
+        if ($digit < 0) { $digit = 0; }
+        $numPointPosition = intval(strpos($num, '.'));
+        if ($numPointPosition === 0) { //$num is an integer
+            return $num;
+        }
+        return floatval(substr($num, 0, $numPointPosition + $digit + 1));
+    }
+}
+
 if (!function_exists('hex2rgb')) {
     function hex2rgb($hex)
     {
