@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Notifications;
 
-
 abstract class SenderBase
 {
     protected $subject;

@@ -176,10 +176,9 @@ class NotifyService
         $options = ExmentFile::where('parent_type', $tableKey)
             ->where('parent_id', $id)->get()->pluck('filename', 'uuid');
 
-        if(collect($this->notify->action_settings)->contains(function($notify_action){
+        if (collect($this->notify->action_settings)->contains(function ($notify_action) {
             return isMatchString(array_get($notify_action, 'notify_action'), NotifyAction::EMAIL);
-        }))
-        {
+        })) {
             $form->multipleSelect('mail_attachment', exmtrans('custom_value.sendmail.attachment'))
                 ->options($options);
         }
@@ -455,7 +454,7 @@ class NotifyService
         // send mail
         try {
             $sender = Notifications\MailSender::make($params['mail_template'], $params['user'] ?? $params['to']);
-            if(boolval($params['disableHistoryBody'])){
+            if (boolval($params['disableHistoryBody'])) {
                 $sender->disableHistoryBody();
             }
             
@@ -798,10 +797,9 @@ class NotifyService
                 $addresses->push($user->email);
             } elseif ($user instanceof NotifyTarget) {
                 $addresses->push($user->email());
-            } elseif(is_string($user)) {
+            } elseif (is_string($user)) {
                 $addresses->push($user);
-            }
-            else{
+            } else {
                 // wrong class. checking value!!
                 throw new \Exception('getAddress value is wrong!');
             }

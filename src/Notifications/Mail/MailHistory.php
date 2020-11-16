@@ -109,7 +109,7 @@ class MailHistory
     public function getCustomValue() : ?CustomValue
     {
         $custom_table = CustomTable::getEloquent($this->parent_type);
-        if(!isset($custom_table)){
+        if (!isset($custom_table)) {
             return null;
         }
         return $custom_table->getValueModel($this->parent_id);
@@ -142,7 +142,7 @@ class MailHistory
      * @param  string|CustomValue|NotifyTarget|null  $user
      *
      * @return  self
-     */ 
+     */
     public function setUser($user)
     {
         $this->user = $user;
@@ -176,7 +176,7 @@ class MailHistory
      * @param  string|CustomValue|null  $mail_template
      *
      * @return  self
-     */ 
+     */
     public function setMailTemplate($mail_template)
     {
         $this->mail_template = $mail_template;

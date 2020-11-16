@@ -2,16 +2,12 @@
 
 namespace Exceedone\Exment\Notifications\Mail;
 
-use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\ZipService;
-use Exceedone\Exment\Notifications\Mail\MailChannel;
 use Illuminate\Notifications\Notification;
 use Illuminate\Mail\Message;
 use Carbon\Carbon;
-
-
 
 class MailChannel
 {
@@ -31,13 +27,13 @@ class MailChannel
     }
 
 
-    protected function sendMail(MailMessage $mailMessage){
+    protected function sendMail(MailMessage $mailMessage)
+    {
         // if use archive attachments, after sending, removing file
         $tmpZipPath = null;
 
-        try{
-            \Mail::send([], [], function (Message $message) use($mailMessage, &$tmpZipPath)
-            {
+        try {
+            \Mail::send([], [], function (Message $message) use ($mailMessage, &$tmpZipPath) {
                 $subject = $mailMessage->getSubject();
                 $body = $mailMessage->getBody();
     
@@ -51,8 +47,7 @@ class MailChannel
                 
                 $this->setAttachments($message, $mailMessage, $tmpZipPath);
             });
-        }
-        finally{
+        } finally {
             // remove file
             if (isset($tmpZipPath)) {
                 \File::delete($tmpZipPath);
@@ -72,10 +67,9 @@ class MailChannel
             list($filepath, $filename) = $this->archiveAttachments($mailMessage);
             $message->attach($filepath, ['as' => $filename]);
             $tmpZipPath = $filepath;
-        } 
-        else {
+        } else {
             // attach each files
-            foreach($mailMessage->getAttachments() as $attachment){
+            foreach ($mailMessage->getAttachments() as $attachment) {
                 $message->attach($attachment->path, ['as' => $attachment->filename]);
             }
         }
@@ -112,7 +106,7 @@ class MailChannel
      */
     protected function saveHistory(MailMessage $mailMessage)
     {
-        if(!$mailMessage->isSetHistory()){
+        if (!$mailMessage->isSetHistory()) {
             return;
         }
 
@@ -129,7 +123,8 @@ class MailChannel
             'send_datetime' => Carbon::now()->format('Y-m-d H:i:s'),
         ]);
 
-        $model->setValue('attachments', 
+        $model->setValue(
+            'attachments',
             collect($mailMessage->getAttachments())
                 ->implode('filename', ',')
         );

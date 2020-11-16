@@ -14,7 +14,6 @@ use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Jobs;
-use Carbon\Carbon;
 
 class NotifyTest extends UnitTestBase
 {

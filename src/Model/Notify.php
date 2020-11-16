@@ -574,7 +574,7 @@ class Notify extends ModelBase
      */
     protected function uniqueUsers($users) : Collection
     {
-        return collect($users)->unique(function($user){
+        return collect($users)->unique(function ($user) {
             return NotifyService::getAddress($user);
         })->filter();
     }

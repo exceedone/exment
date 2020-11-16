@@ -180,7 +180,7 @@ class AuthUserOrgHelper
                 // get custom table's user ids(contains all table and permission role group)
                 $func = $idkey == SystemTableName::USER ? 'getRoleUserAndOrgBelongsUserQueryTable' : 'getRoleOrganizationQueryTable';
                 $queryTable = static::{$func}($custom_value->custom_table, $tablePermission);
-                if(!is_nullorempty($queryTable)){
+                if (!is_nullorempty($queryTable)) {
                     $queryTable->withoutGlobalScope(CustomValueModelScope::class);
 
                     $tablename = getDBTableName($idkey);

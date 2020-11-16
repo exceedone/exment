@@ -38,7 +38,7 @@ class MailSender extends SenderBase
 
         // get mail template
         $mail_template = $this->getMailTemplateFromKey($mail_template);
-        if(!is_nullorempty($mail_template)){
+        if (!is_nullorempty($mail_template)) {
             $this->mailHistory->setMailTemplate($mail_template);
             $this->setSubject($mail_template->getValue('mail_subject'));
             $this->setBody($mail_template->getJoinedBody());
@@ -115,7 +115,7 @@ class MailSender extends SenderBase
     public function attachments($attachments)
     {
         if (isset($attachments)) {
-            if(!is_list($attachments)){
+            if (!is_list($attachments)) {
                 $attachments = [$attachments];
             }
             
@@ -180,7 +180,7 @@ class MailSender extends SenderBase
     /**
      * Get the value of the notifiable's primary key.
      *
-     * @return 
+     * @return
      * @return string|null
      */
     public function getKey()
@@ -228,7 +228,7 @@ class MailSender extends SenderBase
 
     protected function sendPosswordMail()
     {
-        if(!boolval($this->getUsePassword())){
+        if (!boolval($this->getUsePassword())) {
             return;
         }
 
@@ -297,7 +297,7 @@ class MailSender extends SenderBase
             return null;
         } elseif ($mail_template instanceof CustomValue) {
             return $mail_template;
-        } 
+        }
         
         $result = null;
         if (is_numeric($mail_template)) {

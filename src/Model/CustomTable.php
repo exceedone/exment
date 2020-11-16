@@ -2344,7 +2344,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * get number columns select options. It contains integer, decimal, currency columns.
-     * 
+     *
      * @return array options
      */
     public function getSummaryColumnsSelectOptions()

@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Tests;
 
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Tests\TestDefine;
 
 trait TestTrait
 {

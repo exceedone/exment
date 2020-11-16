@@ -184,19 +184,19 @@ trait TestDataTrait
         return $values;
     }
 
-/**
-     * Get mail template from key
-     *
-     * @param CustomValue|string|null $mail_template
-     * @return CustomValue|null
-     */
+    /**
+         * Get mail template from key
+         *
+         * @param CustomValue|string|null $mail_template
+         * @return CustomValue|null
+         */
     protected function getMailTemplateFromKey($mail_template) : ?CustomValue
     {
         if (is_null($mail_template)) {
             return null;
         } elseif ($mail_template instanceof CustomValue) {
             return $mail_template;
-        } 
+        }
         
         $result = null;
         if (is_numeric($mail_template)) {

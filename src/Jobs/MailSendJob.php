@@ -9,7 +9,6 @@ use Exceedone\Exment\Notifications\Mail\MailHistory;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Notifications\Notification;
-use Carbon\Carbon;
 
 class MailSendJob extends Notification implements ShouldQueue
 {
@@ -56,7 +55,7 @@ class MailSendJob extends Notification implements ShouldQueue
      * @param  MailInfo  $mailInfo
      *
      * @return  self
-     */ 
+     */
     public function setMailInfo(MailInfo $mailInfo)
     {
         $this->mailInfo = $mailInfo;
@@ -70,7 +69,7 @@ class MailSendJob extends Notification implements ShouldQueue
      * @param  MailHistory  $mailHistory
      *
      * @return  self
-     */ 
+     */
     public function setMailHistory(MailHistory $mailHistory)
     {
         $this->mailHistory = $mailHistory;

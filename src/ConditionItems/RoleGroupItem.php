@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\RoleGroup;
-use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
 class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface

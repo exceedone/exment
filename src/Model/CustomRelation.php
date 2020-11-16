@@ -153,7 +153,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
 
     /**
      * Get relation name.
-     * 
+     *
      * @return string
      */
     public function getRelationName()

@@ -321,7 +321,7 @@ class WorkflowAction extends ModelBase
      * @return WorkflowValue created workflow value
      */
     protected function forwardWorkflowValue(CustomValue $custom_value, array $data = []) : WorkflowValue
-    { 
+    {
         $next = $this->isActionNext($custom_value);
         $status_to = $this->getStatusToId($custom_value);
         $status_from = $custom_value->workflow_value->workflow_status_to_id ?? null;

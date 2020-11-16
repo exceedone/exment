@@ -17,7 +17,7 @@ trait MailHistoryTrait
      * Get the value of mailHistory
      *
      * @return  MailHistory
-     */ 
+     */
     public function getMailHistory()
     {
         return $this->mailHistory;
@@ -29,7 +29,7 @@ trait MailHistoryTrait
      * @param  MailHistory  $mailHistory
      *
      * @return  self
-     */ 
+     */
     public function setMailHistory(MailHistory $mailHistory)
     {
         $this->mailHistory = $mailHistory;
@@ -112,7 +112,7 @@ trait MailHistoryTrait
      * @param  string|CustomValue|NotifyTarget|null  $user
      *
      * @return  self
-     */ 
+     */
     public function setUser($user)
     {
         return $this->mailHistory->setUser($user);
@@ -139,10 +139,9 @@ trait MailHistoryTrait
      * @param  string|CustomValue|null  $mail_template
      *
      * @return  self
-     */ 
+     */
     public function setMailTemplate($mail_template)
     {
         return $this->mailHistory->setMailTemplate($mail_template);
     }
-
 }

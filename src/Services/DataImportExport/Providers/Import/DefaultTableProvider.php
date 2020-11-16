@@ -240,7 +240,7 @@ class DefaultTableProvider extends ProviderBase
     }
 
     /**
-     * 
+     *
      *
      * @param array $data
      * @return array

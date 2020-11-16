@@ -187,7 +187,9 @@ if (!function_exists('floorDigit')) {
      */
     function floorDigit($num, int $digit)
     {
-        if ($digit < 0) { $digit = 0; }
+        if ($digit < 0) {
+            $digit = 0;
+        }
         $numPointPosition = intval(strpos($num, '.'));
         if ($numPointPosition === 0) { //$num is an integer
             return $num;

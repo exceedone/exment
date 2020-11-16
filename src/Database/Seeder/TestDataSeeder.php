@@ -777,7 +777,7 @@ class TestDataSeeder extends Seeder
 
 
                 // set attachment
-                if($i === 1){
+                if ($i === 1) {
                     Model\File::storeAs(TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt')
                         ->saveCustomValue($custom_value->id, null, $custom_table)
                         ->saveDocumentModel($custom_value, 'test.txt');
@@ -869,7 +869,7 @@ class TestDataSeeder extends Seeder
             ],
         ];
 
-        foreach($items as $item){
+        foreach ($items as $item) {
             $notify = new Notify;
             $notify->notify_view_name = $item['name'];
             $notify->custom_table_id = $custom_table->id;
@@ -890,7 +890,9 @@ class TestDataSeeder extends Seeder
     protected function createNotifyLimit($custom_table)
     {
         $column = CustomColumn::getEloquent('date', $custom_table);
-        if (!isset($column)) return null;
+        if (!isset($column)) {
+            return null;
+        }
         $notify = new Notify;
         $notify->notify_view_name = $custom_table->table_name . '_notify_limit';
         $notify->custom_table_id = $custom_table->id;

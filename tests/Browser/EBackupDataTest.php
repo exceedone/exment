@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Illuminate\Support\Facades\Storage;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;

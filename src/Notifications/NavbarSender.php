@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Notifications;
 use Illuminate\Notifications\Notifiable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\NotifyTarget;
-use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Jobs;
 
 class NavbarSender extends SenderBase
@@ -85,8 +84,8 @@ class NavbarSender extends SenderBase
 
         // send slack message
         $this->notify(new Jobs\NavbarJob(
-            $this->subject, 
-            $this->body, 
+            $this->subject,
+            $this->body,
             $this->notify_id ?? -1,
             $target_user_id,
             \Exment::getUserId() ?? null,
@@ -98,7 +97,7 @@ class NavbarSender extends SenderBase
     /**
      * Get the value of the notifiable's primary key.
      *
-     * @return 
+     * @return
      * @return string|null
      */
     public function getKey()

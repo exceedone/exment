@@ -8,7 +8,6 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
 class FormDataItem extends ConditionItemBase implements ConditionItemInterface

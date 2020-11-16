@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Database\Seeder;
 
 use Illuminate\Database\Seeder;
-use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowTable;
@@ -16,7 +15,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
-
 
 class WorkflowTestDataSeeder extends Seeder
 {

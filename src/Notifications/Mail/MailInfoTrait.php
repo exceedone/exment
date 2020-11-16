@@ -14,7 +14,7 @@ trait MailInfoTrait
      * Get the value of mailInfo
      *
      * @return  MailInfo
-     */ 
+     */
     public function getMailInfo()
     {
         return $this->mailInfo;
@@ -26,7 +26,7 @@ trait MailInfoTrait
      * @param  MailInfo  $mailInfo
      *
      * @return  self
-     */ 
+     */
     public function setMailInfo(MailInfo $mailInfo)
     {
         $this->mailInfo = $mailInfo;

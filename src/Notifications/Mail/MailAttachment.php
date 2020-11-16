@@ -33,11 +33,11 @@ class MailAttachment
      * @param File|array $attachment
      * @return MailAttachment
      */
-    public static function make($attachment){
-        if($attachment instanceof File){
+    public static function make($attachment)
+    {
+        if ($attachment instanceof File) {
             return new MailAttachment(\Storage::disk(config('admin.upload.disk'))->path($attachment->path), $attachment->filename);
-        }
-        elseif(is_array($attachment)){
+        } elseif (is_array($attachment)) {
             return new MailAttachment(array_get($attachment, 'path'), array_get($attachment, 'filename'));
         }
         return null;

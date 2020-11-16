@@ -4,7 +4,6 @@ namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
-use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;

@@ -199,12 +199,12 @@ class MailInfo
 
     public function setAttachments($attachments)
     {
-        if(is_nullorempty($this->attachments)){
+        if (is_nullorempty($this->attachments)) {
             $this->attachments = [];
         }
 
-        foreach($attachments as $attachment){
-            if(is_null($obj = MailAttachment::make($attachment))){
+        foreach ($attachments as $attachment) {
+            if (is_null($obj = MailAttachment::make($attachment))) {
                 continue;
             }
             $this->attachments[] = $obj;
@@ -214,8 +214,9 @@ class MailInfo
     }
 
 
-    protected function convertArray($value){
-        if($value instanceof \Illuminate\Database\Eloquent\Model || $value instanceof \Exceedone\Exment\Model\NotifyTarget){
+    protected function convertArray($value)
+    {
+        if ($value instanceof \Illuminate\Database\Eloquent\Model || $value instanceof \Exceedone\Exment\Model\NotifyTarget) {
             return [$value];
         }
         return toArray($value);
