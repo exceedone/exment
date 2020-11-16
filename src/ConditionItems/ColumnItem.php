@@ -4,8 +4,8 @@ namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Condition;
-use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ColumnType;
