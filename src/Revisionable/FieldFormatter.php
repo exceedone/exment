@@ -53,7 +53,7 @@ class FieldFormatter
     /**
      * Check if a field is empty.
      *
-     * @param $value
+     * @param mixed $value
      * @param array $options
      *
      * @return string
@@ -68,7 +68,7 @@ class FieldFormatter
     /**
      * Boolean.
      *
-     * @param       $value
+     * @param mixed $value
      * @param array $options The false / true values to return
      *
      * @return string Formatted version of the boolean field
@@ -89,8 +89,8 @@ class FieldFormatter
     /**
      * Format the string response, default is to just return the string.
      *
-     * @param  $value
-     * @param  $format
+     * @param mixed $value
+     * @param string $format
      *
      * @return string formatted string
      */

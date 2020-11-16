@@ -74,8 +74,6 @@ class Google
     /**
      * Handle verify posting
      *
-     * @param Request $request
-     *
      * @return mixed
      */
     public function register()
@@ -142,8 +140,6 @@ class Google
     
     /**
      * Handle verify posting
-     *
-     * @param Request $request
      *
      * @return mixed
      */

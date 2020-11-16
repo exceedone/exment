@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -328,7 +329,9 @@ class SelectTableTest extends UnitTestBase
     /**
      * Get select field options.
      *
-     * @param string $custom_table_name
+     * @param CustomColumn $custom_column
+     * @param Linkage|null $linkage
+     * @param string|null $parentValue
      * @param array $options
      * @return array
      */
@@ -344,7 +347,7 @@ class SelectTableTest extends UnitTestBase
                 return;
             }
             
-            return $linkage->setQueryFilter($query, $parentValue);
+            $linkage->setQueryFilter($query, $parentValue);
         };
         $selectOption = $this->callProtectedMethod($column_item, 'getSelectFieldOptions', $callback);
 
@@ -355,7 +358,7 @@ class SelectTableTest extends UnitTestBase
     /**
      * Get parent value and linakge for relation filter
      *
-     * @param string $custom_table_name
+     * @param CustomColumn $custom_column
      * @param array $options
      * @return array
      */
@@ -450,11 +453,5 @@ class SelectTableTest extends UnitTestBase
      */
     protected function isMatchIds($correct1, $correct2){
         return $correct1->diff($correct2)->count() === 0 && $correct2->diff($correct1)->count() === 0;
-    }
-
-    protected function callProtectedMethod($obj, $methodName, ...$args){
-        $method = new \ReflectionMethod(get_class($obj), $methodName);
-        $method->setAccessible(true);
-        return $method->invoke($obj, ...$args);
     }
 }

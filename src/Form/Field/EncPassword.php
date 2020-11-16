@@ -10,7 +10,7 @@ class EncPassword extends Password
     /**
      * Prepare for a field value before update or insert.
      *
-     * @param $value
+     * @param mixed $value
      *
      * @return mixed
      */

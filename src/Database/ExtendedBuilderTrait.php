@@ -7,14 +7,14 @@ use Carbon\Carbon;
 /**
  *
  * @property mixed $query
+ * @property mixed $model
  */
 trait ExtendedBuilderTrait
 {
     /**
      * Update a removing json key.
      *
-     * @param  string  $targetColumn
-     * @param  string  $removingJsonKey
+     * @param  string  $key
      * @return int
      */
     public function updateRemovingJsonKey(string $key)
@@ -436,9 +436,9 @@ trait ExtendedBuilderTrait
 
         if ($isDatetime) {
             $date = (in_array($mark, ['<', '<=']) ? $value->copy()->addDay(1) : $value);
-            return $this->where($column, $mark, $date);
+            return $this->where($column, $mark, $date->format('Y-m-d'));
         }
 
-        return $this->where($column, $mark, $value);
+        return $this->where($column, $mark, $value->format('Y-m-d'));
     }
 }

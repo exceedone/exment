@@ -65,7 +65,7 @@ class LoginUserProvider extends ProviderBase
     
     /**
      * validate imported all data.
-     * @param mixed $data
+     * @param mixed $dataObjects
      * @return array
      */
     public function validateImportData($dataObjects)

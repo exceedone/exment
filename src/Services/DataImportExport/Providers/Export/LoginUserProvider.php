@@ -84,7 +84,7 @@ class LoginUserProvider extends ProviderBase
     /**
      * get target chunk records
      */
-    public function getRecords()
+    public function getRecords() : Collection
     {
         $records = new Collection;
         $this->grid->model()->chunk(function ($data) use (&$records) {

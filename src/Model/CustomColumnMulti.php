@@ -260,7 +260,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     /**
      * Compare two value.
      *
-     * @param [type] $value
+     * @param array $input
+     * @param CustomValue|null $custom_value
      * @return bool
      */
     public function compareValue($input, $custom_value = null)
@@ -381,8 +382,9 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     /**
      * Set json value calling import
      *
-     * @param [type] $json
-     * @param array $options
+     * @param string $key
+     * @param array $json
+     * @param string|null $set_key_name
      * @return void
      */
     protected static function importReplaceJsonTableColumn($key, &$json, $set_key_name = null)

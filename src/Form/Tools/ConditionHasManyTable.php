@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\FilterKind;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 

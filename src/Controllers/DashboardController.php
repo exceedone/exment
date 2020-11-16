@@ -42,10 +42,13 @@ class DashboardController extends AdminControllerBase
         return redirect(admin_url(''));
     }
     
+    
     /**
      * Edit interface.
      *
-     * @param $id
+     * @param Request $request
+     * @param Content $content
+     * @param string|int|null $id
      * @return Content
      */
     public function edit(Request $request, Content $content, $id)

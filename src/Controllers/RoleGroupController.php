@@ -552,8 +552,8 @@ class RoleGroupController extends AdminControllerBase
     /**
      * get Progress Info
      *
-     * @param [type] $id
-     * @param [type] $is_action
+     * @param bool $isSelectTarget
+     * @param string|int|null $id
      * @return array
      */
     protected function getProgressInfo($isSelectTarget, $id = null)
@@ -594,8 +594,8 @@ class RoleGroupController extends AdminControllerBase
     /**
      * Add tools button
      *
-     * @param [type] $box
-     * @param [type] $id
+     * @param Box $box
+     * @param string|int|null $id
      * @param boolean $isRolePermissionPage
      * @return void
      */

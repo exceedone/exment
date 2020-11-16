@@ -257,8 +257,8 @@ class MenuController extends AdminControllerBase
 
     /**
      * get view option array
-     * @param string menu_target string
-     * @param boolean isApi is api. if true, return id and value array. if false, return array(key:id, value:name)
+     * @param string $menu_target string
+     * @param boolean $isApi is api. if true, return id and value array. if false, return array(key:id, value:name)
      */
     protected function getViewList($menu_target, $isApi)
     {
@@ -279,8 +279,8 @@ class MenuController extends AdminControllerBase
 
     /**
      * get menu type option array
-     * @param string menu_type string
-     * @param boolean isApi is api. if true, return id and value array. if false, return array(key:id, value:name)
+     * @param string $type string
+     * @param boolean $isApi is api. if true, return id and value array. if false, return array(key:id, value:name)
      */
     protected function getMenuType($type, $isApi)
     {
@@ -392,8 +392,8 @@ class MenuController extends AdminControllerBase
     /**
      * Whether is add system menu options
      *
-     * @param [type] $k
-     * @param [type] $value
+     * @param string $k
+     * @param mixed $value
      * @return boolean
      */
     protected function isAddSystemMenuOptions($k, $value)

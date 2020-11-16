@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Storage\Disk\PluginDiskService;
 use Exceedone\Exment\Validator\PluginTypeRule;
-use Symfony\Component\HttpFoundation\Response;
 use ZipArchive;
 use File;
 use Validator;

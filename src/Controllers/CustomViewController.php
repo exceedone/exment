@@ -47,11 +47,15 @@ class CustomViewController extends AdminControllerTableBase
         return parent::index($request, $content);
     }
 
+
     /**
      * Edit interface.
      *
-     * @param $id
-     * @return Content
+     * @param Request $request
+     * @param Content $content
+     * @param string $tableKey
+     * @param string|int|null $id
+     * @return void|bool
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
