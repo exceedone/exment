@@ -182,19 +182,31 @@ if (!function_exists('floorDigit')) {
      * Truncate to decimal $digit digit.
      *
      * @param int|double|null $num
-     * @param int $digit
-     * @return double|int
+     * @param int $digit Decimal digits
+     * @param bool $display Whether to set 0 if the number of decimal places is less than the specified number of digits
+     * @return double|int|string
      */
-    function floorDigit($num, int $digit)
+    function floorDigit($num, int $digit, bool $display = false)
     {
         if ($digit < 0) {
             $digit = 0;
         }
         $numPointPosition = intval(strpos($num, '.'));
+        
+        // if for display
+        $result = null;
         if ($numPointPosition === 0) { //$num is an integer
-            return $num;
+            $result = $num;
         }
-        return floatval(substr($num, 0, $numPointPosition + $digit + 1));
+        else{
+            $result = floatval(substr($num, 0, $numPointPosition + $digit + 1));;
+        }
+
+        if($display && $digit > 0){
+            $result = sprintf("%.{$digit}f", $result);
+        }
+
+        return $result;
     }
 }
 
