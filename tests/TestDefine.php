@@ -6,6 +6,7 @@ class TestDefine
 {
     public const TESTDATA_USER_LOGINID_ADMIN = '1'; // admin
     public const TESTDATA_USER_LOGINID_USER2 = '3'; // user2
+    public const TESTDATA_USER_LOGINID_DEV_USERB = '6';  //dev-userB
     public const TESTDATA_USER_LOGINID_DEV1_USERC = '7'; //dev1-userC
 
     public const TESTDATA_ORGANIZATION_DEV = '2'; // dev
