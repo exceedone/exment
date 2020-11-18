@@ -885,6 +885,22 @@ if (!function_exists('isMatchString')) {
     }
 }
 
+if (!function_exists('isMatchDecimal')) {
+    /**
+     * compare decimal number
+     *
+     * @param mixed $v1
+     * @param mixed $v2
+     * @return bool
+     */
+    function isMatchDecimal($v1, $v2) : bool
+    {
+        $v1 = preg_replace("/\.?0+$/", "", $v1);
+        $v2 = preg_replace("/\.?0+$/", "", $v2);
+        return strcmp($v1, $v2) == 0;
+    }
+}
+
 // string --------------------------------------------------
 if (!function_exists('make_password')) {
     function make_password($length = 16, $options = [])
