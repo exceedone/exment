@@ -106,6 +106,11 @@ class Decimal extends CustomItem
         $validates[] = new Validator\DecimalCommaRule;
     }
 
+    protected function getRemoveValidates()
+    {
+        return ['integer', 'numeric'];
+    }
+    
     /**
      * get cast Options
      */

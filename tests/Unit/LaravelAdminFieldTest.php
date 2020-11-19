@@ -36,14 +36,14 @@ class LaravelAdminFieldTest extends TestCase
         $this->_testLaravelField(function($form){
             $form->number('foo');
         }, "aaa", false, [
-            'foo' => [$this->getErrorMessage('integer', 'Foo')],
+            'foo' => [$this->getErrorMessage('numeric', 'Foo')],
         ]);
     }
     public function testNumberError2(){
         $this->_testLaravelField(function($form){
             $form->number('foo');
         }, [1, 2], false, [
-            'foo' => [$this->getErrorMessage('integer', 'Foo')],
+            'foo' => [$this->getErrorMessage('numeric', 'Foo')],
         ]);
     }
 
