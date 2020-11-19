@@ -56,6 +56,11 @@ class Yesno extends CustomItem
         $validates[] = new Validator\YesNoRule();
     }
 
+    protected function getRemoveValidates()
+    {
+        return [\Encore\Admin\Validator\HasOptionRule::class];
+    }
+
     /**
      * replace value for import
      *

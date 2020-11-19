@@ -71,6 +71,11 @@ class Boolean extends CustomItem
         ]);
     }
     
+    protected function getRemoveValidates()
+    {
+        return [\Encore\Admin\Validator\HasOptionRule::class];
+    }
+
     /**
      * replace value for import
      *

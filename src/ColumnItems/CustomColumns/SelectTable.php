@@ -325,6 +325,11 @@ class SelectTable extends CustomItem
         $validates[] = new Validator\CustomValueRule($this->target_table);
     }
     
+    protected function getRemoveValidates()
+    {
+        return [\Encore\Admin\Validator\HasOptionRule::class];
+    }
+
     /**
      * replace value for import
      *
