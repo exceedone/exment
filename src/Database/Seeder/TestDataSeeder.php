@@ -442,7 +442,7 @@ class TestDataSeeder extends Seeder
                             $custom_value->setValue("yesno", rand(0, 1));
                             $custom_value->setValue("boolean", (rand(0, 3) == 0 ? 'ng' : 'ok'));
                             $custom_value->setValue("date", $this->getDateValue($user_id, $i));
-                            $custom_value->setValue("time", \Carbon\Carbon::createFromTime($user_id, $i, $i)->format('H:i:s'));
+                            $custom_value->setValue("time", \Carbon\Carbon::createFromTime($i, $i, $i)->format('H:i:s'));
                             $custom_value->setValue("datetime", \Carbon\Carbon::now()->addSeconds(rand(-500000, 500000))->format('Y-m-d H:i:s'));
                             $custom_value->setValue("integer", $i * ($user_id % 2 == 0 ? $user_id: -$user_id) * 100);
                             $custom_value->setValue("decimal", $i * ($user_id % 2 == 0 ? $user_id: -$user_id) / 100);

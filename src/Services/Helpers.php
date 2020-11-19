@@ -901,6 +901,24 @@ if (!function_exists('isMatchDecimal')) {
     }
 }
 
+if (!function_exists('isMatchArray')) {
+    /**
+     * compare array
+     *
+     * @param array $v1
+     * @param array $v2
+     * @return bool
+     */
+    function isMatchArray(array $v1, array $v2) : bool
+    {
+        if (count($v1) == count($v2)) {
+            $dup = array_intersect($v1, $v2);
+            return count($v1) == count($dup);
+        }
+        return false;
+    }
+}
+
 // string --------------------------------------------------
 if (!function_exists('make_password')) {
     function make_password($length = 16, $options = [])
