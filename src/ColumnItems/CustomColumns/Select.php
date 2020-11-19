@@ -125,4 +125,8 @@ class Select extends CustomItem
     {
         return $this->isMultipleEnabledTrait();
     }
+    protected function getFilterFieldClass()
+    {
+        return Field\Select::class;
+    }
 }

@@ -1304,12 +1304,23 @@ const pBool = (obj) : boolean => {
     return booleanStr === "true" || booleanStr === "1";
  }
 
+
 const hasValue = (obj): boolean => {
     if (obj == null || obj == undefined || obj.length == 0) {
         return false;
     }
     return true;
 }
+
+
+const isMatchString = (val1, val2) : boolean => {
+    if(!hasValue(val1) && !hasValue(val2)){
+        return true;
+    }
+
+    return val1 ==val2;
+}
+
 
 const comma = (x) => {
     if (x === null || x === undefined) {

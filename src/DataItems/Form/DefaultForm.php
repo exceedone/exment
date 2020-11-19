@@ -701,16 +701,15 @@ EOT;
         // if create data and not has $select_parent, select item
         if (!isset($this->id) && !isset($select_parent)) {
             $select = $form->select('parent_id', $parent_custom_table->table_view_name)
-            ->options(function ($value) use ($parent_custom_table) {
-                return $parent_custom_table->getSelectOptions([
-                    'selected_value' => $value,
-                    'showMessage_ifDeny' => true,
-                ]);
-            });
-            $select->required();
-
-            // set select options
-            $select->ajax($parent_custom_table->getOptionAjaxUrl());
+                ->options(function ($value) use ($parent_custom_table) {
+                    return $parent_custom_table->getSelectOptions([
+                        'selected_value' => $value,
+                        'showMessage_ifDeny' => true,
+                    ]);
+                })
+                ->required()
+                ->ajax($parent_custom_table->getOptionAjaxUrl())
+                ->attribute(['data-target_table_name' => array_get($parent_custom_table, 'table_name')]);
 
             // set buttons
             $select->buttons([
@@ -736,7 +735,7 @@ EOT;
             $parent_value = $parent_custom_table->getValueModel($parent_id);
 
             if (isset($parent_id) && isset($parent_value) && isset($parent_custom_table)) {
-                $form->hidden('parent_id')->default($parent_id);
+                $form->hidden('parent_id')->default($parent_id)->attribute(['data-target_table_name' => array_get($parent_custom_table, 'table_name')]);
                 $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label);
             }
         }

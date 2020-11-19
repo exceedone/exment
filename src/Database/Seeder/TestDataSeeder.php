@@ -34,6 +34,7 @@ use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Config;
 
 class TestDataSeeder extends Seeder
 {
@@ -46,6 +47,8 @@ class TestDataSeeder extends Seeder
      */
     public function run()
     {
+        Config::set('exment.column_index_enabled_count', 25);
+
         $this->createSystem();
 
         $users = $this->createUserOrg();
@@ -58,7 +61,7 @@ class TestDataSeeder extends Seeder
 
         $this->createRelationTables($users);
 
-        $this->createAllColumnsTable($menu);
+        $this->createAllColumnsTable($menu, $users);
 
         $this->createApiSetting();
 
@@ -372,7 +375,7 @@ class TestDataSeeder extends Seeder
     }
 
 
-    protected function createAllColumnsTable($menu)
+    protected function createAllColumnsTable($menu, $users)
     {
         $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
         $custom_table_edit = CustomTable::getEloquent('custom_value_edit');
@@ -403,8 +406,13 @@ class TestDataSeeder extends Seeder
                         ['column_type' => ColumnType::AUTO_NUMBER, 'options' => ['index_enabled' => '1', 'auto_number_type' => 'random25']],
                         ['column_type' => ColumnType::IMAGE, 'options' => []],
                         ['column_type' => ColumnType::FILE, 'options' => []],
-                        ['column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1']],
-                        ['column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1']],
+                        ['column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1']],
+                        ['column_name' => 'select_multiple', 'column_type' => ColumnType::SELECT, 'options' => ['index_enabled' => '1', 'select_item' => "foo\r\nbar\r\nbaz",'multiple_enabled' => '1']],
+                        ['column_name' => 'select_valtext_multiple', 'column_type' => ColumnType::SELECT_VALTEXT, 'options' => ['index_enabled' => '1', 'select_item_valtext' => "foo,FOO\r\nbar,BAR\r\nbaz,BAZ",'multiple_enabled' => '1']],
+                        ['column_name' => 'select_table_multiple', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_view_all->id,'multiple_enabled' => '1']],
+                        ['column_name' => 'user_multiple', 'column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1','multiple_enabled' => '1', 'showing_all_user_organizations' => '1']],
+                        ['column_name' => 'organization_multiple', 'column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1','multiple_enabled' => '1']],
                     ];
 
                     foreach ($columns as $column) {
@@ -417,11 +425,68 @@ class TestDataSeeder extends Seeder
                         ]);
                         $custom_columns[] = $custom_column;
                     }
+                },
+                'createValueCallback' => function ($custom_table, $options) use($users) {
+                    $custom_values = [];
+                    System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
+                    foreach ($users as $key => $user) {
+                        \Auth::guard('admin')->attempt([
+                            'username' => $key,
+                            'password' => array_get($user, 'password')
+                        ]);
+            
+                        $user_id = array_get($user, 'id');
+            
+                        for ($i = 1; $i <= 10; $i++) {
+                            $custom_value = $custom_table->getValueModel();
+                            $custom_value->setValue("text", rand(0, 1) == 0? null: 'text_'.$i);
+                            $custom_value->setValue("user", ($i % 3 == 0 ? null : $user_id));
+                            $custom_value->setValue("organization", rand(1, 7));
+                            $custom_value->setValue("yesno", rand(0, 1));
+                            $custom_value->setValue("boolean", (rand(0, 3) == 0 ? 'ng' : 'ok'));
+                            $custom_value->setValue("date", $this->getDateValue($user_id, $i));
+                            $custom_value->setValue("time", \Carbon\Carbon::createFromTime($user_id, $i, $i)->format('H:i:s'));
+                            $custom_value->setValue("datetime", \Carbon\Carbon::now()->addSeconds(rand(-500000, 500000))->format('Y-m-d H:i:s'));
+                            $custom_value->setValue("integer", $i * ($user_id % 2 == 0 ? $user_id: -$user_id) * 100);
+                            $custom_value->setValue("decimal", $i * ($user_id % 2 == 0 ? $user_id: -$user_id) / 100);
+                            $custom_value->setValue("currency", rand(0, 1000000) / 10);
+                            $custom_value->setValue("select", ($i % 3 == 0 ? 'foo' : ($i % 3 == 1 ? 'baz' : 'bar')));
+                            $custom_value->setValue("select_valtext", ($i % 3 == 0 ? 'bar' : ($i % 3 == 1 ? 'baz' : 'foo')));
+                            $custom_value->setValue("select_table", $i);
+                            $custom_value->setValue("select_multiple", $this->getMultipleSelectValue());
+                            $custom_value->setValue("select_valtext_multiple", $this->getMultipleSelectValue());
+                            $custom_value->setValue("select_table_multiple", $this->getMultipleSelectValue(range(1, 10), 5));
+                            $custom_value->setValue("user_multiple", $this->getMultipleSelectValue(range(1, 10), 5));
+                            $custom_value->setValue("organization_multiple", $this->getMultipleSelectValue(range(1, 7), 5));
+                            $custom_value->created_user_id = $user_id;
+                            $custom_value->updated_user_id = $user_id;
+                            $custom_value->save();
+            
+                            $custom_values[] = $custom_value;
+                        }
+                    }
+            
+                    return $custom_values;
                 }
             ]);
         $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $custom_table]);
     }
 
+    /**
+     * create multiple selected values
+     * 
+     * @return array
+     */
+    protected function getMultipleSelectValue($array = ['foo','bar','baz'], $randMax = 1)
+    {
+        $result = [];
+        foreach($array as $val) {
+            if (rand(0, $randMax) == 1) {
+                $result[] = $val;
+            }
+        }
+        return $result;
+    }
     /**
      * Create relation filter to custom form column
      *
@@ -814,6 +879,33 @@ class TestDataSeeder extends Seeder
     
 
     /**
+     * Create date value
+     *
+     * @return int index
+     */
+    protected function getDateValue($user_id, $index)
+    {
+        $now = \Carbon\Carbon::now();
+        switch ($user_id % 7)
+        {
+            case 0:
+                return null;
+            case 1:
+                return $now->addDays($index-4);
+            case 2:
+                return \Carbon\Carbon::create($now->year+1, rand(1,12), rand(1,28));
+            case 3:
+                return \Carbon\Carbon::create($now->year-1, rand(1,12), rand(1,28));
+            case 4:
+                return \Carbon\Carbon::create($now->year, $now->month+1, rand(1,28));
+            case 5:
+                return \Carbon\Carbon::create($now->year, $now->month-1, rand(1,28));
+            default:
+                return \Carbon\Carbon::create(2019, 12, 28)->addDays($index);
+        }
+    }
+    
+    /**
      * Create Notify
      *
      * @return string|int notify id
@@ -961,7 +1053,7 @@ class TestDataSeeder extends Seeder
                         FilterOption::EQ,
                         1
                     );
-                } elseif ($custom_column->column_type == ColumnType::USER) {
+                } elseif ($custom_column->column_type == ColumnType::USER && !boolval($custom_column->getOption('multiple_enabled'))) {
                     $this->createCustomViewFilter(
                         $custom_view->id,
                         ConditionType::COLUMN,
