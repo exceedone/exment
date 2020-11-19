@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Form\Field;
 
 use Encore\Admin\Form\Field;
+use Encore\Admin\Validator\HasOptionRule;
 
 class Checkboxone extends Field
 {
@@ -18,6 +19,22 @@ class Checkboxone extends Field
 
     protected $check_label = '';
     protected $check_value = '';
+    protected $options = [];
+
+
+
+    /**
+     * Field constructor.
+     *
+     * @param       $column
+     * @param array $arguments
+     */
+    public function __construct($column = '', $arguments = [])
+    {
+        parent::__construct($column, $arguments);
+
+        $this->rules([new HasOptionRule($this)]);
+    }
 
     /**
      * Set options.
@@ -28,6 +45,7 @@ class Checkboxone extends Field
      */
     public function option($option = [])
     {
+        $this->options = $option;
         if (count($option) == 0) {
             return $this;
         }
@@ -37,6 +55,11 @@ class Checkboxone extends Field
             break;
         }
         return $this;
+    }
+
+    public function getOptions()
+    {
+        return $this->options;
     }
 
     /**
