@@ -511,6 +511,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'asApi' => false, // calling as api
             'appendErrorAllColumn' => false, // if error, append error message for all column
             'validateLock' => true, // whether validate update lock
+            'calledType' => null, // Whether this validation is called.
         ], $options);
         $systemColumn = $options['systemColumn'];
         $column_name_prefix = $options['column_name_prefix'];
@@ -547,7 +548,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         );
         
         $errors = array_merge(
-            $this->validatorPlugin($value, $custom_value),
+            $this->validatorPlugin($value, $custom_value, ['called_type' => $options['calledType']]),
             $errors
         );
 
@@ -914,12 +915,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * validator using plugin
      */
-    public function validatorPlugin($input, $custom_value = null)
+    public function validatorPlugin($input, $custom_value = null, array $options = [])
     {
         return Plugin::pluginValidator($this, [
             'custom_table' => $this,
             'custom_value' => $custom_value,
             'input_value' => array_get($input, 'value'),
+            'called_type' => array_get($options, 'called_type'),
         ]);
     }
 
