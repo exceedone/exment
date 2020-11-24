@@ -807,7 +807,7 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("text", 'test_'.$user_id);
                 $custom_value->setValue("user", $user_id);
                 $custom_value->setValue("index_text", 'index_'.$user_id.'_'.$i);
-                $custom_value->setValue("odd_even", ($i % 2 == 0 ? 'even' : 'odd'));
+                $custom_value->setValue("odd_even", (($user_id + $i) % 2 == 0 ? 'even' : 'odd'));
                 $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
                 $custom_value->setValue("date", \Carbon\Carbon::now());
                 $custom_value->setValue("init_text", 'init_text');

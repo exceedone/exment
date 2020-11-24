@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomView;
@@ -54,7 +55,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $this->assertTrue(count($summaries) == count($defaults));
 
     //         foreach ($summaries as $summary) {
-    //             $this->assertTrue($defaults->contains(function ($value) use($summary) {
+    //             $this->assertTrue(collect($defaults)->contains(function ($value) use($summary) {
     //                 return $value['id'] == $summary;
     //             }));
     //         }
@@ -124,7 +125,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 return $data['text'] == $key;
     //             })->sum(function($data) {
     //                 return $data['integer'];
@@ -161,7 +162,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 return $data['integer'] == $key;
     //             })->map(function($data) {
     //                 return $data['date'];
@@ -198,7 +199,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 if (!empty($key) && isset($data['date'])) {
     //                     return \Carbon\Carbon::parse($data['date'])->format('Y-m-d') == $key;
     //                 } else {
@@ -241,7 +242,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 if (isset($key) && isset($data['date'])) {
     //                     return \Carbon\Carbon::parse($data['date'])->year == $key;
     //                 } else {
@@ -285,7 +286,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 if (!empty($key) && isset($data['date'])) {
     //                     return \Carbon\Carbon::parse($data['date'])->format('Y-m') == $key;
     //                 } else {
@@ -329,7 +330,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 if (!empty($key) && isset($data['date'])) {
     //                     return \Carbon\Carbon::parse($data['date'])->format('Y-m-d') == $key;
     //                 } else {
@@ -372,7 +373,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 if (!empty($key) && isset($data['date'])) {
     //                     return \Carbon\Carbon::parse($data['date'])->month == $key;
     //                 } else {
@@ -416,7 +417,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 if (!empty($key) && isset($data['date'])) {
     //                     return \Carbon\Carbon::parse($data['date'])->day == $key;
     //                 } else {
@@ -463,7 +464,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $weekday = ['日', '月', '火', '水', '木', '金', '土'];
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key, $weekday){
+    //             $result = collect($defaults)->filter(function($data) use($key, $weekday){
     //                 if (!empty($key) && isset($data['date'])) {
     //                     $week = $weekday[\Carbon\Carbon::parse($data['date'])->dayOfWeek]; 
     //                     return $week == $key;
@@ -481,7 +482,7 @@ class CustomViewSummaryTest extends UnitTestBase
     // /**
     //  * FilterOption = Group(date/Time), Summary(integer/max)
     //  */
-    // public function testFuncGroupDateTime()
+    // public function testFuncGroupTime()
     // {
     //     $this->init();
 
@@ -502,7 +503,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 if (!empty($key) && isset($data['time'])) {
     //                     return $data['time'] == $key;
     //                 } else {
@@ -543,7 +544,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 if (!empty($key) && isset($data['datetime'])) {
     //                     return \Carbon\Carbon::parse($data['datetime'])->format('Y-m-d H:i:s') == $key;
     //                 } else {
@@ -586,7 +587,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //         $defaults = $this->getCustomViewDataAll($options);
 
     //         foreach ($summaries as $key => $value) {
-    //             $result = $defaults->filter(function($data) use($key){
+    //             $result = collect($defaults)->filter(function($data) use($key){
     //                 if (!empty($key) && isset($data['datetime'])) {
     //                     return \Carbon\Carbon::parse($data['datetime'])->format('Y-m-d') == $key;
     //                 } else {
@@ -607,7 +608,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupSelect()
     // {
-    //     $this->commonTest('select');
+    //     $this->commonTestCount('select');
     // }
 
     // /**
@@ -615,7 +616,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupSelectMultiple()
     // {
-    //     $this->commonTest('select_multiple');
+    //     $this->commonTestCount('select_multiple');
     // }
 
     // /**
@@ -623,7 +624,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupSelectValue()
     // {
-    //     $this->commonTest('select_valtext');
+    //     $this->commonTestCount('select_valtext');
     // }
 
     // /**
@@ -631,7 +632,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupSelectValueMultiple()
     // {
-    //     $this->commonTest('select_valtext_multiple');
+    //     $this->commonTestCount('select_valtext_multiple');
     // }
 
     // /**
@@ -639,7 +640,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupSelectTable()
     // {
-    //     $this->commonTest('select_table');
+    //     $this->commonTestCount('select_table');
     // }
 
     // /**
@@ -647,7 +648,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupSelectTableMultiple()
     // {
-    //     $this->commonTest('select_table_multiple');
+    //     $this->commonTestCount('select_table_multiple');
     // }
 
     // /**
@@ -655,7 +656,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupYesNo()
     // {
-    //     $this->commonTest('yesno');
+    //     $this->commonTestCount('yesno');
     // }
 
     // /**
@@ -663,7 +664,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupBoolean()
     // {
-    //     $this->commonTest('boolean');
+    //     $this->commonTestCount('boolean');
     // }
 
     // /**
@@ -671,7 +672,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupAutoNumber()
     // {
-    //     $this->commonTest('auto_number');
+    //     $this->commonTestCount('auto_number');
     // }
 
     // /**
@@ -679,7 +680,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupUser()
     // {
-    //     $this->commonTest('user');
+    //     $this->commonTestCount('user');
     // }
 
     // /**
@@ -687,7 +688,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupUserMultiple()
     // {
-    //     $this->commonTest('user_multiple');
+    //     $this->commonTestCount('user_multiple');
     // }
 
     // /**
@@ -695,7 +696,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupOrganization()
     // {
-    //     $this->commonTest('organization');
+    //     $this->commonTestCount('organization');
     // }
 
     // /**
@@ -703,7 +704,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupOrganizationMultiple()
     // {
-    //     $this->commonTest('organization_multiple');
+    //     $this->commonTestCount('organization_multiple');
     // }
 
     // /**
@@ -711,7 +712,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupCreatedAt()
     // {
-    //     $this->commonTest('created_at', ConditionType::SYSTEM);
+    //     $this->commonTestCount('created_at', ConditionType::SYSTEM);
     // }
 
     // /**
@@ -719,7 +720,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupCreatedAtYmd()
     // {
-    //     $this->commonTest('created_at', ConditionType::SYSTEM, [
+    //     $this->commonTestCount('created_at', ConditionType::SYSTEM, [
     //         'view_group_condition' => 'ymd'
     //     ]);
     // }
@@ -729,7 +730,7 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupUpdatedAt()
     // {
-    //     $this->commonTest('updated_at', ConditionType::SYSTEM);
+    //     $this->commonTestCount('updated_at', ConditionType::SYSTEM);
     // }
 
     // /**
@@ -737,49 +738,207 @@ class CustomViewSummaryTest extends UnitTestBase
     //  */
     // public function testFuncGroupUpdatedAtYm()
     // {
-    //     $this->commonTest('updated_at', ConditionType::SYSTEM, [
+    //     $this->commonTestCount('updated_at', ConditionType::SYSTEM, [
     //         'view_group_condition' => 'ym'
     //     ]);
     // }
 
-    /**
-     * FilterOption = Group(created_user), Summary(id/count)
-     */
-    public function testFuncGroupCreatedUser()
-    {
-        $this->commonTest('created_user', ConditionType::SYSTEM);
-    }
+    // /**
+    //  * FilterOption = Group(created_user), Summary(id/count)
+    //  */
+    // public function testFuncGroupCreatedUser()
+    // {
+    //     $this->commonTestCount('created_user', ConditionType::SYSTEM);
+    // }
+
+    // /**
+    //  * FilterOption = Group(updated_user), Summary(id/count)
+    //  */
+    // public function testFuncGroupUpdatedUser()
+    // {
+    //     $this->commonTestCount('updated_user', ConditionType::SYSTEM);
+    // }
+
+    // /**
+    //  * FilterOption = Group(select_table.id), Summary(id/count)
+    //  */
+    // public function testFuncGroupSelectTableId()
+    // {
+    //     $this->commonTestCountBase([
+    //         'reference_table' => 'custom_value_view_all',
+    //         'reference_column' => 'select_table',
+    //         'column_name' => 'id',
+    //         'condition_type' => ConditionType::SYSTEM,
+    //     ]);
+    // }
+
+    // /**
+    //  * FilterOption = Group(select_table.yesno), Summary(id/count)
+    //  */
+    // public function testFuncGroupSelectTableYesNo()
+    // {
+    //     $this->commonTestCountBase([
+    //         'reference_table' => 'custom_value_view_all',
+    //         'reference_column' => 'select_table',
+    //         'column_name' => 'multiples_of_3',
+    //     ]);
+    // }
+
+    // /**
+    //  * FilterOption = Group(user.user_name), Summary(id/count)
+    //  */
+    // public function testFuncGroupUserTableUserName()
+    // {
+    //     $this->commonTestCountBase([
+    //         'reference_table' => 'user',
+    //         'reference_column' => 'user',
+    //         'column_name' => 'user_name',
+    //     ]);
+    // }
+
+    // /**
+    //  * FilterOption = Group(organization.parent_organization), Summary(id/count)
+    //  */
+    // public function testFuncGroupOrgTableParentOrg()
+    // {
+    //     $this->commonTestCountBase([
+    //         'reference_table' => 'organization',
+    //         'reference_column' => 'organization',
+    //         'column_name' => 'parent_organization',
+    //     ]);
+    // }
+
+    // /**
+    //  * FilterOption = Group(user), Summary(integer/sum/child_table)
+    //  */
+    // public function testFuncSummaryChild()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $options = [
+    //             'view_kind_type' => ViewKindType::AGGREGATE,
+    //             'target_table_name' => 'parent_table',
+    //             'column_settings' => [[
+    //                 'column_name' => 'user',
+    //             ]],
+    //             'summary_settings' => [[
+    //                 'reference_table' => 'child_table',
+    //                 'is_child' => true,
+    //                 'column_name' => 'integer',
+    //                 'summary_condition' => SummaryCondition::SUM
+    //             ]],
+    //         ];
+
+    //         $summaries = $this->getCustomViewSummary($options);
+
+    //         $defaults = $this->getCustomViewDataAll($options);
+
+    //         foreach ($summaries as $key => $value) {
+    //             $result = collect($defaults)->filter(function($data) use($key){
+    //                 return $data['user'] == $key;
+    //             })->sum(function($data) {
+    //                 return collect($data['child_table.integer'])->sum();
+    //             });
+    //             $this->assertTrue($result == $value);
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
+
+    // /**
+    //  * FilterOption = Group(parent_table.user), Summary(integer/max)
+    //  */
+    // public function testFuncGroupParent()
+    // {
+    //     $this->init();
+
+    //     DB::beginTransaction();
+    //     try {
+    //         $options = [
+    //             'view_kind_type' => ViewKindType::AGGREGATE,
+    //             'target_table_name' => 'child_table',
+    //             'column_settings' => [[
+    //                 'reference_table' => 'parent_table',
+    //                 'column_name' => 'user',
+    //                 'is_parent' => true
+    //             ]],
+    //             'summary_settings' => [[
+    //                 'column_name' => 'integer',
+    //             ]],
+    //         ];
+
+    //         $summaries = $this->getCustomViewSummary($options);
+
+    //         $defaults = $this->getCustomViewDataAll($options);
+
+    //         foreach ($summaries as $key => $value) {
+    //             $result = collect($defaults)->filter(function($data) use($key){
+    //                 return $data['parent_table.user'] == $key;
+    //             })->max(function($data) {
+    //                 return collect($data['integer'])->max();
+    //             });
+    //             $this->assertTrue($result == $value);
+    //         }
+    //     } finally {
+    //         DB::rollback();
+    //     }
+    // }
 
     /**
-     * FilterOption = Group(updated_user), Summary(id/count)
+     * FilterOption = Group(parent_table.user, odd_even), Summary(integer/sum)
      */
-    public function testFuncGroupUpdatedUser()
+    public function testFuncGroupParentChild()
     {
-        $this->commonTest('updated_user', ConditionType::SYSTEM);
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'view_kind_type' => ViewKindType::AGGREGATE,
+                'target_table_name' => 'child_table',
+                'column_settings' => [[
+                    'reference_table' => 'parent_table',
+                    'column_name' => 'user',
+                    'is_parent' => true
+                ], [
+                    'column_name' => 'odd_even',
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'integer',
+                    'summary_condition' => SummaryCondition::SUM
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    $key = $summary['key'];
+                    return $data['parent_table.user'] == $key[0] && $data['odd_even'] == $key[1];
+                })->sum(function($data) {
+                    return $data['integer'];
+                });
+                $this->assertTrue($result == $summary['value']);
+            }
+        } finally {
+            DB::rollback();
+        }
     }
 
-    /**
-     * FilterOption = Group(updated_user), Summary(id/count)
-     */
-    public function testFuncGroupSelectTableId()
-    {
-        $this->commonTestBase([
-            'reference_table' => 'custom_value_edit_all',
-            'reference_column' => 'select_table',
-            'column_name' => 'id',
-            'condition_type' => ConditionType::SYSTEM,
-        ]);
-    }
-
-    protected function commonTest($column_name, $condition_type = ConditionType::COLUMN, $column_options = []){
-        $this->commonTestBase([
+    protected function commonTestCount($column_name, $condition_type = ConditionType::COLUMN, $column_options = []){
+        $this->commonTestCountBase([
             'column_name' => $column_name,
             'condition_type' => $condition_type,
             'options' => $column_options 
         ]);
     }
 
-    protected function commonTestBase($column_settings){
+    protected function commonTestCountBase($column_settings){
         $this->init();
 
         DB::beginTransaction();
@@ -798,22 +957,22 @@ class CustomViewSummaryTest extends UnitTestBase
 
             $defaults = $this->getCustomViewDataAll($options);
 
-
             foreach ($summaries as $key => $value) {
                 $result = collect($defaults)->filter(function($data) use($key, $column_settings){
+                    $reference_table = array_get($column_settings, 'reference_table');
                     $column_name = array_get($column_settings, 'column_name');
                     $column_options = array_get($column_settings, 'options')?? [];
                     $group_condition = array_get($column_options, 'view_group_condition');
 
-                    $column_data = $data[$column_name];
+                    if (isset($reference_table)) {
+                        $column_data = $data["$reference_table.$column_name"];
+                    } else {
+                        $column_data = $data[$column_name];
+                    }
+
                     if (!empty($key) && isset($column_data)) {
                         if (is_array(json_decode($key))) {
                             return isMatchArray($column_data, json_decode($key));
-                            // if (is_vector($column_data)) {
-                            //     return isMatchArray($column_data, json_decode($key));
-                            // } else {
-                            //     $column_data = array_get($column_data, 'id');
-                            // }
                         } elseif (is_array($column_data)) {
                             return false;
                         } elseif ($column_data instanceof \Carbon\Carbon) {
@@ -843,9 +1002,13 @@ class CustomViewSummaryTest extends UnitTestBase
         return $datevalue->format($dateStrings[strtolower($format)]);
     }
     protected function getCustomViewSummary($options){
-        return $this->getCustomViewData($options)->mapWithKeys(function($data) {
+        return $this->getCustomViewData($options)->map(function($data) {
             $values = array_values($data->getAttributes());
-            return [$values[0] => $values[1]];
+            $key = count($values) > 2 ? array_slice($values , 0, count($values) - 1): $values[0];
+            return [
+                'key' => $key,
+                'value' => end($values)
+            ];
         });
     }
 
@@ -857,6 +1020,7 @@ class CustomViewSummaryTest extends UnitTestBase
         $options['get_count'] = true;
         return $this->getCustomViewData($options);
     }
+
     protected function getCustomViewDataAll($options){
         System::clearCache();
 
@@ -881,13 +1045,34 @@ class CustomViewSummaryTest extends UnitTestBase
 
         return $this->getCustomViewData($options)->map(function($data) use($column_settings) {
             return collect($column_settings)->mapWithKeys(function($column_setting) use($data){
-                $column_name = $column_setting['column_name'];
-                if (isset($column_setting['condition_type']) && $column_setting['condition_type'] == ConditionType::SYSTEM) {
-                    $column_id = SystemColumn::getOption(['name' => $column_name])['sqlname'];
-                    $column_data = array_get($data, $column_id);
-                } else {
-                    $column_data = $data->getValue($column_name);
+                $column_setting = array_merge(
+                    [
+                        'column_name' => null,
+                        'condition_type' => ConditionType::COLUMN,
+                        'reference_table' => null,
+                        'reference_column' => null,
+                        'is_parent' => false,
+                        'is_child' => false,
+                    ], 
+                    $column_setting
+                );
+                extract($column_setting);
+        
+                if (isset($reference_table)) {
+                    $reference_key = "$reference_table.$column_name";
+                    if ($is_parent) {
+                        $data = $data->getParentValue();
+                    } elseif ($is_child) {
+                        $data_list = $data->getChildrenValues($reference_table)->map(function($row) use($column_name, $condition_type) {
+                            return $this->getColumnValue($row, $column_name, $condition_type);
+                        })->toArray();
+                        return [$reference_key => $data_list];
+                    } elseif (isset($reference_column)) {
+                        $data = $data->getValue($reference_column);
+                    }
                 }
+                $column_data = $this->getColumnValue($data, $column_name, $condition_type);
+
                 if ($column_data instanceof \Illuminate\Support\Collection) {
                     $column_data = $column_data->map(function($item) {
                         if ($item instanceof CustomValue) {
@@ -898,13 +1083,25 @@ class CustomViewSummaryTest extends UnitTestBase
                 } elseif ($column_data instanceof CustomValue) {
                     $column_data = $column_data->id;
                 }
-                return [$column_name => $column_data];
+                return [($reference_key ?? $column_name) => $column_data];
             });
         })->toArray();
     }
 
+    protected function getColumnValue($data, $column_name, $condition_type)
+    {
+        $column_data = null;
+        if (isset($condition_type) && $condition_type == ConditionType::SYSTEM) {
+            $column_id = SystemColumn::getOption(['name' => $column_name])['sqlname'];
+            $column_data = array_get($data, $column_id);
+        } elseif ($data instanceof CustomValue) {
+            $column_data = $data->getValue($column_name);
+        }
+        return $column_data;
+    }
+
     protected function init(){
-        System::clearCache();
+        $this->initAllTest();
     }
 
     protected function getCustomViewData(array $options = [])
@@ -939,40 +1136,16 @@ class CustomViewSummaryTest extends UnitTestBase
 
         foreach ($column_settings as $index => $column_setting)
         {
-            if (isset($column_setting['reference_table'])) {
-                $refer_table = CustomTable::getEloquent($column_setting['reference_table']);
-                $view_column_table_id = $refer_table->id;
-                $view_column_target_id = $this->getTargetColumnId($column_setting, $refer_table);
-                $column_setting['options']['view_pivot_table_id'] = $custom_table->id;
-                $column_setting['options']['view_pivot_column_id'] = $this->getTargetColumnId([
-                    'column_name' => $column_setting['reference_column']
-                ], $custom_table);
-            } else {
-                $view_column_table_id = $custom_table->id;
-                $view_column_target_id = $this->getTargetColumnId($column_setting, $custom_table);
-            }
-            $custom_view_column = CustomViewColumn::create([
-                'custom_view_id' => $custom_view->id,
-                'view_column_type' => $column_setting['condition_type'] ?? ConditionType::COLUMN,
-                'view_column_table_id' => $view_column_table_id,
-                'view_column_target_id' => $view_column_target_id,
-                'view_column_name' => $column_setting['view_column_name']?? null,
-                'order' => $column_setting['order']?? $index + 1,
-                'options' => $column_setting['options']?? null,
-            ]);
+            $custom_view_column = CustomViewColumn::create($this->getViewColumnInfo(
+                $custom_table, $custom_view, $column_setting, $index
+            ));
         }
 
         foreach ($summary_settings as $summary_setting)
         {
-            $custom_view_summary = CustomViewSummary::create([
-                'custom_view_id' => $custom_view->id,
-                'view_column_type' => $summary_setting['condition_type'] ?? ConditionType::COLUMN,
-                'view_column_table_id' => $custom_table->id,
-                'view_column_target_id' => $this->getTargetColumnId($summary_setting, $custom_table),
-                'view_column_name' => $summary_setting['view_column_name']?? null,
-                'view_summary_condition' => $summary_setting['summary_condition'] ?? SummaryCondition::MAX,
-                'options' => $summary_setting['options']?? null,
-            ]);
+            $custom_view_summary = CustomViewSummary::create($this->getViewSummaryInfo(
+                $custom_table, $custom_view, $summary_setting
+            ));
         }
 
         foreach ($filter_settings as $filter_setting)
@@ -989,16 +1162,58 @@ class CustomViewSummaryTest extends UnitTestBase
         }
 
         $query = $custom_table->getValueModel()->query();
-        if ($view_kind_type == ViewKindType::DEFAULT) {
+        if ($view_kind_type == ViewKindType::AGGREGATE) {
+            $grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
+            return $grid->getQuery($query)->get();
+        } else {
             $custom_view->filterModel($query);
             if ($get_count) {
                 return $query->count();
             } else {
                 return $query->get();
             }
-        } else {
-            return $custom_view->getQuery($query)->get();
+//            return $custom_view->getQuery($query)->get();
         }
+    }
+
+    protected function getViewSummaryInfo($custom_table, $custom_view, $column_setting)
+    {
+        $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
+        $options['view_summary_condition'] = $column_setting['summary_condition'] ?? SummaryCondition::MAX;
+        return $options;
+    }
+
+    protected function getViewColumnInfo($custom_table, $custom_view, $column_setting, $index)
+    {
+        $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
+        $options['order'] = $column_setting['order']?? $index + 1;
+        return $options;
+    }
+
+    protected function getViewColumnBase($custom_table, $custom_view, $column_setting)
+    {
+        if (isset($column_setting['reference_table'])) {
+            $refer_table = CustomTable::getEloquent($column_setting['reference_table']);
+            $view_column_table_id = $refer_table->id;
+            $view_column_target_id = $this->getTargetColumnId($column_setting, $refer_table);
+            if (isset($column_setting['reference_column'])) {
+                $column_setting['options']['view_pivot_table_id'] = $custom_table->id;
+                $column_setting['options']['view_pivot_column_id'] = $this->getTargetColumnId([
+                    'column_name' => $column_setting['reference_column']
+                ], $custom_table);
+            }
+        } else {
+            $view_column_table_id = $custom_table->id;
+            $view_column_target_id = $this->getTargetColumnId($column_setting, $custom_table);
+        }
+        return [
+            'custom_view_id' => $custom_view->id,
+            'view_column_type' => $column_setting['condition_type'] ?? ConditionType::COLUMN,
+            'view_column_table_id' => $view_column_table_id,
+            'view_column_target_id' => $view_column_target_id,
+            'view_column_name' => $column_setting['view_column_name']?? null,
+            'options' => $column_setting['options']?? null,
+        ];
     }
 
     protected function getTargetColumnId($setting, $custom_table)
