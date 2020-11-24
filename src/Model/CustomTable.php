@@ -1628,6 +1628,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $records->each(function ($record) use ($keyName, &$result) {
                 $matchedKey = array_get($record, $keyName);
                 $result[$matchedKey] = $record;
+                
+                if($record instanceof CustomValue){
+                    $record->setValueModel();
+                }
             });
         }
 
