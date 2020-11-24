@@ -1588,7 +1588,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-
+    /**
+     * query and set custom value's model
+     *
+     * @param array|Collection $ids
+     * @return void
+     */
     public function setCustomValueModels($ids)
     {
         // value sometimes array, so flatten value. maybe has best way..
@@ -1606,9 +1611,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        $this->getValueModel()->query()->findMany(array_unique($finds))->each(function ($target_value) {
-            // set request settion
-            $target_value->setValueModel();
+        $this->getValueModel()->query()->whereIn('id', array_unique($finds))->chunk(1000, function($target_values) {
+            $target_values->each(function($target_value){
+                // set request settion
+                $target_value->setValueModel();
+            });
         });
     }
 
