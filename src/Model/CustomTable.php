@@ -511,6 +511,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'asApi' => false, // calling as api
             'appendErrorAllColumn' => false, // if error, append error message for all column
             'validateLock' => true, // whether validate update lock
+            'calledType' => null, // Whether this validation is called.
         ], $options);
         $systemColumn = $options['systemColumn'];
         $column_name_prefix = $options['column_name_prefix'];
@@ -547,7 +548,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         );
         
         $errors = array_merge(
-            $this->validatorPlugin($value, $custom_value),
+            $this->validatorPlugin($value, $custom_value, ['called_type' => $options['calledType']]),
             $errors
         );
 
@@ -914,12 +915,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * validator using plugin
      */
-    public function validatorPlugin($input, $custom_value = null)
+    public function validatorPlugin($input, $custom_value = null, array $options = [])
     {
         return Plugin::pluginValidator($this, [
             'custom_table' => $this,
             'custom_value' => $custom_value,
             'input_value' => array_get($input, 'value'),
+            'called_type' => array_get($options, 'called_type'),
         ]);
     }
 
@@ -1452,7 +1454,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             //WorkflowItem::getStatusSubquery($query, $this);
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
-        $this->appendWorkflowSubQuery($query, $custom_view);
+        $this->appendSubQuery($query, $custom_view);
     }
 
     /**
@@ -1462,27 +1464,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param CustomView|null $custom_view
      * @return void
      */
-    public function appendWorkflowSubQuery($query, ?CustomView $custom_view)
+    public function appendSubQuery($query, ?CustomView $custom_view)
     {
-        if (
-            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
-            (!is_nullorempty($custom_view) &&
-            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
-                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
-            }))) {
-            // add query
-            WorkflowItem::getStatusSubquery($query, $this, $custom_view->filter_is_or);
-        }
-        // if contains custom_view_filters workflow query
-        if (
-            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
-            ($custom_view &&
-            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
-                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
-            }))) {
-            // add query
-            WorkflowItem::getWorkUsersSubQuery($query, $this, $custom_view->filter_is_or);
-        }
+        $this->appendWorkflowSubQuery($query, $custom_view);
 
         // if has relations, set with
         if (!is_nullorempty($custom_view)) {
@@ -1503,6 +1487,37 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     $query->with($r->getRelationName());
                 });
             }
+        }
+    }
+
+
+    /**
+     * Append to query for filtering workflow
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param CustomView|null $custom_view
+     * @return void
+     */
+    public function appendWorkflowSubQuery($query, ?CustomView $custom_view)
+    {
+        if (
+            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
+            (!is_nullorempty($custom_view) &&
+            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
+                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
+            }))) {
+            // add query
+            WorkflowItem::getStatusSubquery($query, $this, $custom_view->filter_is_or ?? false);
+        }
+        // if contains custom_view_filters workflow query
+        if (
+            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
+            ($custom_view &&
+            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
+                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
+            }))) {
+            // add query
+            WorkflowItem::getWorkUsersSubQuery($query, $this, $custom_view->filter_is_or ?? false);
         }
     }
 
