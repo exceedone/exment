@@ -124,7 +124,7 @@ class WorkflowItem extends SystemItem
      */
     public static function getStatusSubquery($query, $custom_table, $or_option = false)
     {
-        $query->appendQueryOnce(Define::APPEND_QUERY_WORK_STATUS_SUB_QUERY, function($query) use($custom_table, $or_option){
+        $query->appendQueryOnce(Define::APPEND_QUERY_WORK_STATUS_SUB_QUERY, function ($query) use ($custom_table, $or_option) {
             $tableName = getDBTableName($custom_table);
             $subquery = \DB::table($tableName)
                 ->leftJoin(SystemTableName::WORKFLOW_VALUE, function ($join) use ($tableName, $custom_table) {
@@ -145,8 +145,7 @@ class WorkflowItem extends SystemItem
      */
     public static function getWorkUsersSubQuery($query, $custom_table, $or_option = false)
     {
-        $query->appendQueryOnce(Define::APPEND_QUERY_WORK_USERS_SUB_QUERY, function($query) use($custom_table, $or_option)
-        {
+        $query->appendQueryOnce(Define::APPEND_QUERY_WORK_USERS_SUB_QUERY, function ($query) use ($custom_table, $or_option) {
             $tableName = getDBTableName($custom_table);
 
             /////// first query. has workflow value's custom value

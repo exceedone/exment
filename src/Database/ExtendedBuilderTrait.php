@@ -27,7 +27,7 @@ trait ExtendedBuilderTrait
     public function appendQueryOnce(string $keyName, \Closure $queryCallback)
     {
         // if already set, return true.
-        if(in_array($keyName, $this->appendedQuery)){
+        if (in_array($keyName, $this->appendedQuery)) {
             return $this;
         }
 
