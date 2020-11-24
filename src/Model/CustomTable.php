@@ -1523,9 +1523,22 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
 
     /**
-     * Set selectTable value's. for after calling from select_table object
+     * Set selectTable value's and relations. for after calling from select_table object
      */
-    public function setSelectTableValues(?\Illuminate\Database\Eloquent\Collection $customValueCollection)
+    public function setSelectRelationValues(?\Illuminate\Database\Eloquent\Collection $customValueCollection)
+    {
+        $this->setSelectTableValues($customValueCollection);
+        $this->setRelationValues($customValueCollection);
+    }
+
+    
+    /**
+     * Set selectTable value's. for after calling from select_table object
+     *
+     * @param \Illuminate\Support\Collection|null $customValueCollection
+     * @return void
+     */
+    public function setSelectTableValues(?\Illuminate\Support\Collection $customValueCollection)
     {
         if (empty($customValueCollection)) {
             return;
@@ -1546,7 +1559,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // value sometimes array, so flatten value. maybe has best way..
             $target_table->setCustomValueModels($values);
         });
+    }
 
+
+    /**
+     * Set relation value's. for after calling from select_table object
+     */
+    public function setRelationValues(?\Illuminate\Database\Eloquent\Collection $customValueCollection)
+    {
+        if (empty($customValueCollection)) {
+            return;
+        }
 
         //// for parent relation
         $relation = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
