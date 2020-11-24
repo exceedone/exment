@@ -54,7 +54,7 @@ class PluginValidatorBase
      * @param CustomTable|null $custom_table
      * @param CustomValue|int $original_value
      * @param array $input_value
-     * @param array $options 
+     * @param array $options
      *      'called_type' => Whether this validation is called.
      */
     public function __construct(PluginModel $plugin, ?CustomTable $custom_table, $original_value, array $options = [])
