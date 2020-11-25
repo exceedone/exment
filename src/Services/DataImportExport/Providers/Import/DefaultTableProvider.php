@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
 use Carbon\Carbon;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
+use Exceedone\Exment\Enums\ValidateCalledType;
 
 class DefaultTableProvider extends ProviderBase
 {
@@ -201,6 +202,7 @@ class DefaultTableProvider extends ProviderBase
             'validateLock' => false,
             'uniqueCheckSiblings' => $uniqueCheckSiblings,
             'uniqueCheckIgnoreIds' => $uniqueCheckIgnoreIds,
+            'calledType' => ValidateCalledType::IMPORT,
         ]);
 
         if ($validator->fails()) {

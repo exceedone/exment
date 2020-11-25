@@ -91,7 +91,7 @@ trait HasManyJsonTrait
                     $forms = [];
                 }
                 
-                $forms[$key] = $this->buildNestedForm($this->column, $this->builder, $data, $index)
+                $forms[$key] = $this->buildNestedForm($this->column, $this->builder, $key, $index)
                     ->fill($data, $index);
                 $index++;
             }
