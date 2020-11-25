@@ -17,875 +17,860 @@ use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
+use Illuminate\Database\Eloquent\Model;
 use Exceedone\Exment\Tests\TestDefine;
 
 class CustomViewSummaryTest extends UnitTestBase
 {
-    // /**
-    //  * FilterOption = Group(id), Summary(id), Filter(id)
-    //  */
-    // public function testFuncGroupId()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'id',
-    //                 'condition_type' => ConditionType::SYSTEM,
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'id',
-    //                 'condition_type' => ConditionType::SYSTEM,
-    //             ]],
-    //             'filter_settings' => [[
-    //                 'column_name' => 'id',
-    //                 'condition_type' => ConditionType::SYSTEM,
-    //                 'filter_condition' => FilterOption::NOT_LIKE,
-    //                 'filter_value_text' => '1'
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         $this->assertTrue(count($summaries) == count($defaults));
-
-    //         foreach ($summaries as $summary) {
-    //             $this->assertTrue(collect($defaults)->contains(function ($value) use($summary) {
-    //                 return $value['id'] == $summary;
-    //             }));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(suuid), Summary(suuid/count)
-    //  */
-    // public function testFuncGroupSuuid()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'suuid',
-    //                 'condition_type' => ConditionType::SYSTEM,
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'suuid',
-    //                 'condition_type' => ConditionType::SYSTEM,
-    //                 'summary_condition' => SummaryCondition::COUNT
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataCount($options);
-
-    //         $this->assertTrue(count($summaries) == $defaults);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $this->assertTrue($value == '1');
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(text), Summary(integer/sum)
-    //  */
-    // public function testFuncGroupText()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'text',
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'integer',
-    //                 'summary_condition' => SummaryCondition::SUM
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 return $data['text'] == $key;
-    //             })->sum(function($data) {
-    //                 return $data['integer'];
-    //             });
-    //             $this->assertTrue($result == $value);
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(integer), Summary(date/min)
-    //  */
-    // public function testFuncGroupInteger()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'integer',
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'date',
-    //                 'summary_condition' => SummaryCondition::MIN
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 return $data['integer'] == $key;
-    //             })->map(function($data) {
-    //                 return $data['date'];
-    //             })->min();
-    //             $this->assertTrue($result == $value);
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(date), Summary(currency/min)
-    //  */
-    // public function testFuncGroupDate()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'date',
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'currency',
-    //                 'summary_condition' => SummaryCondition::MIN
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 if (!empty($key) && isset($data['date'])) {
-    //                     return \Carbon\Carbon::parse($data['date'])->format('Y-m-d') == $key;
-    //                 } else {
-    //                     return empty($key) && empty($data['date']);
-    //                 }
-    //             })->map(function($data) {
-    //                 return $data['currency'];
-    //             })->min();
-    //             $this->assertTrue(isMatchDecimal($value, $result));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(date/Y), Summary(decimal/sum)
-    //  */
-    // public function testFuncGroupDateY()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'date',
-    //                 'options' => [
-    //                     'view_group_condition' => 'y'
-    //                 ]
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'decimal',
-    //                 'summary_condition' => SummaryCondition::SUM
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 if (isset($key) && isset($data['date'])) {
-    //                     return \Carbon\Carbon::parse($data['date'])->year == $key;
-    //                 } else {
-    //                     return empty($key) && empty($data['date']);
-    //                 }
-    //             })->sum(function($data) {
-    //                 return $data['decimal'];
-    //             });
-    //             $this->assertTrue(isMatchDecimal($value, $result));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(date/YM), Summary(currency/sum)
-    //  */
-    // public function testFuncGroupDateYM()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'date',
-    //                 'options' => [
-    //                     'view_group_condition' => 'ym'
-    //                 ]
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'currency',
-    //                 'summary_condition' => SummaryCondition::SUM
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 if (!empty($key) && isset($data['date'])) {
-    //                     return \Carbon\Carbon::parse($data['date'])->format('Y-m') == $key;
-    //                 } else {
-    //                     return empty($key) && empty($data['date']);
-    //                 }
-    //             })->sum(function($data) {
-    //                 return $data['currency'];
-    //             });
-    //             $this->assertTrue(isMatchDecimal($value, $result));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(date/YMD), Summary(time/min)
-    //  */
-    // public function testFuncGroupDateYMD()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'date',
-    //                 'options' => [
-    //                     'view_group_condition' => 'ymd'
-    //                 ]
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'time',
-    //                 'summary_condition' => SummaryCondition::MIN
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 if (!empty($key) && isset($data['date'])) {
-    //                     return \Carbon\Carbon::parse($data['date'])->format('Y-m-d') == $key;
-    //                 } else {
-    //                     return empty($key) && empty($data['date']);
-    //                 }
-    //             })->map(function($data) {
-    //                 return $data['time'];
-    //             })->min();
-    //             $this->assertTrue(isMatchString($value, $result));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(date/M), Summary(datetime/max)
-    //  */
-    // public function testFuncGroupDateM()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'date',
-    //                 'options' => [
-    //                     'view_group_condition' => 'm'
-    //                 ]
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'datetime',
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 if (!empty($key) && isset($data['date'])) {
-    //                     return \Carbon\Carbon::parse($data['date'])->month == $key;
-    //                 } else {
-    //                     return empty($key) && empty($data['date']);
-    //                 }
-    //             })->map(function($data) {
-    //                 return $data['datetime'];
-    //             })->max();
-    //             $this->assertTrue(isMatchString($value, $result));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(date/D), Summary(created_at/max)
-    //  */
-    // public function testFuncGroupDateD()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'date',
-    //                 'options' => [
-    //                     'view_group_condition' => 'd'
-    //                 ]
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'condition_type' => ConditionType::SYSTEM,
-    //                 'column_name' => 'created_at',
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 if (!empty($key) && isset($data['date'])) {
-    //                     return \Carbon\Carbon::parse($data['date'])->day == $key;
-    //                 } else {
-    //                     return empty($key) && empty($data['date']);
-    //                 }
-    //             })->map(function($data) {
-    //                 return $data['created_at'];
-    //             })->max();
-    //             $this->assertTrue(isMatchString($value, $result));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(date/W), Summary(id/count)
-    //  */
-    // public function testFuncGroupDateW()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'date',
-    //                 'options' => [
-    //                     'view_group_condition' => 'w'
-    //                 ]
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'condition_type' => ConditionType::SYSTEM,
-    //                 'column_name' => 'id',
-    //                 'summary_condition' => SummaryCondition::COUNT
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         $weekday = ['日', '月', '火', '水', '木', '金', '土'];
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key, $weekday){
-    //                 if (!empty($key) && isset($data['date'])) {
-    //                     $week = $weekday[\Carbon\Carbon::parse($data['date'])->dayOfWeek]; 
-    //                     return $week == $key;
-    //                 } else {
-    //                     return empty($key) && empty($data['date']);
-    //                 }
-    //             })->count();
-    //             $this->assertTrue(isMatchString($value, $result));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(date/Time), Summary(integer/max)
-    //  */
-    // public function testFuncGroupTime()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'time',
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'integer',
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 if (!empty($key) && isset($data['time'])) {
-    //                     return $data['time'] == $key;
-    //                 } else {
-    //                     return empty($key) && empty($data['time']);
-    //                 }
-    //             })->map(function($data) {
-    //                 return $data['integer'];
-    //             })->max();
-    //             $this->assertTrue(isMatchString($value, $result));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(datetime), Summary(suuid/max)
-    //  */
-    // public function testFuncGroupDateTime()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'datetime',
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'condition_type' => ConditionType::SYSTEM,
-    //                 'column_name' => 'suuid',
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 if (!empty($key) && isset($data['datetime'])) {
-    //                     return \Carbon\Carbon::parse($data['datetime'])->format('Y-m-d H:i:s') == $key;
-    //                 } else {
-    //                     return empty($key) && empty($data['datetime']);
-    //                 }
-    //             })->map(function($data) {
-    //                 return $data['suuid'];
-    //             })->max();
-    //             $this->assertTrue(isMatchDecimal($value, $result));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(datetime/YMD), Summary(decimal/max)
-    //  */
-    // public function testFuncGroupDateTimeYMD()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'column_settings' => [[
-    //                 'column_name' => 'datetime',
-    //                 'options' => [
-    //                     'view_group_condition' => 'ymd'
-    //                 ]
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'decimal',
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 if (!empty($key) && isset($data['datetime'])) {
-    //                     return \Carbon\Carbon::parse($data['datetime'])->format('Y-m-d') == $key;
-    //                 } else {
-    //                     return empty($key) && empty($data['datetime']);
-    //                 }
-    //             })->map(function($data) {
-    //                 return $data['decimal'];
-    //             })->max();
-    //             $this->assertTrue(isMatchDecimal($value, $result));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(select), Summary(id/count)
-    //  */
-    // public function testFuncGroupSelect()
-    // {
-    //     $this->commonTestCount('select');
-    // }
-
-    // /**
-    //  * FilterOption = Group(select_multiple), Summary(id/count)
-    //  */
-    // public function testFuncGroupSelectMultiple()
-    // {
-    //     $this->commonTestCount('select_multiple');
-    // }
-
-    // /**
-    //  * FilterOption = Group(select_valtext), Summary(id/count)
-    //  */
-    // public function testFuncGroupSelectValue()
-    // {
-    //     $this->commonTestCount('select_valtext');
-    // }
-
-    // /**
-    //  * FilterOption = Group(select_valtext_multiple), Summary(id/count)
-    //  */
-    // public function testFuncGroupSelectValueMultiple()
-    // {
-    //     $this->commonTestCount('select_valtext_multiple');
-    // }
-
-    // /**
-    //  * FilterOption = Group(select_table), Summary(id/count)
-    //  */
-    // public function testFuncGroupSelectTable()
-    // {
-    //     $this->commonTestCount('select_table');
-    // }
-
-    // /**
-    //  * FilterOption = Group(select_table_multiple), Summary(id/count)
-    //  */
-    // public function testFuncGroupSelectTableMultiple()
-    // {
-    //     $this->commonTestCount('select_table_multiple');
-    // }
-
-    // /**
-    //  * FilterOption = Group(yesno), Summary(id/count)
-    //  */
-    // public function testFuncGroupYesNo()
-    // {
-    //     $this->commonTestCount('yesno');
-    // }
-
-    // /**
-    //  * FilterOption = Group(boolean), Summary(id/count)
-    //  */
-    // public function testFuncGroupBoolean()
-    // {
-    //     $this->commonTestCount('boolean');
-    // }
-
-    // /**
-    //  * FilterOption = Group(auto_number), Summary(id/count)
-    //  */
-    // public function testFuncGroupAutoNumber()
-    // {
-    //     $this->commonTestCount('auto_number');
-    // }
-
-    // /**
-    //  * FilterOption = Group(user), Summary(id/count)
-    //  */
-    // public function testFuncGroupUser()
-    // {
-    //     $this->commonTestCount('user');
-    // }
-
-    // /**
-    //  * FilterOption = Group(user_multiple), Summary(id/count)
-    //  */
-    // public function testFuncGroupUserMultiple()
-    // {
-    //     $this->commonTestCount('user_multiple');
-    // }
-
-    // /**
-    //  * FilterOption = Group(organization), Summary(id/count)
-    //  */
-    // public function testFuncGroupOrganization()
-    // {
-    //     $this->commonTestCount('organization');
-    // }
-
-    // /**
-    //  * FilterOption = Group(organization_multiple), Summary(id/count)
-    //  */
-    // public function testFuncGroupOrganizationMultiple()
-    // {
-    //     $this->commonTestCount('organization_multiple');
-    // }
-
-    // /**
-    //  * FilterOption = Group(created_at), Summary(id/count)
-    //  */
-    // public function testFuncGroupCreatedAt()
-    // {
-    //     $this->commonTestCount('created_at', ConditionType::SYSTEM);
-    // }
-
-    // /**
-    //  * FilterOption = Group(created_at/YMD), Summary(id/count)
-    //  */
-    // public function testFuncGroupCreatedAtYmd()
-    // {
-    //     $this->commonTestCount('created_at', ConditionType::SYSTEM, [
-    //         'view_group_condition' => 'ymd'
-    //     ]);
-    // }
-
-    // /**
-    //  * FilterOption = Group(updated_at), Summary(id/count)
-    //  */
-    // public function testFuncGroupUpdatedAt()
-    // {
-    //     $this->commonTestCount('updated_at', ConditionType::SYSTEM);
-    // }
-
-    // /**
-    //  * FilterOption = Group(updated_at/YM), Summary(id/count)
-    //  */
-    // public function testFuncGroupUpdatedAtYm()
-    // {
-    //     $this->commonTestCount('updated_at', ConditionType::SYSTEM, [
-    //         'view_group_condition' => 'ym'
-    //     ]);
-    // }
-
-    // /**
-    //  * FilterOption = Group(created_user), Summary(id/count)
-    //  */
-    // public function testFuncGroupCreatedUser()
-    // {
-    //     $this->commonTestCount('created_user', ConditionType::SYSTEM);
-    // }
-
-    // /**
-    //  * FilterOption = Group(updated_user), Summary(id/count)
-    //  */
-    // public function testFuncGroupUpdatedUser()
-    // {
-    //     $this->commonTestCount('updated_user', ConditionType::SYSTEM);
-    // }
-
-    // /**
-    //  * FilterOption = Group(select_table.id), Summary(id/count)
-    //  */
-    // public function testFuncGroupSelectTableId()
-    // {
-    //     $this->commonTestCountBase([
-    //         'reference_table' => 'custom_value_view_all',
-    //         'reference_column' => 'select_table',
-    //         'column_name' => 'id',
-    //         'condition_type' => ConditionType::SYSTEM,
-    //     ]);
-    // }
-
-    // /**
-    //  * FilterOption = Group(select_table.yesno), Summary(id/count)
-    //  */
-    // public function testFuncGroupSelectTableYesNo()
-    // {
-    //     $this->commonTestCountBase([
-    //         'reference_table' => 'custom_value_view_all',
-    //         'reference_column' => 'select_table',
-    //         'column_name' => 'multiples_of_3',
-    //     ]);
-    // }
-
-    // /**
-    //  * FilterOption = Group(user.user_name), Summary(id/count)
-    //  */
-    // public function testFuncGroupUserTableUserName()
-    // {
-    //     $this->commonTestCountBase([
-    //         'reference_table' => 'user',
-    //         'reference_column' => 'user',
-    //         'column_name' => 'user_name',
-    //     ]);
-    // }
-
-    // /**
-    //  * FilterOption = Group(organization.parent_organization), Summary(id/count)
-    //  */
-    // public function testFuncGroupOrgTableParentOrg()
-    // {
-    //     $this->commonTestCountBase([
-    //         'reference_table' => 'organization',
-    //         'reference_column' => 'organization',
-    //         'column_name' => 'parent_organization',
-    //     ]);
-    // }
-
-    // /**
-    //  * FilterOption = Group(user), Summary(integer/sum/child_table)
-    //  */
-    // public function testFuncSummaryChild()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'target_table_name' => 'parent_table',
-    //             'column_settings' => [[
-    //                 'column_name' => 'user',
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'reference_table' => 'child_table',
-    //                 'is_child' => true,
-    //                 'column_name' => 'integer',
-    //                 'summary_condition' => SummaryCondition::SUM
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 return $data['user'] == $key;
-    //             })->sum(function($data) {
-    //                 return collect($data['child_table.integer'])->sum();
-    //             });
-    //             $this->assertTrue($result == $value);
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
-
-    // /**
-    //  * FilterOption = Group(parent_table.user), Summary(integer/max)
-    //  */
-    // public function testFuncGroupParent()
-    // {
-    //     $this->init();
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $options = [
-    //             'view_kind_type' => ViewKindType::AGGREGATE,
-    //             'target_table_name' => 'child_table',
-    //             'column_settings' => [[
-    //                 'reference_table' => 'parent_table',
-    //                 'column_name' => 'user',
-    //                 'is_parent' => true
-    //             ]],
-    //             'summary_settings' => [[
-    //                 'column_name' => 'integer',
-    //             ]],
-    //         ];
-
-    //         $summaries = $this->getCustomViewSummary($options);
-
-    //         $defaults = $this->getCustomViewDataAll($options);
-
-    //         foreach ($summaries as $key => $value) {
-    //             $result = collect($defaults)->filter(function($data) use($key){
-    //                 return $data['parent_table.user'] == $key;
-    //             })->max(function($data) {
-    //                 return collect($data['integer'])->max();
-    //             });
-    //             $this->assertTrue($result == $value);
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
+    /**
+     * FilterOption = Group(id), Summary(id), Filter(id)
+     */
+    public function testFuncGroupId()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'id',
+                    'condition_type' => ConditionType::SYSTEM,
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'id',
+                    'condition_type' => ConditionType::SYSTEM,
+                ]],
+                'filter_settings' => [[
+                    'column_name' => 'id',
+                    'condition_type' => ConditionType::SYSTEM,
+                    'filter_condition' => FilterOption::NOT_LIKE,
+                    'filter_value_text' => '1'
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            $this->assertTrue(count($summaries) == count($defaults));
+
+            foreach ($summaries as $summary) {
+                $this->assertTrue(collect($defaults)->contains(function ($value) use($summary) {
+                    return $value['id'] == $summary['value'];
+                }));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(suuid), Summary(suuid/count)
+     */
+    public function testFuncGroupSuuid()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'suuid',
+                    'condition_type' => ConditionType::SYSTEM,
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'suuid',
+                    'condition_type' => ConditionType::SYSTEM,
+                    'summary_condition' => SummaryCondition::COUNT
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataCount($options);
+
+            $this->assertTrue(count($summaries) == $defaults);
+
+            foreach ($summaries as $summary) {
+                $this->assertTrue($summary['value'] == '1');
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(text), Summary(integer/sum)
+     */
+    public function testFuncGroupText()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'text',
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'integer',
+                    'summary_condition' => SummaryCondition::SUM
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    return $data['text'] == $summary['key'];
+                })->sum(function($data) {
+                    return $data['integer'];
+                });
+                $this->assertTrue($result == $summary['value']);
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(integer), Summary(date/min)
+     */
+    public function testFuncGroupInteger()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'integer',
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'date',
+                    'summary_condition' => SummaryCondition::MIN
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    return $data['integer'] == $summary['key'];
+                })->map(function($data) {
+                    return $data['date'];
+                })->min();
+                $this->assertTrue($result == $summary['value']);
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(date), Summary(currency/min)
+     */
+    public function testFuncGroupDate()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'date',
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'currency',
+                    'summary_condition' => SummaryCondition::MIN
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    if (!empty($summary['key']) && isset($data['date'])) {
+                        return \Carbon\Carbon::parse($data['date'])->format('Y-m-d') == $summary['key'];
+                    } else {
+                        return empty($summary['key']) && empty($data['date']);
+                    }
+                })->map(function($data) {
+                    return $data['currency'];
+                })->min();
+                $this->assertTrue(isMatchDecimal($summary['value'], $result));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(date/Y), Summary(decimal/sum)
+     */
+    public function testFuncGroupDateY()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'date',
+                    'options' => [
+                        'view_group_condition' => 'y'
+                    ]
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'decimal',
+                    'summary_condition' => SummaryCondition::SUM
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    if (isset($summary['key']) && isset($data['date'])) {
+                        return \Carbon\Carbon::parse($data['date'])->year == $summary['key'];
+                    } else {
+                        return empty($summary['key']) && empty($data['date']);
+                    }
+                })->sum(function($data) {
+                    return $data['decimal'];
+                });
+                $this->assertTrue(isMatchDecimal($summary['value'], $result));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(date/YM), Summary(currency/sum)
+     */
+    public function testFuncGroupDateYM()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'date',
+                    'options' => [
+                        'view_group_condition' => 'ym'
+                    ]
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'currency',
+                    'summary_condition' => SummaryCondition::SUM
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    if (isset($summary['key']) && isset($data['date'])) {
+                        return \Carbon\Carbon::parse($data['date'])->format('Y-m') == $summary['key'];
+                    } else {
+                        return empty($summary['key']) && empty($data['date']);
+                    }
+                })->sum(function($data) {
+                    return $data['currency'];
+                });
+                $this->assertTrue(isMatchDecimal($summary['value'], $result));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(date/YMD), Summary(time/min)
+     */
+    public function testFuncGroupDateYMD()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'date',
+                    'options' => [
+                        'view_group_condition' => 'ymd'
+                    ]
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'time',
+                    'summary_condition' => SummaryCondition::MIN
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    if (isset($summary['key']) && isset($data['date'])) {
+                        return \Carbon\Carbon::parse($data['date'])->format('Y-m-d') == $summary['key'];
+                    } else {
+                        return empty($summary['key']) && empty($data['date']);
+                    }
+                })->map(function($data) {
+                    return $data['time'];
+                })->min();
+                $this->assertTrue(isMatchString($summary['value'], $result));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(date/M), Summary(datetime/max)
+     */
+    public function testFuncGroupDateM()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'date',
+                    'options' => [
+                        'view_group_condition' => 'm'
+                    ]
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'datetime',
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    if (!empty($summary['key']) && isset($data['date'])) {
+                        return \Carbon\Carbon::parse($data['date'])->month == $summary['key'];
+                    } else {
+                        return empty($summary['key']) && empty($data['date']);
+                    }
+                })->map(function($data) {
+                    return $data['datetime'];
+                })->max();
+                $this->assertTrue(isMatchString($summary['value'], $result));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(date/D), Summary(created_at/max)
+     */
+    public function testFuncGroupDateD()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'date',
+                    'options' => [
+                        'view_group_condition' => 'd'
+                    ]
+                ]],
+                'summary_settings' => [[
+                    'condition_type' => ConditionType::SYSTEM,
+                    'column_name' => 'created_at',
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    if (!empty($summary['key']) && isset($data['date'])) {
+                        return \Carbon\Carbon::parse($data['date'])->day == $summary['key'];
+                    } else {
+                        return empty($summary['key']) && empty($data['date']);
+                    }
+                })->map(function($data) {
+                    return $data['created_at'];
+                })->max();
+                $this->assertTrue(isMatchString($summary['value'], $result));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(date/W), Summary(id/count)
+     */
+    public function testFuncGroupDateW()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'date',
+                    'options' => [
+                        'view_group_condition' => 'w'
+                    ]
+                ]],
+                'summary_settings' => [[
+                    'condition_type' => ConditionType::SYSTEM,
+                    'column_name' => 'id',
+                    'summary_condition' => SummaryCondition::COUNT
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            $weekday = ['日', '月', '火', '水', '木', '金', '土'];
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary, $weekday){
+                    if (!empty($summary['key']) && isset($data['date'])) {
+                        $week = $weekday[\Carbon\Carbon::parse($data['date'])->dayOfWeek]; 
+                        return $week == $summary['key'];
+                    } else {
+                        return empty($summary['key']) && empty($data['date']);
+                    }
+                })->count();
+                $this->assertTrue(isMatchString($summary['value'], $result));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(date/Time), Summary(integer/max)
+     */
+    public function testFuncGroupTime()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'time',
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'integer',
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    if (!empty($summary['key']) && isset($data['time'])) {
+                        return $data['time'] == $summary['key'];
+                    } else {
+                        return empty($summary['key']) && empty($data['time']);
+                    }
+                })->map(function($data) {
+                    return $data['integer'];
+                })->max();
+                $this->assertTrue(isMatchString($summary['value'], $result));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(datetime), Summary(suuid/max)
+     */
+    public function testFuncGroupDateTime()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'datetime',
+                ]],
+                'summary_settings' => [[
+                    'condition_type' => ConditionType::SYSTEM,
+                    'column_name' => 'suuid',
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    if (!empty($summary['key']) && isset($data['datetime'])) {
+                        return \Carbon\Carbon::parse($data['datetime'])->format('Y-m-d H:i:s') == $summary['key'];
+                    } else {
+                        return empty($summary['key']) && empty($data['datetime']);
+                    }
+                })->map(function($data) {
+                    return $data['suuid'];
+                })->max();
+                $this->assertTrue(isMatchDecimal($summary['value'], $result));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(datetime/YMD), Summary(decimal/max)
+     */
+    public function testFuncGroupDateTimeYMD()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'datetime',
+                    'options' => [
+                        'view_group_condition' => 'ymd'
+                    ]
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'decimal',
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    if (!empty($summary['key']) && isset($data['datetime'])) {
+                        return \Carbon\Carbon::parse($data['datetime'])->format('Y-m-d') == $summary['key'];
+                    } else {
+                        return empty($summary['key']) && empty($data['datetime']);
+                    }
+                })->map(function($data) {
+                    return $data['decimal'];
+                })->max();
+                $this->assertTrue(isMatchDecimal($summary['value'], $result));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(select), Summary(id/count)
+     */
+    public function testFuncGroupSelect()
+    {
+        $this->commonTestCount('select');
+    }
+
+    /**
+     * FilterOption = Group(select_multiple), Summary(id/count)
+     */
+    public function testFuncGroupSelectMultiple()
+    {
+        $this->commonTestCount('select_multiple');
+    }
+
+    /**
+     * FilterOption = Group(select_valtext), Summary(id/count)
+     */
+    public function testFuncGroupSelectValue()
+    {
+        $this->commonTestCount('select_valtext');
+    }
+
+    /**
+     * FilterOption = Group(select_valtext_multiple), Summary(id/count)
+     */
+    public function testFuncGroupSelectValueMultiple()
+    {
+        $this->commonTestCount('select_valtext_multiple');
+    }
+
+    /**
+     * FilterOption = Group(select_table), Summary(id/count)
+     */
+    public function testFuncGroupSelectTable()
+    {
+        $this->commonTestCount('select_table');
+    }
+
+    /**
+     * FilterOption = Group(select_table_multiple), Summary(id/count)
+     */
+    public function testFuncGroupSelectTableMultiple()
+    {
+        $this->commonTestCount('select_table_multiple');
+    }
+
+    /**
+     * FilterOption = Group(yesno), Summary(id/count)
+     */
+    public function testFuncGroupYesNo()
+    {
+        $this->commonTestCount('yesno');
+    }
+
+    /**
+     * FilterOption = Group(boolean), Summary(id/count)
+     */
+    public function testFuncGroupBoolean()
+    {
+        $this->commonTestCount('boolean');
+    }
+
+    /**
+     * FilterOption = Group(auto_number), Summary(id/count)
+     */
+    public function testFuncGroupAutoNumber()
+    {
+        $this->commonTestCount('auto_number');
+    }
+
+    /**
+     * FilterOption = Group(user), Summary(id/count)
+     */
+    public function testFuncGroupUser()
+    {
+        $this->commonTestCount('user');
+    }
+
+    /**
+     * FilterOption = Group(user_multiple), Summary(id/count)
+     */
+    public function testFuncGroupUserMultiple()
+    {
+        $this->commonTestCount('user_multiple');
+    }
+
+    /**
+     * FilterOption = Group(organization), Summary(id/count)
+     */
+    public function testFuncGroupOrganization()
+    {
+        $this->commonTestCount('organization');
+    }
+
+    /**
+     * FilterOption = Group(organization_multiple), Summary(id/count)
+     */
+    public function testFuncGroupOrganizationMultiple()
+    {
+        $this->commonTestCount('organization_multiple');
+    }
+
+    /**
+     * FilterOption = Group(created_at), Summary(id/count)
+     */
+    public function testFuncGroupCreatedAt()
+    {
+        $this->commonTestCount('created_at', ConditionType::SYSTEM);
+    }
+
+    /**
+     * FilterOption = Group(created_at/YMD), Summary(id/count)
+     */
+    public function testFuncGroupCreatedAtYmd()
+    {
+        $this->commonTestCount('created_at', ConditionType::SYSTEM, [
+            'view_group_condition' => 'ymd'
+        ]);
+    }
+
+    /**
+     * FilterOption = Group(updated_at), Summary(id/count)
+     */
+    public function testFuncGroupUpdatedAt()
+    {
+        $this->commonTestCount('updated_at', ConditionType::SYSTEM);
+    }
+
+    /**
+     * FilterOption = Group(updated_at/YM), Summary(id/count)
+     */
+    public function testFuncGroupUpdatedAtYm()
+    {
+        $this->commonTestCount('updated_at', ConditionType::SYSTEM, [
+            'view_group_condition' => 'ym'
+        ]);
+    }
+
+    /**
+     * FilterOption = Group(created_user), Summary(id/count)
+     */
+    public function testFuncGroupCreatedUser()
+    {
+        $this->commonTestCount('created_user', ConditionType::SYSTEM);
+    }
+
+    /**
+     * FilterOption = Group(updated_user), Summary(id/count)
+     */
+    public function testFuncGroupUpdatedUser()
+    {
+        $this->commonTestCount('updated_user', ConditionType::SYSTEM);
+    }
+
+    /**
+     * FilterOption = Group(select_table.id), Summary(id/count)
+     */
+    public function testFuncGroupSelectTableId()
+    {
+        $this->commonTestCountBase([
+            'reference_table' => 'custom_value_view_all',
+            'reference_column' => 'select_table',
+            'column_name' => 'id',
+            'condition_type' => ConditionType::SYSTEM,
+        ]);
+    }
+
+    /**
+     * FilterOption = Group(select_table.yesno), Summary(id/count)
+     */
+    public function testFuncGroupSelectTableYesNo()
+    {
+        $this->commonTestCountBase([
+            'reference_table' => 'custom_value_view_all',
+            'reference_column' => 'select_table',
+            'column_name' => 'multiples_of_3',
+        ]);
+    }
+
+    /**
+     * FilterOption = Group(user.user_name), Summary(id/count)
+     */
+    public function testFuncGroupUserTableUserName()
+    {
+        $this->commonTestCountBase([
+            'reference_table' => 'user',
+            'reference_column' => 'user',
+            'column_name' => 'user_name',
+        ]);
+    }
+
+    /**
+     * FilterOption = Group(organization.parent_organization), Summary(id/count)
+     */
+    public function testFuncGroupOrgTableParentOrg()
+    {
+        $this->commonTestCountBase([
+            'reference_table' => 'organization',
+            'reference_column' => 'organization',
+            'column_name' => 'parent_organization',
+        ]);
+    }
+
+    /**
+     * FilterOption = Group(user), Summary(integer/sum/child_table)
+     */
+    public function testFuncSummaryChild()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'target_table_name' => 'parent_table',
+                'column_settings' => [[
+                    'column_name' => 'user',
+                ]],
+                'summary_settings' => [[
+                    'reference_table' => 'child_table',
+                    'is_child' => true,
+                    'column_name' => 'integer',
+                    'summary_condition' => SummaryCondition::SUM
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    return $data['user'] == $summary['key'];
+                })->sum(function($data) {
+                    return collect($data['child_table.integer'])->sum();
+                });
+                $this->assertTrue($result == $summary['value']);
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(parent_table.user), Summary(integer/max)
+     */
+    public function testFuncGroupParent()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'target_table_name' => 'child_table',
+                'column_settings' => [[
+                    'reference_table' => 'parent_table',
+                    'column_name' => 'user',
+                    'is_parent' => true
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'integer',
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    return $data['parent_table.user'] == $summary['key'];
+                })->max(function($data) {
+                    return collect($data['integer'])->max();
+                });
+                $this->assertTrue($result == $summary['value']);
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
 
     /**
      * FilterOption = Group(parent_table.user, odd_even), Summary(integer/sum)
@@ -897,7 +882,6 @@ class CustomViewSummaryTest extends UnitTestBase
         DB::beginTransaction();
         try {
             $options = [
-                'view_kind_type' => ViewKindType::AGGREGATE,
                 'target_table_name' => 'child_table',
                 'column_settings' => [[
                     'reference_table' => 'parent_table',
@@ -930,6 +914,44 @@ class CustomViewSummaryTest extends UnitTestBase
         }
     }
 
+    /**
+     * FilterOption = Group(workflow_status), Summary(currency/sum)
+     */
+    public function testFuncGroupWorkflow()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'target_table_name' => 'custom_value_edit',
+                'column_settings' => [[
+                    'condition_type' => ConditionType::WORKFLOW,
+                    'column_name' => 'workflow_status',
+                ]],
+                'summary_settings' => [[
+                    'column_name' => 'currency',
+                    'summary_condition' => SummaryCondition::SUM
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    return $data['workflow_status'] == $summary['key'];
+                })->sum(function($data) {
+                    return $data['currency'];
+                });
+                $this->assertTrue($result == $summary['value']);
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
     protected function commonTestCount($column_name, $condition_type = ConditionType::COLUMN, $column_options = []){
         $this->commonTestCountBase([
             'column_name' => $column_name,
@@ -944,7 +966,6 @@ class CustomViewSummaryTest extends UnitTestBase
         DB::beginTransaction();
         try {
             $options = [
-                'view_kind_type' => ViewKindType::AGGREGATE,
                 'column_settings' => [$column_settings],
                 'summary_settings' => [[
                     'condition_type' => ConditionType::SYSTEM,
@@ -957,8 +978,8 @@ class CustomViewSummaryTest extends UnitTestBase
 
             $defaults = $this->getCustomViewDataAll($options);
 
-            foreach ($summaries as $key => $value) {
-                $result = collect($defaults)->filter(function($data) use($key, $column_settings){
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary, $column_settings){
                     $reference_table = array_get($column_settings, 'reference_table');
                     $column_name = array_get($column_settings, 'column_name');
                     $column_options = array_get($column_settings, 'options')?? [];
@@ -970,20 +991,20 @@ class CustomViewSummaryTest extends UnitTestBase
                         $column_data = $data[$column_name];
                     }
 
-                    if (!empty($key) && isset($column_data)) {
-                        if (is_array(json_decode($key))) {
-                            return isMatchArray($column_data, json_decode($key));
+                    if (!empty($summary['key']) && isset($column_data)) {
+                        if (is_array(json_decode($summary['key']))) {
+                            return isMatchArray($column_data, json_decode($summary['key']));
                         } elseif (is_array($column_data)) {
                             return false;
                         } elseif ($column_data instanceof \Carbon\Carbon) {
                             $column_data = $this->convertDateToString($column_data, $group_condition);
                         }
-                        return isMatchString($column_data, $key);
+                        return isMatchString($column_data, $summary['key']);
                     } else {
-                        return empty($key) && empty($column_data);
+                        return empty($summary['key']) && empty($column_data);
                     }
                 })->count();
-                $this->assertTrue(isMatchString($value, $result));
+                $this->assertTrue(isMatchString($summary['value'], $result));
             }
         } finally {
             DB::rollback();
@@ -1002,7 +1023,7 @@ class CustomViewSummaryTest extends UnitTestBase
         return $datevalue->format($dateStrings[strtolower($format)]);
     }
     protected function getCustomViewSummary($options){
-        return $this->getCustomViewData($options)->map(function($data) {
+        return $this->getCustomViewData($options, ViewKindType::AGGREGATE)->map(function($data) {
             $values = array_values($data->getAttributes());
             $key = count($values) > 2 ? array_slice($values , 0, count($values) - 1): $values[0];
             return [
@@ -1016,7 +1037,6 @@ class CustomViewSummaryTest extends UnitTestBase
         System::clearCache();
         unset($options['column_settings']);
         unset($options['summary_settings']);
-        $options['view_kind_type'] = ViewKindType::DEFAULT;
         $options['get_count'] = true;
         return $this->getCustomViewData($options);
     }
@@ -1075,12 +1095,12 @@ class CustomViewSummaryTest extends UnitTestBase
 
                 if ($column_data instanceof \Illuminate\Support\Collection) {
                     $column_data = $column_data->map(function($item) {
-                        if ($item instanceof CustomValue) {
+                        if ($item instanceof Model) {
                             return $item->id;
                         }
                         return $item;
                     });
-                } elseif ($column_data instanceof CustomValue) {
+                } elseif ($column_data instanceof Model) {
                     $column_data = $column_data->id;
                 }
                 return [($reference_key ?? $column_name) => $column_data];
@@ -1094,7 +1114,9 @@ class CustomViewSummaryTest extends UnitTestBase
         if (isset($condition_type) && $condition_type == ConditionType::SYSTEM) {
             $column_id = SystemColumn::getOption(['name' => $column_name])['sqlname'];
             $column_data = array_get($data, $column_id);
-        } elseif ($data instanceof CustomValue) {
+        } elseif (isset($condition_type) && $condition_type == ConditionType::WORKFLOW) {
+            $column_data = array_get($data, $column_name);
+        }elseif ($data instanceof CustomValue) {
             $column_data = $data->getValue($column_name);
         }
         return $column_data;
@@ -1104,13 +1126,12 @@ class CustomViewSummaryTest extends UnitTestBase
         $this->initAllTest();
     }
 
-    protected function getCustomViewData(array $options = [])
+    protected function getCustomViewData(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
     {
         $options = array_merge(
             [
                 'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_ADMIN,
                 'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS,
-                'view_kind_type' => ViewKindType::DEFAULT,
                 'condition_join' => 'and',
                 'get_count' => false,
                 'filter_settings' => [],

@@ -895,8 +895,8 @@ if (!function_exists('isMatchDecimal')) {
      */
     function isMatchDecimal($v1, $v2) : bool
     {
-        $v1 = preg_replace("/\.?0+$/", "", $v1);
-        $v2 = preg_replace("/\.?0+$/", "", $v2);
+        $v1 = rtrim((strpos($v1,".") !== false ? rtrim($v1, "0") : $v1),".");
+        $v2 = rtrim((strpos($v2,".") !== false ? rtrim($v2, "0") : $v2),".");
         return strcmp($v1, $v2) == 0;
     }
 }

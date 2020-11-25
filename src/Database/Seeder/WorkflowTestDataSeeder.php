@@ -513,7 +513,17 @@ class WorkflowTestDataSeeder extends Seeder
         $wfValue->workflow_status_to_id = 6;
         $wfValue->action_executed_flg = 0;
         $wfValue->latest_flg = 1;
+        $this->saveWorkflowValue($wfValue, $workflowObj);
 
+        // add for summary view test
+        $wfValue = new WorkflowValue;
+        $wfValue->workflow_id = $workflowObj->id;
+        $wfValue->morph_type = 'custom_value_edit';
+        $wfValue->morph_id = 3;
+        $wfValue->workflow_action_id = 6;
+        $wfValue->workflow_status_to_id = 6;
+        $wfValue->action_executed_flg = 0;
+        $wfValue->latest_flg = 1;
         $this->saveWorkflowValue($wfValue, $workflowObj);
     }
 
