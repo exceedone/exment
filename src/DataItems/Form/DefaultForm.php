@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ValidateCalledType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -318,6 +319,7 @@ EOT;
 
             if (is_array($validateResult = $model->validateSaving($input, [
                 'column_name_prefix' => 'value.',
+                'calledType' => ValidateCalledType::FORM,
             ]))) {
                 $message = $message->merge($validateResult);
             }
@@ -373,6 +375,7 @@ EOT;
                         'column_name_prefix' => "$relation_name.$relationK.value.",
                         'uniqueCheckSiblings' => array_values($uniqueCheckSiblings),
                         'uniqueCheckIgnoreIds' => $ignoreIds,
+                        'calledType' => ValidateCalledType::FORM,
                     ]))) {
                         $message = $message->merge($validateResult);
                     }

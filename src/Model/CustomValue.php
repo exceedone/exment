@@ -505,6 +505,7 @@ abstract class CustomValue extends ModelBase
             'appendErrorAllColumn' => true,
             'column_name_prefix' => null,
             'uniqueCheckSiblings' => [], // unique validation Siblings
+            'calledType' => null, // Whether this validation is called.
         ], $options);
 
         // validate multiple column set is unique
@@ -515,7 +516,7 @@ abstract class CustomValue extends ModelBase
         $errors = array_merge($this->custom_table->validatorLock($input, $this, $options['asApi']), $errors);
 
         // call plugin validator
-        $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this));
+        $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this, ['called_type' => $options['calledType']]));
 
         return count($errors) > 0 ? $errors : true;
     }

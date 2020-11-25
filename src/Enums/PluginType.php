@@ -219,7 +219,7 @@ class PluginType extends EnumBase
                     return new $classname($plugin, array_get($options, 'custom_table'));
                 case PluginType::VALIDATOR:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
-                    return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, array_get($options, 'input_value'));
+                    return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, $options);
             }
         }
 

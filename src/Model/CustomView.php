@@ -581,8 +581,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $this->setValueSort($model);
         }
 
-        // Append workflow query
-        $this->custom_table->appendWorkflowSubQuery($model, $this);
+        // Append query
+        $this->custom_table->appendSubQuery($model, $this);
 
         ///// We don't need filter using role here because filter auto using global scope.
 
@@ -669,16 +669,19 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * set value filters
      */
-    public function setValueFilters($model, $db_table_name = null)
+    public function setValueFilters($query, $db_table_name = null)
     {
         if (!empty($this->custom_view_filters_cache)) {
-            $model->where(function ($model) use ($db_table_name) {
+            // set workflow query
+            $this->custom_table->appendWorkflowSubQuery($query, $this);
+
+            $query->where(function ($query) use ($db_table_name) {
                 foreach ($this->custom_view_filters_cache as $filter) {
-                    $filter->setValueFilter($model, $db_table_name, $this->filter_is_or);
+                    $filter->setValueFilter($query, $db_table_name, $this->filter_is_or);
                 }
             });
         }
-        return $model;
+        return $query;
     }
 
     /**
