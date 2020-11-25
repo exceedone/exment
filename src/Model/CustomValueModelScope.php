@@ -71,7 +71,7 @@ class CustomValueModelScope implements Scope
         }
         // if not role, set always false result.
         else {
-            $builder->where('id', '<', 0);
+            $builder->where("$db_table_name.id", '<', 0);
         }
     }
 }
