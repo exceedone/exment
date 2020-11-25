@@ -17,7 +17,7 @@ trait ApiTrait
     /**
      * Get error message from validator
      *
-     * @param [type] $validator
+     * @param Exceedone\Exment\Validator\ExmentCustomValidator $validator
      * @return array error messages
      */
     protected function getErrorMessages($validator)
@@ -58,10 +58,10 @@ trait ApiTrait
     /**
      * Get count parameter for list count
      *
-     * @param [type] $request
+     * @param Request $request
      * @return int
      */
-    protected function getCount($request)
+    protected function getCount(Request $request)
     {
         // get and check query parameter
         
@@ -109,7 +109,7 @@ trait ApiTrait
      * Get Custom Value (or return response)
      *
      * @param CustomTable $custom_table
-     * @param [type] $id
+     * @param string|int|null $id
      * @return CustomValue|\Symfony\Component\HttpFoundation\Response
      */
     protected function getCustomValue(CustomTable $custom_table, $id)

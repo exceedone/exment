@@ -238,9 +238,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * Get database query
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
      * @param array $options
-     * @return
+     * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
      */
     public function getQuery($query, array $options = [])
     {
@@ -581,8 +581,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $this->setValueSort($model);
         }
 
-        // Append workflow query
-        $this->custom_table->appendWorkflowSubQuery($model, $this);
+        // Append query
+        $this->custom_table->appendSubQuery($model, $this);
 
         ///// We don't need filter using role here because filter auto using global scope.
 
@@ -641,10 +641,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * copy from default view columns
      *
-     * @param [type] $fromView copied target view
+     * @param CustomView|null $fromView copied target view
      * @return void
      */
-    public function copyFromDefaultViewColumns($fromView)
+    public function copyFromDefaultViewColumns(?CustomView $fromView)
     {
         $view_columns = [];
 
@@ -669,16 +669,19 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * set value filters
      */
-    public function setValueFilters($model, $db_table_name = null)
+    public function setValueFilters($query, $db_table_name = null)
     {
         if (!empty($this->custom_view_filters_cache)) {
-            $model->where(function ($model) use ($db_table_name) {
+            // set workflow query
+            $this->custom_table->appendWorkflowSubQuery($query, $this);
+
+            $query->where(function ($query) use ($db_table_name) {
                 foreach ($this->custom_view_filters_cache as $filter) {
-                    $filter->setValueFilter($model, $db_table_name, $this->filter_is_or);
+                    $filter->setValueFilter($query, $db_table_name, $this->filter_is_or);
                 }
             });
         }
-        return $model;
+        return $query;
     }
 
     /**
@@ -759,7 +762,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * get view columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
-     * @param $is_number
+     * @param bool $is_y
      */
     public function getViewColumnsSelectOptions(bool $is_y) : array
     {
@@ -924,7 +927,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * check if target id view can be deleted
      * @param int|string $id
-     * @return [boolean, string] status, error message.
+     * @return array [boolean, string] status, error message.
      */
     public static function validateDestroy($id)
     {

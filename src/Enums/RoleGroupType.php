@@ -7,11 +7,11 @@ use Exceedone\Exment\Model\System;
 /**
  * Role Group Type Difinition.
  *
- * @method static ErrorCode SYSTEM()
- * @method static ErrorCode TABLE()
- * @method static ErrorCode MASTER()
- * @method static ErrorCode PLUGIN()
- * @method static ErrorCode ROLE_GROUP()
+ * @method static RoleGroupType SYSTEM()
+ * @method static RoleGroupType TABLE()
+ * @method static RoleGroupType MASTER()
+ * @method static RoleGroupType PLUGIN()
+ * @method static RoleGroupType ROLE_GROUP()
  */
 class RoleGroupType extends EnumBase
 {

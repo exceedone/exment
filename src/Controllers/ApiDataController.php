@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\ValidateCalledType;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Carbon\Carbon;
 use Validator;
@@ -92,7 +93,7 @@ class ApiDataController extends AdminControllerTableBase
 
     /**
      * find match data for select ajax
-     * @param mixed $id
+     * @param Request $request
      * @return mixed
      */
     public function dataSelect(Request $request)
@@ -206,7 +207,8 @@ class ApiDataController extends AdminControllerTableBase
     /**
      * find match data by column query
      * use form select ajax
-     * @param mixed $id
+     * @param Request $request
+     * @param string $tableKey
      * @return mixed
      */
     public function dataQueryColumn(Request $request, $tableKey)
@@ -791,6 +793,7 @@ class ApiDataController extends AdminControllerTableBase
                 'column_name_prefix' => 'value.',
                 'appendKeyName' => false,
                 'asApi' => true,
+                'calledType' => ValidateCalledType::API,
             ]);
 
             if ($validator->fails()) {
@@ -1289,7 +1292,7 @@ class ApiDataController extends AdminControllerTableBase
      * Set order by query
      *
      * @param [type] $query
-     * @param [type] $orderby_list
+     * @param array $orderby_list
      * @return void
      */
     protected function setOrderByQuery($query, $orderby_list)

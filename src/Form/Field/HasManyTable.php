@@ -20,7 +20,7 @@ class HasManyTable extends HasMany
     /**
      * Show row up down button
      *
-     * @var stringcolumn name
+     * @var string|null stringcolumn name
      */
     protected $rowUpDown = null;
 
@@ -103,6 +103,13 @@ class HasManyTable extends HasMany
         return $this->description($description);
     }
 
+    /**
+     * Set row updown button column name.
+     *
+     * @param string $rowUpDown
+     * @param integer $power
+     * @return $this
+     */
     public function rowUpDown($rowUpDown, $power = 1)
     {
         $this->rowUpDown = $rowUpDown;
@@ -310,7 +317,7 @@ EOT;
     /**
      * Prepare for a field value before update or insert.
      *
-     * @param $value
+     * @param mixed $value
      *
      * @return mixed
      */

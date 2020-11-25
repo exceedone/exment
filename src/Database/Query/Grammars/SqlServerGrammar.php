@@ -57,10 +57,12 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
     }
     
 
-
     /**
      * Get cast column string
      *
+     * @param string $type
+     * @param string $column
+     * @param array $options
      * @return string
      */
     public function getCastColumn($type, $column, $options = [])
@@ -97,9 +99,14 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         return 'nvarchar';
     }
 
+    
+
     /**
      * Get cast string
      *
+     * @param string $type
+     * @param bool $addOption
+     * @param array $options
      * @return string
      */
     public function getCastString($type, $addOption = false, $options = [])

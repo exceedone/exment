@@ -57,7 +57,7 @@ class ChangeField extends Field
     /**
      * decide admin field element Closure fucntioon
      *
-     * @var Closure
+     * @var \Closure
      */
     protected $adminField;
 
@@ -99,8 +99,8 @@ class ChangeField extends Field
     /**
      * Set event trigger column for change event
      *
-     * @param [type] $ajax
-     * @return void
+     * @param string $eventTriggerSelector
+     * @return $this
      */
     public function setEventTrigger($eventTriggerSelector)
     {
@@ -112,8 +112,8 @@ class ChangeField extends Field
     /**
      * Set event target column for change event
      *
-     * @param [type] $ajax
-     * @return void
+     * @param string $eventTargetSelector
+     * @return $this
      */
     public function setEventTarget($eventTargetSelector)
     {
@@ -125,8 +125,8 @@ class ChangeField extends Field
     /**
      * Show Condition Key
      *
-     * @param [type] $ajax
-     * @return void
+     * @param string $showConditionKey
+     * @return $this
      */
     public function showConditionKey($showConditionKey)
     {

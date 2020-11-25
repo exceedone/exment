@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Enums;
 
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginPublicDefault;
 
@@ -155,12 +156,14 @@ class PluginType extends EnumBase
         ];
     }
 
+
     /**
      * Get plugin class using plugin type
      *
-     * @param [type] $plugin
+     * @param string $plugin_type
+     * @param Plugin $plugin
      * @param array $options
-     * @return null|mixed
+     * @return mixed
      */
     public static function getPluginClass($plugin_type, $plugin, $options = [])
     {
@@ -216,7 +219,7 @@ class PluginType extends EnumBase
                     return new $classname($plugin, array_get($options, 'custom_table'));
                 case PluginType::VALIDATOR:
                     $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
-                    return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, array_get($options, 'input_value'));
+                    return new $classname($plugin, array_get($options, 'custom_table'), $custom_value, $options);
             }
         }
 

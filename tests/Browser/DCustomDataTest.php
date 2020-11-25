@@ -24,7 +24,7 @@ class DCustomDataTest extends ExmentKitTestCase
      */
     public function testPrepareTestTable() {
         $this->createCustomTable('exmenttest_data');
-        Storage::disk(config('admin.upload.disk'))->deleteDirectory('exmenttest_data');
+        deleteDirectory(Storage::disk(config('admin.upload.disk')), 'exmenttest_data');
     }
 
     /**
@@ -235,39 +235,5 @@ class DCustomDataTest extends ExmentKitTestCase
     {
         $this->createCustomRelation('exmenttest_data', 'organization', 2);
     }
-    
 
-
-
-
-    protected function getTextDirPath(){
-        $dir = storage_path('app/tests');
-        if(!\File::exists($dir)){
-            \File::makeDirectory($dir);
-        }
-
-        return $dir;
-    }
-    protected function getTextFilePath(){
-        $dir = $this->getTextDirPath();
-
-        // create file
-        $file = path_join($dir, 'file.txt');
-        if(!\File::exists($file)){
-            \File::put($file, 'Exment test file');
-        }
-        return $file;
-    }
-
-    protected function getTextImagePath(){
-        $dir = $this->getTextDirPath();
-        // create file
-        $file = path_join($dir, 'image.png');
-        if(!\File::exists($file)){
-            // convert to base64. This string is 1*1 rad color's image
-            $f = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAANSURBVBhXY3gro/IfAAVUAi3GPZKdAAAAAElFTkSuQmCC');
-            \File::put($file, $f);
-        }
-        return $file;
-    }
 }

@@ -187,7 +187,9 @@ if (!function_exists('floorDigit')) {
      */
     function floorDigit($num, int $digit)
     {
-        if ($digit < 0) { $digit = 0; }
+        if ($digit < 0) {
+            $digit = 0;
+        }
         $numPointPosition = intval(strpos($num, '.'));
         if ($numPointPosition === 0) { //$num is an integer
             return $num;
@@ -714,7 +716,7 @@ if (!function_exists('jsonToArray')) {
     /**
      * json to array
      *
-     * @param mixed $string
+     * @param mixed $value
      * @return array
      */
     function jsonToArray($value)
@@ -740,7 +742,7 @@ if (!function_exists('stringToArray')) {
      * string(as comma): to array
      * Collection : $collect->toArray()
      *
-     * @param mixed $string
+     * @param mixed $value
      * @return array
      */
     function stringToArray($value)
@@ -789,6 +791,7 @@ if (!function_exists('toArray')) {
             return $value->toArray();
         }
 
+        //TODO: I think this should not call $model->toArray()...
         if ($value instanceof \Illuminate\Database\Eloquent\Model) {
             return $value->toArray();
         }

@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Services\NotifyService;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Collection;
 use Carbon\Carbon;
 
 class Notify extends ModelBase
@@ -109,6 +110,7 @@ class Notify extends ModelBase
                     continue;
                 }
         
+                $users = $this->uniqueUsers($users);
                 foreach ($users as $user) {
                     // send mail
                     try {
@@ -218,6 +220,7 @@ class Notify extends ModelBase
                 continue;
             }
 
+            $users = $this->uniqueUsers($users);
             foreach ($users as $user) {
                 if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user)) {
                     continue;
@@ -259,10 +262,7 @@ class Notify extends ModelBase
         
             if (in_array(NotifyActionTarget::CREATED_USER, $notify_action_target)) {
                 $created_user = $custom_value->created_user_value;
-                $users = $users->merge(
-                    collect([$created_user]),
-                    $users
-                );
+                $users = $users->merge(collect([$created_user]));
             }
     
             if (in_array(NotifyActionTarget::WORK_USER, $notify_action_target)) {
@@ -270,10 +270,7 @@ class Notify extends ModelBase
                 if (!isset($workflow_value) || !$workflow_value->isCompleted()) {
                     WorkflowStatus::getActionsByFrom($statusTo, $workflow, true)
                     ->each(function ($workflow_action) use (&$users, $custom_value) {
-                        $users = $users->merge(
-                            $workflow_action->getAuthorityTargets($custom_value, true),
-                            $users
-                        );
+                        $users = $users->merge($workflow_action->getAuthorityTargets($custom_value, true));
                     });
                 }
             }
@@ -326,6 +323,7 @@ class Notify extends ModelBase
                 continue;
             }
     
+            $users = $this->uniqueUsers($users);
             foreach ($users as $user) {
                 // send mail
                 try {
@@ -568,6 +566,19 @@ class Notify extends ModelBase
         return boolval($this->getTriggerSetting('notify_myself') ?? false);
     }
     
+    /**
+     * Unique users. unique key is mail address.
+     *
+     * @param array|Collection $users
+     * @return Collection
+     */
+    protected function uniqueUsers($users) : Collection
+    {
+        return collect($users)->unique(function ($user) {
+            return NotifyService::getAddress($user);
+        })->filter();
+    }
+
     protected static function boot()
     {
         parent::boot();

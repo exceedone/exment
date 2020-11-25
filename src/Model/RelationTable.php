@@ -84,7 +84,7 @@ class RelationTable
     /**
      * Set query as relation filter, all search type
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
      * @param mixed $searchType
      * @param mixed $value
      * @param array $params
@@ -114,7 +114,7 @@ class RelationTable
     /**
      * Set query as relation filter for 1:n relation
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
      * @param CustomTable $parent_table
      * @param mixed $value
      * @return mixed
@@ -134,7 +134,7 @@ class RelationTable
     /**
      * Set query as relation filter for n:n relation
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
      * @param CustomTable $parent_table
      * @param CustomTable $child_table
      * @param mixed $value
@@ -160,7 +160,7 @@ class RelationTable
     /**
      * Set query as relation filter for select table
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
      * @param CustomColumn $custom_column select_table's column in $query's tbale
      * @param mixed $value
      * @return mixed

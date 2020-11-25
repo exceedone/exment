@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests;
 class TestDefine
 {
     public const TESTDATA_USER_LOGINID_ADMIN = '1'; // admin
+    public const TESTDATA_USER_LOGINID_USER1 = '2'; // user1
     public const TESTDATA_USER_LOGINID_USER2 = '3'; // user2
     public const TESTDATA_USER_LOGINID_DEV_USERB = '6';  //dev-userB
     public const TESTDATA_USER_LOGINID_DEV1_USERC = '7'; //dev1-userC
@@ -12,6 +13,8 @@ class TestDefine
     public const TESTDATA_ORGANIZATION_DEV = '2'; // dev
 
     public const TESTDATA_TABLE_NAME_VIEW_ALL = 'custom_value_view_all';
+    public const TESTDATA_TABLE_NAME_EDIT_ALL = 'custom_value_edit_all';
+    public const TESTDATA_TABLE_NAME_EDIT = 'custom_value_edit';
     public const TESTDATA_TABLE_NAME_VIEW = 'custom_value_view';
     
     public const TESTDATA_TABLE_NAME_PARENT_TABLE = 'parent_table';
@@ -44,6 +47,11 @@ class TestDefine
     public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX = 'user_relation_filter_ajax';
     public const TESTDATA_COLUMN_NAME_USER_RELATION_FILTER_AJAX_VIEW = 'user_relation_filter_ajax_view';
     
+    public const FILE_BASE64 = 'dGVzdA=='; //"test" text file.
+    public const FILE_TESTSTRING = 'This is test file'; //text file.
+
+    public const TESTDATA_DUMMY_EMAIL = 'foobar@test.com';
+
     public const TESTDATA_COLUMN_NAMES = [
         'default' => [
             'default' => self::TESTDATA_COLUMN_NAME_CHILD,

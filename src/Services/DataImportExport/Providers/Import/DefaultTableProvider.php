@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
 use Carbon\Carbon;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
+use Exceedone\Exment\Enums\ValidateCalledType;
 
 class DefaultTableProvider extends ProviderBase
 {
@@ -201,6 +202,7 @@ class DefaultTableProvider extends ProviderBase
             'validateLock' => false,
             'uniqueCheckSiblings' => $uniqueCheckSiblings,
             'uniqueCheckIgnoreIds' => $uniqueCheckIgnoreIds,
+            'calledType' => ValidateCalledType::IMPORT,
         ]);
 
         if ($validator->fails()) {
@@ -240,7 +242,9 @@ class DefaultTableProvider extends ProviderBase
     }
 
     /**
-     * @param $data
+     *
+     *
+     * @param array $data
      * @return array
      */
     public function dataProcessing($data)
@@ -259,10 +263,13 @@ class DefaultTableProvider extends ProviderBase
         return $data_custom;
     }
 
+    
     /**
      * Data processing before getting model using imported data
      *
-     * @param $data
+     * @param array $data
+     * @param int $line_no
+     * @param array $options
      * @return array
      */
     public function dataProcessingFirst($data, $line_no, $options = [])

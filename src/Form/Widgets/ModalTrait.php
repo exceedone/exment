@@ -13,13 +13,17 @@ trait ModalTrait
      */
     protected $modalInnerAttributes = [];
 
+    /**
+     * Modal header name
+     *
+     * @var string
+     */
     protected $modalHeader;
 
     /**
      * Add modal header.
      *
-     * @param string|array $attr
-     * @param string       $value
+     * @param string       $header
      *
      * @return $this
      */

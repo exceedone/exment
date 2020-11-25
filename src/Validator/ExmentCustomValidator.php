@@ -46,7 +46,7 @@ class ExmentCustomValidator extends AdminValidator
      */
     public function appendMessages(array $errors)
     {
-        foreach($errors as $key => $error){
+        foreach ($errors as $key => $error) {
             $this->appendedMessages[$key] = $error;
         }
 

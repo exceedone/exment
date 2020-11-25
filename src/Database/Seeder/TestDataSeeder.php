@@ -32,6 +32,7 @@ use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Config;
 
@@ -63,6 +64,8 @@ class TestDataSeeder extends Seeder
         $this->createAllColumnsTable($menu, $users);
 
         $this->createApiSetting();
+
+        $this->createMailTemplate();
     }
 
     protected function createSystem()
@@ -551,7 +554,7 @@ class TestDataSeeder extends Seeder
      * Create custom tables
      *
      * @param array $users
-     * @param string $menu menu id
+     * @param Menu $menu menu model
      * @return array
      */
     protected function createTables($users, $menu)
@@ -749,6 +752,9 @@ class TestDataSeeder extends Seeder
         $notify_id = $this->createNotify($custom_table);
         $options['notify_id'] = $notify_id;
 
+        $this->createNotifyButton($custom_table);
+        $this->createNotifyLimit($custom_table);
+
         if (isset($createValueCallback)) {
             $options['custom_values'] = $createValueCallback($custom_table, $options);
         } elseif ($createValue) {
@@ -834,6 +840,14 @@ class TestDataSeeder extends Seeder
                     $this->createNotifyNavbar($custom_table, $options['notify_id'], $custom_value, 0);
                 }
 
+
+                // set attachment
+                if ($i === 1) {
+                    Model\File::storeAs(TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt')
+                        ->saveCustomValue($custom_value->id, null, $custom_table)
+                        ->saveDocumentModel($custom_value, 'test.txt');
+                }
+
                 $custom_values[] = $custom_value;
             }
         }
@@ -841,6 +855,29 @@ class TestDataSeeder extends Seeder
         return $custom_values;
     }
     
+    
+    protected function createMailTemplate()
+    {
+        $custom_table = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE);
+
+        $custom_table->getValueModel()->setValue([
+            'mail_key_name' => 'test_template_1',
+            'mail_view_name' => 'test_template_1',
+            'mail_template_type' => 'body',
+            'mail_subject' => 'test_mail_1',
+            'mail_body' => 'test_mail_1',
+        ])->save();
+
+        $custom_table->getValueModel()->setValue([
+            'mail_key_name' => 'test_template_2',
+            'mail_view_name' => 'test_template_2',
+            'mail_template_type' => 'body',
+            'mail_subject' => 'test_mail_2 ${prms1} ${prms2}',
+            'mail_body' => 'test_mail_2 ${prms1} ${prms2}',
+        ])->save();
+    }
+    
+
     /**
      * Create date value
      *
@@ -878,11 +915,91 @@ class TestDataSeeder extends Seeder
         $notify = new Notify;
         $notify->notify_view_name = $custom_table->table_name . '_notify';
         $notify->custom_table_id = $custom_table->id;
-        $notify->notify_trigger = 2;
+        $notify->notify_trigger = Enums\NotifyTrigger::CREATE_UPDATE_DATA;
         $notify->mail_template_id = 6;
+        $notify->trigger_settings = [
+            "notify_saved_trigger" => ["created","updated","deleted","shared","comment","attachmented"],
+            'notify_myself' => true,
+        ];
         $notify->action_settings = [[
             "notify_action" => NotifyAction::SHOW_PAGE,
-            "notify_action_target" => ["created_user"],
+            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER, Enums\NotifyActionTarget::HAS_ROLES],
+        ]];
+        $notify->save();
+        return $notify->id;
+    }
+
+    /**
+     * Create Notify
+     */
+    protected function createNotifyButton($custom_table)
+    {
+        $items = [
+            [
+                'name' => $custom_table->table_name . '_notify_button_single',
+                'view_name' => "let's notify single",
+                'action_settings' => [[
+                    "notify_action" => NotifyAction::SHOW_PAGE,
+                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
+                ]],
+            ],
+            [
+                'name' => $custom_table->table_name . '_notify_button_multiple',
+                'view_name' => "let's notify multiple",
+                'action_settings' => [[
+                    "notify_action" => NotifyAction::SHOW_PAGE,
+                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER, Enums\NotifyActionTarget::HAS_ROLES],
+                ]],
+            ],
+            [
+                'name' => $custom_table->table_name . '_notify_button_email',
+                'view_name' => "let's notify email",
+                'action_settings' => [[
+                    "notify_action" => NotifyAction::EMAIL,
+                    "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
+                ]],
+            ],
+        ];
+
+        foreach ($items as $item) {
+            $notify = new Notify;
+            $notify->notify_view_name = $item['name'];
+            $notify->custom_table_id = $custom_table->id;
+            $notify->notify_trigger = Enums\NotifyTrigger::BUTTON;
+            $notify->mail_template_id = 5;
+            $notify->trigger_settings = [
+                "notify_button_name" => $item['view_name']];
+            $notify->action_settings = $item['action_settings'];
+            $notify->save();
+        }
+    }
+
+    /**
+     * Create Notify
+     *
+     * @return string|int notify id
+     */
+    protected function createNotifyLimit($custom_table)
+    {
+        $column = CustomColumn::getEloquent('date', $custom_table);
+        if (!isset($column)) {
+            return null;
+        }
+        $notify = new Notify;
+        $notify->notify_view_name = $custom_table->table_name . '_notify_limit';
+        $notify->custom_table_id = $custom_table->id;
+        $notify->notify_trigger = 1;
+        $notify->mail_template_id = 5;
+        $notify->trigger_settings = [
+            "notify_target_column" => $column->id,
+            "notify_day" => '0',
+            "notify_beforeafter" => '-1',
+            "notify_hour" => '2',
+            "notify_myself" => '0',
+        ];
+        $notify->action_settings = [[
+            "notify_action" => NotifyAction::SHOW_PAGE,
+            "notify_action_target" => [Enums\NotifyActionTarget::CREATED_USER],
         ]];
         $notify->save();
         return $notify->id;

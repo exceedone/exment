@@ -232,9 +232,9 @@ abstract class CustomValue extends ModelBase
     /**
      * Get dynamic relation value for custom value.
      *
-     * @param CustomValue $custom_value
+     * @param int $custom_relation_id
      * @param boolean $isCallAsParent
-     * @return void
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany | \Illuminate\Database\Eloquent\Relations\MorphMany | \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function getDynamicRelationValue(int $custom_relation_id, bool $isCallAsParent)
     {
@@ -307,7 +307,7 @@ abstract class CustomValue extends ModelBase
     /**
      * get workflow histories
      *
-     * @return void
+     * @return Collection
      */
     public function getWorkflowHistories($appendsStatus = false)
     {
@@ -444,7 +444,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Call saved event
      *
-     * @param [type] $isCreate
+     * @param bool $isCreate
      * @return void
      */
     protected function savedEvent($isCreate)
@@ -505,6 +505,7 @@ abstract class CustomValue extends ModelBase
             'appendErrorAllColumn' => true,
             'column_name_prefix' => null,
             'uniqueCheckSiblings' => [], // unique validation Siblings
+            'calledType' => null, // Whether this validation is called.
         ], $options);
 
         // validate multiple column set is unique
@@ -515,7 +516,7 @@ abstract class CustomValue extends ModelBase
         $errors = array_merge($this->custom_table->validatorLock($input, $this, $options['asApi']), $errors);
 
         // call plugin validator
-        $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this));
+        $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this, ['called_type' => $options['calledType']]));
 
         return count($errors) > 0 ? $errors : true;
     }
@@ -940,7 +941,6 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get vustom_value's label
-     * @param CustomValue $custom_value
      * @return string
      */
     public function getLabel()
@@ -1111,7 +1111,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Get document list
      *
-     * @return void
+     * @return Collection
      */
     public function getDocuments($options = [])
     {
@@ -1245,7 +1245,7 @@ abstract class CustomValue extends ModelBase
     /**
      * Get Query for text search.
      *
-     * @return void
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function getSearchQuery($q, $options = [])
     {
@@ -1482,7 +1482,7 @@ abstract class CustomValue extends ModelBase
     /**
      * User can access this custom value
      *
-     * @return void
+     * @return bool|ErrorCode
      */
     public function enableAccess()
     {
@@ -1500,7 +1500,8 @@ abstract class CustomValue extends ModelBase
     /**
      * User can edit this custom value
      *
-     * @return void
+     * @param bool $checkFormAction if true, check as display
+     * @return bool|ErrorCode
      */
     public function enableEdit($checkFormAction = false)
     {
@@ -1540,7 +1541,8 @@ abstract class CustomValue extends ModelBase
     /**
      * User can delete this custom value
      *
-     * @param $checkFormAction if true, check as display
+     * @param bool $checkFormAction if true, check as display
+     * @return bool|ErrorCode
      */
     public function enableDelete($checkFormAction = false)
     {
@@ -1574,6 +1576,7 @@ abstract class CustomValue extends ModelBase
     
     /**
      * User can share this custom value
+     * @return bool
      */
     public function enableShare()
     {

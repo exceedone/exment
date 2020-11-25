@@ -526,9 +526,11 @@ class SelectTable extends CustomItem
     /**
      * Get Search queries for free text search
      *
-     * @param [type] $mark
-     * @param [type] $value
-     * @param [type] $takeCount
+     * @param string $mark
+     * @param mixed $value
+     * @param int $takeCount
+     * @param string $q
+     * @param array $options
      * @return void
      */
     public function getSearchQueries($mark, $value, $takeCount, $q, $options = [])

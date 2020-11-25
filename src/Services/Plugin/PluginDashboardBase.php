@@ -51,7 +51,7 @@ class PluginDashboardBase extends PluginPublicBase
     /**
      * Get route uri for dashboard
      *
-     * @return void
+     * @return string
      */
     public function getDashboardUri($endpoint = null)
     {

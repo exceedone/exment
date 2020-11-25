@@ -55,7 +55,7 @@ abstract class FormatBase
             $outputs = array_get($data, 'outputs');
 
             $sheet = new Worksheet($spreadsheet, $sheet_name);
-            $sheet->fromArray($outputs, null, 'A1', false, false);
+            $sheet->fromArray($outputs, null, 'A1', false);
 
             // set autosize
             if (count($outputs) > 0) {

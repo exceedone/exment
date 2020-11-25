@@ -167,7 +167,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * check if target id table can be deleted
      * @param int|string $id
-     * @return [boolean, string] status, error message.
+     * @return array [boolean, string] status, error message.
      */
     public static function validateDestroy($id)
     {
@@ -511,6 +511,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'asApi' => false, // calling as api
             'appendErrorAllColumn' => false, // if error, append error message for all column
             'validateLock' => true, // whether validate update lock
+            'calledType' => null, // Whether this validation is called.
         ], $options);
         $systemColumn = $options['systemColumn'];
         $column_name_prefix = $options['column_name_prefix'];
@@ -547,7 +548,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         );
         
         $errors = array_merge(
-            $this->validatorPlugin($value, $custom_value),
+            $this->validatorPlugin($value, $custom_value, ['called_type' => $options['calledType']]),
             $errors
         );
 
@@ -598,7 +599,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set required column
      *
-     * @param [type] $value
+     * @param array $value
      * @param CustomValue|null $custom_value
      * @param array $options
      * @return void
@@ -739,7 +740,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * Validate unique single and multiple.
      *
      * @param array $input
-     * @param \CustomValue|null $custom_value
+     * @param CustomValue|null $custom_value
      * @param array $options
      * @return array
      */
@@ -914,12 +915,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * validator using plugin
      */
-    public function validatorPlugin($input, $custom_value = null)
+    public function validatorPlugin($input, $custom_value = null, array $options = [])
     {
         return Plugin::pluginValidator($this, [
             'custom_table' => $this,
             'custom_value' => $custom_value,
             'input_value' => array_get($input, 'value'),
+            'called_type' => array_get($options, 'called_type'),
         ]);
     }
 
@@ -1452,37 +1454,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             //WorkflowItem::getStatusSubquery($query, $this);
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
         }
-        $this->appendWorkflowSubQuery($query, $custom_view);
+        $this->appendSubQuery($query, $custom_view);
     }
 
     /**
      * Append to query for filtering workflow
      *
-     * @param [type] $query
-     * @param CustomView $custom_view
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param CustomView|null $custom_view
      * @return void
      */
-    public function appendWorkflowSubQuery($query, $custom_view)
+    public function appendSubQuery($query, ?CustomView $custom_view)
     {
-        if (
-            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
-            (!is_nullorempty($custom_view) &&
-            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
-                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
-            }))) {
-            // add query
-            WorkflowItem::getStatusSubquery($query, $this, $custom_view->filter_is_or);
-        }
-        // if contains custom_view_filters workflow query
-        if (
-            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
-            ($custom_view &&
-            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
-                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
-            }))) {
-            // add query
-            WorkflowItem::getWorkUsersSubQuery($query, $this, $custom_view->filter_is_or);
-        }
+        $this->appendWorkflowSubQuery($query, $custom_view);
 
         // if has relations, set with
         if (!is_nullorempty($custom_view)) {
@@ -1508,9 +1492,40 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
 
     /**
+     * Append to query for filtering workflow
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param CustomView|null $custom_view
+     * @return void
+     */
+    public function appendWorkflowSubQuery($query, ?CustomView $custom_view)
+    {
+        if (
+            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK) === true ||
+            (!is_nullorempty($custom_view) &&
+            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
+                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_STATUS()->option()['id'];
+            }))) {
+            // add query
+            WorkflowItem::getStatusSubquery($query, $this, $custom_view->filter_is_or ?? false);
+        }
+        // if contains custom_view_filters workflow query
+        if (
+            System::requestSession(Define::SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK) === true ||
+            ($custom_view &&
+            $custom_view->custom_view_filters_cache->contains(function ($custom_view_filter) {
+                return $custom_view_filter->view_column_target_id == SystemColumn::WORKFLOW_WORK_USERS()->option()['id'];
+            }))) {
+            // add query
+            WorkflowItem::getWorkUsersSubQuery($query, $this, $custom_view->filter_is_or ?? false);
+        }
+    }
+
+
+    /**
      * Set selectTable value's. for after calling from select_table object
      */
-    public function setSelectTableValues(?Collection $customValueCollection)
+    public function setSelectTableValues(?\Illuminate\Database\Eloquent\Collection $customValueCollection)
     {
         if (empty($customValueCollection)) {
             return;
@@ -1691,7 +1706,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     
     /**
      * Get index column name
-     * @param string|CustomTable|array $obj
+     * @param string|CustomColumn $column_name
      * @return string
      */
     public function getIndexColumnName($column_name)
@@ -1706,7 +1721,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
      *
-     * @param $custom_view
+     * @param array $options
      */
     public function isGetOptions($options = [])
     {
@@ -1780,11 +1795,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Set select table's field info.
      *
-     * @param [type] $field
+     * @param \Encore\Admin\Form\Field $field
      * @param array $options
-     * @return void
+     * @return \Encore\Admin\Form\Field
      */
-    public function setSelectTableField($field, array $options = [])
+    public function setSelectTableField(\Encore\Admin\Form\Field $field, array $options = []) : \Encore\Admin\Form\Field
     {
         $options = array_merge([
             'custom_value' => null, // select custom value, if called custom value's select table
@@ -1882,8 +1897,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * get ajax url for options for select, multipleselect.
      *
-     * @param array|CustomTable $table
-     * @param $value
+     * @param array $options
+     * @return string|null url
      */
     public function getOptionAjaxUrl($options = [])
     {
@@ -2069,7 +2084,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * 'include_workflow': whether getting workflow column
      * 'include_form_type': whether getting form type(show, create, edit)
      * @param array $selectOptions
-     * @param option items
+     * @return array option items
      */
     //public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
     public function getColumnsSelectOptions($selectOptions = [])
@@ -2344,8 +2359,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * get number columns select options. It contains integer, decimal, currency columns.
-     * @param array|CustomTable $table
-     * @param $selected_value
+     *
+     * @return array options
      */
     public function getSummaryColumnsSelectOptions()
     {
@@ -2482,9 +2497,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @param null|int|string $id CustomValue's id
      * @param bool $withTrashed if true, get already trashed value.
-     * @return ?CustomValue CustomValue's model.
+     * @return CustomValue|null CustomValue's model.
      */
-    public function getValueModel($id = null, $withTrashed = false)
+    public function getValueModel($id = null, $withTrashed = false) : ?CustomValue
     {
         if ($id instanceof CustomValue) {
             return $id;
@@ -2761,7 +2776,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * User can access this custom value
      *
-     * @return void
+     * @return bool|ErrorCode
      */
     public function enableAccess()
     {

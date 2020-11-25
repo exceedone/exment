@@ -137,9 +137,8 @@ class Linkage
     /**
      * Set relation filter to query.
      *
-     * @param [type] $query target query.
-     * @param CustomTable $custom_table
-     * @param int|string|null $custom_value_id
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query target query.
+     * @param int|string|null $parent_v
      * @return void
      */
     public function setQueryFilter($query, $parent_v)

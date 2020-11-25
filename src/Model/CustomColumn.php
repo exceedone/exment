@@ -364,7 +364,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     
     /**
      * Get index column column name. This function uses only search-enabled column.
-     * @param CustomColumn|array $obj
      * @param boolean $alterColumn if not exists column on db, execute alter column. if false, only get name
      * @return string
      */
@@ -400,9 +399,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return ColumnType::isUserOrganization($this->column_type) && boolval($this->getOption('showing_all_user_organizations'));
     }
 
+
     /**
      * Set customAvailableCharacters
-     * @param callable $callback
+     *
+     * @param array $array
+     * @return void
      */
     public static function customAvailableCharacters(array $array)
     {

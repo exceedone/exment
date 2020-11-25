@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
+use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
 class SystemItem extends ConditionItemBase implements ConditionItemInterface
 {
@@ -36,13 +37,16 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
         return isset($enum) ? exmtrans('common.' . $enum->lowerkey()) : null;
     }
     
+    
     /**
-     * Check has workflow authority
+     * Check has workflow authority with this item.
      *
-     * @param CustomValue $custom_value
+     * @param WorkflowAuthorityInterface $workflow_authority
+     * @param CustomValue|null $custom_value
+     * @param CustomValue $targetUser
      * @return boolean
      */
-    public function hasAuthority($workflow_authority, $custom_value, $targetUser)
+    public function hasAuthority(WorkflowAuthorityInterface $workflow_authority, ?CustomValue $custom_value, $targetUser)
     {
         return $workflow_authority->related_id == WorkflowTargetSystem::CREATED_USER && $custom_value->created_user_id == $targetUser->id;
     }

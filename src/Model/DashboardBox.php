@@ -117,7 +117,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     /**
      * Get box html arrtibute. For
      *
-     * @return void
+     * @return array
      */
     public function getBoxHtmlAttr() : array
     {
