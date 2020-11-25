@@ -807,7 +807,7 @@ class CustomViewSummaryTest extends UnitTestBase
             $options = [
                 'target_table_name' => 'parent_table',
                 'column_settings' => [[
-                    'column_name' => 'user',
+                    'column_name' => 'multiples_of_3',
                 ]],
                 'summary_settings' => [[
                     'reference_table' => 'child_table',
@@ -823,7 +823,7 @@ class CustomViewSummaryTest extends UnitTestBase
 
             foreach ($summaries as $summary) {
                 $result = collect($defaults)->filter(function($data) use($summary){
-                    return $data['user'] == $summary['key'];
+                    return $data['multiples_of_3'] == $summary['key'];
                 })->sum(function($data) {
                     return collect($data['child_table.integer'])->sum();
                 });
@@ -907,6 +907,47 @@ class CustomViewSummaryTest extends UnitTestBase
                 })->sum(function($data) {
                     return $data['integer'];
                 });
+                $this->assertTrue($result == $summary['value']);
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = Group(updated_user), Summary(id/count/child_table_n_n)
+     */
+    public function testFuncSummaryChildNN()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'target_table_name' => 'parent_table_n_n',
+                'column_settings' => [[
+                    'condition_type' => ConditionType::SYSTEM,
+                    'column_name' => 'updated_user',
+                ]],
+                'summary_settings' => [[
+                    'reference_table' => 'child_table_n_n',
+                    'is_child' => true,
+                    'condition_type' => ConditionType::SYSTEM,
+                    'column_name' => 'id',
+                    'summary_condition' => SummaryCondition::COUNT
+                ]],
+            ];
+
+            $summaries = $this->getCustomViewSummary($options);
+
+            $defaults = $this->getCustomViewDataAll($options);
+
+            foreach ($summaries as $summary) {
+                $result = collect($defaults)->filter(function($data) use($summary){
+                    return $data['updated_user'] == $summary['key'];
+                })->map(function($data) {
+                    return count($data['child_table_n_n.id']);
+                })->sum();
                 $this->assertTrue($result == $summary['value']);
             }
         } finally {

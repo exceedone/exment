@@ -440,18 +440,18 @@ class TestDataSeeder extends Seeder
                         for ($i = 1; $i <= 10; $i++) {
                             $custom_value = $custom_table->getValueModel();
                             $custom_value->setValue("text", rand(0, 1) == 0? null: 'text_'.$i);
-                            $custom_value->setValue("user", ($i % 3 == 0 ? null : $user_id));
+                            $custom_value->setValue("user", (rand(0, 5) == 0 ? null : $user_id));
                             $custom_value->setValue("organization", rand(1, 7));
                             $custom_value->setValue("yesno", rand(0, 1));
                             $custom_value->setValue("boolean", (rand(0, 3) == 0 ? 'ng' : 'ok'));
                             $custom_value->setValue("date", $this->getDateValue($user_id, $i));
                             $custom_value->setValue("time", \Carbon\Carbon::createFromTime($i, $i, $i)->format('H:i:s'));
                             $custom_value->setValue("datetime", \Carbon\Carbon::now()->addSeconds(rand(-500000, 500000))->format('Y-m-d H:i:s'));
-                            $custom_value->setValue("integer", $i * ($user_id % 2 == 0 ? $user_id: -$user_id) * 100);
-                            $custom_value->setValue("decimal", $i * ($user_id % 2 == 0 ? $user_id: -$user_id) / 100);
+                            $custom_value->setValue("integer", rand(-100, 100) * 100);
+                            $custom_value->setValue("decimal", rand(-100000, 100000) / 100);
                             $custom_value->setValue("currency", rand(0, 1000000) / 10);
-                            $custom_value->setValue("select", ($i % 3 == 0 ? 'foo' : ($i % 3 == 1 ? 'baz' : 'bar')));
-                            $custom_value->setValue("select_valtext", ($i % 3 == 0 ? 'bar' : ($i % 3 == 1 ? 'baz' : 'foo')));
+                            $custom_value->setValue("select", array("foo", "bar", "baz")[rand(0, 2)]);
+                            $custom_value->setValue("select_valtext", array("foo", "bar", "baz")[rand(0, 2)]);
                             $custom_value->setValue("select_table", $i);
                             $custom_value->setValue("select_multiple", $this->getMultipleSelectValue());
                             $custom_value->setValue("select_valtext_multiple", $this->getMultipleSelectValue());
@@ -813,12 +813,12 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("text", 'test_'.$user_id);
                 $custom_value->setValue("user", $user_id);
                 $custom_value->setValue("index_text", 'index_'.$user_id.'_'.$i);
-                $custom_value->setValue("odd_even", (($user_id + $i) % 2 == 0 ? 'even' : 'odd'));
-                $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
+                $custom_value->setValue("odd_even", (rand(0, 1) == 0 ? 'even' : 'odd'));
+                $custom_value->setValue("multiples_of_3", (rand(0, 2) == 0 ? 1 : 0));
                 $custom_value->setValue("date", \Carbon\Carbon::now());
                 $custom_value->setValue("init_text", 'init_text');
-                $custom_value->setValue("integer", $i);
-                $custom_value->setValue("currency", $i * 100);
+                $custom_value->setValue("integer", rand(0, 1000));
+                $custom_value->setValue("currency", rand(0, 1000) * 100);
                 $custom_value->created_user_id = $user_id;
                 $custom_value->updated_user_id = $user_id;
 
