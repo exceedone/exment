@@ -900,6 +900,40 @@ if (!function_exists('isMatchString')) {
     }
 }
 
+if (!function_exists('isMatchDecimal')) {
+    /**
+     * compare decimal number
+     *
+     * @param mixed $v1
+     * @param mixed $v2
+     * @return bool
+     */
+    function isMatchDecimal($v1, $v2) : bool
+    {
+        $v1 = rtrim((strpos($v1,".") !== false ? rtrim($v1, "0") : $v1),".");
+        $v2 = rtrim((strpos($v2,".") !== false ? rtrim($v2, "0") : $v2),".");
+        return strcmp($v1, $v2) == 0;
+    }
+}
+
+if (!function_exists('isMatchArray')) {
+    /**
+     * compare array
+     *
+     * @param array $v1
+     * @param array $v2
+     * @return bool
+     */
+    function isMatchArray(array $v1, array $v2) : bool
+    {
+        if (count($v1) == count($v2)) {
+            $dup = array_intersect($v1, $v2);
+            return count($v1) == count($dup);
+        }
+        return false;
+    }
+}
+
 // string --------------------------------------------------
 if (!function_exists('make_password')) {
     function make_password($length = 16, $options = [])

@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\ValidateCalledType;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Carbon\Carbon;
 use Validator;
@@ -792,6 +793,7 @@ class ApiDataController extends AdminControllerTableBase
                 'column_name_prefix' => 'value.',
                 'appendKeyName' => false,
                 'asApi' => true,
+                'calledType' => ValidateCalledType::API,
             ]);
 
             if ($validator->fails()) {

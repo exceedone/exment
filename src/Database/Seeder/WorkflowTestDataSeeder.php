@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\WorkflowConditionHeader;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 
@@ -233,7 +234,11 @@ class WorkflowTestDataSeeder extends Seeder
                     'workflow_view_name' => 'workflow_for_individual_table',
                     'workflow_type' => 1,
                     'setting_completed_flg' => 1,
-                ],
+    
+                    'options' => [
+                        'workflow_edit_flg' => '1',
+                    ],
+            ],
     
                 'statuses' => [
                     [
@@ -489,7 +494,7 @@ class WorkflowTestDataSeeder extends Seeder
                         $wfValue->action_executed_flg = 0;
                         $wfValue->latest_flg = $latest_flg;
 
-                        $wfValue->save();
+                        $this->saveWorkflowValue($wfValue, $workflowObj, $custom_value);
                     }
                 }
             }
@@ -497,6 +502,12 @@ class WorkflowTestDataSeeder extends Seeder
             $this->createNotify($workflowObj);
         }
         
+        $user = $users['admin'];
+        \Auth::guard('admin')->attempt([
+            'username' => array_get($user, 'value.user_code'),
+            'password' => array_get($user, 'password')
+        ]);
+
         // add for organization work user
         $wfValue = new WorkflowValue;
         $wfValue->workflow_id = $workflowObj->id;
@@ -506,8 +517,56 @@ class WorkflowTestDataSeeder extends Seeder
         $wfValue->workflow_status_to_id = 6;
         $wfValue->action_executed_flg = 0;
         $wfValue->latest_flg = 1;
+        $this->saveWorkflowValue($wfValue, $workflowObj);
 
+        // add for summary view test
+        $wfValue = new WorkflowValue;
+        $wfValue->workflow_id = $workflowObj->id;
+        $wfValue->morph_type = 'custom_value_edit';
+        $wfValue->morph_id = 3;
+        $wfValue->workflow_action_id = 6;
+        $wfValue->workflow_status_to_id = 6;
+        $wfValue->action_executed_flg = 0;
+        $wfValue->latest_flg = 1;
+        $this->saveWorkflowValue($wfValue, $workflowObj);
+    }
+
+    protected function saveWorkflowValue($wfValue, $workflowObj, $custom_value = null)
+    {
         $wfValue->save();
+
+        $is_edit = boolval($workflowObj->workflow_edit_flg);
+
+        if (is_null($custom_value)) {
+            $custom_value = CustomTable::getEloquent($wfValue->morph_type)->getValueModel()->find($wfValue->morph_id);
+        }
+
+        // get this getAuthorityTargets
+        $toActionAuthorities = $this->getNextActionAuthorities($workflowObj, $custom_value, $wfValue->workflow_status_to_id);
+        CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities, $is_edit);
+
+    }
+
+    /**
+     * get next action Authorities
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getNextActionAuthorities($workflow, $custom_value, $statusTo, $nextActions = null)
+    {
+        // get next actions
+        $toActionAuthorities = collect();
+
+        if (is_null($nextActions)) {
+            $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $workflow, true);
+        }
+        $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
+            // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
+            $toActionAuthorities = $workflow_action->getAuthorityTargets($custom_value, false, false, false)
+                    ->merge($toActionAuthorities);
+        });
+        
+        return $toActionAuthorities;
     }
 
 
