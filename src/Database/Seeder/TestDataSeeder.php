@@ -63,6 +63,8 @@ class TestDataSeeder extends Seeder
 
         $this->createAllColumnsTable($menu, $users);
 
+        $this->createAllColumnsTableForTest($menu, $users);
+
         $this->createApiSetting();
 
         $this->createMailTemplate();
@@ -400,6 +402,55 @@ class TestDataSeeder extends Seeder
                         ['column_type' => ColumnType::SELECT, 'options' => ['index_enabled' => '1', 'select_item' => "foo\r\nbar\r\nbaz"]],
                         ['column_type' => ColumnType::SELECT_VALTEXT, 'options' => ['index_enabled' => '1', 'select_item_valtext' => "foo,FOO\r\nbar,BAR\r\nbaz,BAZ"]],
                         ['column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_view_all->id]],
+                        ['column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::BOOLEAN, 'options' => ['index_enabled' => '1', 'true_value' => 'ok', 'true_label' => 'OK', 'false_value' => 'ng', 'false_label' => 'NG']],
+                        ['column_type' => ColumnType::AUTO_NUMBER, 'options' => ['index_enabled' => '1', 'auto_number_type' => 'random25']],
+                        ['column_type' => ColumnType::IMAGE, 'options' => []],
+                        ['column_type' => ColumnType::FILE, 'options' => []],
+                        ['column_type' => ColumnType::USER, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1']],
+                        ['column_type' => ColumnType::ORGANIZATION, 'options' => ['index_enabled' => '1', 'showing_all_user_organizations' => '1']],
+                    ];
+
+                    foreach ($columns as $column) {
+                        $custom_column = CustomColumn::create([
+                            'custom_table_id' => $custom_table->id,
+                            'column_name' => $column['column_name'] ?? $column['column_type'],
+                            'column_view_name' => $column['column_name'] ?? $column['column_type'],
+                            'column_type' => $column['column_type'],
+                            'options' => $column['options'],
+                        ]);
+                        $custom_columns[] = $custom_column;
+                    }
+                },
+            ]);
+        $this->createPermission([Permission::CUSTOM_VALUE_EDIT => $custom_table]);
+    }
+    
+    protected function createAllColumnsTableForTest($menu, $users)
+    {
+        $custom_table_view_all = CustomTable::getEloquent('custom_value_view_all');
+        $custom_table_edit = CustomTable::getEloquent('custom_value_edit');
+        // cerate table
+        $custom_table = $this->createTable(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST, [
+                'menuParentId' => $menu->id,
+                'count' => 0,
+                'createColumnCallback' => function ($custom_table, &$custom_columns) use ($custom_table_view_all, $custom_table_edit) {
+                    // creating relation column
+                    $columns = [
+                        ['column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
+                        ['column_type' => ColumnType::TEXTAREA, 'options' => []],
+                        ['column_type' => ColumnType::EDITOR, 'options' => []],
+                        ['column_type' => ColumnType::URL, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
+                        ['column_type' => ColumnType::EMAIL, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
+                        ['column_type' => ColumnType::INTEGER, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::DECIMAL, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::CURRENCY, 'options' => ['index_enabled' => '1', 'currency_symbol' => 'JPY1']],
+                        ['column_type' => ColumnType::DATE, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::TIME, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::DATETIME, 'options' => ['index_enabled' => '1']],
+                        ['column_type' => ColumnType::SELECT, 'options' => ['index_enabled' => '1', 'select_item' => "foo\r\nbar\r\nbaz"]],
+                        ['column_type' => ColumnType::SELECT_VALTEXT, 'options' => ['index_enabled' => '1', 'select_item_valtext' => "foo,FOO\r\nbar,BAR\r\nbaz,BAZ"]],
+                        ['column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_view_all->id]],
                         ['column_name' => 'select_table_2', 'column_type' => ColumnType::SELECT_TABLE, 'options' => ['index_enabled' => '1', 'select_target_table' => $custom_table_edit->id]],
                         ['column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1']],
                         ['column_type' => ColumnType::BOOLEAN, 'options' => ['index_enabled' => '1', 'true_value' => 'ok', 'true_label' => 'OK', 'false_value' => 'ng', 'false_label' => 'NG']],
@@ -440,18 +491,18 @@ class TestDataSeeder extends Seeder
                         for ($i = 1; $i <= 10; $i++) {
                             $custom_value = $custom_table->getValueModel();
                             $custom_value->setValue("text", rand(0, 1) == 0? null: 'text_'.$i);
-                            $custom_value->setValue("user", ($i % 3 == 0 ? null : $user_id));
+                            $custom_value->setValue("user", (rand(0, 5) == 0 ? null : $user_id));
                             $custom_value->setValue("organization", rand(1, 7));
                             $custom_value->setValue("yesno", rand(0, 1));
                             $custom_value->setValue("boolean", (rand(0, 3) == 0 ? 'ng' : 'ok'));
                             $custom_value->setValue("date", $this->getDateValue($user_id, $i));
-                            $custom_value->setValue("time", \Carbon\Carbon::createFromTime($user_id, $i, $i)->format('H:i:s'));
+                            $custom_value->setValue("time", \Carbon\Carbon::createFromTime($i, $i, $i)->format('H:i:s'));
                             $custom_value->setValue("datetime", \Carbon\Carbon::now()->addSeconds(rand(-500000, 500000))->format('Y-m-d H:i:s'));
-                            $custom_value->setValue("integer", $i * ($user_id % 2 == 0 ? $user_id: -$user_id) * 100);
-                            $custom_value->setValue("decimal", $i * ($user_id % 2 == 0 ? $user_id: -$user_id) / 100);
+                            $custom_value->setValue("integer", rand(-100, 100) * 100);
+                            $custom_value->setValue("decimal", rand(-100000, 100000) / 100);
                             $custom_value->setValue("currency", rand(0, 1000000) / 10);
-                            $custom_value->setValue("select", ($i % 3 == 0 ? 'foo' : ($i % 3 == 1 ? 'baz' : 'bar')));
-                            $custom_value->setValue("select_valtext", ($i % 3 == 0 ? 'bar' : ($i % 3 == 1 ? 'baz' : 'foo')));
+                            $custom_value->setValue("select", array("foo", "bar", "baz")[rand(0, 2)]);
+                            $custom_value->setValue("select_valtext", array("foo", "bar", "baz")[rand(0, 2)]);
                             $custom_value->setValue("select_table", $i);
                             $custom_value->setValue("select_multiple", $this->getMultipleSelectValue());
                             $custom_value->setValue("select_valtext_multiple", $this->getMultipleSelectValue());
@@ -813,12 +864,12 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("text", 'test_'.$user_id);
                 $custom_value->setValue("user", $user_id);
                 $custom_value->setValue("index_text", 'index_'.$user_id.'_'.$i);
-                $custom_value->setValue("odd_even", ($i % 2 == 0 ? 'even' : 'odd'));
-                $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
+                $custom_value->setValue("odd_even", (rand(0, 1) == 0 ? 'even' : 'odd'));
+                $custom_value->setValue("multiples_of_3", (rand(0, 2) == 0 ? 1 : 0));
                 $custom_value->setValue("date", \Carbon\Carbon::now());
                 $custom_value->setValue("init_text", 'init_text');
-                $custom_value->setValue("integer", $i);
-                $custom_value->setValue("currency", $i * 100);
+                $custom_value->setValue("integer", rand(0, 1000));
+                $custom_value->setValue("currency", rand(0, 1000) * 100);
                 $custom_value->created_user_id = $user_id;
                 $custom_value->updated_user_id = $user_id;
 
@@ -881,28 +932,40 @@ class TestDataSeeder extends Seeder
     /**
      * Create date value
      *
-     * @return int index
+     * @return string ymd string
      */
-    protected function getDateValue($user_id, $index)
+    protected function getDateValue($user_id, $index) : ?string
     {
         $now = \Carbon\Carbon::now();
+        $result = null;
         switch ($user_id % 7)
         {
             case 0:
-                return null;
+                break;
             case 1:
-                return $now->addDays($index-4);
+                $result = $now->addDays($index-4);
+                break;
             case 2:
-                return \Carbon\Carbon::create($now->year+1, rand(1,12), rand(1,28));
+                $result = \Carbon\Carbon::create($now->year+1, rand(1,12), rand(1,28));
+                break;
             case 3:
-                return \Carbon\Carbon::create($now->year-1, rand(1,12), rand(1,28));
+                $result = \Carbon\Carbon::create($now->year-1, rand(1,12), rand(1,28));
+                break;
             case 4:
-                return \Carbon\Carbon::create($now->year, $now->month+1, rand(1,28));
+                $result = \Carbon\Carbon::create($now->year, $now->month+1, rand(1,28));
+                break;
             case 5:
-                return \Carbon\Carbon::create($now->year, $now->month-1, rand(1,28));
+                $result = \Carbon\Carbon::create($now->year, $now->month-1, rand(1,28));
+                break;
             default:
-                return \Carbon\Carbon::create(2019, 12, 28)->addDays($index);
+                $result = \Carbon\Carbon::create(2019, 12, 28)->addDays($index);
+                break;
         }
+
+        if(isset($result)){
+            return $result->format('Y-m-d');
+        }
+        return null;
     }
     
     /**

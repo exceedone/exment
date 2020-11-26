@@ -882,7 +882,7 @@ class CustomViewFilterTest extends UnitTestBase
                 'column_name' => 'user',
                 'filter_condition' => FilterOption::USER_EQ_USER,
             ]];
-            $array = $this->getColumnFilterData($filter_settings, ['login_user_admin' => false]);
+            $array = $this->getColumnFilterData($filter_settings, ['login_user_id' => TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC]);
 
             $user_id = \Exment::getUserId();
             foreach ($array as $data) {
@@ -906,7 +906,7 @@ class CustomViewFilterTest extends UnitTestBase
                 'column_name' => 'user',
                 'filter_condition' => FilterOption::USER_NE_USER,
             ]];
-            $array = $this->getColumnFilterData($filter_settings, ['login_user_admin' => false]);
+            $array = $this->getColumnFilterData($filter_settings, ['login_user_id' => TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC]);
 
             $user_id = \Exment::getUserId();
             foreach ($array as $data) {
@@ -1650,88 +1650,268 @@ class CustomViewFilterTest extends UnitTestBase
         }
     }
 
-    // /**
-    //  * FilterOption = multiple filter condition (join AND)
-    //  */
-    // public function testFuncFilterMultipleAnd()
-    // {
-    //     $this->init();
+    /**
+     * FilterOption = EQ(parent_id/1:N relation)
+     */
+    public function testFuncParentIdEq()
+    {
+        $this->init();
 
-    //     DB::beginTransaction();
-    //     try {
-    //         $filter_settings = [];
-    //         $filter_settings[] = [
-    //             'column_name' => 'date',
-    //             'filter_condition' => FilterOption::DAY_TODAY_OR_AFTER,
-    //         ];
-    //         $filter_settings[] = [
-    //             'column_name' => 'integer',
-    //             'filter_condition' => FilterOption::NUMBER_GT,
-    //             'filter_value_text' => 100
-    //         ];
-    //         $filter_settings[] = [
-    //             'column_name' => 'select_valtext_multiple',
-    //             'filter_condition' => FilterOption::SELECT_EXISTS,
-    //             'filter_value_text' => 'foo'
-    //         ];
-    //         $array = $this->getColumnFilterData($filter_settings);
+        DB::beginTransaction();
+        try {
+            $filter_settings = [[
+                'column_name' => 'parent_id',
+                'condition_type' => ConditionType::PARENT_ID,
+                'filter_condition' => FilterOption::EQ,
+                'filter_value_text' => '2'
+            ]];
+            $array = $this->getColumnFilterData($filter_settings, ['target_table_name' => 'child_table']);
 
-    //         foreach ($array as $data) {
-    //             $this->assertTrue(array_get($data, 'value.date') >= \Carbon\Carbon::now()->format('Y-m-d'));
-    //             $this->assertTrue(array_get($data, 'value.integer') > 100);
-    //             $this->assertTrue(in_array('foo', array_get($data, 'value.select_valtext_multiple')));
-    //         }
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
+            foreach ($array as $data) {
+                $parent_value = $data->getParentValue();
+                $this->assertTrue(isset($parent_value));
+                $this->assertTrue($parent_value->id == $filter_settings[0]['filter_value_text']);
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
 
-    // /**
-    //  * FilterOption = multiple filter condition (join OR)
-    //  */
-    // public function testFuncFilterMultipleOr()
-    // {
-    //     $this->init();
+    /**
+     * FilterOption = NE(parent_id/1:N relation)
+     */
+    public function testFuncParentIdNe()
+    {
+        $this->init();
 
-    //     DB::beginTransaction();
-    //     try {
-    //         $filter_settings = [];
-    //         $filter_settings[] = [
-    //             'column_name' => 'datetime',
-    //             'filter_condition' => FilterOption::DAY_TODAY,
-    //         ];
-    //         $filter_settings[] = [
-    //             'column_name' => 'boolean',
-    //             'filter_condition' => FilterOption::EQ,
-    //             'filter_value_text' => 'ng'
-    //         ];
-    //         $filter_settings[] = [
-    //             'column_name' => 'currency',
-    //             'filter_condition' => FilterOption::NUMBER_GT,
-    //             'filter_value_text' => 70000
-    //         ];
-    //         $array = $this->getColumnFilterData($filter_settings, ['condition_join' => 'or']);
+        DB::beginTransaction();
+        try {
+            $filter_settings = [[
+                'column_name' => 'parent_id',
+                'condition_type' => ConditionType::PARENT_ID,
+                'filter_condition' => FilterOption::NE,
+                'filter_value_text' => '2'
+            ]];
+            $array = $this->getColumnFilterData($filter_settings, ['target_table_name' => 'child_table']);
 
-    //         $not_all = false;
-    //         foreach ($array as $data) {
-    //             $cnt = 0;
-    //             if (array_get($data, 'value.datetime') >= \Carbon\Carbon::now()->format('Y-m-d')) {
-    //                 $cnt++;
-    //             }
-    //             if (array_get($data, 'value.currency') > 70000) {
-    //                 $cnt++;
-    //             }
-    //             if (array_get($data, 'value.boolean') == 'ng') {
-    //                 $cnt++;
-    //             }
-    //             $this->assertTrue($cnt > 0);
-    //             if ($cnt < 3) $not_all = true;
-    //         }
-    //         $this->assertTrue($not_all);
-    //     } finally {
-    //         DB::rollback();
-    //     }
-    // }
+            foreach ($array as $data) {
+                $parent_value = $data->getParentValue();
+                $this->assertTrue(isset($parent_value));
+                $this->assertFalse($parent_value->id == $filter_settings[0]['filter_value_text']);
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = EQ(workflow status)
+     */
+    public function testFuncWorkflowStatusEq()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $filter_settings = [[
+                'column_name' => 'workflow_status',
+                'condition_type' => ConditionType::WORKFLOW,
+                'filter_condition' => FilterOption::EQ,
+                'filter_value_text' => '7'
+            ]];
+            $array = $this->getColumnFilterData($filter_settings, ['target_table_name' => 'custom_value_edit']);
+
+            foreach ($array as $data) {
+                $workflow_status = array_get($data, 'workflow_status');
+                $this->assertTrue($workflow_status->id == $filter_settings[0]['filter_value_text']);
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = NE(workflow status)
+     */
+    public function testFuncWorkflowStatusNe()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $filter_settings = [[
+                'column_name' => 'workflow_status',
+                'condition_type' => ConditionType::WORKFLOW,
+                'filter_condition' => FilterOption::NE,
+                'filter_value_text' => 'start'
+            ]];
+            $array = $this->getColumnFilterData($filter_settings, ['target_table_name' => 'custom_value_edit']);
+
+            foreach ($array as $data) {
+                $workflow_status = array_get($data, 'workflow_status');
+                $this->assertFalse(is_null($workflow_status));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = EQ(workflow user)
+     */
+    public function testFuncWorkflowUser()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $filter_settings = [[
+                'column_name' => 'workflow_work_users',
+                'condition_type' => ConditionType::WORKFLOW,
+                'filter_condition' => FilterOption::USER_EQ_USER,
+            ]];
+            $array = $this->getColumnFilterData($filter_settings, [
+                'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_DEV_USERB,
+                'target_table_name' => 'custom_value_edit_all'
+            ]);
+
+            foreach ($array as $data) {
+                $workflow_work_users = array_get($data, 'workflow_work_users');
+                foreach ($workflow_work_users as $workflow_work_user) {
+                    $users = array_get($workflow_work_user, 'users');
+                    if (isset($users)) {
+                        foreach ($users as $user) {
+                            $this->assertTrue($user->id == TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+                        }
+                    } else {
+                        $this->assertTrue($workflow_work_user->id == TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+                    }
+                }
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = EQ(workflow user/target organization)
+     */
+    public function testFuncWorkflowUserOrg()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $filter_settings = [[
+                'column_name' => 'workflow_work_users',
+                'condition_type' => ConditionType::WORKFLOW,
+                'filter_condition' => FilterOption::USER_EQ_USER,
+            ]];
+            $array = $this->getColumnFilterData($filter_settings, [
+                'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_DEV_USERB,
+                'target_table_name' => 'custom_value_edit'
+            ]);
+
+            foreach ($array as $data) {
+                $workflow_work_users = array_get($data, 'workflow_work_users');
+                foreach ($workflow_work_users as $workflow_work_user) {
+                    $users = array_get($workflow_work_user, 'users');
+                    if (isset($users)) {
+                        foreach ($users as $user) {
+                            $this->assertTrue($user->id == TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+                        }
+                    } else {
+                        $this->assertTrue($workflow_work_user->id == TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+                    }
+                }
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = multiple filter condition (join AND)
+     */
+    public function testFuncFilterMultipleAnd()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $filter_settings = [];
+            $filter_settings[] = [
+                'column_name' => 'date',
+                'filter_condition' => FilterOption::DAY_TODAY_OR_AFTER,
+            ];
+            $filter_settings[] = [
+                'column_name' => 'integer',
+                'filter_condition' => FilterOption::NUMBER_GT,
+                'filter_value_text' => 100
+            ];
+            $filter_settings[] = [
+                'column_name' => 'select_valtext_multiple',
+                'filter_condition' => FilterOption::SELECT_EXISTS,
+                'filter_value_text' => 'foo'
+            ];
+            $array = $this->getColumnFilterData($filter_settings);
+
+            foreach ($array as $data) {
+                $this->assertTrue(array_get($data, 'value.date') >= \Carbon\Carbon::now()->format('Y-m-d'));
+                $this->assertTrue(array_get($data, 'value.integer') > 100);
+                $this->assertTrue(in_array('foo', array_get($data, 'value.select_valtext_multiple')));
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
+    /**
+     * FilterOption = multiple filter condition (join OR)
+     */
+    public function testFuncFilterMultipleOr()
+    {
+        $this->init();
+
+        DB::beginTransaction();
+        try {
+            $filter_settings = [];
+            $filter_settings[] = [
+                'column_name' => 'datetime',
+                'filter_condition' => FilterOption::DAY_TODAY,
+            ];
+            $filter_settings[] = [
+                'column_name' => 'boolean',
+                'filter_condition' => FilterOption::EQ,
+                'filter_value_text' => 'ng'
+            ];
+            $filter_settings[] = [
+                'column_name' => 'currency',
+                'filter_condition' => FilterOption::NUMBER_GT,
+                'filter_value_text' => 70000
+            ];
+            $array = $this->getColumnFilterData($filter_settings, ['condition_join' => 'or']);
+
+            $not_all = false;
+            foreach ($array as $data) {
+                $cnt = 0;
+                if (array_get($data, 'value.datetime') >= \Carbon\Carbon::now()->format('Y-m-d')) {
+                    $cnt++;
+                }
+                if (array_get($data, 'value.currency') > 70000) {
+                    $cnt++;
+                }
+                if (array_get($data, 'value.boolean') == 'ng') {
+                    $cnt++;
+                }
+                $this->assertTrue($cnt > 0);
+                if ($cnt < 3) $not_all = true;
+            }
+            $this->assertTrue($not_all);
+        } finally {
+            DB::rollback();
+        }
+    }
 
     protected function init(){
         System::clearCache();
@@ -1741,7 +1921,7 @@ class CustomViewFilterTest extends UnitTestBase
     {
         $options = array_merge(
             [
-                'login_user_admin' => true, // if true, login as admin. else normal user. if normal user, options has only items user has permission.
+                'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_ADMIN,
                 'target_table_name' => null,
                 'condition_join' => 'and',
             ], 
@@ -1749,9 +1929,9 @@ class CustomViewFilterTest extends UnitTestBase
         );
 
         // Login user.
-        $this->be(LoginUser::find($options['login_user_admin'] ? TestDefine::TESTDATA_USER_LOGINID_ADMIN : TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC));
+        $this->be(LoginUser::find($options['login_user_id']));
 
-        $custom_table = CustomTable::getEloquent($options['target_table_name']?? TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS);
+        $custom_table = CustomTable::getEloquent($options['target_table_name'] ?? TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
 
         $custom_view = $this->createCustomView(
             $custom_table, 
@@ -1763,11 +1943,11 @@ class CustomViewFilterTest extends UnitTestBase
 
         foreach ($filter_settings as $filter_setting)
         {
-            if (isset($filter_setting['condition_type']) && $filter_setting['condition_type'] == ConditionType::SYSTEM) {
-                $column_id = SystemColumn::getOption(['name' => $filter_setting['column_name']])['id'];
-            } else {
+            if (!isset($filter_setting['condition_type']) || $filter_setting['condition_type'] == ConditionType::COLUMN) {
                 $custom_column = CustomColumn::getEloquent($filter_setting['column_name'], $custom_table);
                 $column_id = $custom_column->id;
+            } else {
+                $column_id = SystemColumn::getOption(['name' => $filter_setting['column_name']])['id'];
             }
             $custom_view_filter = $this->createCustomViewFilter(
                 $custom_view->id,
@@ -1781,7 +1961,9 @@ class CustomViewFilterTest extends UnitTestBase
 
         $model = $custom_table->getValueModel()->query();
         $custom_view->filterModel($model);
-        return $model->get();
+        $data = $model->get();
+        $this->assertTrue(count($data) > 0, 'data expects over 0, but data count is 0.');
+        return $data;
     }
 
     protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])

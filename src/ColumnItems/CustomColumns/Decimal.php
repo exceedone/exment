@@ -122,7 +122,7 @@ class Decimal extends CustomItem
                 'decimal_digit' => intval(array_get($this->custom_column, 'options.decimal_digit', 2))
             ]];
         } else {
-            return [DatabaseDataType::TYPE_DECIMAL, false, []];
+            return [DatabaseDataType::TYPE_DECIMAL, true, []];
         }
     }
 }

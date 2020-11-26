@@ -39,7 +39,7 @@ trait ExmentKitPrepareTrait
             return;
         }
         
-        $redirectPath = "/admin/column/$table_name";
+        $redirectPath = admin_url("column/$table_name");
 
         $data = [
             'table_name' => $table_name,
@@ -181,6 +181,12 @@ trait ExmentKitPrepareTrait
             'options[multiple_enabled]' => 1,
         ];
         $col_data[] = [
+            'column_name' => 'user_single',
+            'column_view_name' => 'User Single',
+            'column_type' => 'user',
+            'options[index_enabled]' => 1,
+        ];
+        $col_data[] = [
             'column_name' => 'organization',
             'column_view_name' => 'Organization',
             'column_type' => 'organization',
@@ -188,7 +194,7 @@ trait ExmentKitPrepareTrait
         ];
 
         foreach($col_data as $data){
-            if (is_null($targets) || in_array(array_get($data, 'column_type'), $targets)){
+            if (is_null($targets) || in_array(array_get($data, 'column_type'), $targets) || in_array(array_get($data, 'column_name'), $targets)){
                 // Create custom column
                 $this->visit(admin_url("column/$table_name"))
                         ->seePageIs("/admin/column/$table_name")
