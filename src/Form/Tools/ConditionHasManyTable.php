@@ -160,7 +160,10 @@ class ConditionHasManyTable
             }
 
             if ($this->showConditionKey) {
-                $form->select($condition_key_name, $this->condition_key_label)->required()
+                $form->select($condition_key_name, $this->condition_key_label)
+                ->required()
+                // ignore HasOptionRule.
+                ->removeRules(\Encore\Admin\Validator\HasOptionRule::class)
                 ->options(function ($val, $select) use ($condition_target_name, $filterKind) {
                     if (!isset($val)) {
                         return [];
