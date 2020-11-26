@@ -1172,7 +1172,7 @@ class CustomViewSummaryTest extends UnitTestBase
         $options = array_merge(
             [
                 'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_ADMIN,
-                'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS,
+                'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
                 'condition_join' => 'and',
                 'get_count' => false,
                 'filter_settings' => [],

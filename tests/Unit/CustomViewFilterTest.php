@@ -1751,10 +1751,6 @@ class CustomViewFilterTest extends UnitTestBase
      */
     public function testFuncWorkflowStatusNe()
     {
-        $this->skipTempTestIfTrue(function() {
-            return true;
-        }, 'error occurs because of WorkflowItem::addStatusSubQuery is already true.');
-
         $this->init();
 
         DB::beginTransaction();
@@ -1818,10 +1814,6 @@ class CustomViewFilterTest extends UnitTestBase
      */
     public function testFuncWorkflowUserOrg()
     {
-        $this->skipTempTestIfTrue(function() {
-            return true;
-        }, 'error occurs because of WorkflowItem::addStatusSubQuery is already true.');
-
         $this->init();
 
         DB::beginTransaction();
@@ -1955,7 +1947,7 @@ class CustomViewFilterTest extends UnitTestBase
         // Login user.
         $this->be(LoginUser::find($options['login_user_id']));
 
-        $custom_table = CustomTable::getEloquent($options['target_table_name']?? TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS);
+        $custom_table = CustomTable::getEloquent($options['target_table_name'] ?? TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
 
         $custom_view = $this->createCustomView(
             $custom_table, 
@@ -1986,7 +1978,7 @@ class CustomViewFilterTest extends UnitTestBase
         $model = $custom_table->getValueModel()->query();
         $custom_view->filterModel($model);
         $data = $model->get();
-        $this->assertTrue(count($data) > 0);
+        $this->assertTrue(count($data) > 0, 'data expects over 0, but data count is 0.');
         return $data;
     }
 
