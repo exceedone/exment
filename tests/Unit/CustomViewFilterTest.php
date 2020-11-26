@@ -1985,7 +1985,9 @@ class CustomViewFilterTest extends UnitTestBase
 
         $model = $custom_table->getValueModel()->query();
         $custom_view->filterModel($model);
-        return $model->get();
+        $data = $model->get();
+        $this->assertTrue(count($data) > 0);
+        return $data;
     }
 
     protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
