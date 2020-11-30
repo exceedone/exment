@@ -7,12 +7,14 @@ use Exceedone\Exment\Enums\UrlTagType;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
+use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
@@ -372,41 +374,21 @@ class Exment
      */
     public function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
     {
-        $data = [];
-        foreach ($sheet->getRowIterator() as $row_no => $row) {
-            // if index < $skip_excel_row_no, conitnue
-            if ($row_no <= $skip_excel_row_no) {
-                continue;
-            }
-
-            $cellIterator = $row->getCellIterator();
-            $cellIterator->setIterateOnlyExistingCells(false); // This loops through all cells,
-            $cells = [];
-            foreach ($cellIterator as $column_no => $cell) {
-                $value = getCellValue($cell, $sheet, $isGetMerge);
-
-                // if keyvalue, set array as key value
-                if ($keyvalue) {
-                    $key = getCellValue($column_no."1", $sheet, $isGetMerge);
-                    $cells[$key] = mbTrim($value);
-                }
-                // if false, set as array
-                else {
-                    $cells[] = mbTrim($value);
-                }
-            }
-            if (collect($cells)->filter(function ($v) {
-                return !is_nullorempty($v);
-            })->count() == 0) {
-                break;
-            }
-            $data[] = $cells;
-        }
-
-        return $data;
+        $format = FormatBase::getFormatClass('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET);
+        return $format->getDataFromSheet($sheet, $skip_excel_row_no, $keyvalue, $isGetMerge);
     }
 
-    
+
+    /**
+     * get cell value
+     */
+    public function getCellValue($cell, $sheet, $isGetMerge = false)
+    {
+        $format = FormatBase::getCellValue('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET);
+        return $format->getCellValue($cell, $sheet, $isGetMerge);
+    }
+
+
     /**
      * Get mark and value for search
      *

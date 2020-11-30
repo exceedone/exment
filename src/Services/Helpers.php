@@ -1,4 +1,5 @@
 <?php
+use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Exceedone\Exment\Services\ClassBuilder;
 use Exceedone\Exment\Services\ReplaceFormat\ReplaceFormatService;
 use Exceedone\Exment\Model\Define;
@@ -1436,31 +1437,7 @@ if (!function_exists('getCellValue')) {
      */
     function getCellValue($cell, $sheet, $isGetMerge = false)
     {
-        if (is_string($cell)) {
-            $cell = $sheet->getCell($cell);
-        }
-
-        // if merge cell, get from master cell
-        if ($isGetMerge && $cell->isInMergeRange()) {
-            $mergeRange = $cell->getMergeRange();
-            $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
-        }
-
-        $value = $cell->getCalculatedValue();
-        // is datetime, convert to date string
-        if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)) {
-            $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
-            if (floatval($value) < 1) {
-                $value = $date->format('H:i:s');
-            } else {
-                $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
-            }
-        }
-        // if rich text, set plain value
-        elseif ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
-            $value = $value->getPlainText();
-        }
-        return $value;
+        return \Exment::getCellValue($cell, $sheet, $isGetMerge);
     }
 }
 
@@ -1482,6 +1459,7 @@ if (!function_exists('getCellAlphabet')) {
         return $columnStr;
     }
 }
+
 
 if (!function_exists('getUserName')) {
     /**

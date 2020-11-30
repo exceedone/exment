@@ -70,7 +70,7 @@ class Xlsx extends PhpSpreadSheet
             $datalist = [];
             foreach ($spreadsheet->getSheetNames() as $sheetName) {
                 $sheet = $spreadsheet->getSheetByName($sheetName);
-                $datalist[$sheetName] = getDataFromSheet($sheet, 0, false, true);
+                $datalist[$sheetName] = $this->getDataFromSheet($sheet, 0, false, true);
             }
 
             return $datalist;

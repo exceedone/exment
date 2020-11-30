@@ -70,4 +70,89 @@ abstract class PhpSpreadSheet extends FormatBase
         }
         return $files;
     }
+
+
+    /**
+     * Get Data from excel sheet
+     *
+     * @param Worksheet $sheet
+     * @param int $skip_excel_row_no
+     * @param boolean $keyvalue
+     * @param boolean $isGetMerge
+     * @return array
+     */
+    public function getDataFromSheet($sheet, int $skip_excel_row_no = 0, bool $keyvalue = false, bool $isGetMerge = false) : array
+    {
+        $data = [];
+        foreach ($sheet->getRowIterator() as $row_no => $row) {
+            // if index < $skip_excel_row_no, conitnue
+            if ($row_no <= $skip_excel_row_no) {
+                continue;
+            }
+
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(false); // This loops through all cells,
+            $cells = [];
+            foreach ($cellIterator as $column_no => $cell) {
+                $value = $this->getCellValue($cell, $sheet, $isGetMerge);
+
+                // if keyvalue, set array as key value
+                if ($keyvalue) {
+                    $key = $this->getCellValue($column_no."1", $sheet, $isGetMerge);
+                    $cells[$key] = mbTrim($value);
+                }
+                // if false, set as array
+                else {
+                    $cells[] = mbTrim($value);
+                }
+            }
+            if (collect($cells)->filter(function ($v) {
+                return !is_nullorempty($v);
+            })->count() == 0) {
+                break;
+            }
+            $data[] = $cells;
+        }
+
+        return $data;
+    }
+
+    
+    /**
+     * get cell value
+     *
+     * @param [type] $cell
+     * @param Worksheet $sheet
+     * @param boolean $isGetMerge
+     * @return mixed
+     */
+    public function getCellValue($cell, $sheet, $isGetMerge = false)
+    {
+        if (is_string($cell)) {
+            $cell = $sheet->getCell($cell);
+        }
+
+        // if merge cell, get from master cell
+        if ($isGetMerge && $cell->isInMergeRange()) {
+            $mergeRange = $cell->getMergeRange();
+            $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
+        }
+
+        $value = $cell->getCalculatedValue();
+        // is datetime, convert to date string
+        if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)) {
+            $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
+            if (floatval($value) < 1) {
+                $value = $date->format('H:i:s');
+            } else {
+                $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
+            }
+        }
+        // if rich text, set plain value
+        elseif ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
+            $value = $value->getPlainText();
+        }
+        return $value;
+    }
+
 }
