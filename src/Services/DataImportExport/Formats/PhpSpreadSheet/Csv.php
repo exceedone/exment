@@ -1,15 +1,20 @@
 <?php
 
-namespace Exceedone\Exment\Services\DataImportExport\Formats;
+namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
 
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Exceedone\Exment\Model\Define;
 use \File;
 
-class Csv extends FormatBase
+class Csv extends PhpSpreadSheet
 {
     protected $accept_extension = 'csv,zip';
+
+    public function getFormat() : string
+    {
+        return 'csv';
+    }
 
     public function getFileName()
     {

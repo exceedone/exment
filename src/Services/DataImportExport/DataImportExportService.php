@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\DataImportExport;
 
 use Encore\Admin\Grid\Exporters\AbstractExporter;
+use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
@@ -27,7 +28,7 @@ class DataImportExportService extends AbstractExporter
     public static $queryName = '_export_';
     
     /**
-     * csv or excel format model
+     * csv or excel format string (xlsx, csv)
      */
     protected $format;
     
@@ -87,10 +88,10 @@ class DataImportExportService extends AbstractExporter
         return $this;
     }
 
-    public static function getFormat($args = [])
+    protected static function getFormat($args = []) : string
     {
         if ($args instanceof FormatBase) {
-            return $args;
+            return $args->getFormat();
         }
         
         if ($args instanceof UploadedFile) {
@@ -106,13 +107,16 @@ class DataImportExportService extends AbstractExporter
             $format = app('request')->input('format');
         }
 
-        switch ($format) {
-            case 'excel':
-            case 'xlsx':
-                return new Formats\Xlsx();
-            default:
-                return new Formats\Csv();
+        if(is_null($format)){
+            $format = 'xlsx';
         }
+
+        return $format;
+    }
+    
+    protected function getFormatClass($library = null) : FormatBase
+    {
+        return FormatBase::getFormatClass($this->format, $library);
     }
 
     public function importAction($importAction)
@@ -150,6 +154,8 @@ class DataImportExportService extends AbstractExporter
     {
         setTimeLimitLong();
 
+        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT);
+
         // get export action type
         $action = request()->get('action');
 
@@ -163,12 +169,12 @@ class DataImportExportService extends AbstractExporter
             $datalist = $this->exportAction->datalist();
         }
 
-        $files = $this->format
+        $files = $formatObj
             ->datalist($datalist)
             ->filebasename($this->exportAction->filebasename())
             ->createFile();
         
-        $response = $this->format->createResponse($files);
+        $response = $formatObj->createResponse($files);
         $response->send();
         exit;
     }
@@ -180,6 +186,9 @@ class DataImportExportService extends AbstractExporter
     public function import($request)
     {
         setTimeLimitLong();
+
+        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT);
+
         // validate request
         if (!($errors = $this->validateRequest($request))) {
             return [
@@ -196,13 +205,13 @@ class DataImportExportService extends AbstractExporter
             }
         }
 
-        $this->format->filebasename($this->filebasename);
+        $formatObj->filebasename($this->filebasename);
 
         // get table data
         if (method_exists($this->importAction, 'getDataTable')) {
             $datalist = $this->importAction->getDataTable($request);
         } else {
-            $datalist = $this->format->getDataTable($request);
+            $datalist = $formatObj->getDataTable($request);
         }
 
         // if over count, return over length
@@ -242,13 +251,14 @@ class DataImportExportService extends AbstractExporter
     {
         setTimeLimitLong();
 
-        $this->format->filebasename($this->filebasename);
+        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT);
+        $formatObj->filebasename($this->filebasename);
 
         // get table data
         if (method_exists($this->importAction, 'getDataTable')) {
             $datalist = $this->importAction->getDataTable($file_path);
         } else {
-            $datalist = $this->format->getDataTable($file_path, $options);
+            $datalist = $formatObj->getDataTable($file_path, $options);
         }
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
@@ -269,6 +279,7 @@ class DataImportExportService extends AbstractExporter
     public function exportBackground(array $options = [])
     {
         setTimeLimitLong();
+        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT);
 
         if ($options['action'] == 'view' && isset($this->viewExportAction)) {
             $datalist = $this->viewExportAction->datalist();
@@ -276,7 +287,7 @@ class DataImportExportService extends AbstractExporter
             $datalist = $this->exportAction->datalist();
         }
 
-        $files = $this->format
+        $files = $formatObj
             ->datalist($datalist)
             ->filebasename($this->filebasename() ?? $this->exportAction->filebasename())
             ->createFile();
@@ -288,7 +299,7 @@ class DataImportExportService extends AbstractExporter
             ];
         }
     
-        $this->format->saveAsFile($options['dirpath'], $files);
+        $formatObj->saveAsFile($options['dirpath'], $files);
 
         return [
             'status' => 0,
@@ -331,6 +342,8 @@ class DataImportExportService extends AbstractExporter
      */
     public function validateRequest($request)
     {
+        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT);
+
         if (!($request instanceof Request)) {
             return true;
         }
@@ -355,7 +368,7 @@ class DataImportExportService extends AbstractExporter
             ],
             [
                 'file'          => 'required',
-                'custom_table_file'      => 'required|in:'.$this->format->accept_extension(),
+                'custom_table_file'      => 'required|in:'.$formatObj->accept_extension(),
             ],
             [
                 'custom_table_file' => \Lang::get('validation.mimes')

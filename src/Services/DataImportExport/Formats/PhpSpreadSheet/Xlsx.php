@@ -1,14 +1,19 @@
 <?php
 
-namespace Exceedone\Exment\Services\DataImportExport\Formats;
+namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
 
 use Symfony\Component\Finder\SplFileInfo;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class Xlsx extends FormatBase
+class Xlsx extends PhpSpreadSheet
 {
     protected $accept_extension = 'xlsx';
+
+    public function getFormat() : string
+    {
+        return 'xlsx';
+    }
 
     public function getFileName()
     {
