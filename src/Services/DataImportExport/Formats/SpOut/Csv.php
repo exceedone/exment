@@ -137,11 +137,17 @@ class Csv extends SpOut
         // get data count
         foreach ($files as $file) {
             $reader = $this->createReader();
-            $reader->setInputEncoding('UTF-8');
-            $reader->setDelimiter(",");
-            $spreadsheet = $reader->load($file);
+            $reader->setEncoding('UTF-8');
+            $reader->setFieldDelimiter(",");
+            $reader->open($file);
             
-            $count += intval($spreadsheet->getActiveSheet()->getHighestRow());
+            // cannot row count directry, so loop
+            foreach ($reader->getSheetIterator() as $sheet) {
+                $sheetName = $sheet->getName();
+                foreach ($sheet->getRowIterator() as $row) {
+                    $count++;
+                }
+            }
         }
 
         return $count;

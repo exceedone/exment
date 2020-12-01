@@ -206,11 +206,7 @@ class DataImportExportService extends AbstractExporter
         $formatObj->filebasename($this->filebasename);
 
         // get table data
-        if (method_exists($this->importAction, 'getDataTable')) {
-            $datalist = $this->importAction->getDataTable($request);
-        } else {
-            $datalist = $formatObj->getDataTable($request);
-        }
+        $datalist = $formatObj->getDataTable($request);
 
         // if over count, return over length
         if (is_int($datalist)) {
@@ -255,11 +251,7 @@ class DataImportExportService extends AbstractExporter
             ->filebasename($this->filebasename);
 
         // get table data
-        if (method_exists($this->importAction, 'getDataTable')) {
-            $datalist = $this->importAction->getDataTable($file_path);
-        } else {
-            $datalist = $formatObj->getDataTable($file_path, $options);
-        }
+        $datalist = $formatObj->getDataTable($file_path, $options);
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
 

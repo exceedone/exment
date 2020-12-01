@@ -46,8 +46,8 @@ class DefaultTableProvider extends ProviderBase
         $value_customs = [];
         $primary_values = [];
 
-        if (\array_key_exists('get_index', $options)) {
-            $take = $options['take']?? 100;
+        if (array_key_exists('get_index', $options)) {
+            $take = $options['take'] ?? 100;
             $start_idx = $options['get_index'] * $take;
             $end_idx = $start_idx + $take;
             $headers = $data[0];
