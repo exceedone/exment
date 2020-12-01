@@ -6,6 +6,7 @@ use Symfony\Component\Finder\SplFileInfo;
 use Illuminate\Http\Request;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
+use Box\Spout\Reader\ReaderAbstract;
  
 class Xlsx extends SpOut
 {
@@ -28,18 +29,19 @@ class Xlsx extends SpOut
     public function getDataTable($request, array $options = [])
     {
         $options = $this->getDataOptions($options);
-        return $this->_getData($request, function ($spreadsheet) use ($options) {
+        return $this->_getData($request, function (ReaderAbstract $reader) use ($options) {
             // if over row size, return number
             if (boolval($options['checkCount'])) {
-                if (($count = $this->getRowCount($spreadsheet)) > (config('exment.import_max_row_count', 1000) + 2)) {
+                if (($count = $this->getRowCount($reader)) > (config('exment.import_max_row_count', 1000) + 2)) {
                     return $count;
                 }
             }
 
             // get all data
             $datalist = [];
-            foreach ($spreadsheet->getSheetNames() as $sheetName) {
-                $sheet = $spreadsheet->getSheetByName($sheetName);
+
+            foreach ($reader->getSheetIterator() as $sheet) {
+                $sheetName = $sheet->getName();
                 $datalist[$sheetName] = $this->getDataFromSheet($sheet, 0, false, true);
             }
 
@@ -52,8 +54,8 @@ class Xlsx extends SpOut
      */
     public function getDataCount($request)
     {
-        return $this->_getData($request, function ($spreadsheet) {
-            return $this->getRowCount($spreadsheet);
+        return $this->_getData($request, function (ReaderAbstract $reader) {
+            return $this->getRowCount($reader);
         });
     }
 
@@ -70,9 +72,9 @@ class Xlsx extends SpOut
         }
         
         $reader = $this->createReader();
-        $spreadsheet = $reader->open($path);
+        $reader->open($path);
         try {
-            return $callback($spreadsheet);
+            return $callback($reader);
         } finally {
         }
     }
@@ -80,17 +82,20 @@ class Xlsx extends SpOut
     /**
      * Get all sheet's row count
      *
-     * @param \PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet
+     * @param ReaderAbstract $reader
      * @return int
      */
-    protected function getRowCount($spreadsheet) : int
+    protected function getRowCount(ReaderAbstract $reader) : int
     {
         $count = 0;
 
         // get data count
-        foreach ($spreadsheet->getSheetNames() as $sheetName) {
-            $sheet = $spreadsheet->getSheetByName($sheetName);
-            $count += intval($sheet->getHighestRow());
+        // cannot row count directry, so loop
+        foreach ($reader->getSheetIterator() as $sheet) {
+            $sheetName = $sheet->getName();
+            foreach ($sheet->getRowIterator() as $row) {
+                $count++;
+            }
         }
 
         return $count;

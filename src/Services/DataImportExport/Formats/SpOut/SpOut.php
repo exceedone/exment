@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Services\DataImportExport\Formats\SpOut;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Exceedone\Exment\Services\DataImportExport\Formats;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
+use Box\Spout\Common\Entity\Cell;
+use Box\Spout\Reader\SheetInterface;
 
 abstract class SpOut extends FormatBase
 {
@@ -113,7 +115,7 @@ abstract class SpOut extends FormatBase
     /**
      * Get Data from excel sheet
      *
-     * @param Worksheet $sheet
+     * @param SheetInterface $sheet
      * @param int $skip_excel_row_no
      * @param boolean $keyvalue
      * @param boolean $isGetMerge
@@ -128,10 +130,13 @@ abstract class SpOut extends FormatBase
                 continue;
             }
 
-            $cellIterator = $row->getCellIterator();
-            $cellIterator->setIterateOnlyExistingCells(false); // This loops through all cells,
+            // $cellIterator = $row->getCellIterator();
+            // $cellIterator->setIterateOnlyExistingCells(false); // This loops through all cells,
+            // $cells = [];
+
+            $cellItems = $row->getCells();
             $cells = [];
-            foreach ($cellIterator as $column_no => $cell) {
+            foreach ($cellItems as $column_no => $cell) {
                 $value = $this->getCellValue($cell, $sheet, $isGetMerge);
 
                 // if keyvalue, set array as key value
@@ -159,8 +164,8 @@ abstract class SpOut extends FormatBase
     /**
      * get cell value
      *
-     * @param [type] $cell
-     * @param Worksheet $sheet
+     * @param Box\Spout\Common\Entity\Cell $cell
+     * @param SheetInterface $sheet
      * @param boolean $isGetMerge
      * @return mixed
      */
@@ -170,25 +175,35 @@ abstract class SpOut extends FormatBase
             $cell = $sheet->getCell($cell);
         }
 
+        // Cannot get merge cell
         // if merge cell, get from master cell
-        if ($isGetMerge && $cell->isInMergeRange()) {
-            $mergeRange = $cell->getMergeRange();
-            $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
-        }
+        // if ($isGetMerge && $cell->isInMergeRange()) {
+        //     $mergeRange = $cell->getMergeRange();
+        //     $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
+        // }
 
-        $value = $cell->getCalculatedValue();
+        // If SpOut, already Calculated.
+        // $value = $cell->getCalculatedValue();
+        $value = $cell->getValue();
+        $type = $cell->getType();
+
         // is datetime, convert to date string
-        if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)) {
-            $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
-            if (floatval($value) < 1) {
-                $value = $date->format('H:i:s');
-            } else {
-                $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
+        if($type === Cell::TYPE_DATE && isset($value)){
+            // check hmi
+            if($value->format('H') > 0 || $value->format('i') > 0 || $value->format('s') > 0){
+                $value = $value->format('Y-m-d H:i:s');
+            }
+            else{
+                $value = $value->format('Y-m-d');
             }
         }
-        // if rich text, set plain value
-        elseif ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
-            $value = $value->getPlainText();
+        // // if rich text, set plain value
+        // elseif ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
+        //     $value = $value->getPlainText();
+        // }
+
+        if(is_nullorempty($value)){
+            $value = null;
         }
         return $value;
     }
