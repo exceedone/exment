@@ -188,7 +188,7 @@ class DataImportExportService extends AbstractExporter
         $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
 
         // validate request
-        if (!($errors = $this->validateRequest($request))) {
+        if (($errors = $this->validateRequest($request)) !== true) {
             return [
                 'result' => false,
                 //'toastr' => exmtrans('common.message.import_error'),
@@ -222,7 +222,7 @@ class DataImportExportService extends AbstractExporter
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
         
-        if (count($datalist) == 0) {
+        if (count($datalist) == 0 || (count($datalist) == 1 && array_has($datalist, Define::SETTING_SHEET_NAME))) {
             return [
                 'result' => false,
                 'toastr' => exmtrans('common.message.import_error'),

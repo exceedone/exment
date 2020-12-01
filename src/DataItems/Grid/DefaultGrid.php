@@ -661,7 +661,7 @@ class DefaultGrid extends GridBase
                 [[
                 'name' => 'select',
                 'label' =>  trans('admin.choose'),
-                'multiple' => $target_column_multiple,
+                'multiple' => boolval($target_column_multiple),
                 'icon' => $this->custom_table->getOption('icon'),
                 'background_color' =>  $this->custom_table->getOption('color') ?? '#3c8dbc', //if especially
                 'color' => '#FFFFFF',

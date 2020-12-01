@@ -223,9 +223,9 @@ class FilterOption extends EnumBase
             case static::NUMBER_LTE: return 'lte';
             case static::SELECT_EXISTS: return 'select-eq';
             case static::SELECT_NOT_EXISTS: return 'select-ne';
-            case static::USER_EQ: return 'eq';
+            case static::USER_EQ: return 'select-eq';
             case static::USER_EQ_USER: return 'eq-user';
-            case static::USER_NE: return 'ne';
+            case static::USER_NE: return 'select-ne';
             case static::USER_NE_USER: return 'ne-user';
             case static::USER_NOT_NULL: return 'not-null';
             case static::USER_NULL: return 'null';
