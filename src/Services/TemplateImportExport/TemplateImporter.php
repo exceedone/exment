@@ -16,7 +16,9 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Exceedone\Exment\Storage\Disk\TemplateDiskService;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
@@ -324,6 +326,9 @@ class TemplateImporter
         // loop for excel sheets
         $reader = IOFactory::createReader('Xlsx');
         $spreadsheet = $reader->load($file->getRealPath());
+        
+        $format = FormatBase::getFormatClass('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET, false);
+
         foreach (Define::TEMPLATE_IMPORT_EXCEL_SHEETNAME as $sheetname) {
             $sheet = $spreadsheet->getSheetByName($sheetname);
 
@@ -333,7 +338,7 @@ class TemplateImporter
                 continue;
             }
 
-            $data = getDataFromSheet($sheet, 2, true, true);
+            $data = $format->getDataFromSheet($sheet, 2, true, true);
             // set config json
             $settings[$sheetname] = $data;
         }
