@@ -1,12 +1,13 @@
 <?php
 
-namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
+namespace Exceedone\Exment\Services\DataImportExport\Formats\SpOut;
 
 use Symfony\Component\Finder\SplFileInfo;
 use Illuminate\Http\Request;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-
-class Xlsx extends PhpSpreadSheet
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
+ 
+class Xlsx extends SpOut
 {
     protected $accept_extension = 'xlsx';
 
@@ -19,6 +20,7 @@ class Xlsx extends PhpSpreadSheet
     {
         return $this->filebasename.date('YmdHis'). ".xlsx";
     }
+
 
     /**
      * get data table list. contains self table, and relations (if contains)
@@ -68,14 +70,10 @@ class Xlsx extends PhpSpreadSheet
         }
         
         $reader = $this->createReader();
-        $spreadsheet = $reader->load($path);
+        $spreadsheet = $reader->open($path);
         try {
             return $callback($spreadsheet);
         } finally {
-            // close workbook and release memory
-            $spreadsheet->disconnectWorksheets();
-            $spreadsheet->garbageCollect();
-            unset($spreadsheet, $reader);
         }
     }
 
@@ -98,6 +96,8 @@ class Xlsx extends PhpSpreadSheet
         return $count;
     }
 
+
+
     /**
      * whether this out is as zip.
      * This table is parent and contains relation 1:n or n:n.
@@ -109,11 +109,11 @@ class Xlsx extends PhpSpreadSheet
     
     protected function createWriter($spreadsheet)
     {
-        return IOFactory::createWriter($spreadsheet, 'Xlsx');
+        return WriterEntityFactory::createXLSXWriter();
     }
     
     protected function createReader()
     {
-        return IOFactory::createReader('Xlsx');
+        return ReaderEntityFactory::createXLSXReader();
     }
 }

@@ -114,9 +114,9 @@ class DataImportExportService extends AbstractExporter
         return $format;
     }
     
-    protected function getFormatClass($library = null) : FormatBase
+    protected function getFormatClass(bool $isExport) : FormatBase
     {
-        return FormatBase::getFormatClass($this->format, $library);
+        return FormatBase::getFormatClass($this->format, $isExport);
     }
 
     public function importAction($importAction)
@@ -154,7 +154,7 @@ class DataImportExportService extends AbstractExporter
     {
         setTimeLimitLong();
 
-        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT);
+        $formatObj = $this->getFormatClass(true);
 
         // get export action type
         $action = request()->get('action');
@@ -174,9 +174,7 @@ class DataImportExportService extends AbstractExporter
             ->filebasename($this->exportAction->filebasename())
             ->createFile();
         
-        $response = $formatObj->createResponse($files);
-        $response->send();
-        exit;
+        $formatObj->sendResponse($files);
     }
     
     /**
@@ -187,7 +185,7 @@ class DataImportExportService extends AbstractExporter
     {
         setTimeLimitLong();
 
-        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT);
+        $formatObj = $this->getFormatClass(false);
 
         // validate request
         if (!($errors = $this->validateRequest($request))) {
@@ -251,7 +249,7 @@ class DataImportExportService extends AbstractExporter
     {
         setTimeLimitLong();
 
-        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT);
+        $formatObj = $this->getFormatClass(false);
         $formatObj->filebasename($this->filebasename);
 
         // get table data
@@ -279,7 +277,7 @@ class DataImportExportService extends AbstractExporter
     public function exportBackground(array $options = [])
     {
         setTimeLimitLong();
-        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT);
+        $formatObj = $this->getFormatClass(true);
 
         if ($options['action'] == 'view' && isset($this->viewExportAction)) {
             $datalist = $this->viewExportAction->datalist();
@@ -288,6 +286,7 @@ class DataImportExportService extends AbstractExporter
         }
 
         $files = $formatObj
+            ->output_aszip(false)
             ->datalist($datalist)
             ->filebasename($this->filebasename() ?? $this->exportAction->filebasename())
             ->createFile();
@@ -342,7 +341,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function validateRequest($request)
     {
-        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT);
+        $formatObj = $this->getFormatClass(false);
 
         if (!($request instanceof Request)) {
             return true;

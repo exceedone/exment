@@ -433,25 +433,6 @@ if (!function_exists('getFullpath')) {
     }
 }
 
-if (!function_exists('getTmpFolderPath')) {
-    /**
-     * get tmp folder path. Uses for
-     * @param string $type "plugin", "template", "backup", "data".
-     */
-    function getTmpFolderPath($type, $fullpath = true)
-    {
-        $path = path_join('tmp', $type);
-        if (!$fullpath) {
-            return $path;
-        }
-        $tmppath = getFullpath($path, Define::DISKNAME_ADMIN_TMP);
-        if (!\File::exists($tmppath)) {
-            \File::makeDirectory($tmppath, 0755, true);
-        }
-
-        return $tmppath;
-    }
-}
 
 if (!function_exists('mb_basename')) {
     function mb_basename($str, $suffix=null)

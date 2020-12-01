@@ -1,14 +1,12 @@
 <?php
 
-namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
+namespace Exceedone\Exment\Services\DataImportExport\Formats\SpOut;
 
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Exceedone\Exment\Services\DataImportExport\Formats;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Cell;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 
-abstract class PhpSpreadSheet extends FormatBase
+abstract class SpOut extends FormatBase
 {
     /**
      * create file
@@ -18,14 +16,15 @@ abstract class PhpSpreadSheet extends FormatBase
     {
         // define writers. if zip, set as array.
         $files = [];
-        // create excel
-        $spreadsheet = new Spreadsheet();
+
         $sheet_name = null;
-        $outputPath = null;
+
+        // create excel
+        $writer = $this->createWriter(null);
         foreach ($this->datalist as $index => $data) {
             $sheet_name = array_get($data, 'name');
             $outputs = array_get($data, 'outputs');
-
+            
             // if output as zip, change file name.
             if ($this->isOutputAsZip()) {
                 $outputPath = $this->getTmpFilePath($this->getRealFileName($sheet_name));
@@ -35,54 +34,69 @@ abstract class PhpSpreadSheet extends FormatBase
                 $outputPath = $this->getTmpFilePath($this->getFileName());
             }
 
-            $sheet = new Worksheet($spreadsheet, $sheet_name);
-            $sheet->fromArray($outputs, null, 'A1', false);
+            // If spout, have to set tmp file path.
+            $writer->openToFile($outputPath); 
+
+            $outputs = array_map(function($output){
+                return array_map(function($o){
+                    if($o instanceof \Carbon\Carbon){
+                        $o = $o->__toString();
+                    }
+                    return WriterEntityFactory::createCell($o); 
+                }, $output);
+            }, $outputs);
+
+            // set sheet name and create
+            if($writer instanceof \Box\Spout\Writer\XLSX\Writer)
+            {
+                if($index == 0)
+                {
+                    $sheet = $writer->getCurrentSheet();
+                }
+                else{
+                    $sheet = $writer->addNewSheetAndMakeItCurrent();
+                }
+                $sheet->setName($sheet_name);
+            }
+
+            foreach($outputs as $output){
+                $writer->addRow(WriterEntityFactory::createRow($output));
+            }
 
             // set autosize
             if (count($outputs) > 0) {
-                // convert folmula cell to string
-                $highestRow = $sheet->getHighestRow();
-                $highestColumn = $sheet->getHighestColumn();
-                $highestColumnIndex = Cell\Coordinate::columnIndexFromString($highestColumn);
-                for ($row = 1; $row <= $highestRow; ++$row) {
-                    for ($col = 1; $col <= $highestColumnIndex; ++$col) {
-                        $cell = $sheet->getCellByColumnAndRow($col, $row);
-                        if (strpos($cell->getValue(), '=') === 0) {
-                            $cell->setDataType(Cell\DataType::TYPE_STRING);
-                        }
-                    }
-                }
-                $counts = count($outputs[0]);
-                for ($i = 0; $i < $counts; $i++) {
-                    $sheet->getColumnDimension(getCellAlphabet($i + 1))->setAutoSize(true);
-                }
+                // // convert folmula cell to string
+                // $highestRow = $sheet->getHighestRow();
+                // $highestColumn = $sheet->getHighestColumn();
+                // $highestColumnIndex = Cell\Coordinate::columnIndexFromString($highestColumn);
+                // for ($row = 1; $row <= $highestRow; ++$row) {
+                //     for ($col = 1; $col <= $highestColumnIndex; ++$col) {
+                //         $cell = $sheet->getCellByColumnAndRow($col, $row);
+                //         if (strpos($cell->getValue(), '=') === 0) {
+                //             $cell->setDataType(Cell\DataType::TYPE_STRING);
+                //         }
+                //     }
+                // }
+                // $counts = count($outputs[0]);
+                // for ($i = 0; $i < $counts; $i++) {
+                //     $sheet->getColumnDimension(getCellAlphabet($i + 1))->setAutoSize(true);
+                // }
             }
 
+            // if output as zip, save file, and new writer
             if ($this->isOutputAsZip()) {
-                $spreadsheet->addSheet($sheet);
-                $spreadsheet->removeSheetByIndex(0);
-                
-                // save file
-                $writer = $this->createWriter($spreadsheet);
-                $writer->save($outputPath);
-
+                $writer->close();
                 $files[] = [
                     'name' => $this->getRealFileName($sheet_name),
                     'path' => $outputPath,
                 ];
-
-                // recreate Spreadsheet
-                $spreadsheet = new Spreadsheet();
+                $writer = $this->createWriter(null);
             } else {
-                $spreadsheet->addSheet($sheet);
             }
         }
 
         if (!$this->isOutputAsZip()) {
-            $spreadsheet->removeSheetByIndex(0);
-            
-            $writer = $this->createWriter($spreadsheet);
-            $writer->save($outputPath);
+            $writer->close();
             $files[] = [
                 'name' => $this->getFileName(),
                 'path' => $outputPath,

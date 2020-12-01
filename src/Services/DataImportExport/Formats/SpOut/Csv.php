@@ -1,13 +1,14 @@
 <?php
 
-namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
+namespace Exceedone\Exment\Services\DataImportExport\Formats\SpOut;
 
 use Illuminate\Http\Request;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 use Exceedone\Exment\Model\Define;
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use \File;
 
-class Csv extends PhpSpreadSheet
+class Csv extends SpOut
 {
     protected $accept_extension = 'csv,zip';
 
@@ -134,27 +135,9 @@ class Csv extends PhpSpreadSheet
         if(!is_null($this->output_aszip)){
             return $this->output_aszip;
         }
-
-        // check relations
         return count($this->datalist) > 1;
     }
-    
-    
 
-    protected function createWriter($spreadsheet)
-    {
-        $writer = IOFactory::createWriter($spreadsheet, 'Csv');
-        // append bom if config
-        if (boolval(config('exment.export_append_csv_bom', false))) {
-            $writer->setUseBOM(true);
-        }
-        return $writer;
-    }
-    
-    protected function createReader()
-    {
-        return IOFactory::createReader('Csv');
-    }
 
     /**
      * Get all csv's row count
@@ -201,5 +184,17 @@ class Csv extends PhpSpreadSheet
         setlocale(LC_CTYPE, $original_locale);
 
         return $array;
+    }
+
+    
+    protected function createWriter($spreadsheet)
+    {
+        return WriterEntityFactory::createCSVWriter();
+    }
+
+    
+    protected function createReader()
+    {
+        return ReaderEntityFactory::createCSVReader();
     }
 }

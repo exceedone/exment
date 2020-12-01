@@ -374,7 +374,7 @@ class Exment
      */
     public function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
     {
-        $format = FormatBase::getFormatClass('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET);
+        $format = FormatBase::getFormatClass('xlsx', false);
         return $format->getDataFromSheet($sheet, $skip_excel_row_no, $keyvalue, $isGetMerge);
     }
 
@@ -554,5 +554,24 @@ class Exment
     {
         $basePath = ltrim(admin_base_path(), '/');
         return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
+    }
+
+    
+    /**
+     * get tmp folder path. Uses for
+     * @param string $type "plugin", "template", "backup", "data".
+     */
+    public function getTmpFolderPath($type, $fullpath = true)
+    {
+        $path = path_join('tmp', $type, short_uuid());
+        if (!$fullpath) {
+            return $path;
+        }
+        $tmppath = getFullpath($path, Define::DISKNAME_ADMIN_TMP);
+        if (!\File::exists($tmppath)) {
+            \File::makeDirectory($tmppath, 0755, true);
+        }
+
+        return $tmppath;
     }
 }
