@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\ColumnItems\ParentItem;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
@@ -113,9 +114,9 @@ class DataImportExportService extends AbstractExporter
         return $format;
     }
     
-    protected function getFormatClass(bool $isExport) : FormatBase
+    protected function getFormatClass(string $library, bool $isExport) : FormatBase
     {
-        return FormatBase::getFormatClass($this->format, $isExport);
+        return FormatBase::getFormatClass($this->format, $library, $isExport);
     }
 
     public function importAction($importAction)
@@ -153,7 +154,7 @@ class DataImportExportService extends AbstractExporter
     {
         setTimeLimitLong();
 
-        $formatObj = $this->getFormatClass(true);
+        $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, true);
 
         // get export action type
         $action = request()->get('action');
@@ -184,7 +185,7 @@ class DataImportExportService extends AbstractExporter
     {
         setTimeLimitLong();
 
-        $formatObj = $this->getFormatClass(false);
+        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
 
         // validate request
         if (!($errors = $this->validateRequest($request))) {
@@ -248,8 +249,10 @@ class DataImportExportService extends AbstractExporter
     {
         setTimeLimitLong();
 
-        $formatObj = $this->getFormatClass(false);
-        $formatObj->filebasename($this->filebasename);
+        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
+        $formatObj
+            ->background()
+            ->filebasename($this->filebasename);
 
         // get table data
         if (method_exists($this->importAction, 'getDataTable')) {
@@ -276,7 +279,7 @@ class DataImportExportService extends AbstractExporter
     public function exportBackground(array $options = [])
     {
         setTimeLimitLong();
-        $formatObj = $this->getFormatClass(true);
+        $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, true);
 
         if ($options['action'] == 'view' && isset($this->viewExportAction)) {
             $datalist = $this->viewExportAction->datalist();
@@ -286,6 +289,7 @@ class DataImportExportService extends AbstractExporter
 
         $files = $formatObj
             ->output_aszip(false)
+            ->background()
             ->datalist($datalist)
             ->filebasename($this->filebasename() ?? $this->exportAction->filebasename())
             ->createFile();
@@ -340,7 +344,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function validateRequest($request)
     {
-        $formatObj = $this->getFormatClass(false);
+        $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, false);
 
         if (!($request instanceof Request)) {
             return true;

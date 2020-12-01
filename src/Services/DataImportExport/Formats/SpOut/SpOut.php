@@ -18,8 +18,8 @@ abstract class SpOut extends FormatBase
     {
         // define writers. if zip, set as array.
         $files = [];
-
         $sheet_name = null;
+        $outputPath = null;
 
         // create excel
         $writer = $this->createWriter(null);
@@ -164,7 +164,7 @@ abstract class SpOut extends FormatBase
     /**
      * get cell value
      *
-     * @param Box\Spout\Common\Entity\Cell $cell
+     * @param \Box\Spout\Common\Entity\Cell $cell
      * @param SheetInterface $sheet
      * @param boolean $isGetMerge
      * @return mixed

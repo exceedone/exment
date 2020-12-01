@@ -15,11 +15,6 @@ class Xlsx extends PhpSpreadSheet
         return 'xlsx';
     }
 
-    public function getFileName()
-    {
-        return $this->filebasename.date('YmdHis'). ".xlsx";
-    }
-
     /**
      * get data table list. contains self table, and relations (if contains)
      */
@@ -58,14 +53,7 @@ class Xlsx extends PhpSpreadSheet
     protected function _getData($request, $callback)
     {
         // get file
-        if ($request instanceof Request) {
-            $file = $request->file('custom_table_file');
-            $path = $file->getRealPath();
-        } elseif ($request instanceof SplFileInfo) {
-            $path = $request->getPathName();
-        } else {
-            $path = $request;
-        }
+        list($path, $extension, $originalName) = $this->getFileInfo($request);
         
         $reader = $this->createReader();
         $spreadsheet = $reader->load($path);

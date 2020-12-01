@@ -101,6 +101,7 @@ class ImportCommand extends Command
                 }
             }
         } catch (\Exception $e) {
+            \Log::error($e);
             $this->error($e->getMessage());
             return -1;
         }

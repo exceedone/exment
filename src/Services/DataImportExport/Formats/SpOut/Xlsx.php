@@ -17,12 +17,7 @@ class Xlsx extends SpOut
         return 'xlsx';
     }
 
-    public function getFileName()
-    {
-        return $this->filebasename.date('YmdHis'). ".xlsx";
-    }
-
-
+    
     /**
      * get data table list. contains self table, and relations (if contains)
      */
@@ -61,15 +56,7 @@ class Xlsx extends SpOut
 
     protected function _getData($request, $callback)
     {
-        // get file
-        if ($request instanceof Request) {
-            $file = $request->file('custom_table_file');
-            $path = $file->getRealPath();
-        } elseif ($request instanceof SplFileInfo) {
-            $path = $request->getPathName();
-        } else {
-            $path = $request;
-        }
+        list($path, $extension, $originalName) = $this->getFileInfo($request);
         
         $reader = $this->createReader();
         $reader->open($path);
@@ -112,11 +99,20 @@ class Xlsx extends SpOut
         return false;
     }
     
+
+    
+    /**
+     * @return \Box\Spout\Writer\XLSX\Writer
+     */
     protected function createWriter($spreadsheet)
     {
         return WriterEntityFactory::createXLSXWriter();
     }
     
+    
+    /**
+     * @return \Box\Spout\Reader\XLSX\Reader
+     */
     protected function createReader()
     {
         return ReaderEntityFactory::createXLSXReader();

@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Formats\SpOut;
 
-use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
@@ -17,10 +16,6 @@ class Csv extends SpOut
         return 'csv';
     }
 
-    public function getFileName()
-    {
-        return $this->filebasename.date('YmdHis'). ($this->isOutputAsZip() ? ".zip" : ".csv");
-    }
     
     public function getDataTable($request, array $options = [])
     {
@@ -66,20 +61,7 @@ class Csv extends SpOut
     protected function _getData($request, $callbackZip, $callbackDefault)
     {
         // get file
-        if ($request instanceof Request) {
-            $file = $request->file('custom_table_file');
-            $path = $file->getRealPath();
-            $extension = $file->extension();
-            $originalName = $file->getClientOriginalName();
-        } elseif ($request instanceof \SplFileInfo) {
-            $path = $request->getPathName();
-            $extension = pathinfo($path)['extension'];
-            $originalName = pathinfo($path, PATHINFO_BASENAME);
-        } else {
-            $path = $request;
-            $extension = pathinfo($path)['extension'];
-            $originalName = pathinfo($path, PATHINFO_BASENAME);
-        }
+        list($path, $extension, $originalName) = $this->getFileInfo($request);
 
         // if zip, extract
         if ($extension == 'zip' && isset($file)) {
@@ -175,10 +157,23 @@ class Csv extends SpOut
         }
 
         $reader = $this->createReader();
-        $reader->setInputEncoding('UTF-8');
-        $reader->setDelimiter(",");
-        $spreadsheet = $reader->load($file);
-        $array = $spreadsheet->getActiveSheet()->toArray();
+        $reader->setEncoding('UTF-8');
+        $reader->setFieldDelimiter(",");
+        $reader->open($file);
+
+        $array = [];
+        foreach ($reader->getSheetIterator() as $sheet) {
+            foreach ($sheet->getRowIterator() as $row) {
+                // do stuff with the row
+                $cells = $row->getCells();
+                $array[] = collect($cells)->map(function($cell) use($sheet){
+                    return $this->getCellValue($cell, $sheet);
+                })->toArray();
+            }
+
+            // only get first row.
+            break;
+        }
 
         // revert to original locale
         setlocale(LC_CTYPE, $original_locale);
@@ -187,12 +182,18 @@ class Csv extends SpOut
     }
 
     
+    /**
+     * @return \Box\Spout\Writer\CSV\Writer
+     */
     protected function createWriter($spreadsheet)
     {
         return WriterEntityFactory::createCSVWriter();
     }
 
     
+    /**
+     * @return \Box\Spout\Reader\CSV\Reader
+     */
     protected function createReader()
     {
         return ReaderEntityFactory::createCSVReader();

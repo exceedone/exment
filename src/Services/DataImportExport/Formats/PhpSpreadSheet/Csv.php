@@ -16,10 +16,6 @@ class Csv extends PhpSpreadSheet
         return 'csv';
     }
 
-    public function getFileName()
-    {
-        return $this->filebasename.date('YmdHis'). ($this->isOutputAsZip() ? ".zip" : ".csv");
-    }
     
     public function getDataTable($request, array $options = [])
     {
@@ -65,20 +61,7 @@ class Csv extends PhpSpreadSheet
     protected function _getData($request, $callbackZip, $callbackDefault)
     {
         // get file
-        if ($request instanceof Request) {
-            $file = $request->file('custom_table_file');
-            $path = $file->getRealPath();
-            $extension = $file->extension();
-            $originalName = $file->getClientOriginalName();
-        } elseif ($request instanceof \SplFileInfo) {
-            $path = $request->getPathName();
-            $extension = pathinfo($path)['extension'];
-            $originalName = pathinfo($path, PATHINFO_BASENAME);
-        } else {
-            $path = $request;
-            $extension = pathinfo($path)['extension'];
-            $originalName = pathinfo($path, PATHINFO_BASENAME);
-        }
+        list($path, $extension, $originalName) = $this->getFileInfo($request);
 
         // if zip, extract
         if ($extension == 'zip' && isset($file)) {

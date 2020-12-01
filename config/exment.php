@@ -677,7 +677,7 @@ return [
     | export data library, default is PHP SPREAT SHEET
     |
     */
-    'export_library' => env('EXMENT_EXPORT_LIBRARY', 'PHP_SPREAD_SHEET'),
+    'export_library' => env('EXMENT_EXPORT_LIBRARY'),
 
     /*
     |--------------------------------------------------------------------------
@@ -687,7 +687,7 @@ return [
     | import data library, default is SPOUT
     |
     */
-    'import_library' => env('EXMENT_IMPORT_LIBRARY', 'SP_OUT'),
+    'import_library' => env('EXMENT_IMPORT_LIBRARY'),
 
     /*
     |--------------------------------------------------------------------------

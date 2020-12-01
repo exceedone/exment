@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\DataImportExport\Formats;
 
 use Exceedone\Exment\Enums\ExportImportLibrary;
+use Illuminate\Http\Request;
 
 abstract class FormatBase
 {
@@ -10,6 +11,13 @@ abstract class FormatBase
     protected $filebasename;
     protected $downloadFilePath;
     protected $output_aszip;
+
+    /**
+     * Whether call background 
+     *
+     * @var bool
+     */
+    protected $isBackground = false;
     
     protected $extension = '*';
     protected $accept_extension = '*';
@@ -51,6 +59,12 @@ abstract class FormatBase
     public function accept_extension()
     {
         return $this->accept_extension;
+    }
+
+    public function background()
+    {
+        $this->isBackground = true;
+        return $this;
     }
 
     /**
@@ -102,6 +116,29 @@ abstract class FormatBase
         return $name . '.' . $this->getFormat();
     }
 
+    /**
+     * Get file name for download
+     *
+     * @return string
+     */
+    public function getFileName() : string
+    {
+        $fileName = $this->filebasename;
+
+        if(!$this->isBackground){
+            $fileName .= date('YmdHis');
+        }
+        $fileName .= ".";
+
+        if($this->isOutputAsZip()){
+            $fileName .= "zip";
+        }
+        else{
+            $fileName .= $this->getFormat();
+        }
+        return $fileName;
+    }
+    
 
     /**
      * Get DownloadFilePath
@@ -163,14 +200,25 @@ abstract class FormatBase
         ], $options);
     }
 
-    
-    public static function getFormatClass(?string $format, bool $isExport) : FormatBase
+    /**
+     * Get format class(SpOut\Xlsx, PhpSpreadSheet\Csv, ...)
+     *
+     * @param string|null $format
+     * @param string $library
+     * @param bool $isExport
+     * @return FormatBase
+     */
+    public static function getFormatClass(?string $format, string $library, bool $isExport) : FormatBase
     {
         if($isExport){
-            $library = isMatchString(config('exment.export_library'), 'SP_OUT') ? ExportImportLibrary::SP_OUT : ExportImportLibrary::PHP_SPREAD_SHEET;
+            if(!is_null($config = config('exment.export_library'))){
+                $library = isMatchString($config, 'SP_OUT') ? ExportImportLibrary::SP_OUT : ExportImportLibrary::PHP_SPREAD_SHEET;
+            }
         }
         else{
-            $library = isMatchString(config('exment.import_library'), 'PHP_SPREAD_SHEET') ? ExportImportLibrary::PHP_SPREAD_SHEET : ExportImportLibrary::SP_OUT;
+            if(!is_null($config = config('exment.import_library'))){
+                $library = isMatchString($config, 'PHP_SPREAD_SHEET') ? ExportImportLibrary::PHP_SPREAD_SHEET : ExportImportLibrary::SP_OUT;
+            }
         }
         
         switch ($format) {
@@ -219,6 +267,33 @@ abstract class FormatBase
         }
     }
 
+    /**
+     * Get file, path, name, etc
+     *
+     * @param Request|\SplFileInfo|string $target
+     * @return array [$path, $extension, $originalName];
+     */
+    protected function getFileInfo($target) : array
+    {
+        // get file
+        if ($target instanceof Request) {
+            $file = $target->file('custom_table_file');
+            $path = $file->getRealPath();
+            $extension = $file->extension();
+            $originalName = $file->getClientOriginalName();
+        } elseif ($target instanceof \SplFileInfo) {
+            $path = $target->getPathName();
+            $extension = pathinfo($path)['extension'];
+            $originalName = pathinfo($path, PATHINFO_BASENAME);
+        } else {
+            $path = $target;
+            $extension = pathinfo($path)['extension'];
+            $originalName = pathinfo($path, PATHINFO_BASENAME);
+        }
+
+        return [$path, $extension, $originalName];
+    }
+
 
     protected function deleteTmpDirectory(){
         if($this->tmpdir && \File::exists($this->tmpdir)){
@@ -240,7 +315,6 @@ abstract class FormatBase
     
 
     abstract public function getFormat();
-    abstract public function getFileName();
 
     /**
      * whether this out is as zip.
@@ -249,4 +323,6 @@ abstract class FormatBase
      * @return boolean
      */
     abstract protected function isOutputAsZip();
+    abstract protected function createWriter($spreadsheet);
+    abstract protected function createReader();
 }

@@ -374,7 +374,7 @@ class Exment
      */
     public function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
     {
-        $format = FormatBase::getFormatClass('xlsx', false);
+        $format = FormatBase::getFormatClass('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET, false);
         return $format->getDataFromSheet($sheet, $skip_excel_row_no, $keyvalue, $isGetMerge);
     }
 
@@ -384,7 +384,7 @@ class Exment
      */
     public function getCellValue($cell, $sheet, $isGetMerge = false)
     {
-        $format = FormatBase::getCellValue('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET);
+        $format = FormatBase::getFormatClass('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET, false);
         return $format->getCellValue($cell, $sheet, $isGetMerge);
     }
 
