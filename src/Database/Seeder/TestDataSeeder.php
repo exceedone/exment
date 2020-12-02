@@ -505,7 +505,7 @@ class TestDataSeeder extends Seeder
                             $custom_value->setValue("select", array("foo", "bar", "baz")[rand(0, 2)]);
                             $custom_value->setValue("select_valtext", array("foo", "bar", "baz")[rand(0, 2)]);
                             $custom_value->setValue("select_table", $i);
-                            $custom_value->setValue("select_table_2", $i);
+                            $custom_value->setValue("select_table_2", $i + 10);
                             $custom_value->setValue("select_multiple", $this->getMultipleSelectValue());
                             $custom_value->setValue("select_valtext_multiple", $this->getMultipleSelectValue());
                             $custom_value->setValue("select_table_multiple", $this->getMultipleSelectValue(range(1, 10), 5));

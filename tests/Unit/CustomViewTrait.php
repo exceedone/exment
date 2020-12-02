@@ -1,0 +1,189 @@
+<?php
+namespace Exceedone\Exment\Tests\Unit;
+use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomViewSummary;
+use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Tests\TestDefine;
+
+trait CustomViewTrait
+{
+    protected function getCustomViewData(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
+    {
+        list($custom_view, $data) = $this->getCustomView($options, $view_kind_type);
+
+        return $data;
+    }
+
+    protected function getCustomView(array $options = [], $view_kind_type = ViewKindType::DEFAULT)
+    {
+        $options = array_merge(
+            [
+                'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_ADMIN,
+                'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
+                'condition_join' => 'and',
+                'get_count' => false,
+                'filter_settings' => [],
+                'column_settings' => [],
+                'summary_settings' => [],
+            ], 
+            $options
+        );
+        extract($options);
+
+        // Login user.
+        $this->be(LoginUser::find($login_user_id));
+
+        $custom_table = CustomTable::getEloquent($target_table_name);
+
+        $custom_view = CustomView::create([
+            'custom_table_id' => $custom_table->id,
+            'view_view_name' => $custom_table->table_name . '-view-unittest',
+            'view_type' => ViewType::SYSTEM,
+            'view_kind_type' => $view_kind_type,
+            'options' => ['condition_join' => $condition_join?? 'and'],
+        ]);
+
+        foreach ($column_settings as $index => $column_setting)
+        {
+            $custom_view_column = CustomViewColumn::create($this->getViewColumnInfo(
+                $custom_table, $custom_view, $column_setting, $index
+            ));
+        }
+
+        foreach ($summary_settings as $summary_setting)
+        {
+            $custom_view_summary = CustomViewSummary::create($this->getViewSummaryInfo(
+                $custom_table, $custom_view, $summary_setting
+            ));
+        }
+
+        foreach ($filter_settings as $filter_setting)
+        {
+            $custom_view_filter = CustomViewFilter::create([
+                'custom_view_id' => $custom_view->id,
+                'view_column_type' => $filter_setting['condition_type'] ?? ConditionType::COLUMN,
+                'view_column_table_id' => $custom_table->id,
+                'view_column_target_id' => $this->getTargetColumnId($filter_setting, $custom_table),
+                'view_filter_condition' => $filter_setting['filter_condition']?? null,
+                'view_filter_condition_value_text' => $filter_setting['filter_value_text']?? null,
+                'options' => $filter_setting['options']?? null,
+            ]);
+        }
+
+        $query = $custom_table->getValueModel()->query();
+        if ($view_kind_type == ViewKindType::AGGREGATE) {
+            $grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
+            $data = $grid->getQuery($query)->get();
+        } else {
+            $custom_view->filterModel($query);
+            if ($get_count) {
+                $data = $query->count();
+            } else {
+                $data = $query->get();
+            }
+        }
+
+        return [$custom_view, $data];
+    }
+
+    protected function getTargetColumnId($setting, $custom_table)
+    {
+        if (!isset($setting['condition_type']) || $setting['condition_type'] == ConditionType::COLUMN) {
+            $custom_column = CustomColumn::getEloquent($setting['column_name'], $custom_table);
+            $column_id = $custom_column->id;
+        } else {
+            $column_id = SystemColumn::getOption(['name' => $setting['column_name']])['id'];
+        }
+        return $column_id;
+    }
+
+    protected function getViewSummaryInfo($custom_table, $custom_view, $column_setting)
+    {
+        $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
+        $options['view_summary_condition'] = $column_setting['summary_condition'] ?? SummaryCondition::MAX;
+        return $options;
+    }
+
+    protected function getViewColumnInfo($custom_table, $custom_view, $column_setting, $index)
+    {
+        $options = $this->getViewColumnBase($custom_table, $custom_view, $column_setting);
+        $options['order'] = $column_setting['order']?? $index + 1;
+        return $options;
+    }
+
+    protected function getViewColumnBase($custom_table, $custom_view, $column_setting)
+    {
+        if (isset($column_setting['reference_table'])) {
+            $refer_table = CustomTable::getEloquent($column_setting['reference_table']);
+            $view_column_table_id = $refer_table->id;
+            $view_column_target_id = $this->getTargetColumnId($column_setting, $refer_table);
+            if (isset($column_setting['reference_column'])) {
+                $column_setting['options']['view_pivot_table_id'] = $custom_table->id;
+                $column_setting['options']['view_pivot_column_id'] = $this->getTargetColumnId([
+                    'column_name' => $column_setting['reference_column']
+                ], $custom_table);
+            }
+        } else {
+            $view_column_table_id = $custom_table->id;
+            $view_column_target_id = $this->getTargetColumnId($column_setting, $custom_table);
+        }
+        return [
+            'custom_view_id' => $custom_view->id,
+            'view_column_type' => $column_setting['condition_type'] ?? ConditionType::COLUMN,
+            'view_column_table_id' => $view_column_table_id,
+            'view_column_target_id' => $view_column_target_id,
+            'view_column_name' => $column_setting['view_column_name']?? null,
+            'options' => $column_setting['options']?? null,
+        ];
+    }
+
+    protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
+    {
+        return CustomView::create([
+            'custom_table_id' => $custom_table->id,
+            'view_view_name' => $view_view_name,
+            'view_type' => $view_type,
+            'view_kind_type' => $view_kind_type,
+            'options' => $options,
+        ]);
+    }
+
+    protected function createCustomViewFilter($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $view_filter_condition, $view_filter_condition_value_text = null)
+    {
+        $custom_view_filter = new CustomViewFilter;
+        $custom_view_filter->custom_view_id = $custom_view_id;
+        $custom_view_filter->view_column_type = $view_column_type;
+        $custom_view_filter->view_column_table_id = $view_column_table_id;
+        $custom_view_filter->view_column_target_id = $view_column_target_id;
+        $custom_view_filter->view_filter_condition = $view_filter_condition;
+        $custom_view_filter->view_filter_condition_value_text = $view_filter_condition_value_text;
+        $custom_view_filter->save();
+        return $custom_view_filter;
+    }
+
+
+    /**
+     * Get column id for filter, column, etc
+     *
+     * @param array $setting
+     * @param CustomTable $custom_table
+     * @return string
+     */
+    protected function getColumnId(array $setting, CustomTable $custom_table)
+    {
+        if (!isset($setting['condition_type']) || $setting['condition_type'] == ConditionType::COLUMN) {
+            $custom_column = CustomColumn::getEloquent($setting['column_name'], $custom_table);
+            return $custom_column->id;
+        } else {
+            return SystemColumn::getOption(['name' => $setting['column_name']])['id'];
+        }
+    }
+}
