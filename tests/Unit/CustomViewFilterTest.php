@@ -1936,46 +1936,16 @@ class CustomViewFilterTest extends UnitTestBase
         $options = array_merge(
             [
                 'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_ADMIN,
-                'target_table_name' => null,
                 'filter_settings' => $filter_settings,
             ], 
             $options
         );
 
-        // Login user.
-        $this->be(LoginUser::find($options['login_user_id']));
+        // get custom view data
+        $data = $this->getCustomViewData($options);
 
-        $custom_table = CustomTable::getEloquent($options['target_table_name'] ?? TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-        $custom_view = $this->getCustomView($options);
-
-        $model = $custom_table->getValueModel()->query();
-        $custom_view->filterModel($model);
-        $data = $model->get();
         $this->assertTrue(count($data) > 0, 'data expects over 0, but data count is 0.');
         return $data;
     }
 
-    protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
-    {
-        return CustomView::create([
-            'custom_table_id' => $custom_table->id,
-            'view_view_name' => $view_view_name,
-            'view_type' => $view_type,
-            'view_kind_type' => $view_kind_type,
-            'options' => $options,
-        ]);
-    }
-
-    protected function createCustomViewFilter($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $view_filter_condition, $view_filter_condition_value_text = null)
-    {
-        $custom_view_filter = new CustomViewFilter;
-        $custom_view_filter->custom_view_id = $custom_view_id;
-        $custom_view_filter->view_column_type = $view_column_type;
-        $custom_view_filter->view_column_table_id = $view_column_table_id;
-        $custom_view_filter->view_column_target_id = $view_column_target_id;
-        $custom_view_filter->view_filter_condition = $view_filter_condition;
-        $custom_view_filter->view_filter_condition_value_text = $view_filter_condition_value_text;
-        $custom_view_filter->save();
-        return $custom_view_filter;
-    }
 }

@@ -1,10 +1,17 @@
 <?php
 namespace Exceedone\Exment\Tests\Unit;
+
+use Illuminate\Support\Facades\DB;
 use Encore\Admin\Grid;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Tests\TestDefine;
+
 class CustomViewTest extends UnitTestBase
 {
+    use CustomViewTrait;
+
     public function testFuncGetMatchedCustomView1()
     {
         $array = $this->getData('custom_value_edit_all', 'custom_value_edit_all-view-and');
@@ -24,6 +31,57 @@ class CustomViewTest extends UnitTestBase
         })->count();
         $this->assertTrue($andCount != $array->count());
     }
+
+    /**
+     * show select table id in custom view
+     * -- bug fixed confirm test
+     */
+    public function testFuncSelectTableId()
+    {
+        $this->initAllTest();
+
+        DB::beginTransaction();
+        try {
+            $options = [
+                'column_settings' => [[
+                    'column_name' => 'id',
+                    'condition_type' => ConditionType::SYSTEM,
+                ], [
+                    'reference_table' => 'custom_value_view_all',
+                    'reference_column' => 'select_table',
+                    'condition_type' => ConditionType::SYSTEM,
+                    'column_name' => 'id',
+                ], [
+                    'reference_table' => 'custom_value_edit',
+                    'reference_column' => 'select_table_2',
+                    'condition_type' => ConditionType::SYSTEM,
+                    'column_name' => 'id',
+                ]],
+            ];
+
+            list($custom_view, $array) = $this->getCustomView($options);
+
+            foreach ($custom_view->custom_view_columns as $colno => $custom_view_column) {
+                foreach ($array as $index => $data) {
+                    $text = $custom_view_column->column_item->setCustomValue($data)->text();
+                    switch ($colno) {
+                        case 0:
+                            $this->assertEquals($text, $index + 1);
+                            break;
+                        case 1:
+                            $this->assertEquals($text, ($index % 10) + 1);
+                            break;
+                        case 2:
+                            $this->assertEquals($text, ($index % 10) + 11);
+                            break;
+                        }
+                }
+            }
+        } finally {
+            DB::rollback();
+        }
+    }
+
     protected function getData($table_name, $view_name){
         $this->be(LoginUser::find(1));
         $classname = getModelName($table_name);
