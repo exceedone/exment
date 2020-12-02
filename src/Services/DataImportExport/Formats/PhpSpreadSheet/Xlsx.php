@@ -2,18 +2,14 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
 
-use Symfony\Component\Finder\SplFileInfo;
-use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Exceedone\Exment\Services\DataImportExport\Formats\XlsxTrait;
 
 class Xlsx extends PhpSpreadSheet
 {
-    protected $accept_extension = 'xlsx';
+    use XlsxTrait;
 
-    public function getFormat() : string
-    {
-        return 'xlsx';
-    }
+    protected $accept_extension = 'xlsx';
 
     /**
      * get data table list. contains self table, and relations (if contains)
@@ -39,21 +35,12 @@ class Xlsx extends PhpSpreadSheet
             return $datalist;
         });
     }
-
-    /**
-     * get data table list. contains self table, and relations (if contains)
-     */
-    public function getDataCount($request)
-    {
-        return $this->_getData($request, function ($spreadsheet) {
-            return $this->getRowCount($spreadsheet);
-        });
-    }
+    
 
     protected function _getData($request, $callback)
     {
         // get file
-        list($path, $extension, $originalName) = $this->getFileInfo($request);
+        list($path, $extension, $originalName, $file) = $this->getFileInfo($request);
         
         $reader = $this->createReader();
         $spreadsheet = $reader->load($path);
@@ -86,14 +73,6 @@ class Xlsx extends PhpSpreadSheet
         return $count;
     }
 
-    /**
-     * whether this out is as zip.
-     * This table is parent and contains relation 1:n or n:n.
-     */
-    protected function isOutputAsZip()
-    {
-        return false;
-    }
     
     protected function createWriter($spreadsheet)
     {

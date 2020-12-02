@@ -2,21 +2,16 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Formats\SpOut;
 
-use Symfony\Component\Finder\SplFileInfo;
-use Illuminate\Http\Request;
+use Exceedone\Exment\Services\DataImportExport\Formats\XlsxTrait;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Box\Spout\Reader\ReaderAbstract;
  
 class Xlsx extends SpOut
 {
+    use XlsxTrait;
+    
     protected $accept_extension = 'xlsx';
-
-    public function getFormat() : string
-    {
-        return 'xlsx';
-    }
-
     
     /**
      * get data table list. contains self table, and relations (if contains)
@@ -44,19 +39,10 @@ class Xlsx extends SpOut
         });
     }
 
-    /**
-     * get data table list. contains self table, and relations (if contains)
-     */
-    public function getDataCount($request)
-    {
-        return $this->_getData($request, function (ReaderAbstract $reader) {
-            return $this->getRowCount($reader);
-        });
-    }
 
     protected function _getData($request, $callback)
     {
-        list($path, $extension, $originalName) = $this->getFileInfo($request);
+        list($path, $extension, $originalName, $file) = $this->getFileInfo($request);
         
         $reader = $this->createReader();
         $reader->open($path);
@@ -65,6 +51,7 @@ class Xlsx extends SpOut
         } finally {
         }
     }
+
 
     /**
      * Get all sheet's row count
@@ -87,18 +74,6 @@ class Xlsx extends SpOut
 
         return $count;
     }
-
-
-
-    /**
-     * whether this out is as zip.
-     * This table is parent and contains relation 1:n or n:n.
-     */
-    protected function isOutputAsZip()
-    {
-        return false;
-    }
-    
 
     
     /**

@@ -291,7 +291,7 @@ abstract class FormatBase
             $originalName = pathinfo($path, PATHINFO_BASENAME);
         }
 
-        return [$path, $extension, $originalName];
+        return [$path, $extension, $originalName, $file ?? null];
     }
 
 
