@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Tests\Unit;
 use Illuminate\Support\Facades\Notification;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
@@ -385,18 +387,18 @@ class NotifyTest extends UnitTestBase
             });
     }
 
-    Notify target test ----------------------------------------------------
+    // Notify target test ----------------------------------------------------
 
     /**
      * @return void
      */
     public function testNotifyTargetCreatedUser()
     {
-        $this->_testNotifyTarget(NotifyActionTarget::CREATED_USER, function($targets, $custom_value){
+        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::CREATED_USER, function($targets, $custom_value){
             $user = CustomTable::getEloquent('user')->getValueModel($custom_value->created_user_id);
             $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
             $this->assertTrue(isMatchString($user->getValue('email'), $targets[0]->email()), 'Expects  email is ' . $user->getValue('email') . ' , but result is ' . $targets[0]->email());
-        }, CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT));
+        });
 
     }
 
@@ -406,7 +408,7 @@ class NotifyTest extends UnitTestBase
      */
     public function testNotifyTargetHasRoles()
     {
-        $this->_testNotifyTarget(NotifyActionTarget::HAS_ROLES, function($targets, $custom_value){
+        $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::HAS_ROLES, function($targets, $custom_value){
             $users = $this->callStaticProtectedMethod(NotifyTarget::class, 'getModelsAsRole', $custom_value);
             $this->assertTrue(count($targets) == count($users), 'targets count is ' . count($targets) . ', but users count is ' . count($users));
 
@@ -420,7 +422,7 @@ class NotifyTest extends UnitTestBase
                     return isMatchString($user->email(), $target->email());
                 }));
             }
-        }, CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT));
+        });
     }
 
 
@@ -435,19 +437,38 @@ class NotifyTest extends UnitTestBase
             return $custom_column->column_type == 'email';
         });
 
-        $this->_testNotifyTarget($email_column, function($targets, $custom_value) use($email_column){
+        $this->_testNotifyTarget($custom_table, $email_column, function($targets, $custom_value) use($email_column){
             $email = $custom_value->getValue($email_column);
             $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
             $this->assertTrue(isMatchString($email, $targets[0]->email()), 'Expects  email is ' . $email . ' , but result is ' . $targets[0]->email());
-        }, $custom_table);
+        });
     }
-
 
 
     /**
      * @return void
      */
-    protected function _testNotifyTarget($notify_action_target, \Closure $checkCallback, CustomTable $custom_table)
+    public function testNotifyTargetUser()
+    {
+        // get email column
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $user_column = $custom_table->custom_columns_cache->first(function($custom_column){
+            return $custom_column->column_type == ColumnType::USER && !($custom_column->getOption('multiple_enabled') ?? false);
+        });
+
+        $this->_testNotifyTarget($custom_table, $user_column, function($targets, $custom_value) use($user_column){
+            $user = $custom_value->getValue($user_column);
+            $email = $user->getValue('email');
+            $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
+            $this->assertTrue(isMatchString($email, $targets[0]->email()), 'Expects  email is ' . $email . ' , but result is ' . $targets[0]->email());
+        });
+    }
+
+
+    /**
+     * @return void
+     */
+    protected function _testNotifyTarget(CustomTable $custom_table, $notify_action_target, \Closure $checkCallback)
     {
         $this->init(true);
 
