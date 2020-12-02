@@ -493,6 +493,7 @@ class TestDataSeeder extends Seeder
                             $custom_value->setValue("text", rand(0, 1) == 0? null: 'text_'.$i);
                             $custom_value->setValue("user", (rand(0, 5) == 0 ? null : $user_id));
                             $custom_value->setValue("organization", rand(1, 7));
+                            $custom_value->setValue("email", "foovartest{$i}@test.com.test");
                             $custom_value->setValue("yesno", rand(0, 1));
                             $custom_value->setValue("boolean", (rand(0, 3) == 0 ? 'ng' : 'ok'));
                             $custom_value->setValue("date", $this->getDateValue($user_id, $i));

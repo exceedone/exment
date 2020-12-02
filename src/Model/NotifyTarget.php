@@ -122,9 +122,12 @@ class NotifyTarget
 
 
     /**
-     * get models
+     * Get notify target models
      *
-     * @return Collection
+     * @param Notify $notify
+     * @param CustomValue $custom_value
+     * @param string $column NotifyActionTarget or custom column id.
+     * @return array Notify targets
      */
     public static function getModels(Notify $notify, CustomValue $custom_value, $column)
     {
