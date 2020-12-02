@@ -63,7 +63,10 @@ class CustomViewTest extends UnitTestBase
 
             foreach ($custom_view->custom_view_columns as $colno => $custom_view_column) {
                 foreach ($array as $index => $data) {
-                    $text = $custom_view_column->column_item->setCustomValue($data)->text();
+                    $text = $custom_view_column->column_item->options([
+                        'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
+                        'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
+                    ])->setCustomValue($data)->text();
                     switch ($colno) {
                         case 0:
                             $this->assertEquals($text, $index + 1);
