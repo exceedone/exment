@@ -505,6 +505,7 @@ class TestDataSeeder extends Seeder
                             $custom_value->setValue("select", array("foo", "bar", "baz")[rand(0, 2)]);
                             $custom_value->setValue("select_valtext", array("foo", "bar", "baz")[rand(0, 2)]);
                             $custom_value->setValue("select_table", $i);
+                            $custom_value->setValue("select_table_2", $i);
                             $custom_value->setValue("select_multiple", $this->getMultipleSelectValue());
                             $custom_value->setValue("select_valtext_multiple", $this->getMultipleSelectValue());
                             $custom_value->setValue("select_table_multiple", $this->getMultipleSelectValue(range(1, 10), 5));
@@ -733,6 +734,7 @@ class TestDataSeeder extends Seeder
                 ['column_name' => 'integer', 'column_view_name' => 'integer', 'column_type' => ColumnType::INTEGER, 'options' => []],
                 ['column_name' => 'currency', 'column_view_name' => 'currency', 'column_type' => ColumnType::CURRENCY, 'options' => ['currency_symbol' => 'JPY1']],
                 ['column_name' => 'init_text', 'column_view_name' => 'init_text', 'column_type' => ColumnType::TEXT, 'options' => ['init_only' => '1']],
+                ['column_name' => 'email', 'column_view_name' => 'email', 'column_type' => ColumnType::EMAIL, 'options' => []],
             ];
     
             foreach ($columns as $column) {
@@ -871,6 +873,7 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("init_text", 'init_text');
                 $custom_value->setValue("integer", rand(0, 1000));
                 $custom_value->setValue("currency", rand(0, 1000) * 100);
+                $custom_value->setValue("email", "foovartest{$i}@test.com.test");
                 $custom_value->created_user_id = $user_id;
                 $custom_value->updated_user_id = $user_id;
 

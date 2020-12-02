@@ -468,6 +468,58 @@ class NotifyTest extends UnitTestBase
     /**
      * @return void
      */
+    public function testNotifyTargetOrganization()
+    {
+        // get email column
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $org_column = $custom_table->custom_columns_cache->first(function($custom_column){
+            return $custom_column->column_type == ColumnType::ORGANIZATION && !($custom_column->getOption('multiple_enabled') ?? false);
+        });
+
+        $this->_testNotifyTarget($custom_table, $org_column, function($targets, $custom_value) use($org_column){
+            $org = $custom_value->getValue($org_column);
+            $users = $org->users;
+
+            foreach($users as $user){
+                $this->assertTrue(collect($targets)->contains(function($target) use($user){
+                    return isMatchString($user->getValue('email'), $target->email());
+                }));
+            }
+            foreach($targets as $target){
+                $this->assertTrue(collect($users)->contains(function($user) use($target){
+                    return isMatchString($user->getValue('email'), $target->email());
+                }));
+            }
+        });
+    }
+
+    
+
+    /**
+     * @return void
+     */
+    public function testNotifyTargetSelectTable()
+    {
+        // get email column
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
+        $select_table_column = $custom_table->custom_columns_cache->first(function($custom_column){
+            return $custom_column->column_name == 'select_table_2';
+        });
+
+        $this->_testNotifyTarget($custom_table, $select_table_column, function($targets, $custom_value) use($select_table_column){
+            $select_table_value = $custom_value->getValue($select_table_column);
+            $email = $select_table_value->getValue('email');
+
+            $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
+            $this->assertTrue(isMatchString($email, $targets[0]->email()), 'Expects  email is ' . $email . ' , but result is ' . $targets[0]->email());
+        });
+    }
+
+    
+
+    /**
+     * @return void
+     */
     protected function _testNotifyTarget(CustomTable $custom_table, $notify_action_target, \Closure $checkCallback)
     {
         $this->init(true);
