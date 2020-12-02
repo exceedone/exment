@@ -116,7 +116,7 @@ class Csv extends PhpSpreadSheet
         $reader->setInputEncoding('UTF-8');
         $reader->setDelimiter(",");
         $spreadsheet = $reader->load($file);
-        $array = $spreadsheet->getActiveSheet()->toArray();
+        $array = $this->getDataFromSheet($spreadsheet->getActiveSheet());
 
         // revert to original locale
         setlocale(LC_CTYPE, $original_locale);

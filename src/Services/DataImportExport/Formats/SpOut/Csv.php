@@ -61,15 +61,8 @@ class Csv extends SpOut
 
         $array = [];
         foreach ($reader->getSheetIterator() as $sheet) {
-            foreach ($sheet->getRowIterator() as $row) {
-                // do stuff with the row
-                $cells = $row->getCells();
-                $array[] = collect($cells)->map(function($cell) use($sheet){
-                    return $this->getCellValue($cell, $sheet);
-                })->toArray();
-            }
-
-            // only get first row.
+            $array = $this->getDataFromSheet($sheet);
+            // csv is only get first sheet.
             break;
         }
 

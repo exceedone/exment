@@ -294,7 +294,11 @@ abstract class FormatBase
         return [$path, $extension, $originalName, $file ?? null];
     }
 
-
+    /**
+     * delete tmp directory. Calls after response or file save.
+     *
+     * @return void
+     */
     protected function deleteTmpDirectory(){
         if($this->tmpdir && \File::exists($this->tmpdir)){
             try{
@@ -304,7 +308,55 @@ abstract class FormatBase
             }
         }
     }
+
     
+    /**
+     * Whether this sheet row reads.
+     *
+     * @param integer $sheet_row_no
+     * @param array $options
+     * @return boolean
+     */
+    protected function isReadSheetRow(int $sheet_row_no, array $options = []) : bool
+    {
+        // get options
+        list($header_row, $start, $end, $skip_excel_row_no) = [
+            array_get($options, 'header_row'), 
+            array_get($options, 'start'), 
+            array_get($options, 'end'),
+            array_get($options, 'skip_excel_row_no'),
+        ];
+
+        // if has header_row option and $sheet_row_no is under $header_row, 
+        // this row has to read, so return true;
+        if(!is_null($header_row) && $sheet_row_no <= $header_row){
+            return true;
+        }
+
+        // if has skip_excel_row_no option and $sheet_row_no is under $header_row, 
+        // this row has to skip, so return false;
+        if(!is_null($skip_excel_row_no) && $sheet_row_no <= $skip_excel_row_no){
+            return false;
+        }
+
+        // get data row no
+        $data_row_no = $sheet_row_no - ($header_row ?? 0);
+        
+        // if has start option and $data_row_no is under $start, 
+        // this row has to skip, so return false;
+        if(!is_null($start) && $data_row_no < $start){
+            return false;
+        }
+
+        // if has end option and $data_row_no is under $start, 
+        // this row has to skip, so return false;
+        if(!is_null($end) && $data_row_no > $end){
+            return false;
+        }
+
+        return true;
+    }
+
 
 
     /**

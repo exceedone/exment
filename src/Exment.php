@@ -372,10 +372,10 @@ class Exment
     /**
      * get Data from excel sheet
      */
-    public function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
+    public function getDataFromSheet($sheet, $keyvalue = false, $isGetMerge = false)
     {
         $format = FormatBase::getFormatClass('xlsx', ExportImportLibrary::PHP_SPREAD_SHEET, false);
-        return $format->getDataFromSheet($sheet, $skip_excel_row_no, $keyvalue, $isGetMerge);
+        return $format->getDataFromSheet($sheet, $keyvalue, $isGetMerge);
     }
 
 

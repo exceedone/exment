@@ -338,7 +338,7 @@ class TemplateImporter
                 continue;
             }
 
-            $data = $format->getDataFromSheet($sheet, 2, true, true);
+            $data = $format->getDataFromSheet($sheet, true, true, ['skip_excel_row_no' => 2]);
             // set config json
             $settings[$sheetname] = $data;
         }

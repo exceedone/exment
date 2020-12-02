@@ -105,12 +105,11 @@ abstract class PhpSpreadSheet extends FormatBase
      * @param boolean $isGetMerge
      * @return array
      */
-    public function getDataFromSheet($sheet, int $skip_excel_row_no = 0, bool $keyvalue = false, bool $isGetMerge = false) : array
+    public function getDataFromSheet($sheet, bool $keyvalue = false, bool $isGetMerge = false, array $options = []) : array
     {
         $data = [];
         foreach ($sheet->getRowIterator() as $row_no => $row) {
-            // if index < $skip_excel_row_no, conitnue
-            if ($row_no <= $skip_excel_row_no) {
+            if(!$this->isReadSheetRow($row_no, $options)){
                 continue;
             }
 

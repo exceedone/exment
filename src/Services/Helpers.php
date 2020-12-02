@@ -1452,9 +1452,9 @@ if (!function_exists('getDataFromSheet')) {
     /**
      * get Data from excel sheet
      */
-    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
+    function getDataFromSheet($sheet, $keyvalue = false, $isGetMerge = false)
     {
-        return \Exment::getDataFromSheet($sheet, $skip_excel_row_no, $keyvalue, $isGetMerge);
+        return \Exment::getDataFromSheet($sheet, $keyvalue, $isGetMerge);
     }
 }
 
