@@ -90,14 +90,14 @@ class ImportCommand extends Command
                     ))
                     ->format($format);
 
-                $result = $service->importBackground($file->getRealPath(), [
+                // Execute import. Show message executes in service.
+                $result = $service->importBackground($this, $file_name, $file->getRealPath(), [
                     'checkCount' => false,  // whether checking count
                     'take' => 100           // if set, taking data count
                 ]);
-
-                $message = array_get($result, 'message');
-                if (!empty($message)) {
-                    $this->line($message);
+                
+                if(boolval($result['result'] ?? true)){
+                    $this->line(($index + 1) . exmtrans('command.import.success_message', $file_name, array_get($result, 'data_import_cnt')));
                 }
             }
         } catch (\Exception $e) {

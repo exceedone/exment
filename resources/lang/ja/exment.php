@@ -2074,9 +2074,11 @@ return [
     'command' => [
         'import' => [
             'file_count' => '該当ファイル数：',
-            'file_info' => '件目 実施開始 ファイル:{%s}',
+            'file_info' => '件目 実施開始 ファイル：%s',
+            'file_row_info' => '    - 取込開始 ファイル：%s 行：%s-%s',
+            'file_row_error' => '   - 取込時にエラーが発生しました。 ファイル：%s 対象行：%s-%s エラー：%s',
             'error_info' => 'エラー情報：',
-            'success_message' => 'インポートに成功しました。件数：{%s}',
+            'success_message' => '件目 実施完了 ファイル：%s 件数：%s',
             'error_table' => '対象のテーブル{%s}が見つかりません。',
             'error_info_ex' => '処理の途中でエラーが発生しました。既に取込済のデータが存在します。{%s}',
         ],

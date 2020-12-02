@@ -47,6 +47,8 @@ class CustomTableAction implements ActionInterface
     public function importChunk($datalist, $options = [])
     {
         $messages = [];
+        $isImported = false;
+        $data_import_cnt = 0;
 
         foreach ($datalist as $table_name => &$data) {
             if ($table_name == Define::SETTING_SHEET_NAME) {
@@ -64,58 +66,68 @@ class CustomTableAction implements ActionInterface
                 continue;
             }
 
-            $get_index = 0;
-            $data_import_cnt = 0;
 
-            while (true) {
-                $options = array_merge($options, [
-                    'get_index' => $get_index,
-                ]);
-                // get target data and model list
-                $dataObject = $provider->getDataObject($data, $options);
+            // get target data and model list
+            $dataObject = $provider->getDataObject($data, $options);
 
-                if (empty($dataObject)) {
-                    break;
-                }
-
-                // validate data
-                list($data_import, $error_data) = $provider->validateImportData($dataObject);
-            
-                // if has error data, return error data
-                if (is_array($error_data) && count($error_data) > 0) {
-                    $error_msg = [];
-                    if ($data_import_cnt > 0) {
-                        $messages[] = $table_name.':'.$data_import_cnt;
-                    }
-                    if (count($messages) > 0) {
-                        $error_msg[] = exmtrans('command.import.error_info_ex', implode(',', $messages));
-                    }
-                    $error_msg[] = exmtrans('command.import.error_info');
-                    $error_msg[] = implode("\r\n", $error_data);
-                    return [
-                        'result' => false,
-                        'message' => implode("\r\n", $error_msg)
-                    ];
-                }
-
-                foreach ($data_import as $index => &$row) {
-                    // call dataProcessing if method exists
-                    if (method_exists($provider, 'dataProcessing')) {
-                        $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
-                    }
-
-                    $provider->importData($row);
-                }
-
-                $get_index++;
-                $data_import_cnt += count($data_import);
+            if (empty($dataObject)) {
+                break;
             }
-            $messages[] = $table_name.':'.$data_import_cnt;
+
+            // execute command
+            if(isset($options['command'])){
+                $options['command']->line(exmtrans('command.import.file_row_info', $options['file_name'] ?? null, $options['row_start'] ?? null, $options['row_end'] ?? null));
+            }
+
+            // validate data
+            list($data_import, $error_data) = $provider->validateImportData($dataObject);
+        
+            // if has error data, return error data
+            if (is_array($error_data) && count($error_data) > 0) {
+                $error_msg = [];
+                if ($data_import_cnt > 0) {
+                    $messages[] = $table_name.':'.$data_import_cnt;
+                }
+                if (count($messages) > 0) {
+                    $error_msg[] = exmtrans('command.import.error_info_ex', implode(',', $messages));
+                }
+                $error_msg[] = exmtrans('command.import.error_info');
+                $error_msg[] = implode("\r\n", $error_data);
+                    
+                // execute command
+                if(isset($options['command'])){
+                    $options['command']->error(exmtrans('command.import.file_row_error', 
+                        $options['file_name'] ?? null, 
+                        $options['start'] ?? null, 
+                        $options['end'] ?? null,
+                        implode("\r\n", $error_msg)
+                    ));
+                }
+                
+                return [
+                    'result' => false,
+                    'isImported' => $isImported,
+                ];
+            }
+
+            foreach ($data_import as $index => &$row) {
+                // call dataProcessing if method exists
+                if (method_exists($provider, 'dataProcessing')) {
+                    $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
+                }
+
+                $provider->importData($row);
+                $isImported = true;
+            }
+
+            // $get_index++;
+            $data_import_cnt += count($data_import);
         }
 
         return [
             'result' => true,
-            'message' => exmtrans('command.import.success_message', implode(',', $messages))
+            'isImported' => $isImported,
+            'data_import_cnt' => $data_import_cnt,
         ];
     }
 

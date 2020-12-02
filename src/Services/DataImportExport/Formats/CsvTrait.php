@@ -26,7 +26,7 @@ trait CsvTrait
             $datalist = [];
             foreach ($files as $csvfile) {
                 $basename = $csvfile->getBasename('.csv');
-                $datalist[$basename] = $this->getCsvArray($csvfile->getRealPath());
+                $datalist[$basename] = $this->getCsvArray($csvfile->getRealPath(), $options);
             }
 
             return $datalist;
@@ -39,7 +39,7 @@ trait CsvTrait
             }
 
             $basename = $this->filebasename;
-            $datalist[$basename] = $this->getCsvArray($path);
+            $datalist[$basename] = $this->getCsvArray($path, $options);
             return $datalist;
         });
     }

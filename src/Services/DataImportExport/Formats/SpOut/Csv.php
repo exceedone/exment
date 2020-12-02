@@ -45,7 +45,7 @@ class Csv extends SpOut
         return $count;
     }
 
-    protected function getCsvArray($file)
+    protected function getCsvArray($file, array $options = [])
     {
         $original_locale = setlocale(LC_CTYPE, 0);
 
@@ -61,7 +61,7 @@ class Csv extends SpOut
 
         $array = [];
         foreach ($reader->getSheetIterator() as $sheet) {
-            $array = $this->getDataFromSheet($sheet);
+            $array = $this->getDataFromSheet($sheet, false, false, $options);
             // csv is only get first sheet.
             break;
         }

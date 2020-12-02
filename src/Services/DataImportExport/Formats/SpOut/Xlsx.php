@@ -32,7 +32,7 @@ class Xlsx extends SpOut
 
             foreach ($reader->getSheetIterator() as $sheet) {
                 $sheetName = $sheet->getName();
-                $datalist[$sheetName] = $this->getDataFromSheet($sheet, false, true);
+                $datalist[$sheetName] = $this->getDataFromSheet($sheet, false, true, $options);
             }
 
             return $datalist;

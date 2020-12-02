@@ -322,8 +322,8 @@ abstract class FormatBase
         // get options
         list($header_row, $start, $end, $skip_excel_row_no) = [
             array_get($options, 'header_row'), 
-            array_get($options, 'start'), 
-            array_get($options, 'end'),
+            array_get($options, 'row_start'), 
+            array_get($options, 'row_end'),
             array_get($options, 'skip_excel_row_no'),
         ];
 
