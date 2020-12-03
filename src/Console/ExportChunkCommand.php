@@ -17,7 +17,7 @@ class ExportChunkCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:chunkexport {table_name} {--action=default} {--start=1} {--end=1000} {--count=1000} {--seqlength=1}  {--format=csv} {--view=} {--dirpath=}';
+    protected $signature = 'exment:chunkexport {table_name} {--action=default} {--start=1} {--end=1000} {--count=1000} {--seqlength=1}  {--delimiter=}  {--format=csv} {--view=} {--dirpath=}';
 
     /**
      * The console command description.
@@ -66,6 +66,7 @@ class ExportChunkCommand extends Command
         $options['start'] = $this->option("start");
         $options['end'] = $this->option("end");
         $options['seqlength'] = $this->option("seqlength");
+        $options['delimiter'] = $this->option("delimiter") ?? '.';
 
         if ($options['count']) {
             if (!preg_match("/^[0-9]+$/", $options['count'])) {
@@ -142,7 +143,7 @@ class ExportChunkCommand extends Command
                     ]
                     ))
                 ->format($options['format'])
-                ->filebasename("{$custom_table->table_name}.{$seq}");
+                ->filebasename("{$custom_table->table_name}{$options['delimiter']}{$seq}");
 
                 $result = $service->exportBackground($options);
 
