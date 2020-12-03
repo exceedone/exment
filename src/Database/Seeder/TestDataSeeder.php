@@ -480,6 +480,7 @@ class TestDataSeeder extends Seeder
                 'createValueCallback' => function ($custom_table, $options) use($users) {
                     $custom_values = [];
                     System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
+                    $index = 0;
                     foreach ($users as $key => $user) {
                         \Auth::guard('admin')->attempt([
                             'username' => $key,
@@ -489,6 +490,7 @@ class TestDataSeeder extends Seeder
                         $user_id = array_get($user, 'id');
             
                         for ($i = 1; $i <= 10; $i++) {
+                            $index++;
                             $custom_value = $custom_table->getValueModel();
                             $custom_value->setValue("text", rand(0, 1) == 0? null: 'text_'.$i);
                             $custom_value->setValue("user", (rand(0, 5) == 0 ? null : $user_id));
@@ -503,8 +505,8 @@ class TestDataSeeder extends Seeder
                             $custom_value->setValue("currency", rand(0, 1000000) / 10);
                             $custom_value->setValue("select", array("foo", "bar", "baz")[rand(0, 2)]);
                             $custom_value->setValue("select_valtext", array("foo", "bar", "baz")[rand(0, 2)]);
-                            $custom_value->setValue("select_table", $i);
-                            $custom_value->setValue("select_table_2", $i + 10);
+                            $custom_value->setValue("select_table", $index);
+                            $custom_value->setValue("select_table_2", ceil($index / 2));
                             $custom_value->setValue("select_multiple", $this->getMultipleSelectValue());
                             $custom_value->setValue("select_valtext_multiple", $this->getMultipleSelectValue());
                             $custom_value->setValue("select_table_multiple", $this->getMultipleSelectValue(range(1, 10), 5));
