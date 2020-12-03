@@ -71,13 +71,10 @@ class ImportCommand extends Command
                 $file_name = $file->getFileName();
                 $this->line(($index + 1) . exmtrans('command.import.file_info', $file_name));
 
-                $table_name = file_ext_strip($file_name);
-                $table_name = preg_replace('/^\d+#/', '', $table_name);
                 $format = file_ext($file_name);
-    
-                $custom_table = CustomTable::getEloquent($table_name);
+                $custom_table = $this->getTableFromFile($file_name);
                 if (!isset($custom_table)) {
-                    $this->line(exmtrans('command.import.error_info'));
+                    $this->error(exmtrans('command.import.error_info') . exmtrans('command.import.error_table', $file_name));
                     continue;
                 }
     
@@ -107,5 +104,37 @@ class ImportCommand extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * Get table from file name.
+     * Support such as:
+     *     information.csv
+     *     information#001.csv
+     *     information.001.csv
+     *
+     * @param string  $file_name
+     * @return CustomTable|null
+     */
+    protected function getTableFromFile(string $file_name) : ?CustomTable
+    {
+        $table_name = file_ext_strip($file_name);
+        // directry same name
+        if (!is_null($custom_table = CustomTable::getEloquent($table_name)))
+        {
+            return $custom_table;
+        }
+
+        // loop for regex
+        $regexes = ['(?<table_name>.+)#\d+', '(?<table_name>.+)\\.\d+'];
+        foreach($regexes as $regex){
+            $match_num = preg_match('/' . $regex . '/u', $table_name, $matches);
+            if($match_num > 0 && !is_null($custom_table = CustomTable::getEloquent($matches['table_name'])))
+            {
+                return $custom_table;
+            }
+        }
+
+        return null;
     }
 }
