@@ -6,6 +6,7 @@ use Encore\Admin\Grid;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\DataImportExport;
 
 class ExportCommand extends Command
@@ -72,16 +73,14 @@ class ExportCommand extends Command
             throw new \Exception('optional parameter type error : ' . $options['type']);
         }
 
-        if ($options['action'] == 'view') {
-            if ($options['type'] == 'page') {
-                if (!preg_match("/^[0-9]+$/", $options['page'])) {
-                    throw new \Exception('optional parameter page error : ' . $options['page']);
-                }
-                if (!isset($options['count'])) {
-                    $options['count'] = $options['view']->pager_count;
-                } elseif (!preg_match("/^[0-9]+$/", $options['count'])) {
-                    throw new \Exception('optional parameter count error : ' . $options['count']);
-                }
+        if ($options['type'] == 'page') {
+            if (!preg_match("/^[0-9]+$/", $options['page'])) {
+                throw new \Exception('optional parameter page error : ' . $options['page']);
+            }
+            if (!isset($options['count'])) {
+                $options['count'] = $options['view'] ? $options['view']->pager_count : System::grid_pager_count();
+            } elseif (!preg_match("/^[0-9]+$/", $options['count'])) {
+                throw new \Exception('optional parameter count error : ' . $options['count']);
             }
         }
 
