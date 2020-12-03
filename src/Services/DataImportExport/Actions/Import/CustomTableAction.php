@@ -76,7 +76,12 @@ class CustomTableAction implements ActionInterface
 
             // execute command
             if(isset($options['command'])){
-                $options['command']->line(exmtrans('command.import.file_row_info', $options['file_name'] ?? null, $options['row_start'] ?? null, $options['row_end'] ?? null));
+                $options['command']->line(exmtrans('command.import.file_row_info', 
+                    $options['file_name'] ?? null, 
+                    $table_name, 
+                    $options['row_start'] ?? null, 
+                    $options['row_end'] ?? null
+                ));
             }
 
             // validate data
@@ -98,6 +103,7 @@ class CustomTableAction implements ActionInterface
                 if(isset($options['command'])){
                     $options['command']->error(exmtrans('command.import.file_row_error', 
                         $options['file_name'] ?? null, 
+                        $table_name, 
                         $options['start'] ?? null, 
                         $options['end'] ?? null,
                         implode("\r\n", $error_msg)
