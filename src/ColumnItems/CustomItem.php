@@ -644,11 +644,13 @@ abstract class CustomItem implements ItemInterface
         return boolval(array_get($options, 'required')) || boolval(array_get($form_column_options, 'required'));
     }
 
-    protected function isSetAdminOptions($form_column_options)
+    protected function isSetAdminOptions($form_column_options) : bool
     {
         if (boolval(array_get($form_column_options, 'hidden'))) {
             return false;
         } elseif ($this->initonly()) {
+            return false;
+        } elseif ($this->viewonly($form_column_options)) {
             return false;
         }
 
