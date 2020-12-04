@@ -245,52 +245,41 @@ class DataImportExportService extends AbstractExporter
     {
         setTimeLimitLong();
 
-        $import_loop_count = 0;
-        $take = $options['take'] ?? 100;
-        $data_import_cnt = 0;
-        while (true) {
-            $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
-            $formatObj
-                ->background()
-                ->filebasename($this->filebasename);
+        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
+        $formatObj
+            ->background()
+            ->filebasename($this->filebasename);
 
-            // append loop option
-            $options['header_row'] = 2;
-            $options['row_start'] = ($import_loop_count * $take) + 1;
-            $options['row_end'] = (($import_loop_count + 1) * $take);
-            $options['file_name'] = $file_name;
-            $options['command'] = $command;
+        // append loop option
+        $options['file_name'] = $file_name;
+        $options['command'] = $command;
 
-            // get table data
-            $datalist = $formatObj->getDataTable($file_path, $options);
-            // filter data
-            $datalist = $this->importAction->filterDatalist($datalist);
+        // get table data
+        $datalist = $formatObj->getDataTable($file_path, $options);
+        // filter data
+        $datalist = $this->importAction->filterDatalist($datalist);
 
-            if (count($datalist) == 0) {
-                $command->error(exmtrans('error.failure_import_file'));
+        if (count($datalist) == 0) {
+            $command->error(exmtrans('error.failure_import_file'));
+            return [
+                'result' => false,
+            ];
+        }
+
+        $result = $this->importAction->importChunk($datalist, $options);
+        
+        if(boolval(array_get($result, 'result'))){
+            if(!boolval(array_get($result, 'isImported'))){
                 return [
-                    'result' => false,
+                    'result' => true,
+                    'data_import_cnt' => array_get($result, 'data_import_cnt', 0),
                 ];
             }
-
-            $result = $this->importAction->importChunk($datalist, $options);
-            
-            if(boolval(array_get($result, 'result'))){
-                if(!boolval(array_get($result, 'isImported'))){
-                    return [
-                        'result' => true,
-                        'data_import_cnt' => $data_import_cnt,
-                    ];
-                }
-                $data_import_cnt += array_get($result, 'data_import_cnt', 0);
-            }
-            else{
-                return [
-                    'result' => false,
-                ];
-            }
-
-            $import_loop_count++;
+        }
+        else{
+            return [
+                'result' => false,
+            ];
         }
     }
     

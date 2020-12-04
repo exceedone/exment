@@ -45,6 +45,7 @@ class DefaultTableProvider extends ProviderBase
         $headers = [];
         $value_customs = [];
         $primary_values = [];
+        $row_count = 0;
 
         foreach ($data as $line_no => $value) {
             // get header if $line_no == 0
@@ -54,6 +55,11 @@ class DefaultTableProvider extends ProviderBase
             }
             // continue if $line_no == 1
             elseif ($line_no == 1) {
+                continue;
+            }
+
+            $row_count++;
+            if(!$this->isReadRow($row_count, $options)){
                 continue;
             }
 

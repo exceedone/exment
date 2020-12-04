@@ -66,68 +66,77 @@ class CustomTableAction implements ActionInterface
                 continue;
             }
 
+            $import_loop_count = 0;
+            $take = $options['take'] ?? 100;
+            $data_import_cnt = 0;
+            while (true) {
+                $options['row_start'] = ($import_loop_count * $take) + 1;
+                $options['row_end'] = (($import_loop_count + 1) * $take);
 
-            // get target data and model list
-            $dataObject = $provider->getDataObject($data, $options);
-
-            if (empty($dataObject)) {
-                break;
-            }
-
-            // execute command
-            if(isset($options['command'])){
-                $options['command']->line(exmtrans('command.import.file_row_info', 
-                    $options['file_name'] ?? null, 
-                    $table_name, 
-                    $options['row_start'] ?? null, 
-                    $options['row_end'] ?? null
-                ));
-            }
-
-            // validate data
-            list($data_import, $error_data) = $provider->validateImportData($dataObject);
-        
-            // if has error data, return error data
-            if (is_array($error_data) && count($error_data) > 0) {
-                $error_msg = [];
-                if ($data_import_cnt > 0) {
-                    $messages[] = $table_name.':'.$data_import_cnt;
-                }
-                if (count($messages) > 0) {
-                    $error_msg[] = exmtrans('command.import.error_info_ex', implode(',', $messages));
-                }
-                $error_msg[] = exmtrans('command.import.error_info');
-                $error_msg[] = implode("\r\n", $error_data);
-                    
                 // execute command
-                if(isset($options['command'])){
-                    $options['command']->error(exmtrans('command.import.file_row_error', 
-                        $options['file_name'] ?? null, 
-                        $table_name, 
-                        $options['start'] ?? null, 
-                        $options['end'] ?? null,
-                        implode("\r\n", $error_msg)
+                if (isset($options['command'])) {
+                    $options['command']->line(exmtrans(
+                        'command.import.file_row_info',
+                        $options['file_name'] ?? null,
+                        $table_name,
+                        $options['row_start'] ?? null,
+                        $options['row_end'] ?? null
                     ));
                 }
+
+                // get target data and model list
+                $dataObject = $provider->getDataObject($data, $options);
+                if (empty($dataObject)) {
+                    break;
+                }
                 
-                return [
+                // validate data
+                list($data_import, $error_data) = $provider->validateImportData($dataObject);
+        
+                // if has error data, return error data
+                if (is_array($error_data) && count($error_data) > 0) {
+                    $error_msg = [];
+                    if ($data_import_cnt > 0) {
+                        $messages[] = $table_name.':'.$data_import_cnt;
+                    }
+                    if (count($messages) > 0) {
+                        $error_msg[] = exmtrans('command.import.error_info_ex', implode(',', $messages));
+                    }
+                    $error_msg[] = exmtrans('command.import.error_info');
+                    $error_msg[] = implode("\r\n", $error_data);
+                    
+                    // execute command
+                    if (isset($options['command'])) {
+                        $options['command']->error(exmtrans(
+                            'command.import.file_row_error',
+                            $options['file_name'] ?? null,
+                            $table_name,
+                            $options['start'] ?? null,
+                            $options['end'] ?? null,
+                            implode("\r\n", $error_msg)
+                        ));
+                    }
+                
+                    return [
                     'result' => false,
                     'isImported' => $isImported,
                 ];
-            }
-
-            foreach ($data_import as $index => &$row) {
-                // call dataProcessing if method exists
-                if (method_exists($provider, 'dataProcessing')) {
-                    $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
                 }
 
-                $provider->importData($row);
-                $isImported = true;
-            }
+                foreach ($data_import as $index => &$row) {
+                    // call dataProcessing if method exists
+                    if (method_exists($provider, 'dataProcessing')) {
+                        $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
+                    }
 
-            // $get_index++;
-            $data_import_cnt += count($data_import);
+                    $provider->importData($row);
+                    $isImported = true;
+                }
+
+                // $get_index++;
+                $data_import_cnt += count($data_import);
+                $import_loop_count++;
+            }
         }
 
         return [
