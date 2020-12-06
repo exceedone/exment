@@ -579,7 +579,7 @@ class Exment
     /**
      * Set time limit long
      */
-    public function setTimeLimitLong($time = 600)
+    public function setTimeLimitLong($time = 6000)
     {
         $max_execution_time = ini_get('max_execution_time');
         if ($max_execution_time == 0 || $max_execution_time > $time) {
