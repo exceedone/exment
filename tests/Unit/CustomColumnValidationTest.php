@@ -877,7 +877,7 @@ class CustomColumnValidationTest extends UnitTestBase
     
     protected function executeTestAllColumns($column_type, array $values, array $errors = [], array $matches = []){
         $custom_column = $this->getCustomColumnModel($column_type);
-        $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS)->getValueModel();
+        $custom_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST)->getValueModel();
 
         $this->executeTest($custom_value, $values, $errors, $matches);
     }

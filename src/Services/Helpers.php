@@ -182,19 +182,31 @@ if (!function_exists('floorDigit')) {
      * Truncate to decimal $digit digit.
      *
      * @param int|double|null $num
-     * @param int $digit
-     * @return double|int
+     * @param int $digit Decimal digits
+     * @param bool $display Whether to set 0 if the number of decimal places is less than the specified number of digits
+     * @return double|int|string
      */
-    function floorDigit($num, int $digit)
+    function floorDigit($num, int $digit, bool $display = false)
     {
         if ($digit < 0) {
             $digit = 0;
         }
         $numPointPosition = intval(strpos($num, '.'));
+        
+        // if for display
+        $result = null;
         if ($numPointPosition === 0) { //$num is an integer
-            return $num;
+            $result = $num;
+        } else {
+            $result = floatval(substr($num, 0, $numPointPosition + $digit + 1));
+            ;
         }
-        return floatval(substr($num, 0, $numPointPosition + $digit + 1));
+
+        if ($display && $digit > 0) {
+            $result = sprintf("%.{$digit}f", $result);
+        }
+
+        return $result;
     }
 }
 
@@ -788,7 +800,7 @@ if (!function_exists('toArray')) {
         }
 
         if ($value instanceof \Illuminate\Support\Collection) {
-            return $value->toArray();
+            return $value->all();
         }
 
         //TODO: I think this should not call $model->toArray()...
@@ -885,6 +897,40 @@ if (!function_exists('isMatchString')) {
     function isMatchString($v1, $v2) : bool
     {
         return strcmp($v1, $v2) == 0;
+    }
+}
+
+if (!function_exists('isMatchDecimal')) {
+    /**
+     * compare decimal number
+     *
+     * @param mixed $v1
+     * @param mixed $v2
+     * @return bool
+     */
+    function isMatchDecimal($v1, $v2) : bool
+    {
+        $v1 = rtrim((strpos($v1, ".") !== false ? rtrim($v1, "0") : $v1), ".");
+        $v2 = rtrim((strpos($v2, ".") !== false ? rtrim($v2, "0") : $v2), ".");
+        return strcmp($v1, $v2) == 0;
+    }
+}
+
+if (!function_exists('isMatchArray')) {
+    /**
+     * compare array
+     *
+     * @param array $v1
+     * @param array $v2
+     * @return bool
+     */
+    function isMatchArray(array $v1, array $v2) : bool
+    {
+        if (count($v1) == count($v2)) {
+            $dup = array_intersect($v1, $v2);
+            return count($v1) == count($dup);
+        }
+        return false;
     }
 }
 
