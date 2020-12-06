@@ -94,7 +94,7 @@ class SelectTable extends CustomItem
         }
 
         // if $v is null, return null;
-        if(is_null($v)){
+        if (is_null($v)) {
             return null;
         }
         

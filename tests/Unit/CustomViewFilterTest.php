@@ -3,10 +3,6 @@ namespace Exceedone\Exment\Tests\Unit;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomViewFilter;
-use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\TestDefine;
 

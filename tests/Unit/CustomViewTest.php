@@ -6,7 +6,6 @@ use Encore\Admin\Grid;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Tests\TestDefine;
 
 class CustomViewTest extends UnitTestBase
 {

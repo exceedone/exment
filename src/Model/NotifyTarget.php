@@ -185,7 +185,7 @@ class NotifyTarget
                 elseif (ColumnType::isSelectTable($custom_column->column_type)) {
                     // get email column
                     $select_target_table = $custom_column->select_target_table;
-                    $email_column = $select_target_table ? $select_target_table->custom_columns->first(function($custom_column){
+                    $email_column = $select_target_table ? $select_target_table->custom_columns->first(function ($custom_column) {
                         return $custom_column->column_type == ColumnType::EMAIL;
                     }) : null;
                     $result[] = static::getModelAsSelectTable($v, NotifyTargetType::EMAIL_COLUMN, $email_column);

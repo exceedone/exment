@@ -477,7 +477,7 @@ class TestDataSeeder extends Seeder
                         $custom_columns[] = $custom_column;
                     }
                 },
-                'createValueCallback' => function ($custom_table, $options) use($users) {
+                'createValueCallback' => function ($custom_table, $options) use ($users) {
                     $custom_values = [];
                     System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
                     $index = 0;
@@ -529,13 +529,13 @@ class TestDataSeeder extends Seeder
 
     /**
      * create multiple selected values
-     * 
+     *
      * @return array
      */
     protected function getMultipleSelectValue($array = ['foo','bar','baz'], $randMax = 1)
     {
         $result = [];
-        foreach($array as $val) {
+        foreach ($array as $val) {
             if (rand(0, $randMax) == 1) {
                 $result[] = $val;
             }
@@ -944,31 +944,30 @@ class TestDataSeeder extends Seeder
     {
         $now = \Carbon\Carbon::now();
         $result = null;
-        switch ($user_id % 7)
-        {
+        switch ($user_id % 7) {
             case 0:
                 break;
             case 1:
                 $result = $now->addDays($index-4);
                 break;
             case 2:
-                $result = \Carbon\Carbon::create($now->year+1, rand(1,12), rand(1,28));
+                $result = \Carbon\Carbon::create($now->year+1, rand(1, 12), rand(1, 28));
                 break;
             case 3:
-                $result = \Carbon\Carbon::create($now->year-1, rand(1,12), rand(1,28));
+                $result = \Carbon\Carbon::create($now->year-1, rand(1, 12), rand(1, 28));
                 break;
             case 4:
-                $result = \Carbon\Carbon::create($now->year, $now->month+1, rand(1,28));
+                $result = \Carbon\Carbon::create($now->year, $now->month+1, rand(1, 28));
                 break;
             case 5:
-                $result = \Carbon\Carbon::create($now->year, $now->month-1, rand(1,28));
+                $result = \Carbon\Carbon::create($now->year, $now->month-1, rand(1, 28));
                 break;
             default:
                 $result = \Carbon\Carbon::create(2019, 12, 28)->addDays($index);
                 break;
         }
 
-        if(isset($result)){
+        if (isset($result)) {
             return $result->format('Y-m-d');
         }
         return null;

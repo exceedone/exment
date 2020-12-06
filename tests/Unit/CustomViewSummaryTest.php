@@ -5,16 +5,10 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SummaryCondition;
-use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
 use Illuminate\Database\Eloquent\Model;
-use Exceedone\Exment\Tests\TestDefine;
 
 class CustomViewSummaryTest extends UnitTestBase
 {

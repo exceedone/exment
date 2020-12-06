@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Tests\Unit;
 use Illuminate\Support\Facades\Notification;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyActionTarget;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
