@@ -299,6 +299,8 @@ abstract class CustomItem implements ItemInterface
                 $this->value = array_get($options, 'default');
                 $field->displayText($this->html())->escape(false)->prepareDefault();
                 $this->value = null;
+            } elseif ($this->viewonly($form_column_options)) {
+                $field->displayText($this->html())->escape(false)->prepareDefault();
             }
         }
 
