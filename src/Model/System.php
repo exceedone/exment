@@ -152,6 +152,20 @@ class System extends ModelBase
     }
 
     /**
+     * Get Request Settion key already setted.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getRequestSessionKeys() : \Illuminate\Support\Collection
+    {
+        $result = collect();
+        foreach(static::$requestSession as $key => $value){
+            $result->push($key);
+        }
+        return $result;
+    }
+
+    /**
      * Get and set from cache.
      *
      * @param string $key key name.

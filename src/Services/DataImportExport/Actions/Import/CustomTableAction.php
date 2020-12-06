@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Actions\Import;
 use Exceedone\Exment\Services\DataImportExport\Providers\Import;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\RelationType;
 
 class CustomTableAction implements ActionInterface
@@ -47,7 +48,6 @@ class CustomTableAction implements ActionInterface
     public function importChunk($datalist, $options = [])
     {
         $messages = [];
-        $isImported = false;
         $data_import_cnt = 0;
 
         foreach ($datalist as $table_name => &$data) {
@@ -118,9 +118,8 @@ class CustomTableAction implements ActionInterface
                     }
                 
                     return [
-                    'result' => false,
-                    'isImported' => $isImported,
-                ];
+                        'result' => false,
+                    ];
                 }
 
                 foreach ($data_import as $index => &$row) {
@@ -136,12 +135,19 @@ class CustomTableAction implements ActionInterface
                 // $get_index++;
                 $data_import_cnt += count($data_import);
                 $import_loop_count++;
+
+                // Clear Select table's request session
+                $reauestSessionKeys = System::getRequestSessionKeys();
+                foreach($reauestSessionKeys as $reauestSessionKey){
+                    if(strpos($reauestSessionKey, Define::SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE_PREFIX) !== false){
+                        System::clearRequestSession($reauestSessionKey);
+                    }
+                }
             }
         }
-
+        
         return [
             'result' => true,
-            'isImported' => $isImported,
             'data_import_cnt' => $data_import_cnt,
         ];
     }

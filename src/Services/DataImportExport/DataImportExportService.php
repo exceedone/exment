@@ -269,12 +269,10 @@ class DataImportExportService extends AbstractExporter
         $result = $this->importAction->importChunk($datalist, $options);
         
         if(boolval(array_get($result, 'result'))){
-            if(!boolval(array_get($result, 'isImported'))){
-                return [
-                    'result' => true,
-                    'data_import_cnt' => array_get($result, 'data_import_cnt', 0),
-                ];
-            }
+            return [
+                'result' => true,
+                'data_import_cnt' => array_get($result, 'data_import_cnt', 0),
+            ];
         }
         else{
             return [

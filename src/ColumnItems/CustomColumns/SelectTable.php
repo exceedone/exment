@@ -406,7 +406,7 @@ class SelectTable extends CustomItem
         }
 
         // if has request session
-        $sessionkey = sprintf(Define::SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE, $this->custom_table, $this->custom_column->column_name, $key);
+        $sessionkey = sprintf(Define::SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE, $this->custom_table->table_name, $this->custom_column->column_name, $key);
         return System::requestSession($sessionkey, function () use ($datalist, $key) {
             // get key and value list
             $keyValueList = collect($datalist)->map(function ($d) {
