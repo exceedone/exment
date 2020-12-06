@@ -41,8 +41,19 @@ trait TestTrait
      * @param string $messsage showing message why this test is skipped.
      * @return void
      */
-    protected function skipTempTestIfTrue(\Closure $skipMatchFunc, string $messsage = null){
-        if($skipMatchFunc()){
+    protected function skipTempTestIfTrue($skipMatch, string $messsage = null){
+        $result = null;
+        if($skipMatch instanceof \Closure){
+            $result = $skipMatch();
+        }
+        elseif(is_bool($skipMatch)){
+            $result = $skipMatch;
+        }
+        else{
+            throw new \Exception('skipTempTestIfTrue is only bool or Closure');
+        }
+
+        if($result){
             $this->markTestSkipped('This function is temporarily skipped. ' . $messsage);
         }
     }
@@ -65,6 +76,7 @@ trait TestTrait
     protected function initAllTest(){
         System::clearCache();
         \Exceedone\Exment\Middleware\Morph::defineMorphMap();
+        \Exceedone\Exment\Middleware\ExmentDebug::handleLog();
     }
 
     

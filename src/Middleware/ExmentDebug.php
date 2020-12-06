@@ -9,15 +9,20 @@ class ExmentDebug
 {
     public function handle(Request $request, \Closure $next)
     {
-        if (boolval(config('exment.debugmode', false)) || boolval(config('exment.debugmode_sql', false))) {
-            $this->logDatabase();
-        }
-
-        if (boolval(config('exment.debugmode_request', false))) {
-            $this->logRequest($request);
-        }
+        static::handleLog();
 
         return $next($request);
+    }
+
+
+    public static function handleLog(?Request $request = null){
+        if (boolval(config('exment.debugmode', false)) || boolval(config('exment.debugmode_sql', false))) {
+            static::logDatabase();
+        }
+
+        if (isset($request) && boolval(config('exment.debugmode_request', false))) {
+            static::logRequest($request);
+        }
     }
 
     
@@ -26,7 +31,7 @@ class ExmentDebug
      *
      * @return void
      */
-    protected function logDatabase()
+    protected static function logDatabase()
     {
         \DB::listen(function ($query) {
             $sql = $query->sql;
@@ -59,7 +64,7 @@ class ExmentDebug
      *
      * @return void
      */
-    protected function logRequest($request)
+    protected static function logRequest($request)
     {
         $input = collect($request->input())->map(function ($value, $key) {
             if (in_array($key, LogOperation::getHideColumns())) {

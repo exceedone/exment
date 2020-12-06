@@ -198,12 +198,12 @@ if (!function_exists('floorDigit')) {
         $result = null;
         if ($numPointPosition === 0) { //$num is an integer
             $result = $num;
-        }
-        else{
-            $result = floatval(substr($num, 0, $numPointPosition + $digit + 1));;
+        } else {
+            $result = floatval(substr($num, 0, $numPointPosition + $digit + 1));
+            ;
         }
 
-        if($display && $digit > 0){
+        if ($display && $digit > 0) {
             $result = sprintf("%.{$digit}f", $result);
         }
 
@@ -782,7 +782,7 @@ if (!function_exists('toArray')) {
         }
 
         if ($value instanceof \Illuminate\Support\Collection) {
-            return $value->toArray();
+            return $value->all();
         }
 
         //TODO: I think this should not call $model->toArray()...
@@ -892,8 +892,8 @@ if (!function_exists('isMatchDecimal')) {
      */
     function isMatchDecimal($v1, $v2) : bool
     {
-        $v1 = rtrim((strpos($v1,".") !== false ? rtrim($v1, "0") : $v1),".");
-        $v2 = rtrim((strpos($v2,".") !== false ? rtrim($v2, "0") : $v2),".");
+        $v1 = rtrim((strpos($v1, ".") !== false ? rtrim($v1, "0") : $v1), ".");
+        $v2 = rtrim((strpos($v2, ".") !== false ? rtrim($v2, "0") : $v2), ".");
         return strcmp($v1, $v2) == 0;
     }
 }
