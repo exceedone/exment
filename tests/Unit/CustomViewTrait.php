@@ -37,7 +37,13 @@ trait CustomViewTrait
             ], 
             $options
         );
-        extract($options);
+        $login_user_id = array_get($options, 'login_user_id');
+        $target_table_name = array_get($options, 'target_table_name');
+        $condition_join = array_get($options, 'condition_join');
+        $get_count = array_get($options, 'get_count');
+        $filter_settings = array_get($options, 'filter_settings');
+        $column_settings = array_get($options, 'column_settings');
+        $summary_settings = array_get($options, 'summary_settings');
 
         // Login user.
         $this->be(LoginUser::find($login_user_id));

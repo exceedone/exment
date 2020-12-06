@@ -385,7 +385,7 @@ class TestDataSeeder extends Seeder
         $custom_table = $this->createTable('all_columns_table', [
                 'menuParentId' => $menu->id,
                 'count' => 0,
-                'createColumnCallback' => function ($custom_table, &$custom_columns) use ($custom_table_view_all, $custom_table_edit) {
+                'createColumnCallback' => function ($custom_table, &$custom_columns) use ($custom_table_view_all) {
                     // creating relation column
                     $columns = [
                         ['column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],

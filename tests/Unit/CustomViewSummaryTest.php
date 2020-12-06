@@ -1109,7 +1109,12 @@ class CustomViewSummaryTest extends UnitTestBase
                     ], 
                     $column_setting
                 );
-                extract($column_setting);
+                $column_name = array_get($column_setting, 'column_name');
+                $condition_type = array_get($column_setting, 'condition_type');
+                $reference_table = array_get($column_setting, 'reference_table');
+                $reference_column = array_get($column_setting, 'reference_column');
+                $is_parent = array_get($column_setting, 'is_parent');
+                $is_child = array_get($column_setting, 'is_child');
         
                 if (isset($reference_table)) {
                     $reference_key = "$reference_table.$column_name";
