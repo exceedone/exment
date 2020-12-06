@@ -1,6 +1,7 @@
 <?php
 namespace Exceedone\Exment\Tests\Unit;
 use Exceedone\Exment\Enums\ConditionType;
+use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
