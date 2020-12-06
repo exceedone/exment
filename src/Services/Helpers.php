@@ -800,7 +800,7 @@ if (!function_exists('toArray')) {
         }
 
         if ($value instanceof \Illuminate\Support\Collection) {
-            return $value->toArray();
+            return $value->all();
         }
 
         //TODO: I think this should not call $model->toArray()...
