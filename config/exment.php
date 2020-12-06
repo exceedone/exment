@@ -607,7 +607,7 @@ return [
     | Impoer row max count
     |
     */
-    'import_max_row_count' => env('EXMENT_IMPORT_MAX_ROW_COUNT', 1000),
+    'import_max_row_count' => env('EXMENT_IMPORT_MAX_ROW_COUNT', 5000),
     
     /*
     |--------------------------------------------------------------------------
