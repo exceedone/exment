@@ -92,6 +92,11 @@ class SelectTable extends CustomItem
         if (!isset($this->target_table)) {
             return;
         }
+
+        // if $v is null, return null;
+        if (is_null($v)) {
+            return null;
+        }
         
         if (!is_array($v) && preg_match('/\[.+\]/i', $v)) {
             $v = json_decode($v);

@@ -544,7 +544,6 @@ class WorkflowTestDataSeeder extends Seeder
         // get this getAuthorityTargets
         $toActionAuthorities = $this->getNextActionAuthorities($workflowObj, $custom_value, $wfValue->workflow_status_to_id);
         CustomValueAuthoritable::setAuthoritableByUserOrgArray($custom_value, $toActionAuthorities, $is_edit);
-
     }
 
     /**
