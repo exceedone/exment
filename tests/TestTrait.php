@@ -66,6 +66,7 @@ trait TestTrait
     protected function initAllTest(){
         System::clearCache();
         \Exceedone\Exment\Middleware\Morph::defineMorphMap();
+        \Exceedone\Exment\Middleware\ExmentDebug::handleLog();
     }
 
     
