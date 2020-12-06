@@ -152,7 +152,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function export()
     {
-        setTimeLimitLong();
+        \Exment::setTimeLimitLong();
 
         $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, true);
 
@@ -183,7 +183,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function import($request)
     {
-        setTimeLimitLong();
+        \Exment::setTimeLimitLong();
 
         $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
 
@@ -243,7 +243,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function importBackground(\Illuminate\Console\Command $command, $file_name, $file_path, array $options = [])
     {
-        setTimeLimitLong();
+        \Exment::setTimeLimitLong();
 
         $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
         $formatObj
@@ -286,7 +286,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function exportBackground(array $options = [])
     {
-        setTimeLimitLong();
+        \Exment::setTimeLimitLong();
         $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, true);
 
         if ($options['action'] == 'view' && isset($this->viewExportAction)) {

@@ -493,19 +493,6 @@ if (!function_exists('bytesToHuman')) {
     }
 }
 
-if (!function_exists('setTimeLimitLong')) {
-    /**
-     * Set time limit long
-     */
-    function setTimeLimitLong($time = 600)
-    {
-        $max_execution_time = ini_get('max_execution_time');
-        if ($max_execution_time == 0 || $max_execution_time > $time) {
-            return;
-        }
-        set_time_limit($time);
-    }
-}
 
 if (!function_exists('getUploadMaxFileSize')) {
     /**
