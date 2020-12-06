@@ -457,9 +457,14 @@ class NotifyTest extends UnitTestBase
 
         $this->_testNotifyTarget($custom_table, $user_column, function($targets, $custom_value) use($user_column){
             $user = $custom_value->getValue($user_column);
-            $email = $user->getValue('email');
-            $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
-            $this->assertTrue(isMatchString($email, $targets[0]->email()), 'Expects  email is ' . $email . ' , but result is ' . $targets[0]->email());
+            if(isset($user)){
+                $email = $user->getValue('email');
+                $this->assertTrue(count($targets) == 1, 'count expects 1, but count is ' . count($targets));
+                $this->assertTrue(isMatchString($email, $targets[0]->email()), 'Expects  email is ' . $email . ' , but result is ' . $targets[0]->email());
+            }
+            else{
+                $this->assertTrue(count($targets) == 0, 'count expects 0, but count is ' . count($targets));
+            }
         });
     }
 

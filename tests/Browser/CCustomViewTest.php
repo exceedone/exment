@@ -204,7 +204,7 @@ class CCustomViewTest extends ExmentKitTestCase
                     $callback($query, $v);
                 }
 
-                $this->assertTrue($query->exists(), 'custom view items not contains items. key : ' . $key . ', view_target : ' . $v['view_column_target']);
+                $this->assertTrue($query->exists(), 'custom view items not contains items. k : ' . $k . ', key : ' . $key . ', view_target : ' . $v['view_column_target']);
             }
         }
     }
