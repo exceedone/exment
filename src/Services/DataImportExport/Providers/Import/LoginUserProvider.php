@@ -24,6 +24,8 @@ class LoginUserProvider extends ProviderBase
     {
         $results = [];
         $headers = [];
+        $row_count = 0;
+
         foreach ($data as $key => $value) {
             // get header if $key == 0
             if ($key == 0) {
@@ -32,6 +34,11 @@ class LoginUserProvider extends ProviderBase
             }
             // continue if $key == 1
             elseif ($key == 1) {
+                continue;
+            }
+
+            $row_count++;
+            if(!$this->isReadRow($row_count, $options)){
                 continue;
             }
 

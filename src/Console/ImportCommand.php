@@ -69,6 +69,12 @@ class ImportCommand extends Command
 
             foreach ($files as $index => $file) {
                 $file_name = $file->getFileName();
+
+                // continue prefix '~' file
+                if(strpos($file_name, '~') !== false){
+                    continue;
+                }
+
                 $this->line(($index + 1) . exmtrans('command.import.file_info', $file_name));
 
                 $format = file_ext($file_name);

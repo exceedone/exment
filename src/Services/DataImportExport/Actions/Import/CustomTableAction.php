@@ -86,6 +86,7 @@ class CustomTableAction implements ActionInterface
 
                 // get target data and model list
                 $dataObject = $provider->getDataObject($data, $options);
+                // check has data
                 if (empty($dataObject)) {
                     break;
                 }
@@ -129,7 +130,6 @@ class CustomTableAction implements ActionInterface
                     }
 
                     $provider->importData($row);
-                    $isImported = true;
                 }
 
                 // $get_index++;
