@@ -386,7 +386,7 @@ class ImportExportTest extends UnitTestBase
             $datalist = [];
             foreach ($spreadsheet->getSheetNames() as $sheetName) {
                 $sheet = $spreadsheet->getSheetByName($sheetName);
-                $datalist[$sheetName] = getDataFromSheet($sheet, 0, false, true);
+                $datalist[$sheetName] = getDataFromSheet($sheet, false, true);
             }
 
             return $datalist;
