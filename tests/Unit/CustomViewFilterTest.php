@@ -3,19 +3,13 @@ namespace Exceedone\Exment\Tests\Unit;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ViewType;
-use Exceedone\Exment\Enums\ViewKindType;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomViewFilter;
-use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\TestDefine;
 
 class CustomViewFilterTest extends UnitTestBase
 {
+    use CustomViewTrait;
+
     /**
      * FilterOption = EQ
      */
@@ -1926,71 +1920,16 @@ class CustomViewFilterTest extends UnitTestBase
         $options = array_merge(
             [
                 'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_ADMIN,
-                'target_table_name' => null,
-                'condition_join' => 'and',
+                'filter_settings' => $filter_settings,
             ], 
             $options
         );
 
-        // Login user.
-        $this->be(LoginUser::find($options['login_user_id']));
+        // get custom view data
+        $data = $this->getCustomViewData($options);
 
-        $custom_table = CustomTable::getEloquent($options['target_table_name'] ?? TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
-
-        $custom_view = $this->createCustomView(
-            $custom_table, 
-            ViewType::SYSTEM, 
-            ViewKindType::DEFAULT, 
-            $custom_table->table_name . '-view-unittest', 
-            ['condition_join' => $options['condition_join']?? 'and']
-        );
-
-        foreach ($filter_settings as $filter_setting)
-        {
-            if (!isset($filter_setting['condition_type']) || $filter_setting['condition_type'] == ConditionType::COLUMN) {
-                $custom_column = CustomColumn::getEloquent($filter_setting['column_name'], $custom_table);
-                $column_id = $custom_column->id;
-            } else {
-                $column_id = SystemColumn::getOption(['name' => $filter_setting['column_name']])['id'];
-            }
-            $custom_view_filter = $this->createCustomViewFilter(
-                $custom_view->id,
-                $filter_setting['condition_type'] ?? ConditionType::COLUMN,
-                $custom_table->id,
-                $column_id,
-                $filter_setting['filter_condition'],
-                $filter_setting['filter_value_text'] ?? null,
-            );
-        }
-
-        $model = $custom_table->getValueModel()->query();
-        $custom_view->filterModel($model);
-        $data = $model->get();
         $this->assertTrue(count($data) > 0, 'data expects over 0, but data count is 0.');
         return $data;
     }
 
-    protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
-    {
-        return CustomView::create([
-            'custom_table_id' => $custom_table->id,
-            'view_view_name' => $view_view_name,
-            'view_type' => $view_type,
-            'view_kind_type' => $view_kind_type,
-            'options' => $options,
-        ]);
-    }
-
-    protected function createCustomViewFilter($custom_view_id, $view_column_type, $view_column_table_id, $view_column_target_id, $view_filter_condition, $view_filter_condition_value_text = null)
-    {
-        $custom_view_filter = new CustomViewFilter;
-        $custom_view_filter->custom_view_id = $custom_view_id;
-        $custom_view_filter->view_column_type = $view_column_type;
-        $custom_view_filter->view_column_table_id = $view_column_table_id;
-        $custom_view_filter->view_column_target_id = $view_column_target_id;
-        $custom_view_filter->view_filter_condition = $view_filter_condition;
-        $custom_view_filter->view_filter_condition_value_text = $view_filter_condition_value_text;
-        $custom_view_filter->save();
-        return $custom_view_filter;
-    }
 }
