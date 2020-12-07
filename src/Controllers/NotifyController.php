@@ -8,6 +8,7 @@ use Encore\Admin\Grid\Linker;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
@@ -201,18 +202,21 @@ class NotifyController extends AdminControllerBase
 
         $form->select('custom_view_id', exmtrans("notify.custom_view_id"))
             ->help(exmtrans("notify.help.custom_view_id"))
-            ->options(function ($select_view, $form) {
-                $data = $form->data();
-                if (!isset($data)) {
+            ->options(function ($value, $field) {
+                if (is_nullorempty($field)) {
                     return [];
                 }
-
-                // select_table
-                if (is_null($select_target_table = array_get($data, 'custom_table_id'))) {
-                    return [];
+        
+                // check $value or $field->data()
+                $custom_table = null;
+                if(isset($value)){
+                    $custom_view = CustomView::getEloquent($value);
+                    $custom_table = $custom_view ? $custom_view->custom_table : null;
                 }
-
-                $custom_table = CustomTable::getEloquent($select_target_table);
+                elseif(!is_nullorempty($field->data())){
+                    $custom_table = CustomTable::getEloquent(array_get($field->data(), 'custom_table_id'));
+                }
+        
                 if (!isset($custom_table)) {
                     return [];
                 }

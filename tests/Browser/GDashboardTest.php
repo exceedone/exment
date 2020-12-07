@@ -63,7 +63,7 @@ class GDashboardTest extends ExmentKitTestCase
     public function testEditDashboard()
     {
         $model = $this->getDashboardTestModel();
-        $this->assertTrue(isset($model), 'dashboard not found');
+        $this->assertTrue(!is_nullorempty($model), 'dashboard not found');
 
         $this->visit(admin_urls('dashboard', $model->id, 'edit'))
             ->seePageIs(admin_urls('dashboard', $model->id, 'edit'))

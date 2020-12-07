@@ -163,7 +163,7 @@ class TemplateController extends AdminControllerBase
     /**
      * create export box
      *
-     * @return Form
+     * @return \Encore\Admin\Widgets\Form
      */
     protected function exportBoxForm()
     {

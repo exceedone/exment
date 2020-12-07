@@ -239,26 +239,8 @@ class ChartItem implements ItemInterface
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()
-            ->options(function ($value, $data) use ($dashboard) {
-                if (is_nullorempty($data) || is_nullorempty($data->data())) {
-                    return [];
-                }
-
-                $custom_table = CustomTable::getEloquent(array_get($data->data(), 'target_table_id'));
-                if (is_nullorempty($custom_table)) {
-                    return [];
-                }
-
-                return $custom_table->custom_views
-                    ->filter(function ($value) {
-                        return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
-                    })
-                    ->filter(function ($value) use ($dashboard) {
-                        if (array_get($dashboard, 'dashboard_type') != DashboardType::SYSTEM) {
-                            return true;
-                        }
-                        return array_get($value, 'view_type') == ViewType::SYSTEM;
-                    })->pluck('view_view_name', 'id');
+            ->options(function ($value, $field, $model) use ($dashboard) {
+                return ChartItem::getCustomViewSelectOptions($value, $field, $model, $dashboard);
             })
             ->loads(
                 ['options_chart_axisx', 'options_chart_axisy'],
@@ -272,7 +254,7 @@ class ChartItem implements ItemInterface
             ->required()
             ->default(Define::CHARTITEM_LABEL)
             ->options(function ($value, $model) {
-                $target_view_id = array_get($model->data(), 'target_view_id');
+                $target_view_id = array_get(request()->all(), 'options.target_view_id') ?? array_get($model->data(), 'target_view_id');
                 if (!isset($target_view_id)) {
                     return [];
                 }
@@ -289,7 +271,7 @@ class ChartItem implements ItemInterface
         $form->select('chart_axisy', exmtrans("dashboard.dashboard_box_options.chart_axisy"))
             ->required()
             ->options(function ($value, $model) {
-                $target_view_id = array_get($model->data(), 'target_view_id');
+                $target_view_id = array_get(request()->all(), 'options.target_view_id') ?? array_get($model->data(), 'target_view_id');
                 if (!isset($target_view_id)) {
                     return [];
                 }
