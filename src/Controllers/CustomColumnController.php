@@ -410,22 +410,33 @@ class CustomColumnController extends AdminControllerTableBase
             // define select-target table view
             $form->select('select_target_view', exmtrans("custom_column.options.select_target_view"))
                 ->help(exmtrans("custom_column.help.select_target_view"))
-                ->options(function ($select_view, $form) use ($column_type) {
-                    $data = $form->data();
-                    if (!isset($data)) {
+                ->options(function ($select_view, $field) use ($column_type) {
+                    if (is_nullorempty($field)) {
                         return [];
                     }
-
-                    // select_table
-                    $select_target_table = array_get($data, 'select_target_table');
-                    if (!isset($select_target_table)) {
+            
+                    // check $value or $field->data()
+                    $custom_table = null;
+                    if(isset($value)){
+                        $custom_view = CustomView::getEloquent($value);
+                        $custom_table = $custom_view ? $custom_view->custom_table : null;
+                    }
+                    elseif(!is_nullorempty($field->data())){
+                        $custom_table = CustomTable::getEloquent(array_get($field->data(), 'select_target_table'));
+                    }
+                    
+                    if (!isset($custom_table)) {
                         if (!ColumnType::isUserOrganization($column_type)) {
                             return [];
                         }
-                        $select_target_table = CustomTable::getEloquent($column_type);
+                        $custom_table = CustomTable::getEloquent($column_type);
+                    }
+            
+                    if (!isset($custom_table)) {
+                        return [];
                     }
 
-                    return CustomTable::getEloquent($select_target_table)->custom_views
+                    return CustomTable::getEloquent($custom_table)->custom_views
                         ->filter(function ($value) {
                             return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
                         })->pluck('view_view_name', 'id');
