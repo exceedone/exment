@@ -78,7 +78,11 @@ class ExportCommand extends Command
                 throw new \Exception('optional parameter page error : ' . $options['page']);
             }
             if (!isset($options['count'])) {
-                $options['count'] = $options['view'] ? $options['view']->pager_count : System::grid_pager_count();
+                if ($options['view'] && $options['view']->pager_count > 0) {
+                    $options['count'] = $options['view']->pager_count;
+                } else {
+                    $options['count'] = System::grid_pager_count();
+                }
             } elseif (!preg_match("/^[0-9]+$/", $options['count'])) {
                 throw new \Exception('optional parameter count error : ' . $options['count']);
             }

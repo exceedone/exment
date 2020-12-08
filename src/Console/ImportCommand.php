@@ -132,7 +132,7 @@ class ImportCommand extends Command
         }
 
         // loop for regex
-        $regexes = ['(?<table_name>.+)#\d+', '(?<table_name>.+)\\.\d+'];
+        $regexes = ['\d+#(?<table_name>.+)', '(?<table_name>.+)\\.\d+', '\d+\\.(?<table_name>.+)'];
         foreach($regexes as $regex){
             $match_num = preg_match('/' . $regex . '/u', $table_name, $matches);
             if($match_num > 0 && !is_null($custom_table = CustomTable::getEloquent($matches['table_name'])))

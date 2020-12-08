@@ -291,8 +291,10 @@ class DataImportExportService extends AbstractExporter
 
         if ($options['action'] == 'view' && isset($this->viewExportAction)) {
             $datalist = $this->viewExportAction->datalist();
+            $datacount = $this->viewExportAction->getCount();
         } else {
             $datalist = $this->exportAction->datalist();
+            $datacount = $this->exportAction->getCount();
         }
 
         $files = $formatObj
@@ -302,7 +304,7 @@ class DataImportExportService extends AbstractExporter
             ->filebasename($this->filebasename() ?? $this->exportAction->filebasename())
             ->createFile();
 
-        if ($this->exportAction->getCount() == 0 && boolval(array_get($options, 'breakIfEmpty', false))) {
+        if ($datacount == 0 && boolval(array_get($options, 'breakIfEmpty', false))) {
             return [
                 'status' => 1,
                 'message' => exmtrans('common.message.notfound'),
