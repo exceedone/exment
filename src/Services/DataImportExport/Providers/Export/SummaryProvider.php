@@ -72,8 +72,14 @@ class SummaryProvider extends DefaultTableProvider
     public function getRecords() : Collection
     {
         $this->grid->applyQuickSearch();
-        $records = new Collection();
-        $records = $records->merge($this->grid->getFilter()->execute(false));
+
+        $result = $this->grid->getFilter()->execute(false);
+        if($result instanceof Collection){
+            $records = $result;
+        }else{
+            $records = new Collection;
+            $records = $records->merge($result);
+        }
         
         $this->count = count($records);
         return $records;
