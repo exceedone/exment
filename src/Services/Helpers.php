@@ -1548,6 +1548,9 @@ if (!function_exists('getUserName')) {
         }
         
         if (!isset($user)) {
+            if (CustomTable::getEloquent(SystemTableName::USER)->hasCustomValueInDB($id)) {
+                return exmtrans('common.message.no_permission');
+            }
             return null;
         }
         if ($user->trashed()) {
