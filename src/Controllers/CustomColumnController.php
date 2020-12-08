@@ -410,7 +410,7 @@ class CustomColumnController extends AdminControllerTableBase
             // define select-target table view
             $form->select('select_target_view', exmtrans("custom_column.options.select_target_view"))
                 ->help(exmtrans("custom_column.help.select_target_view"))
-                ->options(function ($select_view, $field) use ($column_type) {
+                ->options(function ($value, $field) use ($column_type) {
                     if (is_nullorempty($field)) {
                         return [];
                     }
