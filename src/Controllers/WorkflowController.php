@@ -582,6 +582,9 @@ class WorkflowController extends AdminControllerBase
         $validator = \Validator::make($request->all(), [
             'workflow_tables.*.workflows.*.active_start_date' => ['nullable', 'date', 'before_or_equal:workflow_tables.*.workflows.*.active_end_date'],
             'workflow_tables.*.workflows.*.active_end_date' => ['nullable', 'date']
+        ], [], [
+            'workflow_tables.*.workflows.*.active_start_date' => exmtrans('workflow.active_start_date'),
+            'workflow_tables.*.workflows.*.active_end_date' => exmtrans('workflow.active_end_date'),
         ]);
 
         $errors = $validator->errors();

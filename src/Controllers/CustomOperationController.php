@@ -214,7 +214,8 @@ class CustomOperationController extends AdminControllerTableBase
                         return collect($item->getOperationUpdateType())->mapWithKeys(function ($item) {
                             return [$item['id'] => $item['text']];
                         });
-                    });
+                    })
+                    ->removeRules(\Encore\Admin\Validator\HasOptionRule::class);
             },
             'valueCallback' => function ($data, $field) use ($custom_table) {
                 $condition_target = array_get($data, 'view_column_target');
