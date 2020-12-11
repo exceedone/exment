@@ -2,8 +2,10 @@
 
 namespace Exceedone\Exment\Console;
 
+use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Services\DataImportExport;
 
 trait ExportCommandTrait
 {
@@ -67,5 +69,54 @@ trait ExportCommandTrait
         }
 
         return $options;
+    }
+
+    /**
+     * Get export action
+     *
+     * @param CustomTable $custom_table
+     * @param [type] $grid
+     * @param array $options
+     * @return void
+     */
+    protected function getExportAction(CustomTable $custom_table, $grid, array $options)
+    {
+        $custom_view = array_get($options, 'view');
+
+        // if summary view, return SummaryAction
+        if (isMatchString(array_get($options, 'action'), 'view') && isset($custom_view)) {
+            if (isMatchString($custom_view->view_kind_type, ViewKindType::AGGREGATE)) {
+                // append summary query
+                $summary_grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
+                $summary_grid->setSummaryGrid($grid);
+                $summary_grid->setGrid($grid);
+
+                return new DataImportExport\Actions\Export\SummaryAction(
+                    [
+                        'grid' => $grid,
+                        'custom_table' => $custom_table,
+                        'custom_view' => $custom_view,
+                    ]
+                );
+            } else {
+                return new DataImportExport\Actions\Export\ViewAction(
+                    [
+                        'custom_table' => $custom_table,
+                        'custom_view' => $custom_view,
+                        'grid' => $grid,
+                    ]
+                );
+            }
+        }
+
+
+        return new DataImportExport\Actions\Export\CustomTableAction(
+            [
+                'custom_table' => $custom_table,
+                'grid' => $grid,
+                'add_setting' => boolval(array_get($options, 'add_setting', false)),
+                'add_relation' => boolval(array_get($options, 'add_relation', false)),
+            ]
+        );
     }
 }

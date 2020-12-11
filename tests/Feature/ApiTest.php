@@ -1255,7 +1255,7 @@ class ApiTest extends ApiTestBase
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
-        ])->get(admin_urls('api', 'data', 'custom_value_edit_all', 'query-column').'?q=index_text%20ne%20index_2_1,id%20gte%20100')
+        ])->get(admin_urls('api', 'data', 'custom_value_edit_all', 'query-column').'?q=index_text%20ne%20index_2_1,id%20gte%20100,id%20lte%201000')
             ->assertStatus(200)
             ->assertJsonCount(2, 'data');
     }

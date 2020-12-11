@@ -45,58 +45,47 @@ class DefaultTableProvider extends ProviderBase
         $headers = [];
         $value_customs = [];
         $primary_values = [];
+        $row_count = 0;
 
-        if (\array_key_exists('get_index', $options)) {
-            $take = $options['take']?? 100;
-            $start_idx = $options['get_index'] * $take;
-            $end_idx = $start_idx + $take;
-            $headers = $data[0];
-            for ($i = max(2, $start_idx); $i < $end_idx; $i++) {
-                if (!\array_key_exists($i, $data)) {
-                    break;
-                }
-                // combine value
-                $value_custom = array_combine($headers, $data[$i]);
-
-                // filter data
-                if ($this->filterData($value_custom)) {
-                    continue;
-                }
-
-                $value_customs[$i] = $value_custom;
-
-                // get primary values
-                $primary_values[] = array_get($value_custom, $this->primary_key);
+        foreach ($data as $line_no => $value) {
+            // get header if $line_no == 0
+            if ($line_no == 0) {
+                $headers = $value;
+                continue;
             }
-        } else {
-            foreach ($data as $line_no => $value) {
-                // get header if $line_no == 0
-                if ($line_no == 0) {
-                    $headers = $value;
-                    continue;
-                }
-                // continue if $line_no == 1
-                elseif ($line_no == 1) {
-                    continue;
-                }
-    
-                // combine value
-                $value_custom = array_combine($headers, $value);
-    
-                // filter data
-                if ($this->filterData($value_custom)) {
-                    continue;
-                }
-    
-                $value_customs[$line_no] = $value_custom;
-    
-                // get primary values
-                $primary_values[] = array_get($value_custom, $this->primary_key);
+            // continue if $line_no == 1
+            elseif ($line_no == 1) {
+                continue;
             }
+
+            $row_count++;
+            if (!$this->isReadRow($row_count, $options)) {
+                continue;
+            }
+
+            // combine value
+            $null_merge_array = collect(range(1, count($headers)))->map(function () {
+                return null;
+            })->toArray();
+            $value = $value + $null_merge_array;
+            $value_custom = array_combine($headers, $value);
+
+            // filter data
+            if ($this->filterData($value_custom)) {
+                continue;
+            }
+
+            $value_customs[$line_no] = $value_custom;
+
+            // get primary values
+            $primary_values[] = array_get($value_custom, $this->primary_key);
         }
 
         // get all custom value for performance
         $models = $this->custom_table->getMatchedCustomValues($primary_values, $this->primary_key, true);
+
+        // set all select table's value
+        $this->custom_table->setSelectTableValues(collect($value_customs));
 
         $results = [];
         foreach ($value_customs as $line_no => $value_custom) {

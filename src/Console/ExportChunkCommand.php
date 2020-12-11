@@ -17,7 +17,7 @@ class ExportChunkCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:chunkexport {table_name} {--action=default} {--start=1} {--end=1000} {--count=1000} {--seqlength=1}  {--format=csv} {--view=} {--dirpath=}';
+    protected $signature = 'exment:chunkexport {table_name} {--action=default} {--start=1} {--end=1000} {--count=1000} {--seqlength=1}  {--delimiter=}  {--format=csv} {--view=} {--dirpath=}';
 
     /**
      * The console command description.
@@ -66,6 +66,7 @@ class ExportChunkCommand extends Command
         $options['start'] = $this->option("start");
         $options['end'] = $this->option("end");
         $options['seqlength'] = $this->option("seqlength");
+        $options['delimiter'] = $this->option("delimiter") ?? '.';
 
         if ($options['count']) {
             if (!preg_match("/^[0-9]+$/", $options['count'])) {
@@ -127,22 +128,9 @@ class ExportChunkCommand extends Command
                 $seq = str_pad($i, $options['seqlength'], 0, STR_PAD_LEFT);
 
                 $service = (new DataImportExport\DataImportExportService())
-                    ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
-                        [
-                        'custom_table' => $custom_table,
-                        'grid' => $grid,
-                        'add_setting' => false,
-                        'add_relation' => false,
-                    ]
-                    ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
-                        [
-                        'custom_table' => $custom_table,
-                        'custom_view' => $options['view'],
-                        'grid' => $grid,
-                    ]
-                    ))
+                ->exportAction($this->getExportAction($custom_table, $grid, $options))
                 ->format($options['format'])
-                ->filebasename("{$custom_table->table_name}.{$seq}");
+                ->filebasename("{$custom_table->table_name}{$options['delimiter']}{$seq}");
 
                 $result = $service->exportBackground($options);
 

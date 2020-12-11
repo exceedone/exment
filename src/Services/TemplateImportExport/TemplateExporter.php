@@ -38,7 +38,7 @@ class TemplateExporter
         $lang = static::getExportData($template_name, $template_view_name, $description, $options, true);
         
         // create ZIP file --------------------------------------------------
-        $tmpdir = getTmpFolderPath('template', false);
+        $tmpdir = \Exment::getTmpFolderPath('template', false);
         $tmpFulldir = getFullpath($tmpdir, Define::DISKNAME_ADMIN_TMP, true);
         if (!\File::isDirectory($tmpFulldir)) {
             \File::makeDirectory($tmpFulldir, 0755, true);
