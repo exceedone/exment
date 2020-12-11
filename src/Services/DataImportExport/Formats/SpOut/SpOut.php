@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Services\DataImportExport\Formats\SpOut;
 
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
-use Exceedone\Exment\Services\DataImportExport\Formats;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Box\Spout\Common\Entity\Cell;
 use Box\Spout\Reader\SheetInterface;
@@ -30,59 +29,36 @@ abstract class SpOut extends FormatBase
             // if output as zip, change file name.
             if ($this->isOutputAsZip()) {
                 $outputPath = $this->getTmpFilePath($this->getRealFileName($sheet_name));
-            } 
+            }
             // if not output as zip, output file name is download file name.
             else {
                 $outputPath = $this->getTmpFilePath($this->getFileName());
             }
 
             // If spout, have to set tmp file path.
-            $writer->openToFile($outputPath); 
+            $writer->openToFile($outputPath);
 
-            $outputs = array_map(function($output){
-                return array_map(function($o){
-                    if($o instanceof \Carbon\Carbon){
+            $outputs = array_map(function ($output) {
+                return array_map(function ($o) {
+                    if ($o instanceof \Carbon\Carbon) {
                         $o = $o->__toString();
                     }
-                    return WriterEntityFactory::createCell($o); 
+                    return WriterEntityFactory::createCell($o);
                 }, $output);
             }, $outputs);
 
             // set sheet name and create
-            if($writer instanceof \Box\Spout\Writer\XLSX\Writer)
-            {
-                if($index == 0)
-                {
+            if ($writer instanceof \Box\Spout\Writer\XLSX\Writer) {
+                if ($index == 0) {
                     $sheet = $writer->getCurrentSheet();
-                }
-                else{
+                } else {
                     $sheet = $writer->addNewSheetAndMakeItCurrent();
                 }
                 $sheet->setName($sheet_name);
             }
 
-            foreach($outputs as $output){
+            foreach ($outputs as $output) {
                 $writer->addRow(WriterEntityFactory::createRow($output));
-            }
-
-            // set autosize
-            if (count($outputs) > 0) {
-                // // convert folmula cell to string
-                // $highestRow = $sheet->getHighestRow();
-                // $highestColumn = $sheet->getHighestColumn();
-                // $highestColumnIndex = Cell\Coordinate::columnIndexFromString($highestColumn);
-                // for ($row = 1; $row <= $highestRow; ++$row) {
-                //     for ($col = 1; $col <= $highestColumnIndex; ++$col) {
-                //         $cell = $sheet->getCellByColumnAndRow($col, $row);
-                //         if (strpos($cell->getValue(), '=') === 0) {
-                //             $cell->setDataType(Cell\DataType::TYPE_STRING);
-                //         }
-                //     }
-                // }
-                // $counts = count($outputs[0]);
-                // for ($i = 0; $i < $counts; $i++) {
-                //     $sheet->getColumnDimension(getCellAlphabet($i + 1))->setAutoSize(true);
-                // }
             }
 
             // if output as zip, save file, and new writer
@@ -125,7 +101,7 @@ abstract class SpOut extends FormatBase
     {
         $data = [];
         foreach ($sheet->getRowIterator() as $row_no => $row) {
-            if(!$this->isReadSheetRow($row_no, $options)){
+            if (!$this->isReadSheetRow($row_no, $options)) {
                 continue;
             }
 
@@ -183,12 +159,11 @@ abstract class SpOut extends FormatBase
         $type = $cell->getType();
 
         // is datetime, convert to date string
-        if($type === Cell::TYPE_DATE && isset($value)){
+        if ($type === Cell::TYPE_DATE && isset($value)) {
             // check hmi
-            if($value->format('H') > 0 || $value->format('i') > 0 || $value->format('s') > 0){
+            if ($value->format('H') > 0 || $value->format('i') > 0 || $value->format('s') > 0) {
                 $value = $value->format('Y-m-d H:i:s');
-            }
-            else{
+            } else {
                 $value = $value->format('Y-m-d');
             }
         }
@@ -197,10 +172,9 @@ abstract class SpOut extends FormatBase
         //     $value = $value->getPlainText();
         // }
 
-        if(is_nullorempty($value)){
+        if (is_nullorempty($value)) {
             $value = null;
         }
         return $value;
     }
-
 }

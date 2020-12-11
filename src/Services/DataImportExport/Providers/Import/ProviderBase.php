@@ -16,19 +16,19 @@ abstract class ProviderBase
     {
         // get options
         list($start, $end) = [
-            array_get($options, 'row_start'), 
+            array_get($options, 'row_start'),
             array_get($options, 'row_end'),
         ];
 
-        // if has start option and $data_row_no is under $start, 
+        // if has start option and $data_row_no is under $start,
         // this row has to skip, so return false;
-        if(!is_null($start) && $row_no < $start){
+        if (!is_null($start) && $row_no < $start) {
             return false;
         }
 
-        // if has end option and $data_row_no is under $start, 
+        // if has end option and $data_row_no is under $start,
         // this row has to skip, so return false;
-        if(!is_null($end) && $row_no > $end){
+        if (!is_null($end) && $row_no > $end) {
             return false;
         }
 

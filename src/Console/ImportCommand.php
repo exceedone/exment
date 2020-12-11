@@ -71,7 +71,7 @@ class ImportCommand extends Command
                 $file_name = $file->getFileName();
 
                 // continue prefix '~' file
-                if(strpos($file_name, '~') !== false){
+                if (strpos($file_name, '~') !== false) {
                     continue;
                 }
 
@@ -99,7 +99,7 @@ class ImportCommand extends Command
                     'take' => 100           // if set, taking data count
                 ]);
                 
-                if(boolval($result['result'] ?? true)){
+                if (boolval($result['result'] ?? true)) {
                     $this->line(($index + 1) . exmtrans('command.import.success_message', $file_name, array_get($result, 'data_import_cnt')));
                 }
             }
@@ -126,17 +126,15 @@ class ImportCommand extends Command
     {
         $table_name = file_ext_strip($file_name);
         // directry same name
-        if (!is_null($custom_table = CustomTable::getEloquent($table_name)))
-        {
+        if (!is_null($custom_table = CustomTable::getEloquent($table_name))) {
             return $custom_table;
         }
 
         // loop for regex
         $regexes = ['\d+#(?<table_name>.+)', '(?<table_name>.+)\\.\d+', '\d+\\.(?<table_name>.+)'];
-        foreach($regexes as $regex){
+        foreach ($regexes as $regex) {
             $match_num = preg_match('/' . $regex . '/u', $table_name, $matches);
-            if($match_num > 0 && !is_null($custom_table = CustomTable::getEloquent($matches['table_name'])))
-            {
+            if ($match_num > 0 && !is_null($custom_table = CustomTable::getEloquent($matches['table_name']))) {
                 return $custom_table;
             }
         }

@@ -59,12 +59,12 @@ class DefaultTableProvider extends ProviderBase
             }
 
             $row_count++;
-            if(!$this->isReadRow($row_count, $options)){
+            if (!$this->isReadRow($row_count, $options)) {
                 continue;
             }
 
             // combine value
-            $null_merge_array = collect(range(1, count($headers)))->map(function(){
+            $null_merge_array = collect(range(1, count($headers)))->map(function () {
                 return null;
             })->toArray();
             $value = $value + $null_merge_array;

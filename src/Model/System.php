@@ -159,7 +159,7 @@ class System extends ModelBase
     public static function getRequestSessionKeys() : \Illuminate\Support\Collection
     {
         $result = collect();
-        foreach(static::$requestSession as $key => $value){
+        foreach (static::$requestSession as $key => $value) {
             $result->push($key);
         }
         return $result;

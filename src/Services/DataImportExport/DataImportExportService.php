@@ -107,7 +107,7 @@ class DataImportExportService extends AbstractExporter
             $format = app('request')->input('format');
         }
 
-        if(is_null($format)){
+        if (is_null($format)) {
             $format = 'xlsx';
         }
 
@@ -268,13 +268,12 @@ class DataImportExportService extends AbstractExporter
 
         $result = $this->importAction->importChunk($datalist, $options);
         
-        if(boolval(array_get($result, 'result'))){
+        if (boolval(array_get($result, 'result'))) {
             return [
                 'result' => true,
                 'data_import_cnt' => array_get($result, 'data_import_cnt', 0),
             ];
-        }
-        else{
+        } else {
             return [
                 'result' => false,
             ];

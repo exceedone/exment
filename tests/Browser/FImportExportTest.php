@@ -2,12 +2,8 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Enums;
-use Exceedone\Exment\Model;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Http\UploadedFile;
 
 class FImportExportTest extends ExmentKitTestCase

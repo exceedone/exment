@@ -138,8 +138,8 @@ class CustomTableAction implements ActionInterface
 
                 // Clear Select table's request session
                 $reauestSessionKeys = System::getRequestSessionKeys();
-                foreach($reauestSessionKeys as $reauestSessionKey){
-                    if(strpos($reauestSessionKey, Define::SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE_PREFIX) !== false){
+                foreach ($reauestSessionKeys as $reauestSessionKey) {
+                    if (strpos($reauestSessionKey, Define::SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE_PREFIX) !== false) {
                         System::clearRequestSession($reauestSessionKey);
                     }
                 }

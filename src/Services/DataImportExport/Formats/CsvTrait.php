@@ -109,12 +109,11 @@ trait CsvTrait
     protected function isOutputAsZip()
     {
         // check relations
-        if(!is_null($this->output_aszip)){
+        if (!is_null($this->output_aszip)) {
             return $this->output_aszip;
         }
 
         // check relations
         return count($this->datalist) > 1;
     }
-    
 }

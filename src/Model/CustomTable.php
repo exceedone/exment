@@ -1611,8 +1611,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        $this->getValueModel()->query()->whereIn('id', array_unique($finds))->chunk(1000, function($target_values) {
-            $target_values->each(function($target_value){
+        $this->getValueModel()->query()->whereIn('id', array_unique($finds))->chunk(1000, function ($target_values) {
+            $target_values->each(function ($target_value) {
                 // set request settion
                 $target_value->setValueModel();
             });
@@ -1659,7 +1659,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $matchedKey = array_get($record, $keyName);
                 $result[$matchedKey] = $record;
                 
-                if($record instanceof CustomValue){
+                if ($record instanceof CustomValue) {
                     $record->setValueModel();
                 }
             });

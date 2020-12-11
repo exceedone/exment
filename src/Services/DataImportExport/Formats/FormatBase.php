@@ -13,7 +13,7 @@ abstract class FormatBase
     protected $output_aszip;
 
     /**
-     * Whether call background 
+     * Whether call background
      *
      * @var bool
      */
@@ -30,7 +30,8 @@ abstract class FormatBase
     protected $tmpdir;
 
 
-    public function __destruct(){
+    public function __destruct()
+    {
         $this->deleteTmpDirectory();
     }
 
@@ -95,7 +96,7 @@ abstract class FormatBase
     public function saveAsFile($dirpath)
     {
         // move file tmp directory to $dirpath
-        collect(\File::files($this->tmpdir()))->each(function($file) use($dirpath){
+        collect(\File::files($this->tmpdir()))->each(function ($file) use ($dirpath) {
             $filename = pathinfo($file, PATHINFO_BASENAME);
             \File::move($file, path_join($dirpath, $filename));
         });
@@ -125,15 +126,14 @@ abstract class FormatBase
     {
         $fileName = $this->filebasename;
 
-        if(!$this->isBackground){
+        if (!$this->isBackground) {
             $fileName .= date('YmdHis');
         }
         $fileName .= ".";
 
-        if($this->isOutputAsZip()){
+        if ($this->isOutputAsZip()) {
             $fileName .= "zip";
-        }
-        else{
+        } else {
             $fileName .= $this->getFormat();
         }
         return $fileName;
@@ -157,7 +157,7 @@ abstract class FormatBase
      */
     protected function tmpdir() : string
     {
-        if(!$this->tmpdir){
+        if (!$this->tmpdir) {
             $this->tmpdir = \Exment::getTmpFolderPath('data');
         }
 
@@ -210,13 +210,12 @@ abstract class FormatBase
      */
     public static function getFormatClass(?string $format, string $library, bool $isExport) : FormatBase
     {
-        if($isExport){
-            if(!is_null($config = config('exment.export_library'))){
+        if ($isExport) {
+            if (!is_null($config = config('exment.export_library'))) {
                 $library = isMatchString($config, 'SP_OUT') ? ExportImportLibrary::SP_OUT : ExportImportLibrary::PHP_SPREAD_SHEET;
             }
-        }
-        else{
-            if(!is_null($config = config('exment.import_library'))){
+        } else {
+            if (!is_null($config = config('exment.import_library'))) {
                 $library = isMatchString($config, 'PHP_SPREAD_SHEET') ? ExportImportLibrary::PHP_SPREAD_SHEET : ExportImportLibrary::SP_OUT;
             }
         }
@@ -299,12 +298,12 @@ abstract class FormatBase
      *
      * @return void
      */
-    protected function deleteTmpDirectory(){
-        if($this->tmpdir && \File::exists($this->tmpdir)){
-            try{
+    protected function deleteTmpDirectory()
+    {
+        if ($this->tmpdir && \File::exists($this->tmpdir)) {
+            try {
                 \File::deleteDirectory($this->tmpdir);
-            }
-            catch(\Exception $ex){
+            } catch (\Exception $ex) {
             }
         }
     }
@@ -324,9 +323,9 @@ abstract class FormatBase
             array_get($options, 'skip_excel_row_no'),
         ];
 
-        // if has skip_excel_row_no option and $sheet_row_no is under $header_row, 
+        // if has skip_excel_row_no option and $sheet_row_no is under $header_row,
         // this row has to skip, so return false;
-        if(!is_null($skip_excel_row_no) && $sheet_row_no <= $skip_excel_row_no){
+        if (!is_null($skip_excel_row_no) && $sheet_row_no <= $skip_excel_row_no) {
             return false;
         }
 

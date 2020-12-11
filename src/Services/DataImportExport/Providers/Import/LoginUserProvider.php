@@ -38,7 +38,7 @@ class LoginUserProvider extends ProviderBase
             }
 
             $row_count++;
-            if(!$this->isReadRow($row_count, $options)){
+            if (!$this->isReadRow($row_count, $options)) {
                 continue;
             }
 

@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
 
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
-use Exceedone\Exment\Services\DataImportExport\Formats;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Cell;
@@ -29,7 +28,7 @@ abstract class PhpSpreadSheet extends FormatBase
             // if output as zip, change file name.
             if ($this->isOutputAsZip()) {
                 $outputPath = $this->getTmpFilePath($this->getRealFileName($sheet_name));
-            } 
+            }
             // if not output as zip, output file name is download file name.
             else {
                 $outputPath = $this->getTmpFilePath($this->getFileName());
@@ -109,7 +108,7 @@ abstract class PhpSpreadSheet extends FormatBase
     {
         $data = [];
         foreach ($sheet->getRowIterator() as $row_no => $row) {
-            if(!$this->isReadSheetRow($row_no, $options)){
+            if (!$this->isReadSheetRow($row_no, $options)) {
                 continue;
             }
 
@@ -177,5 +176,4 @@ abstract class PhpSpreadSheet extends FormatBase
         }
         return $value;
     }
-
 }

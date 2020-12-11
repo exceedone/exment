@@ -18,7 +18,7 @@ trait XlsxTrait
         return $this->_getData($request, function ($reader) {
             return $this->getRowCount($reader);
         });
-    }    
+    }
 
 
     /**
@@ -29,5 +29,4 @@ trait XlsxTrait
     {
         return false;
     }
-    
 }
