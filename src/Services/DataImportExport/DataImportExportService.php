@@ -288,13 +288,8 @@ class DataImportExportService extends AbstractExporter
         \Exment::setTimeLimitLong();
         $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, true);
 
-        if ($options['action'] == 'view' && isset($this->viewExportAction)) {
-            $datalist = $this->viewExportAction->datalist();
-            $datacount = $this->viewExportAction->getCount();
-        } else {
-            $datalist = $this->exportAction->datalist();
-            $datacount = $this->exportAction->getCount();
-        }
+        $datalist = $this->exportAction->datalist();
+        $datacount = $this->exportAction->getCount();
 
         $files = $formatObj
             ->output_aszip(false)

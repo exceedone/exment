@@ -128,20 +128,7 @@ class ExportChunkCommand extends Command
                 $seq = str_pad($i, $options['seqlength'], 0, STR_PAD_LEFT);
 
                 $service = (new DataImportExport\DataImportExportService())
-                    ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
-                        [
-                        'custom_table' => $custom_table,
-                        'grid' => $grid,
-                        'add_setting' => false,
-                        'add_relation' => false,
-                    ]
-                    ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
-                        [
-                        'custom_table' => $custom_table,
-                        'custom_view' => $options['view'],
-                        'grid' => $grid,
-                    ]
-                    ))
+                ->exportAction($this->getExportAction($custom_table, $grid, $options))
                 ->format($options['format'])
                 ->filebasename("{$custom_table->table_name}{$options['delimiter']}{$seq}");
 

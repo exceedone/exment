@@ -115,20 +115,7 @@ class ExportCommand extends Command
             }
     
             $service = (new DataImportExport\DataImportExportService())
-                ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
-                    [
-                        'custom_table' => $custom_table,
-                        'grid' => $grid,
-                        'add_setting' => boolval(array_get($options, 'add_setting', false)),
-                        'add_relation' => boolval(array_get($options, 'add_relation', false)),
-                    ]
-                ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
-                    [
-                        'custom_table' => $custom_table,
-                        'custom_view' => $options['view'],
-                        'grid' => $grid
-                    ]
-                ))
+                ->exportAction($this->getExportAction($custom_table, $grid, $options))
                 ->format($options['format'])
                 ->filebasename($custom_table->table_name);
             
