@@ -151,7 +151,8 @@ class SystemItem implements ItemInterface
     public function index()
     {
         $option = $this->getSystemColumnOption();
-        return getDBTableName($this->custom_table) .'-'. array_get($option, 'sqlname', $this->name());
+        //return getDBTableName($this->custom_table) .'-'. array_get($option, 'sqlname', $this->name());
+        return array_get($option, 'sqlname', $this->name());
     }
 
     /**
