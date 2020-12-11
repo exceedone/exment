@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\ExportImportLibrary;
 use Exceedone\Exment\ColumnItems\ParentItem;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
@@ -27,7 +28,7 @@ class DataImportExportService extends AbstractExporter
     public static $queryName = '_export_';
     
     /**
-     * csv or excel format model
+     * csv or excel format string (xlsx, csv)
      */
     protected $format;
     
@@ -87,10 +88,10 @@ class DataImportExportService extends AbstractExporter
         return $this;
     }
 
-    public static function getFormat($args = [])
+    protected static function getFormat($args = []) : string
     {
         if ($args instanceof FormatBase) {
-            return $args;
+            return $args->getFormat();
         }
         
         if ($args instanceof UploadedFile) {
@@ -106,13 +107,16 @@ class DataImportExportService extends AbstractExporter
             $format = app('request')->input('format');
         }
 
-        switch ($format) {
-            case 'excel':
-            case 'xlsx':
-                return new Formats\Xlsx();
-            default:
-                return new Formats\Csv();
+        if (is_null($format)) {
+            $format = 'xlsx';
         }
+
+        return $format;
+    }
+    
+    protected function getFormatClass(string $library, bool $isExport) : FormatBase
+    {
+        return FormatBase::getFormatClass($this->format, $library, $isExport);
     }
 
     public function importAction($importAction)
@@ -148,7 +152,9 @@ class DataImportExportService extends AbstractExporter
      */
     public function export()
     {
-        setTimeLimitLong();
+        \Exment::setTimeLimitLong();
+
+        $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, true);
 
         // get export action type
         $action = request()->get('action');
@@ -163,14 +169,12 @@ class DataImportExportService extends AbstractExporter
             $datalist = $this->exportAction->datalist();
         }
 
-        $files = $this->format
+        $files = $formatObj
             ->datalist($datalist)
             ->filebasename($this->exportAction->filebasename())
             ->createFile();
         
-        $response = $this->format->createResponse($files);
-        $response->send();
-        exit;
+        $formatObj->sendResponse($files);
     }
     
     /**
@@ -179,9 +183,12 @@ class DataImportExportService extends AbstractExporter
      */
     public function import($request)
     {
-        setTimeLimitLong();
+        \Exment::setTimeLimitLong();
+
+        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
+
         // validate request
-        if (!($errors = $this->validateRequest($request))) {
+        if (($errors = $this->validateRequest($request)) !== true) {
             return [
                 'result' => false,
                 //'toastr' => exmtrans('common.message.import_error'),
@@ -196,14 +203,10 @@ class DataImportExportService extends AbstractExporter
             }
         }
 
-        $this->format->filebasename($this->filebasename);
+        $formatObj->filebasename($this->filebasename);
 
         // get table data
-        if (method_exists($this->importAction, 'getDataTable')) {
-            $datalist = $this->importAction->getDataTable($request);
-        } else {
-            $datalist = $this->format->getDataTable($request);
-        }
+        $datalist = $formatObj->getDataTable($request);
 
         // if over count, return over length
         if (is_int($datalist)) {
@@ -219,7 +222,7 @@ class DataImportExportService extends AbstractExporter
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
         
-        if (count($datalist) == 0) {
+        if (count($datalist) == 0 || (count($datalist) == 1 && array_has($datalist, Define::SETTING_SHEET_NAME))) {
             return [
                 'result' => false,
                 'toastr' => exmtrans('common.message.import_error'),
@@ -238,29 +241,43 @@ class DataImportExportService extends AbstractExporter
      * @param array  $options
      * @return array error message or success message etc...
      */
-    public function importBackground($file_path, array $options = [])
+    public function importBackground(\Illuminate\Console\Command $command, $file_name, $file_path, array $options = [])
     {
-        setTimeLimitLong();
+        \Exment::setTimeLimitLong();
 
-        $this->format->filebasename($this->filebasename);
+        $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
+        $formatObj
+            ->background()
+            ->filebasename($this->filebasename);
+
+        // append loop option
+        $options['file_name'] = $file_name;
+        $options['command'] = $command;
 
         // get table data
-        if (method_exists($this->importAction, 'getDataTable')) {
-            $datalist = $this->importAction->getDataTable($file_path);
-        } else {
-            $datalist = $this->format->getDataTable($file_path, $options);
-        }
+        $datalist = $formatObj->getDataTable($file_path, $options);
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
 
         if (count($datalist) == 0) {
+            $command->error(exmtrans('error.failure_import_file'));
             return [
                 'result' => false,
-                'message' => exmtrans('error.failure_import_file')
             ];
         }
 
-        return $this->importAction->importChunk($datalist, $options);
+        $result = $this->importAction->importChunk($datalist, $options);
+        
+        if (boolval(array_get($result, 'result'))) {
+            return [
+                'result' => true,
+                'data_import_cnt' => array_get($result, 'data_import_cnt', 0),
+            ];
+        } else {
+            return [
+                'result' => false,
+            ];
+        }
     }
     
     /**
@@ -268,27 +285,27 @@ class DataImportExportService extends AbstractExporter
      */
     public function exportBackground(array $options = [])
     {
-        setTimeLimitLong();
+        \Exment::setTimeLimitLong();
+        $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, true);
 
-        if ($options['action'] == 'view' && isset($this->viewExportAction)) {
-            $datalist = $this->viewExportAction->datalist();
-        } else {
-            $datalist = $this->exportAction->datalist();
-        }
+        $datalist = $this->exportAction->datalist();
+        $datacount = $this->exportAction->getCount();
 
-        $files = $this->format
+        $files = $formatObj
+            ->output_aszip(false)
+            ->background()
             ->datalist($datalist)
             ->filebasename($this->filebasename() ?? $this->exportAction->filebasename())
             ->createFile();
 
-        if ($this->exportAction->getCount() == 0 && boolval(array_get($options, 'breakIfEmpty', false))) {
+        if ($datacount == 0 && boolval(array_get($options, 'breakIfEmpty', false))) {
             return [
                 'status' => 1,
                 'message' => exmtrans('common.message.notfound'),
             ];
         }
     
-        $this->format->saveAsFile($options['dirpath'], $files);
+        $formatObj->saveAsFile($options['dirpath'], $files);
 
         return [
             'status' => 0,
@@ -331,6 +348,8 @@ class DataImportExportService extends AbstractExporter
      */
     public function validateRequest($request)
     {
+        $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, false);
+
         if (!($request instanceof Request)) {
             return true;
         }
@@ -355,7 +374,7 @@ class DataImportExportService extends AbstractExporter
             ],
             [
                 'file'          => 'required',
-                'custom_table_file'      => 'required|in:'.$this->format->accept_extension(),
+                'custom_table_file'      => 'required|in:'.$formatObj->accept_extension(),
             ],
             [
                 'custom_table_file' => \Lang::get('validation.mimes')

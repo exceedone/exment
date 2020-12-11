@@ -59,6 +59,16 @@ trait TestTrait
     }
 
     /**
+     * Skip test everytime.
+     *
+     * @param string $messsage showing message why this test is skipped.
+     * @return void
+     */
+    protected function skipTempTest(string $messsage = null){
+        $this->markTestSkipped('This function is temporarily skipped. ' . $messsage);
+    }
+
+    /**
      * Initialize all test
      *
      * @return void

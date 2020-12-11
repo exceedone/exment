@@ -81,7 +81,6 @@ class SummaryGrid extends GridBase
                     'grid' => $grid,
                     'custom_table' => $this->custom_table,
                     'custom_view' => $this->custom_view,
-                    'is_summary' => true,
                 ]
             ));
         $grid->exporter($service);
@@ -114,7 +113,7 @@ class SummaryGrid extends GridBase
     /**
      * set summary grid
      */
-    protected function setSummaryGrid($grid)
+    public function setSummaryGrid($grid)
     {
         $query = $grid->model();
         return $this->getQuery($query, ['grid' => $grid]);

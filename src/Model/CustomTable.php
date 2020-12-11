@@ -1523,9 +1523,22 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
 
     /**
-     * Set selectTable value's. for after calling from select_table object
+     * Set selectTable value's and relations. for after calling from select_table object
      */
-    public function setSelectTableValues(?\Illuminate\Database\Eloquent\Collection $customValueCollection)
+    public function setSelectRelationValues(?\Illuminate\Database\Eloquent\Collection $customValueCollection)
+    {
+        $this->setSelectTableValues($customValueCollection);
+        $this->setRelationValues($customValueCollection);
+    }
+
+    
+    /**
+     * Set selectTable value's. for after calling from select_table object
+     *
+     * @param \Illuminate\Support\Collection|null $customValueCollection
+     * @return void
+     */
+    public function setSelectTableValues(?\Illuminate\Support\Collection $customValueCollection)
     {
         if (empty($customValueCollection)) {
             return;
@@ -1546,7 +1559,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // value sometimes array, so flatten value. maybe has best way..
             $target_table->setCustomValueModels($values);
         });
+    }
 
+
+    /**
+     * Set relation value's. for after calling from select_table object
+     */
+    public function setRelationValues(?\Illuminate\Database\Eloquent\Collection $customValueCollection)
+    {
+        if (empty($customValueCollection)) {
+            return;
+        }
 
         //// for parent relation
         $relation = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
@@ -1565,7 +1588,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
 
-
+    /**
+     * query and set custom value's model
+     *
+     * @param array|Collection $ids
+     * @return void
+     */
     public function setCustomValueModels($ids)
     {
         // value sometimes array, so flatten value. maybe has best way..
@@ -1583,9 +1611,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        $this->getValueModel()->query()->findMany(array_unique($finds))->each(function ($target_value) {
-            // set request settion
-            $target_value->setValueModel();
+        $this->getValueModel()->query()->whereIn('id', array_unique($finds))->chunk(1000, function ($target_values) {
+            $target_values->each(function ($target_value) {
+                // set request settion
+                $target_value->setValueModel();
+            });
         });
     }
 
@@ -1628,6 +1658,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $records->each(function ($record) use ($keyName, &$result) {
                 $matchedKey = array_get($record, $keyName);
                 $result[$matchedKey] = $record;
+                
+                if ($record instanceof CustomValue) {
+                    $record->setValueModel();
+                }
             });
         }
 

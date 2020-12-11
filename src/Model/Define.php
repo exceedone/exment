@@ -182,6 +182,7 @@ class Define
     public const SYSTEM_KEY_SESSION_WORLFLOW_FILTER_CHECK = "worlflow_filter_check";
     public const SYSTEM_KEY_SESSION_WORLFLOW_STATUS_CHECK = "worlflow_status_check";
     public const SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE = "import_key_value_%s_%s_%s";
+    public const SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE_PREFIX = "import_key_value_";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_TREE = "organization_tree";
     public const SYSTEM_KEY_SESSION_GRID_AUTHORITABLE = "grid_authoritable_%s";
     public const SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE = "accessible_table_%s_%s";

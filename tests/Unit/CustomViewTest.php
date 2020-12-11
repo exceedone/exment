@@ -199,7 +199,10 @@ class CustomViewTest extends UnitTestBase
             $custom_view->setGrid($grid);
         }
  
-        return $grid->model()->buildData(false);
+        $result = $grid->model()->buildData(false);
+        $this->assertTrue(count($result) > 0, "custom view $view_name count expects over 0, but this count is 0.");
+
+        return $result;
     }
     protected function andWhere($data){
         return array_get($data, 'value.odd_even') != 'odd' &&
