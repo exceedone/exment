@@ -131,7 +131,7 @@ class ImportCommand extends Command
         }
 
         // If contains "#" in file name, throw exception
-        if(strpos($table_name, '#') !== false){
+        if (strpos($table_name, '#') !== false) {
             throw new \Exception('File name that conatains "#" not supported over v3.8.0.');
         }
 

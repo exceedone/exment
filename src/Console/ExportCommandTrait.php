@@ -79,12 +79,13 @@ trait ExportCommandTrait
      * @param array $options
      * @return void
      */
-    protected function getExportAction(CustomTable $custom_table, $grid, array $options){
+    protected function getExportAction(CustomTable $custom_table, $grid, array $options)
+    {
         $custom_view = array_get($options, 'view');
 
         // if summary view, return SummaryAction
-        if(isMatchString(array_get($options, 'action'), 'view') && isset($custom_view)){
-            if(isMatchString($custom_view->view_kind_type, ViewKindType::AGGREGATE)){
+        if (isMatchString(array_get($options, 'action'), 'view') && isset($custom_view)) {
+            if (isMatchString($custom_view->view_kind_type, ViewKindType::AGGREGATE)) {
                 // append summary query
                 $summary_grid = new \Exceedone\Exment\DataItems\Grid\SummaryGrid($custom_table, $custom_view);
                 $summary_grid->setSummaryGrid($grid);
@@ -97,8 +98,7 @@ trait ExportCommandTrait
                         'custom_view' => $custom_view,
                     ]
                 );
-            }
-            else{
+            } else {
                 return new DataImportExport\Actions\Export\ViewAction(
                     [
                         'custom_table' => $custom_table,

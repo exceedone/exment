@@ -70,9 +70,9 @@ class ViewProvider extends DefaultTableProvider
         $this->grid->applyQuickSearch();
 
         $result = $this->grid->getFilter()->execute(false);
-        if($result instanceof Collection){
+        if ($result instanceof Collection) {
             $records = $result;
-        }else{
+        } else {
             $records = new Collection;
             $records = $records->merge($result);
         }
@@ -119,7 +119,8 @@ class ViewProvider extends DefaultTableProvider
     }
 
 
-    protected function appendBodyItemOptions(array $options, $index){
+    protected function appendBodyItemOptions(array $options, $index)
+    {
         return $options;
     }
 }
