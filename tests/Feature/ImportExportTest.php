@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
+use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Model;
@@ -15,7 +16,7 @@ use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class ImportExportTest extends UnitTestBase
+class ImportExportTest extends TestCase
 {
     use TestTrait;
 
@@ -42,7 +43,7 @@ class ImportExportTest extends UnitTestBase
                 \File::deleteDirectory($import_path);
             }
             \File::makeDirectory($import_path, 0755, true);
-            $source_path = exment_package_path("tests/tmpfile/Unit/$target_name");
+            $source_path = exment_package_path("tests/tmpfile/Feature/$target_name");
             \File::copyDirectory($source_path, $import_path);
             $this->dirpath = 'unittest';
         }
@@ -205,6 +206,11 @@ class ImportExportTest extends UnitTestBase
     public function testImportMulti()
     {
         $this->_testImport('import_test_2');
+    }
+
+    public function testImportError()
+    {
+        $this->_testImport('import_test_3', false);
     }
 
     protected function _testExport(array $params)
@@ -429,7 +435,7 @@ class ImportExportTest extends UnitTestBase
         }
     }
 
-    protected function _testImport($target_name)
+    protected function _testImport($target_name, bool $isSuccess = true)
     {
         $this->init(false, $target_name);
 
@@ -441,7 +447,7 @@ class ImportExportTest extends UnitTestBase
                 'dir' => $this->dirpath
             ]);
 
-            $this->assertEquals($result, 0);
+            $this->assertEquals($result, $isSuccess ? 0 : -1);
         } finally {
             DB::rollback();
         }
