@@ -7,7 +7,10 @@ class TestDefine
     public const TESTDATA_USER_LOGINID_ADMIN = '1'; // admin
     public const TESTDATA_USER_LOGINID_USER1 = '2'; // user1
     public const TESTDATA_USER_LOGINID_USER2 = '3'; // user2
+    public const TESTDATA_USER_LOGINID_DEV_USERB = '6';  //dev-userB
     public const TESTDATA_USER_LOGINID_DEV1_USERC = '7'; //dev1-userC
+
+    public const TESTDATA_ORGANIZATION_DEV = '2'; // dev
 
     public const TESTDATA_TABLE_NAME_VIEW_ALL = 'custom_value_view_all';
     public const TESTDATA_TABLE_NAME_EDIT_ALL = 'custom_value_edit_all';
@@ -21,6 +24,7 @@ class TestDefine
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE_SELECT = 'pivot_table_select';
     public const TESTDATA_TABLE_NAME_PIVOT_TABLE_USER_ORG = 'pivot_table_user_org';
     public const TESTDATA_TABLE_NAME_ALL_COLUMNS = 'all_columns_table';
+    public const TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST = 'all_columns_table_fortest';
 
     public const TESTDATA_COLUMN_NAME_PARENT = 'parent';
     public const TESTDATA_COLUMN_NAME_CHILD = 'child';

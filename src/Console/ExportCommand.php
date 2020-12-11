@@ -6,6 +6,7 @@ use Encore\Admin\Grid;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\DataImportExport;
 
 class ExportCommand extends Command
@@ -72,16 +73,18 @@ class ExportCommand extends Command
             throw new \Exception('optional parameter type error : ' . $options['type']);
         }
 
-        if ($options['action'] == 'view') {
-            if ($options['type'] == 'page') {
-                if (!preg_match("/^[0-9]+$/", $options['page'])) {
-                    throw new \Exception('optional parameter page error : ' . $options['page']);
-                }
-                if (!isset($options['count'])) {
+        if ($options['type'] == 'page') {
+            if (!preg_match("/^[0-9]+$/", $options['page'])) {
+                throw new \Exception('optional parameter page error : ' . $options['page']);
+            }
+            if (!isset($options['count'])) {
+                if ($options['view'] && $options['view']->pager_count > 0) {
                     $options['count'] = $options['view']->pager_count;
-                } elseif (!preg_match("/^[0-9]+$/", $options['count'])) {
-                    throw new \Exception('optional parameter count error : ' . $options['count']);
+                } else {
+                    $options['count'] = System::grid_pager_count();
                 }
+            } elseif (!preg_match("/^[0-9]+$/", $options['count'])) {
+                throw new \Exception('optional parameter count error : ' . $options['count']);
             }
         }
 
@@ -112,20 +115,7 @@ class ExportCommand extends Command
             }
     
             $service = (new DataImportExport\DataImportExportService())
-                ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
-                    [
-                        'custom_table' => $custom_table,
-                        'grid' => $grid,
-                        'add_setting' => boolval(array_get($options, 'add_setting', false)),
-                        'add_relation' => boolval(array_get($options, 'add_relation', false)),
-                    ]
-                ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
-                    [
-                        'custom_table' => $custom_table,
-                        'custom_view' => $options['view'],
-                        'grid' => $grid
-                    ]
-                ))
+                ->exportAction($this->getExportAction($custom_table, $grid, $options))
                 ->format($options['format'])
                 ->filebasename($custom_table->table_name);
             

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Actions\Import;
 use Exceedone\Exment\Services\DataImportExport\Providers\Import;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\RelationType;
 
 class CustomTableAction implements ActionInterface
@@ -47,6 +48,7 @@ class CustomTableAction implements ActionInterface
     public function importChunk($datalist, $options = [])
     {
         $messages = [];
+        $data_import_cnt = 0;
 
         foreach ($datalist as $table_name => &$data) {
             if ($table_name == Define::SETTING_SHEET_NAME) {
@@ -64,23 +66,34 @@ class CustomTableAction implements ActionInterface
                 continue;
             }
 
-            $get_index = 0;
+            $import_loop_count = 0;
+            $take = $options['take'] ?? 100;
             $data_import_cnt = 0;
-
             while (true) {
-                $options = array_merge($options, [
-                    'get_index' => $get_index,
-                ]);
+                $options['row_start'] = ($import_loop_count * $take) + 1;
+                $options['row_end'] = (($import_loop_count + 1) * $take);
+
+                // execute command
+                if (isset($options['command'])) {
+                    $options['command']->line(exmtrans(
+                        'command.import.file_row_info',
+                        $options['file_name'] ?? null,
+                        $table_name,
+                        $options['row_start'] ?? null,
+                        $options['row_end'] ?? null
+                    ));
+                }
+
                 // get target data and model list
                 $dataObject = $provider->getDataObject($data, $options);
-
+                // check has data
                 if (empty($dataObject)) {
                     break;
                 }
-
+                
                 // validate data
                 list($data_import, $error_data) = $provider->validateImportData($dataObject);
-            
+        
                 // if has error data, return error data
                 if (is_array($error_data) && count($error_data) > 0) {
                     $error_msg = [];
@@ -92,9 +105,21 @@ class CustomTableAction implements ActionInterface
                     }
                     $error_msg[] = exmtrans('command.import.error_info');
                     $error_msg[] = implode("\r\n", $error_data);
+                    
+                    // execute command
+                    if (isset($options['command'])) {
+                        $options['command']->error(exmtrans(
+                            'command.import.file_row_error',
+                            $options['file_name'] ?? null,
+                            $table_name,
+                            $options['start'] ?? null,
+                            $options['end'] ?? null,
+                            implode("\r\n", $error_msg)
+                        ));
+                    }
+                
                     return [
                         'result' => false,
-                        'message' => implode("\r\n", $error_msg)
                     ];
                 }
 
@@ -107,15 +132,23 @@ class CustomTableAction implements ActionInterface
                     $provider->importData($row);
                 }
 
-                $get_index++;
+                // $get_index++;
                 $data_import_cnt += count($data_import);
-            }
-            $messages[] = $table_name.':'.$data_import_cnt;
-        }
+                $import_loop_count++;
 
+                // Clear Select table's request session
+                $reauestSessionKeys = System::getRequestSessionKeys();
+                foreach ($reauestSessionKeys as $reauestSessionKey) {
+                    if (strpos($reauestSessionKey, Define::SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE_PREFIX) !== false) {
+                        System::clearRequestSession($reauestSessionKey);
+                    }
+                }
+            }
+        }
+        
         return [
             'result' => true,
-            'message' => exmtrans('command.import.success_message', implode(',', $messages))
+            'data_import_cnt' => $data_import_cnt,
         ];
     }
 

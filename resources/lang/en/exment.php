@@ -2080,11 +2080,13 @@ return [
     'command' => [
         'import' => [
             'file_count' => 'Number of applicable files:',
-            'file_info' => ' case implementation start. file:{%s}',
+            'file_info' => ' case implementation start. file:%s',
+            'file_row_info' => '    - Import start. File:%s Row:%s-%s',
+            'file_row_error' => '   - Import error. File:%s Row:%s-%s Error:%s',
             'error_info' => 'Error info : ',
-            'success_message' => 'The import was successful. number:{%s}',
-            'error_table' => 'The target table {%s} cannot be found.',
-            'error_info_ex' => 'An error occurred during processing. There is already imported data.{%s}',
+            'success_message' => 'The import was successful. File:%s Count:%s',
+            'error_table' => 'The target table %s cannot be found.',
+            'error_info_ex' => 'An error occurred during processing. There is already imported data.%s',
         ],
         'export' => [
             'success_message' => 'The export was successful. Directory path:%s',

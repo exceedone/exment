@@ -182,19 +182,31 @@ if (!function_exists('floorDigit')) {
      * Truncate to decimal $digit digit.
      *
      * @param int|double|null $num
-     * @param int $digit
-     * @return double|int
+     * @param int $digit Decimal digits
+     * @param bool $display Whether to set 0 if the number of decimal places is less than the specified number of digits
+     * @return double|int|string
      */
-    function floorDigit($num, int $digit)
+    function floorDigit($num, int $digit, bool $display = false)
     {
         if ($digit < 0) {
             $digit = 0;
         }
         $numPointPosition = intval(strpos($num, '.'));
+        
+        // if for display
+        $result = null;
         if ($numPointPosition === 0) { //$num is an integer
-            return $num;
+            $result = $num;
+        } else {
+            $result = floatval(substr($num, 0, $numPointPosition + $digit + 1));
+            ;
         }
-        return floatval(substr($num, 0, $numPointPosition + $digit + 1));
+
+        if ($display && $digit > 0) {
+            $result = sprintf("%.{$digit}f", $result);
+        }
+
+        return $result;
     }
 }
 
@@ -432,25 +444,6 @@ if (!function_exists('getFullpath')) {
     }
 }
 
-if (!function_exists('getTmpFolderPath')) {
-    /**
-     * get tmp folder path. Uses for
-     * @param string $type "plugin", "template", "backup", "data".
-     */
-    function getTmpFolderPath($type, $fullpath = true)
-    {
-        $path = path_join('tmp', $type);
-        if (!$fullpath) {
-            return $path;
-        }
-        $tmppath = getFullpath($path, Define::DISKNAME_ADMIN_TMP);
-        if (!\File::exists($tmppath)) {
-            \File::makeDirectory($tmppath, 0755, true);
-        }
-
-        return $tmppath;
-    }
-}
 
 if (!function_exists('mb_basename')) {
     function mb_basename($str, $suffix=null)
@@ -499,19 +492,6 @@ if (!function_exists('bytesToHuman')) {
     }
 }
 
-if (!function_exists('setTimeLimitLong')) {
-    /**
-     * Set time limit long
-     */
-    function setTimeLimitLong($time = 600)
-    {
-        $max_execution_time = ini_get('max_execution_time');
-        if ($max_execution_time == 0 || $max_execution_time > $time) {
-            return;
-        }
-        set_time_limit($time);
-    }
-}
 
 if (!function_exists('getUploadMaxFileSize')) {
     /**
@@ -788,7 +768,7 @@ if (!function_exists('toArray')) {
         }
 
         if ($value instanceof \Illuminate\Support\Collection) {
-            return $value->toArray();
+            return $value->all();
         }
 
         //TODO: I think this should not call $model->toArray()...
@@ -885,6 +865,40 @@ if (!function_exists('isMatchString')) {
     function isMatchString($v1, $v2) : bool
     {
         return strcmp($v1, $v2) == 0;
+    }
+}
+
+if (!function_exists('isMatchDecimal')) {
+    /**
+     * compare decimal number
+     *
+     * @param mixed $v1
+     * @param mixed $v2
+     * @return bool
+     */
+    function isMatchDecimal($v1, $v2) : bool
+    {
+        $v1 = rtrim((strpos($v1, ".") !== false ? rtrim($v1, "0") : $v1), ".");
+        $v2 = rtrim((strpos($v2, ".") !== false ? rtrim($v2, "0") : $v2), ".");
+        return strcmp($v1, $v2) == 0;
+    }
+}
+
+if (!function_exists('isMatchArray')) {
+    /**
+     * compare array
+     *
+     * @param array $v1
+     * @param array $v2
+     * @return bool
+     */
+    function isMatchArray(array $v1, array $v2) : bool
+    {
+        if (count($v1) == count($v2)) {
+            $dup = array_intersect($v1, $v2);
+            return count($v1) == count($dup);
+        }
+        return false;
     }
 }
 
@@ -1424,9 +1438,9 @@ if (!function_exists('getDataFromSheet')) {
     /**
      * get Data from excel sheet
      */
-    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
+    function getDataFromSheet($sheet, $keyvalue = false, $isGetMerge = false)
     {
-        return \Exment::getDataFromSheet($sheet, $skip_excel_row_no, $keyvalue, $isGetMerge);
+        return \Exment::getDataFromSheet($sheet, $keyvalue, $isGetMerge);
     }
 }
 
@@ -1436,31 +1450,7 @@ if (!function_exists('getCellValue')) {
      */
     function getCellValue($cell, $sheet, $isGetMerge = false)
     {
-        if (is_string($cell)) {
-            $cell = $sheet->getCell($cell);
-        }
-
-        // if merge cell, get from master cell
-        if ($isGetMerge && $cell->isInMergeRange()) {
-            $mergeRange = $cell->getMergeRange();
-            $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
-        }
-
-        $value = $cell->getCalculatedValue();
-        // is datetime, convert to date string
-        if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)) {
-            $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
-            if (floatval($value) < 1) {
-                $value = $date->format('H:i:s');
-            } else {
-                $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
-            }
-        }
-        // if rich text, set plain value
-        elseif ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
-            $value = $value->getPlainText();
-        }
-        return $value;
+        return \Exment::getCellValue($cell, $sheet, $isGetMerge);
     }
 }
 
@@ -1483,6 +1473,7 @@ if (!function_exists('getCellAlphabet')) {
     }
 }
 
+
 if (!function_exists('getUserName')) {
     /**
      * Get database user name.
@@ -1502,6 +1493,9 @@ if (!function_exists('getUserName')) {
         }
         
         if (!isset($user)) {
+            if (CustomTable::getEloquent(SystemTableName::USER)->hasCustomValueInDB($id)) {
+                return exmtrans('common.message.no_permission');
+            }
             return null;
         }
         if ($user->trashed()) {

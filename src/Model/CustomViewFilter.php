@@ -157,12 +157,10 @@ class CustomViewFilter extends ModelBase
         switch ($view_filter_condition) {
             // equal
             case FilterOption::EQ:
-            case FilterOption::USER_EQ:
                 $model->{$method_name}($view_column_target, $condition_value_text);
                 break;
             // not equal
             case FilterOption::NE:
-            case FilterOption::USER_NE:
                 $model->{$method_name}($view_column_target, '<>', $condition_value_text);
                 break;
             // not null
@@ -337,14 +335,17 @@ class CustomViewFilter extends ModelBase
             // for select --------------------------------------------------
             case FilterOption::SELECT_EXISTS:
             case FilterOption::SELECT_NOT_EXISTS:
+            case FilterOption::USER_EQ:
+            case FilterOption::USER_NE:
+                $is_exists = isMatchString($view_filter_condition, FilterOption::SELECT_EXISTS) || isMatchString($view_filter_condition, FilterOption::USER_EQ);
                 // if as multiple search
                 if ($isMultiple) {
-                    $method_name_suffix = isMatchString($view_filter_condition, FilterOption::SELECT_EXISTS) ? 'InArrayString' : 'NotInArrayString';
+                    $method_name_suffix = $is_exists ? 'InArrayString' : 'NotInArrayString';
                     $model->{$method_name.$method_name_suffix}($view_column_target, $condition_value_text);
                 }
                 // if default
                 else {
-                    $mark = isMatchString($view_filter_condition, FilterOption::SELECT_EXISTS) ? '=' : '<>';
+                    $mark = $is_exists ? '=' : '<>';
                     $model->{$method_name . 'OrIn'}($view_column_target, $mark, $condition_value_text);
                 }
                 break;
