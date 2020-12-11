@@ -25,7 +25,7 @@ class InstallController extends Controller
      */
     public function post(Request $request)
     {
-        setTimeLimitLong();
+        \Exment::setTimeLimitLong();
         return InstallService::post();
     }
 }

@@ -444,25 +444,6 @@ if (!function_exists('getFullpath')) {
     }
 }
 
-if (!function_exists('getTmpFolderPath')) {
-    /**
-     * get tmp folder path. Uses for
-     * @param string $type "plugin", "template", "backup", "data".
-     */
-    function getTmpFolderPath($type, $fullpath = true)
-    {
-        $path = path_join('tmp', $type);
-        if (!$fullpath) {
-            return $path;
-        }
-        $tmppath = getFullpath($path, Define::DISKNAME_ADMIN_TMP);
-        if (!\File::exists($tmppath)) {
-            \File::makeDirectory($tmppath, 0755, true);
-        }
-
-        return $tmppath;
-    }
-}
 
 if (!function_exists('mb_basename')) {
     function mb_basename($str, $suffix=null)
@@ -511,19 +492,6 @@ if (!function_exists('bytesToHuman')) {
     }
 }
 
-if (!function_exists('setTimeLimitLong')) {
-    /**
-     * Set time limit long
-     */
-    function setTimeLimitLong($time = 600)
-    {
-        $max_execution_time = ini_get('max_execution_time');
-        if ($max_execution_time == 0 || $max_execution_time > $time) {
-            return;
-        }
-        set_time_limit($time);
-    }
-}
 
 if (!function_exists('getUploadMaxFileSize')) {
     /**
@@ -1470,9 +1438,9 @@ if (!function_exists('getDataFromSheet')) {
     /**
      * get Data from excel sheet
      */
-    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
+    function getDataFromSheet($sheet, $keyvalue = false, $isGetMerge = false)
     {
-        return \Exment::getDataFromSheet($sheet, $skip_excel_row_no, $keyvalue, $isGetMerge);
+        return \Exment::getDataFromSheet($sheet, $keyvalue, $isGetMerge);
     }
 }
 
@@ -1482,31 +1450,7 @@ if (!function_exists('getCellValue')) {
      */
     function getCellValue($cell, $sheet, $isGetMerge = false)
     {
-        if (is_string($cell)) {
-            $cell = $sheet->getCell($cell);
-        }
-
-        // if merge cell, get from master cell
-        if ($isGetMerge && $cell->isInMergeRange()) {
-            $mergeRange = $cell->getMergeRange();
-            $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
-        }
-
-        $value = $cell->getCalculatedValue();
-        // is datetime, convert to date string
-        if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)) {
-            $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
-            if (floatval($value) < 1) {
-                $value = $date->format('H:i:s');
-            } else {
-                $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
-            }
-        }
-        // if rich text, set plain value
-        elseif ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
-            $value = $value->getPlainText();
-        }
-        return $value;
+        return \Exment::getCellValue($cell, $sheet, $isGetMerge);
     }
 }
 
@@ -1529,6 +1473,7 @@ if (!function_exists('getCellAlphabet')) {
     }
 }
 
+
 if (!function_exists('getUserName')) {
     /**
      * Get database user name.
@@ -1548,6 +1493,9 @@ if (!function_exists('getUserName')) {
         }
         
         if (!isset($user)) {
+            if (CustomTable::getEloquent(SystemTableName::USER)->hasCustomValueInDB($id)) {
+                return exmtrans('common.message.no_permission');
+            }
             return null;
         }
         if ($user->trashed()) {

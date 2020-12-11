@@ -69,15 +69,18 @@ class ImportCommand extends Command
 
             foreach ($files as $index => $file) {
                 $file_name = $file->getFileName();
+
+                // continue prefix '~' file
+                if (strpos($file_name, '~') !== false) {
+                    continue;
+                }
+
                 $this->line(($index + 1) . exmtrans('command.import.file_info', $file_name));
 
-                $table_name = file_ext_strip($file_name);
-                $table_name = preg_replace('/^\d+#/', '', $table_name);
                 $format = file_ext($file_name);
-    
-                $custom_table = CustomTable::getEloquent($table_name);
+                $custom_table = $this->getTableFromFile($file_name);
                 if (!isset($custom_table)) {
-                    $this->line(exmtrans('command.import.error_info'));
+                    $this->error(exmtrans('command.import.error_info') . exmtrans('command.import.error_table', $file_name));
                     continue;
                 }
     
@@ -90,21 +93,57 @@ class ImportCommand extends Command
                     ))
                     ->format($format);
 
-                $result = $service->importBackground($file->getRealPath(), [
+                // Execute import. Show message executes in service.
+                $result = $service->importBackground($this, $file_name, $file->getRealPath(), [
                     'checkCount' => false,  // whether checking count
                     'take' => 100           // if set, taking data count
                 ]);
-
-                $message = array_get($result, 'message');
-                if (!empty($message)) {
-                    $this->line($message);
+                
+                if (boolval($result['result'] ?? true)) {
+                    $this->line(($index + 1) . exmtrans('command.import.success_message', $file_name, array_get($result, 'data_import_cnt')));
                 }
             }
         } catch (\Exception $e) {
+            \Log::error($e);
             $this->error($e->getMessage());
             return -1;
         }
 
         return 0;
+    }
+
+    /**
+     * Get table from file name.
+     * Support such as:
+     *     information.csv
+     *     information#001.csv
+     *     information.001.csv
+     *
+     * @param string  $file_name
+     * @return CustomTable|null
+     */
+    protected function getTableFromFile(string $file_name) : ?CustomTable
+    {
+        $table_name = file_ext_strip($file_name);
+        // directry same name
+        if (!is_null($custom_table = CustomTable::getEloquent($table_name))) {
+            return $custom_table;
+        }
+
+        // If contains "#" in file name, throw exception
+        if (strpos($table_name, '#') !== false) {
+            throw new \Exception('File name that conatains "#" not supported over v3.8.0.');
+        }
+
+        // loop for regex
+        $regexes = ['(?<table_name>.+)\\.\d+', '\d+\\.(?<table_name>.+)'];
+        foreach ($regexes as $regex) {
+            $match_num = preg_match('/' . $regex . '/u', $table_name, $matches);
+            if ($match_num > 0 && !is_null($custom_table = CustomTable::getEloquent($matches['table_name']))) {
+                return $custom_table;
+            }
+        }
+
+        return null;
     }
 }

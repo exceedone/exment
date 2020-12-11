@@ -607,7 +607,7 @@ return [
     | Impoer row max count
     |
     */
-    'import_max_row_count' => env('EXMENT_IMPORT_MAX_ROW_COUNT', 1000),
+    'import_max_row_count' => env('EXMENT_IMPORT_MAX_ROW_COUNT', 5000),
     
     /*
     |--------------------------------------------------------------------------
@@ -668,6 +668,26 @@ return [
     |
     */
     'export_append_csv_bom' => env('EXMENT_EXPORT_APPEND_CSV_BOM', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | export library
+    |--------------------------------------------------------------------------
+    |
+    | export data library, default is PHP SPREAT SHEET
+    |
+    */
+    'export_library' => env('EXMENT_EXPORT_LIBRARY'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | import library
+    |--------------------------------------------------------------------------
+    |
+    | import data library, default is SPOUT
+    |
+    */
+    'import_library' => env('EXMENT_IMPORT_LIBRARY'),
 
     /*
     |--------------------------------------------------------------------------

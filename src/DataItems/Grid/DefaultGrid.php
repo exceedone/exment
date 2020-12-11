@@ -620,7 +620,7 @@ class DefaultGrid extends GridBase
                     'custom_table' => $this->custom_table,
                     'grid' => $grid,
                 ]
-            ))->viewExportAction(new DataImportExport\Actions\Export\SummaryAction(
+            ))->viewExportAction(new DataImportExport\Actions\Export\ViewAction(
                 [
                     'custom_table' => $this->custom_table,
                     'custom_view' => $this->custom_view,

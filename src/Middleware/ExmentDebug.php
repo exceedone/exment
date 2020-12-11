@@ -15,7 +15,8 @@ class ExmentDebug
     }
 
 
-    public static function handleLog(?Request $request = null){
+    public static function handleLog(?Request $request = null)
+    {
         if (boolval(config('exment.debugmode', false)) || boolval(config('exment.debugmode_sql', false))) {
             static::logDatabase();
         }

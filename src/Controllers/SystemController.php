@@ -344,7 +344,7 @@ class SystemController extends AdminControllerBase
             ]);
         }
 
-        setTimeLimitLong();
+        \Exment::setTimeLimitLong();
         $test_mail_to = $request->get('test_mail_to');
 
         try {

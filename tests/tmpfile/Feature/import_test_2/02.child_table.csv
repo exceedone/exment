@@ -1,0 +1,3 @@
+﻿"id","suuid","parent_id","parent_type","value.text","value.user","value.index_text","value.odd_even","value.multiples_of_3","value.file","value.date","value.integer","value.currency","value.init_text","created_at","updated_at","deleted_at"
+"ID","内部ID(20桁)","親データのID","親データのテーブル名","text","user","index_text","odd_even","multiples_of_3","file","date","integer","currency","init_text","作成日時","更新日時","削除日時"
+"","","11","parent_table","child_text_1","4","child_index_text_1","even","NO","","2021-01-01","7833","95000","init_text_1","","",""
