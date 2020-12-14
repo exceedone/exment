@@ -632,7 +632,7 @@ EOT;
                 })
                 ->required()
                 ->ajax($parent_custom_table->getOptionAjaxUrl())
-                ->attribute(['data-target_table_name' => array_get($parent_custom_table, 'table_name')]);
+                ->attribute(['data-target_table_name' => array_get($parent_custom_table, 'table_name'), 'data-parent_id' => true]);
 
             // set buttons
             $select->buttons([

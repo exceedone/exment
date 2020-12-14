@@ -1253,6 +1253,14 @@ return [
             'fixed' => 'Fixed Value',
             'symbol' => 'Symbol',
             'input_number' => 'Input Number',
+            'validate_formula' => 'Validate Formula',
+
+            'message' => [
+                'description' => "Please enter the calculation formula. The formula can also be entered manually. When you're done, click the Validate Expression button to confirm your entry.",
+                'validate_success' => 'The correct formula.',
+                'validate_error' => 'There is an error in the formula you entered. Please check the formula.',
+                'infinity' => 'Division by zero may have occurred. Please check the formula.',
+            ]
         ],
     ],
 

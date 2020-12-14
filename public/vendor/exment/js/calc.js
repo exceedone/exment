@@ -126,7 +126,7 @@ var Exment;
                     // when parent value, get value from parent_id or parent form
                     else if (param.type == 'parent') {
                         // find parent target table
-                        let $select = $targetBox.find('.parent_id');
+                        let $select = $('.parent_id[data-parent_id]');
                         // if has $select, this default form, so call CommonEvent.findModel
                         if (hasValue($select)) {
                             let table_name = $select.data('target_table_name');
@@ -161,7 +161,12 @@ var Exment;
                 if (notCalc) {
                     return null;
                 }
-                return math.evaluate(formula_string);
+                let result = math.evaluate(formula_string);
+                if (result === Infinity) {
+                    swal($('#exment_error_title').val(), $('#exment_error_calc_inifinity').val(), 'error');
+                    return null;
+                }
+                return result;
             });
         }
         static getDefaultBox() {
@@ -271,6 +276,13 @@ var Exment;
                     }
                     yield $target.trigger('change.exment_calc');
                 }));
+                // set event for row plusminus event to child block if type is parent
+                if (calc_formula.type == 'parent') {
+                    let $targetBoxChild = CalcEvent.getBlockElement(calc_formula.target_block);
+                    $targetBoxChild.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                        yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
+                    }));
+                }
             }
             // count event
             for (let child_relation_name in blockData.calc_counts) {

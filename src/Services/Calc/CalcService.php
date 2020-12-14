@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Services\Calc;
 use Exceedone\Exment\Services\Calc\Items;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomFormBlock;
-use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 
 /**
@@ -85,13 +84,16 @@ class CalcService
                     continue;
                 }
 
-                $formula_key_name = $param['trigger_block'] . '-' . $column_name;
+                // get formula_key_name
+                $target_block = ($relationInfo ? $relationInfo[1] : null) ?? 'default';
+                $formula_key_name = sprintf('%s-%s-%s-%s', $param['trigger_block'], $param['trigger_column'], $custom_column->column_name, $target_block);
+                
                 if(!array_has($calc_formulas, $formula_key_name)){
                     $calc_formulas[$formula_key_name] = [
                         'trigger_block' => $param['trigger_block'],
                         'trigger_column' => $param['trigger_column'],
                         'target_column' => $custom_column->column_name,
-                        'target_block' => $relationInfo ? $relationInfo[1] : 'default',
+                        'target_block' => $target_block,
                         'type' => array_get($param, 'type'),
                         'formulas' => [],
                     ];
@@ -103,9 +105,9 @@ class CalcService
                 ];
             }
 
-            // if contains type "count", set 'calc_counts'
-            if(collect($params)->contains(function($param){
-                return in_array(array_get($param, 'type'), ['count', 'parent']);
+            // if contains type "count", set 'calc_counts'. If set $calc_counts array, execuite click "+Add" Or "-Remove" Button.
+            if(collect($params)->contains(function($p){
+                return in_array(array_get($p, 'type'), ['count']);
             })){
                 $child_relation_name = array_get($param, 'child_relation_name');
                 if(is_nullorempty($child_relation_name)){
@@ -116,7 +118,7 @@ class CalcService
                     $calc_counts[$child_relation_name] = [
                         'block_key' => 'default',
                         'target_column' => $custom_column->column_name,
-                        'type' => 'summary',
+                        'type' => 'count',
                         'formulas' => [],
                     ];
                 }
