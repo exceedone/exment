@@ -3,6 +3,7 @@ namespace Exceedone\Exment\Validator;
 
 use Illuminate\Contracts\Validation\Rule;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
 
 /**
  * CustomValueRule.
@@ -11,10 +12,20 @@ use Exceedone\Exment\Model\CustomTable;
 class CustomValueRule implements Rule
 {
     protected $custom_table;
-    public function __construct($parameters)
+
+    /**
+     * Filtering view if needs
+     *
+     * @var int|string|CustomView|null
+     */
+    protected $custom_view;
+
+    public function __construct($custom_table, $custom_view = null)
     {
-        $this->custom_table = CustomTable::getEloquent($parameters);
+        $this->custom_table = CustomTable::getEloquent($custom_table);
+        $this->custom_view = CustomView::getEloquent($custom_view);
     }
+    
     /**
     * Check Validation
     *
@@ -31,9 +42,28 @@ class CustomValueRule implements Rule
             return true;
         }
 
-        $value = array_filter(stringToArray($value));
+        $value = array_unique(array_filter(stringToArray($value)));
 
-        foreach ($value as $v) {
+        // check custom table's data
+        if(!$this->hasData($value)){
+            return false;
+        }
+
+        if(!$this->hasCustomViewFilter($value)){
+            return false;
+        }
+
+        return true;
+    }
+    
+    /**
+     * HasData
+     *
+     * @return boolean
+     */
+    protected function hasData(array $values) : bool
+    {
+        foreach ($values as $v) {
             if (!is_numeric($v)) {
                 return false;
             }
@@ -46,7 +76,32 @@ class CustomValueRule implements Rule
 
         return true;
     }
+
+
+    /**
+     * Filter custom view
+     *
+     * @return boolean
+     */
+    protected function hasCustomViewFilter(array $values) : bool
+    {
+        if(is_nullorempty($this->custom_view)){
+            return true;
+        }
+
+        // filter query
+        $query = $this->custom_table->getValueModel()->query();
+        $this->custom_view->filterModel($query, ['sort' => false]);
+
+        $query->whereIn('id', $values);
+        
+        // check data counts;
+        $count = $query->count();
+
+        return $count == count($values);
+    }
     
+
     /**
      * get validation error message
      *

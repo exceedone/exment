@@ -327,7 +327,7 @@ class SelectTable extends CustomItem
     protected function setValidates(&$validates, $form_column_options)
     {
         $validates[] = new Validator\SelectTableNumericRule();
-        $validates[] = new Validator\CustomValueRule($this->target_table);
+        $validates[] = new Validator\CustomValueRule($this->target_table, $this->custom_column->getOption('select_target_view'));
     }
     
     protected function getRemoveValidates()
