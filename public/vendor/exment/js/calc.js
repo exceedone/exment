@@ -203,13 +203,13 @@ var Exment;
         }
         /**
          * Get target field.
-         * (1) calc_formula is summary, return parent.
+         * (1) calc_formula is summary or count, return parent.
          * (2) form is 1:n and trigger is n, return closest child.
          * (3) form is 1:n and trigger is 1, return children item.
          * (4) Otherwise, return 1.
          */
         static getTargetFields($trigger, $targetBox, calc_formula) {
-            if (calc_formula.type == 'sum' || calc_formula.type == 'summary') {
+            if (calc_formula.type == 'sum' || calc_formula.type == 'summary' || calc_formula.type == 'count') {
                 return CalcEvent.getDefaultBox().find(Exment.CommonEvent.getClassKey(calc_formula.target_column));
             }
             // if has has-many-table-row or has-many-form, only return child to 
@@ -276,10 +276,17 @@ var Exment;
                     }
                     yield $target.trigger('change.exment_calc');
                 }));
-                // set event for row plusminus event to child block if type is parent
+                // set event for row add remove event to child block if type is parent
                 if (calc_formula.type == 'parent') {
                     let $targetBoxChild = CalcEvent.getBlockElement(calc_formula.target_block);
                     $targetBoxChild.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                        yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
+                    }));
+                }
+                // set event for row add remove event to child block if type is parent
+                if (calc_formula.type == 'sum' || calc_formula.type == 'summary') {
+                    let $triggerBoxChild = CalcEvent.getBlockElement(calc_formula.trigger_block);
+                    $triggerBoxChild.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { data: blockData, calc_formula: calc_formula }, (ev) => __awaiter(this, void 0, void 0, function* () {
                         yield CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
                     }));
                 }

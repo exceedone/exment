@@ -105,20 +105,20 @@ class CalcService
                 ];
             }
 
-            // if contains type "count", set 'calc_counts'. If set $calc_counts array, execuite click "+Add" Or "-Remove" Button.
-            if(collect($params)->contains(function($p){
-                return in_array(array_get($p, 'type'), ['count']);
-            })){
+            // if contains type "count", or "sum", set 'calc_counts'. If set $calc_counts array, execuite click "+Add" Or "-Remove" Button.
+            collect($params)->filter(function($param){
+                return in_array(array_get($param, 'type'), ['count']);
+            })->each(function($param) use(&$calc_counts, $custom_column, $params, $option_calc_formula){
                 $child_relation_name = array_get($param, 'child_relation_name');
                 if(is_nullorempty($child_relation_name)){
-                    continue;
+                    return;
                 }
                 
                 if(!array_has($calc_counts, $child_relation_name)){
                     $calc_counts[$child_relation_name] = [
                         'block_key' => 'default',
                         'target_column' => $custom_column->column_name,
-                        'type' => 'count',
+                        'type' => array_get($param, 'type'),
                         'formulas' => [],
                     ];
                 }
@@ -127,7 +127,7 @@ class CalcService
                     'formula_string' => $option_calc_formula,
                     'params' => $params,
                 ];
-            }
+            });
         }
 
         return ['calc_formulas' => $calc_formulas, 'calc_counts' => $calc_counts];

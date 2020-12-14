@@ -19,8 +19,8 @@
             @endif
         </div>
     @endif
-    <div class="col-sm-{{$tablewidth['width']}} col-sm-offset-{{$tablewidth['offset']}}">
-        <table id="has-many-table-{{$column}}-table" class="table table-bordered hasmanyblock-{{$column}} has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
+    <div class="col-sm-{{$tablewidth['width']}} hasmanyblock-{{$column}} col-sm-offset-{{$tablewidth['offset']}}">
+        <table id="has-many-table-{{$column}}-table" class="table table-bordered has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
             <thead>
             <tr class="active">
                 @foreach($tableitems as $tableitem)
