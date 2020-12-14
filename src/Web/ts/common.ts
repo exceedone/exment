@@ -403,38 +403,40 @@ namespace Exment {
          */
         public static setChangedataEvent(datalist) {
             // loop "data-changedata" targets   
-            for (var key in datalist) {
-                var data = datalist[key];
+            for (let key in datalist) {
+                let data = datalist[key];
 
                 // set change event
-                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data }, async (ev) => {
+                let $targetBox = CommonEvent.getBlockElement(key.split('/')[0]);
+                let column_name = key.split('/')[1];
+                $targetBox.on('change', CommonEvent.getClassKey(column_name), { data: data }, async (ev) => {
                     CalcEvent.resetLoopConnt();
                     await CommonEvent.changeModelData($(ev.target), ev.data.data);
                 });
 
                 // if hasvalue to_block, add event when click add button
-                for (var table_name in data) {
-                    var target_table_data = data[table_name];
+                for (let table_name in data) {
+                    let target_table_data = data[table_name];
                     if (!hasValue(target_table_data)) {
                         continue;
                     }
 
-                    for (var i = 0; i < target_table_data.length; i++) {
-                        var d = target_table_data[i];
+                    for (let i = 0; i < target_table_data.length; i++) {
+                        let d = target_table_data[i];
                         if (!hasValue(d.to_block)) {
                             continue;
                         }
                         $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, async (ev) => {
                             // get target
-                            var $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
-                            var data = ev.data.data;
+                            let $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
+                            let data = ev.data.data;
                             // set to_lastindex matched index
-                            for (var i = 0; i < data.length; i++) {
+                            for (let i = 0; i < data.length; i++) {
                                 if (i != ev.data.index) { continue; }
                                 data[i]['to_lastindex'] = true;
                             }
                             // create rensou array.
-                            var modelArray = {};
+                            let modelArray = {};
                             modelArray[ev.data.table_name] = data;
                             await CommonEvent.changeModelData($target, modelArray);
                         });
@@ -1045,6 +1047,30 @@ namespace Exment {
             }).addClass('added-select2');
         }
 
+
+        
+        /**
+         * Get form block erea. (hasmany or default form)
+         * @param block_name block name
+         */
+        public static getBlockElement(block_name) : JQuery<HTMLElement>{
+            if(!hasValue(block_name) || block_name == 'default'){
+                return CommonEvent.getDefaultBox();
+            }
+            if(block_name == 'parent_id'){
+                return $('.box-body .parent_id').closest('.form-group');
+            }
+
+            // if 1:n, return children.
+            return $('.box-body .hasmanyblock-' + block_name);
+        }
+
+
+        public static getDefaultBox() : JQuery<HTMLElement>{
+            return $('.box-body >.fields-group > .embed-value');
+        }
+
+        
         /**
          * add field event (datepicker, icheck)
          */

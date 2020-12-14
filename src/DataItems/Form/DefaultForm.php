@@ -286,7 +286,7 @@ EOT;
                 // if set form_column_options changedata_target_column_id, and changedata_column_id
                 if (array_key_value_exists('changedata_target_column_id', $form_column_options) && array_key_value_exists('changedata_column_id', $form_column_options)) {
                     ///// set changedata info
-                    $this->setChangeDataArray($column, $form_column_options, $options, $changedata_array);
+                    $this->setChangeDataArray($column, $custom_form_block, $form_column_options, $options, $changedata_array);
                 }
                     
                 // set relatedlinkage_array
@@ -475,7 +475,7 @@ EOT;
      * "changedata_target_column_id" : trigger column when user select
      * "changedata_column_id" : set column when getting selected value
      */
-    protected function setChangeDataArray($column, $form_column_options, $options, &$changedata_array)
+    protected function setChangeDataArray(CustomColumn $column, CustomFormBlock $custom_form_block, array $form_column_options, $options, &$changedata_array)
     {
         // get this table
         $column_table = $column->custom_table;
@@ -516,17 +516,35 @@ EOT;
         } else {
             $to_block_name = null;
         }
+        
+        //// get from block name.
+        // if not match form block's and $changedata_target_table. from block is default
+        if(!isMatchString($custom_form_block->form_block_target_table_id, $changedata_target_table->id)){
+            $from_block_name = 'default';
+            //$from_block_name = CustomRelation::getRelationNameByTables($changedata_target_table->id, $custom_form_block->form_block_target_table_id);
+        }
+        // if child form
+        elseif($custom_form_block->form_block_type != FormBlockType::DEFAULT){
+            $from_block_name = $custom_form_block->getRelationInfo()[1];
+        }
+        else{
+            $from_block_name = null;
+        }
+
+        // get group key for changedata trigger
+        $group_key = "{$from_block_name}/{$changedata_target_column->column_name}";
 
         // if not exists $changedata_target_column->column_name in $changedata_array
-        if (!array_has($changedata_array, $changedata_target_column->column_name)) {
-            $changedata_array[$changedata_target_column->column_name] = [];
+        if (!array_has($changedata_array, $group_key)) {
+            $changedata_array[$group_key] = [];
         }
-        if (!array_has($changedata_array[$changedata_target_column->column_name], $select_target_table->table_name)) {
-            $changedata_array[$changedata_target_column->column_name][$select_target_table->table_name] = [];
+        if (!array_has($changedata_array[$group_key], $select_target_table->table_name)) {
+            $changedata_array[$group_key][$select_target_table->table_name] = [];
         }
         // push changedata column from and to column name
-        $changedata_array[$changedata_target_column->column_name][$select_target_table->table_name][] = [
+        $changedata_array[$group_key][$select_target_table->table_name][] = [
             'from' => $changedata_column->column_name, // target_table's column
+            'from_block' => $from_block_name, // target_table's block
             'to' => $column->column_name, // set data
             'to_block' => is_null($to_block_name) ? null : '.has-many-' . $to_block_name . ',.has-many-table-' . $to_block_name,
             'to_block_form' => is_null($to_block_name) ? null : '.has-many-' . $to_block_name . '-form,.has-many-table-' . $to_block_name.'-form',

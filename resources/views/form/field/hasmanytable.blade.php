@@ -1,5 +1,5 @@
 
-<div id="has-many-table-{{$column}}" class="form-group has-many-table-div">
+<div id="has-many-table-{{$column}}" class="has-many-table-{{$column}} form-group has-many-table-div">
     @if($enableHeader)
     <div class="row">
         <div class="col-sm-12">
