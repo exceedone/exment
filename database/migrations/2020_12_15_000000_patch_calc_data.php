@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 
-class SupportForV380 extends Migration
+class PatchCalcData extends Migration
 {
     /**
      * Run the migrations.
