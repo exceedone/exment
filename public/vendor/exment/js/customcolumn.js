@@ -10,6 +10,7 @@ var Exment;
             $(document).off('click.exment_custom_column', '[data-contentname="options_calc_formula"] .button-addcalcitem').on('click.exment_custom_column', '[data-contentname="options_calc_formula"] .button-addcalcitem', {}, CustomColumnEvent.calcButtonAddItemEvent);
             $(document).off('click.exment_custom_column', '#validateFormula').on('click.exment_custom_column', '#validateFormula', {}, CustomColumnEvent.validateFormula);
             $(document).off('keydown.exment_custom_column', '#calc_formula_input').on('keydown.exment_custom_column', '#calc_formula_input', {}, CustomColumnEvent.inputFormulaEvent);
+            $(document).off('focus.exment_custom_column', '#calc_formula_input').on('focus.exment_custom_column', '#calc_formula_input', {}, CustomColumnEvent.focusFormulaEvent);
             $(document).on('pjax:complete', function (event) {
                 CustomColumnEvent.AddEvent();
             });
@@ -20,9 +21,19 @@ var Exment;
          */
         static setCalcInput(text) {
             let area = $('#calc_formula_input').get(0);
-            area.value = area.value.substr(0, area.selectionStart)
+            let point = null;
+            if (hasValue(CustomColumnEvent.formulaInputselection)) {
+                point = CustomColumnEvent.formulaInputselection;
+            }
+            else {
+                point = area.selectionStart;
+            }
+            let afterPoint = area.value.substr(0, point).length + text.trim().length;
+            area.value = area.value.substr(0, point)
                 + text.trim()
-                + area.value.substr(area.selectionStart);
+                + area.value.substr(point);
+            // set area.selectionStart point
+            CustomColumnEvent.formulaInputselection = afterPoint;
         }
         static GetSettingValText() {
             let formula = $('#calc_formula_input').val();
@@ -42,6 +53,9 @@ var Exment;
             }
             $('.modal .modal-submit').prop('disabled', true);
             $('.modal #validateResult > span').hide();
+        }
+        static focusFormulaEvent(e) {
+            CustomColumnEvent.formulaInputselection = null;
         }
         static validateFormula() {
             let result = true;
