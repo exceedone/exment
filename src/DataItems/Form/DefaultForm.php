@@ -676,7 +676,7 @@ EOT;
             $parent_value = $parent_custom_table->getValueModel($parent_id);
 
             if (isset($parent_id) && isset($parent_value) && isset($parent_custom_table)) {
-                $form->hidden('parent_id')->default($parent_id)->attribute(['data-target_table_name' => array_get($parent_custom_table, 'table_name')]);
+                $form->hidden('parent_id')->default($parent_id)->attribute(['data-target_table_name' => array_get($parent_custom_table, 'table_name'), 'data-parent_id' => true]);
                 $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label);
             }
         }
