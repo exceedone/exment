@@ -161,7 +161,7 @@ namespace Exment {
                         .find(CommonEvent.getClassKey(param.formula_column))
                         .each(function(){
                             if (hasValue($(this).val())) {
-                                sum_count += pInt($(this).val());
+                                sum_count += pFloat($(this).val());
                             }
                     });
                     val = sum_count;

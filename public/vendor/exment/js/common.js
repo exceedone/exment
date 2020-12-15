@@ -1062,6 +1062,17 @@ const pInt = (obj) => {
     obj = obj.toString().replace(/,/g, '');
     return parseInt(obj);
 };
+const pFloat = (obj) => {
+    if (!hasValue(obj)) {
+        return 0;
+    }
+    obj = obj.toString().replace(/,/g, '');
+    // check integer
+    if (obj.indexOf('.') === -1) {
+        return parseInt(obj);
+    }
+    return parseFloat(obj);
+};
 const pBool = (obj) => {
     if (!hasValue(obj)) {
         return false;

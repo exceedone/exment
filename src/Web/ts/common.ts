@@ -1153,7 +1153,7 @@ const URLJoin = (...args) =>
         .replace(/\?/g, '&')
         .replace('&', '?');
 
-const pInt = (obj) => {
+const pInt = (obj) : number => {
     if (!hasValue(obj)) {
         return 0;
     }
@@ -1161,6 +1161,18 @@ const pInt = (obj) => {
     return parseInt(obj);
 }
 
+const pFloat = (obj) : number => {
+    if (!hasValue(obj)) {
+        return 0;
+    }
+    obj = obj.toString().replace(/,/g, '');
+
+    // check integer
+    if(obj.indexOf('.') === -1){
+        return parseInt(obj);
+    }
+    return parseFloat(obj);
+}
 const pBool = (obj) : boolean => {
     if (!hasValue(obj)) {
         return false;
