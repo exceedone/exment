@@ -86,7 +86,7 @@ class CalcService
 
                 // get formula_key_name
                 $target_block = ($relationInfo ? $relationInfo[1] : null) ?? 'default';
-                $formula_key_name = sprintf('%s-%s-%s-%s', $param['trigger_block'], $param['trigger_column'], $custom_column->column_name, $target_block);
+                $formula_key_name = sprintf('%s/%s/%s/%s', $param['trigger_block'], $param['trigger_column'], $custom_column->column_name, $target_block);
                 
                 if(!array_has($calc_formulas, $formula_key_name)){
                     $calc_formulas[$formula_key_name] = [
@@ -105,7 +105,7 @@ class CalcService
                 ];
             }
 
-            // if contains type "count", or "sum", set 'calc_counts'. If set $calc_counts array, execuite click "+Add" Or "-Remove" Button.
+            // if contains type "count", set 'calc_counts'. If set $calc_counts array, execuite click "+Add" Or "-Remove" Button.
             collect($params)->filter(function($param){
                 return in_array(array_get($param, 'type'), ['count']);
             })->each(function($param) use(&$calc_counts, $custom_column, $params, $option_calc_formula){
@@ -113,16 +113,19 @@ class CalcService
                 if(is_nullorempty($child_relation_name)){
                     return;
                 }
+
+                $formula_key_name = sprintf('%s/%s', $child_relation_name, $custom_column->column_name);
                 
-                if(!array_has($calc_counts, $child_relation_name)){
-                    $calc_counts[$child_relation_name] = [
+                if(!array_has($calc_counts, $formula_key_name)){
+                    $calc_counts[$formula_key_name] = [
+                        'child_relation_name' => $child_relation_name,
                         'block_key' => 'default',
                         'target_column' => $custom_column->column_name,
                         'type' => array_get($param, 'type'),
                         'formulas' => [],
                     ];
                 }
-                $calc_counts[$child_relation_name]['formulas'][] = [
+                $calc_counts[$formula_key_name]['formulas'][] = [
                     'child_relation_name' => $child_relation_name,
                     'formula_string' => $option_calc_formula,
                     'params' => $params,

@@ -56,7 +56,7 @@ namespace Exment {
                             await CalcEvent.setCalc(ev.data.calc_formula, $(ev.target));
                         });
                     }
-                    // set event for row add remove event to child block if type is parent
+                    // set event for row add remove event to child block if type is summary
                     if(calc_formula.type == 'sum' || calc_formula.type == 'summary'){
                         let $triggerBoxChild = CommonEvent.getBlockElement(calc_formula.trigger_block);
                         $triggerBoxChild.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { data: blockData, calc_formula: calc_formula }, async (ev) => {
@@ -66,9 +66,9 @@ namespace Exment {
                 }
     
                 // count event
-                for(let child_relation_name in blockData.calc_counts){
-                    let calc_count = blockData.calc_counts[child_relation_name];
-                    let $childbox = $('.box-body').find('.hasmanyblock-' + child_relation_name);
+                for(let child_relation_key in blockData.calc_counts){
+                    let calc_count = blockData.calc_counts[child_relation_key];
+                    let $childbox = $('.box-body').find('.hasmanyblock-' + calc_count.child_relation_name);
                     
                     // add laravel-admin row plusminus event
                     $childbox.on('admin_hasmany_row_change', '.add.btn, .remove.btn', { calc_count: calc_count }, async (ev) => {
@@ -233,8 +233,7 @@ namespace Exment {
             }
 
             let result = math.evaluate(formula_string);
-            if(result === Infinity){
-                swal($('#exment_error_title').val(), $('#exment_error_calc_inifinity').val(), 'error');
+            if(result === Infinity || result === -Infinity || result === NaN){
                 return null;
             }
 
