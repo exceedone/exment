@@ -14,7 +14,7 @@ class CalcService
      * get calc display text.
      *
      * @param mixed $value
-     * @return void
+     * @return string
      */
     public static function getCalcDisplayText($value, CustomTable $custom_table)
     {
@@ -41,7 +41,7 @@ class CalcService
      * @param array $calc_params
      * @param [type] $count_detail_array
      * @param boolean $is_default
-     * @return void set above values:
+     * @return array set above values:
      *     'formula': formula string.
      *     'target_column': Defined formula setting column.
      *     'formula_column': formula column's name. Contains trigger column.

@@ -77,7 +77,7 @@ trait ExportCommandTrait
      * @param CustomTable $custom_table
      * @param [type] $grid
      * @param array $options
-     * @return void
+     * @return \Exceedone\Exment\Services\DataImportExport\Actions\Export\ActionInterface
      */
     protected function getExportAction(CustomTable $custom_table, $grid, array $options)
     {

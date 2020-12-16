@@ -520,7 +520,6 @@ class CustomColumnController extends AdminControllerTableBase
 
             // calc
             $custom_table = $this->custom_table;
-            $self = $this;
             $form->valueModal('calc_formula', exmtrans("custom_column.options.calc_formula"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])])
                 ->help(exmtrans("custom_column.help.calc_formula") . \Exment::getMoreTag('column', 'custom_column.options.calc_formula'))
@@ -528,7 +527,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->modalContentname('options_calc_formula')
                 ->nullText(exmtrans('common.no_setting'))
                 ->valueTextScript('Exment.CustomColumnEvent.GetSettingValText();')
-                ->text(function ($value) use ($id, $custom_table, $self) {
+                ->text(function ($value) use ($custom_table) {
                     return CalcService::getCalcDisplayText($value, $custom_table);
                 })
             ;

@@ -88,7 +88,7 @@ class SelectTable extends ItemBase
             }
 
             // get select table's calc column
-            $custom_column->select_target_table->custom_columns_cache->filter(function ($select_pivot_column) use ($custom_table, $id) {
+            $custom_column->select_target_table->custom_columns_cache->filter(function ($select_pivot_column) use ($id) {
                 if (isset($id) && $id == array_get($select_pivot_column, 'id')) {
                     return false;
                 }

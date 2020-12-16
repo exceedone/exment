@@ -116,7 +116,7 @@ class ParentItem extends ItemBase
         }
 
         $parent_table = $relation->parent_custom_table;
-        $parent_table->custom_columns_cache->filter(function ($custom_column) use ($id, $custom_table, $options) {
+        $parent_table->custom_columns_cache->filter(function ($custom_column) use ($id) {
             if (isset($id) && $id == array_get($custom_column, 'id')) {
                 return false;
             }
