@@ -51,25 +51,25 @@ class TestDataSeeder extends Seeder
     {
         Config::set('exment.column_index_enabled_count', 25);
 
-        // $this->createSystem();
+        $this->createSystem();
 
-        // $users = $this->createUserOrg();
+        $users = $this->createUserOrg();
        
-        // $menu = $this->createMenuParent();
+        $menu = $this->createMenuParent();
 
-        // $custom_tables = $this->createTables($users, $menu);
+        $custom_tables = $this->createTables($users, $menu);
 
-        // $this->createPermission($custom_tables);
+        $this->createPermission($custom_tables);
 
-        // $this->createRelationTables($users);
+        $this->createRelationTables($users);
 
-        // $this->createAllColumnsTable($menu, $users);
+        $this->createAllColumnsTable($menu, $users);
 
-        // $this->createAllColumnsTableForTest($menu, $users);
+        $this->createAllColumnsTableForTest($menu, $users);
 
-        // $this->createApiSetting();
+        $this->createApiSetting();
 
-        // $this->createMailTemplate();
+        $this->createMailTemplate();
 
         $this->createPlugin();
     }
