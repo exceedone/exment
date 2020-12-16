@@ -58,7 +58,8 @@ class ParentItem extends ItemBase
     }
 
     
-    public function toArray(){
+    public function toArray()
+    {
         $array = [];
         if ($this->custom_form_block && $this->custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
             $array['child_relation_name'] = $this->getRelationName();
@@ -73,10 +74,10 @@ class ParentItem extends ItemBase
      */
     public function getTriggeredKeys() : array
     {
-        if($this->custom_form_block){
+        if ($this->custom_form_block) {
             // if has block, and form_block_type is default, this block is child table only form.
             // (Ex. "parent" and "child" table, and this form is only "child" form).
-            if($this->custom_form_block->form_block_type == FormBlockType::DEFAULT){
+            if ($this->custom_form_block->form_block_type == FormBlockType::DEFAULT) {
                 return [
                     'trigger_block' => 'parent_id',
                     'trigger_column' => 'parent_id',
@@ -84,9 +85,9 @@ class ParentItem extends ItemBase
             }
             // if has block, and form_block_type is not default, Check custom column and custom table.
             // (Ex. "parent" and "child" table, and this form is "parent" form and contains child).
-            else{
+            else {
                 // If same column's table id and custom table's id, this form is child
-                if(isMatchString($this->custom_column->custom_table_id, $this->custom_table->id)){
+                if (isMatchString($this->custom_column->custom_table_id, $this->custom_table->id)) {
                     return [
                         'trigger_block' => $this->getRelationName(),
                         'trigger_column' => array_get($this->custom_column, 'column_name'),

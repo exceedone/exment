@@ -14,28 +14,34 @@ class Count extends ItemBase
      */
     public $child_custom_table;
     
-    public function __construct(?CustomTable $custom_table, ?CustomTable $child_custom_table){
+    public function __construct(?CustomTable $custom_table, ?CustomTable $child_custom_table)
+    {
         parent::__construct(null, $custom_table);
         $this->child_custom_table = $child_custom_table;
     }
     
-    public function type(){
+    public function type()
+    {
         return 'count';
     }
 
-    public function text(){
+    public function text()
+    {
         return exmtrans('custom_column.calc_text.child_count', array_get($this->child_custom_table, 'table_view_name'));
     }
 
-    public function val(){
+    public function val()
+    {
         return '${count:' . array_get($this->child_custom_table, 'table_name') .'}';
     }
 
-    public static function getItem(?CustomTable $custom_table, ?CustomTable $child_custom_table){
+    public static function getItem(?CustomTable $custom_table, ?CustomTable $child_custom_table)
+    {
         return new self($custom_table, $child_custom_table);
     }
 
-    public static function getItemBySplits($splits, ?CustomTable $custom_table){
+    public static function getItemBySplits($splits, ?CustomTable $custom_table)
+    {
         $child_table = CustomTable::getEloquent($splits[0]);
         return new self($custom_table, $child_table);
     }
@@ -53,7 +59,8 @@ class Count extends ItemBase
         ];
     }
 
-    public function toArray(){
+    public function toArray()
+    {
         $child_relation_name = CustomRelation::getRelationNameByTables($this->custom_table, $this->child_custom_table);
 
         return array_merge([
@@ -62,13 +69,14 @@ class Count extends ItemBase
         ], parent::toArray());
     }
 
-    public static function setCalcCustomColumnOptions($options, $id, $custom_table){
-         // add child columns
-         $child_relations = $custom_table->custom_relations;
-         if (!isset($child_relations)) {
-             return;
-         }
-         foreach ($child_relations as $child_relation) {
+    public static function setCalcCustomColumnOptions($options, $id, $custom_table)
+    {
+        // add child columns
+        $child_relations = $custom_table->custom_relations;
+        if (!isset($child_relations)) {
+            return;
+        }
+        foreach ($child_relations as $child_relation) {
             $child_table = $child_relation->child_custom_table;
             $options->push(static::getItem($custom_table, $child_table));
         }

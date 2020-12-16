@@ -11,27 +11,33 @@ use Exceedone\Exment\Enums\FormBlockType;
  */
 class Dynamic extends ItemBase
 {
-    public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table){
+    public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table)
+    {
         parent::__construct($custom_column, $custom_table);
     }
     
-    public function type(){
+    public function type()
+    {
         return 'dynamic';
     }
 
-    public function text(){
+    public function text()
+    {
         return array_get($this->custom_column, 'column_view_name');
     }
 
-    public function val(){
+    public function val()
+    {
         return '${value:' . array_get($this->custom_column, 'column_name') . '}';
     }
 
-    public static function getItem(?CustomColumn $custom_column, ?CustomTable $custom_table){
+    public static function getItem(?CustomColumn $custom_column, ?CustomTable $custom_table)
+    {
         return new self($custom_column, $custom_table);
     }
 
-    public static function getItemBySplits($splits, ?CustomTable $custom_table){
+    public static function getItemBySplits($splits, ?CustomTable $custom_table)
+    {
         $custom_column = CustomColumn::getEloquent($splits[0], $custom_table);
         return new self($custom_column, $custom_table);
     }
@@ -52,7 +58,8 @@ class Dynamic extends ItemBase
     }
 
 
-    public static function setCalcCustomColumnOptions($options, $id, $custom_table){
+    public static function setCalcCustomColumnOptions($options, $id, $custom_table)
+    {
         // get calc options
         $custom_table->custom_columns_cache->filter(function ($column) use ($id) {
             if (isset($id) && $id == array_get($column, 'id')) {
@@ -68,4 +75,3 @@ class Dynamic extends ItemBase
         });
     }
 }
-

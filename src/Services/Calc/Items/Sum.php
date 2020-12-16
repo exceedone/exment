@@ -16,29 +16,35 @@ class Sum extends ItemBase
      */
     public $child_custom_table;
     
-    public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomTable $child_custom_table){
+    public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomTable $child_custom_table)
+    {
         parent::__construct($custom_column, $custom_table);
         $this->child_custom_table = $child_custom_table;
     }
     
-    public function type(){
+    public function type()
+    {
         return 'summary';
     }
 
-    public function text(){
+    public function text()
+    {
         return exmtrans('custom_column.calc_text.child_sum', array_get($this->child_custom_table, 'table_view_name'), array_get($this->custom_column, 'column_view_name'));
     }
 
-    public function val(){
+    public function val()
+    {
         return '${sum:' . array_get($this->child_custom_table, 'table_name') . '.' . array_get($this->custom_column, 'column_name') . '}';
     }
 
-    public static function getItem(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomTable $child_custom_table){
+    public static function getItem(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomTable $child_custom_table)
+    {
         return new self($custom_column, $custom_table, $child_custom_table);
     }
 
-    public static function getItemBySplits($splits, ?CustomTable $custom_table){
-        if(count($splits) < 2){
+    public static function getItemBySplits($splits, ?CustomTable $custom_table)
+    {
+        if (count($splits) < 2) {
             return null;
         }
         $child_table = CustomTable::getEloquent($splits[0]);
@@ -69,7 +75,8 @@ class Sum extends ItemBase
         ], parent::toArray());
     }
 
-    public static function setCalcCustomColumnOptions($options, $id, $custom_table){
+    public static function setCalcCustomColumnOptions($options, $id, $custom_table)
+    {
         // add child columns
         $child_relations = $custom_table->custom_relations;
         if (!isset($child_relations)) {
@@ -81,13 +88,14 @@ class Sum extends ItemBase
                 return in_array(array_get($custom_column, 'column_type'), ColumnType::COLUMN_TYPE_CALC());
             })->map(function ($custom_column) use ($custom_table, $child_custom_table) {
                 return static::getItem($custom_column, $custom_table, $child_custom_table);
-            })->each(function($custom_column) use($options){
+            })->each(function ($custom_column) use ($options) {
                 $options->push($custom_column);
             });
-       }
-   }
+        }
+    }
 
-   protected function getRelationName(){
-       return CustomRelation::getRelationNameByTables($this->custom_table, $this->child_custom_table);
-   }
+    protected function getRelationName()
+    {
+        return CustomRelation::getRelationNameByTables($this->custom_table, $this->child_custom_table);
+    }
 }

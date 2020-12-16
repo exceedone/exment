@@ -17,24 +17,29 @@ class SelectTable extends ItemBase
      */
     public $select_pivot_column;
     
-    public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomColumn $select_pivot_column){
+    public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table, ?CustomColumn $select_pivot_column)
+    {
         parent::__construct($custom_column, $custom_table);
         $this->select_pivot_column = $select_pivot_column;
     }
     
-    public function type(){
+    public function type()
+    {
         return 'select_table';
     }
 
-    public function text(){
+    public function text()
+    {
         return exmtrans('custom_column.calc_text.select_table', array_get($this->select_pivot_column, 'column_view_name'), array_get($this->custom_column, 'column_view_name'));
     }
 
-    public function val(){
+    public function val()
+    {
         return '${select_table:' . array_get($this->select_pivot_column, 'column_name') . '.' . array_get($this->custom_column, 'column_name') . '}';
     }
 
-    public function toArray(){
+    public function toArray()
+    {
         return array_merge([
             'select_pivot_column' => $this->select_pivot_column ? $this->select_pivot_column->column_name : null,
         ], parent::toArray());
@@ -55,13 +60,15 @@ class SelectTable extends ItemBase
     }
 
 
-    public static function getItem($custom_column, $custom_table, ?CustomColumn $select_pivot_column){
+    public static function getItem($custom_column, $custom_table, ?CustomColumn $select_pivot_column)
+    {
         return new self($custom_column, $custom_table, $select_pivot_column);
     }
 
 
-    public static function getItemBySplits($splits, ?CustomTable $custom_table){
-        if(count($splits) < 2){
+    public static function getItemBySplits($splits, ?CustomTable $custom_table)
+    {
+        if (count($splits) < 2) {
             return [];
         }
         $pivot_custom_column = CustomColumn::getEloquent($splits[0], $custom_table);
@@ -70,7 +77,8 @@ class SelectTable extends ItemBase
     }
 
 
-    public static function setCalcCustomColumnOptions($options, $id, $custom_table){
+    public static function setCalcCustomColumnOptions($options, $id, $custom_table)
+    {
         $custom_table->custom_columns_cache->each(function ($custom_column) use ($id, $custom_table, $options) {
             if (isset($id) && $id == array_get($custom_column, 'id')) {
                 return;

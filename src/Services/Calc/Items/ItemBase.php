@@ -32,12 +32,14 @@ abstract class ItemBase implements CalcInterface
      */
     public $custom_form_block;
     
-    public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table){
+    public function __construct(?CustomColumn $custom_column, ?CustomTable $custom_table)
+    {
         $this->custom_column = $custom_column;
         $this->custom_table = $custom_table;
     }
     
-    public function displayText(){
+    public function displayText()
+    {
         $text = $this->text();
         return '${' . $text . '}';
     }
@@ -55,7 +57,8 @@ abstract class ItemBase implements CalcInterface
         ];
     }
 
-    public function toArray(){
+    public function toArray()
+    {
         return array_merge([
             'custom_column' => $this->custom_column,
             'formula_column' => $this->custom_column ? $this->custom_column->column_name : null,
@@ -81,5 +84,4 @@ abstract class ItemBase implements CalcInterface
     {
         return $this->custom_form_block ? $this->custom_form_block->getRelationInfo()[1] : null;
     }
-
 }

@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\CalcFormulaType;
 use Exceedone\Exment\Enums\ConditionType;
 use Illuminate\Support\Facades\DB;
 
