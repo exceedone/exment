@@ -77,6 +77,11 @@ class Integer extends CustomItem
         $validates[] = new Validator\IntegerCommaRule;
     }
 
+    protected function getRemoveValidates()
+    {
+        return ['integer', 'numeric'];
+    }
+
     /**
      * get cast Options
      */

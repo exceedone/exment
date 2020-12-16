@@ -122,10 +122,11 @@ class DefaultGrid extends GridBase
                     'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
                     'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
                 ]);
-            $name = $item->indexEnabled() ? $item->index() : $item->uniqueName();
+            //$name = $item->indexEnabled() ? $item->index() : $item->uniqueName();
             $className = 'column-' . $item->name();
-            $grid->column($name, $item->label())
+            $grid->column($item->uniqueName(), $item->label())
                 ->sort($item->sortable())
+                ->sortName($item->getSortName())
                 ->cast($item->getCastName())
                 ->style($item->gridStyle())
                 ->setClasses($className)

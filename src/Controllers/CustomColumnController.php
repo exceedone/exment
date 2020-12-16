@@ -6,6 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Services\Calc\CalcService;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
@@ -410,22 +411,32 @@ class CustomColumnController extends AdminControllerTableBase
             // define select-target table view
             $form->select('select_target_view', exmtrans("custom_column.options.select_target_view"))
                 ->help(exmtrans("custom_column.help.select_target_view"))
-                ->options(function ($select_view, $form) use ($column_type) {
-                    $data = $form->data();
-                    if (!isset($data)) {
+                ->options(function ($value, $field) use ($column_type) {
+                    if (is_nullorempty($field)) {
                         return [];
                     }
-
-                    // select_table
-                    $select_target_table = array_get($data, 'select_target_table');
-                    if (!isset($select_target_table)) {
+            
+                    // check $value or $field->data()
+                    $custom_table = null;
+                    if (isset($value)) {
+                        $custom_view = CustomView::getEloquent($value);
+                        $custom_table = $custom_view ? $custom_view->custom_table : null;
+                    } elseif (!is_nullorempty($field->data())) {
+                        $custom_table = CustomTable::getEloquent(array_get($field->data(), 'select_target_table'));
+                    }
+                    
+                    if (!isset($custom_table)) {
                         if (!ColumnType::isUserOrganization($column_type)) {
                             return [];
                         }
-                        $select_target_table = CustomTable::getEloquent($column_type);
+                        $custom_table = CustomTable::getEloquent($column_type);
+                    }
+            
+                    if (!isset($custom_table)) {
+                        return [];
                     }
 
-                    return CustomTable::getEloquent($select_target_table)->custom_views
+                    return CustomTable::getEloquent($custom_table)->custom_views
                         ->filter(function ($value) {
                             return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
                         })->pluck('view_view_name', 'id');
@@ -509,30 +520,15 @@ class CustomColumnController extends AdminControllerTableBase
 
             // calc
             $custom_table = $this->custom_table;
-            $self = $this;
             $form->valueModal('calc_formula', exmtrans("custom_column.options.calc_formula"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])])
-                ->help(exmtrans("custom_column.help.calc_formula"))
+                ->help(exmtrans("custom_column.help.calc_formula") . \Exment::getMoreTag('column', 'custom_column.options.calc_formula'))
                 ->ajax(admin_urls('column', $custom_table->table_name, $id, 'calcModal'))
                 ->modalContentname('options_calc_formula')
+                ->nullText(exmtrans('common.no_setting'))
                 ->valueTextScript('Exment.CustomColumnEvent.GetSettingValText();')
-                ->text(function ($value) use ($id, $custom_table, $self) {
-                    /////TODO:copy and paste
-                    if (!isset($value)) {
-                        return null;
-                    }
-                    // convert json to array
-                    if (!is_array($value) && is_json($value)) {
-                        $value = json_decode($value, true);
-                    }
-
-                    $custom_column_options = $self->getCalcCustomColumnOptions($id, $custom_table);
-                    ///// get text
-                    $texts = [];
-                    foreach ($value as &$v) {
-                        $texts[] = $self->getCalcDisplayText($v, $custom_column_options);
-                    }
-                    return implode(" ", $texts);
+                ->text(function ($value) use ($custom_table) {
+                    return CalcService::getCalcDisplayText($value, $custom_table);
                 })
             ;
 
@@ -585,25 +581,15 @@ class CustomColumnController extends AdminControllerTableBase
     {
         // get other columns
         // return $id is null(calling create fuction) or not match $id and row id.
-        $custom_column_options = $this->getCalcCustomColumnOptions($id, $this->custom_table);
+        $custom_column_options = CalcService::getCalcCustomColumnOptions($id, $this->custom_table);
         
         // get value
-        $value = $request->get('options_calc_formula');
-
-        if (!isset($value)) {
-            $value = [];
-        }
-        $value = jsonToArray($value);
-
-        ///// get text
-        foreach ($value as &$v) {
-            $v['text'] = $this->getCalcDisplayText($v, $custom_column_options);
-        }
+        $value = $request->get('options_calc_formula') ?? '';
         
         $render = view('exment::custom-column.calc_formula_modal', [
             'custom_columns' => $custom_column_options,
             'value' => $value,
-            'symbols' => exmtrans('custom_column.symbols'),
+            'symbols' => CalcService::getSymbols(),
         ]);
         return getAjaxResponse([
             'body'  => $render->render(),
@@ -611,47 +597,12 @@ class CustomColumnController extends AdminControllerTableBase
             'title' => exmtrans("custom_column.options.calc_formula"),
             'contentname' => 'options_calc_formula',
             'submitlabel' => trans('admin.setting'),
+            'disableSubmit' => true,
+            'modalSize' => 'modal-xl',
         ]);
     }
 
-    protected function getCalcDisplayText($v, $custom_column_options)
-    {
-        $val = array_get($v, 'val');
-        $table = array_get($v, 'table');
-        $text = null;
-        switch (array_get($v, 'type')) {
-            case 'dynamic':
-            case 'select_table':
-                $target_column = collect($custom_column_options)->first(function ($custom_column_option) use ($v) {
-                    return array_get($v, 'val') == array_get($custom_column_option, 'val') && array_get($v, 'type') == array_get($custom_column_option, 'type');
-                });
-                $text = array_get($target_column, 'text');
-                break;
-            case 'count':
-                if (isset($table)) {
-                    $child_table = CustomTable::getEloquent($table);
-                    if (isset($child_table)) {
-                        $text = exmtrans('custom_column.child_count_text', $child_table->table_view_name);
-                    }
-                }
-                break;
-            case 'summary':
-                $column = CustomColumn::getEloquent($val);
-                if (isset($column)) {
-                    $text = exmtrans('custom_column.child_sum_text', $column->custom_table->table_view_name, $column->column_view_name);
-                }
-                break;
-            case 'symbol':
-                $symbols = exmtrans('custom_column.symbols');
-                $text = array_get($symbols, $val);
-                break;
-            case 'fixed':
-                $text = $val;
-                break;
-        }
-        return $text;
-    }
-
+    
     /**
      * add column form and view after saved
      */
@@ -739,93 +690,6 @@ class CustomColumnController extends AdminControllerTableBase
         }
     }
 
-    /**
-     * Get column options for calc
-     *
-     * @param string|int|null $id
-     * @param CustomTable $custom_table
-     * @return array
-     */
-    protected function getCalcCustomColumnOptions($id, $custom_table)
-    {
-        $options = [];
-
-        // get calc options
-        $custom_table->custom_columns_cache->filter(function ($column) use ($id) {
-            if (isset($id) && $id == array_get($column, 'id')) {
-                return false;
-            }
-            if (!ColumnType::isCalc(array_get($column, 'column_type'))) {
-                return false;
-            }
-
-            return true;
-        })->each(function ($column) use (&$options) {
-            $options[] = [
-                'val' => $column->id,
-                'type' => 'dynamic',
-                'text' => $column->column_view_name,
-            ];
-        });
-        
-        // get select table custom columns
-        $select_table_custom_columns = [];
-        $custom_table->custom_columns_cache->each(function ($column) use ($id, &$options) {
-            if (isset($id) && $id == array_get($column, 'id')) {
-                return;
-            }
-            if (!ColumnType::isSelectTable(array_get($column, 'column_type'))) {
-                return;
-            }
-
-            // get select table's calc column
-            $column->select_target_table->custom_columns_cache->filter(function ($select_target_column) use ($id) {
-                if (isset($id) && $id == array_get($select_target_column, 'id')) {
-                    return false;
-                }
-                if (!ColumnType::isCalc(array_get($select_target_column, 'column_type'))) {
-                    return false;
-                }
-    
-                return true;
-            })->each(function ($select_target_column) use ($column, &$options) {
-                $options[] = [
-                    'val' => $column->id,
-                    'type' => 'select_table',
-                    'from' => $select_target_column->id,
-                    'text' => $column->column_view_name . '/' . $select_target_column->column_view_name,
-                ];
-            });
-        });
-
-        // add child columns
-        $child_relations = $custom_table->custom_relations;
-        if (isset($child_relations)) {
-            foreach ($child_relations as $child_relation) {
-                $child_table = $child_relation->child_custom_table;
-                $child_table_name = array_get($child_table, 'table_view_name');
-                $options[] = [
-                    'type' => 'count',
-                    'text' => exmtrans('custom_column.child_count_text', $child_table_name),
-                    'custom_table_id' => $child_table->id
-                ];
-
-                $child_columns = $child_table->custom_columns_cache->filter(function ($column) {
-                    return in_array(array_get($column, 'column_type'), ColumnType::COLUMN_TYPE_CALC());
-                })->map(function ($column) use ($child_table_name) {
-                    return [
-                        'type' => 'summary',
-                        'val' => $column->id,
-                        'text' => exmtrans('custom_column.child_sum_text', $child_table_name, $column->column_view_name),
-                        'custom_table_id' => $column->custom_table_id
-                    ];
-                })->toArray();
-                $options = array_merge($options, $child_columns);
-            }
-        }
-        
-        return $options;
-    }
 
     /**
      * Get import export select list

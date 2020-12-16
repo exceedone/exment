@@ -7,82 +7,98 @@ var Exment;
         static AddEvent() {
         }
         static AddEventOnce() {
-            $(document).off('click', '[data-contentname="options_calc_formula"] .button-addcalcitem').on('click', '[data-contentname="options_calc_formula"] .button-addcalcitem', {}, CustomColumnEvent.calcButtonAddItemEvent);
-            $(document).off('click', '[data-contentname="options_calc_formula"] .col-value-item-remove').on('click', '[data-contentname="options_calc_formula"] .col-value-item-remove', {}, CustomColumnEvent.calcRemoveItemEvent);
+            $(document).off('click.exment_custom_column', '[data-contentname="options_calc_formula"] .button-addcalcitem').on('click.exment_custom_column', '[data-contentname="options_calc_formula"] .button-addcalcitem', {}, CustomColumnEvent.calcButtonAddItemEvent);
+            $(document).off('click.exment_custom_column', '#validateFormula').on('click.exment_custom_column', '#validateFormula', {}, CustomColumnEvent.validateFormula);
+            $(document).off('keydown.exment_custom_column', '#calc_formula_input').on('keydown.exment_custom_column', '#calc_formula_input', {}, CustomColumnEvent.inputFormulaEvent);
+            $(document).off('focus.exment_custom_column', '#calc_formula_input').on('focus.exment_custom_column', '#calc_formula_input', {}, CustomColumnEvent.focusFormulaEvent);
             $(document).on('pjax:complete', function (event) {
                 CustomColumnEvent.AddEvent();
             });
         }
-        static GetSettingValText() {
-            // get col value item list
-            let values = $('.calc_formula_area').find('.col-value-item');
-            // get items and texts
-            let items = [];
-            let texts = [];
-            for (var i = 0; i < values.length; i++) {
-                // get value
-                let val = values.eq(i);
-                // push value
-                let itemval = { 'type': val.data('type'), 'val': val.data('val') };
-                if (hasValue(val.data('from'))) {
-                    itemval['from'] = val.data('from');
-                }
-                if (hasValue(val.data('table'))) {
-                    itemval['table'] = val.data('table');
-                }
-                items.push(itemval);
-                // push text
-                texts.push(escHtml(val.text()));
+        /**
+         * Set formula input area
+         * @param text
+         */
+        static setCalcInput(text) {
+            let area = $('#calc_formula_input').get(0);
+            let point = null;
+            if (hasValue(CustomColumnEvent.formulaInputselection)) {
+                point = CustomColumnEvent.formulaInputselection;
             }
-            return { value: JSON.stringify(items), text: texts.join(' ') };
+            else {
+                point = area.selectionStart;
+            }
+            let afterPoint = area.value.substr(0, point).length + text.trim().length;
+            area.value = area.value.substr(0, point)
+                + text.trim()
+                + area.value.substr(point);
+            // set area.selectionStart point
+            CustomColumnEvent.formulaInputselection = afterPoint;
+        }
+        static GetSettingValText() {
+            let formula = $('#calc_formula_input').val();
+            // replace ${XXX} string as column name
+            formula = formula.replace(/\$\{.+?\}/g, function (match) {
+                let $target = $('.col-target-block-column button[data-val="' + match + '"]');
+                if (!hasValue($target)) {
+                    return match;
+                }
+                return $target.data('displayText');
+            });
+            return { value: $('#calc_formula_input').val(), text: formula };
+        }
+        static inputFormulaEvent(e) {
+            if (e && e.key == 'Enter') {
+                return false;
+            }
+            $('.modal .modal-submit').prop('disabled', true);
+            $('.modal #validateResult > span').hide();
+        }
+        static focusFormulaEvent(e) {
+            CustomColumnEvent.formulaInputselection = null;
+        }
+        static validateFormula() {
+            let result = true;
+            let formula = $('#calc_formula_input').val();
+            if (!hasValue(formula)) {
+                result = false;
+            }
+            else {
+                // replace ${XXX} string as 1
+                let replaceFormula = formula.replace(/\$\{.+?\}/g, function (match) {
+                    // find key value
+                    let $target = $('.col-target-block-column button[data-val="' + match + '"]');
+                    if (!hasValue($target)) {
+                        result = false;
+                    }
+                    return 1;
+                });
+                if (result) {
+                    result = Exment.CalcEvent.validateMathFormula(replaceFormula);
+                }
+                // if match \$\{.+?\} \$\{.+?\}, return false
+                if (formula.match(/\$\{.+?\} *\$\{.+?\}/g)) {
+                    result = false;
+                }
+            }
+            $('.modal .modal-submit').prop('disabled', !result);
+            $('.modal #validateResult > span').hide();
+            if (result) {
+                $('.modal #validateResultSuccess').show();
+            }
+            else {
+                $('.modal #validateResultError').show();
+            }
         }
     }
+    /**
+     * Add calc event
+     * @param ev
+     */
     CustomColumnEvent.calcButtonAddItemEvent = (ev) => {
-        var target = $(ev.target).closest('.button-addcalcitem');
-        // get target type
-        var type = target.data('type');
-        // get template
-        var template = document.querySelector('.col-value-template');
-        // create clone
-        var clone = document.importNode(template.content, true);
-        clone.querySelector('.col-value-item').dataset.type = type;
-        ///// switch using type
-        switch (type) {
-            case 'dynamic':
-            case 'select_table':
-            case 'symbol':
-                // set data-val and text
-                clone.querySelector('.col-value-item').dataset.val = target.data('val');
-                if (hasValue(target.data('from'))) {
-                    clone.querySelector('.col-value-item').dataset.from = target.data('from');
-                }
-                clone.querySelector('span').textContent = target.text();
-                break;
-            case 'summary':
-            case 'count':
-                // set data-val and text
-                clone.querySelector('.col-value-item').dataset.val = target.data('val');
-                if (hasValue(target.data('table'))) {
-                    clone.querySelector('.col-value-item').dataset.table = target.data('table');
-                }
-                clone.querySelector('span').textContent = target.text();
-                break;
-            case 'fixed':
-                // set data-val from col-target-fixedval
-                var fixedval = target.closest('.row').find('.col-target-fixedval').val();
-                if (!hasValue(fixedval)) {
-                    return;
-                }
-                clone.querySelector('.col-value-item').dataset.val = fixedval;
-                clone.querySelector('span').textContent = fixedval;
-                break;
-        }
-        // set item
-        $('.calc_formula_area').append(clone);
-    };
-    CustomColumnEvent.calcRemoveItemEvent = (ev) => {
-        // remove item
-        $(ev.target).closest('.col-value-item').remove();
+        let target = $(ev.target).closest('.button-addcalcitem');
+        CustomColumnEvent.setCalcInput(target.data('val').trim());
+        $('#calc_formula_input').trigger('keydown.exment_custom_column');
     };
     Exment.CustomColumnEvent = CustomColumnEvent;
 })(Exment || (Exment = {}));

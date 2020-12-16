@@ -476,7 +476,14 @@ class Exment
     }
 
 
-    public function getMoreTag(?string $uri = null, ?string $id_transkey = null)
+    /**
+     * Get "More" tag. contains link.
+     *
+     * @param string|null $uri
+     * @param string|null $id_transkey
+     * @return string
+     */
+    public function getMoreTag(?string $uri = null, ?string $id_transkey = null) : string
     {
         $url = $this->getManualUrl($uri);
 

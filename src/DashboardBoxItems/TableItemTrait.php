@@ -3,6 +3,11 @@
 namespace Exceedone\Exment\DashboardBoxItems;
 
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\DashboardType;
+use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Enums\ViewKindType;
 
 trait TableItemTrait
 {
@@ -59,5 +64,39 @@ trait TableItemTrait
             'target_table_name' => isset($this->custom_table) ? $this->custom_table->table_name : null,
             'target_view_view_name' => isset($this->custom_view) ? $this->custom_view->view_view_name : null,
         ];
+    }
+
+    public static function getCustomViewSelectOptions($value, $field, $model, $dashboard, bool $isCalendar = false) : array
+    {
+        if (is_nullorempty($field)) {
+            return [];
+        }
+
+        // check $value or $field->data()
+        $custom_table = null;
+        if (isset($value)) {
+            $custom_view = CustomView::getEloquent($value);
+            $custom_table = $custom_view ? $custom_view->custom_table : null;
+        } elseif (!is_nullorempty($field->data())) {
+            $custom_table = CustomTable::getEloquent(array_get($field->data(), 'target_table_id'));
+        }
+
+        if (!isset($custom_table)) {
+            return [];
+        }
+
+        return $custom_table->custom_views
+            ->filter(function ($value) use ($isCalendar) {
+                if ($isCalendar) {
+                    return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;
+                }
+                return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
+            })
+            ->filter(function ($value) use ($dashboard) {
+                if (array_get($dashboard, 'dashboard_type') != DashboardType::SYSTEM) {
+                    return true;
+                }
+                return array_get($value, 'view_type') == ViewType::SYSTEM;
+            })->pluck('view_view_name', 'id')->toArray();
     }
 }

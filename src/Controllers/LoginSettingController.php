@@ -287,6 +287,20 @@ class LoginSettingController extends AdminControllerBase
      */
     protected function globalSettingBox(Request $request)
     {
+        $form = $this->globalSettingForm($request);
+        $box = new Box(exmtrans('common.detail_setting'), $form);
+        return $box;
+    }
+
+    
+    /**
+     * Get form for global setting
+     *
+     * @param Request $request
+     * @return WidgetForm
+     */
+    protected function globalSettingForm(Request $request) : WidgetForm
+    {
         $form = new WidgetForm(System::get_system_values(['login']));
         $form->disableReset();
         $form->action(route('exment.postglobal'));
@@ -362,9 +376,7 @@ class LoginSettingController extends AdminControllerBase
                 ;
         }
 
-        $box = new Box(exmtrans('common.detail_setting'), $form);
-        
-        return $box;
+        return $form;
     }
     
     /**
@@ -373,6 +385,12 @@ class LoginSettingController extends AdminControllerBase
      */
     public function postGlobal(Request $request)
     {
+        // validation
+        $form = $this->globalSettingForm($request);
+        if (($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse) {
+            return $response;
+        }
+
         DB::beginTransaction();
         try {
             $result = $this->postInitializeForm($request, ['login'], false, false);

@@ -1042,6 +1042,17 @@ if (!function_exists('replaceBreak')) {
     }
 }
 
+if (!function_exists('replaceBreakEsc')) {
+    /**
+     * replace and new line code to <br />
+     * @return string
+     */
+    function replaceBreakEsc($text)
+    {
+        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_html($text));
+    }
+}
+
 if (!function_exists('replaceBrTag')) {
     /**
      * replace <br /> to new line code

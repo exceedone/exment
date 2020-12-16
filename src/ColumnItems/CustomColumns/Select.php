@@ -89,6 +89,11 @@ class Select extends CustomItem
         $validates[] = new SelectRule(array_keys($select_options));
     }
 
+    protected function getRemoveValidates()
+    {
+        return [\Encore\Admin\Validator\HasOptionRule::class];
+    }
+
     protected function setAdminFilterOptions(&$filter)
     {
         $options = $this->custom_column->createSelectOptions();

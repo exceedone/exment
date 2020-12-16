@@ -12,7 +12,6 @@ use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use GuzzleHttp\Client;
-use Validator;
 
 class TemplateController extends AdminControllerBase
 {
@@ -155,20 +154,42 @@ class TemplateController extends AdminControllerBase
      */
     protected function exportBox(Content $content)
     {
+        $form = $this->exportBoxForm();
+        $content->row((new Box(exmtrans('template.header_export'), $form))->style('info'));
+    }
+    
+
+    /**
+     * create export box
+     *
+     * @return \Encore\Admin\Widgets\Form
+     */
+    protected function exportBoxForm()
+    {
         $form = new \Encore\Admin\Widgets\Form();
         $form->disablePjax();
         $form->disableReset();
         $form->action(admin_url('template/export'));
 
         $form->descriptionHtml(exmtrans('template.description_export'));
-        $form->text('template_name', exmtrans('template.template_name'))->required()->help(exmtrans('common.help_code'))->rules("max:30");
-        $form->text('template_view_name', exmtrans('template.template_view_name'))->required()->rules("max:40");
-        $form->textarea('description', exmtrans('template.form_description'))->rows(3);
+        $form->text('template_name', exmtrans('template.template_name'))
+            ->required()
+            ->help(exmtrans('common.help_code'))
+            ->rules(["max:64", 'regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/']);
+
+        $form->text('template_view_name', exmtrans('template.template_view_name'))
+            ->required()
+            ->rules("max:64");
+
+        $form->textarea('description', exmtrans('template.form_description'))
+            ->rows(3)
+            ->rules("max:1000");
 
         $fileOption = Define::FILE_OPTION();
         $form->image('thumbnail', exmtrans('template.thumbnail'))
             ->removable()
             ->help(exmtrans('template.help.thumbnail'). exmtrans('common.separate_word') . array_get($fileOption, 'maxFileSizeHelp'))
+            ->rules('nullable|file|mimes:jpeg,gif,png')
             ->options($fileOption);
 
         // export target
@@ -186,8 +207,9 @@ class TemplateController extends AdminControllerBase
 
         $form->hidden('_token')->default(csrf_token());
 
-        $content->row((new Box(exmtrans('template.header_export'), $form))->style('info'));
+        return $form;
     }
+
     /**
      * create import box
      */
@@ -209,19 +231,12 @@ class TemplateController extends AdminControllerBase
      */
     public function export(Request $request)
     {
-        //validate
-        $rules = [
-            'template_name' => 'required|max:64|regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/',
-            'template_view_name' => 'required|max:64',
-            'thumbnail' => 'nullable|file|mimes:jpeg,gif,png',
-            'export_target' => 'required',
-        ];
-
-        $validation = Validator::make($request->all(), $rules);
-
-        if ($validation->fails()) {
-            return back()->withInput()->withErrors($validation);
+        // validation
+        $form = static::exportBoxForm();
+        if (($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse) {
+            return $response;
         }
+
 
         // execute export
         return TemplateImportExport\TemplateExporter::exportTemplate(

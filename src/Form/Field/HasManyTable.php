@@ -236,7 +236,7 @@ $('#has-many-table-{$this->column}').off('click.admin_add', '.add').on('click.ad
     $('.has-many-table-{$this->column}-table tbody').append(template);
 
     {$templateScript}
-    {$this->countscript}
+    $(this).trigger('admin_hasmany_row_change');
 });
 
 $('#has-many-table-{$this->column}').off('click.admin_remove', '.remove').on('click.admin_remove', '.remove', function () {
@@ -244,7 +244,7 @@ $('#has-many-table-{$this->column}').off('click.admin_remove', '.remove').on('cl
     row.find('input,textarea,select').removeAttr('required max min maxlength pattern');
     row.hide();
     row.find('.$removeClass').val(1);
-    {$this->countscript}
+    $(this).trigger('admin_hasmany_row_change');
 });
 
 $('#has-many-table-{$this->column}').off('click.admin_row_remove', '.row-move').on('click.admin_row_remove', '.row-move', function(ev){

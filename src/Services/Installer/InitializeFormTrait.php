@@ -23,7 +23,7 @@ trait InitializeFormTrait
      * @param boolean $isInitialize
      * @return WidgetForm
      */
-    protected function getInitializeForm($routeName, $isInitialize = false)
+    protected function getInitializeForm($routeName, $isInitialize = false) : WidgetForm
     {
         $form = new WidgetForm(System::get_system_values(['initialize', 'system']));
         $form->disableReset();
@@ -109,9 +109,9 @@ trait InitializeFormTrait
     /**
      * get sendmail test box.
      *
-     * @return WidgetForm
+     * @return Box
      */
-    protected function getsendmailTestBox()
+    protected function getsendmailTestBox() : Box
     {
         $form = new WidgetForm();
         $form->action(admin_urls('system/2factor'));

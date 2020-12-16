@@ -425,6 +425,14 @@ abstract class CustomItem implements ItemInterface
     }
 
     /**
+     * get sort name
+     */
+    public function getSortName()
+    {
+        return getDBTableName($this->custom_table) .'.'. $this->custom_column->getQueryKey();
+    }
+
+    /**
      * get cast name for sort
      */
     public function getCastName()
@@ -604,7 +612,19 @@ abstract class CustomItem implements ItemInterface
         // set column's validates
         $this->setValidates($validates, $form_column_options);
 
+        // get removing fields.
+        $field->removeRules($this->getRemoveValidates());
+        
         return $validates;
+    }
+
+    /**
+     * Get remove validate array.
+     * @return array if want to remove, append removing array.
+     */
+    protected function getRemoveValidates()
+    {
+        return [];
     }
 
 
