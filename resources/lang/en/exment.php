@@ -1109,13 +1109,17 @@ return [
         'add_custom_view_flg' => 'Add to the Default View',
         'add_table_label_flg' => 'Add to the Table Label',
         'auto_number_format_rule' => 'Auto Number format of the role',
-        'child_count_text' => '%s:Count',
-        'child_sum_text' => '%s:%s(Sum)',
         'symbols' => [
             'plus' => '+',
             'minus' => '-',
             'times' => '*',
             'div' => '/',
+        ],
+        'calc_text' => [
+            'child_count' => 'Count : %s',
+            'child_sum' => 'Sum : %s->%s',
+            'parent' => 'Parent Data : %s',
+            'select_table' => 'Select Data : %s->%s',
         ],
         'options' => [
             'header' => 'Detail Option',
@@ -1249,6 +1253,14 @@ return [
             'fixed' => 'Fixed Value',
             'symbol' => 'Symbol',
             'input_number' => 'Input Number',
+            'validate_formula' => 'Validate Formula',
+
+            'message' => [
+                'description' => "Please enter the calculation formula. The formula can also be entered manually. When you're done, click the Validate Expression button to confirm your entry.",
+                'validate_success' => 'The correct formula.',
+                'validate_error' => 'There is an error in the formula you entered. Please check the formula.',
+                'infinity' => 'Division by zero may have occurred. Please check the formula.',
+            ]
         ],
     ],
 

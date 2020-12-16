@@ -361,6 +361,12 @@ namespace Exment {
             }
             $submitButton.toggle(showSubmit);
 
+            let disableSubmit = false;
+            if(res.disableSubmit !== undefined){
+                disableSubmit = res.disableSubmit;
+            }
+            $submitButton.prop('disabled', disableSubmit);
+
             let preventSubmit = false;
             if(res.preventSubmit !== undefined){
                 preventSubmit = res.preventSubmit;

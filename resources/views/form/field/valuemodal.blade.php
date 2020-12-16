@@ -7,7 +7,6 @@
             @include('admin::form.error')
 
             <p style="padding-top:7px;" class="text-valuemodal">
-            
                 @if(is_nullorempty($text) && isset($nullText))
                     {{$nullText}}
                 @else

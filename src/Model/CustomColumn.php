@@ -550,52 +550,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             $obj_column->save();
         }
 
-        // if record is already exists skip process, when update
-        if ($is_update && $obj_column->exists) {
-            return $obj_column;
-        }
-        
-        ///// set options
-        // check need update
-        $update_flg = false;
-        // if column type is calc, set dynamic val
-        if (ColumnType::isCalc(array_get($json, 'column_type'))) {
-            $calc_formula = array_get($json, 'options.calc_formula');
-            if (is_null($calc_formula)) {
-                $obj_column->forgetOption('calc_formula');
-            }
-            // if $calc_formula is string, convert to json
-            if (is_string($calc_formula)) {
-                $calc_formula = json_decode($calc_formula, true);
-            }
-            if (is_array($calc_formula)) {
-                foreach ($calc_formula as &$c) {
-                    // if dynamic or select table
-                    if (in_array(array_get($c, 'type'), [CalcFormulaType::DYNAMIC, CalcFormulaType::SELECT_TABLE])) {
-                        $c['val'] = static::getEloquent($c['val'], $custom_table)->id ?? null;
-                    }
-                    
-                    // if select_table
-                    if (array_get($c, 'type') == CalcFormulaType::SELECT_TABLE) {
-                        // get select table
-                        $select_table_column = static::getEloquent($c['val']);
-                        if (isset($select_table_column)) {
-                            $select_table_id = $select_table_column->getOption('select_target_table') ?? null;
-                            // get select from column
-                            $from_column = static::getEloquent(array_get($c, 'from'), $select_table_id);
-                            $c['from'] = $from_column->id ?? null;
-                        }
-                    }
-                }
-            }
-            // set as json string
-            $obj_column->setOption('calc_formula', $calc_formula);
-            $update_flg = true;
-        }
-
-        if ($update_flg) {
-            $obj_column->save();
-        }
         return $obj_column;
     }
 
@@ -631,43 +585,5 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             $obj_column->save();
         }
         return $obj_column;
-    }
-
-    /**
-     * Perform special processing when outputting template
-     */
-    protected function replaceTemplateSpecially($array)
-    {
-        // if column_type is calc, change value dynamic name using calc_formula property
-        if (!ColumnType::isCalc(array_get($this, 'column_type'))) {
-            return $array;
-        }
-
-        $calc_formula = array_get($this, 'options.calc_formula');
-        if (!isset($calc_formula)) {
-            return $array;
-        }
-
-        // if $calc_formula is string, convert to json
-        if (is_string($calc_formula)) {
-            $calc_formula = json_decode($calc_formula, true);
-        }
-
-        if (is_array($calc_formula)) {
-            foreach ($calc_formula as &$c) {
-                // if not dynamic, continue
-                if (array_get($c, 'type') != 'dynamic') {
-                    continue;
-                }
-                // get custom column name
-                $calc_formula_column_name = static::getEloquent(array_get($c, 'val'))->column_name ?? null;
-                // set value
-                $c['val'] = $calc_formula_column_name;
-            }
-        }
-
-        array_set($array, 'options.calc_formula', $calc_formula);
-        
-        return $array;
     }
 }

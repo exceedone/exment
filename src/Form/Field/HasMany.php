@@ -12,8 +12,6 @@ use Illuminate\Support\Arr;
  */
 class HasMany extends AdminHasMany
 {
-    protected $countscript;
-  
     /**
      * Render the `HasMany` field.
      *
@@ -46,16 +44,6 @@ class HasMany extends AdminHasMany
             'options'      => $this->options,
             'enableHeader' => $this->enableHeader,
         ]);
-    }
-    public function setCountScript($targets)
-    {
-        if (empty($targets)) {
-            return;
-        }
-        $data = json_encode($targets);
-        $this->countscript .= <<<EOT
-Exment.CommonEvent.setCalc(null, $data);
-EOT;
     }
     
     /**
@@ -113,14 +101,15 @@ $('#has-many-{$this->column}').off('click.admin_add').on('click.admin_add', '.ad
     var template = tpl.html().replace(/{$defaultKey}/g, $indexName);
     $('.has-many-{$this->column}-forms').append(template);
     {$templateScript}
-    {$this->countscript}
+    $(this).trigger('admin_hasmany_row_change');
 });
 
 $('#has-many-{$this->column}').off('click.admin_remove').on('click.admin_remove', '.remove', function () {
     $(this).closest('.has-many-{$this->column}-form').hide();
     $(this).closest('.has-many-{$this->column}-form').find('input[required], select[required]').prop('disabled', true);
     $(this).closest('.has-many-{$this->column}-form').find('.$removeClass').val(1);
-    {$this->countscript}
+
+    $(this).trigger('admin_hasmany_row_change');
 });
 
 $("button[type='submit']").click(function(){

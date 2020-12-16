@@ -485,8 +485,18 @@ class CustomFormController extends AdminControllerTableBase
                 if (!isset($target_table)) {
                     continue;
                 }
+
+                // get custom table
+                $custom_table_eloquent = CustomTable::getEloquent($custom_column_eloquent->custom_table_id);
+                // set table name if not $form_block_target_table_id and custom_table_eloquent's id
+                if(!isMatchString($custom_table_eloquent->id, $form_block_target_table_id)){
+                    $select_table_column_name = sprintf('%s:%s', $custom_table_eloquent->table_view_name, array_get($custom_column, 'column_view_name'));
+                }
+                else{
+                    $select_table_column_name = array_get($custom_column, 'column_view_name');
+                }
                 // get select_table, user, organization columns
-                $select_table_columns[array_get($custom_column, 'id')] = array_get($custom_column, 'column_view_name');
+                $select_table_columns[array_get($custom_column, 'id')] = $select_table_column_name;
             }
             $custom_form_block['select_table_columns'] = collect($select_table_columns)->toJson();
         }

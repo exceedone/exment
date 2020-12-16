@@ -1,5 +1,5 @@
 
-<div id="has-many-table-{{$column}}" class="form-group has-many-table-div">
+<div id="has-many-table-{{$column}}" class="has-many-table-{{$column}} form-group has-many-table-div">
     @if($enableHeader)
     <div class="row">
         <div class="col-sm-12">
@@ -19,7 +19,7 @@
             @endif
         </div>
     @endif
-    <div class="col-sm-{{$tablewidth['width']}} col-sm-offset-{{$tablewidth['offset']}}">
+    <div class="col-sm-{{$tablewidth['width']}} hasmanyblock-{{$column}} col-sm-offset-{{$tablewidth['offset']}}">
         <table id="has-many-table-{{$column}}-table" class="table table-bordered has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
             <thead>
             <tr class="active">
@@ -42,7 +42,7 @@
             </thead>
             <tbody>
             @foreach($forms as $pk => $form)
-            <tr class="has-many-table-{{$column}}-row">
+            <tr class="has-many-table-{{$column}}-row has-many-table-row">
                 @foreach($form['tableitems'] as $tableitem)
                 <td style="vertical-align:middle;">{!! $tableitem->render() !!}</td>
                 @endforeach
@@ -90,7 +90,7 @@
 
     </div>
     <template class="{{$column}}-tpl">
-        <tr class="has-many-table-{{$column}}-row">
+        <tr class="has-many-table-{{$column}}-row has-many-table-row">
             @foreach($tableitems as $tableitem)
                 <td style="vertical-align:middle;">{!! $tableitem->render() !!}</td>
             @endforeach
