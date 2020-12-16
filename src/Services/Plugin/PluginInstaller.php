@@ -83,7 +83,7 @@ class PluginInstaller
 
             //Extract file if $checkExistedConfig = true
             if (isset($config_path)) {
-                static::copySavePlugin($config_path, $pluginFileBasePath, $diskService);
+                $response = static::copySavePlugin($config_path, $pluginFileBasePath, $diskService);
             }
             //return response
             if (isset($response)) {
@@ -113,7 +113,7 @@ class PluginInstaller
 
         //If $json nothing, then delete folder extracted, return admin/plugin with error message 'config.json wrong'
         if ($json == null) {
-            $response = back()->with('errorMess', exmtrans('common.message.wrongconfig'));
+            return back()->with('errorMess', exmtrans('common.message.wrongconfig'));
         } else {
             //Validate json file with fields require
             $checkRuleConfig = static::checkRuleConfigFile($json);
@@ -135,32 +135,34 @@ class PluginInstaller
                     //Rename folder with plugin name
                     static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
                     admin_toastr(exmtrans('common.message.success_execute'));
-                    $response = back();
+                    return back();
                 }
                 //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
                 elseif (is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
                     $plugin->save();
                     static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
                     admin_toastr(exmtrans('common.message.success_execute'));
-                    $response = back();
+                    return back();
                 }
 
                 //If name has existed but uuid does not existed, then delete folder and return error with message
                 elseif (!is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
-                    $response = back()->with('errorMess', exmtrans('plugin.error.samename_plugin'));
+                    return back()->with('errorMess', exmtrans('plugin.error.samename_plugin'));
                 }
                 //If uuid has existed but name does not existed, then delete folder and return error with message
                 elseif (is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
-                    $response = back()->with('errorMess', exmtrans('plugin.error.wrongname_plugin'));
+                    return back()->with('errorMess', exmtrans('plugin.error.wrongname_plugin'));
                 }
                 //rename folder without Uppercase, space, tab, ...
                 else {
-                    $response = back();
+                    return back();
                 }
             } else {
-                $response = back()->with('errorMess', $checkRuleConfig);
+                return back()->with('errorMess', $checkRuleConfig);
             }
         }
+
+        return null;
     }
     
     /**
