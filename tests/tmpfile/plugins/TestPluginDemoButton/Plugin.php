@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugins\PluginDemoButton;
+namespace App\Plugins\TestPluginDemoButton;
 
 use Exceedone\Exment\Services\Plugin\PluginButtonBase;
 

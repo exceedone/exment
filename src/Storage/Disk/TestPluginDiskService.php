@@ -12,9 +12,11 @@ class TestPluginDiskService extends PluginDiskService
 {
     public function initDiskService($plugin)
     {
-        parent::initDiskService($plugin);
+        $this->plugin = $plugin;
         $path = isset($plugin) ? $plugin->getPath() : null;
-
+        
+        $this->diskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_SYNC), $path, $path);
+        $this->tmpDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_TEST), $path, $this->now);
         $this->localSyncDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_TEST), $path, $path);
     }
 }

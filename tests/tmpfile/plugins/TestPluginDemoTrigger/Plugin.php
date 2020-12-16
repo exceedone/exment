@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugins\PluginDemoTrigger;
+namespace App\Plugins\TestPluginDemoTrigger;
 
 use Exceedone\Exment\Services\Plugin\PluginTriggerBase;
 class Plugin extends PluginTriggerBase

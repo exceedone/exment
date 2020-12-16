@@ -35,12 +35,7 @@ class PluginTest extends TestCase
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $custom_value = $custom_table->getValueModel()->where('value->multiples_of_3', '1')->first();
 
-        $plugin = new Plugin([
-            'plugin_name' => 'PluginDemoButton',
-            'plugin_types' => 'button',
-            'active_flg' => '1',
-        ]);
-        $plugin->pluginDiskService(\Exceedone\Exment\Storage\Disk\TestPluginDiskService::class);
+        $plugin = Plugin::where('plugin_name', 'TestPluginDemoButton')->first();
         $pluginClass = $plugin->getClass(PluginType::BUTTON, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,
@@ -60,13 +55,7 @@ class PluginTest extends TestCase
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $custom_value = $custom_table->getValueModel(3);
 
-        $plugin = new Plugin([
-            'plugin_name' => 'PluginDemoTrigger',
-            'plugin_types' => 'trigger',
-            'event_triggers' => 'saved',
-            'active_flg' => '1',
-        ]);
-        $plugin->pluginDiskService(\Exceedone\Exment\Storage\Disk\TestPluginDiskService::class);
+        $plugin = Plugin::where('plugin_name', 'TestPluginDemoTrigger')->first();
         $pluginClass = $plugin->getClass(PluginType::TRIGGER, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,
@@ -85,12 +74,7 @@ class PluginTest extends TestCase
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $custom_value = $custom_table->getValueModel(1);
 
-        $plugin = new Plugin([
-            'plugin_name' => 'PluginValidatorTest',
-            'plugin_types' => 'validator',
-            'active_flg' => '1',
-        ]);
-        $plugin->pluginDiskService(\Exceedone\Exment\Storage\Disk\TestPluginDiskService::class);
+        $plugin = Plugin::where('plugin_name', 'TestPluginValidatorTest')->first();
         $pluginClass = $plugin->getClass(PluginType::VALIDATOR, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,

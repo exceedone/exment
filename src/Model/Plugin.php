@@ -20,26 +20,6 @@ class Plugin extends ModelBase
 
     protected $casts = ['options' => 'json', 'custom_options' => 'json'];
 
-    /**
-     * Use disk service class name
-     *
-     * @var string
-     */
-    protected $diskServiceClassName = PluginDiskService::class;
-
-
-    /**
-     * set Use disk service class name
-     *
-     * @param string $diskServiceClassName
-     * @return $this
-     */
-    public function pluginDiskService(string $diskServiceClassName){
-        $this->diskServiceClassName = $diskServiceClassName;
-        return $this;
-    }
-
-
     public function setPluginTypesAttribute($pluginTypes)
     {
         if (is_null($pluginTypes)) {
@@ -278,8 +258,7 @@ class Plugin extends ModelBase
      */
     public function getFullPath(...$pass_array)
     {
-        $diskServiceClassName = $this->diskServiceClassName;
-        $diskService = new $diskServiceClassName($this);
+        $diskService = new PluginDiskService($this);
         // sync from crowd.
         $diskService->syncFromDisk();
         $this->requirePlugin($diskService);
@@ -441,8 +420,7 @@ class Plugin extends ModelBase
         ], $options);
 
         if (!isset($diskService)) {
-            $diskServiceClassName = $this->diskServiceClassName;
-            $diskService = new $diskServiceClassName($this);
+            $diskService = new PluginDiskService($this);
             if (boolval($options['sync'])) {
                 $diskService->syncFromDisk();
             }
