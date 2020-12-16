@@ -150,7 +150,11 @@ class RoleGroupController extends AdminControllerBase
             $form->text('role_group_name', exmtrans('role_group.role_group_name'))
             ->required()
             ->disable(!$enable)
-            ->rules("max:30|unique:".RoleGroup::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+            ->rules([
+                "max:64",
+                Rule::unique('role_groups')->ignore($id),
+                "regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/",
+            ])
             ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
             ;
         } else {
@@ -160,7 +164,7 @@ class RoleGroupController extends AdminControllerBase
         $form->text('role_group_view_name', exmtrans('role_group.role_group_view_name'))
             ->required()
             ->disable(!$enable)
-            ->rules("max:40");
+            ->rules("max:64");
         
         $form->textarea('description', exmtrans("custom_table.field_description"))
             ->disable(!$enable)
@@ -413,6 +417,12 @@ class RoleGroupController extends AdminControllerBase
         $request = request();
 
         // validation
+        $form = $this->form($id);
+        if(($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse){
+            return $response;
+        }
+
+        // validation
         $rules = [
             'role_group_name' => [
                 isset($id) ? 'nullable' : 'required',
@@ -422,12 +432,6 @@ class RoleGroupController extends AdminControllerBase
             ],
             'role_group_view_name' => 'required|max:64',
         ];
-
-        $validation = \Validator::make($request->all(), $rules);
-
-        if ($validation->fails()) {
-            return back()->withInput()->withErrors($validation);
-        }
 
         \DB::beginTransaction();
 
@@ -494,10 +498,14 @@ class RoleGroupController extends AdminControllerBase
 
         $request = request();
 
-        \DB::beginTransaction();
+        // validation
+        $form = $this->formUserOrganization($id);
+        if(($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse){
+            return $response;
+        }
 
+        \DB::beginTransaction();
         try {
-                
             // get user and org
             $item = ['name' => 'role_group_item', 'role_group_user_org_type' => SystemTableName::ORGANIZATION];
 

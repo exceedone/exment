@@ -941,9 +941,7 @@ class CustomViewFilterTest extends UnitTestBase
      */
     public function testFuncFilterUserNotNullMulti()
     {
-        $this->skipTempTestIfTrue(function() {
-            return true;
-        }, 'Filter multiple user column bug not fixed.');
+        $this->skipTempTestIfTrue(true, 'Now multi and not null filter is bug.');
 
         $this->init();
 
@@ -1018,10 +1016,8 @@ class CustomViewFilterTest extends UnitTestBase
      */
     public function testFuncFilterOrganizationNullMulti()
     {
-        $this->skipTempTestIfTrue(function() {
-            return true;
-        }, 'Filter multiple organization column bug not fixed.');
-
+        $this->skipTempTestIfTrue(true, 'Now multi and not null filter is bug.');
+        
         $this->init();
 
         DB::beginTransaction();
@@ -1142,10 +1138,6 @@ class CustomViewFilterTest extends UnitTestBase
      */
     public function testFuncFilterNumberGtDec()
     {
-        $this->skipTempTestIfTrue(function() {
-            return true;
-        }, 'There is a laravel bug in the decimal column filter.');
-
         $this->init();
 
         DB::beginTransaction();
@@ -1197,10 +1189,6 @@ class CustomViewFilterTest extends UnitTestBase
      */
     public function testFuncFilterNumberGteDec()
     {
-        $this->skipTempTestIfTrue(function() {
-            return true;
-        }, 'There is a laravel bug in the decimal column filter.');
-
         $this->init();
 
         DB::beginTransaction();

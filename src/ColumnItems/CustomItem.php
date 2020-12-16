@@ -604,7 +604,19 @@ abstract class CustomItem implements ItemInterface
         // set column's validates
         $this->setValidates($validates, $form_column_options);
 
+        // get removing fields.
+        $field->removeRules($this->getRemoveValidates());
+        
         return $validates;
+    }
+
+    /**
+     * Get remove validate array.
+     * @return array if want to remove, append removing array.
+     */
+    protected function getRemoveValidates()
+    {
+        return [];
     }
 
 

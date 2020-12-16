@@ -41,10 +41,10 @@ class SystemController extends AdminControllerBase
     public function index(Request $request, Content $content)
     {
         if ($request->has('advanced')) {
-            return $this->formAdvanced($request, $content);
+            return $this->formAdvancedBox($request, $content);
         }
 
-        return $this->formBasic($request, $content);
+        return $this->formBasicBox($request, $content);
     }
 
     /**
@@ -52,25 +52,12 @@ class SystemController extends AdminControllerBase
      *
      * @return Content
      */
-    protected function formBasic(Request $request, Content $content)
+    protected function formBasicBox(Request $request, Content $content)
     {
         $this->AdminContent($content);
-        $form = $this->getInitializeForm('system', false);
-        $form->action(admin_url('system'));
-  
-        $admin_users = System::system_admin_users();
-        $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
-            ->help(exmtrans('system.help.system_admin_users'))
-            ->required()
-            ->ajax(CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl())
-            ->options(function ($option) use ($admin_users) {
-                return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
-                    'selected_value' => $admin_users,
-                ]);
-            })->default($admin_users);
+        $form = $this->formBasic($request);
 
         $box = new Box(exmtrans('common.basic_setting'), $form);
-        
         $box->tools(new Tools\SystemChangePageMenu());
 
         $content->row($box);
@@ -85,16 +72,64 @@ class SystemController extends AdminControllerBase
     }
 
     /**
+     * Index interface.
+     *
+     * @return Content
+     */
+    protected function formBasic(Request $request) : WidgetForm
+    {
+        $form = $this->getInitializeForm('system', false);
+        $form->action(admin_url('system'));
+  
+        $admin_users = System::system_admin_users();
+        $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
+            ->help(exmtrans('system.help.system_admin_users'))
+            ->required()
+            ->ajax(CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl())
+            ->options(function ($option) use ($admin_users) {
+                return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
+                    'selected_value' => $admin_users,
+                ]);
+            })->default($admin_users);
+
+        return $form;
+    }
+
+    /**
      * index advanced setting
      *
      * @param Request $request
      * @param Content $content
      * @return Content
      */
-    protected function formAdvanced(Request $request, Content $content)
+    protected function formAdvancedBox(Request $request, Content $content)
     {
         $this->AdminContent($content);
 
+        $form = $this->formAdvanced($request);
+
+        $box = new Box(exmtrans('common.detail_setting'), $form);
+
+        $box->tools(new Tools\SystemChangePageMenu());
+
+        $content->row($box);
+
+        // sendmail test
+        $content->row($this->getsendmailTestBox());
+
+        return $content;
+    }
+
+
+    /**
+     * index advanced setting
+     *
+     * @param Request $request
+     * @param Content $content
+     * @return Content
+     */
+    protected function formAdvanced(Request $request) : WidgetForm
+    {
         $form = new WidgetForm(System::get_system_values(['advanced', 'notify']));
         $form->disableReset();
         $form->action(admin_url('system'));
@@ -192,24 +227,15 @@ class SystemController extends AdminControllerBase
         // use mail setting
         $this->setNotifyForm($form);
 
-
         $form->exmheader(exmtrans('system.ip_filter'))->hr();
         $form->descriptionHtml(exmtrans("system.help.ip_filter"));
 
         $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
 
-        $box = new Box(exmtrans('common.detail_setting'), $form);
-
-        $box->tools(new Tools\SystemChangePageMenu());
-
-        $content->row($box);
-
-        // sendmail test
-        $content->row($this->getsendmailTestBox());
-
-        return $content;
+        return $form;
     }
+
 
     /**
      * get exment version infoBox.
@@ -268,10 +294,16 @@ class SystemController extends AdminControllerBase
      */
     public function post(Request $request)
     {
+        $advanced = $request->has('advanced');
+
+        // validation
+        $form = $advanced ? $this->formAdvanced($request) : $this->formBasic($request);
+        if(($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse){
+            return $response;
+        }
+
         DB::beginTransaction();
         try {
-            $advanced = $request->has('advanced');
-
             $result = $this->postInitializeForm($request, ($advanced ? ['advanced', 'notify'] : ['initialize', 'system']), false, !$advanced);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;

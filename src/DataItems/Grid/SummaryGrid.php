@@ -589,6 +589,8 @@ class SummaryGrid extends GridBase
             $form->text('view_column_name', exmtrans("custom_view.view_column_name"))->icon(null);
 
             $form->select('view_group_condition', exmtrans("custom_view.view_group_condition"))
+                // ignore HasOptionRule.
+                ->removeRules(\Encore\Admin\Validator\HasOptionRule::class)
                 ->options(function ($val, $form) {
                     if (is_null($data = $form->data())) {
                         return [];
@@ -636,6 +638,8 @@ class SummaryGrid extends GridBase
                     }
                     return [];
                 })
+                // ignore HasOptionRule.
+                ->removeRules(\Encore\Admin\Validator\HasOptionRule::class)
                 ->required()->rules('summaryCondition');
             $form->text('view_column_name', exmtrans("custom_view.view_column_name"))->icon(null);
             $form->select('sort_order', exmtrans("custom_view.sort_order"))

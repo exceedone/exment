@@ -732,7 +732,7 @@ class TestDataSeeder extends Seeder
                 ['column_name' => 'odd_even', 'column_view_name' => 'odd_even', 'column_type' => ColumnType::TEXT, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
                 ['column_name' => 'multiples_of_3', 'column_view_name' => 'multiples_of_3', 'column_type' => ColumnType::YESNO, 'options' => ['index_enabled' => '1', 'freeword_search' => '1']],
                 ['column_name' => 'file', 'column_view_name' => 'file', 'column_type' => ColumnType::FILE, 'options' => []],
-                ['column_name' => 'date', 'column_view_name' => 'date', 'column_type' => ColumnType::DATE, 'options' => []],
+                ['column_name' => 'date', 'column_view_name' => 'date', 'column_type' => ColumnType::DATE, 'options' => ['index_enabled' => '1', ]],
                 ['column_name' => 'integer', 'column_view_name' => 'integer', 'column_type' => ColumnType::INTEGER, 'options' => []],
                 ['column_name' => 'decimal', 'column_view_name' => 'decimal', 'column_type' => ColumnType::DECIMAL, 'options' => []],
                 ['column_name' => 'currency', 'column_view_name' => 'currency', 'column_type' => ColumnType::CURRENCY, 'options' => ['currency_symbol' => 'JPY1']],
@@ -1154,6 +1154,18 @@ class TestDataSeeder extends Seeder
                 );
             }
         }
+        
+
+        // create calendar view
+        $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::CALENDAR, $custom_table->table_name . '-view-calendar', []);
+        collect($custom_columns)->filter(function($custom_column){
+            return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::DATE;
+        })->each(function($custom_column, $index) use($custom_view, $custom_table){
+            $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $index + 1, [
+                'color' => '#00008b',
+                'font_color' => '#ffffff',
+            ]);
+        });
     }
 
     protected function createCustomView($custom_table, $view_type, $view_kind_type, $view_view_name = null, array $options = [])
@@ -1179,7 +1191,7 @@ class TestDataSeeder extends Seeder
         $custom_view_filter->save();
     }
     
-    protected function createSystemViewColumn($custom_view_id, $view_column_table_id, $order)
+    protected function createSystemViewColumn($custom_view_id, $view_column_table_id, $order, array $options = [])
     {
         $custom_view_column = new CustomViewColumn;
         $custom_view_column->custom_view_id = $custom_view_id;
@@ -1187,10 +1199,13 @@ class TestDataSeeder extends Seeder
         $custom_view_column->view_column_table_id = $view_column_table_id;
         $custom_view_column->view_column_target_id = 1;
         $custom_view_column->order = $order;
+        if(!is_nullorempty($options)){
+            $custom_view_column->options = $options;
+        }
         $custom_view_column->save();
     }
     
-    protected function createViewColumn($custom_view_id, $view_column_table_id, $view_column_target_id, $order)
+    protected function createViewColumn($custom_view_id, $view_column_table_id, $view_column_target_id, $order, array $options = [])
     {
         $custom_view_column = new CustomViewColumn;
         $custom_view_column->custom_view_id = $custom_view_id;
@@ -1198,6 +1213,9 @@ class TestDataSeeder extends Seeder
         $custom_view_column->view_column_table_id = $view_column_table_id;
         $custom_view_column->view_column_target_id = $view_column_target_id;
         $custom_view_column->order = $order;
+        if(!is_nullorempty($options)){
+            $custom_view_column->options = $options;
+        }
         $custom_view_column->save();
     }
     
