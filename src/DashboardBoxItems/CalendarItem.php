@@ -6,10 +6,8 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\CalendarType;
-use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 
 class CalendarItem implements ItemInterface

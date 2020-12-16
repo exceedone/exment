@@ -418,7 +418,7 @@ class RoleGroupController extends AdminControllerBase
 
         // validation
         $form = $this->form($id);
-        if(($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse){
+        if (($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
         }
 
@@ -500,7 +500,7 @@ class RoleGroupController extends AdminControllerBase
 
         // validation
         $form = $this->formUserOrganization($id);
-        if(($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse){
+        if (($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
         }
 

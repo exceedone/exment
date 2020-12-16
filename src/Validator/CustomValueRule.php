@@ -45,11 +45,11 @@ class CustomValueRule implements Rule
         $value = array_unique(array_filter(stringToArray($value)));
 
         // check custom table's data
-        if(!$this->hasData($value)){
+        if (!$this->hasData($value)) {
             return false;
         }
 
-        if(!$this->hasCustomViewFilter($value)){
+        if (!$this->hasCustomViewFilter($value)) {
             return false;
         }
 
@@ -85,7 +85,7 @@ class CustomValueRule implements Rule
      */
     protected function hasCustomViewFilter(array $values) : bool
     {
-        if(is_nullorempty($this->custom_view)){
+        if (is_nullorempty($this->custom_view)) {
             return true;
         }
 

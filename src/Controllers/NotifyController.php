@@ -209,11 +209,10 @@ class NotifyController extends AdminControllerBase
         
                 // check $value or $field->data()
                 $custom_table = null;
-                if(isset($value)){
+                if (isset($value)) {
                     $custom_view = CustomView::getEloquent($value);
                     $custom_table = $custom_view ? $custom_view->custom_table : null;
-                }
-                elseif(!is_nullorempty($field->data())){
+                } elseif (!is_nullorempty($field->data())) {
                     $custom_table = CustomTable::getEloquent(array_get($field->data(), 'custom_table_id'));
                 }
         
