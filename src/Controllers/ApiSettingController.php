@@ -164,20 +164,11 @@ class ApiSettingController extends AdminControllerBase
     protected function saveData($id = null)
     {
         $request = request();
-
+        
         // validation
-        $validates = [
-            'name' => 'required',
-            'redirect' => 'url',
-        ];
-        if (!isset($id)) {
-            $validates['client_type'] = 'required';
-        }
-
-        $validator = \Validator::make($request->all(), $validates);
-
-        if ($validator->fails()) {
-            return back()->withInput()->withErrors($validator);
+        $form = $this->form($id);
+        if(($response = $form->validateRedirect($request->all())) instanceof \Illuminate\Http\RedirectResponse){
+            return $response;
         }
 
         $clientRepository = new ApiClientRepository;
