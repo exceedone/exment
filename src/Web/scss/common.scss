@@ -569,6 +569,14 @@ table img.image_html{
     cursor: move;
 }
 
+.commentline{
+    word-wrap: break-word;
+    
+    .commentline_header{
+        margin-bottom: 5px;
+    }
+}
+
 
 .system-values{
     margin:0 auto;

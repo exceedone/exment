@@ -588,12 +588,12 @@ EOT;
         if (count($comments) > 0) {
             $html = [];
             foreach ($comments as $index => $comment) {
-                $html[] = "<p>" . view('exment::form.field.commentline', [
+                $html[] = "<div class='commentline'>" . view('exment::form.field.commentline', [
                     'comment' => $comment,
                     'table_name' => $this->custom_table->table_name,
                     'isAbleRemove' => ($comment->created_user_id == \Exment::getUserId()),
                     'deleteUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'deletecomment', $comment->suuid),
-                ])->render() . "</p>";
+                ])->render() . "</div>";
             }
             // loop and add as link
             $form->html(implode("", $html))
