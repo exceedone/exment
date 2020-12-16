@@ -1291,7 +1291,7 @@ class ApiDataController extends AdminControllerTableBase
     /**
      * Set order by query
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
      * @param array $orderby_list
      * @return void
      */

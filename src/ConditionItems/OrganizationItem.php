@@ -23,8 +23,8 @@ class OrganizationItem extends ConditionItemBase implements ConditionItemInterfa
     /**
      * Get change field
      *
-     * @param [type] $target_val
-     * @param [type] $key
+     * @param string $key
+     * @param bool $show_condition_key
      * @return \Encore\Admin\Form\Field
      */
     public function getChangeField($key, $show_condition_key = true)
