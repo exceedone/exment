@@ -1157,9 +1157,9 @@ class TestDataSeeder extends Seeder
 
         // create calendar view
         $custom_view = $this->createCustomView($custom_table, ViewType::SYSTEM, ViewKindType::CALENDAR, $custom_table->table_name . '-view-calendar', []);
-        collect($custom_columns)->filter(function($custom_column){
+        collect($custom_columns)->filter(function ($custom_column) {
             return $custom_column->indexEnabled && $custom_column->column_type == ColumnType::DATE;
-        })->each(function($custom_column, $index) use($custom_view, $custom_table){
+        })->each(function ($custom_column, $index) use ($custom_view, $custom_table) {
             $this->createViewColumn($custom_view->id, $custom_table->id, $custom_column->id, $index + 1, [
                 'color' => '#00008b',
                 'font_color' => '#ffffff',
@@ -1198,7 +1198,7 @@ class TestDataSeeder extends Seeder
         $custom_view_column->view_column_table_id = $view_column_table_id;
         $custom_view_column->view_column_target_id = 1;
         $custom_view_column->order = $order;
-        if(!is_nullorempty($options)){
+        if (!is_nullorempty($options)) {
             $custom_view_column->options = $options;
         }
         $custom_view_column->save();
@@ -1212,7 +1212,7 @@ class TestDataSeeder extends Seeder
         $custom_view_column->view_column_table_id = $view_column_table_id;
         $custom_view_column->view_column_target_id = $view_column_target_id;
         $custom_view_column->order = $order;
-        if(!is_nullorempty($options)){
+        if (!is_nullorempty($options)) {
             $custom_view_column->options = $options;
         }
         $custom_view_column->save();

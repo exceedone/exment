@@ -298,7 +298,7 @@ class SystemController extends AdminControllerBase
 
         // validation
         $form = $advanced ? $this->formAdvanced($request) : $this->formBasic($request);
-        if(($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse){
+        if (($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
         }
 

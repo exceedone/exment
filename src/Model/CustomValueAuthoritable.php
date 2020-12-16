@@ -311,7 +311,7 @@ class CustomValueAuthoritable extends ModelBase
         
         // validation
         $form = static::getShareDialogForm($custom_value);
-        if(($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse){
+        if (($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse) {
             return getAjaxResponse([
                 'result'  => false,
                 'toastr' => trans('admin.validation.not_in_option'),

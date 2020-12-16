@@ -13,9 +13,7 @@ use Exceedone\Exment\Enums\ChartType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
-use Exceedone\Exment\Enums\DashboardType;
 
 class ChartItem implements ItemInterface
 {
