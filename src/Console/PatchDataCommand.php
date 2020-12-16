@@ -1319,14 +1319,13 @@ class PatchDataCommand extends Command
         Model\CustomColumn::get()
         ->each(function ($custom_column) {
             $calc_formulas = $custom_column->getOption('calc_formula');
-            if(is_nullorempty($calc_formulas) || isMatchString($calc_formulas, 'null')){
+            if (is_nullorempty($calc_formulas) || isMatchString($calc_formulas, 'null')) {
                 return true;
             }
 
             if (!is_array($calc_formulas) && is_json($calc_formulas)) {
                 $calc_formulas = json_decode($calc_formulas, true);
-            }
-            elseif(is_string($calc_formulas)){
+            } elseif (is_string($calc_formulas)) {
                 return true;
             }
 
@@ -1337,13 +1336,13 @@ class PatchDataCommand extends Command
                 $val = array_get($calc_formula, 'val');
 
                 // if symbol, set val from definition array.
-                if($type == 'symbol'){
+                if ($type == 'symbol') {
                     $symbols = \Exceedone\Exment\Services\Calc\CalcService::getSymbols();
-                    $symbol = collect($symbols)->first(function($symbol) use($val){
+                    $symbol = collect($symbols)->first(function ($symbol) use ($val) {
                         return $symbol['symbolkey'] == $val;
                     });
 
-                    if(!isset($symbol)){
+                    if (!isset($symbol)) {
                         $calcStrings = collect();
                         break;
                     }
@@ -1351,14 +1350,14 @@ class PatchDataCommand extends Command
                     continue;
                 }
 
-                if($type == 'fixed'){
+                if ($type == 'fixed') {
                     $calcStrings->push($val);
                     continue;
                 }
 
                 // get formula column
                 $formula_column = Model\CustomColumn::getEloquent($val);
-                if(!$formula_column && $type != 'count'){
+                if (!$formula_column && $type != 'count') {
                     $calcStrings = collect();
                     break;
                 }
@@ -1369,14 +1368,13 @@ class PatchDataCommand extends Command
                 switch ($type) {
                     case 'count':
                     case 'summary':
-                        if(!$child_custom_table){
+                        if (!$child_custom_table) {
                             $calcStrings = collect();
                             break 2;
                         }
-                        if($type == 'count'){
+                        if ($type == 'count') {
                             $item = CalcItems\Count::getItem($custom_column->custom_table_cache, $child_custom_table);
-                        }
-                        else{
+                        } else {
                             $item = CalcItems\Sum::getItem($formula_column, $custom_column->custom_table_cache, $child_custom_table);
                         }
                         break;
@@ -1385,7 +1383,7 @@ class PatchDataCommand extends Command
                         break;
                     case 'select_table':
                         $target_column = CustomColumn::getEloquent(array_get($calc_formula, 'from'));
-                        if(!$target_column){
+                        if (!$target_column) {
                             $calcStrings = collect();
                             break 2;
                         }
@@ -1393,23 +1391,21 @@ class PatchDataCommand extends Command
                         break;
                 }
 
-                if(!isset($item)){
+                if (!isset($item)) {
                     $calcStrings = collect();
                     break;
                 }
                 $calcStrings->push($item->val());
             }
 
-            if(is_nullorempty($calcStrings)){
+            if (is_nullorempty($calcStrings)) {
                 $calcString = null;
-            }
-            else{
+            } else {
                 $calcString = $calcStrings->implode(' ');
             }
 
             $custom_column->setOption('calc_formula', $calcString);
             $custom_column->save();
         });
-
     }
 }

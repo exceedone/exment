@@ -519,15 +519,14 @@ EOT;
         
         //// get from block name.
         // if not match form block's and $changedata_target_table. from block is default
-        if(!isMatchString($custom_form_block->form_block_target_table_id, $changedata_target_table->id)){
+        if (!isMatchString($custom_form_block->form_block_target_table_id, $changedata_target_table->id)) {
             $from_block_name = 'default';
-            //$from_block_name = CustomRelation::getRelationNameByTables($changedata_target_table->id, $custom_form_block->form_block_target_table_id);
+        //$from_block_name = CustomRelation::getRelationNameByTables($changedata_target_table->id, $custom_form_block->form_block_target_table_id);
         }
         // if child form
-        elseif($custom_form_block->form_block_type != FormBlockType::DEFAULT){
+        elseif ($custom_form_block->form_block_type != FormBlockType::DEFAULT) {
             $from_block_name = $custom_form_block->getRelationInfo()[1];
-        }
-        else{
+        } else {
             $from_block_name = null;
         }
 
