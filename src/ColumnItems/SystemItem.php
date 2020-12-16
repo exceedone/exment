@@ -63,6 +63,14 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * get sort name
+     */
+    public function getSortName()
+    {
+        return $this->getSqlColumnName();
+    }
+
+    /**
      * Get API column name
      *
      * @return string
