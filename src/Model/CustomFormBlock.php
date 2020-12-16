@@ -85,7 +85,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
             $block_label = exmtrans("custom_form.table_".$enum->lowerKey()."_label") . $target_table->table_view_name;
         }
         
-        if(isMatchString(array_get($this, 'form_block_type'), FormBlockType::DEFAULT)){
+        if (isMatchString(array_get($this, 'form_block_type'), FormBlockType::DEFAULT)) {
             return [null, null, $block_label];
         }
         

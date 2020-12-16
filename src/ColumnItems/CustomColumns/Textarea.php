@@ -20,7 +20,7 @@ class Textarea extends CustomItem
     {
         $text = $this->_text($v);
         $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($text) : $text;
-        $text = replaceBreak($text);
+        $text = replaceBreakEsc($text);
 
         if (!config('exment.textarea_space_tag', true)) {
             return $text;

@@ -74,11 +74,10 @@ trait TableItemTrait
 
         // check $value or $field->data()
         $custom_table = null;
-        if(isset($value)){
+        if (isset($value)) {
             $custom_view = CustomView::getEloquent($value);
             $custom_table = $custom_view ? $custom_view->custom_table : null;
-        }
-        elseif(!is_nullorempty($field->data())){
+        } elseif (!is_nullorempty($field->data())) {
             $custom_table = CustomTable::getEloquent(array_get($field->data(), 'target_table_id'));
         }
 
@@ -87,8 +86,8 @@ trait TableItemTrait
         }
 
         return $custom_table->custom_views
-            ->filter(function ($value) use($isCalendar) {
-                if($isCalendar){
+            ->filter(function ($value) use ($isCalendar) {
+                if ($isCalendar) {
                     return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;
                 }
                 return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;

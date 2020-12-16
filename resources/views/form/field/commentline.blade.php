@@ -1,3 +1,4 @@
+<p class="commentline_header">
 <small>
     {!! $comment->created_user_avatar !!}
     &nbsp;{{ $comment->created_at }}
@@ -10,6 +11,9 @@
     <i class="fa fa-trash"></i>
 </a>
 @endif
+</p>
 
-{!! replaceBreak($comment->getLabel()) !!}
+<p class="commentline_inner">
+{!! replaceBreakEsc($comment->getLabel()) !!}
+</p>
 <hr />

@@ -3859,6 +3859,14 @@ table img.image_html:hover {
   cursor: move;
 }
 
+.commentline {
+  word-wrap: break-word;
+}
+
+.commentline .commentline_header {
+  margin-bottom: 5px;
+}
+
 .system-values {
   margin: 0 auto;
   width: 830px;

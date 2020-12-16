@@ -1,65 +1,44 @@
 <div class="row">
     {{-- calc field list --}}
     <div class="col-sm-6 col-value">
-        <h5>{{exmtrans('custom_column.calc_formula.calc_formula')}}</h5>
-        <div class="calc_formula_area" style="width:100%; border:1px solid black; min-height:100px;">
-            @if(is_array($value))
-            @foreach($value as $v)
-            <p class="col-value-item" data-type="{{ array_get($v, 'type') }}" data-val="{{ array_get($v, 'val') }}" data-table="{{ array_get($v, 'table') }}">
-                <span>{{ array_get($v, 'text') }}</span>
-                <i class="fa fa-close pull-right col-value-item-remove"></i>
-            </p>
-            @endforeach
-            @endif
-        </div>
-    </div>
+        <h4 class="bold">{{exmtrans('custom_column.calc_formula.calc_formula')}}</h4>
+            <span>
+            {{exmtrans('custom_column.calc_formula.message.description')}}
+            {!! \Exment::getMoreTag('column', 'custom_column.options.calc_formula') !!}
+            </span>
+        <textarea id="calc_formula_input" rows="3" class="w-100">{{$value}}</textarea>
 
-    <template class="col-value-template">
-        <p class="col-value-item" data-type="" data-val="">
-            <span></span>
-            <i class="fa fa-close pull-right col-value-item-remove"></i>
-        </p>
-    </template>
+        <button type="button" id="validateFormula" class="btn btn-info">{{exmtrans('custom_column.calc_formula.validate_formula')}}</button>
+        <span id="validateResult" style="margin-left: 5px;">
+            <span id="validateResultSuccess" class="validateResultSuccess"><i class="fa fa-circle-o"></i>{{exmtrans('custom_column.calc_formula.message.validate_success')}}</span>
+            <span id="validateResultError" class="validateResultError"><i class="fa fa-times"></i>{{exmtrans('custom_column.calc_formula.message.validate_error')}}</span>
+        </span>
+    </div>
 
     {{--// calc field list --}} {{-- calc suggest item list --}}
     <div class="col-sm-6 col-target">
         <div class="col-target-block col-target-block-column">
-            <h5>{{exmtrans('custom_column.calc_formula.dynamic')}}</h5>
+            <h4 class="bold">{{exmtrans('custom_column.calc_formula.dynamic')}}</h4>
             <div class="row">
                 @foreach($custom_columns as $custom_column)
                 <div class="col-sm-6">
                     <button type="button" class="btn btn-default button-addcalcitem" style="width:100%;" 
-                        data-type="{{ array_get($custom_column, 'type')??'dynamic' }}" data-val="{{ array_get($custom_column, 'val') }}"  data-from="{{ array_get($custom_column, 'from') }}" data-table="{{ array_get($custom_column, 'custom_table_id') }}">
-                        {{ array_get($custom_column, 'text') }}
+                        data-type="{{ $custom_column->type() ?? 'dynamic' }}" data-val="{{ $custom_column->val() }}" data-display-text="{{ $custom_column->displayText() }}" >
+                        {{ $custom_column->text() }}
                     </button>
                 </div>
                 @endforeach
             </div>
         </div>
 
-        {{-- fixed value --}}
-        <div class="col-target-block">
-            <h5>{{exmtrans('custom_column.calc_formula.fixed')}}</h5>
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="form-inline">
-                        <button type="button" class="btn btn-default button-addcalcitem" data-type="fixed">
-                            <i class="fa fa-caret-left"></i>
-                        </button>
-                        <input type="text" class="form-control w100px col-target-fixedval" placeholder="{{exmtrans('custom_column.calc_formula.input_number')}}">
-                    </div>
-                </div>
-            </div>
-        </div>
-
         {{-- calc mark --}}
         <div class="col-target-block">
-            <h5>{{exmtrans('custom_column.calc_formula.symbol')}}</h5>
+            <h4 class="bold">{{exmtrans('custom_column.calc_formula.symbol')}}</h4>
             <div class="row">
-                @foreach($symbols as $key => $symbol)
+                @foreach($symbols as $symbol)
                 <div class="col-sm-3">
-                    <button type="button" class="btn btn-success button-addcalcitem" style="width:100%;" data-type="symbol" data-val="{{$key}}">
-                        {{ $symbol }}
+                    <button type="button" class="btn btn-success button-addcalcitem" style="width:100%;" data-type="symbol" data-val="{{$symbol['val']}}" data-displayText="{{$symbol['displayText']}}">
+                        {{ $symbol['displayText'] }}
                     </button>
                 </div>
                 @endforeach
@@ -85,15 +64,25 @@
     .col-target .col-target-block{
         margin-bottom: 2em;
     }
-    .col-target .col-target-block h5,.col-value h5{
+    .col-target .col-target-block h4,.col-value h4{
         margin-bottom: 0.25em;
     }
     .col-target-block-column .btn{
         margin-top: 2px;
         margin-bottom: 2px;
         white-space: normal;
+        word-break: break-all;
     }
     .col-value-item-remove{
         cursor: pointer;
+    }
+
+    .validateResultSuccess{
+        color: green;
+        display: none;
+    }
+    .validateResultError{
+        color: red;
+        display: none;
     }
 </style>

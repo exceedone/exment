@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Tests\Unit;
+namespace Exceedone\Exment\Tests\Feature;
 
 use Tests\TestCase;
 use Illuminate\Support\Facades\DB;

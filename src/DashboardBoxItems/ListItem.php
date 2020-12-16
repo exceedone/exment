@@ -9,10 +9,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
-use Exceedone\Exment\Enums\ViewType;
-use Exceedone\Exment\Enums\ViewKindType;
 
 class ListItem implements ItemInterface
 {

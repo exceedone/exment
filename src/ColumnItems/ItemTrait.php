@@ -171,6 +171,13 @@ trait ItemTrait
     }
 
     /**
+     * get sort name
+     */
+    public function getSortName(){
+        return $this->name();
+    }
+
+    /**
      * Get API column name
      *
      * @return string

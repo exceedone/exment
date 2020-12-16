@@ -74,7 +74,7 @@ var Exment;
                     var help_url = URLJoin(manual_base_uri, help.help_uri);
                     $manual.prop('href', help_url);
                     // chenge color
-                    $manual.children('i').addClass('help_personal');
+                    //$manual.children('i').addClass('help_personal');
                     return;
                 }
             }
@@ -364,36 +364,39 @@ var Exment;
          */
         static setChangedataEvent(datalist) {
             // loop "data-changedata" targets   
-            for (var key in datalist) {
-                var data = datalist[key];
+            for (let key in datalist) {
+                let data = datalist[key];
                 // set change event
-                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                let $targetBox = CommonEvent.getBlockElement(key.split('/')[0]);
+                let column_name = key.split('/')[1];
+                $targetBox.on('change', CommonEvent.getClassKey(column_name), { data: data }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                    Exment.CalcEvent.resetLoopConnt();
                     yield CommonEvent.changeModelData($(ev.target), ev.data.data);
                 }));
                 // if hasvalue to_block, add event when click add button
-                for (var table_name in data) {
-                    var target_table_data = data[table_name];
+                for (let table_name in data) {
+                    let target_table_data = data[table_name];
                     if (!hasValue(target_table_data)) {
                         continue;
                     }
-                    for (var i = 0; i < target_table_data.length; i++) {
-                        var d = target_table_data[i];
+                    for (let i = 0; i < target_table_data.length; i++) {
+                        let d = target_table_data[i];
                         if (!hasValue(d.to_block)) {
                             continue;
                         }
                         $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, (ev) => __awaiter(this, void 0, void 0, function* () {
                             // get target
-                            var $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
-                            var data = ev.data.data;
+                            let $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
+                            let data = ev.data.data;
                             // set to_lastindex matched index
-                            for (var i = 0; i < data.length; i++) {
+                            for (let i = 0; i < data.length; i++) {
                                 if (i != ev.data.index) {
                                     continue;
                                 }
                                 data[i]['to_lastindex'] = true;
                             }
                             // create rensou array.
-                            var modelArray = {};
+                            let modelArray = {};
                             modelArray[ev.data.table_name] = data;
                             yield CommonEvent.changeModelData($target, modelArray);
                         }));
@@ -515,7 +518,6 @@ var Exment;
                     let $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
                     if (!hasValue(modeldata)) {
                         yield CommonEvent.setValue($elem, null);
-                        //$elem.val('');
                     }
                     else {
                         // get element value from model
@@ -526,22 +528,6 @@ var Exment;
                     CommonEvent.setFormFilter($elem);
                     // add $elem to option
                     option['elem'] = $elem;
-                }
-                // re-loop for options
-                for (let i = 0; i < options.length; i++) {
-                    let option = options[i];
-                    $elem = option['elem'];
-                    ///// execute calc
-                    for (let j = 0; j < CommonEvent.calcDataList.length; j++) {
-                        let calcData = CommonEvent.calcDataList[j];
-                        // if calcData.key matches option.to, execute cals
-                        if (calcData.key == option.to) {
-                            let $filterTo = $elem.filter(calcData.classKey);
-                            if (hasValue($filterTo)) {
-                                yield CommonEvent.setCalc($filterTo, calcData.data);
-                            }
-                        }
-                    }
                 }
             });
         }
@@ -638,124 +624,6 @@ var Exment;
             $button.data('widgetmodal_expand', buttonExpand);
         }
         /**
-         * set calc
-         * data : has "to" and "options". options has properties "val" and "type"
-         *
-         */
-        static setCalc($target, data) {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!hasValue(data)) {
-                    return;
-                }
-                var $parent = null;
-                // if not found target, set root.
-                if (hasValue($target)) {
-                    $parent = CommonEvent.getParentRow($target);
-                }
-                if (!hasValue($parent)) {
-                    $parent = $('.box-body');
-                }
-                // loop for calc target.
-                for (var i = 0; i < data.length; i++) {
-                    // for creating array contains object "value0" and "calc_type" and "value1".
-                    var formula_list = [];
-                    var $to = $parent.find(CommonEvent.getClassKey(data[i].to));
-                    if (data[i].is_default) {
-                        $to = $('.box-body').find(CommonEvent.getClassKey(data[i].to)).first();
-                    }
-                    for (var j = 0; j < data[i].options.length; j++) {
-                        var val = 0;
-                        // calc option
-                        var option = data[i].options[j];
-                        // when fixed value
-                        if (option.type == 'fixed') {
-                            formula_list.push(rmcomma(option.val));
-                        }
-                        // when dynamic value, get value
-                        else if (option.type == 'dynamic') {
-                            val = rmcomma($parent.find(CommonEvent.getClassKey(option.val)).val());
-                            if (!hasValue(val)) {
-                                val = 0;
-                            }
-                            formula_list.push(val);
-                        }
-                        // when summary value, get value
-                        else if (option.type == 'summary') {
-                            var sub_formula_list = [];
-                            $('.box-body').find('.has-many-' + option.relation_name + '-form:visible, .has-many-table-' + option.relation_name + '-row:visible').find(CommonEvent.getClassKey(option.val)).each(function () {
-                                if (hasValue($(this).val())) {
-                                    sub_formula_list.push($(this).val());
-                                }
-                            });
-                            if (sub_formula_list.length > 0) {
-                                formula_list.push('(' + sub_formula_list.join(' + ') + ')');
-                            }
-                            else {
-                                formula_list.push(0);
-                            }
-                        }
-                        // when count value, get count
-                        else if (option.type == 'count') {
-                            val = $('.box-body').find('.has-many-' + option.relation_name + '-form:visible, .has-many-table-' + option.relation_name + '-row:visible').length;
-                            if (!hasValue(val)) {
-                                val = 0;
-                            }
-                            formula_list.push(val);
-                        }
-                        // when select_table value, get value from table
-                        else if (option.type == 'select_table') {
-                            // find select target table
-                            var $select = $parent.find(CommonEvent.getClassKey(option.val));
-                            var table_name = $select.data('target_table_name');
-                            // get selected table model
-                            var model = yield CommonEvent.findModel(table_name, $select.val());
-                            // get value
-                            if (hasValue(model)) {
-                                val = model['value'][option.from];
-                                if (!hasValue(val)) {
-                                    val = 0;
-                                }
-                            }
-                            formula_list.push(val);
-                        }
-                        // when symbol
-                        else if (option.type == 'symbol') {
-                            switch (option.val) {
-                                case 'plus':
-                                    formula_list.push('+');
-                                    break;
-                                case 'minus':
-                                    formula_list.push('-');
-                                    break;
-                                case 'times':
-                                    formula_list.push('*');
-                                    break;
-                                case 'div':
-                                    formula_list.push('/');
-                                    break;
-                            }
-                        }
-                    }
-                    var precision = math.evaluate(formula_list.join(' '));
-                    CommonEvent.setValue($to, precision);
-                }
-                ///// re-loop after all data setting value
-                for (var i = 0; i < data.length; i++) {
-                    var $to = $parent.find(CommonEvent.getClassKey(data[i].to));
-                    // if $to has "calc_data" data, execute setcalc function again
-                    //var to_data = $to.data('calc_data');
-                    for (var key in CommonEvent.calcDataList) {
-                        var calcData = CommonEvent.calcDataList[key];
-                        // filter $to obj
-                        var $filterTo = $to.filter(calcData.classKey);
-                        if (hasValue($filterTo)) {
-                            yield CommonEvent.setCalc($filterTo, calcData.data);
-                        }
-                    }
-                }
-            });
-        }
-        /**
          * find table data
          * @param table_name
          * @param value
@@ -841,8 +709,12 @@ var Exment;
                     }
                 });
             }
-            // set value
-            $target.val(value).trigger('change');
+            // set value and trigger next
+            let isChange = !isMatchString(value, $target.val());
+            $target.val(value);
+            if (isChange) {
+                $target.trigger('change');
+            }
         }
         /**
          * add select2
@@ -891,6 +763,23 @@ var Exment;
                 }
                 $(elem).select2(options);
             }).addClass('added-select2');
+        }
+        /**
+         * Get form block erea. (hasmany or default form)
+         * @param block_name block name
+         */
+        static getBlockElement(block_name) {
+            if (!hasValue(block_name) || block_name == 'default') {
+                return CommonEvent.getDefaultBox();
+            }
+            if (block_name == 'parent_id') {
+                return $('.box-body .parent_id').closest('.form-group');
+            }
+            // if 1:n, return children.
+            return $('.box-body .hasmanyblock-' + block_name);
+        }
+        static getDefaultBox() {
+            return $('.box-body >.fields-group > .embed-value');
         }
         /**
          * add field event (datepicker, icheck)
@@ -950,7 +839,6 @@ var Exment;
             return false;
         }
     }
-    CommonEvent.calcDataList = [];
     CommonEvent.relatedLinkageList = [];
     /**
      * call select2 items using linkage
@@ -1153,35 +1041,6 @@ var Exment;
             }
         }
     };
-    /**
-     * Set calc event
-     */
-    CommonEvent.setCalcEvent = (datalist) => {
-        // set datalist for after flow.
-        CommonEvent.calcDataList = [];
-        // loop "data-calc" targets   
-        for (var key in datalist) {
-            var data = datalist[key];
-            // set data to element
-            // cannot use because cannot fire new row
-            //$(CommonEvent.getClassKey(key)).data('calc_data', data);
-            // set calcDataList array. key is getClassKey. data is data
-            CommonEvent.calcDataList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
-            // set calc event
-            $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
-                yield CommonEvent.setCalc($(ev.target), ev.data.data);
-            }));
-            // set event for plus minus button
-            $('.box-body').on('click', '.btn-number-plus,.btn-number-minus', { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
-                // call only has $target. $target is autocalc's key
-                let $target = $(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key));
-                if (!hasValue($target)) {
-                    return;
-                }
-                yield CommonEvent.setCalc($target, ev.data.data);
-            }));
-        }
-    };
     Exment.CommonEvent = CommonEvent;
 })(Exment || (Exment = {}));
 $(function () {
@@ -1202,6 +1061,17 @@ const pInt = (obj) => {
     }
     obj = obj.toString().replace(/,/g, '');
     return parseInt(obj);
+};
+const pFloat = (obj) => {
+    if (!hasValue(obj)) {
+        return 0;
+    }
+    obj = obj.toString().replace(/,/g, '');
+    // check integer
+    if (obj.indexOf('.') === -1) {
+        return parseInt(obj);
+    }
+    return parseFloat(obj);
 };
 const pBool = (obj) => {
     if (!hasValue(obj)) {

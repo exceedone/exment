@@ -1,5 +1,5 @@
 
-<div id="has-many-table-{{$column}}" class="form-group has-many-table-div">
+<div id="has-many-table-{{$column}}" class="has-many-table-{{$column}} form-group has-many-table-div">
     @if($enableHeader)
     <div class="row">
         <div class="col-sm-12">
@@ -19,8 +19,8 @@
             @endif
         </div>
     @endif
-    <div class="col-sm-{{$tablewidth['width']}} col-sm-offset-{{$tablewidth['offset']}}">
-        <table id="has-many-table-{{$column}}-table" class="table table-bordered hasmanyblock-{{$column}} has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
+    <div class="col-sm-{{$tablewidth['width']}} hasmanyblock-{{$column}} col-sm-offset-{{$tablewidth['offset']}}">
+        <table id="has-many-table-{{$column}}-table" class="table table-bordered has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
             <thead>
             <tr class="active">
                 @foreach($tableitems as $tableitem)
