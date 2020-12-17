@@ -12,6 +12,8 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
@@ -196,5 +198,80 @@ class PluginTest extends TestCase
         $this->assertTrue($result);
     }
 
+    /**
+     * test plugin import
+     *
+     * @return void
+     */
+    public function testImport()
+    {
+        DB::beginTransaction();
+        try {
+            $pre_cnt = getModelName('parent_table')::where('value->init_text', 'plugin_unit_test')->count();
 
+            $import_path = storage_path(path_join_os('app', 'import', 'unittest'));
+            if (\File::exists($import_path)) {
+                \File::deleteDirectory($import_path);
+            }
+            \File::makeDirectory($import_path, 0755, true);
+            $source_path = exment_package_path("tests/tmpfile/Feature/plugin_import");
+            \File::copyDirectory($source_path, $import_path);
+            $files = \File::files($import_path);
+    
+            $plugin = Plugin::where('plugin_name', 'TestPluginDemoImport')->first();
+
+            $service = (new DataImportExport\DataImportExportService());
+            $res = $this->callProtectedMethod($service, 'customImport', $plugin->id, $files[0]);
+
+            $this->assertTrue(array_get($res, 'result'));
+
+            $parent = getModelName('parent_table')::where('value->init_text', 'plugin_unit_test')->get();
+            $this->assertEquals($pre_cnt+1, count($parent));
+
+            $parent = $parent->last();
+
+            $child_cnt = getModelName('child_table')::where('parent_type', 'parent_table')
+                ->where('parent_id', $parent->id)->get();
+            $this->assertEquals(2, $child_cnt);
+        } finally {
+            DB::rollback();
+        }
+    }
+
+
+    /**
+     * test plugin export
+     *
+     * @return void
+     */
+    public function testExport()
+    {
+        $plugin = Plugin::where('plugin_name', 'TestPluginDemoExport')->first();
+        $pluginClass = $plugin->getClass(PluginType::EXPORT);
+
+        $custom_table = CustomTable::getEloquent('information');
+        $custom_view = CustomView::getAllData($custom_table);
+
+        $pluginClass->defaultProvider(new DataImportExport\Providers\Export\DefaultTableProvider([
+            'custom_table' => $custom_table,
+            'grid' => null
+        ]));
+
+        $pluginClass->viewProvider(new DataImportExport\Providers\Export\SummaryProvider([
+            'custom_table' => $custom_table,
+            'custom_view' => $custom_view,
+            'grid' => null
+        ]));
+
+        $file = null;
+        try {
+            $file = $pluginClass->execute();
+        }
+        // Delete if exception
+        finally {
+            if (isset($file) && is_string($file) && \File::exists($file)) {
+                \File::delete($file);
+            }
+        }
+    }
 }

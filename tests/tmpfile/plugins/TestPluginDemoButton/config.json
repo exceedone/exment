@@ -7,5 +7,5 @@
     "version": "1.0.0",
     "plugin_type": "button",
     "event_triggers": "grid_menubutton",
-    "target_tables": "information"
+    "target_tables": "custom_value_edit_all"
 }
