@@ -51,8 +51,8 @@ class LoginSettingController extends AdminControllerBase
 
         // 2factor box
         if (boolval(config('exment.login_use_2factor', false))) {
-            $box = $this->get2factorSettingBox();
-            $content->row(new Box(exmtrans("2factor.2factor"), $box->render()));
+            $form = $this->get2factorSettingForm();
+            $content->row(new Box(exmtrans("2factor.2factor"), $form->render()));
         }
 
         return $content;
@@ -229,7 +229,7 @@ class LoginSettingController extends AdminControllerBase
         $form->tools(function (Form\Tools $tools) use ($login_setting) {
             $tools->append(new Tools\SystemChangePageMenu());
             
-            if (isset($login_setting)) {
+            if (isset($login_setting) && !is_null($className = $login_setting->getLoginServiceClassName())) {
                 $tools->append(new Tools\ModalMenuButton(
                     route('exment.logintest_modal', ['id' => $login_setting->id]),
                     [
@@ -239,7 +239,7 @@ class LoginSettingController extends AdminControllerBase
                     ]
                 ));
 
-                $login_setting->getLoginServiceClassName()::appendActivateSwalButton($tools, $login_setting);
+                $className::appendActivateSwalButton($tools, $login_setting);
             }
         });
         
@@ -314,8 +314,7 @@ class LoginSettingController extends AdminControllerBase
 
         $form->number('password_expiration_days', exmtrans("system.password_expiration_days"))
             ->default(0)
-            ->min(0)
-            ->max(999)
+            ->between(0, 999)
             ->help(exmtrans("system.help.password_expiration_days"));
 
         $form->switchbool('first_change_password', exmtrans("system.first_change_password"))
@@ -323,8 +322,7 @@ class LoginSettingController extends AdminControllerBase
 
         $form->number('password_history_cnt', exmtrans("system.password_history_cnt"))
             ->default(0)
-            ->min(0)
-            ->max(20)
+            ->between(0, 20)
             ->help(exmtrans("system.help.password_history_cnt"));
 
         $form->exmheader(exmtrans('system.login_page_view'))->hr();
@@ -560,7 +558,7 @@ class LoginSettingController extends AdminControllerBase
      *
      * @return Content
      */
-    protected function get2factorSettingBox()
+    protected function get2factorSettingForm() : WidgetForm
     {
         $form = new WidgetForm(System::get_system_values(['2factor']));
         $form->action(route('exment.post2factor'));
@@ -611,6 +609,12 @@ class LoginSettingController extends AdminControllerBase
                     'login_2factor_verify_code' => exmtrans('2factor.message.verify_failed')
                 ]);
             }
+        }
+
+        // validation
+        $form = $this->get2factorSettingForm();
+        if (($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse) {
+            return $response;
         }
 
         DB::beginTransaction();
