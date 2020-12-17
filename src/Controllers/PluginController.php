@@ -212,7 +212,7 @@ class PluginController extends AdminControllerBase
         });
         $form->display('author', exmtrans("plugin.author"));
         $form->display('version', exmtrans("plugin.version"));
-        $form->switch('active_flg', exmtrans("plugin.active_flg"));
+        $form->switchbool('active_flg', exmtrans("plugin.active_flg"));
         
         $form->exmheader(exmtrans("common.detail_setting"))->hr();
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin) {
