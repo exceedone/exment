@@ -16,7 +16,7 @@ class TestPluginDiskService extends PluginDiskService
         $path = isset($plugin) ? $plugin->getPath() : null;
         
         $this->diskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_SYNC), $path, $path);
-        $this->tmpDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_TEST), $path, $this->now);
+        $this->tmpDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_TEST), $path, $path);
         $this->localSyncDiskItem = new DiskServiceItem(Storage::disk(Define::DISKNAME_PLUGIN_TEST), $path, $path);
     }
 }
