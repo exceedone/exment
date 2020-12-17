@@ -434,12 +434,12 @@ EOT;
                 'value' => 4,
                 'redirect' => admin_urls('data', $this->custom_table->table_name),
             ],
-        ])->map(function($checkbox){
+        ])->map(function ($checkbox) {
             return array_merge([
                 'label' => trans('admin.' . $checkbox['key']),
                 'default' => isMatchString(System::data_submit_redirect(), $checkbox['value']),
             ], $checkbox);
-        })->each(function($checkbox) use($form){
+        })->each(function ($checkbox) use ($form) {
             $form->submitRedirect($checkbox);
         });
 
