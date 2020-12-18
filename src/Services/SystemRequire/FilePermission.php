@@ -17,7 +17,7 @@ class FilePermission extends SystemRequireBase
         foreach($this->checkPaths as $path){
             $fullPath = base_path($path);
             if(!is_writable($fullPath)){
-                $this->result[] = $fullPath;
+                $this->result[] = $path;
             }
         }
     }
@@ -26,9 +26,11 @@ class FilePermission extends SystemRequireBase
         return exmtrans('system_require.type.file_permission.label');
     }
 
-    public function getExplain() : string{
+    public function getExplain() : string
+    {
         return exmtrans('system_require.type.file_permission.explain');
     }
+
 
     /**
      * Undocumented function
@@ -40,7 +42,7 @@ class FilePermission extends SystemRequireBase
         if(is_nullorempty($this->result)){
             return exmtrans('common.success');
         }
-        return exmtrans('system_require.type.file_permission.text_notwritable');
+        return exmtrans('system_require.type.file_permission.text_notwritable') . implode(exmtrans('common.separate_word', $this->result));
     }
 
     /**
@@ -63,6 +65,6 @@ class FilePermission extends SystemRequireBase
 
     public function getSettingUrl() : ?string
     {
-        return null;
+        return \Exment::getManualUrl('troubleshooting');
     }
 }

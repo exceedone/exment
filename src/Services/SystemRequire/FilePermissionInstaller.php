@@ -13,7 +13,8 @@ class FilePermissionInstaller extends FilePermission
     ];
 
 
-    public function getExplain() : string{
+    public function getExplain() : string
+    {
         return exmtrans('system_require.type.file_permission_installer.explain');
     }
 
