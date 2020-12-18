@@ -594,4 +594,23 @@ class Exment
         }
         set_time_limit($time);
     }
+
+    
+
+    /**
+     * get Upload Max File Size. get php.ini config
+     *
+     * @return int byte size.
+     */
+    public function getUploadMaxFileSize()
+    {
+        $post_max_size = (int)(str_replace('M', '', ini_get('post_max_size')));
+        $upload_max_filesize = (int)(str_replace('M', '', ini_get('upload_max_filesize')));
+
+        // return min size post_max_size or upload_max_filesize
+        $minsize = collect([$post_max_size, $upload_max_filesize])->min();
+
+        // return byte size
+        return $minsize * 1024 * 1024;
+    }
 }

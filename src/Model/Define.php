@@ -382,7 +382,7 @@ class Define
     public static function FILE_OPTION()
     {
         // get max size
-        $maxSize = getUploadMaxFileSize();
+        $maxSize = \Exment::getUploadMaxFileSize();
 
         return [
             'showPreview' => true,

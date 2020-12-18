@@ -16,6 +16,7 @@
   <!-- iCheck -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/iCheck/square/blue.css") }}">
   <link rel="stylesheet" href="{{ admin_asset("/vendor/laravel-admin/toastr/build/toastr.min.css") }}">
+  <link rel="stylesheet" href="{{ asset('vendor/exment/css/install.css')}}">
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
@@ -24,14 +25,14 @@
   <![endif]-->
 </head>
 <body class="hold-transition login-page">
-    <div class="login-box">
+    <div class="login-box {{$login_box_classname ?? ''}}">
             <div class="login-logo">
-                <a href="{{ admin_url('/') }}"><img src="{{ asset('images/exment_logo_side.png') }}" style="width:80%;" /></a>
+                <img src="{{ asset('images/exment_logo_side.png') }}" />
             </div>
             <!-- /.login-logo -->
             <div class="login-box-body">
-          @yield('content')
-  </div>
+              @yield('content')
+            </div>
   <!-- /.login-box-body -->
 </div>
 <!-- jQuery 2.1.4 -->
@@ -43,21 +44,6 @@
 
 <script src="{{ admin_asset("/vendor/laravel-admin/toastr/build/toastr.min.js")}}"></script>
 <script src="{{ admin_asset("/vendor/exment/js/common_all.js")}}"></script>
-<script>
-  $(function () {
-    $('input').iCheck({
-      checkboxClass: 'icheckbox_square-blue',
-      radioClass: 'iradio_square-blue',
-      increaseArea: '20%' // optional
-    });
-
-    $("form").submit(function (e) {
-      //disable the submit button
-      $(':submit').attr("disabled", true);
-      return true;
-    });
-  });
-</script>
 
 @if (session('status'))
 <script>
@@ -74,5 +60,27 @@
 </script>
 @endif
 
+@yield('script')
+<script>
+  $(function () {
+    $('input').iCheck({
+      checkboxClass: 'icheckbox_square-blue',
+      radioClass: 'iradio_square-blue',
+      increaseArea: '20%' // optional
+    });
+
+    $("form").submit(function (ev) {
+      if($(ev.target).hasClass('check_has_warning') && pBool($('#has_warning').val())){
+        if(!window.confirm($('#has_warning_text').val())){
+            return false;
+        }
+      }
+
+      //disable the submit button
+      $(':submit').attr("disabled", true);
+      return true;
+    });
+  });
+</script>
 </body>
 </html>

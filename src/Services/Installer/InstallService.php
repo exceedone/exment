@@ -55,11 +55,15 @@ class InstallService
             return InitializeStatus::DATABASE;
         }
         
+        if ($status == InitializeStatus::DATABASE) {
+            return InitializeStatus::SYSTEM_REQUIRE;
+        }
+
         if (!\Schema::hasTable(SystemTableName::SYSTEM) || CustomTable::count() == 0) {
             return InitializeStatus::INSTALLING;
         }
-        
-        if ($status == InitializeStatus::DATABASE) {
+
+        if ($status == InitializeStatus::SYSTEM_REQUIRE) {
             return InitializeStatus::INSTALLING;
         }
 
@@ -82,6 +86,11 @@ class InstallService
                     return redirect(admin_url('install'));
                 }
                 return new DatabaseForm;
+            case InitializeStatus::SYSTEM_REQUIRE:
+                if (!$isInstallPath) {
+                    return redirect(admin_url('install'));
+                }
+                return new SystemRequireForm;
             case InitializeStatus::INSTALLING:
                 if (!$isInstallPath) {
                     return redirect(admin_url('install'));
@@ -102,6 +111,8 @@ class InstallService
                 return new LangForm;
             case InitializeStatus::DATABASE:
                 return new DatabaseForm;
+            case InitializeStatus::SYSTEM_REQUIRE:
+                return new SystemRequireForm;
             case InitializeStatus::INSTALLING:
                 return new InstallingForm;
             case InitializeStatus::INITIALIZE:

@@ -71,7 +71,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
      */
     public function checkBackup() : bool
     {
-        throw new BackupRestoreCheckException(exmtrans('backup.message.not_support_driver', $this->getDatabaseDriverName()));
+        throw new BackupRestoreNotSupportedException(exmtrans('backup.message.not_support_driver', $this->getDatabaseDriverName()));
     }
     
     public function backupDatabase($tempDir)

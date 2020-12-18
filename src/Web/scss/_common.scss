@@ -1,0 +1,134 @@
+@import "_valiables.scss";
+
+.red{
+    color:red;
+}
+
+.gray{
+    color:gray;
+}
+
+.bold{
+    font-weight:bold;
+}
+
+.small{
+    font-size:0.9em;
+}
+
+.mx-auto{
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.my-auto{
+    margin-top: auto !important;
+    margin-bottom: auto !important;
+}
+
+.d-none{
+    display: none !important;
+}
+.d-block{
+    display: block;
+}
+
+.d-inline{
+    display: inline;
+}
+
+.d-inline-block{
+    display: inline-block;
+}
+
+.pt-0{
+    padding-top: 0 !important;
+}
+
+.asterisk::after{
+    content: " *";
+    color: red;
+    position: absolute;
+    margin-left: 1px;
+}
+
+@for $i from 1 through 10 {
+    .w-#{$i * 10} {
+        width: $i * 10% !important;
+    }
+
+    .mw-#{$i * 10} {
+        max-width: $i * 10% !important;
+    }
+
+    .h-#{$i * 10} {
+        height: $i * 10% !important;
+    }
+
+    .mh-#{$i * 10} {
+        max-height: $i * 10% !important;
+    }
+}
+
+@for $i from 1 through 10 {
+    @media(min-width:$pc-media-width) {
+        .w-#{$i * 10}-pc {
+            width: $i * 10% !important;
+        }
+
+        .h-#{$i * 10}px-pc {
+            height: $i * 10% !important;
+        }
+    }
+}
+
+@for $i from 1 through 100 {
+    .w#{$i * 10}px {
+        width: #{$i * 10}px;
+    }
+
+    .mw#{$i * 10}px {
+        max-width: #{$i * 10}px;
+    }
+
+    .h#{$i * 10}px {
+        height: #{$i * 10}px;
+    }
+
+    .mh#{$i * 10}px {
+        max-height: #{$i * 10}px;
+    }
+}
+
+@for $i from 1 through 100 {
+    @media(min-width:$pc-media-width) {
+        .w#{$i * 10}px-pc {
+            width: #{$i * 10}px;
+        }
+
+        .mw#{$i * 10}px-pc {
+            max-width: #{$i * 10}px;
+        }
+
+        .h#{$i * 10}px-pc {
+            height: #{$i * 10}px;
+        }
+
+        .mh#{$i * 10}px-pc {
+            max-height: #{$i * 10}px;
+        }
+    }
+}
+
+.col-xs-0, .col-sm-0, .col-md-0, .col-lg-0{
+    display: none;
+}
+
+.corsor-pointer{
+    cursor: pointer;
+}
+
+.row-eq-height {
+    display: flex;
+    flex-wrap: wrap;
+}

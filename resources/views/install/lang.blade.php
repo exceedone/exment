@@ -1,6 +1,6 @@
 @extends('exment::install.layout') 
 @section('content')
-        <p class="login-box-msg">{{ trans('admin.setting') }}(1/3) : Language</p>
+        <p class="login-box-msg">{{ trans('admin.setting') }}(1/4) : Language</p>
 
         <form action="{{ admin_url('install') }}" method="post">
             <div class="form-group has-feedback {!! !$errors->has('common_error') ?: 'has-error' !!}">
@@ -41,7 +41,7 @@
                 <!-- /.col -->
                 <div class="col-xs-12 col-sm-8 col-sm-offset-2">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-primary btn-block btn-flat">{{ trans('admin.save') }}</button>
+                    <button type="submit" class="btn btn-primary btn-block btn-flat btn-install-next">{{ trans('admin.save') }}</button>
                 </div>
                 <!-- /.col -->
             </div>
