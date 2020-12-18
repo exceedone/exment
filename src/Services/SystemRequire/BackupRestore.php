@@ -63,6 +63,11 @@ class BackupRestore extends SystemRequireBase
         return $this->result;
     }
 
+    protected function getMessageWarning() : ?string
+    {
+        return $this->exceptionMessage;
+    }
+
     protected function getMessageNg() : ?string
     {
         return $this->exceptionMessage;
