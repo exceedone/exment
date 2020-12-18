@@ -8,6 +8,7 @@ use Exceedone\Exment\Database\Schema\SqlServerBuilder;
 use Exceedone\Exment\Database\Query\Processors\SqlServerProcessor;
 use Illuminate\Database\SqlServerConnection as BaseConnection;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupRestoreNotSupportedException;
 
 class SqlServerConnection extends BaseConnection implements ConnectionInterface
 {
