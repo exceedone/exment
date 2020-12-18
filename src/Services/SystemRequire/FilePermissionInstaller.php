@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\SystemRequire;
 class FilePermissionInstaller extends FilePermission
 {
     protected $checkPaths = [
+        '.env',
         'app',
         'config',
         'public',

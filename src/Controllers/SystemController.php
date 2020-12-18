@@ -21,6 +21,8 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
+use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Validator;
@@ -68,6 +70,10 @@ class SystemController extends AdminControllerBase
             $infoBox = $this->getVersionBox();
             $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
         }
+
+        // Append system require box
+        $box = $this->getSystemRequireBox();
+        $content->row(new Box(exmtrans("install.system_require.header"), $box->render()));
 
         return $content;
     }
@@ -177,10 +183,6 @@ class SystemController extends AdminControllerBase
             ->options(Enums\DataSubmitRedirect::transKeyArray("admin", false))
             ->help(exmtrans("system.help.data_submit_redirect"));
 
-        $form->display('max_file_size', exmtrans("common.max_file_size"))
-        ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
-        ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));
-        
         if (boolval(System::organization_available())) {
             $form->exmheader(exmtrans('system.organization_header'))->hr();
 
@@ -292,6 +294,22 @@ class SystemController extends AdminControllerBase
 
         return $infoBox;
     }
+
+
+    /**
+     * get system require box.
+     *
+     * @return Content
+     */
+    protected function getSystemRequireBox()
+    {
+        $checkResult = SystemRequireList::make(SystemRequireCalledType::WEB);
+        $view = view('exment::widgets.system-require', [
+            'checkResult' => $checkResult,
+        ]);
+        return $view;
+    }
+
 
     /**
      * Send data

@@ -42,7 +42,7 @@ class FilePermission extends SystemRequireBase
         if(is_nullorempty($this->result)){
             return exmtrans('common.success');
         }
-        return exmtrans('system_require.type.file_permission.text_notwritable') . implode(exmtrans('common.separate_word'), $this->result);
+        return exmtrans('system_require.type.file_permission.text_notwritable') . ' : ' .  implode(exmtrans('common.separate_word'), $this->result);
     }
 
     /**
