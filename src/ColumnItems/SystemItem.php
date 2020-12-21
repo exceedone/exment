@@ -225,7 +225,7 @@ class SystemItem implements ItemInterface
      */
     public function sortable()
     {
-        return true;
+        return !array_key_value_exists('view_pivot_column', $this->options);
     }
 
     /**
