@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 use Carbon\Carbon;
 
 class CustomViewFilter extends ModelBase
@@ -125,6 +126,13 @@ class CustomViewFilter extends ModelBase
         if ($this->view_column_type == ConditionType::WORKFLOW) {
             return WorkflowItem::scopeWorkflow($model, $this->view_column_target_id, $this->custom_table, $view_filter_condition, $condition_value_text, $or_option);
         }
+
+        $viewFilterItem = ViewFilterBase::make($this->view_filter_condition, $this->column_item, [
+            'or_option' => $or_option,
+        ]);
+        
+        $viewFilterItem->setFilter($model, $condition_value_text);
+        return $model;
 
         if ($this->view_column_type == ConditionType::COLUMN) {
             $column_column = CustomColumn::getEloquent($view_column_target);
