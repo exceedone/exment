@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\WorkflowTargetSystem;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Enums\WorkflowNextType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
+use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Symfony\Component\HttpFoundation\Response;
@@ -770,6 +771,43 @@ class WorkflowAction extends ModelBase
             }
 
             $this->{$key}()->delete();
+        }
+    }
+
+    
+    /**
+     * Append workflow status from query.
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @param string $workflow_status
+     * @return void
+     */
+    public static function appendStatusFromQuery($query, $workflow_status){
+        // if sql server, append cast
+        if (\DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder) {
+            /// create where raw query
+            $column = \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_ACTION . '.status_from');
+            $whereStatusStart = $column . ' = ' . \Exment::wrapValue($workflow_status);
+            $query->whereRaw($whereStatusStart);
+        } else {
+            $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', $workflow_status);
+        }
+    }
+    
+    /**
+     * Append workflow status from and join workflow_status_to_id query.
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
+     * @return void
+     */
+    public static function appendStatusFromJoinQuery($query){
+        // if sql server, append cast
+        if (\DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder) {
+            /// create where raw query
+            $whereStatusStart = \Exment::wrapColumn(SystemTableName::WORKFLOW_ACTION . '.status_from') . ' = ' . \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
+            $query->whereRaw($whereStatusStart);
+        } else {
+            $query->whereColumn(SystemTableName::WORKFLOW_ACTION . '.status_from', SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
         }
     }
 }
