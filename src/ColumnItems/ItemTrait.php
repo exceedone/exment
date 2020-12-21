@@ -375,4 +375,16 @@ trait ItemTrait
 
         return ['=', $pureValue];
     }
+
+
+    /**
+     * Convert filter value.
+     * Ex. If value is decimal and Column Type is decimal, return floatval.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    public function convertFilterValue($value){
+        return $value;
+    }
 }

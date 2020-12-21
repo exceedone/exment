@@ -151,7 +151,13 @@ class CustomViewFilter extends ModelBase
             $view_column_target = \DB::getQueryGrammar()->getDateFormatString($this->view_group_condition, $view_column_target, false);
             $view_column_target = \DB::raw($view_column_target);
         }
+
+        // convert $condition_value_text using column type
         $condition_value_text = $this->view_filter_condition_value_text;
+        if(isset($this->column_item)){
+            $condition_value_text = $this->column_item->convertFilterValue($condition_value_text);
+        }
+
         $view_filter_condition = $this->view_filter_condition;
         // get filter condition
         switch ($view_filter_condition) {
@@ -192,12 +198,12 @@ class CustomViewFilter extends ModelBase
             case FilterOption::NUMBER_LT:
             case FilterOption::NUMBER_GTE:
             case FilterOption::NUMBER_LTE:
-                $condition_value_text = str_replace(',', '', $condition_value_text);
-                if (preg_match('/^([1-9]\d*|0)\.(\d+)?$/', $condition_value_text)) {
-                    $condition_value_text = floatval($condition_value_text);
-                } else {
-                    $condition_value_text = intval($condition_value_text);
-                }
+                // $condition_value_text = str_replace(',', '', $condition_value_text);
+                // if (preg_match('/^([1-9]\d*|0)\.(\d+)?$/', $condition_value_text)) {
+                //     $condition_value_text = floatval($condition_value_text);
+                // } else {
+                //     $condition_value_text = intval($condition_value_text);
+                // }
                 switch ($view_filter_condition) {
                     case FilterOption::NUMBER_GT:
                         $model->{$method_name}($view_column_target, '>', $condition_value_text);
