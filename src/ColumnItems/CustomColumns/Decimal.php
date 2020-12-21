@@ -125,4 +125,19 @@ class Decimal extends CustomItem
             return [DatabaseDataType::TYPE_DECIMAL, true, []];
         }
     }
+
+    
+    /**
+     * Convert filter value.
+     * Ex. If value is decimal and Column Type is decimal, return floatval.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    public function convertFilterValue($value){
+        if(is_null($value)){
+            return null;
+        }
+        return floatval($value);
+    }
 }

@@ -89,4 +89,19 @@ class Integer extends CustomItem
     {
         return[DatabaseDataType::TYPE_INTEGER, true, []];
     }
+    
+    
+    /**
+     * Convert filter value.
+     * Ex. If value is decimal and Column Type is decimal, return floatval.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    public function convertFilterValue($value){
+        if(is_null($value)){
+            return null;
+        }
+        return intval($value);
+    }
 }
