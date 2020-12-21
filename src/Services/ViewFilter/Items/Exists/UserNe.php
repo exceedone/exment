@@ -6,11 +6,13 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class UserNe extends ViewFilter\ExistsBase
 {
-    public static function getFilterOption(){
+    public static function getFilterOption()
+    {
         return FilterOption::USER_NE;
     }
 
-    protected function isExists() : bool{
+    protected function isExists() : bool
+    {
         return false;
     }
 }

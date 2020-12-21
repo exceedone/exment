@@ -6,7 +6,8 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class UserEqUser extends ViewFilter\UserEqUserBase
 {
-    public static function getFilterOption(){
+    public static function getFilterOption()
+    {
         return FilterOption::USER_EQ_USER;
     }
 

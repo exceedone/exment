@@ -1,16 +1,18 @@
 <?php
 namespace Exceedone\Exment\Services\ViewFilter;
 
-use Exceedone\Exment\Enums\FilterOption;
-
 abstract class NullBase extends ViewFilterBase
 {
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
-        $query->{$method_name. ($this->isNull() ? 'Null' : 'NotNull')}($query_column);
-    }
-    
-    protected function isNull() : bool{
-        return true;
+        // if multiple enabled, check is empty or null
+        if ($this->column_item->isMultipleEnabled()) {
+            $query->{$method_name}(function ($query) use ($query_column) {
+                $query->orWhereNull($query_column);
+                $query->orWhere($query_column, '[]');
+            });
+        } else {
+            $query->{$method_name. 'Null'}($query_column);
+        }
     }
 }

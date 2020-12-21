@@ -782,7 +782,8 @@ class WorkflowAction extends ModelBase
      * @param string $workflow_status
      * @return void
      */
-    public static function appendStatusFromQuery($query, $workflow_status){
+    public static function appendStatusFromQuery($query, $workflow_status)
+    {
         // if sql server, append cast
         if (\DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder) {
             /// create where raw query
@@ -800,7 +801,8 @@ class WorkflowAction extends ModelBase
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
      * @return void
      */
-    public static function appendStatusFromJoinQuery($query){
+    public static function appendStatusFromJoinQuery($query)
+    {
         // if sql server, append cast
         if (\DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder) {
             /// create where raw query

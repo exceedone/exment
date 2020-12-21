@@ -6,11 +6,13 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class SelectNotExists extends ViewFilter\ExistsBase
 {
-    public static function getFilterOption(){
+    public static function getFilterOption()
+    {
         return FilterOption::SELECT_NOT_EXISTS;
     }
 
-    protected function isExists() : bool{
+    protected function isExists() : bool
+    {
         return false;
     }
 }

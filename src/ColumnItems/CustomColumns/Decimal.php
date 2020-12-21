@@ -134,8 +134,9 @@ class Decimal extends CustomItem
      * @param mixed $value
      * @return mixed
      */
-    public function convertFilterValue($value){
-        if(is_null($value)){
+    public function convertFilterValue($value)
+    {
+        if (is_null($value)) {
             return null;
         }
         return floatval($value);

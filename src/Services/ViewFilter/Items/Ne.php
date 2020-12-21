@@ -6,7 +6,8 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class Ne extends ViewFilter\ViewFilterBase
 {
-    public static function getFilterOption(){
+    public static function getFilterOption()
+    {
         return FilterOption::NE;
     }
     

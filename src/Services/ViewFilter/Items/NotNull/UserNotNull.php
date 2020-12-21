@@ -6,7 +6,8 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class UserNotNull extends ViewFilter\NotNullBase
 {
-    public static function getFilterOption(){
+    public static function getFilterOption()
+    {
         return FilterOption::USER_NOT_NULL;
     }
 }

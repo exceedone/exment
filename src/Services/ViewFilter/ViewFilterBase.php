@@ -1,10 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\ViewFilter;
 
-use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Model\CustomViewFilter;
-use Exceedone\Exment\Services\ViewFilter\Items;
-
 abstract class ViewFilterBase
 {
     const classNames = [
@@ -121,8 +117,8 @@ abstract class ViewFilterBase
     {
         $classNames = static::classNames;
 
-        foreach($classNames as $className){
-            if(isMatchString($view_filter_condition, $className::getFilterOption())){
+        foreach ($classNames as $className) {
+            if (isMatchString($view_filter_condition, $className::getFilterOption())) {
                 return new $className($column_item, $options);
             }
         }

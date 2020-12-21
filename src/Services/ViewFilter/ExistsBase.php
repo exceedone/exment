@@ -1,10 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\ViewFilter;
 
-use Exceedone\Exment\Enums\FilterOption;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\FilterSearchType;
-
 abstract class ExistsBase extends ViewFilterBase
 {
     protected function _setFilter($query, $method_name, $query_column, $query_value)

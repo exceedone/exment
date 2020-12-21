@@ -6,7 +6,8 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class DayNotNull extends ViewFilter\NotNullBase
 {
-    public static function getFilterOption(){
+    public static function getFilterOption()
+    {
         return FilterOption::DAY_NOT_NULL;
     }
 }

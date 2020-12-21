@@ -6,7 +6,8 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class DayThisYear extends ViewFilter\DayYearBase
 {
-    public static function getFilterOption(){
+    public static function getFilterOption()
+    {
         return FilterOption::DAY_THIS_YEAR;
     }
 

@@ -7,7 +7,8 @@ use Carbon\Carbon;
 
 class DayNextXDayOrAfter extends ViewFilter\DayBeforeAfterBase
 {
-    public static function getFilterOption(){
+    public static function getFilterOption()
+    {
         return FilterOption::DAY_NEXT_X_DAY_OR_AFTER;
     }
 

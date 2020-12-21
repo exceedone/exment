@@ -6,7 +6,8 @@ use Exceedone\Exment\Enums\FilterOption;
 
 class DayLastMonth extends ViewFilter\DayMonthBase
 {
-    public static function getFilterOption(){
+    public static function getFilterOption()
+    {
         return FilterOption::DAY_LAST_MONTH;
     }
 

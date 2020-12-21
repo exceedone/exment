@@ -393,7 +393,8 @@ trait ItemTrait
      * @param mixed $value
      * @return mixed
      */
-    public function convertFilterValue($value){
+    public function convertFilterValue($value)
+    {
         return $value;
     }
 }
