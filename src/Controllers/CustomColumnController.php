@@ -448,15 +448,15 @@ class CustomColumnController extends AdminControllerTableBase
             $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
             $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
                 ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
-                ->options(function ($select_table, $form) use ($id, $controller) {
-                    return $controller->getImportExportColumnSelect($select_table, $form, $id);
+                ->options(function ($select_table, $field) use ($id, $controller) {
+                    return $controller->getImportExportColumnSelect($select_table, $field, $id);
                 })
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
 
             $form->select('select_export_column_id', exmtrans("custom_column.options.select_export_column_id"))
                 ->help(exmtrans("custom_column.help.select_export_column_id"))
-                ->options(function ($select_table, $form) use ($id, $controller) {
-                    return $controller->getImportExportColumnSelect($select_table, $form, $id, false);
+                ->options(function ($select_table, $field) use ($id, $controller) {
+                    return $controller->getImportExportColumnSelect($select_table, $field, $id, false);
                 })
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
 
@@ -696,10 +696,9 @@ class CustomColumnController extends AdminControllerTableBase
      *
      * @return array
      */
-    protected function getImportExportColumnSelect($select_table, $form, $id, $isImport = true)
+    protected function getImportExportColumnSelect($value, $field, $id, $isImport = true)
     {
-        $data = $form->data();
-        if (!isset($data)) {
+        if (is_nullorempty($field)) {
             return [];
         }
 
@@ -716,11 +715,18 @@ class CustomColumnController extends AdminControllerTableBase
             ]) ?? [];
         }
 
-        // select_table
-        if (is_null($select_target_table = array_get($data, 'select_target_table'))) {
+        // get seletct target table
+        if (isset($value)) {
+            $custom_column = CustomColumn::getEloquent($value);
+            $custom_table = $custom_column ? CustomTable::getEloquent($custom_column) : null;
+        } elseif (!is_nullorempty($field->data())) {
+            $custom_table = CustomTable::getEloquent(array_get($field->data(), 'select_target_table'));
+        }
+        if (!isset($custom_table)) {
             return [];
         }
-        return CustomTable::getEloquent($select_target_table)->getColumnsSelectOptions([
+
+        return $custom_table->getColumnsSelectOptions([
             'index_enabled_only' => $isImport,
             'include_system' => false,
         ]) ?? [];
