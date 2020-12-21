@@ -35,7 +35,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
     public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false)
     {
         $index = $this->wrap($column);
-        $queryStr = "STRING_SPLIT(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ',')";
+        $queryStr = "STRING_SPLIT(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\"', ''), ',')";
 
         // definition table name
         $tableNameAs = "{$tableName}_exists";

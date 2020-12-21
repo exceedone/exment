@@ -12,7 +12,6 @@ class Ne extends ViewFilter\ViewFilterBase
     }
     
 
-    
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
         $query->{$method_name}($query_column, '<>', $query_value);

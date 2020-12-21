@@ -293,7 +293,7 @@ class PatchDataCommand extends Command
             $column_type = $index_custom_column->column_item->getVirtualColumnTypeName();
 
             \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
-            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $column_type);
+            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $index_custom_column);
         }
     }
     
