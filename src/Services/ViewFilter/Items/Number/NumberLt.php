@@ -1,18 +1,18 @@
 <?php
-namespace Exceedone\Exment\Services\ViewFilter\Items;
+namespace Exceedone\Exment\Services\ViewFilter\Items\Number;
 
 use Exceedone\Exment\Services\ViewFilter;
 use Exceedone\Exment\Enums\FilterOption;
 
-class NumberLte extends ViewFilter\NumberCompareBase
+class NumberLt extends ViewFilter\NumberCompareBase
 {
     public static function getFilterOption()
     {
-        return FilterOption::NUMBER_LTE;
+        return FilterOption::NUMBER_LT;
     }
 
     protected function getMark() : string
     {
-        return '<=';
+        return '<';
     }
 }

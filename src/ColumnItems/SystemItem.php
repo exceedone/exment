@@ -336,6 +336,19 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * whether column is datetime
+     *
+     */
+    public function isDateTime()
+    {
+        $option = $this->getSystemColumnOption();
+        $value_type = array_get($option, 'type');
+
+        return in_array($value_type, ['datetime']);
+    }
+
+    
+    /**
      * get view filter type
      */
     public function getViewFilterType()

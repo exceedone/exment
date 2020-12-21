@@ -44,4 +44,14 @@ class Datetime extends Date
     {
         return [DatabaseDataType::TYPE_DATETIME, true, []];
     }
+
+    /**
+     * whether column is datetime
+     *
+     */
+    public function isDateTime()
+    {
+        return true;
+    }
+
 }

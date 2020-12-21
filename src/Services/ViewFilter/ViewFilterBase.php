@@ -10,18 +10,51 @@ abstract class ViewFilterBase
     const classNames = [
         Items\Eq::class,
         Items\Ne::class,
-        Items\DayNotNull::class,
-        Items\DayNull::class,
         Items\Like::class,
         Items\NotLike::class,
-        Items\NotNull::class,
-        Items\NullClass::class,
-        Items\UserNotNull::class,
-        Items\UserNull::class,
-        Items\NumberGt::class,
-        Items\NumberLt::class,
-        Items\NumberGte::class,
-        Items\NumberLte::class,
+
+        Items\Null\NullClass::class,
+        Items\Null\DayNull::class,
+        Items\Null\UserNull::class,
+
+        Items\NotNull\NotNull::class,
+        Items\NotNull\DayNotNull::class,
+        Items\NotNull\UserNotNull::class,
+
+        Items\Number\NumberGt::class,
+        Items\Number\NumberLt::class,
+        Items\Number\NumberGte::class,
+        Items\Number\NumberLte::class,
+
+        Items\DayOn\DayOn::class,
+        Items\DayOn\DayToday::class,
+        Items\DayOn\DayTomorrow::class,
+        Items\DayOn\DayYesterday::class,
+
+        Items\DayMonth\DayThisMonth::class,
+        Items\DayMonth\DayLastMonth::class,
+        Items\DayMonth\DayNextMonth::class,
+
+        Items\DayYear\DayThisYear::class,
+        Items\DayYear\DayLastYear::class,
+        Items\DayYear\DayNextYear::class,
+        
+        Items\DayBeforeAfter\DayLastXDayOrAfter::class,
+        Items\DayBeforeAfter\DayLastXDayOrBefore::class,
+        Items\DayBeforeAfter\DayNextXDayOrAfter::class,
+        Items\DayBeforeAfter\DayNextXDayOrBefore::class,
+        Items\DayBeforeAfter\DayOnOrAfter::class,
+        Items\DayBeforeAfter\DayOnOrBefore::class,
+        Items\DayBeforeAfter\DayTodayOrAfter::class,
+        Items\DayBeforeAfter\DayTodayOrBefore::class,
+
+        Items\Exists\SelectExists::class,
+        Items\Exists\SelectNotExists::class,
+        Items\Exists\UserEq::class,
+        Items\Exists\UserNe::class,
+        
+        Items\UserEqUser\UserEqUser::class,
+        Items\UserEqUser\UserNeUser::class,
     ];
 
 

@@ -284,6 +284,15 @@ trait ItemTrait
     }
 
     /**
+     * whether column is datetime
+     *
+     */
+    public function isDateTime()
+    {
+        return false;
+    }
+
+    /**
      * whether column is Numeric
      *
      */
