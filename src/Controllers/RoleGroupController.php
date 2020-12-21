@@ -321,9 +321,11 @@ class RoleGroupController extends AdminControllerBase
         }
         
         $form->submitRedirect([
+            'key' => 'form_type_2',
             'value' => 'form_type_2',
             'label' => exmtrans('common.redirect_to', exmtrans('role_group.user_organization_setting')),
         ])->submitRedirect([
+            'key' => 'continue_editing',
             'value' => 1,
             'label' => trans('admin.continue_editing'),
         ]);
@@ -375,9 +377,11 @@ class RoleGroupController extends AdminControllerBase
             ;
         }
         $form->submitRedirect([
+            'key' => 'form_type_1',
             'value' => 'form_type_1',
             'label' => exmtrans('common.redirect_to', exmtrans('role_group.permission_setting')),
         ])->submitRedirect([
+            'key' => 'continue_editing',
             'value' => 1,
             'label' => trans('admin.continue_editing'),
         ]);

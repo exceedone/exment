@@ -167,7 +167,7 @@ class ApiSettingController extends AdminControllerBase
         
         // validation
         $form = $this->form($id);
-        if(($response = $form->validateRedirect($request->all())) instanceof \Illuminate\Http\RedirectResponse){
+        if (($response = $form->validateRedirect($request->all())) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
         }
 

@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomFormBlock;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ValidateCalledType;
 use Exceedone\Exment\Enums\RelationType;
@@ -415,9 +416,32 @@ EOT;
 
     protected function manageFormToolButton($form, $custom_table, $custom_form)
     {
-        $form->disableEditingCheck(false);
-        $form->disableCreatingCheck(false);
-        $form->disableViewCheck(false);
+        $checkboxes = collect([
+            [
+                'key' => 'continue_editing',
+                'value' => 1,
+            ],
+            [
+                'key' => 'continue_creating',
+                'value' => 2,
+            ],
+            [
+                'key' => 'view',
+                'value' => 3,
+            ],
+            [
+                'key' => 'list',
+                'value' => 4,
+                'redirect' => admin_urls('data', $this->custom_table->table_name),
+            ],
+        ])->map(function ($checkbox) {
+            return array_merge([
+                'label' => trans('admin.' . $checkbox['key']),
+                'default' => isMatchString(System::data_submit_redirect(), $checkbox['value']),
+            ], $checkbox);
+        })->each(function ($checkbox) use ($form) {
+            $form->submitRedirect($checkbox);
+        });
 
         $id = $this->id;
         $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\CustomValueAutoShare;
 use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
@@ -171,6 +172,10 @@ class SystemController extends AdminControllerBase
                 })->toArray();
             })
             ->help(exmtrans("system.help.grid_filter_disable_flg"));
+
+        $form->select('data_submit_redirect', exmtrans("system.data_submit_redirect"))
+            ->options(Enums\DataSubmitRedirect::transKeyArray("admin", false))
+            ->help(exmtrans("system.help.data_submit_redirect"));
 
         $form->display('max_file_size', exmtrans("common.max_file_size"))
         ->default(Define::FILE_OPTION()['maxFileSizeHuman'])

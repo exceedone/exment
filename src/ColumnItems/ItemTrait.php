@@ -173,7 +173,8 @@ trait ItemTrait
     /**
      * get sort name
      */
-    public function getSortName(){
+    public function getSortName()
+    {
         return $this->name();
     }
 

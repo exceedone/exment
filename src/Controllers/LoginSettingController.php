@@ -613,7 +613,7 @@ class LoginSettingController extends AdminControllerBase
 
         // validation
         $form = $this->get2factorSettingForm();
-        if(($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse){
+        if (($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
         }
 
