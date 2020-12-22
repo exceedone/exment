@@ -99,8 +99,8 @@ class DatabaseForm
         InstallService::setInputParams($inputs);
         InstallService::setInitializeStatus(InitializeStatus::DATABASE);
 
-        \Artisan::call('cache:clear');
-        \Artisan::call('config:clear');
+        // \Artisan::call('cache:clear');
+        // \Artisan::call('config:clear');
 
         return redirect(admin_url('install'));
     }

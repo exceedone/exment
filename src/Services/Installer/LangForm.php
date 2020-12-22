@@ -53,9 +53,6 @@ class LangForm
         InstallService::setInputParams($inputs);
         InstallService::setInitializeStatus(InitializeStatus::LANG);
 
-        \Artisan::call('cache:clear');
-        \Artisan::call('config:clear');
-
         return redirect(admin_url('install'));
     }
 }

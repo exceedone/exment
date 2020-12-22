@@ -51,9 +51,9 @@ class InstallService
             return InitializeStatus::LANG;
         }
 
-        if (!\ExmentDB::canConnection()) {
-            return InitializeStatus::DATABASE;
-        }
+        // if (!\ExmentDB::canConnection()) {
+        //     return InitializeStatus::DATABASE;
+        // }
 
         if ($status == InitializeStatus::LANG) {
             return InitializeStatus::DATABASE;
@@ -179,7 +179,12 @@ class InstallService
             date_default_timezone_set($env);
         }
         
-        // set db setting
+        ////// set db setting
+        // set database.default
+        $val = array_get($inputs, 'DB_CONNECTION');
+        if(!is_nullorempty($val)){
+            \Config::set("database.default", $val);
+        }
         $database_default = config('database.default', 'mysql');
         $config_keyname = "database.connections.$database_default";
         $database_connection = config($config_keyname);
