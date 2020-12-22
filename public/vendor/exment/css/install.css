@@ -3423,6 +3423,10 @@
   max-width: 300px;
 }
 
+.login-box {
+  width: 500px;
+}
+
 .login-box-wide {
   width: 900px;
   max-width: 90%;
@@ -3443,6 +3447,9 @@
 }
 
 @media (max-width: 768px) {
+  .login-box {
+    width: 90%;
+  }
   .login-box-wide {
     width: 90%;
     margin-top: 20px;

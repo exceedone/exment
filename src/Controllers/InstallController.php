@@ -20,6 +20,19 @@ class InstallController extends Controller
     }
 
     /**
+     * reset interface.
+     *
+     * @return Content
+     */
+    public function reset(Request $request)
+    {
+        InstallService::forgetInitializeStatus();
+        InstallService::forgetInputParams();
+
+        return redirect(admin_urls('install'));
+    }
+
+    /**
      * submit
      * @param Request $request
      */

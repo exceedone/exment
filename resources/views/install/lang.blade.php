@@ -41,7 +41,7 @@
                 <!-- /.col -->
                 <div class="col-xs-12 col-sm-8 col-sm-offset-2">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-primary btn-block btn-flat btn-install-next">{{ trans('admin.save') }}</button>
+                    <button type="submit" class="btn btn-primary btn-block btn-flat btn-install-next">{{ trans('admin.next') }}</button>
                 </div>
                 <!-- /.col -->
             </div>

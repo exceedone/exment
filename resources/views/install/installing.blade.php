@@ -13,10 +13,16 @@
             <div class="row">
                 <!-- /.col -->
                 <p class="col-xs-12 col-sm-10 col-sm-offset-1">{{ exmtrans('install.help.installing') }}</p>
-
-                <div class="col-xs-12 col-sm-8 col-sm-offset-2">
+            </div>
+            
+            <div class="row">
+                <div class="col-xs-12 col-sm-4">
+                    <a href="{{admin_urls('install', 'reset')}}" class="btn btn-default btn-block btn-flat">{{trans('admin.reset')}}</a>
+                </div>
+                
+                <div class="col-xs-12 col-sm-8">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-primary btn-block btn-flat btn-install-next">{{ exmtrans('install.installing.installing') }}</button>
+                    <button type="submit" class="btn btn-primary btn-block btn-flat">{{ exmtrans('install.installing.installing') }}</button>
                 </div>
                 <!-- /.col -->
             </div>

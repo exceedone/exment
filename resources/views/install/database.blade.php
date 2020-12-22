@@ -73,9 +73,13 @@
 
             <div class="row">
                 <!-- /.col -->
-                <div class="col-xs-12 col-sm-6">
+                <div class="col-xs-12 col-sm-4">
+                    <a href="{{admin_urls('install', 'reset')}}" class="btn btn-default btn-block btn-flat">{{trans('admin.reset')}}</a>
+                </div>
+                
+                <div class="col-xs-12 col-sm-8">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-primary btn-block btn-flat btn-install-next">{{ trans('admin.save') }}</button>
+                    <button type="submit" class="btn btn-primary btn-block btn-flat">{{ trans('admin.next') }}</button>
                 </div>
                 <!-- /.col -->
             </div>

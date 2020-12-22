@@ -15,18 +15,22 @@
     
     <div class="container-fluid">
         <div class="row" style="margin-top:2em;">
-            <div class="col-xs-6">
+            <div class="col-xs-3">
+                <a href="{{admin_urls('install', 'reset')}}" class="btn btn-default btn-block btn-flat">{{trans('admin.reset')}}</a>
+            </div>
+            
+            <div class="col-xs-3">
                 <form action="{{ admin_url('install') }}" method="post">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="refresh" value="1">
-                <button type="submit" class="btn btn-default btn-block btn-flat btn-install-next">{{ trans('admin.refresh') }}</button>
+                <button type="submit" class="btn btn-default btn-block btn-flat">{{ trans('admin.refresh') }}</button>
                 </form>
             </div>
             <div class="col-xs-6">
                 <form action="{{ admin_url('install') }}" method="post" id="form_next" class="check_has_warning">
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 <input type="hidden" id="has_warning" value="{{$checkResult->hasResultWarning()}}">
-                <button type="submit" class="btn btn-primary btn-block btn-flat btn-install-next" {{$checkResult->hasResultNg() ? 'disabled' : ''}}>
+                <button type="submit" class="btn btn-primary btn-block btn-flat" {{$checkResult->hasResultNg() ? 'disabled' : ''}}>
                     {{ trans('admin.next') }}
                 </button>
                 </form>
