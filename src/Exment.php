@@ -603,14 +603,33 @@ class Exment
      */
     public function getUploadMaxFileSize()
     {
-        $post_max_size = (int)(str_replace('M', '', ini_get('post_max_size')));
-        $upload_max_filesize = (int)(str_replace('M', '', ini_get('upload_max_filesize')));
+        // get mega size
+        $post_max_size = $this->getFileMegaSizeValue(ini_get('post_max_size'));
+        $upload_max_filesize = $this->getFileMegaSizeValue(ini_get('upload_max_filesize'));
 
         // return min size post_max_size or upload_max_filesize
         $minsize = collect([$post_max_size, $upload_max_filesize])->min();
 
         // return byte size
         return $minsize * 1024 * 1024;
+    }
+
+
+    /**
+     * Get file size
+     *
+     * @param string $val
+     * @return int
+     */
+    public function getFileMegaSizeValue($val)
+    {
+        $val = strtolower(strval($val));
+        $val = str_replace('m', '', $val);
+
+        if(strpos($val, 'g') !== false){
+            $val = str_replace('g', '', $val) * 1024;
+        }
+        return intval($val);
     }
     
 

@@ -7,8 +7,8 @@ class MemorySize extends SystemRequireBase
 {
     public function __construct()
     {
-        $this->result = str_replace('M', '', ini_get('memory_limit'));
-        $this->result = str_replace('m', '', $this->result);
+        $memory_limit = \Exment::getFileMegaSizeValue(ini_get('memory_limit'));
+        $this->result = $memory_limit;
     }
 
     public function getLabel() : string
