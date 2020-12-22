@@ -63,14 +63,6 @@ abstract class ViewFilterBase
      */
     protected $or_option = false;
 
-    
-    /**
-     * Whether this query sets as Raw (ex. WhereRaw)
-     *
-     * @var boolean
-     */
-    protected $queryAsRaw = false;
-
     public function __construct($column_item, array $options = [])
     {
         $this->column_item = $column_item;
@@ -100,8 +92,6 @@ abstract class ViewFilterBase
     protected function getQueryWhereName() : string
     {
         $where = $this->or_option ? 'orWhere': 'where';
-
-        $where .= $this->queryAsRaw ? 'Raw': '';
 
         return $where;
     }

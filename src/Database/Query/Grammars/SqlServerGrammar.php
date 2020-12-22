@@ -92,9 +92,9 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
             case DatabaseDataType::TYPE_DATE:
                 return 'date';
             case DatabaseDataType::TYPE_DATETIME:
-                return 'datetime';
+                return 'datetime2(0)';
             case DatabaseDataType::TYPE_TIME:
-                return 'time';
+                return 'time(0)';
         }
         return 'nvarchar';
     }
@@ -127,10 +127,10 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
                 $cast = 'date';
                 break;
             case DatabaseDataType::TYPE_DATETIME:
-                $cast = 'datetime';
+                $cast = 'datetime2(0)';
                 break;
             case DatabaseDataType::TYPE_TIME:
-                $cast = 'time';
+                $cast = 'time(0)';
                 break;
         }
 
@@ -187,6 +187,8 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
                     return "datepart(WEEKDAY, $column)";
                 }
                 return $this->getWeekdayCaseWhenQuery("datepart(WEEKDAY, $column)");
+            case GroupCondition::YMDHIS:
+                return "format(datepart(YEAR, $column), '0000') + '-' + format(datepart(MONTH, $column), '00') + '-' + format(datepart(DAY, $column), '00') + ' ' + format(datepart(HOUR, $column), '00') + ':' + format(datepart(MINUTE, $column), '00') + ':' + format(datepart(SECOND, $column), '00')";
         }
 
         return null;
@@ -215,6 +217,8 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
                 return $carbon->format('d');
             case GroupCondition::W:
                 return $carbon->format('w');
+            case GroupCondition::YMDHIS:
+                return $carbon->format('Y-m-d H:i:s');
         }
 
         return null;

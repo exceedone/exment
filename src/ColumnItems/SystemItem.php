@@ -9,6 +9,7 @@ use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FilterType;
+use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
@@ -105,10 +106,17 @@ class SystemItem implements ItemInterface
         $group_condition = array_get($this->options, 'group_condition');
 
         if (isset($summary_condition)) {
+            $column_name = \Exment::wrapColumn($column_name);
             $raw = "$summary_condition($column_name) AS ".$this->sqlAsName();
         } elseif (isset($group_condition)) {
             $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, false) . " AS ".$this->sqlAsName();
-        } else {
+        }
+        // if sql server and created_at, set datetime cast
+        elseif(\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime'){
+            $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $column_name, true);
+        }
+        else {
+            $column_name = \Exment::wrapColumn($column_name);
             $raw = "$column_name AS ".$this->sqlAsName();
         }
 
@@ -126,8 +134,13 @@ class SystemItem implements ItemInterface
 
         if (isset($group_condition)) {
             $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, true);
-        } else {
-            $raw = $column_name;
+        } 
+        // if sql server and created_at, set datetime cast
+        elseif(\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime'){
+            $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $column_name, true);
+        }
+        else {
+            $raw = \Exment::wrapColumn($column_name);
         }
 
         return \DB::raw($raw);

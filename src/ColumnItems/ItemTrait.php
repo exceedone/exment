@@ -234,12 +234,16 @@ trait ItemTrait
     /**
      * get cast column name as SQL
      */
-    public function getCastColumn($column_name = null)
+    public function getCastColumn($column_name = null, bool $wrap = true)
     {
         $cast = $this->getCastName();
 
         if (is_nullorempty($column_name)) {
             $column_name = $this->indexEnabled() ? $this->index() : $this->sqlname();
+        }
+
+        if($wrap){
+            $column_name = \Exment::wrapColumn($column_name);
         }
         
         if (!isset($cast)) {

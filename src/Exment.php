@@ -594,4 +594,15 @@ class Exment
         }
         set_time_limit($time);
     }
+
+
+    /**
+     * Whether db is sqlserver.
+     *
+     * @return boolean
+     */
+    public function isSqlServer() : bool
+    {
+        return \DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder;
+    }
 }
