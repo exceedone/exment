@@ -83,6 +83,15 @@ interface ItemInterface
      * get view filter type
      */
     public function getViewFilterType();
+    
+    /**
+     * Convert filter value.
+     * Ex. If value is decimal and Column Type is decimal, return floatval.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    public function convertFilterValue($value);
 
     /**
      * get item model

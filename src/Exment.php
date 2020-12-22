@@ -595,7 +595,6 @@ class Exment
         set_time_limit($time);
     }
 
-    
 
     /**
      * get Upload Max File Size. get php.ini config
@@ -612,5 +611,16 @@ class Exment
 
         // return byte size
         return $minsize * 1024 * 1024;
+    }
+    
+
+    /**
+     * Whether db is sqlserver.
+     *
+     * @return boolean
+     */
+    public function isSqlServer() : bool
+    {
+        return \DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder;
     }
 }

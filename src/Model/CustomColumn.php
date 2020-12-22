@@ -356,8 +356,17 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
         // if index_enabled = true, not exists, then create index
         elseif ($index_enabled && !$exists) {
-            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $column_type);
+            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $this);
             System::clearCache();
+        }
+        // checking multiple enabled change
+        else{
+            $original = jsonToArray($this->getOriginal('options'));
+            if(boolval(array_get($original, 'multiple_enabled')) !== boolval(array_get($this, 'options.multiple_enabled'))){
+                \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+                \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $this);
+                System::clearCache();
+            }
         }
     }
     

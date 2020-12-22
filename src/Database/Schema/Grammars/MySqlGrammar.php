@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Database\Schema\Grammars;
 
 use Illuminate\Database\Schema\Grammars\MySqlGrammar as BaseGrammar;
+use Exceedone\Exment\Model\CustomColumn;
 
 class MySqlGrammar extends BaseGrammar implements GrammarInterface
 {
@@ -56,7 +57,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
         return "create table if not exists {$this->wrapTable($tableName)} like custom_relation_values";
     }
     
-    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type)
+    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
         // ALTER TABLE
         $as_value = "json_unquote(json_extract({$this->wrap('value')},'$.\"{$json_column_name}\"'))";

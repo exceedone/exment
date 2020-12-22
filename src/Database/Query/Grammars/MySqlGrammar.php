@@ -211,6 +211,9 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
                     return "date_format($column, '%w')";
                 }
                 return $this->getWeekdayCaseWhenQuery("date_format($column, '%w')");
+            case GroupCondition::YMDHIS:
+                // not use
+                return null;
         }
 
         return null;
@@ -239,6 +242,8 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
                 return $carbon->format('d');
             case GroupCondition::W:
                 return $carbon->format('w');
+            case GroupCondition::YMDHIS:
+                return $carbon->format('Y-m-d H:i:s');
         }
 
         return null;

@@ -29,24 +29,26 @@ class ImportExportTest extends TestCase
 
     protected function init(bool $export, $target_name = null)
     {
-        $this->initAllTest();
-        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        if ($export) {
-            $this->dirpath = storage_path(path_join_os('app', 'export', 'unittest'));
-            if (\File::exists($this->dirpath)) {
-                \File::deleteDirectory($this->dirpath);
+        try{
+            $this->initAllTest();
+            $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+            if ($export) {
+                $this->dirpath = storage_path(path_join_os('app', 'export', 'unittest'));
+                if (\File::exists($this->dirpath)) {
+                    \File::deleteDirectory($this->dirpath);
+                }
+                \File::makeDirectory($this->dirpath, 0755, true);
+            } else {
+                $import_path = storage_path(path_join_os('app', 'import', 'unittest'));
+                if (\File::exists($import_path)) {
+                    \File::deleteDirectory($import_path);
+                }
+                \File::makeDirectory($import_path, 0755, true);
+                $source_path = exment_package_path("tests/tmpfile/Feature/$target_name");
+                \File::copyDirectory($source_path, $import_path);
+                $this->dirpath = 'unittest';
             }
-            \File::makeDirectory($this->dirpath, 0755, true);
-        } else {
-            $import_path = storage_path(path_join_os('app', 'import', 'unittest'));
-            if (\File::exists($import_path)) {
-                \File::deleteDirectory($import_path);
-            }
-            \File::makeDirectory($import_path, 0755, true);
-            $source_path = exment_package_path("tests/tmpfile/Feature/$target_name");
-            \File::copyDirectory($source_path, $import_path);
-            $this->dirpath = 'unittest';
-        }
+        }catch(\Exception $ex){}
     }
 
     public function testExportCsv()
@@ -266,7 +268,7 @@ class ImportExportTest extends TestCase
             $custom_view->filterModel($model);
             $pager_count = $custom_view->pager_count;
         } else {
-            $model = $custom_table->getValueModel();
+            $model = $custom_table->getValueModel()->query()->orderby('id');
         }
 
         if ($chunk_no > 0) {
