@@ -76,6 +76,6 @@ class Composer extends SystemRequireBase
 
     public function getSettingUrl() : ?string
     {
-        return \Exment::getManualUrl('quickstart');
+        return \Exment::getManualUrl('server');
     }
 }
