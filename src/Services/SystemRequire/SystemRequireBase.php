@@ -30,6 +30,11 @@ abstract class SystemRequireBase
     }
 
 
+    public function getResult(){
+        return $this->result;
+    }
+
+
     /**
      * Get message text
      *
