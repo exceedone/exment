@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Services\ViewFilter\Items\DayOn;
 use Exceedone\Exment\Services\ViewFilter;
 use Exceedone\Exment\Enums\FilterOption;
 
-class DayOn extends ViewFilter\DayOnBase
+class DayOn extends DayOnBase
 {
     public static function getFilterOption()
     {

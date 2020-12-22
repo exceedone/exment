@@ -125,4 +125,6 @@ abstract class ViewFilterBase
 
         return null;
     }
+
+    abstract protected function _setFilter($query, $method_name, $query_column, $query_value);
 }

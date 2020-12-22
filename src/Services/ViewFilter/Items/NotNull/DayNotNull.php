@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Services\ViewFilter\Items\NotNull;
 use Exceedone\Exment\Services\ViewFilter;
 use Exceedone\Exment\Enums\FilterOption;
 
-class DayNotNull extends ViewFilter\NotNullBase
+class DayNotNull extends NotNullBase
 {
     public static function getFilterOption()
     {

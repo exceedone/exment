@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Services\ViewFilter\Items\DayYear;
 use Exceedone\Exment\Services\ViewFilter;
 use Exceedone\Exment\Enums\FilterOption;
 
-class DayThisYear extends ViewFilter\DayYearBase
+class DayThisYear extends DayYearBase
 {
     public static function getFilterOption()
     {

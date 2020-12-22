@@ -5,7 +5,7 @@ use Exceedone\Exment\Services\ViewFilter;
 use Exceedone\Exment\Enums\FilterOption;
 use Carbon\Carbon;
 
-class DayLastXDayOrBefore extends ViewFilter\DayBeforeAfterBase
+class DayLastXDayOrBefore extends DayBeforeAfterBase
 {
     public static function getFilterOption()
     {

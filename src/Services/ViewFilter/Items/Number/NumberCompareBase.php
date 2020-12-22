@@ -1,5 +1,7 @@
 <?php
-namespace Exceedone\Exment\Services\ViewFilter;
+namespace Exceedone\Exment\Services\ViewFilter\Items\Number;
+
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 abstract class NumberCompareBase extends ViewFilterBase
 {

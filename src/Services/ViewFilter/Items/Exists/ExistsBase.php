@@ -1,5 +1,7 @@
 <?php
-namespace Exceedone\Exment\Services\ViewFilter;
+namespace Exceedone\Exment\Services\ViewFilter\Items\Exists;
+
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 abstract class ExistsBase extends ViewFilterBase
 {

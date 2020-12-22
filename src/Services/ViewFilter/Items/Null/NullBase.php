@@ -1,5 +1,7 @@
 <?php
-namespace Exceedone\Exment\Services\ViewFilter;
+namespace Exceedone\Exment\Services\ViewFilter\Items\Null;
+
+use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 abstract class NullBase extends ViewFilterBase
 {

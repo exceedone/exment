@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Services\ViewFilter\Items\Exists;
 use Exceedone\Exment\Services\ViewFilter;
 use Exceedone\Exment\Enums\FilterOption;
 
-class UserEq extends ViewFilter\ExistsBase
+class UserEq extends ExistsBase
 {
     public static function getFilterOption()
     {

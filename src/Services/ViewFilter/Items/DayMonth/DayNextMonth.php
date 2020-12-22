@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Services\ViewFilter\Items\DayMonth;
 use Exceedone\Exment\Services\ViewFilter;
 use Exceedone\Exment\Enums\FilterOption;
 
-class DayNextMonth extends ViewFilter\DayMonthBase
+class DayNextMonth extends DayMonthBase
 {
     public static function getFilterOption()
     {
