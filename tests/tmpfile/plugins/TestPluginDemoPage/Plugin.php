@@ -21,6 +21,6 @@ class Plugin extends PluginPageBase
 
     public function index()
     {
-        return view('exment_plugin_demo_page::welcome');
+        return view('exment_test_plugin_demo_page::welcome');
     }
 }

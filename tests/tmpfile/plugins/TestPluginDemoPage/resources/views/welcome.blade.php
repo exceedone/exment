@@ -91,7 +91,7 @@
                 </div>
             </div>
         </div>
-                <img src="{{asset('plugins/plugin_demo_page/public/images/sea.jpg')}}">
+            <img src="{{asset('admin/plugins/test_plugin_demo_page/public/images/sea.jpg')}}">
 
     </body>
 </html>
