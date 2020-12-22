@@ -1,11 +1,11 @@
 {
-    "plugin_name": "TestPluginDemoNotify",
-    "uuid": "7e7500f3-87e0-d92f-8814-e13d272a60ce",
-    "plugin_view_name": "Plugin Notify",
+    "plugin_name": "TestPluginEventWorkflow",
+    "uuid": "759479a9-a610-51a7-dc40-73074b480d42",
+    "plugin_view_name": "Plugin Workflow",
     "description": "プラグインをアップロードするテストです。",
     "author": "(Your Name)",
     "version": "1.0.0",
     "plugin_type": "event",
-    "event_triggers": "notify_executed",
+    "event_triggers": "workflow_action_executed",
     "target_tables": "custom_value_edit"
 }

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
+use Encore\Admin\Grid;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 use Exceedone\Exment\Enums\PluginType;
@@ -126,7 +127,7 @@ class PluginTest extends TestCase
         DB::beginTransaction();
 
         try {
-            $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+            $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL);
             $custom_value = $custom_table->getValueModel($id);
 
             $notify = Notify::where('notify_trigger', NotifyTrigger::BUTTON)->first();
@@ -185,7 +186,7 @@ class PluginTest extends TestCase
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
         $custom_value = $custom_table->getValueModel(1);
 
-        $plugin = Plugin::where('plugin_name', 'TestPluginValidatorTest')->first();
+        $plugin = Plugin::where('plugin_name', 'TestPluginValidator')->first();
         $pluginClass = $plugin->getClass(PluginType::VALIDATOR, [
             'custom_table' => $custom_table,
             'custom_value' => $custom_value,
@@ -218,7 +219,7 @@ class PluginTest extends TestCase
             \File::copyDirectory($source_path, $import_path);
             $files = \File::files($import_path);
     
-            $plugin = Plugin::where('plugin_name', 'TestPluginDemoImport')->first();
+            $plugin = Plugin::where('plugin_name', 'TestPluginImport')->first();
 
             $service = (new DataImportExport\DataImportExportService());
             $res = $this->callProtectedMethod($service, 'customImport', $plugin->id, $files[0]);
@@ -238,34 +239,77 @@ class PluginTest extends TestCase
         }
     }
 
-
     /**
-     * test plugin export
+     * test plugin export csv
      *
      * @return void
      */
-    public function testExport()
+    public function testExportCsv()
     {
-        $plugin = Plugin::where('plugin_name', 'TestPluginDemoExport')->first();
+        $plugin = Plugin::where('plugin_name', 'TestPluginExportCsv')->first();
         $pluginClass = $plugin->getClass(PluginType::EXPORT);
 
         $custom_table = CustomTable::getEloquent('information');
         $custom_view = CustomView::getAllData($custom_table);
+        $classname = getModelName($custom_table);
+        $grid = new Grid(new $classname);
 
         $pluginClass->defaultProvider(new DataImportExport\Providers\Export\DefaultTableProvider([
             'custom_table' => $custom_table,
-            'grid' => null
+            'grid' => $grid
         ]));
 
         $pluginClass->viewProvider(new DataImportExport\Providers\Export\SummaryProvider([
             'custom_table' => $custom_table,
             'custom_view' => $custom_view,
-            'grid' => null
+            'grid' => $grid
         ]));
 
         $file = null;
         try {
             $file = $pluginClass->execute();
+            $this->assertTrue(isset($file));
+            $this->assertTrue(\File::exists($file));
+        }
+        // Delete if exception
+        finally {
+            if (isset($file) && is_string($file) && \File::exists($file)) {
+                \File::delete($file);
+            }
+        }
+    }
+
+    /**
+     * test plugin export excel
+     *
+     * @return void
+     */
+    public function testExportExcel()
+    {
+        $plugin = Plugin::where('plugin_name', 'TestPluginExportExcel')->first();
+        $pluginClass = $plugin->getClass(PluginType::EXPORT);
+
+        $custom_table = CustomTable::getEloquent('information');
+        $custom_view = CustomView::getAllData($custom_table);
+        $classname = getModelName($custom_table);
+        $grid = new Grid(new $classname);
+
+        $pluginClass->defaultProvider(new DataImportExport\Providers\Export\DefaultTableProvider([
+            'custom_table' => $custom_table,
+            'grid' => $grid
+        ]));
+
+        $pluginClass->viewProvider(new DataImportExport\Providers\Export\SummaryProvider([
+            'custom_table' => $custom_table,
+            'custom_view' => $custom_view,
+            'grid' => $grid
+        ]));
+
+        $file = null;
+        try {
+            $file = $pluginClass->execute();
+            $this->assertTrue(isset($file));
+            $this->assertTrue(\File::exists($file));
         }
         // Delete if exception
         finally {

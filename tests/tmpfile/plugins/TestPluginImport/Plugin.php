@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugins\TestPluginDemoImport;
+namespace App\Plugins\TestPluginImport;
 
 use Exceedone\Exment\Services\Plugin\PluginImportBase;
 use PhpOffice\PhpSpreadsheet\IOFactory;

@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugins\TestPluginDemoSaved;
+namespace App\Plugins\TestPluginEventSaved;
 
 use Exceedone\Exment\Services\Plugin\PluginEventBase;
 use Exceedone\Exment\Model\CustomTable;

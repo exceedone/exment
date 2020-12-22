@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugins\TestPluginValidatorTest;
+namespace App\Plugins\TestPluginValidator;
 
 use Exceedone\Exment\Services\Plugin\PluginValidatorBase;
 

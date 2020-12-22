@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugins\TestPluginDemoExport;
+namespace App\Plugins\TestPluginExportCsv;
 
 use Exceedone\Exment\Services\Plugin\PluginExportBase;
 

@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugins\TestPluginDemoWorkflow;
+namespace App\Plugins\TestPluginEventWorkflow;
 
 use Exceedone\Exment\Services\Plugin\PluginEventBase;
 
