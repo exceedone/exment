@@ -30,7 +30,8 @@ abstract class SystemRequireBase
     }
 
 
-    public function getResult(){
+    public function getResult()
+    {
         return $this->result;
     }
 

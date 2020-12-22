@@ -112,10 +112,9 @@ class SystemItem implements ItemInterface
             $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, false) . " AS ".$this->sqlAsName();
         }
         // if sql server and created_at, set datetime cast
-        elseif(\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime'){
+        elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
             $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $column_name, true);
-        }
-        else {
+        } else {
             $column_name = \Exment::wrapColumn($column_name);
             $raw = "$column_name AS ".$this->sqlAsName();
         }
@@ -134,12 +133,11 @@ class SystemItem implements ItemInterface
 
         if (isset($group_condition)) {
             $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, true);
-        } 
-        // if sql server and created_at, set datetime cast
-        elseif(\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime'){
-            $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $column_name, true);
         }
-        else {
+        // if sql server and created_at, set datetime cast
+        elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
+            $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $column_name, true);
+        } else {
             $raw = \Exment::wrapColumn($column_name);
         }
 

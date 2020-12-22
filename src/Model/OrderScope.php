@@ -20,7 +20,7 @@ class OrderScope implements Scope
 
     public function apply(Builder $builder, Model $model)
     {
-        if(!$this->hasOrderById($builder, $this->column)){
+        if (!$this->hasOrderById($builder, $this->column)) {
             $builder->orderBy($this->column, $this->direction);
         }
 

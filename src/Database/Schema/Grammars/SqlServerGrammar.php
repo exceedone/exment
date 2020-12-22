@@ -76,10 +76,9 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
         // ALTER TABLE
-        if(boolval($custom_column->getOption('multiple_enabled'))){
+        if (boolval($custom_column->getOption('multiple_enabled'))) {
             $as_value = "JSON_QUERY(\"value\",'$.$json_column_name')";
-        }
-        else{
+        } else {
             $as_value = "JSON_VALUE(\"value\",'$.$json_column_name')";
         }
 

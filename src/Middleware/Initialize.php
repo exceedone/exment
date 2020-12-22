@@ -75,7 +75,7 @@ class Initialize
     protected function isInstallPath(Request $request)
     {
         // Check install directory
-        return collect(['install', 'install/reset'])->contains(function($path) use($request){
+        return collect(['install', 'install/reset'])->contains(function ($path) use ($request) {
             $path = trim(admin_base_path($path), '/');
             return $request->is($path);
         });

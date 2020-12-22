@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\ViewFilter\Items\DayOn;
 
-use Exceedone\Exment\Services\ViewFilter;
 use Exceedone\Exment\Enums\FilterOption;
 
 class DayToday extends DayOnBase

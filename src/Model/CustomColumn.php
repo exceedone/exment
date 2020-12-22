@@ -360,9 +360,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             System::clearCache();
         }
         // checking multiple enabled change
-        else{
+        else {
             $original = jsonToArray($this->getOriginal('options'));
-            if(boolval(array_get($original, 'multiple_enabled')) !== boolval(array_get($this, 'options.multiple_enabled'))){
+            if (boolval(array_get($original, 'multiple_enabled')) !== boolval(array_get($this, 'options.multiple_enabled'))) {
                 \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
                 \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $this);
                 System::clearCache();

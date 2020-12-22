@@ -14,8 +14,8 @@ class BackupRestore extends SystemRequireBase
     {
         // check backup execute
         try {
-            $this->backup = new Backup;
-            $this->backup->check();
+            $backup = new Backup;
+            $backup->check();
             $this->result = SystemRequireResult::OK;
         } catch (BackupRestoreNotSupportedException $ex) {
             $this->result = SystemRequireResult::WARNING;

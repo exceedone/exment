@@ -15,7 +15,7 @@ class Composer extends SystemRequireBase
             //$command = 'composer --version';
             $command = \Exment::isWindows() ? 'where composer' : 'which composer';
             
-            foreach(['', '.phar'] as $suffix){
+            foreach (['', '.phar'] as $suffix) {
                 exec($command . $suffix, $output, $return_var);
                 if ($return_var == 0) {
                     $this->result = SystemRequireResult::OK;

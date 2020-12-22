@@ -1607,7 +1607,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
         }
 
-        $finds = collect($finds)->filter(function($find){
+        $finds = collect($finds)->filter(function ($find) {
             return is_numeric($find);
         })->toArray();
 

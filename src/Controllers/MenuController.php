@@ -168,7 +168,7 @@ class MenuController extends AdminControllerBase
                 // get menu type
                 $menu_type = $contoller->getMenuTypeValue($field, $menu);
 
-                if(!isset($menu_type)){
+                if (!isset($menu_type)) {
                     return [];
                 }
 
@@ -184,7 +184,7 @@ class MenuController extends AdminControllerBase
             ])])
             ->options(function ($value, $field) use ($menu, $contoller) {
                 $menu_type = $contoller->getMenuTypeValue($field, $menu);
-                if($menu_type != MenuType::TABLE){
+                if ($menu_type != MenuType::TABLE) {
                     return [];
                 }
 
@@ -281,7 +281,7 @@ class MenuController extends AdminControllerBase
     protected function getViewList($custom_table, $isApi)
     {
         $custom_table = CustomTable::getEloquent($custom_table);
-        if(!$custom_table){
+        if (!$custom_table) {
             return [];
         }
 
@@ -431,13 +431,14 @@ class MenuController extends AdminControllerBase
     }
 
 
-    protected function getMenuTypeValue($field, $menu = null){
+    protected function getMenuTypeValue($field, $menu = null)
+    {
         // get menu type
         $menu_type = null;
-        if($field){
+        if ($field) {
             $menu_type = array_get($field->data(), 'menu_type');
         }
-        if(!$menu_type && request()->has('menu_type')){
+        if (!$menu_type && request()->has('menu_type')) {
             $menu_type = request()->get('menu_type');
         }
         if (!$menu_type && isset($menu)) {

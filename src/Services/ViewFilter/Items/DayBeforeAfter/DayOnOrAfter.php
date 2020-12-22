@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\ViewFilter\Items\DayBeforeAfter;
 
-use Exceedone\Exment\Services\ViewFilter;
 use Exceedone\Exment\Enums\FilterOption;
 use Carbon\Carbon;
 

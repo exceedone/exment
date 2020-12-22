@@ -242,7 +242,7 @@ trait ItemTrait
             $column_name = $this->indexEnabled() ? $this->index() : $this->sqlname();
         }
 
-        if($wrap){
+        if ($wrap) {
             $column_name = \Exment::wrapColumn($column_name);
         }
         
