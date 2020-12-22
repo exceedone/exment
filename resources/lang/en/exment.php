@@ -6,6 +6,7 @@ return [
         'home' => 'HOME',
         'success' => 'Success',
         'error' => 'Error',
+        'warning' => 'Warning',
         'import' => 'Import',
         'plugin' => 'Plugin',
         'copy' => 'Copy',
@@ -15,6 +16,7 @@ return [
         'default' => 'Default',
         'basic_setting' => 'Basic Setting',
         'detail_setting' => 'Detail Setting',
+        'result' => 'Result',
         'execute_result' => 'Execute Result',
         'no_setting' => 'No Setting',
         'input' => 'Input',
@@ -75,6 +77,7 @@ return [
         'download' => 'Download',
         'append_to_selectitem' => 'Append',
         'redirect_to' => 'Move to %s',
+        'second' => 'second',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
@@ -163,6 +166,10 @@ return [
             'database' => 'Database',
             'username' => 'User Name',
             'password' => 'Password',
+        ],
+
+        'system_require' => [
+            'header' => 'Check System Requirements',
         ],
 
         'installing' => [
@@ -399,6 +406,45 @@ return [
             'filter_multi_orguser' => 'Set the range where the logged-in user can view other users/organizations. * Set this when you do not want to display other user information such as portal sites that are used across multiple companies.',
             'custom_value_save_autoshare' => 'Set the automatic sharing method when users create new custom data. The default is only the logged-in user, and it can be shared with your organization depending on the setting.',
             'ip_filter' => 'Set the IP address to allow communication. Fixed IP (example: 12.3.5.6) and range specification format (example: 123.4.5.0/24) can be used. If it is not set, all IP addresses are allowed. <br /> If you want to set more than one, please separate them with line breaks.',
+        ],
+    ],
+
+    'system_require' => [
+        'explain' => 'Check the server settings required to run Exment.',
+        'item_header' => '■:label ： :text ： :result',
+        'check_setting' => 'Check the setting method',
+        'warning_confirm' => 'Some items are warning. Are you sure you want to install?',
+
+        'type' => [
+            'memory' => [
+                'label' => 'Memory usage limit',
+                'explain' => 'The upper limit of memory usage allocated to run PHP.(Recommended value: 512MB or more)',
+                'warning' => 'The memory usage limit is below the recommended size. We recommend changing the upper limit setting.',
+            ],
+            'file_upload_size' => [
+                'label' => 'File upload size limit',
+                'explain' => 'The maximum file size for uploading files. The size you need depends on the requirements of the files you want to manage.(Recommended value: 5MB or more)',
+                'warning' => 'The file upload size limit is below the recommended size. We recommend changing the upper limit setting.',
+            ],
+            'backup_restore' => [
+                'label' => 'Backup/Restore',
+                'explain' => 'Confirm that the server settings for executing backup / restore are complete.',
+                'ng' => 'The settings required for Exment backup / restore have not been made. Please check the settings.',
+            ],
+            'timeout_time' => [
+                'label' => 'Timeout time',
+                'explain' => 'The number of seconds before the process waits and the time expires. If this time is short, it may exceed this time for time-consuming processes such as backup and import.(推奨値:180秒以上)',
+                'warning' => 'The timeout time is below the recommended setting. Time-consuming processes such as backup and import may time out in the middle.',
+            ],
+            'file_permission' => [
+                'label' => 'File permissions',
+                'explain' => 'Check the file permissions required to run Exment.',
+                'text_notwritable' => 'Insufficient write permission',
+                'ng' => 'Insufficient write permission for the specified path. Please check the procedure and add the permission.',
+            ],
+            'file_permission_installer' => [
+                'explain' => 'Check the file permissions required to install and run Exment.',
+            ],
         ],
     ],
 

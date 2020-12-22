@@ -26,11 +26,13 @@ class BackupRestore extends SystemRequireBase
         }
     }
 
-    public function getLabel() : string{
+    public function getLabel() : string
+    {
         return exmtrans('system_require.type.backup_restore.label');
     }
 
-    public function getExplain() : string{
+    public function getExplain() : string
+    {
         return exmtrans('system_require.type.backup_restore.explain');
     }
 
@@ -41,7 +43,7 @@ class BackupRestore extends SystemRequireBase
      */
     public function getResultText() : ?string
     {
-        switch($this->result){
+        switch ($this->result) {
             case SystemRequireResult::OK:
                 return exmtrans('common.success');
                 
@@ -54,7 +56,7 @@ class BackupRestore extends SystemRequireBase
     }
 
     /**
-     * 
+     *
      *
      * @return string
      */

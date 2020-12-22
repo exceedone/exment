@@ -13,14 +13,14 @@ class SystemRequireForm
     use EnvTrait;
 
     public function index()
-    {        
+    {
         $checkResult = SystemRequireList::make(SystemRequireCalledType::INSTALL_WEB);
         return view('exment::install.system_require', ['checkResult' => $checkResult, 'login_box_classname' => 'login-box-wide']);
     }
 
     public function post()
     {
-        if(boolval(request()->get('refresh'))){
+        if (boolval(request()->get('refresh'))) {
             return redirect(admin_url('install'));
         }
 
@@ -37,6 +37,5 @@ class SystemRequireForm
         InstallService::setInitializeStatus(InitializeStatus::SYSTEM_REQUIRE);
 
         return redirect(admin_url('install'));
-
     }
 }

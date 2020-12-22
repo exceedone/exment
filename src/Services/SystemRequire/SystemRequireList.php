@@ -37,8 +37,9 @@ class SystemRequireList
     ];
 
 
-    protected static function getRequireClasses(string $systemRequireCalledType){
-        switch($systemRequireCalledType){
+    protected static function getRequireClasses(string $systemRequireCalledType)
+    {
+        switch ($systemRequireCalledType) {
             case SystemRequireCalledType::COMMAND:
                 return static::$requireClassesCommand;
             case SystemRequireCalledType::INSTALL_WEB:
@@ -51,24 +52,28 @@ class SystemRequireList
     }
     
 
-    public function setItem($item){
+    public function setItem($item)
+    {
         $this->items[] = $item;
         return $this;
     }
 
 
-    public function getItems(){
+    public function getItems()
+    {
         return $this->items;
     }
 
 
-    public function hasResultWarning() : bool{
-        return collect($this->items)->contains(function($item){
+    public function hasResultWarning() : bool
+    {
+        return collect($this->items)->contains(function ($item) {
             return $item->checkResult() == SystemRequireResult::WARNING;
         });
     }
-    public function hasResultNg() : bool{
-        return collect($this->items)->contains(function($item){
+    public function hasResultNg() : bool
+    {
+        return collect($this->items)->contains(function ($item) {
             return $item->checkResult() == SystemRequireResult::NG;
         });
     }
@@ -84,7 +89,7 @@ class SystemRequireList
         $result = new self;
 
         $classes = static::getRequireClasses($systemRequireCalledType);
-        foreach($classes as $className){
+        foreach ($classes as $className) {
             $obj = new $className;
             $obj->systemRequireCalledType($systemRequireCalledType);
 
@@ -93,5 +98,4 @@ class SystemRequireList
 
         return $result;
     }
-
 }

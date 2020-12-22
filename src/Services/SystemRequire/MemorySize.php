@@ -11,11 +11,13 @@ class MemorySize extends SystemRequireBase
         $this->result = str_replace('m', '', $this->result);
     }
 
-    public function getLabel() : string{
+    public function getLabel() : string
+    {
         return exmtrans('system_require.type.memory.label');
     }
 
-    public function getExplain() : string{
+    public function getExplain() : string
+    {
         return exmtrans('system_require.type.memory.explain');
     }
 
@@ -26,20 +28,20 @@ class MemorySize extends SystemRequireBase
      */
     public function getResultText() : ?string
     {
-        if($this->result == -1){
+        if ($this->result == -1) {
             return $this->result . '(Unlimited)';
         }
         return $this->result . 'MB';
     }
 
     /**
-     * 
+     *
      *
      * @return string
      */
     public function checkResult() : string
     {
-        if($this->result >= 512 || $this->result == -1){
+        if ($this->result >= 512 || $this->result == -1) {
             return SystemRequireResult::OK;
         }
         return SystemRequireResult::WARNING;

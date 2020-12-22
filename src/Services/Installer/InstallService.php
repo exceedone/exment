@@ -65,7 +65,7 @@ class InstallService
 
         if (!\ExmentDB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM) || CustomTable::count() == 0) {
             return InitializeStatus::INSTALLING;
-        }    
+        }
 
         if ($status == InitializeStatus::SYSTEM_REQUIRE) {
             return InitializeStatus::INSTALLING;
@@ -143,9 +143,10 @@ class InstallService
 
 
 
-    public static function setInputParams(array $inputs){
+    public static function setInputParams(array $inputs)
+    {
         $session_inputs = session(Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS, []);
-        foreach($inputs as $key => $input){
+        foreach ($inputs as $key => $input) {
             $session_inputs[$key] = $input;
         }
         session([Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS => $session_inputs]);
@@ -182,7 +183,7 @@ class InstallService
         ////// set db setting
         // set database.default
         $val = array_get($inputs, 'DB_CONNECTION');
-        if(!is_nullorempty($val)){
+        if (!is_nullorempty($val)) {
             \Config::set("database.default", $val);
         }
         $database_default = config('database.default', 'mysql');
@@ -190,19 +191,20 @@ class InstallService
         $database_connection = config($config_keyname);
         $hasDbSetting = false;
 
-        foreach(DatabaseForm::settings as $s){
+        foreach (DatabaseForm::settings as $s) {
             $db_input = array_get($inputs, 'DB_' . strtoupper($s));
-            if(\is_nullorempty($db_input)){
+            if (\is_nullorempty($db_input)) {
                 continue;
             }
             \Config::set("{$config_keyname}.{$s}", $db_input);
             $hasDbSetting = true;
         }
 
-        if($hasDbSetting){
-            try{
+        if ($hasDbSetting) {
+            try {
                 \DB::reconnect();
-            }catch(\Exception $ex){}
+            } catch (\Exception $ex) {
+            }
         }
     }
 }

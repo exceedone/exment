@@ -18,5 +18,4 @@ class FilePermissionInstaller extends FilePermission
     {
         return exmtrans('system_require.type.file_permission_installer.explain');
     }
-
 }

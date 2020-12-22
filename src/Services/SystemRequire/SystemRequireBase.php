@@ -23,7 +23,8 @@ abstract class SystemRequireBase
     protected $systemRequireCalledType;
 
 
-    public function systemRequireCalledType(string $systemRequireCalledType){
+    public function systemRequireCalledType(string $systemRequireCalledType)
+    {
         $this->systemRequireCalledType = $systemRequireCalledType;
         return $this;
     }
@@ -37,7 +38,7 @@ abstract class SystemRequireBase
     public function getMessage() : ?string
     {
         $checkResult = $this->checkResult();
-        switch($checkResult){
+        switch ($checkResult) {
             case SystemRequireResult::OK:
                 return $this->getMessageOk();
             case SystemRequireResult::WARNING:
@@ -51,7 +52,7 @@ abstract class SystemRequireBase
 
     public function getResultClassSet() : array
     {
-        switch($this->checkResult()){
+        switch ($this->checkResult()) {
             case SystemRequireResult::OK:
                 return [
                     'fontawesome' => 'fa-check',
@@ -68,7 +69,6 @@ abstract class SystemRequireBase
                     'color' => '#d9534f',
                 ];
         }
-
     }
     
 

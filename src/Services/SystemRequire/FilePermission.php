@@ -14,15 +14,16 @@ class FilePermission extends SystemRequireBase
     {
         $this->result = [];
 
-        foreach($this->checkPaths as $path){
+        foreach ($this->checkPaths as $path) {
             $fullPath = base_path($path);
-            if(!is_writable($fullPath)){
+            if (!is_writable($fullPath)) {
                 $this->result[] = $path;
             }
         }
     }
 
-    public function getLabel() : string{
+    public function getLabel() : string
+    {
         return exmtrans('system_require.type.file_permission.label');
     }
 
@@ -39,20 +40,20 @@ class FilePermission extends SystemRequireBase
      */
     public function getResultText() : ?string
     {
-        if(is_nullorempty($this->result)){
+        if (is_nullorempty($this->result)) {
             return exmtrans('common.success');
         }
         return exmtrans('system_require.type.file_permission.text_notwritable') . ' : ' .  implode(exmtrans('common.separate_word'), $this->result);
     }
 
     /**
-     * 
+     *
      *
      * @return string
      */
     public function checkResult() : string
     {
-        if(is_nullorempty($this->result)){
+        if (is_nullorempty($this->result)) {
             return SystemRequireResult::OK;
         }
         return SystemRequireResult::NG;

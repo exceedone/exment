@@ -45,13 +45,13 @@ class CheckRequireCommand extends Command
     public function handle()
     {
         $checkResult = SystemRequireList::make(SystemRequireCalledType::COMMAND);
-        foreach($checkResult->getItems() as $check){
+        foreach ($checkResult->getItems() as $check) {
             $result = $check->checkResult();
             $funcName = $this->getCommandFuncName($result);
 
             $this->line(exmtrans('system_require.item_header', ['label' => $check->getLabel(), 'text' => $check->getResultText(), 'result' => strtoupper($result)]));
             
-            if(!is_null($message = $check->getMessage())){
+            if (!is_null($message = $check->getMessage())) {
                 $this->{$funcName}($message);
                 $this->{$funcName}($check->getSettingUrl());
             }
@@ -68,7 +68,7 @@ class CheckRequireCommand extends Command
      */
     protected function getCommandFuncName($result) : string
     {
-        switch($result){
+        switch ($result) {
             case SystemRequireResult::OK:
                 return 'line';
             case SystemRequireResult::WARNING:
