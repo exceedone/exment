@@ -13,6 +13,7 @@ class InstallService
 {
     public static function index()
     {
+        static::setSettingTmp();
         $status = static::getStatus();
         
         if (($response = static::redirect($status)) instanceof \Illuminate\Http\RedirectResponse) {
@@ -26,6 +27,7 @@ class InstallService
 
     public static function post()
     {
+        static::setSettingTmp();
         $status = static::getStatus();
 
         if (($response = static::redirect($status)) instanceof \Illuminate\Http\RedirectResponse) {
@@ -39,6 +41,8 @@ class InstallService
 
     public static function getStatus()
     {
+        static::setSettingTmp();
+
         if (\ExmentDB::canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && CustomTable::count() > 0) {
             return InitializeStatus::INITIALIZE;
         }
@@ -59,9 +63,9 @@ class InstallService
             return InitializeStatus::SYSTEM_REQUIRE;
         }
 
-        if (!\Schema::hasTable(SystemTableName::SYSTEM) || CustomTable::count() == 0) {
+        if (!\ExmentDB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM) || CustomTable::count() == 0) {
             return InitializeStatus::INSTALLING;
-        }
+        }    
 
         if ($status == InitializeStatus::SYSTEM_REQUIRE) {
             return InitializeStatus::INSTALLING;
@@ -135,5 +139,65 @@ class InstallService
     public static function forgetInitializeStatus()
     {
         session()->forget(Define::SYSTEM_KEY_SESSION_INITIALIZE);
+    }
+
+
+
+    public static function setInputParams(array $inputs){
+        $session_inputs = session(Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS, []);
+        foreach($inputs as $key => $input){
+            $session_inputs[$key] = $input;
+        }
+        session([Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS => $session_inputs]);
+    }
+
+    public static function getInputParams() : array
+    {
+        return session(Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS, []);
+    }
+    
+    public static function forgetInputParams()
+    {
+        session()->forget(Define::SYSTEM_KEY_SESSION_INITIALIZE_INPUTS);
+    }
+
+
+    /**
+     * input parameters info tmp
+     *
+     * @return void
+     */
+    public static function setSettingTmp()
+    {
+        $inputs = static::getInputParams();
+        //// set from env
+        if (!is_null($env = array_get($inputs, 'APP_LOCALE'))) {
+            \App::setLocale($env);
+        }
+        if (!is_null($env = array_get($inputs, 'APP_TIMEZONE'))) {
+            \Config::set('app.timezone', $env);
+            date_default_timezone_set($env);
+        }
+        
+        // set db setting
+        $database_default = config('database.default', 'mysql');
+        $config_keyname = "database.connections.$database_default";
+        $database_connection = config($config_keyname);
+        $hasDbSetting = false;
+
+        foreach(DatabaseForm::settings as $s){
+            $db_input = array_get($inputs, 'DB_' . strtoupper($s));
+            if(\is_nullorempty($db_input)){
+                continue;
+            }
+            \Config::set("{$config_keyname}.{$s}", $db_input);
+            $hasDbSetting = true;
+        }
+
+        if($hasDbSetting){
+            try{
+                \DB::reconnect();
+            }catch(\Exception $ex){}
+        }
     }
 }

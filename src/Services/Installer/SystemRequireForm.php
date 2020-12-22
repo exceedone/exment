@@ -23,6 +23,17 @@ class SystemRequireForm
         if(boolval(request()->get('refresh'))){
             return redirect(admin_url('install'));
         }
+
+        try {
+            $inputs = InstallService::getInputParams();
+            $this->setEnv($inputs);
+            InstallService::forgetInputParams();
+        } catch (\Exception $ex) {
+            return back()->withInput()->withErrors([
+                'install_error' => exmtrans('install.error.cannot_write_env'),
+            ]);
+        }
+
         InstallService::setInitializeStatus(InitializeStatus::SYSTEM_REQUIRE);
 
         return redirect(admin_url('install'));

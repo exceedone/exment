@@ -14,7 +14,7 @@ class DatabaseForm
 
     protected $database_default = null;
 
-    protected const settings = [
+    public const settings = [
         'connection',
         'host',
         'port',
@@ -88,14 +88,15 @@ class DatabaseForm
         }
 
         
-        try {
-            $this->setEnv($inputs);
-        } catch (\Exception $ex) {
-            return back()->withInput()->withErrors([
-                'database_canconnection' => exmtrans('install.error.cannot_write_env'),
-            ]);
-        }
+        // try {
+        //     $this->setEnv($inputs);
+        // } catch (\Exception $ex) {
+        //     return back()->withInput()->withErrors([
+        //         'database_canconnection' => exmtrans('install.error.cannot_write_env'),
+        //     ]);
+        // }
 
+        InstallService::setInputParams($inputs);
         InstallService::setInitializeStatus(InitializeStatus::DATABASE);
 
         \Artisan::call('cache:clear');

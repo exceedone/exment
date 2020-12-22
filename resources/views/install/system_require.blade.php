@@ -5,6 +5,12 @@
 
     <p class="text-center">{{exmtrans('system_require.explain')}}</p>
 
+    <div class="form-group has-feedback {!! !$errors->has('database_canconnection') ?: 'has-error' !!}">
+        @if($errors->has('install_error')) @foreach($errors->get('install_error') as $message)
+        <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
+        @endforeach @endif
+    </div>
+
     @include('exment::widgets.system-require')
     
     <div class="container-fluid">

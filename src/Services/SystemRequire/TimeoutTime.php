@@ -38,7 +38,7 @@ class TimeoutTime extends SystemRequireBase
      */
     public function checkResult() : string
     {
-        if($this->result >= 300 || $this->result == 0){
+        if($this->result >= 180 || $this->result == 0){
             return SystemRequireResult::OK;
         }
         return SystemRequireResult::WARNING;

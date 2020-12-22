@@ -146,6 +146,7 @@ class Define
     public const CACHE_CLEAR_MINUTE = 60;
     public const SYSTEM_KEY_SESSION_SYSTEM_CONFIG = "setting.%s";
     public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
+    public const SYSTEM_KEY_SESSION_INITIALIZE_INPUTS = "initialize_inputs";
     public const SYSTEM_KEY_SESSION_AUTHORITY = "role";
     public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
     public const SYSTEM_KEY_SESSION_SYSTEM_VERSION = "system_version";
