@@ -60,7 +60,7 @@ class SystemRequireTest extends UnitTestBase
             $result = $resultFunc($value, $exceptValue);
         }
         else{
-            $result = \isMatchString($exceptValue, $value);
+            $result = isMatchString($exceptValue, $value);
             $this->assertTrue($result, "Except value is $value, but value is $exceptValue.");
         }
         
