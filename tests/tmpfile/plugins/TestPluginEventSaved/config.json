@@ -7,5 +7,5 @@
     "version": "1.0.0",
     "plugin_type": "event",
     "event_triggers": "saved",
-    "target_tables": "custom_value_edit_all"
+    "target_tables": "custom_value_view_all"
 }

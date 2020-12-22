@@ -28,6 +28,7 @@ class Plugin extends PluginImportBase{
             'value->index_text' => getCellValue('B4', $sheet, true),
             'value->date' => getCellValue('D4', $sheet, true),
             'value->odd_even' => getCellValue('F4', $sheet, true),
+            'value->init_text' => 'plugin_unit_test',
         ];
         // 親テーブルにレコードを追加します
         $record = getModelName('parent_table')::create($parent);

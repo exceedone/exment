@@ -90,7 +90,7 @@ class PluginTest extends TestCase
      */
     public function testEventWorkflow()
     {
-        $id = 3;
+        $id = 4;
 
         DB::beginTransaction();
 
@@ -122,15 +122,15 @@ class PluginTest extends TestCase
      */
     public function testEventNotify()
     {
-        $id = 3;
+        $id = 5;
 
         DB::beginTransaction();
 
         try {
-            $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL);
+            $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW);
             $custom_value = $custom_table->getValueModel($id);
 
-            $notify = Notify::where('notify_trigger', NotifyTrigger::BUTTON)->first();
+            $notify = Notify::where('custom_table_id', $custom_table->id)->where('notify_trigger', NotifyTrigger::BUTTON)->first();
             $target_user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
             NotifyService::executeNotifyAction($notify, [
@@ -232,7 +232,7 @@ class PluginTest extends TestCase
             $parent = $parent->last();
 
             $child_cnt = getModelName('child_table')::where('parent_type', 'parent_table')
-                ->where('parent_id', $parent->id)->get();
+                ->where('parent_id', $parent->id)->count();
             $this->assertEquals(2, $child_cnt);
         } finally {
             DB::rollback();
