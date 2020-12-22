@@ -85,6 +85,8 @@ abstract class ViewFilterBase
 
         $method_name = $this->getQueryWhereName();
 
+        $query_value = $this->column_item->convertFilterValue($query_value);
+
         $this->_setFilter($query, $method_name, $column, $query_value);
     }
 

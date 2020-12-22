@@ -7,8 +7,6 @@ abstract class NumberCompareBase extends ViewFilterBase
 {
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
-        $query_value = $this->column_item->convertFilterValue($query_value);
-
         // if sql server, Append cast
         if(\Exment::isSqlServer()){
             $query_column = $this->column_item->getCastColumn($query_column);
