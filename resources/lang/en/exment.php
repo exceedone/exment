@@ -445,6 +445,11 @@ return [
             'file_permission_installer' => [
                 'explain' => 'Check the file permissions required to install and run Exment.',
             ],
+            'composer' => [
+                'label' => 'Install Composer',
+                'explain' => 'Check if you have Composer installed to update your Exment.',
+                'warning' => 'Could not confirm the installation of Composer. The Exment update may not complete successfully. Please check if Composer is installed normally.',
+            ],
         ],
     ],
 

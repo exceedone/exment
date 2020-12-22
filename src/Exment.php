@@ -623,4 +623,10 @@ class Exment
     {
         return \DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder;
     }
+
+
+    public function isWindows() : bool
+    {
+        return 0 === strpos(PHP_OS, 'WIN');
+    }
 }

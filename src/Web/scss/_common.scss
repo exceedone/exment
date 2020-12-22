@@ -128,6 +128,15 @@
     cursor: pointer;
 }
 
+.require_item{
+    .require_item_header{
+        font-weight:bold;
+    }
+
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+
 .row-eq-height {
     display: flex;
     flex-wrap: wrap;

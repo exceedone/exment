@@ -444,6 +444,11 @@ return [
             'file_permission_installer' => [
                 'explain' => 'Exmentをインストール、ならびに実行するために必要となる、ファイルパーミッションの確認です。',
             ],
+            'composer' => [
+                'label' => 'Composerインストール',
+                'explain' => 'Exmentのアップデートに使用する、Composerがインストールされているかどうかを確認します。',
+                'warning' => 'Composerのインストールを確認できませんでした。Exmentのアップデートが正常に完了しない場合があります。Composerが正常にインストールされているかどうか、ご確認ください。',
+            ],
         ],
     ],
 

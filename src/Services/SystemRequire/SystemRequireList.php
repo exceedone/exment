@@ -17,6 +17,7 @@ class SystemRequireList
         FileUploadSize::class,
         TimeoutTime::class,
         FilePermission::class,
+        Composer::class,
         BackupRestore::class,
     ];
 
@@ -25,6 +26,7 @@ class SystemRequireList
         FileUploadSize::class,
         TimeoutTime::class,
         FilePermission::class,
+        Composer::class,
         BackupRestore::class,
     ];
 
@@ -33,6 +35,7 @@ class SystemRequireList
         FileUploadSize::class,
         TimeoutTime::class,
         FilePermissionInstaller::class,
+        Composer::class,
         BackupRestore::class,
     ];
 
