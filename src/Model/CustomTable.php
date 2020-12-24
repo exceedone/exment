@@ -780,6 +780,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         // get input value
                         $value = array_get($input, 'value.' . $column->column_name);
                         $other = array_get($row, 'value.' . $column->column_name);
+                        if (is_null($value) && is_null($other)) {
+                            continue;
+                        }
                         if ($value != $other) {
                             return false;
                         }
