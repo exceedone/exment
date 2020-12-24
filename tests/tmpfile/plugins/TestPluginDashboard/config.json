@@ -1,0 +1,18 @@
+{
+    "plugin_name": "TestPluginDashboard",
+    "plugin_view_name" : "ダッシュボードテスト",
+    "explain": "ダッシュボードのテストを行うためのプラグインです。",
+    "uuid":  "691a24f2-2c7a-42c5-8cff-23c5277f6f22",
+    "author":  "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "dashboard",
+    "route": [
+        {
+            "uri": "post",
+            "method": [
+                "post"
+            ],
+            "function": "post"
+        }
+    ]
+}

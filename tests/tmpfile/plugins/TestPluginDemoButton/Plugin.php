@@ -32,6 +32,7 @@ class Plugin extends PluginButtonBase
     * @return bool true: 描写する false 描写しない
     */
     public function enableRender(){
+        if (is_null($this->custom_value)) return false;
         // 例1：選択しているデータのidが2の場合ボタンを表示する
         return $this->custom_value->id % 2 === 0;
     }

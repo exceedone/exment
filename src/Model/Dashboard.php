@@ -82,7 +82,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     {
         $user = Admin::user();
         // get request
-        $request = Req::capture();
+        $request = request();
 
         // get dashboard using query
         if (!is_null($request->input('dashboard'))) {

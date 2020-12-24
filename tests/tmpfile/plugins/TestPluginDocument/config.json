@@ -1,0 +1,15 @@
+{
+    "plugin_name": "TestPluginDocument",
+    "uuid": "1e7881d0-324f-11e9-b56e-0800200c9a44",
+    "plugin_view_name": "Plugin Document User",
+    "description": "ドキュメント出力を行うテストです。ユーザー情報を出力します。",
+    "author": "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "document",
+    "target_tables": "user",
+    "label": "ユーザー情報出力",
+    "icon": "fa-user",
+    "filename": "User${ymdhms}",
+    "button_class": "btn-success"
+
+}

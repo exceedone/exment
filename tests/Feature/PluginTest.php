@@ -4,16 +4,19 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Encore\Admin\Grid;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Model;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Tests\TestDefine;
@@ -317,5 +320,30 @@ class PluginTest extends TestCase
                 \File::delete($file);
             }
         }
+    }
+
+    /**
+     * test plugin button
+     *
+     * @return void
+     */
+    public function testDocument()
+    {
+        $custom_table = CustomTable::getEloquent(SystemTableName::USER);
+        $custom_value = $custom_table->getValueModel()->latest()->first();
+
+        $plugin = Plugin::where('plugin_name', 'TestPluginDocument')->first();
+        $pluginClass = $plugin->getClass(PluginType::DOCUMENT, [
+            'custom_table' => $custom_table,
+            'id' => $custom_value->id,
+        ]);
+        $response = $pluginClass->execute();
+        $this->assertTrue(array_get($response, 'result'));
+
+        $file = ExmentFile::latest()->first();
+        $this->assertTrue(isset($file));
+        $this->assertEquals(SystemTableName::USER, $file->parent_type);
+        $this->assertEquals($custom_value->id, $file->parent_id);
+        $this->assertTrue(Storage::disk(config('admin.upload.disk'))->exists($file->path));
     }
 }

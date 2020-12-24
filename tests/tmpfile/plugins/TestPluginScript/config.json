@@ -1,0 +1,9 @@
+{
+    "uuid": "b5c0a5d2-2716-1937-98d0-b490c1ebc533",
+    "plugin_name": "TestPluginScript",
+    "plugin_view_name": "住所セット",
+    "description": "住所をセットします。",
+    "author":  "Kajitori",
+    "version": "0.0.1",
+    "plugin_type": "script"
+}
