@@ -1,0 +1,12 @@
+{
+    "plugin_name": "TestPluginImport",
+    "uuid": "63d80590-4aad-11e9-b475-0800200c9a66",
+    "plugin_view_name": "Plugin Import",
+    "description": "親子データを独自ロジックでインポートします。",
+    "author": "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "import",
+    "target_tables": "parent_table",
+    "label": "親子データインポート",
+    "icon": "fa-files-o"
+}

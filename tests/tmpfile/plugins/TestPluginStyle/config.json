@@ -1,0 +1,9 @@
+{
+    "uuid": "b5c0a5d2-2716-1937-98d0-b490c1ebc544",
+    "plugin_name": "TestPluginStyle",
+    "plugin_view_name": "スタイルテスト",
+    "description": "スタイルテスト",
+    "author":  "Kajitori",
+    "version": "0.0.1",
+    "plugin_type": "style"
+}

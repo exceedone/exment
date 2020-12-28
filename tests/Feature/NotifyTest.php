@@ -187,7 +187,11 @@ class NotifyTest extends TestCase
 
         \Artisan::call('exment:notifyschedule');
 
-        $data = NotifyNavbar::withoutGlobalScopes()->orderBy('created_at', 'desc')->first();
+        $data = NotifyNavbar::withoutGlobalScopes()
+            ->where('target_user_id', $model->created_user_id)
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
         $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
         $this->assertEquals(array_get($data, 'parent_id'), $model->id);
         $this->assertEquals(array_get($data, 'target_user_id'), $model->created_user_id);
@@ -221,7 +225,11 @@ class NotifyTest extends TestCase
         $notify->notifyButtonClick($custom_value, $target_user_keys, $subject, $body);
 
         $data = NotifyNavbar::withoutGlobalScopes()
-            ->where('notify_id', $notify->id)->orderBy('created_at', 'desc')->first();
+            ->where('notify_id', $notify->id)
+            ->where('target_user_id', $custom_value->created_user_id)
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
         $this->assertEquals(array_get($data, 'parent_type'), $custom_table->table_name);
         $this->assertEquals(array_get($data, 'parent_id'), $custom_value->id);
         $this->assertEquals(array_get($data, 'target_user_id'), $custom_value->created_user_id);

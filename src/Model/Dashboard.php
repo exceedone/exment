@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Illuminate\Http\Request as Req;
 use Illuminate\Database\Eloquent\Builder;
 
 class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -82,7 +81,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     {
         $user = Admin::user();
         // get request
-        $request = Req::capture();
+        $request = request();
 
         // get dashboard using query
         if (!is_null($request->input('dashboard'))) {

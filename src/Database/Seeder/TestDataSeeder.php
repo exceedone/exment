@@ -33,6 +33,8 @@ use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\TestDefine;
+use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Exceedone\Exment\Storage\Disk\TestPluginDiskService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Config;
 
@@ -68,6 +70,8 @@ class TestDataSeeder extends Seeder
         $this->createApiSetting();
 
         $this->createMailTemplate();
+
+        $this->createPlugin();
     }
 
     protected function createSystem()
@@ -1253,5 +1257,28 @@ class TestDataSeeder extends Seeder
             Define::API_FEATURE_TEST_APIKEY,
             'http://localhost'
         );
+    }
+
+
+    /**
+     * Create plugin for test
+     *
+     * @return void
+     */
+    protected function createPlugin(){
+        $diskService = new TestPluginDiskService();
+        $tmpDiskItem = $diskService->tmpDiskItem();
+
+        $testPluginDirs = \File::directories(exment_package_path('tests/tmpfile/plugins'));
+
+        foreach($testPluginDirs as $testPluginDir){
+            $config_paths = glob(path_join_os($testPluginDir, 'config.json'));
+            if(\is_nullorempty($config_paths)){
+                continue;
+            }
+
+            // copy file
+            PluginInstaller::copySavePlugin($config_paths[0], pathinfo($testPluginDir, PATHINFO_BASENAME), $diskService);
+        }
     }
 }

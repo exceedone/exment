@@ -205,6 +205,10 @@ class Initialize
             'driver' => 'local',
             'root' => storage_path('app/plugins'),
         ]);
+        Config::set('filesystems.disks.plugin_test', [
+            'driver' => 'local',
+            'root' => exment_package_path('tests/tmpfile/plugins'),
+        ]);
 
         // mysql setting
         if (defined('PDO::MYSQL_ATTR_LOCAL_INFILE')) {

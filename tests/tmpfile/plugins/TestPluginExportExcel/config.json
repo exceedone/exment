@@ -1,0 +1,13 @@
+{
+    "plugin_name": "TestPluginExportExcel",
+    "uuid": "c9298c00-8ea6-11ea-ab12-0800200c9a66",
+    "plugin_view_name": "ExportTestExcel",
+    "description": "エクスポートのExcelテストです。",
+    "author": "Kajitori",
+    "version": "0.0.1",
+    "plugin_type": "export",
+    "target_tables": "information",
+    "label": "お知らせ情報Excel出力",
+    "icon": "fa-question",
+    "export_description": "お知らせ情報を、Excel形式で一覧出力します。"
+}

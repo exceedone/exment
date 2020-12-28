@@ -1,0 +1,13 @@
+{
+    "plugin_name": "TestPluginExportCsv",
+    "uuid": "1e7881d0-324f-11e9-b56e-0800200c9a33",
+    "plugin_view_name": "ExportTestCsv",
+    "description": "エクスポートのCSVテストです。",
+    "author": "Kajitori",
+    "version": "0.0.1",
+    "plugin_type": "export",
+    "target_tables": "information",
+    "label": "お知らせ情報出力",
+    "icon": "fa-question",
+    "export_description": "お知らせ情報を、独自のcsv形式で一覧出力します。"
+}

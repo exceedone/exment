@@ -1,0 +1,11 @@
+{
+    "uuid": "b5c0a5d2-2716-4161-98d0-b490c1ebc521",
+    "plugin_name": "TestPluginBatch",
+    "plugin_view_name": "論理削除データの物理削除",
+    "description": "論理削除データを完全に削除します。",
+    "author":  "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "batch",
+    "batch_hour": 3,
+    "batch_cron": "10,20,30 * * * *"
+}

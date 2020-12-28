@@ -1,0 +1,11 @@
+{
+    "plugin_name": "TestPluginValidator",
+    "uuid": "7f9b0056-f845-9fc2-de44-ea7fd8321751",
+    "plugin_view_name": "Test Table Validator",
+    "description": "テストテーブルのバリデーションを独自ロジックでインポートします。",
+    "author": "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "validator",
+    "target_tables": "test",
+    "label": "テストバリデーション"
+}
