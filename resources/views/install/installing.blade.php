@@ -17,7 +17,7 @@
             
             <div class="row">
                 <div class="col-xs-12 col-sm-4">
-                    <a href="{{admin_urls('install', 'reset')}}" class="btn btn-default btn-block btn-flat">{{trans('admin.reset')}}</a>
+                    <a href="{{admin_urls('install', 'reset')}}" class="btn btn-default btn-block btn-flat click_disabled">{{trans('admin.reset')}}</a>
                 </div>
                 
                 <div class="col-xs-12 col-sm-8">
