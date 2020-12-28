@@ -77,7 +77,8 @@
       }
 
       //disable the submit button
-      $(':submit,.click_disabled').attr("disabled", true);
+      $(':submit').attr("disabled", true);
+      $('.click_disabled').css("pointer-events", 'none').css("tabindex", '-1').attr("disabled", true);
       return true;
     });
   });
