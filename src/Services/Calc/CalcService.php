@@ -37,10 +37,7 @@ class CalcService
      * Create calc formula info for form.
      *
      * @param CustomTable $custom_table
-     * @param array $options
-     * @param array $calc_params
-     * @param [type] $count_detail_array
-     * @param boolean $is_default
+     * @param array $custom_form_block
      * @return array set above values:
      *     'formula': formula string.
      *     'target_column': Defined formula setting column.

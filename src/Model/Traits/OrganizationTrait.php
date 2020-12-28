@@ -108,8 +108,8 @@ trait OrganizationTrait
     /**
      * Get Parent and Children Ids
      *
-     * @param [type] $joinedOrgFilterType
-     * @return void
+     * @param string $joinedOrgFilterType
+     * @return array
      */
     public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL)
     {

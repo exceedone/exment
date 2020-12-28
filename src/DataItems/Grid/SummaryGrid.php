@@ -244,7 +244,7 @@ class SummaryGrid extends GridBase
     /**
      * Set relation query. consider for relation 1:n, n:n, select_table
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
      * @param array $summary_options use cusrom tables in this query
      * @return void
      */
@@ -310,7 +310,7 @@ class SummaryGrid extends GridBase
     /**
      * Set custom relation query to parent. consider 1:n or n:n
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
      * @param array $parent_relations
      * @param int $table_id
      * @param array $summary_option
@@ -343,7 +343,7 @@ class SummaryGrid extends GridBase
     /**
      * Set custom relation query to children. consider 1:n or n:n
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
      * @param array $parent_relations
      * @param int $table_id
      * @param array $summary_option

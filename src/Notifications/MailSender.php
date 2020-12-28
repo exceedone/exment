@@ -180,7 +180,6 @@ class MailSender extends SenderBase
     /**
      * Get the value of the notifiable's primary key.
      *
-     * @return
      * @return string|null
      */
     public function getKey()

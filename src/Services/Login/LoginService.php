@@ -302,7 +302,7 @@ class LoginService
      *
      * @param Request $request
      * @param CustomLoginUserBase $custom_login_user
-     * @param [type] $socialiteProvider
+     * @param \Exceedone\Exment\Auth\ProviderAvatar $socialiteProvider
      * @return LoginUser|null
      */
     public static function executeLogin(Request $request, CustomLoginUserBase $custom_login_user, $socialiteProvider = null) : ?LoginUser
@@ -434,7 +434,7 @@ class LoginService
      *
      * @param CustomLoginUserBase $custom_login_user
      * @param CustomValue|LoginUser $exment_user
-     * @param mixed $socialiteProvider
+     * @param \Exceedone\Exment\Auth\ProviderAvatar $socialiteProvider
      * @return LoginUser
      */
     public static function getLoginUser(CustomLoginUserBase $custom_login_user, $exment_user, $socialiteProvider = null) : LoginUser

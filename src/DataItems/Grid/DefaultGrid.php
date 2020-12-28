@@ -91,9 +91,9 @@ class DefaultGrid extends GridBase
     /**
      * Get database query
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
      * @param array $options
-     * @return
+     * @return \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder
      */
     public function getQuery($query, array $options = [])
     {
