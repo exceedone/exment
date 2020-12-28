@@ -50,6 +50,22 @@ class SystemRequireTest extends UnitTestBase
         });
     }
 
+    public function testComposer(){
+        return $this->_test(SystemRequire\Composer::class, function(){
+             //$command = 'composer --version';
+             $command = 'composer%s --version';
+            
+             foreach (['', '.phar'] as $suffix) {
+                 $c = sprintf($command, $suffix);
+                 exec($c, $output, $return_var);
+                 if ($return_var == 0) {
+                     return SystemRequireResult::OK;
+                 }
+             }
+             return SystemRequireResult::WARNING;
+        });
+    }
+
 
     protected function _test($classname, \Closure $exceptValueFunc, ?\Closure $resultFunc = null){
         $obj = new $classname();
