@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugins\TestPluginDemoBatch;
+namespace App\Plugins\TestPluginBatch;
 
 use Exceedone\Exment\Services\Plugin\PluginBatchBase;
 use Exceedone\Exment\Model\CustomTable;

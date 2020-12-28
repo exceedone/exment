@@ -3,7 +3,7 @@
     "uuid": "7e7500f3-87e0-d92f-8814-e13d272a60ce",
     "plugin_view_name": "Plugin Notify",
     "description": "プラグインをアップロードするテストです。",
-    "author": "(Your Name)",
+    "author": "Kajitori",
     "version": "1.0.0",
     "plugin_type": "event",
     "event_triggers": "notify_executed",

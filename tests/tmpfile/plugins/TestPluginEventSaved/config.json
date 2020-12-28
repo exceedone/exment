@@ -3,7 +3,7 @@
     "uuid": "fa7de170-992a-11e8-b568-0800200c9a66",
     "plugin_view_name": "Plugin Event",
     "description": "プラグインをアップロードするテストです。",
-    "author": "(Your Name)",
+    "author": "Kajitori",
     "version": "1.0.0",
     "plugin_type": "event",
     "event_triggers": "saved",

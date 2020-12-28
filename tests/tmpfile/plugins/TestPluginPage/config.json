@@ -1,9 +1,9 @@
 {
-    "plugin_name": "TestPluginDemoPage",
+    "plugin_name": "TestPluginPage",
     "plugin_view_name" : "独自ページテスト",
     "explain": "独自ページを表示するテストです。",
     "uuid":  "691a24f2-2c7a-42c5-8cff-23c5277f6f56",
-    "author":  "(Your Name)",
+    "author":  "Kajitori",
     "version": "1.0.0",
     "plugin_type": "page",
     "route": [

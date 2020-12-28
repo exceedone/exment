@@ -1,19 +1,20 @@
 <?php
 
-namespace Exceedone\Exment\Tests\Feature;
+namespace Exceedone\Exment\Tests\Browser;
 
-use Illuminate\Support\Facades\DB;
+use Exceedone\Exment\Tests\PluginTestTrait;
 use Exceedone\Exment\Tests\Browser\ExmentKitTestCase;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\DashboardType;
-use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\PluginType;
 
-class PluginPageTest extends ExmentKitTestCase
+class HPluginPageTest extends ExmentKitTestCase
 {
+    use PluginTestTrait;
+
     /**
      * pre-excecute process before test.
      */
@@ -29,9 +30,14 @@ class PluginPageTest extends ExmentKitTestCase
      */
     public function testDisplayPluginPage()
     {
-        $this->visit(admin_url('plugins/test_plugin_demo_page'))
-                ->seeInElement('h1', '独自ページテスト')
-                ->seeInElement('div', 'Laravel')
+        list($plugin, $pluginClass) = $this->getPluginInfo('TestPluginPage', PluginType::PAGE);
+        $url = $plugin->getRootUrl(PluginType::PAGE);
+
+        $this->visit($url)
+            ->seePageIs($url)
+            ->seeInElement('h1', '独自ページテスト')
+            ->seeInElement('div', 'Laravel')
+            ->see('welcome-TestPluginPage')
         ;
     }
 
@@ -40,6 +46,8 @@ class PluginPageTest extends ExmentKitTestCase
      */
     public function testSettingDashboard()
     {
+        list($plugin, $pluginClass) = $this->getPluginInfo('TestPluginDashboard', PluginType::DASHBOARD);
+
         $pre_cnt = Dashboard::count();
         $pre_cnt_box = DashboardBox::count();
         // Create dashbord
@@ -54,7 +62,6 @@ class PluginPageTest extends ExmentKitTestCase
         $row = Dashboard::orderBy('created_at', 'desc')->first();
         $suuid = array_get($row, 'suuid');
         $param = "?column_no=1&dashboard_box_type=plugin&dashboard_suuid=$suuid&row_no=1";
-        $plugin = Plugin::where('plugin_name', 'TestPluginDashboard')->first();
 
         // Create dashbord box
         $response = $this->visit(admin_url('dashboardbox/create' . $param))

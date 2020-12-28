@@ -1,5 +1,5 @@
 {
-    "plugin_name": "TestPluginDemoApi",
+    "plugin_name": "TestPluginApi",
     "uuid": "50716af0-05d3-11ea-aaef-0800200c9a66",
     "plugin_view_name": "API Plugin Sample",
     "description": "列名からカスタム列情報を取得するサンプルAPIです。",

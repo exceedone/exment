@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Illuminate\Http\Request as Req;
 use Illuminate\Database\Eloquent\Builder;
 
 class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterface

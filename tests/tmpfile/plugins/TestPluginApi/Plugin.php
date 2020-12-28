@@ -1,5 +1,5 @@
 <?php
-namespace App\Plugins\TestPluginDemoApi;
+namespace App\Plugins\TestPluginApi;
 
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\Permission;
