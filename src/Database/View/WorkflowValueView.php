@@ -3,8 +3,8 @@
 namespace Exceedone\Exment\Database\View;
 
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\WorkflowAction;
 
 class WorkflowValueView
 {
@@ -13,9 +13,6 @@ class WorkflowValueView
      */
     public static function createWorkflowValueUnionView()
     {
-        /// create where raw query
-        $whereStatusStart = \Exment::wrapColumn(SystemTableName::WORKFLOW_ACTION . '.status_from') . ' = ' . \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
-
         $subquery2 = \DB::table(SystemTableName::WORKFLOW_TABLE)
         ->join(SystemTableName::WORKFLOW, function ($join) {
             $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
@@ -30,22 +27,17 @@ class WorkflowValueView
                 ->on(SystemTableName::WORKFLOW_VALUE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
                 ;
         })
-        ->join(SystemTableName::WORKFLOW_ACTION, function ($join) use ($whereStatusStart) {
+        ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
             $join
             ->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
             ->where('ignore_work', 0)
-            ->where(function ($query) use ($whereStatusStart) {
+            ->where(function ($query) {
                 $query->where(function ($query) {
                     $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
                         ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
                     ;
-                })->orWhere(function ($query) use ($whereStatusStart) {
-                    // if sql server, append cast
-                    if (\DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder) {
-                        $query->whereRaw($whereStatusStart);
-                    } else {
-                        $query->whereColumn(SystemTableName::WORKFLOW_ACTION . '.status_from', SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
-                    }
+                })->orWhere(function ($query) {
+                    WorkflowAction::appendStatusFromJoinQuery($query);
                 });
             });
         })
@@ -84,22 +76,17 @@ class WorkflowValueView
                 ->on(SystemTableName::WORKFLOW_VALUE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
                 ;
         })
-        ->join(SystemTableName::WORKFLOW_ACTION, function ($join) use ($whereStatusStart) {
+        ->join(SystemTableName::WORKFLOW_ACTION, function ($join) {
             $join
             ->on(SystemTableName::WORKFLOW_ACTION . '.workflow_id', SystemTableName::WORKFLOW . ".id")
             ->where('ignore_work', 0)
-            ->where(function ($query) use ($whereStatusStart) {
+            ->where(function ($query) {
                 $query->where(function ($query) {
                     $query->where(SystemTableName::WORKFLOW_ACTION . '.status_from', Define::WORKFLOW_START_KEYNAME)
                         ->whereNull(SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id')
                     ;
-                })->orWhere(function ($query) use ($whereStatusStart) {
-                    // if sql server, append cast
-                    if (\DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder) {
-                        $query->whereRaw($whereStatusStart);
-                    } else {
-                        $query->whereColumn(SystemTableName::WORKFLOW_ACTION . '.status_from', SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
-                    }
+                })->orWhere(function ($query) {
+                    WorkflowAction::appendStatusFromJoinQuery($query);
                 });
             });
         })

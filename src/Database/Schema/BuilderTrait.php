@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Database\Schema;
 
 use Illuminate\Database\Schema\Blueprint;
+use Exceedone\Exment\Model\CustomColumn;
 
 trait BuilderTrait
 {
@@ -255,10 +256,10 @@ trait BuilderTrait
      * @param string $db_column_name
      * @param string $index_name
      * @param string $json_column_name
-     * @param string $column_type
+     * @param CustomColumn $custom_column
      * @return void
      */
-    public function alterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type)
+    public function alterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
         if (!\Schema::hasTable($db_table_name)) {
             return;
@@ -266,7 +267,7 @@ trait BuilderTrait
 
         $db_table_name = $this->connection->getTablePrefix().$db_table_name;
 
-        $sqls = $this->grammar->compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type);
+        $sqls = $this->grammar->compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $custom_column);
 
         foreach ($sqls as $sql) {
             $this->connection->statement($sql);

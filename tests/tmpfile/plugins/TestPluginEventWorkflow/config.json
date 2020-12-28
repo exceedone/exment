@@ -1,0 +1,11 @@
+{
+    "plugin_name": "TestPluginEventWorkflow",
+    "uuid": "759479a9-a610-51a7-dc40-73074b480d42",
+    "plugin_view_name": "Plugin Workflow",
+    "description": "プラグインをアップロードするテストです。",
+    "author": "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "event",
+    "event_triggers": "workflow_action_executed",
+    "target_tables": "custom_value_edit"
+}

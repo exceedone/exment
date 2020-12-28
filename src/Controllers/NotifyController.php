@@ -120,7 +120,7 @@ class NotifyController extends AdminControllerBase
             });
             
             $filter->equal('custom_table_id', exmtrans("notify.custom_table_id"))->select(function ($val) {
-                return CustomTable::filterList()->pluck('table_view_name', 'table_view_name');
+                return CustomTable::filterList()->pluck('table_view_name', 'id');
             });
 
             $filter->equal('workflow_id', exmtrans("notify.workflow_id"))->select(function ($val) {

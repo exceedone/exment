@@ -941,7 +941,7 @@ class CustomViewFilterTest extends UnitTestBase
      */
     public function testFuncFilterUserNotNullMulti()
     {
-        $this->skipTempTestIfTrue(true, 'Now multi and not null filter is bug.');
+        //$this->skipTempTestIfTrue(true, 'Now multi and not null filter is bug.');
 
         $this->init();
 
@@ -1016,7 +1016,7 @@ class CustomViewFilterTest extends UnitTestBase
      */
     public function testFuncFilterOrganizationNullMulti()
     {
-        $this->skipTempTestIfTrue(true, 'Now multi and not null filter is bug.');
+        //$this->skipTempTestIfTrue(true, 'Now multi and not null filter is bug.');
         
         $this->init();
 

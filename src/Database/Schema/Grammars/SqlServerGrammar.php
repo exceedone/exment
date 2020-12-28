@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Database\Schema\Grammars;
 
+use Exceedone\Exment\Model\CustomColumn;
 use Illuminate\Database\Schema\Grammars\SqlServerGrammar as BaseGrammar;
 
 class SqlServerGrammar extends BaseGrammar implements GrammarInterface
@@ -72,10 +73,14 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
         return "if object_id('{$this->wrapTable($tableName)}') is null select * into {$this->wrapTable($tableName)} from custom_relation_values";
     }
     
-    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type)
+    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
         // ALTER TABLE
-        $as_value = "JSON_VALUE(\"value\",'$.$json_column_name')";
+        if (boolval($custom_column->getOption('multiple_enabled'))) {
+            $as_value = "JSON_QUERY(\"value\",'$.$json_column_name')";
+        } else {
+            $as_value = "JSON_VALUE(\"value\",'$.$json_column_name')";
+        }
 
         return [
             "alter table {$db_table_name} add {$db_column_name} as {$as_value}",

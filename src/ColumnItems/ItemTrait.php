@@ -234,12 +234,16 @@ trait ItemTrait
     /**
      * get cast column name as SQL
      */
-    public function getCastColumn($column_name = null)
+    public function getCastColumn($column_name = null, bool $wrap = true)
     {
         $cast = $this->getCastName();
 
         if (is_nullorempty($column_name)) {
             $column_name = $this->indexEnabled() ? $this->index() : $this->sqlname();
+        }
+
+        if ($wrap) {
+            $column_name = \Exment::wrapColumn($column_name);
         }
         
         if (!isset($cast)) {
@@ -279,6 +283,15 @@ trait ItemTrait
      *
      */
     public function isDate()
+    {
+        return false;
+    }
+
+    /**
+     * whether column is datetime
+     *
+     */
+    public function isDateTime()
     {
         return false;
     }
@@ -374,5 +387,18 @@ trait ItemTrait
         }
 
         return ['=', $pureValue];
+    }
+
+
+    /**
+     * Convert filter value.
+     * Ex. If value is decimal and Column Type is decimal, return floatval.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    public function convertFilterValue($value)
+    {
+        return $value;
     }
 }

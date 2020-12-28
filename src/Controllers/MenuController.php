@@ -164,12 +164,16 @@ class MenuController extends AdminControllerBase
             ), 'data-filter' => json_encode([
                 'key' => 'menu_type', 'readonlyValue' => [MenuType::CUSTOM, MenuType::PARENT_NODE]
             ])])
-            ->options(function ($option) use ($menu, $contoller) {
-                // get model
-                if (!isset($menu)) {
+            ->options(function ($value, $field, $model) use ($menu, $contoller) {
+                // get menu type
+                $menu_type = $contoller->getMenuTypeValue($field, $menu);
+
+                if (!isset($menu_type)) {
                     return [];
                 }
-                return $contoller->getMenuType(array_get($menu, 'menu_type'), false);
+
+                // get model
+                return $contoller->getMenuType($menu_type, false);
             })
             ->attribute([
                 'data-linkage' => json_encode(['menu_target_view' => admin_url('webapi/menu/menutargetview')])
@@ -178,12 +182,26 @@ class MenuController extends AdminControllerBase
             ->attribute(['data-filter' => json_encode([
                 'key' => 'menu_type', 'value' => [MenuType::TABLE]
             ])])
-            ->options(function ($option) use ($menu, $contoller) {
-                // get model
-                if (!isset($menu)) {
+            ->options(function ($value, $field) use ($menu, $contoller) {
+                $menu_type = $contoller->getMenuTypeValue($field, $menu);
+                if ($menu_type != MenuType::TABLE) {
                     return [];
                 }
-                return $contoller->getViewList(array_get($menu, 'menu_target'), false);
+
+                // check $value or $field->data()
+                $custom_table = null;
+                if (isset($value) && $value !== false) {
+                    $custom_view = CustomView::getEloquent($value);
+                    $custom_table = $custom_view ? $custom_view->custom_table : null;
+                } elseif (!is_nullorempty($field->data())) {
+                    $custom_table = CustomTable::getEloquent(array_get($field->data(), 'menu_target'));
+                }
+        
+                if (!isset($custom_table)) {
+                    return [];
+                }
+        
+                return $contoller->getViewList($custom_table, false);
             })
         ;
         $form->text('uri', trans('admin.uri'))
@@ -260,12 +278,17 @@ class MenuController extends AdminControllerBase
      * @param string $menu_target string
      * @param boolean $isApi is api. if true, return id and value array. if false, return array(key:id, value:name)
      */
-    protected function getViewList($menu_target, $isApi)
+    protected function getViewList($custom_table, $isApi)
     {
+        $custom_table = CustomTable::getEloquent($custom_table);
+        if (!$custom_table) {
+            return [];
+        }
+
         $options = [];
 
         CustomView::where('view_type', ViewType::SYSTEM)
-            ->where('custom_table_id', $menu_target)->get()->each(function ($item) use (&$options) {
+            ->where('custom_table_id', $custom_table->id)->get()->each(function ($item) use (&$options) {
                 $options[] = ['id' => $item->id, 'text' =>  $item->view_view_name ];
             });
 
@@ -405,5 +428,23 @@ class MenuController extends AdminControllerBase
         }
         
         return true;
+    }
+
+
+    protected function getMenuTypeValue($field, $menu = null)
+    {
+        // get menu type
+        $menu_type = null;
+        if ($field) {
+            $menu_type = array_get($field->data(), 'menu_type');
+        }
+        if (!$menu_type && request()->has('menu_type')) {
+            $menu_type = request()->get('menu_type');
+        }
+        if (!$menu_type && isset($menu)) {
+            $menu_type = array_get($menu, 'menu_type');
+        }
+
+        return $menu_type;
     }
 }

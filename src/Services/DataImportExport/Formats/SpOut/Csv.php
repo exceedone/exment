@@ -50,7 +50,7 @@ class Csv extends SpOut
         $original_locale = setlocale(LC_CTYPE, 0);
 
         // set C locale
-        if (0 === strpos(PHP_OS, 'WIN')) {
+        if (\Exment::isWindows()) {
             setlocale(LC_CTYPE, 'C');
         }
 

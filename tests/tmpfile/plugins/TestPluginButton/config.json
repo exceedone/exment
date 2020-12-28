@@ -1,0 +1,11 @@
+{
+    "plugin_name": "TestPluginButton",
+    "uuid": "6f0777c0-8e36-11ea-ab12-0800200c9a66",
+    "plugin_view_name": "Plugin Button",
+    "description": "プラグインボタンを実行するテストです。",
+    "author": "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "button",
+    "event_triggers": "grid_menubutton",
+    "target_tables": "custom_value_edit_all"
+}

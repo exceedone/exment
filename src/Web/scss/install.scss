@@ -1,0 +1,37 @@
+@import "_valiables.scss";
+@import "_common.scss";
+
+.login-box-msg{
+    font-weight: bold;
+}
+
+.login-logo img{
+    width:80%; 
+    max-width:300px;
+}
+
+.login-box{
+    width: 500px;
+}
+
+.login-box-wide{
+    width: 900px;
+    max-width: 90%;
+}
+
+
+.btn-install-next{
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px){
+    .login-box{
+        width: 90%;
+    }
+    
+    .login-box-wide{
+        width: 90%;
+        margin-top: 20px;
+    }
+}

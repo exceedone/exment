@@ -37,12 +37,6 @@ class SummaryOption
      */
     protected $select_groups = [];
 
-    /**
-     *
-     * @var
-     */
-    protected $select_group;
-    
     public function __construct(array $options)
     {
         $this->db_table_name = array_get($options, 'table_name');

@@ -1,0 +1,53 @@
+{
+    "plugin_name": "TestPluginPage",
+    "plugin_view_name" : "独自ページテスト",
+    "explain": "独自ページを表示するテストです。",
+    "uuid":  "691a24f2-2c7a-42c5-8cff-23c5277f6f56",
+    "author":  "Kajitori",
+    "version": "1.0.0",
+    "plugin_type": "page",
+    "route": [
+        {
+            "uri": "",
+            "method": [
+                "get"
+            ],
+            "function": "index"
+        },
+        {
+            "uri": "post",
+            "method": [
+                "post"
+            ],
+            "function": "post"
+        },
+        {
+            "uri": "show_details/{id}",
+            "method": [
+                "get"
+            ],
+            "function": "show_details"
+        },
+        {
+            "uri": "{id}/edit_test",
+            "method": [
+                "get"
+            ],
+            "function": "edit_test"
+        },
+        {
+            "uri": "create_new",
+            "method": [
+                ""
+            ],
+            "function": "create_new"
+        },
+        {
+            "uri": "{id}/update_test",
+            "method": [
+                "put"
+            ],
+            "function": "update_test"
+        }
+    ]
+}

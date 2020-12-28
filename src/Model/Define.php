@@ -146,6 +146,7 @@ class Define
     public const CACHE_CLEAR_MINUTE = 60;
     public const SYSTEM_KEY_SESSION_SYSTEM_CONFIG = "setting.%s";
     public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
+    public const SYSTEM_KEY_SESSION_INITIALIZE_INPUTS = "initialize_inputs";
     public const SYSTEM_KEY_SESSION_AUTHORITY = "role";
     public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
     public const SYSTEM_KEY_SESSION_SYSTEM_VERSION = "system_version";
@@ -382,7 +383,7 @@ class Define
     public static function FILE_OPTION()
     {
         // get max size
-        $maxSize = getUploadMaxFileSize();
+        $maxSize = \Exment::getUploadMaxFileSize();
 
         return [
             'showPreview' => true,
@@ -445,6 +446,7 @@ class Define
     public const DISKNAME_PLUGIN = 'plugin';
     public const DISKNAME_PLUGIN_SYNC = 'plugin_sync';
     public const DISKNAME_PLUGIN_LOCAL = 'plugin_local';
+    public const DISKNAME_PLUGIN_TEST = 'plugin_test';
     public const DISKNAME_TEMPLATE_SYNC = 'template_sync';
     public const DISKNAME_TEMP_UPLOAD = 'tmpupload';
 

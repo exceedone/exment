@@ -104,9 +104,9 @@ class WorkflowStatus extends ModelBase
             $workflow_status = Define::WORKFLOW_START_KEYNAME;
         }
 
-        return WorkflowAction::where('workflow_id', $workflow->id)
-            ->where('status_from', $workflow_status)
-            ->get()
+        $query = WorkflowAction::where('workflow_id', $workflow->id);
+        WorkflowAction::appendStatusFromQuery($query, $workflow_status);
+        return $query->get()
             ->filter(function ($action) use ($ignoreReject) {
                 if (!$ignoreReject) {
                     return true;

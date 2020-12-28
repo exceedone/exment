@@ -278,6 +278,7 @@ class RouteServiceProvider extends ServiceProvider
             'namespace'     => $this->namespace,
             'middleware'    => ['adminweb', 'admin_install'],
         ], function (Router $router) {
+            $router->get('install/reset', 'InstallController@reset');
             $router->get('install', 'InstallController@index');
             $router->post('install', 'InstallController@post');
         });

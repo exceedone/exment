@@ -187,7 +187,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
     /**
      * Set condition query. For data list and use workflow status
      *
-     * @param [type] $query
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Schema\Builder $query
      * @param string $tableName
      * @param CustomTable $custom_table
      * @return void

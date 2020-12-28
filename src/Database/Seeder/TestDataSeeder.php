@@ -33,6 +33,8 @@ use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\TestDefine;
+use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Exceedone\Exment\Storage\Disk\TestPluginDiskService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Config;
 
@@ -68,6 +70,8 @@ class TestDataSeeder extends Seeder
         $this->createApiSetting();
 
         $this->createMailTemplate();
+
+        $this->createPlugin();
     }
 
     protected function createSystem()
@@ -870,8 +874,8 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("text", 'test_'.$user_id);
                 $custom_value->setValue("user", $user_id);
                 $custom_value->setValue("index_text", 'index_'.$user_id.'_'.$i);
-                $custom_value->setValue("odd_even", (rand(0, 1) == 0 ? 'even' : 'odd'));
-                $custom_value->setValue("multiples_of_3", (rand(0, 2) == 0 ? 1 : 0));
+                $custom_value->setValue("odd_even", ($i % 2 == 0 ? 'even' : 'odd'));
+                $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
                 $custom_value->setValue("date", \Carbon\Carbon::now());
                 $custom_value->setValue("init_text", 'init_text');
                 $custom_value->setValue("integer", rand(0, 1000));
@@ -1253,5 +1257,29 @@ class TestDataSeeder extends Seeder
             Define::API_FEATURE_TEST_APIKEY,
             'http://localhost'
         );
+    }
+
+
+    /**
+     * Create plugin for test
+     *
+     * @return void
+     */
+    protected function createPlugin()
+    {
+        $diskService = new TestPluginDiskService();
+        $tmpDiskItem = $diskService->tmpDiskItem();
+
+        $testPluginDirs = \File::directories(exment_package_path('tests/tmpfile/plugins'));
+
+        foreach ($testPluginDirs as $testPluginDir) {
+            $config_paths = glob(path_join_os($testPluginDir, 'config.json'));
+            if (\is_nullorempty($config_paths)) {
+                continue;
+            }
+
+            // copy file
+            PluginInstaller::copySavePlugin($config_paths[0], pathinfo($testPluginDir, PATHINFO_BASENAME), $diskService);
+        }
     }
 }

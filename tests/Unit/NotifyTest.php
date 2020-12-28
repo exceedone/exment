@@ -288,7 +288,7 @@ class NotifyTest extends UnitTestBase
             'user' => $user,
         ]);
 
-        $data = NotifyNavbar::withoutGlobalScopes()->orderBy('created_at', 'desc')->first();
+        $data = NotifyNavbar::withoutGlobalScopes()->orderBy('created_at', 'desc')->orderBy('id', 'desc')->first();
         $this->assertEquals(array_get($data, 'notify_subject'), $subject);
         $this->assertEquals(array_get($data, 'notify_body'), $body);
         $this->assertEquals(array_get($data, 'target_user_id'), $user->id);
@@ -309,7 +309,11 @@ class NotifyTest extends UnitTestBase
             'value->text' => strrev($model->getValue('text')),
         ]);
 
-        $data = NotifyNavbar::withoutGlobalScopes()->orderBy('created_at', 'desc')->first();
+        $data = NotifyNavbar::withoutGlobalScopes()
+            ->where('target_user_id', $model->created_user_id)
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
         $this->assertEquals(array_get($data, 'parent_type'), $table_name);
         $this->assertEquals(array_get($data, 'parent_id'), $model->id);
         $this->assertEquals(array_get($data, 'target_user_id'), $model->created_user_id);

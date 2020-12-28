@@ -91,7 +91,7 @@ class Tinymce extends Textarea
 
         $configs = json_encode($configs);
 
-        $max_file_size = getUploadMaxFileSize();
+        $max_file_size = \Exment::getUploadMaxFileSize();
         $message = exmtrans('custom_value.message.editor_image_oversize');
         $url =  admin_url('tmpfiles') . '?_token='. csrf_token();
 

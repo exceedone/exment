@@ -101,7 +101,7 @@ class LdapService implements LoginServiceInterface
     /**
      * Sync user from ldap Provider
      *
-     * @param [type] $provider
+     * @param \Adldap\Connections\ProviderInterface $provider
      * @param LoginSetting $login_setting
      * @param string $username
      * @return mixed

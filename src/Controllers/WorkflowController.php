@@ -686,7 +686,7 @@ class WorkflowController extends AdminControllerBase
      * Activate workflow
      *
      * @param Request $request
-     * @param [type] $id
+     * @param string|int $id
      * @return void
      */
     public function activate(Request $request, $id)
@@ -881,7 +881,7 @@ class WorkflowController extends AdminControllerBase
      * Get target modal html
      *
      * @param Request $request
-     * @param [type] $id
+     * @param string|int $id
      * @return void
      */
     public function targetModal(Request $request, $id)
@@ -956,7 +956,7 @@ class WorkflowController extends AdminControllerBase
      * Get condition modal html
      *
      * @param Request $request
-     * @param [type] $id
+     * @param string|int $id
      * @return void
      */
     public function conditionModal(Request $request, $id)

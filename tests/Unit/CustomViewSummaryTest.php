@@ -407,9 +407,11 @@ class CustomViewSummaryTest extends UnitTestBase
                         return empty($summary['key']) && empty($data['date']);
                     }
                 })->map(function($data) {
-                    return $data['created_at'];
+                    return \Carbon\Carbon::parse($data['created_at']);
                 })->max();
-                $this->assertTrue(isMatchString($summary['value'], $result));
+
+                $value = \Carbon\Carbon::parse($summary['value']);
+                $this->assertTrue(isMatchString($value->format('YmdHis'), $result->format('YmdHis')));
             }
         } finally {
             DB::rollback();

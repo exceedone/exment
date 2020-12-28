@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Database\Schema\Grammars;
 
+use Exceedone\Exment\Model\CustomColumn;
+
 interface GrammarInterface
 {
     /**
@@ -39,7 +41,7 @@ interface GrammarInterface
      */
     public function compileCreateRelationValueTable(string $tableName);
     
-    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, $column_type);
+    public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column);
     
     public function compileGetIndex($tableName);
 

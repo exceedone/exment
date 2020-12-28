@@ -3405,13 +3405,26 @@
   display: none;
 }
 
-.row::before, .row::after {
-  width: 0;
+.corsor-pointer {
+  cursor: pointer;
+}
+
+.require_item {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+.require_item .require_item_header {
+  font-weight: bold;
 }
 
 .row-eq-height {
   display: flex;
   flex-wrap: wrap;
+}
+
+.row::before, .row::after {
+  width: 0;
 }
 
 .row-eq-height > [class^="col-"] {
