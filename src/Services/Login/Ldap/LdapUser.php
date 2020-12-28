@@ -33,7 +33,9 @@ class LdapUser extends CustomLoginUserBase
      * Mapping saml user value
      *
      * @param \Adldap\Models\User $ldapuser
-     * @return void
+     * @param string $mappingKey
+     * @param array $replaceMaps
+     * @return mixed
      */
     protected static function getMappingItemValue($ldapuser, $mappingKey, $replaceMaps)
     {

@@ -143,7 +143,7 @@ abstract class PhpSpreadSheet extends FormatBase
     /**
      * get cell value
      *
-     * @param string|Cell $cell
+     * @param string|Cell\Cell $cell
      * @param Worksheet $sheet
      * @param boolean $isGetMerge
      * @return mixed
