@@ -77,6 +77,12 @@ class BackupRestore extends SystemRequireBase
 
     public function getSettingUrl() : ?string
     {
-        return \Exment::getManualUrl('troubleshooting');
+        switch ($this->result) {
+            case SystemRequireResult::WARNING:
+                return \Exment::getManualUrl('backup_sqlserver');
+            case SystemRequireResult::NG:
+                return \Exment::getManualUrl('troubleshooting');
+        }
+        return null;
     }
 }
