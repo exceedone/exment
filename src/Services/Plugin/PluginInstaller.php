@@ -103,7 +103,7 @@ class PluginInstaller
 
     public static function copySavePlugin($config_path, $pluginFileBasePath, ?PluginDiskService $diskService = null)
     {
-        if(!$diskService){
+        if (!$diskService) {
             $diskService = new PluginDiskService();
             $tmpDiskItem = $diskService->tmpDiskItem();
         }

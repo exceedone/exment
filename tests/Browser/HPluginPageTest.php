@@ -3,11 +3,9 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Exceedone\Exment\Tests\PluginTestTrait;
-use Exceedone\Exment\Tests\Browser\ExmentKitTestCase;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
-use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\PluginType;
 

@@ -626,7 +626,7 @@ class Exment
         $val = strtolower(strval($val));
         $val = str_replace('m', '', $val);
 
-        if(strpos($val, 'g') !== false){
+        if (strpos($val, 'g') !== false) {
             $val = str_replace('g', '', $val) * 1024;
         }
         return intval($val);

@@ -1265,15 +1265,16 @@ class TestDataSeeder extends Seeder
      *
      * @return void
      */
-    protected function createPlugin(){
+    protected function createPlugin()
+    {
         $diskService = new TestPluginDiskService();
         $tmpDiskItem = $diskService->tmpDiskItem();
 
         $testPluginDirs = \File::directories(exment_package_path('tests/tmpfile/plugins'));
 
-        foreach($testPluginDirs as $testPluginDir){
+        foreach ($testPluginDirs as $testPluginDir) {
             $config_paths = glob(path_join_os($testPluginDir, 'config.json'));
-            if(\is_nullorempty($config_paths)){
+            if (\is_nullorempty($config_paths)) {
                 continue;
             }
 
