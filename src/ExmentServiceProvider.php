@@ -77,6 +77,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\ExportCommand',
         'Exceedone\Exment\Console\ExportChunkCommand',
         'Exceedone\Exment\Console\ResetPasswordCommand',
+        'Exceedone\Exment\Console\CheckConnectionCommand',
     ];
 
     
