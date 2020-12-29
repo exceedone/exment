@@ -29,7 +29,7 @@ class SystemRequireTest extends UnitTestBase
             return [];
         }, function($value, $exceptValue){
             $this->assertTrue(count($value) == count($exceptValue));
-        }, );
+        });
     }
 
 
