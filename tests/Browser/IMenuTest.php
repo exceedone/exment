@@ -166,23 +166,15 @@ class IMenuTest extends ExmentKitTestCase
         $this->visit(admin_url('auth/menu'))
             ->seePageIs(admin_url('auth/menu'));
 
-        $response = $this->post(admin_url('auth/menu'), $data);
+        $this->post(admin_url('auth/menu'), $data);
+        $this->assertPostResponse($this->response, admin_url('auth/menu'));
 
-        $statusCode = $response->response->getStatusCode();
-        $this->assertTrue(in_array($response->response->getStatusCode(), [200, 302]), "Status code is {$statusCode}.");
-        
-        // if has test func, execute
-        if(isset($checkFunc)){
-            $checkFunc($response, $data);
-        }
-        else{
-            // Check database
-            $model = $this->getMenuTestModel($menu_name);
+        // Check database
+        $model = $this->getMenuTestModel($menu_name);
 
-            foreach($data as $key => $value)
-            {
-                $this->assertMatch($model->{$key}, $value);
-            }
+        foreach($data as $key => $value)
+        {
+            $this->assertMatch($model->{$key}, $value);
         }
     }
 
@@ -195,7 +187,7 @@ class IMenuTest extends ExmentKitTestCase
      * @param \Closure|null $checkFunc
      * @return void
      */
-    protected function _testEditMenu(Menu $menu, array $editData, ?\Closure $checkFunc = null)
+    protected function _testEditMenu(Menu $menu, array $editData)
     {
         $this->visit(admin_urls('auth', 'menu', $menu->id, 'edit'))
             ->seePageIs(admin_urls('auth', 'menu', $menu->id, 'edit'));
@@ -213,21 +205,13 @@ class IMenuTest extends ExmentKitTestCase
             }
         }
 
-        $response = $this->put(admin_urls('auth', 'menu', $menu->id), $data);
-        $statusCode = $response->response->getStatusCode();
-        $this->assertTrue(in_array($response->response->getStatusCode(), [200, 302]), "Status code is {$statusCode}.");
+        $this->put(admin_urls('auth', 'menu', $menu->id), $data);
+        $this->assertPostResponse($this->response, admin_url('auth/menu'));
         
-        // if has test func, execute
-        if(isset($checkFunc)){
-            $checkFunc($response, $data);
-        }
-        else{
-            
-            $model = Menu::find($menu->id);
-            foreach($data as $key => $value)
-            {
-                $this->assertMatch($model->{$key}, $value);
-            }
+        $model = Menu::find($menu->id);
+        foreach($data as $key => $value)
+        {
+            $this->assertMatch($model->{$key}, $value);
         }
     }
 
