@@ -429,7 +429,7 @@ class RoleGroupController extends AdminControllerBase
 
         // validation for accessable rule
         $errors = $this->validateAccessable($request, $id);
-        if(!is_nullorempty($errors)){
+        if (!is_nullorempty($errors)) {
             return back()->withInput($request->all())->withErrors($errors);
         }
 
@@ -615,15 +615,15 @@ class RoleGroupController extends AdminControllerBase
         $custom_tables = $this->getTables(false);
 
         // check all tables
-        foreach($custom_tables as $custom_table){
+        foreach ($custom_tables as $custom_table) {
             $table_permission = array_get($table_permissions, $custom_table->table_name);
             $permissions = array_get($table_permission, 'permissions', []);
 
             // Whether accessable
-            $accessable_flg = 
+            $accessable_flg =
                 boolval($custom_table->getOption('all_user_accessable_flg')) ||
                 array_value_exists(Permission::CUSTOM_VALUE_ACCESS_ALL, $permissions);
-            if(!$accessable_flg){
+            if (!$accessable_flg) {
                 continue;
             }
 
@@ -632,8 +632,8 @@ class RoleGroupController extends AdminControllerBase
                 Permission::CUSTOM_VALUE_EDIT,
                 Permission::CUSTOM_VALUE_VIEW,
             ];
-            foreach($check_permissions as $check_permission){
-                if(array_value_exists($check_permission, $permissions)){
+            foreach ($check_permissions as $check_permission) {
+                if (array_value_exists($check_permission, $permissions)) {
                     $result["table_permission.{$custom_table->table_name}.permissions"][] = exmtrans('role_group.error.cannot_accessable_and_value', exmtrans("role_group.role_type_option_table.{$check_permission}.label"));
                 }
             }
@@ -705,8 +705,9 @@ class RoleGroupController extends AdminControllerBase
      *
      * @return \Illuminate\Support\Collection
      */
-    protected function getTables(bool $isMaster){
-        return CustomTable::filterList(null, ['checkPermission' => false, 'filter' => function ($model) use($isMaster) {
+    protected function getTables(bool $isMaster)
+    {
+        return CustomTable::filterList(null, ['checkPermission' => false, 'filter' => function ($model) use ($isMaster) {
             $func = $isMaster ? 'whereIn' : 'whereNotIn';
             $model->{$func}('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER());
             return $model;

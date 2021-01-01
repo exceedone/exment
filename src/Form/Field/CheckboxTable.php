@@ -43,15 +43,15 @@ class CheckboxTable extends Checkbox
      *
      * @return array
      */
-    protected function getItems(){
+    protected function getItems()
+    {
         $result = [];
         $errors = request()->session()->get('errors') ?: new \Illuminate\Support\ViewErrorBag;
 
-        foreach($this->items as $item){
-            if($errors->has(array_get($item, 'key'))){
+        foreach ($this->items as $item) {
+            if ($errors->has(array_get($item, 'key'))) {
                 $item['error'] = implode(',', $errors->get(array_get($item, 'key')));
-            }
-            else{
+            } else {
                 $item['error'] = null;
             }
 
@@ -68,7 +68,7 @@ class CheckboxTable extends Checkbox
      */
     protected function hasError() : bool
     {
-        return collect($this->getItems())->contains(function($item){
+        return collect($this->getItems())->contains(function ($item) {
             return !is_nullorempty(array_get($item, 'error'));
         });
     }
