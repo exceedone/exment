@@ -34,6 +34,25 @@ trait TestTrait
         return $this;
     }
 
+
+    /**
+     * Check post's Response
+     *
+     * @param mixed $response
+     * @param string|null $expectUrl
+     * @return void
+     */
+    protected function assertPostResponse($response, ?string $expectUrl)
+    {
+        $statusCode = $response->getStatusCode();
+        $this->assertTrue(in_array($statusCode, [200, 302]), "Status code is {$statusCode}.");
+
+        if($statusCode == 302){
+            $this->assertMatch($response->getTargetUrl(), $expectUrl);
+        }
+    }
+
+
     /**
      * Skip test temporarily.
      *

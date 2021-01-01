@@ -39,6 +39,41 @@ class CheckboxTable extends Checkbox
     }
 
     /**
+     * Get items. Append error.
+     *
+     * @return array
+     */
+    protected function getItems()
+    {
+        $result = [];
+        $errors = request()->session()->get('errors') ?: new \Illuminate\Support\ViewErrorBag;
+
+        foreach ($this->items as $item) {
+            if ($errors->has(array_get($item, 'key'))) {
+                $item['error'] = implode(',', $errors->get(array_get($item, 'key')));
+            } else {
+                $item['error'] = null;
+            }
+
+            $result[] = $item;
+        }
+        return $result;
+    }
+
+
+    /**
+     * Whether has error in items.
+     *
+     * @return bool
+     */
+    protected function hasError() : bool
+    {
+        return collect($this->getItems())->contains(function ($item) {
+            return !is_nullorempty(array_get($item, 'error'));
+        });
+    }
+
+    /**
      * header help
      *
      * @param string $headerHelps
@@ -56,10 +91,12 @@ class CheckboxTable extends Checkbox
      */
     public function render()
     {
+        // get items error message
         return parent::render()->with([
             'checkWidth' => $this->checkWidth,
-            'items' => $this->items,
+            'items' => $this->getItems(),
             'headerHelps' => collect($this->headerHelps)->toArray(),
+            'hasError' => $this->hasError(),
         ]);
     }
 }

@@ -627,6 +627,28 @@ if (!function_exists('array_key_value_exists')) {
     }
 }
 
+if (!function_exists('array_value_exists')) {
+    /**
+     * whether has array_value
+     * @param mixed $key
+     * @param array|\Illuminate\Support\Collection $array
+     * @return bool
+     */
+    function array_value_exists($value, $array) : bool
+    {
+        if (is_null($array)) {
+            return false;
+        }
+        foreach ($array as $arr) {
+            if (isMatchString($arr, $value)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('array_dot_reverse')) {
     /**
      * convert dotted_array to array

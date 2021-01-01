@@ -9,7 +9,7 @@ class ExmentDebug
 {
     public function handle(Request $request, \Closure $next)
     {
-        static::handleLog();
+        static::handleLog($request);
 
         return $next($request);
     }
@@ -76,8 +76,9 @@ class ExmentDebug
         })->implode(', ');
         $url = $request->fullUrl();
         $headers = $request->headers->__toString();
+        $ip = $request->ip();
 
-        \Log::debug("URL : $url\nInput : $input\nHeaders --------------------------------------\n$headers");
+        \Log::debug("\nIP : {$ip}\nURL : $url\nInput : $input\nHeaders --------------------------------------\n$headers");
     }
 
     protected static function getFunctionName($oneFunction = false)

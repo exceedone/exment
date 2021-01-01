@@ -157,8 +157,10 @@ class CCustomViewTest extends ExmentKitTestCase
             ],
         ];
 
-        $response = $this->post(admin_url('view/exmenttest_view'), $data);
-        $response->visit(admin_url('view/exmenttest_view'))
+        $this->post(admin_url('view/exmenttest_view'), $data);
+        $this->assertPostResponse($this->response, admin_url('view/exmenttest_view'));
+
+        $this->visit(admin_url('view/exmenttest_view'))
             ->seePageIs(admin_url('view/exmenttest_view'))
             ->seeInElement('td', 'TestView2')
             ->assertEquals($pre_cnt + 1, CustomView::count())
