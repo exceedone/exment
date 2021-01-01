@@ -115,6 +115,7 @@ class Permission
 
     /**
      * If request should pass through the current permission.
+     * called form can request check.
      *
      * @param Request $request
      *
@@ -125,11 +126,12 @@ class Permission
         // get target endpoint
         $endpoint = $this->getEndPoint($request->url());
 
-        return $this->shouldPass($endpoint);
+        return $this->shouldPass($endpoint, false);
     }
 
     /**
      * If endpoint should pass through the current permission.
+     * called form menu.
      *
      * @param string $endpoint
      *
@@ -140,17 +142,18 @@ class Permission
         // get target endpoint
         $endpoint = $this->getEndPoint($endpoint);
 
-        return $this->shouldPass($endpoint);
+        return $this->shouldPass($endpoint, true);
     }
 
     /**
      * If request should pass through the current permission.
      *
      * @param string|null $endpoint processed endpoint
+     * @param bool $isMenu this method is menu.
      *
      * @return bool
      */
-    protected function shouldPass($endpoint) : bool
+    protected function shouldPass(?string $endpoint, bool $isMenu) : bool
     {
         // checking booting function
         $result = $this->fireShouldPasses($endpoint);
@@ -182,10 +185,20 @@ class Permission
             return true;
         }
 
-        return $this->hasPermissionByEndpoint($endpoint);
+        return $this->hasPermissionByEndpoint($endpoint, $isMenu);
     }
 
-    protected function hasPermissionByEndpoint(string $endpoint, ?string $target = null, bool $recursive = false) : bool
+
+    /**
+     * Check has permission.
+     *
+     * @param string $endpoint endpoint uri. If endpoint is "data", $endpoint is table name.
+     * @param boolean $isMenu Whether this method is menu.
+     * @param string|null $target default is null. If endpoint is "data", $target is "data".
+     * @param boolean $recursive Whether this method is recursive.
+     * @return boolean
+     */
+    protected function hasPermissionByEndpoint(string $endpoint, bool $isMenu, ?string $target = null, bool $recursive = false) : bool
     {
         if (!isset($target)) {
             $target = $endpoint;
@@ -296,7 +309,7 @@ class Permission
                 }
                 return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
             case "data":
-                return $this->validateCustomValuePermission($endpoint);
+                return $this->validateCustomValuePermission($endpoint, $isMenu);
         }
         
         if ($recursive) {
@@ -306,7 +319,7 @@ class Permission
         // if find endpoint "data/", check as data
         $list = implode('|', array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['plugins']));
         if (preg_match('/^(' . $list  . ')\/(.+)$/u', $endpoint, $matched)) {
-            return $this->hasPermissionByEndpoint($matched[2], $matched[1], true);
+            return $this->hasPermissionByEndpoint($matched[2], $isMenu, $matched[1], true);
         }
 
 
@@ -358,7 +371,7 @@ class Permission
      * @param string|null $endpoint
      * @return bool
      */
-    protected function matchEndPointTable($endpoint)
+    protected function matchEndPointTable(?string $endpoint)
     {
         // Get Endpoint
         $table = CustomTable::findByEndpoint($endpoint);
@@ -372,9 +385,10 @@ class Permission
     /**
      * Check plugin's permission
      *
+     * @param string|null $endpoint
      * @return bool
      */
-    protected function validatePluginPermission($endpoint)
+    protected function validatePluginPermission(?string $endpoint)
     {
         // Get plugin data by Endpoint
         $plugin = Plugin::firstRecord(function ($plugin) use ($endpoint) {
@@ -402,16 +416,18 @@ class Permission
     /**
      * Check custom value's permission
      *
+     * @param string|null $endpoint
+     * @param bool $isMenu If is menu, return true
      * @return boolean
      */
-    protected function validateCustomValuePermission($endpoint)
+    protected function validateCustomValuePermission($endpoint, bool $isMenu)
     {
         if ($this->role_type == RoleType::PLUGIN) {
             return false;
         }
 
         // if request has id, permission contains CUSTOM_VALUE_ACCESS
-        if ($this->checkAsAccessCustomValue($endpoint)) {
+        if (!$isMenu && $this->checkAsAccessCustomValue($endpoint)) {
             $permissions = PermissionEnum::AVAILABLE_ACCESS_CUSTOM_VALUE;
         } else {
             $permissions = PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE;
