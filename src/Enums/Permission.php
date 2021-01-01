@@ -13,7 +13,7 @@ class Permission extends EnumBase
     const CUSTOM_VALUE_ACCESS_ALL = 'custom_value_access_all';
     const CUSTOM_VALUE_EDIT = 'custom_value_edit';
     const CUSTOM_VALUE_VIEW = 'custom_value_view';
-    const CUSTOM_VALUE_ACCESS = 'custom_value_access';
+    //const CUSTOM_VALUE_ACCESS = 'custom_value_access';
     const CUSTOM_VALUE_SHARE = 'custom_value_share';
     const CUSTOM_VALUE_VIEW_TRASHED = 'custom_value_view_trashed';
     const PLUGIN_ALL = 'plugin_all';

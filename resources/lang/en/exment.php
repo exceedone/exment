@@ -1676,6 +1676,10 @@ return [
             'plugin_access' => ['label' => 'Access', 'help' => 'User can use this plugin.'],
             'plugin_setting' => ['label' => 'Manage Setting', 'help' => 'For plugins with configuration changes, user can change the setting of this plugin.'],
         ],
+
+        'error' => [
+            'cannot_accessable_and_value' => 'The permissions "Browse all data" and "%s" cannot be set at the same time.',
+        ],
     ],
 
     'custom_relation' => [

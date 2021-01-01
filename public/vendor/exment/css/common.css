@@ -3811,6 +3811,10 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   border-color: #dd4b39;
 }
 
+.has-error .fa, .has-error .has-error-text {
+  color: #dd4b39;
+}
+
 .column-__actions__ {
   min-width: 50px;
 }

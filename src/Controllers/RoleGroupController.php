@@ -184,6 +184,7 @@ class RoleGroupController extends AdminControllerBase
             'label' => exmtrans('role_group.role_group_system.system'),
             'values' => $values,
             'name' => "system_permission[system][permissions]",
+            'key' => "system_permission.system.permissions",
         ]];
         
         $form->checkboxTable("system_permission_permissions", "")
@@ -206,6 +207,7 @@ class RoleGroupController extends AdminControllerBase
             'label' => exmtrans('role_group.role_group_system.role_group'),
             'values' => $values,
             'name' => "system_permission[role_groups][permissions]",
+            'key' => "system_permission.role_groups.permissions",
         ]];
         
         $form->checkboxTable("role_permission_permissions", "")
@@ -239,6 +241,7 @@ class RoleGroupController extends AdminControllerBase
                     'label' => $plugin->plugin_view_name,
                     'values' => $values,
                     'name' => "plugin_permission[$plugin->plugin_name][permissions]",
+                    'key' => "plugin_permission.{$plugin->plugin_name}.permissions",
                     'disables' => !$enabledPluginAccess ? [PERMISSION::PLUGIN_ACCESS] : [],
                 ];
 
@@ -258,12 +261,10 @@ class RoleGroupController extends AdminControllerBase
 
         // Master --------------------------------------------------------
         $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::MASTER()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
-
         $items = [];
-        foreach (CustomTable::filterList(null, ['checkPermission' => false, 'filter' => function ($model) {
-            $model->whereIn('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER());
-            return $model;
-        }]) as $table) {
+        $tables = $this->getTables(true);
+
+        foreach ($tables as $table) {
             $values = $model->role_group_permissions->first(function ($role_group_permission) use ($table) {
                 return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
             })->permissions ?? [];
@@ -271,6 +272,7 @@ class RoleGroupController extends AdminControllerBase
             $items[] = [
                 'label' => $table->table_view_name,
                 'values' => $values,
+                'key' => "master_permission.{$table->table_name}.permissions",
                 'name' => "master_permission[$table->table_name][permissions]",
             ];
 
@@ -290,12 +292,10 @@ class RoleGroupController extends AdminControllerBase
 
         // Table --------------------------------------------------------
         $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::TABLE()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
-
         $items = [];
-        foreach (CustomTable::filterList(null, ['checkPermission' => false, 'filter' => function ($model) {
-            $model->whereNotIn('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER());
-            return $model;
-        }]) as $table) {
+        $tables = $this->getTables(false);
+
+        foreach ($tables as $table) {
             $values = $model->role_group_permissions->first(function ($role_group_permission) use ($table) {
                 return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
             })->permissions ?? [];
@@ -304,6 +304,7 @@ class RoleGroupController extends AdminControllerBase
                 'label' => $table->table_view_name,
                 'values' => $values,
                 'name' => "table_permission[$table->table_name][permissions]",
+                'key' => "table_permission.{$table->table_name}.permissions",
             ];
 
             $form->hidden("table_permission[$table->table_name][id]")
@@ -426,16 +427,11 @@ class RoleGroupController extends AdminControllerBase
             return $response;
         }
 
-        // validation
-        $rules = [
-            'role_group_name' => [
-                isset($id) ? 'nullable' : 'required',
-                Rule::unique('role_groups')->ignore($id),
-                'max:64',
-                'regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/'
-            ],
-            'role_group_view_name' => 'required|max:64',
-        ];
+        // validation for accessable rule
+        $errors = $this->validateAccessable($request, $id);
+        if(!is_nullorempty($errors)){
+            return back()->withInput($request->all())->withErrors($errors);
+        }
 
         \DB::beginTransaction();
 
@@ -603,6 +599,50 @@ class RoleGroupController extends AdminControllerBase
         return true;
     }
 
+
+    /**
+     * Whether not contains accessable and each permission
+     *
+     * @param Request $request
+     * @param string|int $id
+     * @return array
+     */
+    protected function validateAccessable(Request $request, $id)
+    {
+        $result = [];
+
+        $table_permissions = $request->input('table_permission');
+        $custom_tables = $this->getTables(false);
+
+        // check all tables
+        foreach($custom_tables as $custom_table){
+            $table_permission = array_get($table_permissions, $custom_table->table_name);
+            $permissions = array_get($table_permission, 'permissions', []);
+
+            // Whether accessable
+            $accessable_flg = 
+                boolval($custom_table->getOption('all_user_accessable_flg')) ||
+                array_value_exists(Permission::CUSTOM_VALUE_ACCESS_ALL, $permissions);
+            if(!$accessable_flg){
+                continue;
+            }
+
+            // check custom value edit and view
+            $check_permissions = [
+                Permission::CUSTOM_VALUE_EDIT,
+                Permission::CUSTOM_VALUE_VIEW,
+            ];
+            foreach($check_permissions as $check_permission){
+                if(array_value_exists($check_permission, $permissions)){
+                    $result["table_permission.{$custom_table->table_name}.permissions"][] = exmtrans('role_group.error.cannot_accessable_and_value', exmtrans("role_group.role_type_option_table.{$check_permission}.label"));
+                }
+            }
+        }
+
+        return $result;
+    }
+
+
     /**
      * Add tools button
      *
@@ -657,6 +697,20 @@ class RoleGroupController extends AdminControllerBase
         } catch (\Exception $exception) {
             return false;
         }
+    }
+
+
+    /**
+     * Get tables
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    protected function getTables(bool $isMaster){
+        return CustomTable::filterList(null, ['checkPermission' => false, 'filter' => function ($model) use($isMaster) {
+            $func = $isMaster ? 'whereIn' : 'whereNotIn';
+            $model->{$func}('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER());
+            return $model;
+        }]);
     }
 
     protected function hasPermission_Permission()
