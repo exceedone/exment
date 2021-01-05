@@ -21,18 +21,15 @@ class CalendarGrid extends GridBase
         $this->custom_view->filterModel($model);
 
         $tools = [];
-        if ($this->custom_table->enableTableMenuButton()) {
-            $tools[] = new Tools\CustomTableMenuButton('data', $this->custom_table);
-        }
-        if ($this->custom_table->enableViewMenuButton()) {
-            $tools[] = new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view);
-        }
+        $this->setNewButton($tools);
+        $this->setTableMenuButton($tools);
+        $this->setViewMenuButton($tools);
 
         return view('exment::widgets.calendar', [
             'view_id' => $this->custom_view->suuid,
             'data_url' => admin_url('webapi/data', [$this->custom_table->table_name, 'calendar']),
-            'createUrl' => admin_url("data/$table_name/create"),
-            'new' => trans('admin.new'),
+            // 'createUrl' => admin_url("data/$table_name/create"),
+            // 'new' => trans('admin.new'),
             'tools' => $tools,
             'locale' => \App::getLocale(),
         ]);
@@ -46,7 +43,7 @@ class CalendarGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
-    public static function setViewForm($view_kind_type, $form, $custom_table)
+    public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
         

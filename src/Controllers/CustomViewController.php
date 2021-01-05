@@ -9,6 +9,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
@@ -228,12 +229,21 @@ class CustomViewController extends AdminControllerTableBase
         if ($request->has('from_data')) {
             $from_data = boolval($request->get('from_data'));
         }
+        $plugin = null;
+        if ($request->has('plugin')) {
+            $plugin = $request->get('plugin');
+        }
+        elseif(isset($model) && $view_kind_type == ViewKindType::PLUGIN){
+            $plugin = Plugin::find($model->getOption('plugin_id'));
+        }
 
         $form->hidden('custom_table_id')->default($this->custom_table->id);
 
         $form->hidden('view_kind_type')->default($view_kind_type);
         $form->hidden('from_data')->default($from_data);
         $form->ignore('from_data');
+        $form->hidden('plugin')->default($plugin);
+        $form->ignore('plugin');
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
@@ -265,7 +275,9 @@ class CustomViewController extends AdminControllerTableBase
         
         // set column' s form
         $classname = ViewKindType::getGridItemClassName($view_kind_type);
-        $classname::setViewForm($view_kind_type, $form, $this->custom_table);
+        $classname::setViewForm($view_kind_type, $form, $this->custom_table, [
+            'plugin' => $plugin,
+        ]);
 
         $custom_table = $this->custom_table;
 
@@ -293,6 +305,10 @@ class CustomViewController extends AdminControllerTableBase
                     admin_toastr(exmtrans('custom_view.message.over_sorts_max'), 'error');
                     return back()->withInput();
                 }
+            }
+
+            if(request()->has('plugin')){
+                $form->model()->setOption('plugin_id', Plugin::getPluginByUUID(request()->get('plugin'))->id);
             }
         });
 

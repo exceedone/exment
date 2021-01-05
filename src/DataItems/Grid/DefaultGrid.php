@@ -715,7 +715,7 @@ class DefaultGrid extends GridBase
      * @param CustomTable $custom_table
      * @return void
      */
-    public static function setViewForm($view_kind_type, $form, $custom_table)
+    public static function setViewForm($view_kind_type, $form, $custom_table, array $options = [])
     {
         if (in_array($view_kind_type, [Enums\ViewKindType::DEFAULT, Enums\ViewKindType::ALLDATA])) {
             $form->select('pager_count', exmtrans("common.pager_count"))
@@ -747,20 +747,6 @@ class DefaultGrid extends GridBase
             static::setFilterFields($form, $custom_table);
         }
 
-        // sort setting
-        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
-            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-            ->options($custom_table->getColumnsSelectOptions([
-                'append_table' => true,
-                'index_enabled_only' => true,
-            ]));
-            $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
-                ->required()
-                ->default(1)
-                ->help(exmtrans('custom_view.help.sort_type'));
-            $form->hidden('priority')->default(0);
-        })->setTableColumnWidth(7, 3, 2)
-        ->rowUpDown('priority')
-        ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_sorts"), $manualUrl));
+        static::setSortFields($form, $custom_table);
     }
 }

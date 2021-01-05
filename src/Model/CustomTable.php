@@ -2564,6 +2564,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Get CustomValue's query.
+     *
+     * @param null|int|string $id CustomValue's id
+     * @param bool $withTrashed if true, get already trashed value.
+     * @return \Illuminate\Database\Schema\Builder
+     */
+    public function getValueQuery() : \Illuminate\Database\Schema\Builder
+    {
+        return $this->getValueModel->query();
+    }
+    
+
+    /**
      * get array for "makeHidden" function
      */
     public function getMakeHiddenArray()

@@ -123,7 +123,7 @@ class ExmentServiceProvider extends ServiceProvider
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
         'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
-        'laravel-page-speed.jscomments' => \Exceedone\Exment\Middleware\InlineJsRemoveComments::class,
+        //'laravel-page-speed.jscomments' => \Exceedone\Exment\Middleware\InlineJsRemoveComments::class,
         'laravel-page-speed.comments' => \RenatoMarinho\LaravelPageSpeed\Middleware\RemoveComments::class,
 
     ];
@@ -145,7 +145,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.morph',
             'admin.bootstrap2',
             'laravel-page-speed.space',
-            'laravel-page-speed.jscomments',
+            //'laravel-page-speed.jscomments',
             'laravel-page-speed.comments',
             'admin.pjax',
             'admin.log',

@@ -92,43 +92,7 @@ class Bootstrap
         Ad::js(asset('vendor/exment/js/changefield.js?ver='.$ver));
 
         // set scripts
-        $pluginPublics = Plugin::getPluginPublics();
-        foreach ($pluginPublics as $pluginPublic) {
-            // get scripts
-            $plugin = $pluginPublic->_plugin();
-            $p = $plugin->matchPluginType(PluginType::SCRIPT) ? 'js' : 'css';
-            $cdns = array_get($plugin, 'options.cdns', []);
-            foreach ($cdns as $cdn) {
-                Ad::{$p.'last'}($cdn);
-            }
-
-            // get each scripts
-            $items = collect($pluginPublic->{$p}(true))->map(function ($item) use ($pluginPublic) {
-                return admin_urls($pluginPublic->_plugin()->getRouteUri(), 'public/', $item);
-            });
-            if (!empty($items)) {
-                foreach ($items as $item) {
-                    Ad::{$p.'last'}($item);
-                }
-            }
-        }
-
-        // set Plugin resource
-        $pluginPages = Plugin::getPluginPages();
-        foreach ($pluginPages as $pluginPage) {
-            // get css and js
-            $publics = ['css', 'js'];
-            foreach ($publics as $p) {
-                $items = collect($pluginPage->{$p}())->map(function ($item) use ($pluginPage) {
-                    return admin_urls($pluginPage->_plugin()->getRouteUri(), 'public/', $item);
-                });
-                if (!empty($items)) {
-                    foreach ($items as $item) {
-                        Ad::{$p.'last'}($item);
-                    }
-                }
-            }
-        }
+        $this->setScriptStyle();
 
         Ad::jslast(asset('vendor/exment/js/customscript.js?ver='.$ver));
 
@@ -162,5 +126,35 @@ EOT;
         $pathInfo = $request->getPathInfo();
         $extension = strtolower(pathinfo($pathInfo, PATHINFO_EXTENSION));
         return in_array($extension, ['js', 'css', 'png', 'jpg', 'jpeg', 'gif']);
+    }
+
+
+    protected function setScriptStyle()
+    {
+        // set scripts
+        $pluginPublics = Plugin::getPluginScriptStyles();
+        foreach ($pluginPublics as $pluginPublic) {
+            // get scripts
+            $plugin = $pluginPublic->_plugin();
+
+            // get css and js
+            $publics = ['css', 'js'];
+            foreach ($publics as $p) {
+                $cdns = array_get($plugin, 'options.cdns', []);
+                foreach ($cdns as $cdn) {
+                    Ad::{$p.'last'}($cdn);
+                }
+    
+                // get each scripts
+                $items = collect($pluginPublic->{$p}(true))->map(function ($item) use ($pluginPublic) {
+                    return admin_urls($pluginPublic->_plugin()->getRouteUri(), 'public/', $item);
+                });
+                if (!empty($items)) {
+                    foreach ($items as $item) {
+                        Ad::{$p.'last'}($item);
+                    }
+                }
+            }
+        }
     }
 }

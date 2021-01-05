@@ -2,9 +2,11 @@
 
 namespace Exceedone\Exment\DataItems\Grid;
 
+use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewColumn;
@@ -12,6 +14,7 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Form\Tools\ConditionHasManyTable;
+use Exceedone\Exment\Form\Tools;
 
 abstract class GridBase
 {
@@ -114,7 +117,15 @@ abstract class GridBase
     }
 
     
-    protected static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
+    /**
+     * Set filter fileds form
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @param boolean $is_aggregate
+     * @return void
+     */
+    public static function setFilterFields(&$form, $custom_table, $is_aggregate = false)
     {
         $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
 
@@ -150,6 +161,69 @@ abstract class GridBase
         $form->radio('condition_join', exmtrans("condition.condition_join"))
             ->options(exmtrans("condition.condition_join_options"))
             ->default('and');
+    }
+
+    
+    /**
+     * Set sort fileds form
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @param boolean $is_aggregate
+     * @return void
+     */
+    public static function setSortFields(&$form, $custom_table, $is_aggregate = false)
+    {
+        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+        
+        // sort setting
+        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
+            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+            ->options($custom_table->getColumnsSelectOptions([
+                'append_table' => true,
+                'index_enabled_only' => true,
+            ]));
+            $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
+                ->required()
+                ->default(1)
+                ->help(exmtrans('custom_view.help.sort_type'));
+            $form->hidden('priority')->default(0);
+        })->setTableColumnWidth(7, 3, 2)
+        ->rowUpDown('priority')
+        ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_sorts"), $manualUrl));
+    }
+
+    /**
+     * setTableMenuButton
+     *
+     * @return void
+     */
+    protected function setTableMenuButton(&$tools){
+        if ($this->custom_table->enableTableMenuButton()) {
+            $tools[] = \Exment::getRender(new Tools\CustomTableMenuButton('data', $this->custom_table));
+        }
+    }
+
+    /**
+     * setViewMenuButton
+     *
+     * @return void
+     */
+    protected function setViewMenuButton(&$tools){
+        if ($this->custom_table->enableViewMenuButton()) {
+            $tools[] = \Exment::getRender(new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view));
+        }
+    }
+
+    /**
+     * setNewButton
+     *
+     * @return void
+     */
+    protected function setNewButton(&$tools){
+        if ($this->custom_table->enableCreate(true) === true) {
+            $tools[] = \Exment::getRender(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
+        }
     }
 
 

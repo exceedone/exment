@@ -29,7 +29,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     //protected $appends = ['view_calendar_target', 'pager_count'];
     //protected $appends = ['pager_count', 'condition_join'];
     protected $guarded = ['id', 'suuid'];
-    protected $casts = ['options' => 'json'];
+    protected $casts = ['options' => 'json', 'custom_options' => 'json'];
     //protected $with = ['custom_table', 'custom_view_columns'];
     
     private $_grid_item;
