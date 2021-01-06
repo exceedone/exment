@@ -19,7 +19,7 @@
         "php": ">=7.1.3",
         "kajitoritest/laravel-admin": "~2.0",
         "laravel/framework": "~6.20",
-        "laravelcollective/html": "^5.6.0",
+        "laravelcollective/html": "~6.2",
         "webpatser/laravel-uuid": "^3.0",
         "phpoffice/phpspreadsheet": "^1.5.0",
         "box/spout": "^3.1",
