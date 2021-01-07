@@ -158,6 +158,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->_grid_item;
     }
 
+    public function getCustomOption($key, $default = null)
+    {
+        return $this->getJson('custom_options', $key, $default);
+    }
+    public function setCustomOption($key, $val = null)
+    {
+        return $this->setJson('custom_options', $key, $val);
+    }
+
     public function deletingChildren()
     {
         $this->custom_view_columns()->delete();

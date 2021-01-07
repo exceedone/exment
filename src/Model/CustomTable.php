@@ -207,6 +207,30 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->cached_custom_columns;
     }
 
+
+    /**
+     * Get Filterd type columns.
+     *
+     * @param string|array|Collection $column_types
+     * @return Collection
+     */
+    public function getFilteredTypeColumns($column_types)
+    {
+        return $this->custom_columns_cache->filter(function(CustomColumn $custom_column) use($column_types){
+            if(is_string($column_types)){
+                $column_types = [$column_types];
+            }
+            foreach($column_types as $column_type){
+                if(isMatchString($column_type, $custom_column->column_type)){
+                    return true;
+                }
+            }
+
+            return false;
+        });
+    }
+
+
     /**
      * Get Columns where select_target_table's id is this table.
      *
@@ -2568,11 +2592,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @param null|int|string $id CustomValue's id
      * @param bool $withTrashed if true, get already trashed value.
-     * @return \Illuminate\Database\Schema\Builder
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function getValueQuery() : \Illuminate\Database\Schema\Builder
+    public function getValueQuery() : \Illuminate\Database\Eloquent\Builder
     {
-        return $this->getValueModel->query();
+        return $this->getValueModel()->query();
     }
     
 
