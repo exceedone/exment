@@ -495,7 +495,7 @@ class Notify extends ModelBase
                 continue;
             }
 
-            $values_inner = $notifyTarget::getModelsWorkflow($custom_value, $workflow_action, $workflow_value, $statusTo);
+            $values_inner = $notifyTarget->getModelsWorkflow($custom_value, $workflow_action, $workflow_value, $statusTo);
             foreach ($values_inner as $u) {
                 $values->push($u);
             }
@@ -513,11 +513,6 @@ class Notify extends ModelBase
                 return true;
             }
             return false;
-        });
-
-        // convert as NotifyTarget
-        $values = $values->map(function ($value) {
-            return NotifyTarget::getModelAsUser($value);
         });
 
         return $values;

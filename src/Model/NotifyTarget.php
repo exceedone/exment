@@ -30,7 +30,7 @@ class NotifyTarget
      * target custom column notify
      *
      * @var CustomColumn|null
-     */
+     */ 
     protected $customColumn;
 
     /**
@@ -118,6 +118,16 @@ class NotifyTarget
             //'user_code' => $this->userCode,
             'user_name' => $this->name,
         ];
+    }
+
+
+    /**
+     * return user id
+     *
+     * @return string|null
+     */
+    public function getUserId(){
+        return $this->id;
     }
 
 

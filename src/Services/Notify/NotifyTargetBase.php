@@ -67,7 +67,7 @@ abstract class NotifyTargetBase
      * Get notify target model
      *
      * @param CustomValue $custom_value
-     * @return Collection
+     * @return Collection Please return Notify target's collection
      */
     abstract public function getModels(CustomValue $custom_value) : Collection;
 
@@ -76,11 +76,13 @@ abstract class NotifyTargetBase
      * Get notify target model for workflow
      *
      * @param CustomValue $custom_value
-     * @return Collection
+     * @param WorkflowAction $workflow_action
+     * @param WorkflowValue|null $workflow_value
+     * @param mixed $statusTo
+     * @return Collection Please return Notify target's collection
      */
     public function getModelsWorkflow(CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
     {
-
         return collect();
     }
 }

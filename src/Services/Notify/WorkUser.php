@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\Model\NotifyTarget;
 
 class WorkUser extends NotifyTargetBase
 {
@@ -24,16 +25,19 @@ class WorkUser extends NotifyTargetBase
      */
     public function getModelsWorkflow(CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
     {
-        $result = collect();
+        $workflow = $workflow_action->workflow_cache;
+        $users = collect();
 
         // if this workflow is completed
         if (!isset($workflow_value) || !$workflow_value->isCompleted()) {
             WorkflowStatus::getActionsByFrom($statusTo, $workflow, true)
-                ->each(function ($workflow_action) use (&$result, $custom_value) {
-                    $result = $result->merge($workflow_action->getAuthorityTargets($custom_value, true));
+                ->each(function ($workflow_action) use (&$users, $custom_value) {
+                    $users = $users->merge($workflow_action->getAuthorityTargets($custom_value, true));
                 });
         }
 
-        return $result;
+        return $users->map(function($user){
+            return NotifyTarget::getModelAsUser($user);
+        });
     }
 }

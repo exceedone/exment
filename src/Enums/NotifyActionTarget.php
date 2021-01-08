@@ -15,7 +15,6 @@ class NotifyActionTarget extends EnumBase
         return [
             static::HAS_ROLES,
             static::CREATED_USER,
-            static::FIXED_EMAIL,
         ];
     }
     
@@ -24,7 +23,6 @@ class NotifyActionTarget extends EnumBase
         return [
             static::CREATED_USER,
             static::WORK_USER,
-            static::FIXED_EMAIL,
         ];
     }
 }

@@ -13,12 +13,8 @@ class CreatedUser extends NotifyTargetBase
 {
     public function getModels(CustomValue $custom_value) : Collection
     {
-        $result = collect();
-        $item = NotifyTarget::getModelAsUser(CustomTable::getEloquent(SystemTableName::USER)->getValueModel($custom_value->created_user_id));
-        if(isset($item)){
-            $result->push($item);
-        }
-        return $result;
+        $item = NotifyTarget::getModelAsUser($custom_value->created_user_value);
+        return collect([$item]);
     }
 
 
@@ -30,7 +26,7 @@ class CreatedUser extends NotifyTargetBase
      */
     public function getModelsWorkflow(CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo) : Collection
     {
-        $created_user = $custom_value->created_user_value;
-        return collect([$created_user]);
+        $item = NotifyTarget::getModelAsUser($custom_value->created_user_value);
+        return collect([$item]);
     }
 }
