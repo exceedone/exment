@@ -126,10 +126,10 @@ class NotifyTarget
      *
      * @param Notify $notify
      * @param CustomValue $custom_value
-     * @param string $column NotifyActionTarget or custom column id.
+     * @param string|CustomColumn $notify_action_target NotifyActionTarget or custom column id or CustomColumn.
      * @return array Notify targets
      */
-    public static function getModels(Notify $notify, CustomValue $custom_value, string $notify_action_target, array $action_setting)
+    public static function getModels(Notify $notify, CustomValue $custom_value, $notify_action_target, array $action_setting)
     {
         $notifyTarget = NotifyTargetBase::make($notify_action_target, $notify, $action_setting);
         if(!$notifyTarget){

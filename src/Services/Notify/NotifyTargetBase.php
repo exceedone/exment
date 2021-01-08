@@ -5,6 +5,7 @@ use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowValue;
 
@@ -33,12 +34,16 @@ abstract class NotifyTargetBase
     /**
      * Create instance
      *
-     * @param string $notify_action_target
+     * @param string|CustomColumn $notify_action_target
      * @param Notify $notify model
      * @return NotifyTargetBase|null
      */
-    public static function make(string $notify_action_target, Notify $notify, array $action_setting) : ?NotifyTargetBase
+    public static function make($notify_action_target, Notify $notify, array $action_setting) : ?NotifyTargetBase
     {
+        if($notify_action_target instanceof CustomColumn){
+            return new Column($notify, $action_setting, $notify_action_target);  
+        }
+        
         switch($notify_action_target){
             case NotifyActionTarget::CREATED_USER:
                 return new CreatedUser($notify, $action_setting);
