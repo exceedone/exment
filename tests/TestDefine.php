@@ -52,6 +52,7 @@ class TestDefine
     public const FILE_TESTSTRING = 'This is test file'; //text file.
 
     public const TESTDATA_DUMMY_EMAIL = 'foobar@test.com';
+    public const TESTDATA_DUMMY_EMAIL2 = 'foobar2@test.com';
 
     public const TESTDATA_COLUMN_NAMES = [
         'default' => [

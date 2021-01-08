@@ -30,6 +30,11 @@ class FixedEmail extends NotifyTargetBase
     protected function getFixedEmail() : Collection
     {
         $emails = array_get($this->action_setting, 'target_emails');
+
+        if(is_array($emails)){
+            $emails = arrayToString($emails);
+        }
+
         return collect(stringToArray($emails))->map(function($email){
             return NotifyTarget::getModelAsEmail($email);
         });
