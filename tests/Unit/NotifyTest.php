@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Jobs;
@@ -412,7 +413,7 @@ class NotifyTest extends UnitTestBase
     public function testNotifyTargetHasRoles()
     {
         $this->_testNotifyTarget(CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT), NotifyActionTarget::HAS_ROLES, function($targets, $custom_value){
-            $users = $this->callStaticProtectedMethod(NotifyTarget::class, 'getModelsAsRole', $custom_value);
+            $users = NotifyTarget::getModelsAsRole($custom_value);
             $this->assertTrue(count($targets) == count($users), 'targets count is ' . count($targets) . ', but users count is ' . count($users));
 
             foreach($users as $user){
@@ -534,7 +535,7 @@ class NotifyTest extends UnitTestBase
 
         foreach([2, 1, 10] as $id){
             $custom_value = $custom_table->getValueModel($id);
-            $targets = NotifyTarget::getModels(new Notify, $custom_value, $notify_action_target);
+            $targets = NotifyTarget::getModels(new Notify, $custom_value, $notify_action_target, []);
             
             $checkCallback($targets, $custom_value);
         }

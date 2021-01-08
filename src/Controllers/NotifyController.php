@@ -7,6 +7,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Layout\Content;
+use Exceedone\Exment\Validator\EmailMultiline;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
@@ -20,6 +21,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyBeforeAfter;
 use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Form\Tools;
@@ -362,6 +364,20 @@ class NotifyController extends AdminControllerBase
                     ])
                 ])
                 ->help(exmtrans("notify.help.notify_action_target"));
+
+
+            $form->textarea('target_emails', exmtrans("notify.target_emails"))
+                ->required()
+                ->rows(3)
+                ->help(exmtrans("notify.help.target_emails"))
+                ->rules([new EmailMultiline()])
+                ->attribute([
+                    'data-filter' => json_encode([
+                        ['key' => 'notify_action', 'value' => [NotifyAction::EMAIL]],
+                        ['key' => 'notify_action_target', 'value' => [NotifyActionTarget::FIXED_EMAIL]],
+                    ])
+                ]);
+
 
             if (!isset($system_slack_user_column)) {
                 $form->display('notify_action_target_text', exmtrans("notify.notify_action_target"))
