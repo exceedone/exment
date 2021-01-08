@@ -70,6 +70,8 @@ class ExmentDebug
         $input = collect($request->input())->map(function ($value, $key) {
             if (in_array($key, LogOperation::getHideColumns())) {
                 return "$key:xxxx";
+            } elseif(is_array($value)) {
+                return "$key:" . json_encode($value);
             } else {
                 return "$key:$value";
             }
