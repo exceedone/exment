@@ -14,7 +14,7 @@ class TotalUpdateCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:total-update';
+    protected $signature = 'exment:total-update {--backup=1} {--publish=1}';
 
     /**
      * The console command description.
@@ -42,6 +42,9 @@ class TotalUpdateCommand extends Command
      */
     public function handle()
     {
-        UpdateService::updateExment();
+        UpdateService::update([
+            'backup' => boolval($this->option('backup') ?? true),
+            'publish' => boolval($this->option('publish') ?? true),
+        ]);
     }
 }
