@@ -393,8 +393,6 @@ class SystemController extends AdminControllerBase
     public function callUpdate(Request $request)
     {
         UpdateService::update([
-            'backup' => boolval($this->option('backup') ?? true),
-            'publish' => boolval($this->option('publish') ?? true),
         ]);
     }
 }

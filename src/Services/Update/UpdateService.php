@@ -58,13 +58,16 @@ class UpdateService
     {
         if (!$event) {
             $composer = new Composer();
-            $baseDir = __DIR__.'/../..';
+            $baseDir = base_path();
 
             if (file_exists("$baseDir/autoload.php")) {
                 $baseDir .= '/..';
             }
 
-            $composer->setConfig(new Config(true, $baseDir));
+            $config = new Config(true, $baseDir);
+            $config->merge(['config' => ['archive-dir' => $baseDir]]);
+
+            $composer->setConfig($config);
             $event = new ScriptEvent(
                 'upgrade-carbon',
                 $composer,
