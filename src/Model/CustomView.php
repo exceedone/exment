@@ -569,7 +569,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function filterModel($model, $options = [])
     {
         $options = array_merge([
-            'sort' => true,
+            'sort' => false, // v4.0.0, default is false
             'callback' => null,
         ], $options);
 
@@ -596,6 +596,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         ///// We don't need filter using role here because filter auto using global scope.
 
         return $model;
+    }
+
+
+    /**
+     * filter and sort target model
+     */
+    public function filterSortModel($query, $options = [])
+    {
+        $options = array_merge([
+            'sort' => true,
+        ], $options);
+        return $this->filterModel($query, $options);
     }
 
 

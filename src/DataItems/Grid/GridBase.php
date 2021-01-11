@@ -105,7 +105,7 @@ abstract class GridBase
             }
         }
         $filter_func = function ($model) use ($filters, $group_view) {
-            $group_view->filterModel($model, ['sort' => false]);
+            $group_view->filterModel($model); // sort is false.
             $model->where(function ($query) use ($filters) {
                 foreach ($filters as $filter) {
                     $filter->setValueFilter($query);

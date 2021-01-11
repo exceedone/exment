@@ -122,7 +122,7 @@ class ExportChunkCommand extends Command
                 $grid->model()->setPerPageArguments([$options['count'] ?? 1000, ['*'], 'page', $i])
                     ->disableHandleInvalidPage();
                 if (isset($options['view']) && $options['view'] instanceof CustomView) {
-                    $options['view']->filterModel($grid->model());
+                    $options['view']->filterSortModel($grid->model());
                 }
 
                 $seq = str_pad($i, $options['seqlength'], 0, STR_PAD_LEFT);

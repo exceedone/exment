@@ -18,7 +18,7 @@ class CalendarGrid extends GridBase
     {
         $table_name = $this->custom_table->table_name;
         $model = $this->custom_table->getValueModel()->query();
-        $this->custom_view->filterModel($model);
+        $this->custom_view->filterSortModel($model);
 
         $tools = [];
         $this->setNewButton($tools);

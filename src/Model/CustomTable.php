@@ -1440,7 +1440,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
                 // target view
                 if (isset($target_view)) {
-                    $target_view->filterModel($query);
+                    $target_view->filterSortModel($query);
                 }
 
                 return $paginate ? $query->paginate($maxCount) : $query->get();
@@ -1456,7 +1456,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
                 // target view
                 if (isset($target_view)) {
-                    $target_view->filterModel($query);
+                    $target_view->filterSortModel($query);
                 }
 
                 return $paginate ? $query->paginate($maxCount) : $query->get();
@@ -2071,7 +2071,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // filter model using view
         if (isset($target_view)) {
-            $target_view->filterModel($query);
+            $target_view->filterSortModel($query);
         }
 
         if (isset($filterCallback)) {

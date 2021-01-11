@@ -50,7 +50,7 @@ class DefaultGrid extends GridBase
             $this->gridFilterForModal($grid, $this->callback);
         } else {
             // filter
-            $this->custom_view->filterModel($grid->model(), ['callback' => $this->callback]);
+            $this->custom_view->filterSortModel($grid->model(), ['callback' => $this->callback]);
         }
 
         // get search_enabled_columns and loop
@@ -98,7 +98,7 @@ class DefaultGrid extends GridBase
     public function getQuery($query, array $options = [])
     {
         // Now only execute filter Model
-        return $this->custom_view->filterModel($query, $options);
+        return $this->custom_view->filterSortModel($query, $options);
     }
 
 
@@ -167,7 +167,7 @@ class DefaultGrid extends GridBase
 
         // filter using modal_target_view, and display table
         if (isset($modal_target_view)) {
-            $modal_target_view->filterModel($grid->model(), ['callback' => $filter_func]);
+            $modal_target_view->filterSortModel($grid->model(), ['callback' => $filter_func]);
         }
 
         // filter display table

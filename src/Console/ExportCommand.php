@@ -111,7 +111,7 @@ class ExportCommand extends Command
             }
 
             if (isset($options['view']) && $options['view'] instanceof CustomView) {
-                $options['view']->filterModel($grid->model());
+                $options['view']->filterSortModel($grid->model());
             }
     
             $service = (new DataImportExport\DataImportExportService())

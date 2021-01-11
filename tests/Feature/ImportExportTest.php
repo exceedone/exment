@@ -265,7 +265,7 @@ class ImportExportTest extends TestCase
         if (isset($params['--action']) && $params['--action'] == 'view') {
             $custom_view = CustomView::getEloquent($params['--view']);
             $model = $custom_table->getValueModel()->query();
-            $custom_view->filterModel($model);
+            $custom_view->filterSortModel($model);
             $pager_count = $custom_view->pager_count;
         } else {
             $model = $custom_table->getValueModel()->query()->orderby('id');

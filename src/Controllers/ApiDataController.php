@@ -219,7 +219,7 @@ class ApiDataController extends AdminControllerTableBase
 
         // get model filtered using role
         $model = getModelName($this->custom_table)::query();
-        \Exment::user()->filterModel($model);
+        \Exment::user()->filterSortModel($model);
 
         $validator = Validator::make($request->all(), [
             'q' => 'required',
@@ -962,7 +962,7 @@ class ApiDataController extends AdminControllerTableBase
         // get paginate
         $model = $this->custom_table->getValueModel()->query();
         // filter model
-        $custom_view->filterModel($model);
+        $custom_view->filterSortModel($model);
 
         $tasks = [];
         foreach ($custom_view->custom_view_columns as $custom_view_column) {
