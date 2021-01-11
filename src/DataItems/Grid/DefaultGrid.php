@@ -725,21 +725,9 @@ class DefaultGrid extends GridBase
                 ->default(0);
         }
 
-        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
+        // column setting
         if ($view_kind_type != Enums\ViewKindType::FILTER) {
-            // columns setting
-            $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
-                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($custom_table->getColumnsSelectOptions([
-                        'append_table' => true,
-                        'include_parent' => true,
-                        'include_workflow' => true,
-                    ]));
-                $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-                $form->hidden('order')->default(0);
-            })->required()->setTableColumnWidth(7, 3, 2)
-            ->rowUpDown('order', 10)
-            ->descriptionHtml(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
+            static::setColumnFields($form, $custom_table);
         }
 
         // filter setting

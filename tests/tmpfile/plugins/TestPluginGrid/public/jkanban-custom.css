@@ -7,14 +7,21 @@
   min-height: 300px;
 }
 
-.kanban-container .kanban-item{
+#kanban .kanban-container .kanban-item{
   position: relative;
+  padding: 10px;
+  margin-bottom: 15px;
 }
 
-.kanban-container .kanban-item-text{
+#kanban .kanban-container .kanban-item-text{
   display: inline-block;
   width: calc(100% - 40px);
   word-wrap: break-word;
+  font-size:0.85em;
+}
+
+#kanban .kanban-board .kanban-drag{
+  padding: 15px;
 }
 
 .kanban-container .kanban-item-icon{

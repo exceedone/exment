@@ -163,6 +163,32 @@ abstract class GridBase
             ->default('and');
     }
 
+
+    /**
+     * Set column fields form
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @return void
+     */
+    public static function setColumnFields(&$form, $custom_table, array $column_options = []){
+        // columns setting
+        $column_options = array_merge([
+            'append_table' => true,
+            'include_parent' => true,
+            'include_workflow' => true,
+        ], $column_options);
+
+        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table, $column_options) {
+            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                ->options($custom_table->getColumnsSelectOptions($column_options));
+            $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+            $form->hidden('order')->default(0);
+        })->required()->setTableColumnWidth(7, 3, 2)
+        ->rowUpDown('order', 10)
+        ->descriptionHtml(exmtrans("custom_view.description_custom_view_columns"));
+    }
+
     
     /**
      * Set sort fileds form
