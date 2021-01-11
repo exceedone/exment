@@ -68,6 +68,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->put('system/filedelete', 'SystemController@filedelete');
             $router->get('system/version', 'SystemController@version');
             $router->post('system/send_testmail', 'SystemController@sendTestMail');
+            $router->post('system/call_update', 'SystemController@callUpdate');
             
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
