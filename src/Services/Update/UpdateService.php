@@ -40,9 +40,12 @@ class UpdateService
         try {
             $backup = new Backup;
             $backup->check();
-            $backup->execute();
+            $backup->initBackupRestore()->execute();
         } catch (BackupRestoreNotSupportedException $ex) {
         } catch (BackupRestoreCheckException $ex) {
+        }
+        finally{
+            $backup->diskService()->deleteTmpDirectory();
         }
     }
 
