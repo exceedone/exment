@@ -18,6 +18,7 @@ class UpdateHelper extends UpdateHelperBase
         foreach($dependencies as $name => $version){
             $composer =  \Exment::getComposerPath();
             //$output = shell_exec("composer require {$name}={$version} --no-scripts");
+            chdir(base_path());
             exec("{$composer} require {$name}={$version} --no-scripts", $output, $return_var);
 
             if($return_var != 0){
