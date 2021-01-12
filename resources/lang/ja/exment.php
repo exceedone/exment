@@ -266,7 +266,7 @@ return [
         'version_develope' => 'このシステムは開発バージョンです。',
         'version_old' => '新しいバージョンがあります。',
         'version_error' => 'バージョンの取得に失敗しました。',
-        'update_guide' => 'アップデート手順はこちらから',
+        'update_guide' => 'アップデートはこちらから実施してください',
         'current_version' => '現在のバージョン：',
         'password_policy' => 'パスワードポリシー',
         'complex_password' => '複雑なパスワード',
@@ -296,6 +296,8 @@ return [
         'call_update_modal_confirm' => 'バージョン%sにシステムアップデートを実施します。',
         'call_update_success' => 'アップデートが完了しました！',
         'call_update_success_text' => 'アップデートが完了しました。5秒後、自動的にログアウトされます。',
+        'call_update_cannot' => 'アップデート不可',
+        'call_update_cannot_description' => '以下のシステム要件に問題がありましたので、画面からのアップデートはできません。以下のシステム要件を確認してください。',
 
         'site_skin_options' => [
             "skin-blue" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",

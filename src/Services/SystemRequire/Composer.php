@@ -16,8 +16,12 @@ class Composer extends SystemRequireBase
 
             // check EXMENT_COMPOSER_PATH
             $path = \Exment::getComposerPath();
-            if($path != 'composer' && file_exists($path)){
-                $this->result = SystemRequireResult::OK;
+            if($path != 'composer'){
+                if(file_exists($path)){
+                    $this->result = SystemRequireResult::OK;
+                    return;
+                }
+                $this->result = SystemRequireResult::WARNING;
                 return;
             }
 
