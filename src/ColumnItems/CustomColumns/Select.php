@@ -134,4 +134,24 @@ class Select extends CustomItem
     {
         return Field\Select::class;
     }
+
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        $form->textarea('select_item', exmtrans("custom_column.options.select_item"))
+            ->required()
+            ->help(exmtrans("custom_column.help.select_item"));
+            
+        $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
+            ->help(exmtrans("custom_column.help.multiple_enabled"));
+
+}
+
 }

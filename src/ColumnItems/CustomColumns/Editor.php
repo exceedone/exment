@@ -222,4 +222,21 @@ class Editor extends CustomItem
 
         return null;
     }
+
+    
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        $form->number('rows', exmtrans("custom_column.options.rows"))
+            ->default(6)
+            ->min(1)
+            ->max(30)
+            ->help(exmtrans("custom_column.help.rows"));
+    }
 }

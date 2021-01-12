@@ -64,4 +64,25 @@ class SelectValtext extends Select
 
         return null;
     }
+    
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        // define select-item
+        $form->textarea('select_item_valtext', exmtrans("custom_column.options.select_item"))
+            ->required()
+            ->help(exmtrans("custom_column.help.select_item_valtext"));
+
+        // enable multiple
+        $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"));
+
+    }
+
 }

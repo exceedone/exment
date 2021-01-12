@@ -8,6 +8,7 @@ use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Services\Calc\CalcService;
 use Symfony\Component\HttpFoundation\Response;
+use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -22,11 +23,8 @@ use Exceedone\Exment\Enums\MultisettingType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ConditionType;
-use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\CurrencySymbol;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Validator;
 use Illuminate\Validation\Rule;
@@ -173,8 +171,18 @@ class CustomColumnController extends AdminControllerTableBase
      */
     protected function form($id = null)
     {
-        $controller = $this;
         $form = new Form(new CustomColumn);
+        
+        // get custom_item for option
+        $custom_column = CustomColumn::getEloquent($id);
+        if(isset($custom_column)){
+            $column_item = $custom_column->column_item;
+        }elseif(!is_nullorempty($request->get('column_type'))){
+            $column_item = $this->getCustomItem(request(), $id, $request->get('column_type'));
+        }else{
+            $column_item = null;
+        }
+
         // set script
         $ver = \Exment::getExmentCurrentVersion();
         if (!isset($ver)) {
@@ -238,6 +246,9 @@ class CustomColumnController extends AdminControllerTableBase
                         ],
                     ]),
                     'data-linkage-expand' => json_encode(['custom_type' => true]),
+                    'data-changehtml' => admin_urls('column', $this->custom_table->table_name, $id, 'columnTypeHtml'),
+                    'data-changehtml_target' => '.form_dynamic_options',
+                    'data-changehtml_response' => '.form_dynamic_options_response',
                 ])
                 ->required();
         } else {
@@ -248,7 +259,7 @@ class CustomColumnController extends AdminControllerTableBase
             $form->hidden('column_type')->default($column_type);
         }
 
-        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id, $controller) {
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $column_item, $id) {
             $form->switchbool('required', exmtrans("common.required"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
                 ->rules([
@@ -281,262 +292,19 @@ class CustomColumnController extends AdminControllerTableBase
                 ->rules(['nullable', 'integer'])
                 ;
             
+
             // setting for each settings of column_type. --------------------------------------------------
+            // Form options area -- start
+            $form->html('<div class="form_dynamic_options">')->plain(); 
 
-            // text
-            // string length
-            $form->number('string_length', exmtrans("custom_column.options.string_length"))
-                ->default(256)
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT, ColumnType::TEXTAREA]])]);
-
-            $form->number('rows', exmtrans("custom_column.options.rows"))
-                ->default(6)
-                ->min(1)
-                ->max(30)
-                ->help(exmtrans("custom_column.help.rows"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXTAREA, ColumnType::EDITOR]])]);
-
-            $form->checkbox('available_characters', exmtrans("custom_column.options.available_characters"))
-                ->options(CustomColumn::getAvailableCharacters()->pluck('label', 'key'))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
-                ->help(exmtrans("custom_column.help.available_characters"))
-                ;
-
-            $form->switchbool('suggest_input', exmtrans("custom_column.options.suggest_input"))
-                ->help(exmtrans("custom_column.help.suggest_input"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])]);
-
-            if (boolval(config('exment.expart_mode', false))) {
-                $manual_url = getManualUrl('column#'.exmtrans('custom_column.options.regex_validate'));
-                $form->text('regex_validate', exmtrans("custom_column.options.regex_validate"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
-                    ->rules('regularExpression')
-                    ->help(sprintf(exmtrans("custom_column.help.regex_validate"), $manual_url));
+            if(isset($column_item)){
+                $column_item->setCustomColumnOptionForm($form);
             }
-
-            // number
-            //if(in_array($column_type, [ColumnType::INTEGER,ColumnType::DECIMAL])){
-            $form->number('number_min', exmtrans("custom_column.options.number_min"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])])
-                ->disableUpdown()
-                ->defaultEmpty();
-            $form->number('number_max', exmtrans("custom_column.options.number_max"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])])
-                ->disableUpdown()
-                ->defaultEmpty();
-            
-            $form->switchbool('number_format', exmtrans("custom_column.options.number_format"))
-                ->help(exmtrans("custom_column.help.number_format"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])]);
-
-            $form->switchbool('percent_format', exmtrans("custom_column.options.percent_format"))
-                ->help(exmtrans("custom_column.help.percent_format"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::DECIMAL]])]);
-
-            $form->number('decimal_digit', exmtrans("custom_column.options.decimal_digit"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::DECIMAL, ColumnType::CURRENCY]])])
-                ->default(2)
-                ->min(0)
-                ->max(8);
-
-            $form->switchbool('updown_button', exmtrans("custom_column.options.updown_button"))
-                ->help(exmtrans("custom_column.help.updown_button"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::INTEGER]])])
-                ;
-            
-            $form->select('currency_symbol', exmtrans("custom_column.options.currency_symbol"))
-                ->help(exmtrans("custom_column.help.currency_symbol"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::CURRENCY]])])
-                ->required()
-                ->options(function ($option) {
-                    // create options
-                    $options = [];
-                    $currencies = CurrencySymbol::values();
-                    foreach ($currencies as $currency) {
-                        // make text
-                        $options[$currency->getValue()] = getCurrencySymbolLabel($currency, true, '123,456.00');
-                    }
-                    return $options;
-                });
-            //}
-
-            // date, time, datetime
-            $form->switchbool('datetime_now_saving', exmtrans("custom_column.options.datetime_now_saving"))
-                ->help(exmtrans("custom_column.help.datetime_now_saving"))
-                ->default("0")
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
-            $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
-                ->help(exmtrans("custom_column.help.datetime_now_creating"))
-                ->default("0")
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
-
-            // select
-            // define select-item
-            $form->textarea('select_item', exmtrans("custom_column.options.select_item"))
-                    ->required()
-                    ->help(exmtrans("custom_column.help.select_item"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT])]);
-            // define select-item
-            $form->textarea('select_item_valtext', exmtrans("custom_column.options.select_item"))
-                    ->required()
-                    ->help(exmtrans("custom_column.help.select_item_valtext"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_VALTEXT])]);
-
-            // define select-target table
-            $form->select('select_target_table', exmtrans("custom_column.options.select_target_table"))
-                    ->help(exmtrans("custom_column.help.select_target_table"))
-                    ->required()
-                    ->options(function ($select_table) {
-                        $options = CustomTable::filterList()->whereNotIn('table_name', [SystemTableName::USER, SystemTableName::ORGANIZATION])->pluck('table_view_name', 'id')->toArray();
-                        return $options;
-                    })
-                    ->attribute([
-                        'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE]),
-                        'data-linkage' => json_encode([
-                            'options_select_import_column_id' => [
-                                'url' => admin_url('webapi/table/indexcolumns'),
-                                'text' => 'column_view_name',
-                            ],
-                            'options_select_export_column_id' => [
-                                'url' => admin_url('webapi/table/columns'),
-                                'text' => 'column_view_name',
-                            ],
-                            'options_select_target_view' => [
-                                'url' => admin_url('webapi/table/filterviews'),
-                                'text' => 'view_view_name',
-                            ]
-                        ]),
-                    ]);
-
-            // define select-target table view
-            $form->select('select_target_view', exmtrans("custom_column.options.select_target_view"))
-                ->help(exmtrans("custom_column.help.select_target_view"))
-                ->options(function ($value, $field) use ($column_type) {
-                    if (is_nullorempty($field)) {
-                        return [];
-                    }
-            
-                    // check $value or $field->data()
-                    $custom_table = null;
-                    if (isset($value)) {
-                        $custom_view = CustomView::getEloquent($value);
-                        $custom_table = $custom_view ? $custom_view->custom_table : null;
-                    } elseif (!is_nullorempty($field->data())) {
-                        $custom_table = CustomTable::getEloquent(array_get($field->data(), 'select_target_table'));
-                    }
-                    
-                    if (!isset($custom_table)) {
-                        if (!ColumnType::isUserOrganization($column_type)) {
-                            return [];
-                        }
-                        $custom_table = CustomTable::getEloquent($column_type);
-                    }
-            
-                    if (!isset($custom_table)) {
-                        return [];
-                    }
-
-                    return CustomTable::getEloquent($custom_table)->custom_views
-                        ->filter(function ($value) {
-                            return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
-                        })->pluck('view_view_name', 'id');
-                })
-                ->attribute([
-                    'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()]),
-                ]);
-            
-            $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
-            $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
-                ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
-                ->options(function ($select_table, $field) use ($id, $controller) {
-                    return $controller->getImportExportColumnSelect($select_table, $field, $id);
-                })
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
-
-            $form->select('select_export_column_id', exmtrans("custom_column.options.select_export_column_id"))
-                ->help(exmtrans("custom_column.help.select_export_column_id"))
-                ->options(function ($select_table, $field) use ($id, $controller) {
-                    return $controller->getImportExportColumnSelect($select_table, $field, $id, false);
-                })
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
-
-            $form->switchbool('select_load_ajax', exmtrans("custom_column.options.select_load_ajax"))
-                ->help(exmtrans("custom_column.help.select_load_ajax", config('exment.select_table_limit_count', 100)))
-                ->default("0")
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
-
-            // user organization
-            $form->switchbool('showing_all_user_organizations', exmtrans("custom_column.options.showing_all_user_organizations"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_USER_ORGANIZATION()])])
-                ->help(exmtrans("custom_column.help.showing_all_user_organizations"))
-                ->default('0');
-
-
-            // yes/no ----------------------------
-            $form->text('true_value', exmtrans("custom_column.options.true_value"))
-                    ->help(exmtrans("custom_column.help.true_value"))
-                    ->required()
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
-
-            $form->text('true_label', exmtrans("custom_column.options.true_label"))
-                    ->help(exmtrans("custom_column.help.true_label"))
-                    ->required()
-                    ->default(exmtrans("custom_column.options.true_label_default"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
                 
-            $form->text('false_value', exmtrans("custom_column.options.false_value"))
-                    ->help(exmtrans("custom_column.help.false_value"))
-                    ->required()
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
+            // Form options area -- End
+            $form->html('</div>')->plain(); 
 
-            $form->text('false_label', exmtrans("custom_column.options.false_label"))
-                    ->help(exmtrans("custom_column.help.false_label"))
-                    ->required()
-                    ->default(exmtrans("custom_column.options.false_label_default"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
 
-            // auto numbering
-            $form->select('auto_number_type', exmtrans("custom_column.options.auto_number_type"))
-                    ->required()
-                    ->options(
-                        [
-                        'format' => exmtrans("custom_column.options.auto_number_type_format"),
-                        'random25' => exmtrans("custom_column.options.auto_number_type_random25"),
-                        'random32' => exmtrans("custom_column.options.auto_number_type_random32"),
-                        'other' => exmtrans("custom_column.options.auto_number_other"),
-                        ]
-                    )
-                    ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::AUTO_NUMBER])]);
-
-            // set manual
-            $manual_url = getManualUrl('column#'.exmtrans('custom_column.auto_number_format_rule'));
-            $form->text('auto_number_format', exmtrans("custom_column.options.auto_number_format"))
-                    ->attribute(['data-filter' => json_encode([
-                        ['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::AUTO_NUMBER],
-                        ['parent' => 1, 'key' => 'options_auto_number_type', 'value' => 'format'],
-                    ])])
-                    ->help(sprintf(exmtrans("custom_column.help.auto_number_format"), $manual_url))
-                ;
-
-            // calc
-            $custom_table = $this->custom_table;
-            $form->valueModal('calc_formula', exmtrans("custom_column.options.calc_formula"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])])
-                ->help(exmtrans("custom_column.help.calc_formula") . \Exment::getMoreTag('column', 'custom_column.options.calc_formula'))
-                ->ajax(admin_urls('column', $custom_table->table_name, $id, 'calcModal'))
-                ->modalContentname('options_calc_formula')
-                ->nullText(exmtrans('common.no_setting'))
-                ->valueTextScript('Exment.CustomColumnEvent.GetSettingValText();')
-                ->text(function ($value) use ($custom_table) {
-                    return CalcService::getCalcDisplayText($value, $custom_table);
-                })
-            ;
-
-            // image, file, select
-            // enable multiple
-            $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
-                ->help(exmtrans("custom_column.help.multiple_enabled"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
         })->disableHeader();
 
         $form->number('order', exmtrans("custom_column.order"))->rules("integer")
@@ -690,45 +458,44 @@ class CustomColumnController extends AdminControllerTableBase
         }
     }
 
-
+    
     /**
-     * Get import export select list
+     * Get column_type's option form
      *
+     * @param Request $request
      * @return array
      */
-    protected function getImportExportColumnSelect($value, $field, $id, $isImport = true)
-    {
-        if (is_nullorempty($field)) {
-            return [];
-        }
+    public function columnTypeHtml(Request $request){
+        $val = $request->get('val');
+        $id = $request->route('id');
 
-        // whether column_type is user or org
-        if (!is_null(old('column_type'))) {
-            $model = CustomColumn::getEloquent(old('column_type'), $this->custom_table);
-        } elseif (isset($id) || old('column_type')) {
-            $model = CustomColumn::getEloquent($id);
-        }
-        if (isset($model) && in_array($model->column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
-            return CustomTable::getEloquent($model->column_type)->getColumnsSelectOptions([
-                'index_enabled_only' => $isImport,
-                'include_system' => false,
-            ]) ?? [];
-        }
+        // get custom item
+        $column_item = $this->getCustomItem($request, $id, $val);
 
-        // get seletct target table
-        if (isset($value)) {
-            $custom_column = CustomColumn::getEloquent($value);
-            $custom_table = $custom_column ? CustomTable::getEloquent($custom_column) : null;
-        } elseif (!is_nullorempty($field->data())) {
-            $custom_table = CustomTable::getEloquent(array_get($field->data(), 'select_target_table'));
-        }
-        if (!isset($custom_table)) {
-            return [];
-        }
+        $form = new Form(new CustomColumn);
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use($column_item) {
+            // Form options area -- start
+            $form->html('<div class="form_dynamic_options_response">')->plain();
+            if (isset($column_item)) {
+                $column_item->setCustomColumnOptionForm($form);
+            }
+            $form->html('</div>')->plain();
+        });
 
-        return $custom_table->getColumnsSelectOptions([
-            'index_enabled_only' => $isImport,
-            'include_system' => false,
-        ]) ?? [];
+        $body = $form->render();
+        $script = \Admin::purescript()->render();
+        return [
+            'body'  => $body,
+            'script' => $script,
+        ];
+    }
+
+
+    protected function getCustomItem(Request $request, $id, $column_type){
+        return CustomItem::getItem(new CustomColumn([
+            'custom_table_id' => $this->custom_table->id,
+            'id' => $id,
+            'column_type' => $column_type,
+        ]));
     }
 }

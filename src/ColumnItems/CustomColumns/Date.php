@@ -216,4 +216,24 @@ class Date extends CustomItem
             return true;
         }
     }
+    
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        // date, time, datetime
+        $form->switchbool('datetime_now_saving', exmtrans("custom_column.options.datetime_now_saving"))
+            ->help(exmtrans("custom_column.help.datetime_now_saving"))
+            ->default("0");
+
+        $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
+            ->help(exmtrans("custom_column.help.datetime_now_creating"))
+            ->default("0");
+    }
 }

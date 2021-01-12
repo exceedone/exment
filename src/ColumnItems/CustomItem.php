@@ -636,6 +636,19 @@ abstract class CustomItem implements ItemInterface
         return true;
     }
 
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+    }
+
+    
     protected function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));

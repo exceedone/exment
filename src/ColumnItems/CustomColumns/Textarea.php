@@ -45,4 +45,27 @@ class Textarea extends CustomItem
         // value string
         $validates[] = new Validator\StringNumericRule();
     }
+
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        // text
+        // string length
+        $form->number('string_length', exmtrans("custom_column.options.string_length"))
+            ->default(256);
+
+        $form->number('rows', exmtrans("custom_column.options.rows"))
+            ->default(6)
+            ->min(1)
+            ->max(30)
+            ->help(exmtrans("custom_column.help.rows"));
+    }
+
 }
