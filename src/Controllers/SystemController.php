@@ -263,6 +263,7 @@ class SystemController extends AdminControllerBase
         $form->display('version_latest', exmtrans('system.version_latest_label'))
             ->default($latest);
 
+        $updateButton = false;
         if ($version == SystemVersion::ERROR) {
             $message = exmtrans("system.version_error");
         } elseif ($version == SystemVersion::DEV) {
@@ -271,16 +272,43 @@ class SystemController extends AdminControllerBase
             $message = exmtrans("system.version_latest");
         } else {
             $message = exmtrans("system.version_old") . '(' . $latest . ')';
+            $updateButton = true;
         }
         $form->display('version_compare', exmtrans('system.version_compare_label'))
             ->default($message);
 
-        
-        $form->ajaxButton('call_update', exmtrans("system.call_update"))
-            ->url(admin_urls('system', 'call_update'))
-            ->button_class('btn-sm btn-info')
-            ->button_label(exmtrans('system.call_update'));
+        if($updateButton){
+            // if disable update button, showing only update link
+            if(boolval(config('exment.system_update_display_disabled', false))){
+                $manualUrl = exmtrans('common.message.label_link', [
+                    'label' => exmtrans('system.call_update_howto'),
+                    'link' => \Exment::getManualUrl('update'),
+                ]);
+                $form->display(exmtrans('system.call_update_howto'))
+                    ->displayText($manualUrl)
+                    ->escape(false);
+            }
+            else{
+                $form->exmheader(exmtrans('system.call_update_header'))->hr();
 
+                $form->description(exmtrans('system.call_update_description', $latest));
+                
+                $manualUrl = exmtrans('common.message.label_link', [
+                    'label' => exmtrans('system.release_note'),
+                    'link' => \Exment::getManualUrl('release_note'),
+                ]);
+                $form->description($manualUrl)->escape(false);
+
+                $form->ajaxButton('call_update', exmtrans("system.call_update"))
+                    ->url(admin_urls('system', 'call_update'))
+                    ->button_class('btn-sm btn-info')
+                    ->button_label(exmtrans('system.call_update'))
+                    ->confirm(true)
+                    ->confirm_title(trans('admin.confirm'))
+                    ->confirm_text(exmtrans('system.call_update_modal_confirm', $latest) . exmtrans('common.message.modal_confirm', 'yes'))
+                    ->confirm_error(exmtrans('custom_table.help.delete_confirm_error'));
+            }
+        }
 
         return $form;
     }
@@ -392,7 +420,13 @@ class SystemController extends AdminControllerBase
      */
     public function callUpdate(Request $request)
     {
-        UpdateService::update([
+        UpdateService::update();
+
+        return getAjaxResponse([
+            'result'  => true,
+            'logoutAsync' => true,
+            'swal' => exmtrans('system.call_update_success'),
+            'swaltext' => exmtrans('system.call_update_success_text'),
         ]);
     }
 }

@@ -13,8 +13,15 @@ class Composer extends SystemRequireBase
         try {
             // this command is too slow.
             //$command = 'composer --version';
+
+            // check EXMENT_COMPOSER_PATH
+            $path = \Exment::getComposerPath();
+            if($path != 'composer' && file_exists($path)){
+                $this->result = SystemRequireResult::OK;
+                return;
+            }
+
             $command = \Exment::isWindows() ? 'where composer' : 'which composer';
-            
             foreach (['', '.phar'] as $suffix) {
                 exec($command . $suffix, $output, $return_var);
                 if ($return_var == 0) {

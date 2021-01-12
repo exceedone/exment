@@ -18,18 +18,29 @@ class UpdateService
     public static function update(array $options = [])
     {
         $options = array_merge([
-            'backup' => true,
-            'publish' => true,
+            'maintenance' => true, // whether execute maintenance
+            'backup' => true, // whether execute backup
+            'publish' => true, // whether execute publish(update)
         ], $options);
 
-        if(boolval($options['backup'])){
-            static::callBackup();
-        }
-        
-        static::updateExment();
-        
-        if(boolval($options['publish'])){
-            static::callPublish();
+        try{
+            if(boolval($options['maintenance'])){
+                \Artisan::call('down');
+            }
+
+            if(boolval($options['backup'])){
+                static::callBackup();
+            }
+            
+            static::updateExment();
+            
+            if(boolval($options['publish'])){
+                static::callPublish();
+            }
+        }finally{
+            if(boolval($options['maintenance'])){
+                \Artisan::call('up');
+            }
         }
     }
 
