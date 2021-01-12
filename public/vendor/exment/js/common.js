@@ -175,6 +175,11 @@ var Exment;
                     $.pjax({ container: '#pjax-container', url: res.redirect });
                 }
             }
+            else if (res.logoutAsync) {
+                setTimeout(function () {
+                    location.href = admin_url('auth/logout');
+                }, 5000);
+            }
             else {
                 $.pjax.reload('#pjax-container');
             }
@@ -207,6 +212,7 @@ var Exment;
                 data: [],
                 redirect: null,
                 preConfirmValidate: null,
+                postEvent: null,
                 showCancelButton: true,
                 confirmCallback: null,
             }, options);
@@ -240,6 +246,9 @@ var Exment;
                     }
                     if (hasValue(options.inputKey)) {
                         data[options.inputKey] = input;
+                    }
+                    if (hasValue(options.postEvent)) {
+                        return options.postEvent(data);
                     }
                     return new Promise(function (resolve) {
                         $.ajax({

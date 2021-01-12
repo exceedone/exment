@@ -30,7 +30,7 @@ class ImageRule implements Rule
             return in_array($ext, ['jpeg', 'jpg', 'png', 'gif', 'bmp', 'svg']);
         }
 
-        return $this->validateImage($attribute, $value);
+        return $this->validateMimes($attribute, $value, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg']);
     }
 
     /**
