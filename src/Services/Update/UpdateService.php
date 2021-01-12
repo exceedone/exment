@@ -17,6 +17,8 @@ class UpdateService
 {
     public static function update(array $options = [])
     {
+        \Exment::setTimeLimitLong();
+        
         $options = array_merge([
             'maintenance' => true, // whether execute maintenance
             'backup' => true, // whether execute backup

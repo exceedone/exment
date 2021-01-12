@@ -27,6 +27,9 @@
         "mews/purifier": "^3.2",
         "myclabs/php-enum": "^1.6.0",
         "laravel/passport": "^7.0",
+        "lcobucci/jwt": "3.3.*",
+        "composer/composer": "^2.0",
+        "kylekatarnls/update-helper": "^1.2",
         "renatomarinho/laravel-page-speed": "^1.8.11"
     },
     "require-dev": {
