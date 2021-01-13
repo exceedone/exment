@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\FilterKind;
+use Exceedone\Exment\Enums\ColumnDefaultType;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter;
 
@@ -56,14 +57,42 @@ class Datetime extends Date
     
 
     /**
-     * Set Custom Column Option Form. Using laravel-admin form option
+     * Get default value.
+     *
+     * @return mixed
+     */
+    public function getDefaultValue()
+    {
+        $options = $this->custom_column->options;
+        if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_DATETIME)) {
+            return \Carbon\Carbon::now()->format($this->format);
+        }
+        if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_TODAY)) {
+            return \Carbon\Carbon::today()->format($this->format);
+        }
+
+        return parent::getDefaultValue();
+    }
+
+
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
      *
      * @param Form $form
      * @return void
      */
-    public function setCustomColumnOptionForm(&$form)
+    public function setCustomColumnDefaultValueForm(&$form)
     {
-    }
+        $form->select('default_type', exmtrans("custom_column.options.default_type"))
+            ->config('allowClear', false)
+            ->attribute(['data-filtertrigger' =>true])
+            ->help(exmtrans("custom_column.help.default_type"))
+            ->options(getTransArray(ColumnDefaultType::COLUMN_DEFAULT_TYPE_DATETIME(), 'custom_column.column_default_type_options'));
 
+        $form->datetime('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"))
+            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_default_type', 'value' => ColumnDefaultType::SELECT_DATETIME])])
+            ;
+    }
 }

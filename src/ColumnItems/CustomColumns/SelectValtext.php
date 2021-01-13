@@ -82,7 +82,5 @@ class SelectValtext extends Select
 
         // enable multiple
         $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"));
-
     }
-
 }

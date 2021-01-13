@@ -151,7 +151,6 @@ class Select extends CustomItem
             
         $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
             ->help(exmtrans("custom_column.help.multiple_enabled"));
-
-}
+    }
 
 }

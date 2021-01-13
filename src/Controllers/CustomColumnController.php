@@ -172,6 +172,7 @@ class CustomColumnController extends AdminControllerTableBase
     protected function form($id = null)
     {
         $form = new Form(new CustomColumn);
+        $request = request();
         
         // get custom_item for option
         $custom_column = CustomColumn::getEloquent($id);
@@ -246,9 +247,20 @@ class CustomColumnController extends AdminControllerTableBase
                         ],
                     ]),
                     'data-linkage-expand' => json_encode(['custom_type' => true]),
-                    'data-changehtml' => admin_urls('column', $this->custom_table->table_name, $id, 'columnTypeHtml'),
-                    'data-changehtml_target' => '.form_dynamic_options',
-                    'data-changehtml_response' => '.form_dynamic_options_response',
+                    'data-changehtml' => json_encode([
+                        [
+                            'url' => admin_urls('column', $this->custom_table->table_name, $id, 'columnTypeHtml'),
+                            'target' => '.form_dynamic_default',
+                            'response' => '.form_dynamic_default_response',
+                            'form_type' => 'default',
+                        ],
+                        [
+                            'url' => admin_urls('column', $this->custom_table->table_name, $id, 'columnTypeHtml'),
+                            'target' => '.form_dynamic_options',
+                            'response' => '.form_dynamic_options_response',
+                            'form_type' => 'option',
+                        ],
+                    ]),
                 ])
                 ->required();
         } else {
@@ -268,39 +280,40 @@ class CustomColumnController extends AdminControllerTableBase
                 ])
                 ->attribute(['data-filtertrigger' =>true])
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
+            
             $form->switchbool('freeword_search', exmtrans("custom_column.options.freeword_search"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_index_enabled', 'value' => '1'])])
                 ->help(exmtrans("custom_column.help.freeword_search"));
+            
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
+
             $form->switchbool('init_only', exmtrans("custom_column.options.init_only"))
                 ->help(exmtrans("custom_column.help.init_only"));
-            $form->text('default', exmtrans("custom_column.options.default"));
-            $form->switchbool('login_user_default', exmtrans("custom_column.options.login_user_default"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::USER]])])
-                ->help(exmtrans("custom_column.help.login_user_default"));
+
             $form->text('placeholder', exmtrans("custom_column.options.placeholder"))
                 ->help(exmtrans("custom_column.help.placeholder"));
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
             
-            $form->text('min_width', exmtrans("custom_column.options.min_width"))
-                ->help(exmtrans("custom_column.help.min_width"))
-                ->rules(['nullable', 'integer'])
+            $form->numberRange('min_width', 'max_width', exmtrans("custom_column.options.min_max_width"))
+                ->help(exmtrans("custom_column.help.min_max_width"))
                 ;
-            $form->text('max_width', exmtrans("custom_column.options.max_width"))
-                ->help(exmtrans("custom_column.help.max_width"))
-                ->rules(['nullable', 'integer'])
-                ;
-            
+
+        // get default form
+        $form->html('<div class="form_dynamic_default">')->plain(); 
+        if(isset($column_item)){
+            $column_item->setCustomColumnDefaultValueForm($form);
+        }
+        // Form options area -- End
+        $form->html('</div>')->plain(); 
+
 
             // setting for each settings of column_type. --------------------------------------------------
             // Form options area -- start
             $form->html('<div class="form_dynamic_options">')->plain(); 
-
             if(isset($column_item)){
                 $column_item->setCustomColumnOptionForm($form);
             }
-                
             // Form options area -- End
             $form->html('</div>')->plain(); 
 
@@ -467,19 +480,30 @@ class CustomColumnController extends AdminControllerTableBase
      */
     public function columnTypeHtml(Request $request){
         $val = $request->get('val');
+        $form_type = $request->get('form_type');
         $id = $request->route('id');
 
         // get custom item
         $column_item = $this->getCustomItem($request, $id, $val);
 
         $form = new Form(new CustomColumn);
-        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use($column_item) {
-            // Form options area -- start
-            $form->html('<div class="form_dynamic_options_response">')->plain();
-            if (isset($column_item)) {
-                $column_item->setCustomColumnOptionForm($form);
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use($form_type, $column_item) {
+            if($form_type == 'option'){
+                // Form options area -- start
+                $form->html('<div class="form_dynamic_options_response">')->plain();
+                if (isset($column_item)) {
+                    $column_item->setCustomColumnOptionForm($form);
+                }
+                $form->html('</div>')->plain();
             }
-            $form->html('</div>')->plain();
+            else{
+                // Form default area -- start
+                $form->html('<div class="form_dynamic_default_response">')->plain();
+                if (isset($column_item)) {
+                    $column_item->setCustomColumnDefaultValueForm($form);
+                }
+                $form->html('</div>')->plain();
+            }
         });
 
         $body = $form->render();

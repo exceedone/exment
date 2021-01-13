@@ -239,4 +239,18 @@ class Editor extends CustomItem
             ->max(30)
             ->help(exmtrans("custom_column.help.rows"));
     }
+
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form)
+    {
+        $form->tinymce('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"))
+            ->rows(3);
+    }
 }

@@ -50,4 +50,16 @@ class Time extends Date
     {
         return false;
     }
+
+
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form)
+    {
+    }
 }

@@ -772,7 +772,7 @@ namespace Exment {
          * Switch display / non-display according to the target input value
          * @param $target
          */
-        private static setFormFilter = ($target: JQuery<Element>) => {
+        public static setFormFilter = ($target: JQuery<Element>) => {
             $target = CommonEvent.getParentRow($target).find('[data-filter]');
             for (let tIndex = 0; tIndex < $target.length; tIndex++) {
                 let $t = $target.eq(tIndex);

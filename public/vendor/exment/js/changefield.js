@@ -57,38 +57,50 @@ var Exment;
         //
         const $target = $(ev.target);
         const val = $target.val();
-        let ajax = $target.data('changehtml');
-        let $html = $($target.data('changehtml_target'));
-        if (!hasValue(val)) {
-            $html.children().remove();
-            return;
+        // get changehtml items
+        let items = $target.data('changehtml');
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
+            let ajax = item.url;
+            let $html = $(item.target);
+            let form_type = item.form_type;
+            if (!hasValue(val)) {
+                $html.children().remove();
+                continue;
+            }
+            // get html
+            // Please return this,
+            // [
+            //     'body' => (html),
+            //     'script' => ([form script as array]),
+            // ]
+            $.ajax({
+                url: ajax,
+                type: "GET",
+                data: {
+                    'val': val,
+                    'form_type': form_type,
+                },
+                context: {
+                    html: $html,
+                    item: item,
+                },
+                success: function (data) {
+                    if (hasValue(data.body)) {
+                        this.html.children().remove();
+                        // find target value
+                        let $ajaxTarget = $(data.body).find(this.item.response);
+                        // set html inner div
+                        let $inner = $('<div data-changehtml_key="' + val + '" />');
+                        $inner.append($ajaxTarget).appendTo(this.html);
+                    }
+                    if (hasValue(data.script)) {
+                        eval(data.script);
+                    }
+                    Exment.CommonEvent.setFormFilter($target);
+                },
+            });
         }
-        // get html
-        // Please return this,
-        // [
-        //     'body' => (html),
-        //     'script' => ([form script as array]),
-        // ]
-        $.ajax({
-            url: ajax,
-            type: "GET",
-            data: {
-                'val': val,
-            },
-            success: function (data) {
-                if (hasValue(data.body)) {
-                    $html.children().remove();
-                    // find target value
-                    let $ajaxTarget = $(data.body).find($target.data('changehtml_response'));
-                    // set html inner div
-                    let $inner = $('<div data-changehtml_key="' + val + '" />');
-                    $inner.append($ajaxTarget).appendTo($html);
-                }
-                if (hasValue(data.script)) {
-                    eval(data.script);
-                }
-            },
-        });
     };
     Exment.ChangeFieldEvent = ChangeFieldEvent;
 })(Exment || (Exment = {}));

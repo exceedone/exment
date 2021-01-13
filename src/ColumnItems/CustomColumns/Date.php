@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Enums\ColumnDefaultType;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Grid\Filter;
 use Exceedone\Exment\Form\Field as ExmentField;
@@ -219,6 +220,22 @@ class Date extends CustomItem
     
 
     /**
+     * Get default value.
+     *
+     * @return mixed
+     */
+    public function getDefaultValue()
+    {
+        $options = $this->custom_column->options;
+        if (isMatchString(array_get($options, 'default_type'), ColumnDefaultType::EXECUTING_DATE)) {
+            return \Carbon\Carbon::now()->format($this->format);
+        }
+
+        return parent::getDefaultValue();
+    }
+
+
+    /**
      * Set Custom Column Option Form. Using laravel-admin form option
      * https://laravel-admin.org/docs/#/en/model-form-fields
      *
@@ -235,5 +252,27 @@ class Date extends CustomItem
         $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
             ->help(exmtrans("custom_column.help.datetime_now_creating"))
             ->default("0");
+    }
+
+    
+    /**
+     * Set Custom Column Option default value Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnDefaultValueForm(&$form)
+    {
+        $form->select('default_type', exmtrans("custom_column.options.default_type"))
+            ->config('allowClear', false)
+            ->attribute(['data-filtertrigger' =>true])
+            ->help(exmtrans("custom_column.help.default_type"))
+            ->options(getTransArray(ColumnDefaultType::COLUMN_DEFAULT_TYPE_DATE(), 'custom_column.column_default_type_options'));
+
+        $form->date('default', exmtrans("custom_column.options.default"))
+            ->help(exmtrans("custom_column.help.default"))
+            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_default_type', 'value' => ColumnDefaultType::SELECT_DATE])])
+            ;
     }
 }
