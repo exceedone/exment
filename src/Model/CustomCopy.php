@@ -71,18 +71,26 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
     
     /**
+     * execute data copy with request parameter
+     */
+    public function executeRequest($from_custom_value, $request = null)
+    {
+        $this->execute($from_custom_value, $request->all());
+    }
+    
+    /**
      * execute data copy
      */
-    public function execute($from_custom_value, $request = null)
+    public function execute($from_custom_value, $inputs = null)
     {
         $to_custom_value = null;
-        DB::transaction(function () use (&$to_custom_value, $from_custom_value, $request) {
+        DB::transaction(function () use (&$to_custom_value, $from_custom_value, $inputs) {
             $to_custom_value = static::saveCopyModel(
                 $this->custom_copy_columns,
                 $this->custom_copy_input_columns,
                 $this->to_custom_table,
                 $from_custom_value,
-                $request
+                $inputs
             );
 
             $child_copy_id = $this->getOption('child_copy');
@@ -125,7 +133,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         $custom_copy_input_columns,
         $to_custom_table,
         $from_custom_value,
-        $request = null,
+        $inputs = null,
         $skipParent = false
     ) {
         // get to_custom_value model
@@ -163,12 +171,12 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
             }
         }
 
-        // has request, set value from input
-        if (isset($request)) {
+        // has input parameters, set value from input
+        if (isset($inputs)) {
             foreach ($custom_copy_input_columns as $custom_copy_input_column) {
                 $custom_column = $custom_copy_input_column->to_custom_column;
                 // get input value
-                $val = $request->input($custom_column->column_name ?? null);
+                $val = array_get($inputs, $custom_column->column_name);
                 if (isset($val)) {
                     $to_custom_value->setValue($custom_column->column_name, $val);
                 }

@@ -643,7 +643,7 @@ class CustomValueController extends AdminControllerTableBase
         
         // execute copy
         $custom_value = getModelName($this->custom_table)::find($id);
-        $response = $copy->execute($custom_value, $request);
+        $response = $copy->executeRequest($custom_value, $request);
 
         if (isset($response)) {
             return getAjaxResponse($response);

@@ -63,9 +63,7 @@ class CustomCopyTest extends UnitTestBase
 
             $custom_value = getModelName($copy_settings['from_table_name'])::find(11);
 
-            $request = new \Illuminate\Http\Request();
-            $request->merge($copy_settings['input_columns']);
-            $response = $copy->execute($custom_value, $request);
+            $response = $copy->execute($custom_value, $copy_settings['input_columns']);
 
             $this->assertTrue(array_get($response, 'result'));
             $this->compareCopyValue($custom_value, array_get($response, 'redirect'), $copy_settings);
@@ -120,9 +118,7 @@ class CustomCopyTest extends UnitTestBase
             $copy = $this->prepareCustomCopy($copy_settings);
 
             $custom_value = getModelName($copy_settings['from_table_name'])::find(3);
-            $request = new \Illuminate\Http\Request();
-            $request->merge($copy_settings['input_columns']);
-            $response = $copy->execute($custom_value, $request);
+            $response = $copy->execute($custom_value, $copy_settings['input_columns']);
 
             $this->assertTrue(array_get($response, 'result'));
             $this->compareCopyValue($custom_value, array_get($response, 'redirect'), $copy_settings);
