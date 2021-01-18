@@ -47,10 +47,7 @@ class User extends SelectTable
      */
     public function setCustomColumnOptionForm(&$form)
     {
-        parent::setCustomColumnOptionForm($form);
-
-        $form->switchbool('login_user_default', exmtrans("custom_column.options.login_user_default"))
-            ->help(exmtrans("custom_column.help.login_user_default"));
+        $this->setCustomColumnOptionFormSelectTable($form, true);
 
         $form->switchbool('showing_all_user_organizations', exmtrans("custom_column.options.showing_all_user_organizations"))
             ->help(exmtrans("custom_column.help.showing_all_user_organizations"))

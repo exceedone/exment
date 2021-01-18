@@ -24,7 +24,7 @@ class Organization extends SelectTable
      */
     public function setCustomColumnOptionForm(&$form)
     {
-        parent::setCustomColumnOptionForm($form);
+        $this->setCustomColumnOptionFormSelectTable($form, true);
 
         $form->switchbool('showing_all_user_organizations', exmtrans("custom_column.options.showing_all_user_organizations"))
             ->help(exmtrans("custom_column.help.showing_all_user_organizations"))

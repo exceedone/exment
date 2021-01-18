@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Encore\Admin\Form\Field;
@@ -578,49 +579,58 @@ class SelectTable extends CustomItem
      */
     public function setCustomColumnOptionForm(&$form)
     {
+        $this->setCustomColumnOptionFormSelectTable($form);
+    }
+
+
+    protected function setCustomColumnOptionFormSelectTable(&$form, bool $isUserOrg = false)
+    {
         $id = request()->route('id');
         $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
         // define select-target table
         
-        if(!isset($id)){
-            $form->select('select_target_table', exmtrans("custom_column.options.select_target_table"))
-            ->help(exmtrans("custom_column.help.select_target_table"))
-            ->required()
-            ->options(function ($select_table) {
-                $options = CustomTable::filterList()->whereNotIn('table_name', [SystemTableName::USER, SystemTableName::ORGANIZATION])->pluck('table_view_name', 'id')->toArray();
-                return $options;
-            })
-            ->attribute([
-                'data-linkage' => json_encode([
-                    'options_select_import_column_id' => [
-                        'url' => admin_url('webapi/table/indexcolumns'),
-                        'text' => 'column_view_name',
-                    ],
-                    'options_select_export_column_id' => [
-                        'url' => admin_url('webapi/table/columns'),
-                        'text' => 'column_view_name',
-                    ],
-                    'options_select_target_view' => [
-                        'url' => admin_url('webapi/table/filterviews'),
-                        'text' => 'view_view_name',
-                    ]
-                ]),
-            ]);
-        }
-        else{
-            // if already set, display only
-            $form->display('select_target_table', exmtrans("custom_column.options.select_target_table"))
-                ->displayText(function ($val) {
-                    if(!isset($val)){
-                        return $val;
-                    }
-                    $custom_table = CustomTable::getEloquent($val);
-                    if(!isset($custom_table)){
-                        return null;
-                    }
-                    return $custom_table->table_view_name;
-                });
-            $form->hidden('select_target_table');
+        if(!$isUserOrg)
+        {
+            if(!isset($id)){
+                $form->select('select_target_table', exmtrans("custom_column.options.select_target_table"))
+                ->help(exmtrans("custom_column.help.select_target_table"))
+                ->required()
+                ->options(function ($select_table) {
+                    $options = CustomTable::filterList()->whereNotIn('table_name', [SystemTableName::USER, SystemTableName::ORGANIZATION])->pluck('table_view_name', 'id')->toArray();
+                    return $options;
+                })
+                ->attribute([
+                    'data-linkage' => json_encode([
+                        'options_select_import_column_id' => [
+                            'url' => admin_url('webapi/table/indexcolumns'),
+                            'text' => 'column_view_name',
+                        ],
+                        'options_select_export_column_id' => [
+                            'url' => admin_url('webapi/table/columns'),
+                            'text' => 'column_view_name',
+                        ],
+                        'options_select_target_view' => [
+                            'url' => admin_url('webapi/table/filterviews'),
+                            'text' => 'view_view_name',
+                        ]
+                    ]),
+                ]);
+            }
+            else{
+                // if already set, display only
+                $form->display('select_target_table', exmtrans("custom_column.options.select_target_table"))
+                    ->displayText(function ($val) {
+                        if(!isset($val)){
+                            return $val;
+                        }
+                        $custom_table = CustomTable::getEloquent($val);
+                        if(!isset($custom_table)){
+                            return null;
+                        }
+                        return $custom_table->table_view_name;
+                    });
+                $form->hidden('select_target_table');
+            }
         }
 
         // define select-target table view
