@@ -265,7 +265,6 @@ class Date extends CustomItem
     public function setCustomColumnDefaultValueForm(&$form)
     {
         $form->select('default_type', exmtrans("custom_column.options.default_type"))
-            ->config('allowClear', false)
             ->attribute(['data-filtertrigger' =>true])
             ->help(exmtrans("custom_column.help.default_type"))
             ->options(getTransArray(ColumnDefaultType::COLUMN_DEFAULT_TYPE_DATE(), 'custom_column.column_default_type_options'));

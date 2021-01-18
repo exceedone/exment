@@ -7,6 +7,9 @@ class ColumnDefaultType extends EnumBase
     const EXECUTING_DATE = 'executing_date';
     const SELECT_DATE = 'select_date';
     
+    const EXECUTING_TIME = 'executing_time';
+    const SELECT_TIME = 'select_time';
+    
     const EXECUTING_DATETIME = 'executing_datetime';
     const EXECUTING_TODAY = 'executing_today';
     const SELECT_DATETIME = 'select_datetime';
@@ -20,6 +23,14 @@ class ColumnDefaultType extends EnumBase
         return [
             ColumnDefaultType::EXECUTING_DATE,
             ColumnDefaultType::SELECT_DATE,
+        ];
+    }
+
+    public static function COLUMN_DEFAULT_TYPE_TIME()
+    {
+        return [
+            ColumnDefaultType::EXECUTING_TIME,
+            ColumnDefaultType::SELECT_TIME,
         ];
     }
 

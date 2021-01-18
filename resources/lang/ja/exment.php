@@ -1316,6 +1316,8 @@ return [
         'column_default_type_options' => [
             "executing_date" => "データ入力実施日",
             "select_date" => "指定の日付",
+            "executing_time" => "データ入力実施時間",
+            "select_time" => "指定の時間",
             "executing_datetime" => "データ入力実施日時(時間を含む)",
             "executing_today" => "データ入力実施日(時刻は00:00:00)",
             "select_datetime" => "指定の日時",
