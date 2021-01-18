@@ -327,7 +327,7 @@ abstract class CustomItem implements ItemInterface
         }
 
         // default
-        if (!is_null($this->id) && !is_null($default = $this->getDefaultValue())) {
+        if (is_null($this->id) && !is_null($default = $this->getDefaultValue())) {
             $field->default($default);
         }
 
