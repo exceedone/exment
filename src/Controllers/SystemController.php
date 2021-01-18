@@ -311,7 +311,7 @@ class SystemController extends AdminControllerBase
         $form->exmheader(exmtrans('system.call_update_header'))->hr();
 
         // check require. If conatains not OK, showing error message.
-        $checkObjs = [new SystemRequire\Composer, new SystemRequire\FilePermissionInstaller];
+        $checkObjs = [new SystemRequire\Composer, new SystemRequire\FilePermissionInstaller, new SystemRequire\TimeoutTime];
         $errorObjs = [];
         foreach($checkObjs as $checkObj){
             $checkObj->systemRequireCalledType(SystemRequireCalledType::WEB);
@@ -464,7 +464,9 @@ class SystemController extends AdminControllerBase
      */
     public function callUpdate(Request $request)
     {
-        UpdateService::update();
+        UpdateService::update([
+            'backup' => false,
+        ]);
 
         return getAjaxResponse([
             'result'  => true,

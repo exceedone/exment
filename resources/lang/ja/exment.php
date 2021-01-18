@@ -297,7 +297,7 @@ return [
         'call_update_success' => 'アップデートが完了しました！',
         'call_update_success_text' => 'アップデートが完了しました。5秒後、自動的にログアウトされます。',
         'call_update_cannot' => 'アップデート不可',
-        'call_update_cannot_description' => '以下のシステム要件に問題がありましたので、画面からのアップデートはできません。以下のシステム要件を確認してください。',
+        'call_update_cannot_description' => '以下のシステム要件の設定変更が必要でしたので、画面からのアップデートはできません。以下のシステム要件を確認してください。',
 
         'site_skin_options' => [
             "skin-blue" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
