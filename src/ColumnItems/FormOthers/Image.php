@@ -2,8 +2,10 @@
 
 namespace Exceedone\Exment\ColumnItems\FormOthers;
 
-use Exceedone\Exment\ColumnItems\FormOtherItem;
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\ColumnItems\FormOtherItem;
+use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Enums\UrlTagType;
 
 class Image extends FormOtherItem
 {
@@ -18,9 +20,15 @@ class Image extends FormOtherItem
      */
     public function _html($v)
     {
-        $image = array_get($this->form_column, 'options.image');
-        // default escapes text
-        return esc_html($this->_text($v));
+        $file = ExmentFile::getFileFromFormColumn(array_get($this->form_column, 'id'));
+        if(!$file){
+            return null;
+        }
+
+        $url = ExmentFile::getUrl($file);
+        return \Exment::getUrlTag($url, '<img src="'.$url.'" class="image_html" />', UrlTagType::BLANK, [], [
+            'notEscape' => true,
+        ]);
     }
     
     protected function setAdminOptions(&$field, $form_column_options)

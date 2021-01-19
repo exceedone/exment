@@ -79,6 +79,21 @@ class File extends ModelBase
 
 
     /**
+     * Get file url from form column
+     *
+     * @param string|null $form_column
+     * @return File|null
+     */
+    public static function getFileFromFormColumn(?string $form_column) : ?File
+    {
+        if(!$form_column){
+            return null;
+        }
+
+        return static::where('custom_form_column_id', $form_column)->first();
+    }
+
+    /**
      * save document model. Please call after save file
      */
     public function saveDocumentModel($custom_value, $document_name)

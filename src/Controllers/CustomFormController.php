@@ -177,9 +177,9 @@ class CustomFormController extends AdminControllerTableBase
      */
     public function update(Request $request, $tableKey, $id)
     {
-        if (!$this->saveformValidate($request, $id)) {
-            admin_toastr(exmtrans('custom_form.message.no_exists_column'), 'error');
-            return back()->withInput();
+        $validator = $this->saveformValidate($request, $id);
+        if ($validator->fails()) {
+            return back()->withInput()->withErrors($validator);
         }
 
         if ($this->saveform($request, $id)) {
@@ -196,9 +196,9 @@ class CustomFormController extends AdminControllerTableBase
      */
     public function store(Request $request)
     {
-        if (!$this->saveformValidate($request)) {
-            admin_toastr(exmtrans('custom_form.message.no_exists_column'), 'error');
-            return back()->withInput();
+        $validator = $this->saveformValidate($request, $id);
+        if ($validator->fails()) {
+            return back()->withInput()->withErrors($validator);
         }
 
         if ($this->saveform($request)) {
@@ -690,7 +690,10 @@ class CustomFormController extends AdminControllerTableBase
         //     //     return false;
         //     // }
         // }
-        return true;
+
+        return \Validator::make($request->all(), [
+            'custom_form_blocks.*.custom_form_columns.*.options.image' => ['nullable', new \Exceedone\Exment\Validator\ImageRule],
+        ]);
     }
 
     /**
@@ -828,15 +831,14 @@ class CustomFormController extends AdminControllerTableBase
             || !isMatchString(array_get($custom_form_column, 'form_column_target_id'), 5)){
                 return null;
         }
-        $image = ExmentFile::where('custom_form_column_id', array_get($custom_form_column, 'id'))->first();
-        if(!$image){
+        $file = ExmentFile::getFileFromFormColumn(array_get($custom_form_column, 'id'));
+        if(!$file){
             return null;
         }
-
-        return ExmentFile::getUrl($image);
+        return ExmentFile::getUrl($file);
     }
 
-
+    
     /**
      * Save attachment and get column name
      *
@@ -870,7 +872,7 @@ class CustomFormController extends AdminControllerTableBase
     protected function deleteImage($deletes)
     {
         collect($deletes)->map(function($delete){
-            return ExmentFile::where('custom_form_column_id', $delete)->first();
+            return ExmentFile::getFileFromFormColumn($delete);
         })->filter()->each(function($file){
             ExmentFile::deleteFileInfo($file);
         });
