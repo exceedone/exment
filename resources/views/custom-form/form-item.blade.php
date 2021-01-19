@@ -88,37 +88,20 @@
                     @endif
 
                     @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[1,2]))
-                    <div class="form-group">
-                            <span class="control-label col-sm-3">{{exmtrans('custom_form.text')}}</span>
-                            <div class="col-sm-9">
-                                @if($custom_form_column['form_column_target_id'] == "1")
-                                {{ Form::text("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][text]", array_get($custom_form_column, 'options.text'), ['class' => 'form-control']) }}
-                                @else
-                                <p class="input_texthtml-label" style="padding-top: 7px;">
-                                    {{get_omitted_string(array_get($custom_form_column, 'options.text'))}}
-                                </p>
-                                <button type="button" class="btn btn-sm btn-default input_texthtml-modal">@lang('admin.edit')</button> 
-                                {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][text]", array_get($custom_form_column, 'options.text'), ['class' => 'input_texthtml']) }}
-                                @endif
-                            </div>
-                    </div>
+                    @include("exment::custom-form.form-items.other.text")
                     @endif
 
                     @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[3,4]))
-                    <div class="form-group">
-                            <span class="control-label col-sm-3">{{exmtrans('custom_form.html')}}
-                                <i class="fa fa-info-circle" data-help-text="{{exmtrans('custom_form.help.html')}}" data-help-title="{{exmtrans('custom_form.html')}}"></i>
-                            </span>
-                            <div class="col-sm-9">
-                                <p class="input_texthtml-label" style="padding-top: 7px;">
-                                    {{get_omitted_string(array_get($custom_form_column, 'options.html'))}}
-                                </p>
-                                <button type="button" class="btn btn-sm btn-default input_texthtml-modal">@lang('admin.edit')</button> 
-                                {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][html]", array_get($custom_form_column, 'options.html'), ['class' => 'input_texthtml']) }}
-                            </div>
-                    </div>
+                    @include("exment::custom-form.form-items.other.html")
+                    @endif
+                    
+                    @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[5]))
+                    @include("exment::custom-form.form-items.other.image")
                     @endif
 
+                    @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[6]))
+                    @include("exment::custom-form.form-items.other.hr")
+                    @endif
             </div>
         </div>
         

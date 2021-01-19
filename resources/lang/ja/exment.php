@@ -1332,6 +1332,7 @@ return [
         'required' => '必須項目',
         'text' => 'テキスト',
         'html' => 'HTML',
+        'image' => '表示画像',
         'available' => '使用する',
         'hasmany_type' => 'フォームをテーブル形式にする',
         'header_basic_setting' => 'ヘッダー基本設定',
@@ -1360,6 +1361,8 @@ return [
             'html' => 'HTML',
             'explain' => '説明文',
             'exhtml' => '拡張HTML',
+            'image' => '画像',
+            'hr' => '罫線',
         ],
 
         'help'=> [

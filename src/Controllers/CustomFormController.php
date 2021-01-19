@@ -15,7 +15,9 @@ use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Linkage;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -367,7 +369,7 @@ class CustomFormController extends AdminControllerTableBase
                 if (!isset($custom_form_column_array['column_no'])) {
                     $custom_form_column_array['column_no'] = 1;
                 }
-                $custom_column = $custom_form_column->custom_column_cache;
+                $custom_column = ($custom_form_column instanceof CustomFormColumn) ? $custom_form_column->custom_column : array_get($custom_form_column, 'custom_column');
                 $custom_form_column_array['required'] = boolval(array_get($custom_form_column, 'required')) || boolval(array_get($custom_column, 'required'));
 
                 // get column view name
@@ -711,6 +713,9 @@ class CustomFormController extends AdminControllerTableBase
             $form->saveOrFail();
             $id = $form->id;
 
+
+            $new_columns = [];
+            $deletes = [];
             foreach ($inputs as $key => $value) {
                 // create blocks --------------------------------------------------
                 // if key is "NEW_", create new block
@@ -743,6 +748,7 @@ class CustomFormController extends AdminControllerTableBase
                     if (boolval(array_get($column_value, 'delete_flg'))) {
                         if (!$new_column) {
                             CustomFormColumn::findOrFail($column_key)->delete();
+                            $deletes[] = $column_key;
                         }
                         continue;
                     } elseif ($new_column) {
@@ -760,8 +766,17 @@ class CustomFormController extends AdminControllerTableBase
                     $column->options = array_get($column_value, 'options');
                     $column->order = $order++;
                     $column->saveOrFail();
+
+                    if($new_column){
+                        $new_columns[$column_key] = $column->id;
+                    }
                 }
             }
+
+            // set file info
+            $this->saveAndStoreImage($new_columns);
+            // delete file info
+            $this->deleteImage($deletes);
 
             DB::commit();
             return true;
@@ -796,5 +811,44 @@ class CustomFormController extends AdminControllerTableBase
     protected function getRelationFilterHelp()
     {
         return exmtrans('custom_form.help.relation_filter') . '<br/>' . exmtrans('common.help.more_help_here', getManualUrl('form#relation_filter_manual'));
+    }
+
+
+    /**
+     * Save attachment and get column name
+     *
+     * @return void
+     */
+    protected function saveAndStoreImage(array $new_columns)
+    {
+        $files = request()->files->all();
+        foreach(array_get($files, 'custom_form_blocks', []) as $block_id => $file_blocks){
+            foreach(array_get($file_blocks, 'custom_form_columns', []) as $column_id => $file_options){
+                $image = array_get($file_options, 'options.image');
+                if(!$image){
+                    continue;
+                }
+
+                // get custom form column's id 
+                $column_id = array_key_exists($column_id, $new_columns) ? $new_columns[$column_id] : $column_id;
+                $file = ExmentFile::storeAs(FileType::CUSTOM_FORM_COLUMN, $image, 'custom_form', $image->getClientOriginalName());
+                $file->custom_form_column_id = $column_id;
+                $file->save();
+            }
+        }
+    }
+
+    /**
+     * delete attachments
+     *
+     * @return void
+     */
+    protected function deleteImage($deletes)
+    {
+        collect($deletes)->map(function($delete){
+            return ExmentFile::where('custom_form_column_id', $delete)->first();
+        })->filter()->each(function($file){
+            ExmentFile::deleteFileInfo($file);
+        });
     }
 }

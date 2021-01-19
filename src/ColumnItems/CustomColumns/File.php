@@ -140,7 +140,9 @@ class File extends CustomItem
         $dirname = $field->getDirectory();
         $filename = $file->getClientOriginalName();
         // save file info
-        $exmentfile = ExmentFile::saveFileInfo($dirname, $filename);
+        $exmentfile = ExmentFile::saveFileInfo(null, $dirname, [
+            'filename' => $filename,
+        ]);
 
         // set request session to save this custom_value's id and type into files table.
         $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];

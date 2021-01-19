@@ -4,19 +4,32 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Services\Uuids;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\FileType;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 
 /**
  * Exment file model.
  * uuid: primary key. it uses as url.
+ * file_type : File type, Uses FileType.
  * path: local file path. it often sets "folder"/"uuid".
  * filename: for download or display name
+ * 
+ * This class uses ↓
+ *     *Append attachment info.
+ *     *Save attachment server(or ftp, s3, ...).
+ *     *Update custom value id or table
+ *     *Delete file info.
+ *     *Get attachment url.
  */
 class File extends ModelBase
 {
     use Uuids;
+    use Traits\DatabaseJsonOptionTrait;
+
     protected $guarded = ['uuid'];
+    protected $casts = ['options' => 'json'];
+    
     // Primary key setting
     protected $primaryKey = 'uuid';
     // increment disable
@@ -36,41 +49,6 @@ class File extends ModelBase
         return pathinfo($this->local_filename, PATHINFO_EXTENSION);
     }
 
-    /**
-     * save document model
-     */
-    public function saveDocumentModel($custom_value, $document_name)
-    {
-        // save Document Model
-        $document_model = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getValueModel();
-        $document_model->parent_id = $custom_value->id;
-        $document_model->parent_type = $custom_value->custom_table->table_name;
-        $document_model->setValue([
-            'file_uuid' => $this->uuid,
-            'document_name' => $document_name,
-        ]);
-        $document_model->save();
-
-        // execute notify
-        $custom_value->notify(false);
-
-        return $document_model;
-    }
-
-    public function saveCustomValue($custom_value_id, $custom_column = null, $custom_table = null)
-    {
-        if (isset($custom_value_id)) {
-            $this->parent_id = $custom_value_id;
-            $this->parent_type = $custom_table->table_name;
-        }
-        if (isset($custom_column)) {
-            $table_name = $this->local_dirname ?? $custom_table->table_name;
-            $custom_column = CustomColumn::getEloquent($custom_column, $table_name);
-            $this->custom_column_id = $custom_column ? $custom_column->id : null;
-        }
-        $this->save();
-        return $this;
-    }
 
     /**
      * get the file url
@@ -101,17 +79,70 @@ class File extends ModelBase
 
 
     /**
-     * Save file info to database.
+     * save document model. Please call after save file
+     */
+    public function saveDocumentModel($custom_value, $document_name)
+    {
+        // save Document Model
+        $document_model = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getValueModel();
+        $document_model->parent_id = $custom_value->id;
+        $document_model->parent_type = $custom_value->custom_table->table_name;
+        $document_model->setValue([
+            'file_uuid' => $this->uuid,
+            'document_name' => $document_name,
+        ]);
+        $document_model->save();
+
+        // execute notify
+        $custom_value->notify(false);
+
+        return $document_model;
+    }
+
+    /**
+     * Save custom value's on custom column's file-image. This function calls after save custom value.
+     *
+     * @param string|int $custom_value_id
+     * @param CustomColum|int|string|null $custom_column
+     * @param CustomTable|int|string|null $custom_table
+     * @return $this
+     */
+    public function saveCustomValue($custom_value_id, $custom_column = null, $custom_table = null)
+    {
+        if (isset($custom_value_id)) {
+            $this->parent_id = $custom_value_id;
+            $this->parent_type = $custom_table->table_name;
+        }
+        if (isset($custom_column)) {
+            $table_name = $this->local_dirname ?? $custom_table->table_name;
+            $custom_column = CustomColumn::getEloquent($custom_column, $table_name);
+            $this->custom_column_id = $custom_column ? $custom_column->id : null;
+        }
+        $this->save();
+        return $this;
+    }
+
+
+    /**
+     * Save file data to database.
      * *Please call this function before store file.
      *
      * @param string $dirname directory name
-     * @param string $filename file name
-     * @param string $unique_filename unique file name.
-     * @param boolean $override if override same file on server
      * @return File
      */
-    public static function saveFileInfo(string $dirname, string $filename = null, string $unique_filename = null, $override = false) : File
+    public static function saveFileInfo(?string $file_type, string $dirname, array $options = []) : File
     {
+        $options = array_merge([
+            'filename' => null, // saves file name
+            'unique_filename' => null, // If select unique file name
+            'override' => false, // If true, override file
+            'options' => [], // saved options data
+        ], $options);
+        $filename = $options['filename'];
+        $unique_filename = $options['unique_filename'];
+        $override = $options['override'];
+        $options = $options['options'];
+
         $uuid = make_uuid();
 
         if (!isset($filename)) {
@@ -127,15 +158,17 @@ class File extends ModelBase
         //     $local_filename = $unique_filename;
         // }
 
-        $file = new self;
-        $file->uuid = $uuid;
-        $file->local_dirname = $dirname;
-        $file->local_filename = $unique_filename;
-        $file->filename = $filename;
-
-        $file->save();
+        $file = File::create([
+            'file_type' => $file_type,
+            'uuid' => $uuid,
+            'local_dirname' => $dirname,
+            'local_filename' => $unique_filename,
+            'filename' => $filename,
+            'options' => $options,
+        ]);
         return $file;
     }
+
 
     /**
      * delete file info to database
@@ -212,48 +245,50 @@ class File extends ModelBase
     /**
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
+     * @param string|null $file_type file type
      * @param  string  $path directory and file path(Please join.)
-     * @param  string  $content set item content
+     * @param  \Illuminate\Http\UploadedFile|\Symfony\Component\HttpFoundation\File\UploadedFile $content file content
      * @return File
      */
-    public static function put($path, $content, $override = false)
+    public static function put(?string $file_type, $path, $content, array $options = [])
     {
-        $file = static::saveFileInfo($path, null, null, $override);
+        $file = static::saveFileInfo($file_type, $path, $options);
+
+        if($content instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+            $content = \Illuminate\Http\UploadedFile::createFromBase($content);
+        }
+
         Storage::disk(config('admin.upload.disk'))->put($file->path, $content);
         return $file;
     }
     
-    
-    /**
-     * Save file table on db and store the uploaded file on a filesystem disk.
-     *
-     * @param  \Illuminate\Http\UploadedFile $content file content
-     * @param string $dirname
-     * @return File
-     */
-    public static function store($content, $dirname)
-    {
-        $file = static::saveFileInfo($dirname, null, null, false);
-        $content->store($file->local_dirname, config('admin.upload.disk'));
-        return $file;
-    }
 
     /**
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
-     * @param  string|\Illuminate\Http\UploadedFile $content file content
+     * @param string|null $file_type file type
+     * @param  string|\Illuminate\Http\UploadedFile|\Symfony\Component\HttpFoundation\File\UploadedFile $content file content
      * @param  string  $dirname directory path
      * @param  string  $name file name. the name is shown by display
      * @param  bool  $override if file already exists, override
      * @return File
      */
-    public static function storeAs($content, string $dirname, string $name, bool $override = false) : File
+    public static function storeAs(?string $file_type, $content, string $dirname, string $name, array $options = []) : File
     {
-        $file = static::saveFileInfo($dirname, $name, null, $override);
-        if (is_string($content)) {
-            \Storage::disk(config('admin.upload.disk'))->put(path_join($dirname, $file->local_filename), $content);
-        } else {
+        $options = array_merge([
+            'filename' => $name, // saves file name
+        ], $options);
+        $file = static::saveFileInfo($file_type, $dirname, $options);
+        
+        if($content instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+            $content = \Illuminate\Http\UploadedFile::createFromBase($content);
+        }
+
+        if($content instanceof \Illuminate\Http\UploadedFile) {
             $content->storeAs($dirname, $file->local_filename, config('admin.upload.disk'));
+        }
+        else{
+            \Storage::disk(config('admin.upload.disk'))->put(path_join($dirname, $file->local_filename), $content);
         }
         return $file;
     }
@@ -326,25 +361,18 @@ class File extends ModelBase
 
         $ext = file_ext($filename);
         return make_uuid() . (!is_nullorempty($ext) ? '.'.$ext : '');
-
-        // // create file name.
-        // // get ymdhis string
-        // $path = url_join($dirname, $filename);
-
-        // // check file exists
-        // // if exists, use uuid
-        // if (\File::exists(getFullpath($path, config('admin.upload.disk')))) {
-        //     $ext = file_ext($filename);
-        //     return make_uuid() . (!is_nullorempty($ext) ? '.'.$ext : '');
-        // }
-        // return $filename;
     }
 
     /**
      * get directory and filename from path
      */
-    public static function getDirAndFileName($path)
+    protected static function getDirAndFileName($path)
     {
+        $pathinfo = pathinfo($path);
+        if(isMatchString(array_get($pathinfo, 'dirname'), '.')){
+            return [$path, make_uuid()];
+        }
+
         $dirname = dirname($path);
         $filename = mb_basename($path);
         return [$dirname, $filename];

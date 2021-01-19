@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\ApiClientRepository;
 use Exceedone\Exment\Model\Condition;
@@ -905,7 +906,7 @@ class TestDataSeeder extends Seeder
 
                 // set attachment
                 if ($i === 1) {
-                    Model\File::storeAs(TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt')
+                    Model\File::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, TestDefine::FILE_TESTSTRING, $custom_table->table_name, 'test.txt')
                         ->saveCustomValue($custom_value->id, null, $custom_table)
                         ->saveDocumentModel($custom_value, 'test.txt');
                 }

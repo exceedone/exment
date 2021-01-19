@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Plugin;
 use Exceedone\Exment\Services\DocumentExcelService;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Illuminate\Support\Facades\File;
+use Exceedone\Exment\Enums\FileType;
 
 /**
  * Plugin (Document) base class
@@ -47,8 +48,11 @@ abstract class PluginDocumentBase
         $service->makeExcel();
 
         // set path and file info
-        $file = ExmentFile::saveFileInfo($service->getDirPath(), $service->getFileName(), $service->getUniqueFileName())
-            ->saveCustomValue($this->custom_value->id, null, $this->custom_value->custom_table);
+        $file = ExmentFile::saveFileInfo(FileType::CUSTOM_VALUE_DOCUMENT, $service->getDirPath(), 
+            [
+                'filename' => $service->getFileName(),
+                'unique_filename' => $service->getUniqueFileName(),
+            ])->saveCustomValue($this->custom_value->id, null, $this->custom_value->custom_table);
 
         // save Document Model
         $document_model = $file->saveDocumentModel($this->custom_value, $service->getFileName());

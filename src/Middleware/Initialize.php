@@ -270,6 +270,8 @@ class Initialize
             'explain'        => FormOthers\Explain::class,
             'html'        => FormOthers\Html::class,
             'exhtml'      => FormOthers\ExHtml::class,
+            'image'      => FormOthers\Image::class,
+            'hr'      => FormOthers\Hr::class,
         ];
         foreach ($map as $abstract => $class) {
             FormOtherItem::extend($abstract, $class);

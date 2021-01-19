@@ -349,7 +349,7 @@ var Exment;
         return false;
     };
     CustomFromEvent.ignoreSuggests = () => {
-        $('.custom_form_column_suggests,.template_item_block').find('input,textarea,select').attr('disabled', 'disabled');
+        $('.custom_form_column_suggests,.template_item_block').find('input,textarea,select,file').attr('disabled', 'disabled');
         return true;
     };
     CustomFromEvent.changedataModalEvent = (ev) => {

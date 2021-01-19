@@ -22,6 +22,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -700,10 +701,8 @@ EOT;
         // file put(store)
         foreach (toArray($httpfiles) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();
-            // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
-            // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
             $custom_value = $this->custom_value;
-            $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
+            $file = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $httpfile, $this->custom_table->table_name, $filename)
                 ->saveCustomValue($custom_value->id, null, $this->custom_table);
             // save document model
             $document_model = $file->saveDocumentModel($custom_value, $filename);

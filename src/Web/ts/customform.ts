@@ -320,7 +320,7 @@ namespace Exment {
         
 
         private static ignoreSuggests = () => {
-            $('.custom_form_column_suggests,.template_item_block').find('input,textarea,select').attr('disabled', 'disabled');
+            $('.custom_form_column_suggests,.template_item_block').find('input,textarea,select,file').attr('disabled', 'disabled');
             return true;
         }
 

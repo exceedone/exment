@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Validator;
+use Exceedone\Exment\Enums\FileType;
 use Illuminate\Support\Facades\Storage;
 
 class Editor extends CustomItem
@@ -153,7 +154,7 @@ class Editor extends CustomItem
                 // get original filename from session
                 $original_name = session()->get($filename);
                 // save file info
-                $exmentfile = ExmentFile::put(path_join($this->custom_table->table_name, make_uuid()), $file);
+                $exmentfile = ExmentFile::put(FileType::CUSTOM_VALUE_DOCUMENT, path_join($this->custom_table->table_name, make_uuid()), $file);
                     
                 // save document model
                 $this->tmpfiles[] = [

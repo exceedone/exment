@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\Config;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Carbon\Carbon;
 use Storage;
@@ -361,7 +362,7 @@ class System extends ModelBase
             $old_value = $system->system_value;
             if (!is_null($value)) {
                 $move = array_get($setting, 'move');
-                $exmentfile = ExmentFile::storeAs($value, $move, $value->getClientOriginalName());
+                $exmentfile = ExmentFile::storeAs(FileType::SYSTEM, $value, $move, $value->getClientOriginalName());
                 $system->system_value = $exmentfile->path;
             }
 

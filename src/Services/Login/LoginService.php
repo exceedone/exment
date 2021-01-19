@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SsoLoginErrorType;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Illuminate\Http\Request;
@@ -491,7 +492,9 @@ class LoginService
             }
             // file upload.
             if (isset($stream) && isset($custom_login_user->id)) {
-                $file = ExmentFile::put(path_join("avatar", $custom_login_user->id), $stream, true);
+                $file = ExmentFile::put(FileType::AVATAR, path_join("avatar", $custom_login_user->id), $stream, [
+                    'override' => true,
+                ]);
                 return $file->path;
             }
         } finally {

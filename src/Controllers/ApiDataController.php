@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -652,7 +653,7 @@ class ApiDataController extends AdminControllerTableBase
         $file_data = base64_decode($request->get('base64'));
         $filename = $request->get('name');
 
-        $file = File::storeAs($file_data, $this->custom_table->table_name, $filename)
+        $file = File::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $file_data, $this->custom_table->table_name, $filename)
             ->saveCustomValue($custom_value->id, null, $this->custom_table);
         // save document model
         $document_model = $file->saveDocumentModel($custom_value, $filename);
@@ -1107,7 +1108,7 @@ class ApiDataController extends AdminControllerTableBase
     {
         foreach ($files as $column_name => &$fileInfo) {
             // save filename
-            $file = File::storeAs($fileInfo['data'], $custom_table->table_name, $fileInfo['name']);
+            $file = File::storeAs(FileType::CUSTOM_VALUE_COLUMN, $fileInfo['data'], $custom_table->table_name, $fileInfo['name']);
 
             // convert value array
             $value[$column_name] = path_join($file->local_dirname, $file->local_filename);
