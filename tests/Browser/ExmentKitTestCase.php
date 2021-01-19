@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
+use Exceedone\Exment\Tests\Constraints\HasOuterElement;
 use Exceedone\Exment\Tests\TestTrait;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
@@ -30,5 +31,19 @@ abstract class ExmentKitTestCase extends BaseTestCase
     protected function login($id = null)
     {
         $this->be(LoginUser::find($id?? 1));
+    }
+
+
+    /**
+     * Assert that a given string is seen inside an element.
+     *
+     * @param  string  $element
+     * @param  string  $text
+     * @param  bool  $negate
+     * @return $this
+     */
+    public function seeOuterElement($element, $text, $negate = false)
+    {
+        return $this->assertInPage(new HasOuterElement($element, $text), $negate);
     }
 }
