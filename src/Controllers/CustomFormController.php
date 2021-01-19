@@ -389,6 +389,9 @@ class CustomFormController extends AdminControllerTableBase
                         // get column name
                         $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
                         $column_view_name = exmtrans("custom_form.form_column_type_other_options.$column_form_column_name");
+
+                        // set image url
+                        $custom_form_column_array['image_url'] = $this->getImageUrl($custom_form_column);
                         break;
                 }
                 // set view_name using custom_column info.
@@ -815,6 +818,26 @@ class CustomFormController extends AdminControllerTableBase
 
 
     /**
+     * getImageUrl
+     *
+     * @return string|null
+     */
+    protected function getImageUrl($custom_form_column) : ?string
+    {
+        if(!isMatchString(array_get($custom_form_column, 'form_column_type'), FormColumnType::OTHER)
+            || !isMatchString(array_get($custom_form_column, 'form_column_target_id'), 5)){
+                return null;
+        }
+        $image = ExmentFile::where('custom_form_column_id', array_get($custom_form_column, 'id'))->first();
+        if(!$image){
+            return null;
+        }
+
+        return ExmentFile::getUrl($image);
+    }
+
+
+    /**
      * Save attachment and get column name
      *
      * @return void
@@ -837,6 +860,7 @@ class CustomFormController extends AdminControllerTableBase
             }
         }
     }
+
 
     /**
      * delete attachments
