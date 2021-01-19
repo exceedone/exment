@@ -180,6 +180,9 @@ class PatchDataCommand extends Command
             case 'patch_view_only':
                 $this->patchViewOnly();
                 return;
+            case 'form_column_row_no':
+                $this->patchFormColumnRowNo();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -1406,6 +1409,24 @@ class PatchDataCommand extends Command
 
             $custom_column->setOption('calc_formula', $calcString);
             $custom_column->save();
+        });
+    }
+
+    protected function patchFormColumnRowNo()
+    {
+        $columns = CustomFormColumn::all();
+
+        // group by group
+        $columnGroups = $columns->groupBy('custom_form_block_id');
+        $columnGroups->each(function($columnGroup){
+            $columnGroupInners = $columnGroup->groupBy('column_no');
+            $columnGroupInners->each(function($columns) use($columnGroupInners){
+                $columns->sortBy('order')->each(function($column, $index) use($columnGroupInners){
+                    $column->row_no = $index + 1;
+                    $column->setOption('width', 4 / $columnGroupInners->count());
+                    $column->save();
+                });
+            });
         });
     }
 }

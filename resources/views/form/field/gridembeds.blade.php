@@ -11,9 +11,14 @@
     <div class="embed-{{$column}}-forms">
 
         <div class="embed-{{$column}}-form fields-group">
-
-            @foreach($form->fields() as $field)
-                {!! $field->render() !!}
+            @foreach($fieldGroups as $fieldGroup)
+                <div class="row">
+                    @foreach($fieldGroup as $field)
+                    <div class="col-sm-{{array_get($field, 'col_sm', 12)}}">
+                    {!! $field['field']->render() !!}
+                    </div>
+                    @endforeach
+                </div>
             @endforeach
 
         </div>

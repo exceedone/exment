@@ -74,7 +74,8 @@ class DefaultForm extends FormBase
             // when default block, set as normal form columns.
             if ($custom_form_block->form_block_type == FormBlockType::DEFAULT) {
                 $form->embeds('value', exmtrans("common.input"), $this->getCustomFormColumns($form, $custom_form_block, $this->custom_value))
-                    ->disableHeader();
+                    ->disableHeader()
+                    ->gridEmbeds();
             }
             // one_to_many or manytomany
             else {
@@ -107,7 +108,9 @@ class DefaultForm extends FormBase
                             $block_label,
                             function ($form, $model = null) use ($custom_form_block, $relation, $relation_name) {
                                 $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
-                                ->disableHeader()->setRelationName($relation_name);
+                                    ->disableHeader()
+                                    ->setRelationName($relation_name)
+                                    ->gridEmbeds();
                             }
                         );
                     }
@@ -222,43 +225,37 @@ EOT;
      */
     protected function getCustomFormColumns($form, $custom_form_block, $target_custom_value = null, ?CustomRelation $relation = null)
     {
-        $closures = [];
         if (is_numeric($target_custom_value)) {
             $target_custom_value = $this->custom_table->getValueModel($target_custom_value);
         }
-        // setting fields.
-        foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
-                continue;
-            }
 
-            if (is_null($form_column->column_item)) {
-                continue;
-            }
-
-            $field = $form_column->column_item->setCustomValue($target_custom_value)->getAdminField($form_column);
-
-            // set $closures using $form_column->column_no
-            if (isset($field)) {
-                $column_no = array_get($form_column, 'column_no');
-                $closures[$column_no][] = $field;
-            }
-        }
-
-        $is_grid = array_key_exists(1, $closures) && array_key_exists(2, $closures);
-        return collect($closures)->map(function ($closure, $key) use ($is_grid) {
-            return function ($form) use ($closure, $key, $is_grid) {
-                foreach ($closure as $field) {
-                    if ($is_grid && in_array($key, [1, 2])) {
-                        $field->setWidth(8, 3);
-                    } else {
-                        $field->setWidth(8, 2);
-                    }
-                    // push field to form
-                    $form->pushField($field);
+        return function ($form) use ($custom_form_block, $target_custom_value, $relation) {
+            // setting fields.
+            foreach ($custom_form_block->custom_form_columns as $form_column) {
+                if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
+                    continue;
                 }
-            };
-        })->toArray();
+    
+                if (is_null($form_column->column_item)) {
+                    continue;
+                }
+    
+                $field = $form_column->column_item->setCustomValue($target_custom_value)->getAdminField($form_column);
+    
+                // set $closures using $form_column->column_no
+                if (!isset($field)) {
+                    continue;
+                }
+    
+                $field->setWidth(8, 2);
+                // push field to form
+                $form->pushFieldAndOption($field, [
+                    'row' => $form_column->row_no,
+                    'column' => $form_column->column_no,
+                    'width' => $form_column->getOption('width', 4),
+                ]);
+            }
+        };
     }
 
     /**

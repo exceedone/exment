@@ -24,6 +24,14 @@ class FormOptions extends Migration
                 $table->json('options')->after('custom_form_column_id')->nullable();
             }
         });
+
+        Schema::table('custom_form_columns', function (Blueprint $table) {
+            if (!Schema::hasColumn('custom_form_columns', 'row_no')) {
+                $table->integer('row_no')->after('form_column_target_id')->default(1);
+            }
+        });
+
+        \Artisan::call('exment:patchdata', ['action' => 'form_column_row_no']);
     }
 
     /**
