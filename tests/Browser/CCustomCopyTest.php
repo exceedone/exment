@@ -2,12 +2,13 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomCopy;
+use Exceedone\Exment\Model\CustomCopyColumn;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Tests\TestDefine;
 
@@ -60,12 +61,17 @@ class CCustomCopyTest extends ExmentKitTestCase
      */
     public function testAddCopySetting()
     {
-        DB::beginTransaction();
-        try {
-            $this->_addCopyData();
-        } finally {
-            DB::rollback();
-        }
+        $custom_copy = $this->_addCopyData();
+
+        $id = array_get($custom_copy, 'id');
+
+        $this->visit(admin_url("copy/custom_value_edit_all/$id/edit"))
+            ->seePageIs(admin_url("copy/custom_value_edit_all/$id/edit"))
+            ->seeInElement('input[id=label]', 'copy unit test')
+            //->seeInElement('div.input-group', 'copy unit test')
+            ->seeInElement('div.input-group', 'fa-android')
+            ->seeInElement('div.input-group', 'btn-info');
+            ;
     }
 
     /**
@@ -73,27 +79,8 @@ class CCustomCopyTest extends ExmentKitTestCase
      */
     public function testUpdateCopySetting()
     {
-        DB::beginTransaction();
-        try {
-            $custom_copy = $this->_addCopyData();
-            $this->_updateCopyData($custom_copy);
-
-        } finally {
-            DB::rollback();
-        }
-    }
-
-    /**
-     * Create custom value copy contains field.
-     */
-    public function testAddCopySettingWithInput()
-    {
-        DB::beginTransaction();
-        try {
-            $this->_addCopyData(true);
-        } finally {
-            DB::rollback();
-        }
+        $custom_copy = $this->_addCopyData();
+        $this->_updateCopyData($custom_copy);
     }
 
     /**
@@ -103,51 +90,54 @@ class CCustomCopyTest extends ExmentKitTestCase
     {
         $id = $copy->id;
 
-        $from_table = CustomTable::getEloquent('custom_value_edit_all');
-        $from_column_0 = CustomColumn::getEloquent('date', $from_table);
-        $from_column_1 = CustomColumn::getEloquent('odd_even', $from_table);
-        $to_table = CustomTable::getEloquent('custom_value_view_all');
-        $to_column_0 = CustomColumn::getEloquent('date', $to_table);
-        $to_column_1 = CustomColumn::getEloquent('odd_even', $to_table);
+        $from_table = $copy->from_custom_table;
+        $to_table = $copy->to_custom_table;
 
         $data = [
             'options' => [
                 'label' => 'copy unit test update',
             ],
             'custom_copy_columns' => [],
+            'custom_copy_input_columns' => [],
         ];
 
+        $new_idx = 0;
         foreach ($copy->custom_copy_columns as $index => $custom_copy_column) {
-            $data['custom_copy_columns'][$custom_copy_column->id] = [
-                'from_column_target' => ${'from_column_'.$index}->id ."?table_id={$from_table->id}",
-                'to_column_target' => ${'to_column_'.$index}->id ."?table_id={$to_table->id}",
-                'copy_column_type' => CopyColumnType::DEFAULT,
-                '_remove_' => 0,
-            ];
+            if ($index % 2 == 1) {
+                $data['custom_copy_columns'][$custom_copy_column->id] = [
+                    '_remove_' => 1,
+                ];
+                $new_idx++;
+                $data['custom_copy_input_columns']["new_$new_idx"] = [
+                    'to_column_target_id' => $custom_copy_column->to_column_target_id,
+                    'to_column_type' => $custom_copy_column->to_column_type,
+                    'to_column_table_id' => $custom_copy_column->to_column_table_id,
+                    'copy_column_type' => CopyColumnType::INPUT,
+                    '_remove_' => 0,
+                ];
+            }
         }
         $this->put(admin_url("copy/custom_value_edit_all/$id"), $data);
-        $this->assertPostResponse($this->response, admin_url("copy/custom_value_edit_all/$id/edit"));
+        $this->assertPostResponse($this->response, admin_url("copy/custom_value_edit_all"));
     
         $this->visit(admin_url("copy/custom_value_edit_all/$id/edit"))
             ->seePageIs(admin_url("copy/custom_value_edit_all/$id/edit"))
-            ->see('copy unit test update')
-            ->see('odd_even')
-            ->see('date')
+            ->seeInElement('div.input-group', 'copy unit test update')
             ;
     }
 
     /**
      * Create custom value copy contains field.
      */
-    protected function _addCopyData(bool $with_input = false)
+    protected function _addCopyData($is_same = false)
     {
+        $from_table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL;
+        $to_table_name = $is_same? TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL: TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL;
+
         $pre_cnt = CustomCopy::count();
-        $from_table = CustomTable::getEloquent('custom_value_edit_all');
-        $from_column_text = CustomColumn::getEloquent('text', $from_table);
-        $from_column_user = CustomColumn::getEloquent('user', $from_table);
-        $to_table = CustomTable::getEloquent('custom_value_view_all');
-        $to_column_text = CustomColumn::getEloquent('text', $to_table);
-        $to_column_user = CustomColumn::getEloquent('user', $to_table);
+        $pre_child_cnt = CustomCopyColumn::count();
+        $from_table = CustomTable::getEloquent($from_table_name);
+        $to_table = CustomTable::getEloquent($to_table_name);
 
         $data = [
             'from_custom_table_id' => $from_table->id,
@@ -157,67 +147,41 @@ class CCustomCopyTest extends ExmentKitTestCase
                 'icon' => 'fa-android',
                 'button_class' => 'btn-info',
             ],
-            'custom_copy_columns' => [
-                'new_1' => [
-                    'from_column_target' => "{$from_column_text->id}?table_id={$from_table->id}",
-                    'to_column_target' => "{$to_column_text->id}?table_id={$to_table->id}",
-                    'copy_column_type' => CopyColumnType::DEFAULT,
-                    '_remove_' => 0,
-                ],
-                'new_2' => [
-                    'from_column_target' => "{$from_column_user->id}?table_id={$from_table->id}",
-                    'to_column_target' => "{$to_column_user->id}?table_id={$to_table->id}",
-                    'copy_column_type' => CopyColumnType::DEFAULT,
-                    '_remove_' => 0,
-                ],
-            ],
+            'custom_copy_columns' => [],
+            'custom_copy_input_columns' => [],
         ];
 
-        if ($with_input) {
-            $to_column_integer= CustomColumn::getEloquent('integer', $to_table);
-            $to_column_date= CustomColumn::getEloquent('date', $to_table);
-
-            $data['custom_copy_input_columns'] = [
-                'new_1' => [
-                    'to_column_target' => "{$to_column_integer->id}?table_id={$to_table->id}",
-                    'copy_column_type' => CopyColumnType::INPUT,
-                    '_remove_' => 0,
-                ],
-                'new_2' => [
-                    'to_column_target' => "{$to_column_date->id}?table_id={$to_table->id}",
-                    'copy_column_type' => CopyColumnType::INPUT,
-                    '_remove_' => 0,
-                ],
+        foreach ($from_table->custom_columns as $index => $from_column) {
+            $row_id = 'new_' . ($index + 1);
+            if ($is_same) {
+                $to_column = $from_column;
+            } else {
+                $to_column = CustomColumn::getEloquent($from_column->column_name, $to_table);
+            }
+            $data['custom_copy_columns'][$row_id] = [
+                'from_column_target' => "{$from_column->id}?table_id={$from_table->id}",
+                'to_column_target' => "{$to_column->id}?table_id={$to_table->id}",
+                'copy_column_type' => CopyColumnType::DEFAULT,
+                '_remove_' => 0,
             ];
         }
+
+        $column_count = $from_table->custom_columns->count();
 
         $this->post(admin_url('copy/custom_value_edit_all'), $data);
         $this->assertPostResponse($this->response, admin_url('copy/custom_value_edit_all'));
 
         $this->visit(admin_url('copy/custom_value_edit_all'))
             ->seePageIs(admin_url('copy/custom_value_edit_all'))
-            ->seeInElement('td', 'custom_value_edit_all')
-            ->seeInElement('td', 'custom_value_view_all')
+            ->seeInElement('td', $from_table_name)
+            ->seeInElement('td', $to_table_name)
             ->seeInElement('td', 'copy unit test')
-            ->assertEquals($pre_cnt + 1, CustomCopy::count())
+            ->assertEquals($pre_cnt + 1, CustomCopy::count());
+
+        $this->assertEquals($pre_child_cnt + $column_count, CustomCopyColumn::count())
             ;
             
         $raw = CustomCopy::orderBy('created_at', 'desc')->first();
-        $id = array_get($raw, 'id');
-
-        $this->visit(admin_url("copy/custom_value_edit_all/$id/edit"))
-            ->seePageIs(admin_url("copy/custom_value_edit_all/$id/edit"))
-            ->see('copy unit test')
-            ->see('fa-android')
-            ->see('btn-info')
-            ->see('text')
-            ->see('user')
-            ;
-
-        if ($with_input) {
-            $this->see('date')
-                ->see('integer');
-        }
 
         return $raw;
     }
