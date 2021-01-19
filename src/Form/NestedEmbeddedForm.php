@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Form;
 
 use Encore\Admin\Admin;
 use Encore\Admin\Form\Field;
-use Encore\Admin\Form\EmbeddedForm;
 
 class NestedEmbeddedForm extends EmbeddedForm
 {

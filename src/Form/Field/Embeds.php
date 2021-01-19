@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Form\Field;
 
 use Encore\Admin\Form\Field  as AdminField;
-use Encore\Admin\Form\EmbeddedForm;
+use Exceedone\Exment\Form\EmbeddedForm;
 
 class Embeds extends AdminField\Embeds
 {
@@ -112,11 +112,19 @@ class Embeds extends AdminField\Embeds
         // grid form
         ->groupBy(function ($fieldOption, $key) {
             return array_get($fieldOption, 'options.row', 1);
-        })
-        // set group sm size
-        ->map(function($fieldGroups){
+        });
+
+        // get column's max width
+        $maxWidth = $fieldGroups->max(function($fieldGroups){
             return $fieldGroups->map(function($fieldOption) use($fieldGroups){
-                $fieldOption['col_sm'] = array_get($fieldOption, 'options.width', 1) * 3;
+                return array_get($fieldOption, 'options.width', 1);
+            })->sum();
+        });
+
+        // set group sm size
+        $fieldGroups = $fieldGroups->map(function($fieldGroups) use($maxWidth){
+            return $fieldGroups->map(function($fieldOption) use($fieldGroups, $maxWidth){
+                $fieldOption['col_sm'] = array_get($fieldOption, 'options.width', 1) * (12 / $maxWidth);
                 return $fieldOption;
             });
         });
