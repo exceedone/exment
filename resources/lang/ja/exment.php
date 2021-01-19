@@ -464,6 +464,8 @@ return [
                 'label' => 'composerインストール',
                 'explain' => 'Exmentのアップデートに使用する、composerがインストールされているかどうかを確認します。',
                 'warning' => 'composerのインストールを確認できませんでした。Exmentのアップデートが正常に完了しない場合があります。※権限設定やパスの設定により、composerが設定されているにも関わらず、この警告が表示される場合があります。',
+                'warning_versionget' => 'composerのバージョン取得ができませんでした。設定内容を見直してください。',
+                'warning_versionmin' => 'インストールされているcomposerのバージョンが :version でした。現在Exmentでは、composerバージョンは2.0.0以上を推奨しています。アップデートをご検討ください。',
             ],
         ],
     ],

@@ -449,6 +449,8 @@ return [
                 'label' => 'Install Composer',
                 'explain' => 'Check if you have Composer installed to update your Exment.',
                 'warning' => 'Could not confirm the installation of Composer. The Exment update may not complete successfully. Please check if Composer is installed normally.',
+                'warning_versionget' => 'The version of composer could not be obtained. Review the settings.',
+                'warning_versionmin' => 'The version of composer installed was :version. Exment currently recommends a composer version of 2.0.0 or higher. Please consider updating.',
             ],
         ],
     ],

@@ -193,6 +193,8 @@ class Define
     public const SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG = "disable_data_url_tag";
     public const SYSTEM_KEY_SESSION_FORM_DATA_TYPE = "form_data_type";
     public const SYSTEM_KEY_SESSION_FILE_NODELIST = "file_treelist";
+    public const SYSTEM_KEY_SESSION_COMPOSER_VERSION = "exment_composer_version";
+
 
     public const APPEND_QUERY_WORK_STATUS_SUB_QUERY = 'APPEND_QUERY_WORK_STATUS_SUB_QUERY';
     public const APPEND_QUERY_WORK_USERS_SUB_QUERY = 'APPEND_QUERY_WORK_USERS_SUB_QUERY';
