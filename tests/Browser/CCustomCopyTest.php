@@ -14,7 +14,7 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CCustomCopyTest extends ExmentKitTestCase
 {
-    use ExmentKitPrepareTrait, ColumnOptionQueryTrait;
+    use ExmentKitPrepareTrait, ColumnOptionQueryTrait, DatabaseTransactions;
 
     /**
      * pre-excecute process before test.
@@ -26,7 +26,7 @@ class CCustomCopyTest extends ExmentKitTestCase
     }
 
     /**
-     * Check custom value copy display.
+     * Check custom value copy setting display.
      */
     public function testDisplayCopySetting()
     {
@@ -57,7 +57,7 @@ class CCustomCopyTest extends ExmentKitTestCase
     }
 
     /**
-     * Create custom value copy contains field.
+     * Create custom value copy all field.
      */
     public function testAddCopySetting()
     {
@@ -67,20 +67,147 @@ class CCustomCopyTest extends ExmentKitTestCase
 
         $this->visit(admin_url("copy/custom_value_edit_all/$id/edit"))
             ->seePageIs(admin_url("copy/custom_value_edit_all/$id/edit"))
-            ->seeInElement('input[id=label]', 'copy unit test')
-            //->seeInElement('div.input-group', 'copy unit test')
-            ->seeInElement('div.input-group', 'fa-android')
-            ->seeInElement('div.input-group', 'btn-info');
+            ->seeOuterElement('input[id=label]', 'copy unit test')
+            ->seeOuterElement('input[id=icon]', 'fa-android')
+            ->seeOuterElement('input[id=button_class]', 'btn-info')
+            //// TODO isaka:selectoption
+            // selector:select.from_column_target value: 50, text: text
+            // selector:select.from_column_target value: 51, text: user
+            // selector:select.from_column_target value: 52, text: index_text
+            // selector:select.from_column_target value: 53, text: odd_even
+            // selector:select.from_column_target value: 54, text: multiples_of_3
+            // selector:select.from_column_target value: 55, text: file
+            // selector:select.from_column_target value: 56, text: date
+            // selector:select.from_column_target value: 57, text: integer
+            // selector:select.from_column_target value: 58, text: decimal
+            // selector:select.from_column_target value: 59, text: currency
+            // selector:select.from_column_target value: 60, text: init_text
+            // selector:select.from_column_target value: 61, text: email
+            // selector:select.to_column_target value: 62, text: text
+            // selector:select.to_column_target value: 63, text: user
+            // selector:select.to_column_target value: 64, text: index_text
+            // selector:select.to_column_target value: 65, text: odd_even
+            // selector:select.to_column_target value: 66, text: multiples_of_3
+            // selector:select.to_column_target value: 67, text: file
+            // selector:select.to_column_target value: 68, text: date
+            // selector:select.to_column_target value: 69, text: integer
+            // selector:select.to_column_target value: 70, text: decimal
+            // selector:select.to_column_target value: 71, text: currency
+            // selector:select.to_column_target value: 72, text: init_text
+            // selector:select.to_column_target value: 73, text: email
             ;
     }
 
     /**
-     * Update custom value copy contains field.
+     * Update custom value copy input field.
      */
     public function testUpdateCopySetting()
     {
         $custom_copy = $this->_addCopyData();
         $this->_updateCopyData($custom_copy);
+
+        $id = array_get($custom_copy, 'id');
+    
+        $this->visit(admin_url("copy/custom_value_edit_all/$id/edit"))
+            ->seePageIs(admin_url("copy/custom_value_edit_all/$id/edit"))
+            ->seeOuterElement('input[id=label]', 'copy unit test update')
+            //// TODO isaka:selectoption
+            // selector:select.from_column_target value: 50, text: text
+            // selector:select.from_column_target value: 52, text: index_text
+            // selector:select.from_column_target value: 54, text: multiples_of_3
+            // selector:select.from_column_target value: 56, text: date
+            // selector:select.from_column_target value: 58, text: decimal
+            // selector:select.from_column_target value: 60, text: init_text
+            // selector:select.to_column_target value: 62, text: text
+            // selector:select.to_column_target value: 64, text: index_text
+            // selector:select.to_column_target value: 66, text: multiples_of_3
+            // selector:select.to_column_target value: 68, text: date
+            // selector:select.to_column_target value: 70, text: decimal
+            // selector:select.to_column_target value: 72, text: init_text
+            // selector:select.custom_copy_input_columns value: 63, text: user
+            // selector:select.custom_copy_input_columns value: 65, text: odd_even
+            // selector:select.custom_copy_input_columns value: 67, text: file
+            // selector:select.custom_copy_input_columns value: 69, text: integer
+            // selector:select.custom_copy_input_columns value: 71, text: currency
+            // selector:select.custom_copy_input_columns value: 73, text: email
+            ;
+    }
+
+    /**
+     * Copy custom value in same table.
+     */
+    public function testCustomValueCopySameTable()
+    {
+        $custom_copy = $this->_addCopyData(true);
+
+        $this->_executeCopy($custom_copy);
+    }
+
+    /**
+     * Copy custom value all field.
+     */
+    public function testCustomValueCopyAll()
+    {
+        $custom_copy = $this->_addCopyData();
+
+        $this->_executeCopy($custom_copy);
+    }
+
+    /**
+     * Copy custom value all field.
+     */
+    public function testCustomValueCopyInput()
+    {
+        $custom_copy = $this->_addCopyData();
+        $this->_updateCopyData($custom_copy);
+
+        $this->_executeCopy($custom_copy, [
+            'user' => TestDefine::TESTDATA_USER_LOGINID_DEV_USERB,
+            'odd_even' => 'even',
+            'integer' => '8976',
+            'currency' => '12345.6',
+            'email' => 'test@mail.com',
+        ]);
+    }
+
+    /**
+     * Copy custom value.
+     */
+    public function _executeCopy($custom_copy, $data = [])
+    {
+        $from_table_name = $custom_copy->from_custom_table->table_name;
+        $to_table_name = $custom_copy->to_custom_table->table_name;
+
+        $to_table = $custom_copy->to_custom_table->getValueModel();
+
+        $pre_cnt = $to_table->count();
+
+        $data['uuid'] = array_get($custom_copy, 'suuid');
+
+        $custom_value = $custom_copy->from_custom_table->getValueModel()->first();
+        $id = $custom_value->id;
+
+        $this->post(admin_url("data/$from_table_name/$id/copyClick"), $data);
+        $this->assertPostResponse($this->response, admin_url("data/$from_table_name/$id/copyClick"));
+
+        $this->assertEquals($pre_cnt + 1, $to_table->count());
+
+        $new_value = $to_table->orderBy('created_at', 'desc')->first();
+        $this->visit(admin_url("data/$to_table_name/" . $new_value->id));
+
+        $custom_copy_columns = CustomCopyColumn::where('custom_copy_id', $custom_copy->id)->get();
+
+        foreach ($custom_copy_columns as $custom_copy_column) {
+            if ($custom_copy_column->copy_column_type == CopyColumnType::DEFAULT) {
+                $this->seeInElement('div.box-body', 
+                    $custom_value->getValue($custom_copy_column->to_custom_column->column_name, true));
+            } else {
+                $input = array_get($data, $custom_copy_column->to_custom_column->column_name);
+                if (isset($input)) {
+                    $this->seeInElement('div.box-body', $input);
+                }
+            }
+        }
     }
 
     /**
@@ -92,6 +219,9 @@ class CCustomCopyTest extends ExmentKitTestCase
 
         $from_table = $copy->from_custom_table;
         $to_table = $copy->to_custom_table;
+
+        $pre_default_cnt = CustomCopyColumn::where('copy_column_type', CopyColumnType::DEFAULT)->count();
+        $pre_input_cnt = CustomCopyColumn::where('copy_column_type', CopyColumnType::INPUT)->count();
 
         $data = [
             'options' => [
@@ -105,25 +235,34 @@ class CCustomCopyTest extends ExmentKitTestCase
         foreach ($copy->custom_copy_columns as $index => $custom_copy_column) {
             if ($index % 2 == 1) {
                 $data['custom_copy_columns'][$custom_copy_column->id] = [
+                    'id' => $custom_copy_column->id,
                     '_remove_' => 1,
                 ];
                 $new_idx++;
                 $data['custom_copy_input_columns']["new_$new_idx"] = [
-                    'to_column_target_id' => $custom_copy_column->to_column_target_id,
-                    'to_column_type' => $custom_copy_column->to_column_type,
-                    'to_column_table_id' => $custom_copy_column->to_column_table_id,
+                    'id' => $custom_copy_column->id,
+                    'to_column_target' => $custom_copy_column->to_column_target,
                     'copy_column_type' => CopyColumnType::INPUT,
+                    '_remove_' => 0,
+                ];
+            } else {
+                $data['custom_copy_columns'][$custom_copy_column->id] = [
+                    'id' => $custom_copy_column->id,
+                    'from_column_target' => $custom_copy_column->from_column_target,
+                    'to_column_target' => $custom_copy_column->to_column_target,
+                    'copy_column_type' => $custom_copy_column->copy_column_type,
                     '_remove_' => 0,
                 ];
             }
         }
         $this->put(admin_url("copy/custom_value_edit_all/$id"), $data);
         $this->assertPostResponse($this->response, admin_url("copy/custom_value_edit_all"));
-    
-        $this->visit(admin_url("copy/custom_value_edit_all/$id/edit"))
-            ->seePageIs(admin_url("copy/custom_value_edit_all/$id/edit"))
-            ->seeInElement('div.input-group', 'copy unit test update')
-            ;
+        
+        $this->assertEquals($pre_default_cnt - $new_idx, 
+            CustomCopyColumn::where('copy_column_type', CopyColumnType::DEFAULT)->count());
+        $this->assertEquals($pre_input_cnt + $new_idx, 
+            CustomCopyColumn::where('copy_column_type', CopyColumnType::INPUT)->count());
+
     }
 
     /**

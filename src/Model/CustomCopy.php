@@ -75,7 +75,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function executeRequest($from_custom_value, $request = null)
     {
-        $this->execute($from_custom_value, $request->all());
+        return $this->execute($from_custom_value, $request->all());
     }
     
     /**
