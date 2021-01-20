@@ -1,7 +1,7 @@
 <?php
 namespace Exceedone\Exment\Tests\Unit;
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Model\CustomColumn;
@@ -14,6 +14,8 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CustomCopyTest extends UnitTestBase
 {
+    use DatabaseTransactions;
+
     protected function init(){
         System::clearCache();
     }
@@ -25,21 +27,16 @@ class CustomCopyTest extends UnitTestBase
     {
         $this->init();
 
-        DB::beginTransaction();
-        try {
-            $copy_settings = [
-                'from_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
-            ];
-            $copy = $this->prepareCustomCopy($copy_settings);
+        $copy_settings = [
+            'from_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+        ];
+        $copy = $this->prepareCustomCopy($copy_settings);
 
-            $custom_value = getModelName($copy_settings['from_table_name'])::find(5);
-            $response = $copy->execute($custom_value);
+        $custom_value = getModelName($copy_settings['from_table_name'])::find(5);
+        $response = $copy->execute($custom_value);
 
-            $this->assertTrue(array_get($response, 'result'));
-            $this->compareCopyValue($custom_value, array_get($response, 'redirect'));
-        } finally {
-            DB::rollback();
-        }
+        $this->assertTrue(array_get($response, 'result'));
+        $this->compareCopyValue($custom_value, array_get($response, 'redirect'));
     }
 
     /**
@@ -49,27 +46,22 @@ class CustomCopyTest extends UnitTestBase
     {
         $this->init();
 
-        DB::beginTransaction();
-        try {
-            $copy_settings = [
-                'from_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
-                'copy_columns' => ['text', 'user', 'integer', 'odd_even', 'email'],
-                'input_columns' => [
-                    'date' => '2021-01-17',
-                    'decimal' => '12345.67',
-                ],
-            ];
-            $copy = $this->prepareCustomCopy($copy_settings);
+        $copy_settings = [
+            'from_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+            'copy_columns' => ['text', 'user', 'integer', 'odd_even', 'email'],
+            'input_columns' => [
+                'date' => '2021-01-17',
+                'decimal' => '12345.67',
+            ],
+        ];
+        $copy = $this->prepareCustomCopy($copy_settings);
 
-            $custom_value = getModelName($copy_settings['from_table_name'])::find(11);
+        $custom_value = getModelName($copy_settings['from_table_name'])::find(11);
 
-            $response = $copy->execute($custom_value, $copy_settings['input_columns']);
+        $response = $copy->execute($custom_value, $copy_settings['input_columns']);
 
-            $this->assertTrue(array_get($response, 'result'));
-            $this->compareCopyValue($custom_value, array_get($response, 'redirect'), $copy_settings);
-        } finally {
-            DB::rollback();
-        }
+        $this->assertTrue(array_get($response, 'result'));
+        $this->compareCopyValue($custom_value, array_get($response, 'redirect'), $copy_settings);
     }
 
     /**
@@ -79,22 +71,17 @@ class CustomCopyTest extends UnitTestBase
     {
         $this->init();
 
-        DB::beginTransaction();
-        try {
-            $copy_settings = [
-                'from_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
-                'to_table_name' => TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL,
-            ];
-            $copy = $this->prepareCustomCopy($copy_settings);
+        $copy_settings = [
+            'from_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+            'to_table_name' => TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL,
+        ];
+        $copy = $this->prepareCustomCopy($copy_settings);
 
-            $custom_value = getModelName($copy_settings['from_table_name'])::find(5);
-            $response = $copy->execute($custom_value);
+        $custom_value = getModelName($copy_settings['from_table_name'])::find(5);
+        $response = $copy->execute($custom_value);
 
-            $this->assertTrue(array_get($response, 'result'));
-            $this->compareCopyValue($custom_value, array_get($response, 'redirect'));
-        } finally {
-            DB::rollback();
-        }
+        $this->assertTrue(array_get($response, 'result'));
+        $this->compareCopyValue($custom_value, array_get($response, 'redirect'));
     }
 
     /**
@@ -104,27 +91,22 @@ class CustomCopyTest extends UnitTestBase
     {
         $this->init();
 
-        DB::beginTransaction();
-        try {
-            $copy_settings = [
-                'from_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
-                'to_table_name' => TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL,
-                'copy_columns' => ['index_text', 'date', 'multiples_of_3', 'init_text', 'currency'],
-                'input_columns' => [
-                    'integer' => '1789',
-                    'email' => 'test123@mail.com',
-                ],
-            ];
-            $copy = $this->prepareCustomCopy($copy_settings);
+        $copy_settings = [
+            'from_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+            'to_table_name' => TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL,
+            'copy_columns' => ['index_text', 'date', 'multiples_of_3', 'init_text', 'currency'],
+            'input_columns' => [
+                'integer' => '1789',
+                'email' => 'test123@mail.com',
+            ],
+        ];
+        $copy = $this->prepareCustomCopy($copy_settings);
 
-            $custom_value = getModelName($copy_settings['from_table_name'])::find(3);
-            $response = $copy->execute($custom_value, $copy_settings['input_columns']);
+        $custom_value = getModelName($copy_settings['from_table_name'])::find(3);
+        $response = $copy->execute($custom_value, $copy_settings['input_columns']);
 
-            $this->assertTrue(array_get($response, 'result'));
-            $this->compareCopyValue($custom_value, array_get($response, 'redirect'), $copy_settings);
-        } finally {
-            DB::rollback();
-        }
+        $this->assertTrue(array_get($response, 'result'));
+        $this->compareCopyValue($custom_value, array_get($response, 'redirect'), $copy_settings);
     }
 
     protected function compareCopyValue($custom_value, $redirect, $settings = [])

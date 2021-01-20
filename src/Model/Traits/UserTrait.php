@@ -62,7 +62,7 @@ trait UserTrait
     }
     
     /**
-     * get role_group user or org joined.
+     * get role_group user joined.
      *
      * @return void
      */
@@ -70,6 +70,24 @@ trait UserTrait
     {
         return Model\RoleGroup::whereHas('role_group_users', function ($query) {
             $query->where('role_group_target_id', $this->id);
+        })->get();
+    }
+    
+    /**
+     * get role_group user or org joined.
+     *
+     * @return void
+     */
+    public function belong_role_groups_all()
+    {
+        return Model\RoleGroup::whereHas('role_group_user_organizations', function ($query) {
+            $query->where(function($qry) {
+                $qry->where('role_group_target_id', $this->id)
+                    ->where('role_group_user_org_type', 'user');
+            })->orWhere(function($qry) {
+                $qry->whereIn('role_group_target_id', $this->getOrganizationIds())
+                    ->where('role_group_user_org_type', 'organization');
+            });
         })->get();
     }
 

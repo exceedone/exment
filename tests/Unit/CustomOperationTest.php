@@ -1,7 +1,7 @@
 <?php
 namespace Exceedone\Exment\Tests\Unit;
 
-use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\FilterOption;
@@ -19,6 +19,8 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CustomOperationTest extends UnitTestBase
 {
+    use DatabaseTransactions;
+
     /**
      * update data at once
      */
@@ -26,28 +28,23 @@ class CustomOperationTest extends UnitTestBase
     {
         $this->initAllTest();
 
-        DB::beginTransaction();
-        try {
-            $settings = [
-                'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
-                'operation_type' => [CustomOperationType::BUTTON],
-                'operation_name' => 'test operation update',
-                'update_columns' => [[
-                    'column_name' => 'text',
-                    'update_value_text' => 'unit test update text',
-                ]],
-            ];
-            $operation = $this->prepareCustomOperation($settings);
+        $settings = [
+            'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+            'operation_type' => [CustomOperationType::BUTTON],
+            'operation_name' => 'test operation update',
+            'update_columns' => [[
+                'column_name' => 'text',
+                'update_value_text' => 'unit test update text',
+            ]],
+        ];
+        $operation = $this->prepareCustomOperation($settings);
 
-            $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
-            $ids = '5';
-            $result = $operation->execute($custom_table, $ids);
+        $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        $ids = '5';
+        $result = $operation->execute($custom_table, $ids);
 
-            $this->assertTrue($result);
-            $this->checkUpdateValue($custom_table, $ids, $settings);
-        } finally {
-            DB::rollback();
-        }
+        $this->assertTrue($result);
+        $this->checkUpdateValue($custom_table, $ids, $settings);
     }
 
     /**
@@ -57,29 +54,24 @@ class CustomOperationTest extends UnitTestBase
     {
         $this->initAllTest();
 
-        DB::beginTransaction();
-        try {
-            $settings = [
-                'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
-                'operation_type' => [CustomOperationType::BULK_UPDATE],
-                'operation_name' => 'test bulk update all',
-                'update_columns' => [[
-                    'column_name' => 'date',
-                    'update_value_text' => OperationValueType::EXECUTE_DATETIME,
-                    'update_type' => 'system'
-                ]],
-            ];
-            $operation = $this->prepareCustomOperation($settings);
+        $settings = [
+            'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+            'operation_type' => [CustomOperationType::BULK_UPDATE],
+            'operation_name' => 'test bulk update all',
+            'update_columns' => [[
+                'column_name' => 'date',
+                'update_value_text' => OperationValueType::EXECUTE_DATETIME,
+                'update_type' => 'system'
+            ]],
+        ];
+        $operation = $this->prepareCustomOperation($settings);
 
-            $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
-            $ids = '3,9,15';
-            $result = $operation->execute($custom_table, $ids);
+        $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        $ids = '3,9,15';
+        $result = $operation->execute($custom_table, $ids);
 
-            $this->assertTrue($result);
-            $this->checkUpdateValue($custom_table, $ids, $settings);
-        } finally {
-            DB::rollback();
-        }
+        $this->assertTrue($result);
+        $this->checkUpdateValue($custom_table, $ids, $settings);
     }
 
     /**
@@ -89,36 +81,31 @@ class CustomOperationTest extends UnitTestBase
     {
         $this->initAllTest();
 
-        DB::beginTransaction();
-        try {
-            $settings = [
-                'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
-                'operation_type' => [CustomOperationType::BULK_UPDATE],
-                'operation_name' => 'test bulk update filter',
-                'update_columns' => [[
-                    'column_name' => 'user',
-                    'update_value_text' => TestDefine::TESTDATA_USER_LOGINID_USER1,
-                ]],
-                'conditions' => [[
-                    'column_name' => 'integer',
-                    'condition_type' => ConditionType::COLUMN,
-                    'condition_key' => FilterOption::NUMBER_GT,
-                    'condition_value' => 500,
-                ]],
-            ];
-            $operation = $this->prepareCustomOperation($settings);
+        $settings = [
+            'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+            'operation_type' => [CustomOperationType::BULK_UPDATE],
+            'operation_name' => 'test bulk update filter',
+            'update_columns' => [[
+                'column_name' => 'user',
+                'update_value_text' => TestDefine::TESTDATA_USER_LOGINID_USER1,
+            ]],
+            'conditions' => [[
+                'column_name' => 'integer',
+                'condition_type' => ConditionType::COLUMN,
+                'condition_key' => FilterOption::NUMBER_GT,
+                'condition_value' => 500,
+            ]],
+        ];
+        $operation = $this->prepareCustomOperation($settings);
 
-            $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
-            $custom_value = $custom_table->getValueModel()
-                ->where('value->integer', '>', 500)->first();
+        $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        $custom_value = $custom_table->getValueModel()
+            ->where('value->integer', '>', 500)->first();
 
-            $result = $operation->execute($custom_table, $custom_value->id);
+        $result = $operation->execute($custom_table, $custom_value->id);
 
-            $this->assertTrue($result);
-            $this->checkUpdateValue($custom_table, $custom_value->id, $settings);
-        } finally {
-            DB::rollback();
-        }
+        $this->assertTrue($result);
+        $this->checkUpdateValue($custom_table, $custom_value->id, $settings);
     }
 
     /**
@@ -128,35 +115,30 @@ class CustomOperationTest extends UnitTestBase
     {
         $this->initAllTest();
 
-        DB::beginTransaction();
-        try {
-            $settings = [
-                'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
-                'operation_type' => [CustomOperationType::BULK_UPDATE],
-                'operation_name' => 'test bulk update filter',
-                'update_columns' => [[
-                    'column_name' => 'user',
-                    'update_value_text' => TestDefine::TESTDATA_USER_LOGINID_USER1,
-                ]],
-                'conditions' => [[
-                    'column_name' => 'integer',
-                    'condition_type' => ConditionType::COLUMN,
-                    'condition_key' => FilterOption::NUMBER_GT,
-                    'condition_value' => 500,
-                ]],
-            ];
-            $operation = $this->prepareCustomOperation($settings);
+        $settings = [
+            'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+            'operation_type' => [CustomOperationType::BULK_UPDATE],
+            'operation_name' => 'test bulk update filter',
+            'update_columns' => [[
+                'column_name' => 'user',
+                'update_value_text' => TestDefine::TESTDATA_USER_LOGINID_USER1,
+            ]],
+            'conditions' => [[
+                'column_name' => 'integer',
+                'condition_type' => ConditionType::COLUMN,
+                'condition_key' => FilterOption::NUMBER_GT,
+                'condition_value' => 500,
+            ]],
+        ];
+        $operation = $this->prepareCustomOperation($settings);
 
-            $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
-            $custom_value = $custom_table->getValueModel()
-                ->where('value->integer', '<=', 500)->first();
+        $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        $custom_value = $custom_table->getValueModel()
+            ->where('value->integer', '<=', 500)->first();
 
-            $result = $operation->execute($custom_table, $custom_value->id);
+        $result = $operation->execute($custom_table, $custom_value->id);
 
-            $this->assertFalse($result->getData()->result);
-        } finally {
-            DB::rollback();
-        }
+        $this->assertFalse($result->getData()->result);
     }
 
     /**
@@ -166,29 +148,24 @@ class CustomOperationTest extends UnitTestBase
     {
         $this->initAllTest();
 
-        DB::beginTransaction();
-        try {
-            $settings = [
-                'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
-                'operation_type' => [CustomOperationType::CREATE],
-                'operation_name' => 'test operation by create',
-                'update_columns' => [[
-                    'column_name' => 'user',
-                    'update_value_text' => OperationValueType::LOGIN_USER,
-                    'update_type' => 'system'
-                ]],
-            ];
-            $operation = $this->prepareCustomOperation($settings);
+        $settings = [
+            'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
+            'operation_type' => [CustomOperationType::CREATE],
+            'operation_name' => 'test operation by create',
+            'update_columns' => [[
+                'column_name' => 'user',
+                'update_value_text' => OperationValueType::LOGIN_USER,
+                'update_type' => 'system'
+            ]],
+        ];
+        $operation = $this->prepareCustomOperation($settings);
 
-            $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
-            $custom_value = $custom_table->getValueModel();
-            $custom_value->setValue("text", 'test operation data create');
-            $custom_value->save();
+        $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        $custom_value = $custom_table->getValueModel();
+        $custom_value->setValue("text", 'test operation data create');
+        $custom_value->save();
 
-            $this->checkUpdateValue($custom_table, $custom_value->id, $settings);
-        } finally {
-            DB::rollback();
-        }
+        $this->checkUpdateValue($custom_table, $custom_value->id, $settings);
     }
 
     /**
@@ -198,31 +175,26 @@ class CustomOperationTest extends UnitTestBase
     {
         $this->initAllTest();
 
-        DB::beginTransaction();
-        try {
-            $settings = [
-                'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_DEV_USERB,
-                'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
-                'operation_type' => [CustomOperationType::UPDATE],
-                'operation_name' => 'test operation by create',
-                'update_columns' => [[
-                    'column_name' => 'organization',
-                    'update_value_text' => OperationValueType::BERONG_ORGANIZATIONS,
-                    'update_type' => 'system'
-                ]],
-            ];
-            $operation = $this->prepareCustomOperation($settings);
+        $settings = [
+            'login_user_id' => TestDefine::TESTDATA_USER_LOGINID_DEV_USERB,
+            'custom_table_name' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
+            'operation_type' => [CustomOperationType::UPDATE],
+            'operation_name' => 'test operation by create',
+            'update_columns' => [[
+                'column_name' => 'organization',
+                'update_value_text' => OperationValueType::BERONG_ORGANIZATIONS,
+                'update_type' => 'system'
+            ]],
+        ];
+        $operation = $this->prepareCustomOperation($settings);
 
-            $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
-            $custom_value = $custom_table->getValueModel()
-                ->where('value->organization', '<>', TestDefine::TESTDATA_ORGANIZATION_DEV)->first();
-            $custom_value->setValue("text", 'test operation data update');
-            $custom_value->save();
+        $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        $custom_value = $custom_table->getValueModel()
+            ->where('value->organization', '<>', TestDefine::TESTDATA_ORGANIZATION_DEV)->first();
+        $custom_value->setValue("text", 'test operation data update');
+        $custom_value->save();
 
-            $this->checkUpdateValue($custom_table, $custom_value->id, $settings);
-        } finally {
-            DB::rollback();
-        }
+        $this->checkUpdateValue($custom_table, $custom_value->id, $settings);
     }
 
     protected function checkUpdateValue($custom_table, $ids, $settings = [])
