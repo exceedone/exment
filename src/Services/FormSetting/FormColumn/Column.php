@@ -1,31 +1,10 @@
 <?php
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
-use App\Http\Controllers\Controller;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Grid\Linker;
-use Encore\Admin\Layout\Content;
-use Exceedone\Exment\Model\CustomForm;
-use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
-use Exceedone\Exment\Model\CustomFormPriority;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\Linkage;
-use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\FormBlockType;
-use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\SystemColumn;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Collection;
 
 /**
  */
@@ -48,6 +27,15 @@ class Column extends ColumnBase
         }
     }
 
+    public static function make(CustomFormColumn $custom_form_column) : ColumnBase
+    {
+        $custom_column = $custom_form_column->custom_column_cache;
+        if (ColumnType::isSelectTable(array_get($custom_column, 'column_type'))) {
+            return new SelectTable($custom_form_column);
+        }
+        return new Column($custom_form_column);
+    }
+    
     /**
      * Get column's view name
      *
@@ -70,16 +58,5 @@ class Column extends ColumnBase
     public function isRequired() : bool
     {
         return boolval(array_get($this->custom_form_column, 'required')) || boolval(array_get($this->custom_column, 'required'));
-    }
-
-
-    /**
-     * Get select table's columns.
-     * Default is empty collection, If SelectTable, call this function
-     *
-     * @return Collection
-     */
-    public function getSelectTableColumns() : Collection{
-        return collect();
     }
 }

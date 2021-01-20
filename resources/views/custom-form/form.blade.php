@@ -144,8 +144,8 @@
                         <ul class="custom_form_column_suggests draggables" data-connecttosortable="items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
                             data-draggable_clone="{{$suggest['clone']}}" data-form_column_type="{{$suggest['form_column_type']}}">
                             @foreach($suggest['custom_form_columns'] as $custom_form_column)
-    @include("exment::custom-form.form-item", ['custom_form_column'
-                            => $custom_form_column, 'suggest' => true]) @endforeach
+                                @include("exment::custom-form.form-item", ['custom_form_column' => $custom_form_column, 'suggest' => true])
+                            @endforeach
                         </ul>
                     </div>
                     @endforeach 
@@ -172,6 +172,8 @@
         {{-- set form --}} {{ Form::hidden("{$custom_form_block['header_name']}[form_block_type]", $custom_form_block['form_block_type'])
         }} {{ Form::hidden("{$custom_form_block['header_name']}[form_block_target_table_id]", $custom_form_block['form_block_target_table_id'])
         }} {{ Form::hidden("", $custom_form_block['header_name'], ['class' => 'header_name', 'disabled' => 'disabled']) }}
+
+        <input type="hidden" class="select-table-columns" value="{{$custom_form_block['select_table_columns']}}" />
     </div>
 
     @endforeach

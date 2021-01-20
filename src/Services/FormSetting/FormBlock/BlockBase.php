@@ -1,30 +1,14 @@
 <?php
 namespace Exceedone\Exment\Services\FormSetting\FormBlock;
 
-use App\Http\Controllers\Controller;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Grid\Linker;
-use Encore\Admin\Layout\Content;
-use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
-use Exceedone\Exment\Model\CustomFormColumn;
-use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\Linkage;
-use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Collection;
 
 /**
@@ -33,14 +17,14 @@ abstract class BlockBase
 {
     /**
      * based table
-     * 
+     *
      * @var CustomTable
      */
     protected $custom_table;
 
     /**
      * This form block's target table
-     * 
+     *
      * @var CustomTable
      */
     protected $target_table;
@@ -60,7 +44,7 @@ abstract class BlockBase
 
     public static function make(CustomFormBlock $custom_form_block, CustomTable $custom_table) : BlockBase
     {
-        switch(array_get($custom_form_block, 'form_block_type', FormBlockType::DEFAULT)){
+        switch (array_get($custom_form_block, 'form_block_type', FormBlockType::DEFAULT)) {
             case FormBlockType::DEFAULT:
                 return new DefaultBlock($custom_form_block, $custom_table);
         }
@@ -80,12 +64,13 @@ abstract class BlockBase
             'id' => $this->custom_form_block->id ?? null,
             'form_block_type' => $this->custom_form_block->form_block_type ?? FormBlockType::DEFAULT,
             'available' => $this->custom_form_block->available ?? 1,
-            'form_block_view_name' => $this->custom_form_block->label ?? null,
+            'form_block_view_name' => $this->custom_form_block->form_block_view_name ?? $this->custom_form_block->label ?? null,
             'form_block_target_table_id' => $this->custom_form_block->form_block_target_table_id ?? $this->target_table->id ?? $this->custom_table->id ?? null,
             'label' => static::getBlockLabelHeader(),
             'header_name' => $this->getHtmlHeaderName(),
             'suggests' => $this->getSuggestItems(),
             'custom_form_columns' => [],
+            'select_table_columns' => $this->getSelectTableColumns()->toJson(),
         ];
     }
 
@@ -185,6 +170,56 @@ abstract class BlockBase
         ]);
 
         return $suggests;
+    }
+
+    /**
+     * Get select table's columns in this block.
+     *
+     * @return Collection
+     */
+    public function getSelectTableColumns() : Collection
+    {
+        if (!$this->target_table) {
+            return collect();
+        }
+
+        $custom_columns = $this->target_table->custom_columns_cache->filter(function ($custom_column) {
+            return ColumnType::isSelectTable(array_get($custom_column, 'column_type'));
+        });
+            
+        // if form block type is 1:n or n:n, get parent tables columns too.
+        if ($this instanceof RelationBase) {
+            $custom_columns = $custom_columns->merge(
+                $this->custom_table->custom_columns_cache,
+            );
+        }
+
+        $result = [];
+        foreach ($custom_columns as $custom_column) {
+            // if not have array_get($custom_column, 'options.select_target_table'), conitnue
+            if (!isset($custom_column)) {
+                continue;
+            }
+
+            $target_table = $custom_column->select_target_table;
+            if (!isset($target_table)) {
+                return $result;
+            }
+
+            // get custom table
+            $custom_table = $custom_column->custom_table_cache;
+            // set table name if not $form_block_target_table_id and custom_table_eloquent's id
+            $form_block_target_table_id = array_get($this->custom_form_block, 'form_block_target_table_id');
+            if (!isMatchString($custom_table->id, $form_block_target_table_id)) {
+                $select_table_column_name = sprintf('%s:%s', $custom_table->table_view_name, array_get($custom_column, 'column_view_name'));
+            } else {
+                $select_table_column_name = array_get($custom_column, 'column_view_name');
+            }
+            // get select_table, user, organization columns
+            $result[array_get($custom_column, 'id')] = $select_table_column_name;
+        }
+
+        return collect($result);
     }
 
 

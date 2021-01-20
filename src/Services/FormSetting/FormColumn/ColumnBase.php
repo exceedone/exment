@@ -1,30 +1,8 @@
 <?php
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
-use App\Http\Controllers\Controller;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Form;
-use Encore\Admin\Grid;
-use Encore\Admin\Grid\Linker;
-use Encore\Admin\Layout\Content;
-use Exceedone\Exment\Model\CustomForm;
-use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
-use Exceedone\Exment\Model\CustomFormPriority;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\Linkage;
-use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\FileType;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\SystemColumn;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  */
@@ -43,10 +21,9 @@ abstract class ColumnBase
 
     public static function make(CustomFormColumn $custom_form_column) : ColumnBase
     {
-        switch(array_get($custom_form_column, 'form_column_type', FormColumnType::COLUMN))
-        {
+        switch (array_get($custom_form_column, 'form_column_type', FormColumnType::COLUMN)) {
             case FormColumnType::COLUMN:
-                return new Column($custom_form_column);
+                return Column::make($custom_form_column);
                 
             case FormColumnType::OTHER:
                 return new OtherBase($custom_form_column);
@@ -65,9 +42,12 @@ abstract class ColumnBase
     {
         return [
             'form_column_type' => $this->custom_form_column->form_column_type ?? FormColumnType::COLUMN,
+            'row_no' => $this->custom_form_column->row_no ?? 1,
             'column_no' => $this->custom_form_column->column_no ?? 1,
             'form_column_target_id' => $this->custom_form_column->form_column_target_id ?? null,
+            'options' =>  $this->custom_form_column->options ?? [],
             
+            'is_select_table' => $this->isSelectTable(),
             'required' => $this->isRequired(),
             'column_view_name' => $this->getColumnViewName(),
             'header_column_name' => $this->getHtmlHeaderName(),
@@ -89,6 +69,10 @@ abstract class ColumnBase
             .']';
     }
     
+    public function isSelectTable() : bool
+    {
+        return false;
+    }
 
     /**
      * Get column's view name
