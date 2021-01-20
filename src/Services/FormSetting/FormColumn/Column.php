@@ -19,7 +19,6 @@ class Column extends ColumnBase
      */
     protected $custom_column;
 
-
     public function __construct(CustomFormColumn $custom_form_column)
     {
         parent::__construct($custom_form_column);
@@ -77,6 +76,49 @@ class Column extends ColumnBase
     public function isRequired() : bool
     {
         return boolval(array_get($this->custom_form_column, 'required')) || boolval(array_get($this->custom_column, 'required'));
+    }
+
+
+    /**
+     * prepare saving option.
+     *
+     * @return array
+     */
+    public function prepareSavingOptions(array $options) : array
+    {
+        // convert field_showing_type
+        if(!is_null($key = $this->convertFieldDisplayType($options))){
+            $options[$key] = 1;
+        }
+        return array_filter($options, function($option, $key){
+            return in_array($key, [
+                'required',
+                'view_only',
+                'read_only',
+                'hidden',
+                'changedata_target_column_id',
+                'changedata_column_id',
+            ]);
+        }, ARRAY_FILTER_USE_BOTH);
+    }
+
+
+    /**
+     * Convert "field_showing_type" to 'view_only','read_only','hidden' params
+     *
+     * @param array $options
+     * @return string
+     */
+    protected function convertFieldDisplayType(array $options) : ?string
+    {
+        foreach(['view_only','read_only','hidden'] as $key)
+        {
+            if(isMatchString($key, array_get($options, 'field_showing_type'))){
+                return $key;
+            }
+        }
+
+        return null;
     }
 
 

@@ -369,11 +369,12 @@ class CustomFormController extends AdminControllerTableBase
             return $form->custom_form_blocks;
         }
 
-        return collect($req_custom_form_blocks)->map(function ($custom_form_block, $id) {
-            $custom_form_block['id'] = $id;
-            $custom_form_block['available'] = $custom_form_block['available'] ?? 0;
-            $custom_form_block['target_table'] = CustomTable::getEloquent($custom_form_block['form_block_target_table_id']);
-            return collect($custom_form_block);
+        return collect($req_custom_form_blocks)->map(function ($req_custom_form_block, $id) {
+            $custom_form_block = new CustomFormBlock($req_custom_form_block);
+            $custom_form_block->id = $id;
+            $custom_form_block->available = $req_custom_form_block['available'] ?? 0;
+            $custom_form_block->target_table = CustomTable::getEloquent($req_custom_form_block['form_block_target_table_id']);
+            return $custom_form_block;
         });
     }
 
@@ -495,9 +496,14 @@ class CustomFormController extends AdminControllerTableBase
                     } else {
                         $column = CustomFormColumn::findOrFail($column_key);
                     }
+
+                    $column_item = FormSetting\FormColumn\ColumnBase::make($column);
+
+                    $column->row_no = array_get($column_value, 'row_no', 1);
                     $column->column_no = array_get($column_value, 'column_no', 1);
-                    $column->options = array_get($column_value, 'options');
+                    $column->options = $column_item->prepareSavingOptions(json_decode(array_get($column_value, 'options', "[]"), true));
                     $column->order = $order++;
+
                     $column->saveOrFail();
 
                     if($new_column){
@@ -544,10 +550,11 @@ class CustomFormController extends AdminControllerTableBase
         $form_block_target_table_id = $request->get('form_block_target_table_id');
         $block_item = FormSetting\FormBlock\BlockBase::makeByParams($form_block_type, $form_block_target_table_id);
 
-        $form = $column_item->getSettingModalForm($block_item, $request->all());
+        $form = $column_item->getSettingModalForm($block_item, $request->get('options', []));
         $form->disableReset();
         $form->disableSubmit();
         $form->setWidth(9, 2);
+        $form->hidden('widgetmodal_uuid')->default($request->get('widgetmodal_uuid'));
 
         return getAjaxResponse([
             'body'  => $form->render(),
@@ -555,6 +562,7 @@ class CustomFormController extends AdminControllerTableBase
             'title' => trans('admin.setting'),
             'modalSize' => 'modal-xl',
             'submitlabel' => trans('admin.setting'),
+            'modalClass' => 'modal-customform',
             'preventSubmit' => true,
         ]);
     }

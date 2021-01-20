@@ -185,17 +185,16 @@ namespace Exment {
             let method = $(e.target).parents('.modal-content').find('form').attr('method');
             if (!formurl) return;
             e.preventDefault();
-            let form : HTMLFormElement = $('#modal-showmodal form').get()[0] as HTMLFormElement;
-
-            if(!form.reportValidity()){
-                return;
-            }
 
             // get button element
             let button = $(e.target).closest('button');
-
             // if has 'preventSubmit' class, not submit
             if(button.hasClass('preventSubmit')){
+                return;
+            }
+
+            let form : HTMLFormElement = $('#modal-showmodal form').get()[0] as HTMLFormElement;
+            if(!form.reportValidity()){
                 return;
             }
 

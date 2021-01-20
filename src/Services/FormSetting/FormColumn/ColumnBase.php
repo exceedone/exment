@@ -86,6 +86,7 @@ abstract class ColumnBase
     }
 
 
+
     public function isSelected(bool $isSelected){
         $this->isSelected = $isSelected;
         return $this;
@@ -131,4 +132,11 @@ abstract class ColumnBase
      * @return WidgetForm
      */
     abstract public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm;
+    
+    /**
+     * prepare saving option.
+     *
+     * @return array
+     */
+    abstract public function prepareSavingOptions(array $options) : array;
 }

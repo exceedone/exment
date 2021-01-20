@@ -15,6 +15,33 @@ class SelectTable extends Column
         return true;
     }
 
+
+    /**
+     * prepare saving option.
+     *
+     * @return array
+     */
+    public function prepareSavingOptions(array $options) : array
+    {
+        // convert field_showing_type
+        if(!is_null($key = $this->convertFieldDisplayType($options))){
+            $options[$key] = 1;
+        }
+        
+        return array_filter($options, function($option, $key){
+            return in_array($key, [
+                'view_only',
+                'read_only',
+                'required',
+                'hidden',
+                'changedata_target_column_id',
+                'changedata_column_id',
+                'relation_filter_target_column_id',
+            ]);
+        }, ARRAY_FILTER_USE_BOTH);
+    }
+
+
     /**
      * Get setting modal form 
      *

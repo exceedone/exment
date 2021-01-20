@@ -2,6 +2,7 @@
 namespace Exceedone\Exment\Services\FormSetting\FormBlock;
 
 use Exceedone\Exment\Model\CustomFormBlock;
+use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -189,9 +190,10 @@ abstract class BlockBase
         }
 
         $custom_form_columns = $req_custom_form_blocks[$this->custom_form_block['id']]['custom_form_columns'];
-        return collect($custom_form_columns)->map(function ($custom_form_column, $id) {
-            $custom_form_column['id'] = $id;
-            return collect($custom_form_column);
+        return collect($custom_form_columns)->map(function ($req_custom_form_column, $id) {
+            $custom_form_column = new CustomFormColumn($req_custom_form_column);
+            $custom_form_column->id = $id;
+            return $custom_form_column;
         });
     }
 

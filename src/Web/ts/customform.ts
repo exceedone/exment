@@ -7,11 +7,10 @@ namespace Exment {
             $('.box-custom_form_block').on('ifChanged check', '.icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
             $('.box-custom_form_block').on('click.exment_custom_form', '.delete', {}, CustomFromEvent.deleteColumn);
             $('.box-custom_form_block').on('click.exment_custom_form', '.setting', {}, CustomFromEvent.settingModalEvent);
-            $('.box-custom_form_block').on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);           
+            $('.box-custom_form_block').on('click.exment_custom_form', '.btn-addallitems', {}, CustomFromEvent.addAllItems);           
 
-            $(document).off('change.custom_form', '.changedata_target_column_id').on('change.custom_form', '.changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
-            $(document).off('click.custom_form', '#changedata-button-setting').on('click.custom_form', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
-            $(document).off('click.custom_form', '#textinput-button-setting').on('click.custom_form', '#textinput-button-setting', {}, CustomFromEvent.textinputSetting);
+            $(document).off('change.exment_custom_form', '.changedata_target_column_id').on('change.exment_custom_form', '.changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
+            $(document).off('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit').on('click', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
 
             CustomFromEvent.addDragEvent();
             CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
@@ -341,11 +340,6 @@ namespace Exment {
         }
 
 
-        private static settingModalEvent = (ev:JQueryEventObject) => {
-           let formItem = CustomFromItem.makeByHidden($(ev.target).closest('.custom_form_column_item'));
-           formItem.showSettingModal($(ev.target).closest('.setting'));
-        }
-
         private static changedataColumnEvent = (ev:any, changedata_column_id?) => {
             var $d = $.Deferred();
             // get custom_column_id
@@ -388,48 +382,29 @@ namespace Exment {
             return $d.promise();
         }
 
+
+        private static settingModalEvent = (ev:JQueryEventObject) => {
+            let formItem = CustomFromItem.makeByHidden($(ev.target).closest('.custom_form_column_item'));
+            formItem.showSettingModal($(ev.target).closest('.setting'));
+        }
+ 
         
         /**
          * Settng modal Setting
          */
         private static settingModalSetting = (ev) => {
+            ev.preventDefault();
+
             let formItem = CustomFromItem.makeByModal();
-            formItem.showSettingModal($(ev.target).closest('.setting'));
+            let options = formItem.getOption();
 
             // get target_header_column_name for updating.
-            var $target_li = CustomFromEvent.getModalTargetLi('#form-changedata-modal');
+            let widgetmodal_uuid = $('#modal-showmodal').find('.widgetmodal_uuid').val();
+            let $target_li = $('[data-widgetmodal_uuid="' + widgetmodal_uuid + '"]').closest('.custom_form_column_item');
             
             // data setting and show message
-            $target_li.find('.changedata_target_column_id').val($('.changedata_target_column').val());
-            $target_li.find('.changedata_column_id').val($('.changedata_column').val());
-            $target_li.find('.changedata_available').show();
-
-            $('#form-changedata-modal').modal('hide');
-        }
-
-
-        private static getModalTargetLi(formSelector){
-            // get target_header_column_name for updating.
-            var target_header_column_name = $(formSelector).find('.target_header_column_name').val();
-            var $target_li = $('[data-header_column_name="' + target_header_column_name + '"]');
-
-            return $target_li;
-        }
-
-        /**
-         * Settng changedata Setting
-         */
-        private static textinputSetting = (ev) => {
-            let $target_li = CustomFromEvent.$targetLi;
-            $target_li.find('.input_texthtml').val($('#textinput-modal-textarea').val());
-
-            let slice = ($('#textinput-modal-textarea').val() as string).slice( 0, 50 );
-            if(slice.length >= 50){
-                slice += '...';
-            }
-            $target_li.find('.input_texthtml-label').text(slice);
-            
-            $('#form-textinput-modal').modal('hide');
+            $target_li.find('.options').val(JSON.stringify(options));
+            $('#modal-showmodal').modal('hide');
         }
     }
 }

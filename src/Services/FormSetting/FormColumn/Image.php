@@ -49,4 +49,14 @@ class Image extends OtherBase
     }
 
     
+
+    /**
+     * prepare saving option.
+     *
+     * @return array|string
+     */
+    public function prepareSavingOptions(array $options) : array
+    {
+        return [];
+    }
 }

@@ -76,4 +76,15 @@ class OtherBase extends ColumnBase
         $form = new WidgetForm($parameters);
         return $form;
     }
+    
+
+    /**
+     * prepare saving option.
+     *
+     * @return array
+     */
+    public function prepareSavingOptions(array $options) : array
+    {
+        return $options;
+    }
 }

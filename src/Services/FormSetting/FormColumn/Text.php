@@ -21,4 +21,19 @@ class Text extends OtherBase
 
         return $form;
     }
+
+
+    /**
+     * prepare saving option.
+     *
+     * @return array
+     */
+    public function prepareSavingOptions(array $options) : array
+    {
+        return array_filter($options, function($option, $key){
+            return in_array($key, [
+                'text',
+            ]);
+        }, ARRAY_FILTER_USE_BOTH);
+    }
 }

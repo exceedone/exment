@@ -12,16 +12,30 @@ var Exment;
             result.form_block_target_table_id = $elem.find('.form_block_target_table_id').val();
             result.form_column_type = $elem.find('.form_column_type').val();
             result.column_no = $elem.find('.column_no').val();
-            result.required = $elem.find('.required').val();
             result.form_column_target_id = $elem.find('.form_column_target_id').val();
             result.header_column_name = $elem.find('.header_column_name').val();
-            result.read_only = $elem.find('.read_only').val();
-            result.view_only = $elem.find('.view_only').val();
-            result.hidden = $elem.find('.hidden').val();
-            result.changedata_target_column_id = $elem.find('.changedata_target_column_id').val();
-            result.changedata_column_id = $elem.find('.changedata_column_id').val();
-            result.relation_filter_target_column_id = $elem.find('.relation_filter_target_column_id').val();
+            result.options = JSON.parse($elem.find('.options').val());
             return result;
+        }
+        /**
+         * Initialize by modal window.
+         * *For only set option value.*
+         */
+        static makeByModal() {
+            let result = new CustomFromItem();
+            let $modal = $('#modal-showmodal');
+            let options = {};
+            $.each($modal.find('form').serializeArray(), function () {
+                options[this.name] = this.value;
+            });
+            result.options = options;
+            return result;
+        }
+        /**
+         * get option
+         */
+        getOption() {
+            return this.options;
         }
         /**
          * Show setting modal
@@ -32,16 +46,11 @@ var Exment;
                 form_block_type: this.form_block_type,
                 form_block_target_table_id: this.form_block_target_table_id,
                 form_column_type: this.form_column_type,
+                row_no: this.row_no,
                 column_no: this.column_no,
-                required: this.required,
                 form_column_target_id: this.form_column_target_id,
                 header_column_name: this.header_column_name,
-                read_only: this.read_only,
-                view_only: this.view_only,
-                hidden: this.hidden,
-                changedata_target_column_id: this.changedata_target_column_id,
-                changedata_column_id: this.changedata_column_id,
-                relation_filter_target_column_id: this.relation_filter_target_column_id,
+                options: this.options,
             };
             Exment.ModalEvent.ShowModal($target, URLJoin($('#formroot').val(), 'settingModal'), formData);
         }

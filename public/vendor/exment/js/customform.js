@@ -5,10 +5,9 @@ var Exment;
             $('.box-custom_form_block').on('ifChanged check', '.icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
             $('.box-custom_form_block').on('click.exment_custom_form', '.delete', {}, CustomFromEvent.deleteColumn);
             $('.box-custom_form_block').on('click.exment_custom_form', '.setting', {}, CustomFromEvent.settingModalEvent);
-            $('.box-custom_form_block').on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
-            $(document).off('change.custom_form', '.changedata_target_column_id').on('change.custom_form', '.changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
-            $(document).off('click.custom_form', '#changedata-button-setting').on('click.custom_form', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
-            $(document).off('click.custom_form', '#textinput-button-setting').on('click.custom_form', '#textinput-button-setting', {}, CustomFromEvent.textinputSetting);
+            $('.box-custom_form_block').on('click.exment_custom_form', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
+            $(document).off('change.exment_custom_form', '.changedata_target_column_id').on('change.exment_custom_form', '.changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
+            $(document).off('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit').on('click', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
             CustomFromEvent.addDragEvent();
             CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
             $('form').on('submit', CustomFromEvent.formSubmitEvent);
@@ -193,12 +192,6 @@ var Exment;
             $replaceLi.attr('data-header_column_name', newHeaderName);
             $replaceLi.attr('id', newHeaderName);
         }
-        static getModalTargetLi(formSelector) {
-            // get target_header_column_name for updating.
-            var target_header_column_name = $(formSelector).find('.target_header_column_name').val();
-            var $target_li = $('[data-header_column_name="' + target_header_column_name + '"]');
-            return $target_li;
-        }
     }
     /**
      * Add All item button event
@@ -312,10 +305,6 @@ var Exment;
         $('.custom_form_column_suggests,.template_item_block').find('input,textarea,select,file').attr('disabled', 'disabled');
         return true;
     };
-    CustomFromEvent.settingModalEvent = (ev) => {
-        let formItem = Exment.CustomFromItem.makeByHidden($(ev.target).closest('.custom_form_column_item'));
-        formItem.showSettingModal($(ev.target).closest('.setting'));
-    };
     CustomFromEvent.changedataColumnEvent = (ev, changedata_column_id) => {
         var $d = $.Deferred();
         // get custom_column_id
@@ -355,30 +344,23 @@ var Exment;
         }
         return $d.promise();
     };
-    /**
-     * Settng changedata Setting
-     */
-    CustomFromEvent.changedataSetting = (ev) => {
-        // get target_header_column_name for updating.
-        var $target_li = CustomFromEvent.getModalTargetLi('#form-changedata-modal');
-        // data setting and show message
-        $target_li.find('.changedata_target_column_id').val($('.changedata_target_column').val());
-        $target_li.find('.changedata_column_id').val($('.changedata_column').val());
-        $target_li.find('.changedata_available').show();
-        $('#form-changedata-modal').modal('hide');
+    CustomFromEvent.settingModalEvent = (ev) => {
+        let formItem = Exment.CustomFromItem.makeByHidden($(ev.target).closest('.custom_form_column_item'));
+        formItem.showSettingModal($(ev.target).closest('.setting'));
     };
     /**
-     * Settng changedata Setting
+     * Settng modal Setting
      */
-    CustomFromEvent.textinputSetting = (ev) => {
-        let $target_li = CustomFromEvent.$targetLi;
-        $target_li.find('.input_texthtml').val($('#textinput-modal-textarea').val());
-        let slice = $('#textinput-modal-textarea').val().slice(0, 50);
-        if (slice.length >= 50) {
-            slice += '...';
-        }
-        $target_li.find('.input_texthtml-label').text(slice);
-        $('#form-textinput-modal').modal('hide');
+    CustomFromEvent.settingModalSetting = (ev) => {
+        ev.preventDefault();
+        let formItem = Exment.CustomFromItem.makeByModal();
+        let options = formItem.getOption();
+        // get target_header_column_name for updating.
+        let widgetmodal_uuid = $('#modal-showmodal').find('.widgetmodal_uuid').val();
+        let $target_li = $('[data-widgetmodal_uuid="' + widgetmodal_uuid + '"]').closest('.custom_form_column_item');
+        // data setting and show message
+        $target_li.find('.options').val(JSON.stringify(options));
+        $('#modal-showmodal').modal('hide');
     };
     Exment.CustomFromEvent = CustomFromEvent;
 })(Exment || (Exment = {}));

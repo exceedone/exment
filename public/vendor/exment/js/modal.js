@@ -378,14 +378,14 @@ var Exment;
         if (!formurl)
             return;
         e.preventDefault();
-        let form = $('#modal-showmodal form').get()[0];
-        if (!form.reportValidity()) {
-            return;
-        }
         // get button element
         let button = $(e.target).closest('button');
         // if has 'preventSubmit' class, not submit
         if (button.hasClass('preventSubmit')) {
+            return;
+        }
+        let form = $('#modal-showmodal form').get()[0];
+        if (!form.reportValidity()) {
             return;
         }
         button.data('buttontext', button.text());
