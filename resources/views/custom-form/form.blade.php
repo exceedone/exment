@@ -161,9 +161,10 @@
         </div>
         <!-- /.box-body -->
 
-        {{-- set form --}} {{ Form::hidden("{$custom_form_block['header_name']}[form_block_type]", $custom_form_block['form_block_type'])
-        }} {{ Form::hidden("{$custom_form_block['header_name']}[form_block_target_table_id]", $custom_form_block['form_block_target_table_id'])
-        }} {{ Form::hidden("", $custom_form_block['header_name'], ['class' => 'header_name', 'disabled' => 'disabled']) }}
+        {{-- set form --}} 
+        @include('exment::custom-form.fields.block-hidden', ['param_name' => 'form_block_type'])
+        @include('exment::custom-form.fields.block-hidden', ['param_name' => 'form_block_target_table_id'])
+        @include('exment::custom-form.fields.block-hidden-disabled', ['param_name' => 'header_name'])
     </div>
 
     @endforeach

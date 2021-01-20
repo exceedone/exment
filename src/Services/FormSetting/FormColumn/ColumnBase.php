@@ -74,7 +74,7 @@ abstract class ColumnBase
             'column_no' => $this->custom_form_column->column_no ?? 1,
             'form_column_target_id' => $this->custom_form_column->form_column_target_id ?? null,
             
-            'options' =>  $this->custom_form_column->options ?? [],
+            'options' =>  collect($this->custom_form_column->options ?? [])->toJson(),
             
             'is_select_table' => $this->isSelectTable(),
             'required' => $this->isRequired(),
