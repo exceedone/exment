@@ -1,13 +1,15 @@
 <?php
 namespace Exceedone\Exment\Services\FormSetting\FormBlock;
 
+use Exceedone\Exment\Model\CustomTable;
+
 /**
  */
 class ManyToMany extends RelationBase
 {
-    public static function getBlockLabelHeader()
+    public static function getBlockLabelHeader(CustomTable $custom_table)
     {
-        return exmtrans('custom_form.table_many_to_many_label');
+        return exmtrans('custom_form.table_many_to_many_label') . $custom_table->table_view_name;
     }
 
     

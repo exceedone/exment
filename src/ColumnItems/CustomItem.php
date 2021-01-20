@@ -286,7 +286,7 @@ abstract class CustomItem implements ItemInterface
         // form column name. join $column_name_prefix and $column_name
         $form_column_name = $column_name_prefix.$this->name();
         
-        $field = new $classname($form_column_name, [$this->label()]);
+        $field = new $classname($form_column_name, [array_get($form_column_options, 'form_column_view_name') ?? $this->label()]);
         if ($this->isSetAdminOptions($form_column_options)) {
             $this->setAdminOptions($field, $form_column_options);
         }

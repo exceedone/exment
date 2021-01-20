@@ -14,15 +14,12 @@ use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\FileType;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Services\FormSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -210,29 +207,6 @@ class CustomFormController extends AdminControllerTableBase
     }
 
 
-    /**
-     * Get relation select modal
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function relationFilterModal(Request $request)
-    {
-        $target_column_id = $request->get('target_column_id');
-        $custom_column = CustomColumn::getEloquent($target_column_id);
-        
-        // get relation columns.
-        $relationColumns = Linkage::getLinkages(null, $custom_column);
-
-        // get selected value
-        $selected_value = $request->get('relation_filter_target_column_id');
-
-        return view('exment::custom-form.form-relation-filter-modal', [
-            'columns' => $relationColumns,
-            'target_column' => $custom_column,
-            'selected_value' => $selected_value,
-        ]);
-    }
 
     /**
      * Make a grid builder.
@@ -328,24 +302,16 @@ class CustomFormController extends AdminControllerTableBase
             'endpoint'=> $endpoint,
             'custom_form_blocks' => $custom_form_blocks,
             'css' => asset('/vendor/exment/css/customform.css?ver='.$ver),
-            'js' => asset('/vendor/exment/js/customform.js?ver='.$ver),
+            'jslist' => [asset('/vendor/exment/js/customformitem.js?ver='.$ver), asset('/vendor/exment/js/customform.js?ver='.$ver)],
             'editmode' => isset($id),
             'form_view_name' => $form->form_view_name,
             'default_flg' => $form->default_flg?? '0',
             'change_page_menu' => (new Tools\CustomTableMenuButton('form', $this->custom_table)),
-            'relationFilterUrl' => admin_urls('form', $this->custom_table->table_name, 'relationFilterModal'),
-            'relationFilterHelp' => $this->getRelationFilterHelp(),
         ]));
     }
 
     protected function getFormBlocks($form)
-    {
-        // Create Blocks as "table-self", "one-to-many tables", "many-to-many tables".
-        // "table-self", "one-to-many tables" have form-columns.
-        // "many-to-many tables" have only use or not use relation.
-        // define relation tables
-        $relations = $this->custom_table->custom_relations;
-                
+    {    
         // Loop using CustomFormBlocks
         $custom_form_blocks = [];
         foreach ($this->getFormBlockItems($form) as $custom_form_block) {
@@ -368,6 +334,12 @@ class CustomFormController extends AdminControllerTableBase
             $custom_form_blocks[] = FormSetting\FormBlock\DefaultBlock::getDefaultBlock($this->custom_table)->getItemsForDisplay();
         }
 
+        // Create Blocks as "table-self", "one-to-many tables", "many-to-many tables".
+        // "table-self", "one-to-many tables" have form-columns.
+        // "many-to-many tables" have only use or not use relation.
+        // define relation tables
+        $relations = $this->custom_table->custom_relations;
+            
         // check relation define.if not exists in custom_form_blocks, add define.
         foreach ($relations as $relation) {
             if (!collect($custom_form_blocks)->first(function ($custom_form_block) use ($relation) {
@@ -376,58 +348,6 @@ class CustomFormController extends AdminControllerTableBase
             })) {
                 $custom_form_blocks[] = FormSetting\FormBlock\RelationBase::getDefaultBlock($this->custom_table, $relation)->getItemsForDisplay();
             }
-        }
-
-        $parent_table_id = null;
-        foreach ($custom_form_blocks as &$custom_form_block) {
-            // ///// Set changedata selection select list
-            // $select_table_columns = [];
-            // // get custom columns
-            // $form_block_target_table_id = array_get($custom_form_block, 'form_block_target_table_id');
-            // $custom_columns = CustomTable::getEloquent($form_block_target_table_id)->custom_columns_cache->toArray();
-            
-            // // if form block type is 1:n or n:n, get parent tables columns too. use parent_table_id.
-            // if (in_array(array_get($custom_form_block, 'form_block_type'), [FormBlockType::ONE_TO_MANY, FormBlockType::MANY_TO_MANY])) {
-            //     $custom_columns = array_merge(
-            //         CustomTable::getEloquent($parent_table_id)->custom_columns_cache->toArray(),
-            //         $custom_columns
-            //     );
-            // }
-            // // else, get form_block_target_table_id as parent_table_id
-            // else {
-            //     $parent_table_id = $form_block_target_table_id;
-            // }
-            
-            // foreach ($custom_columns as $custom_column) {
-            //     // if column_type is not select_table, return []
-            //     if (!ColumnType::isSelectTable(array_get($custom_column, 'column_type'))) {
-            //         continue;
-            //     }
-
-            //     // if not have array_get($custom_column, 'options.select_target_table'), conitnue
-            //     $custom_column_eloquent = CustomColumn::getEloquent(array_get($custom_column, 'id'));
-            //     if (!isset($custom_column_eloquent)) {
-            //         continue;
-            //     }
-
-            //     $target_table = $custom_column_eloquent->select_target_table;
-            //     if (!isset($target_table)) {
-            //         continue;
-            //     }
-
-            //     // get custom table
-            //     $custom_table_eloquent = CustomTable::getEloquent($custom_column_eloquent->custom_table_id);
-            //     // set table name if not $form_block_target_table_id and custom_table_eloquent's id
-            //     if (!isMatchString($custom_table_eloquent->id, $form_block_target_table_id)) {
-            //         $select_table_column_name = sprintf('%s:%s', $custom_table_eloquent->table_view_name, array_get($custom_column, 'column_view_name'));
-            //     } else {
-            //         $select_table_column_name = array_get($custom_column, 'column_view_name');
-            //     }
-            //     // get select_table, user, organization columns
-            //     $select_table_columns[array_get($custom_column, 'id')] = $select_table_column_name;
-            // }
-            // $custom_form_block['select_table_columns'] = collect($select_table_columns)->toJson();
-
         }
 
         return $custom_form_blocks;
@@ -607,45 +527,39 @@ class CustomFormController extends AdminControllerTableBase
         });
     }
 
-    /**
-     * get form block label header
-     */
-    protected function getBlockLabelHeader($form_block_type)
-    {
-        switch ($form_block_type) {
-            case FormBlockType::ONE_TO_MANY:
-                return exmtrans('custom_form.table_one_to_many_label');
-            case FormBlockType::MANY_TO_MANY:
-                return exmtrans('custom_form.table_many_to_many_label');
-        }
-        return exmtrans('custom_form.table_default_label');
-    }
-
-    protected function getRelationFilterHelp()
-    {
-        return exmtrans('custom_form.help.relation_filter') . '<br/>' . exmtrans('common.help.more_help_here', getManualUrl('form#relation_filter_manual'));
-    }
-
-
-    /**
-     * getImageUrl
-     *
-     * @return string|null
-     */
-    protected function getImageUrl($custom_form_column) : ?string
-    {
-        if(!isMatchString(array_get($custom_form_column, 'form_column_type'), FormColumnType::OTHER)
-            || !isMatchString(array_get($custom_form_column, 'form_column_target_id'), 5)){
-                return null;
-        }
-        $file = ExmentFile::getFileFromFormColumn(array_get($custom_form_column, 'id'));
-        if(!$file){
-            return null;
-        }
-        return ExmentFile::getUrl($file);
-    }
-
     
+    /**
+     * Get setting modal
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function settingModal(Request $request)
+    {
+        $form_column_type = $request->get('form_column_type');
+        $form_column_target_id = $request->get('form_column_target_id');
+        $column_item = FormSetting\FormColumn\ColumnBase::makeByParams($form_column_type, $form_column_target_id);
+
+        $form_block_type = $request->get('form_block_type');
+        $form_block_target_table_id = $request->get('form_block_target_table_id');
+        $block_item = FormSetting\FormBlock\BlockBase::makeByParams($form_block_type, $form_block_target_table_id);
+
+        $form = $column_item->getSettingModalForm($block_item, $request->all());
+        $form->disableReset();
+        $form->disableSubmit();
+        $form->setWidth(9, 2);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => trans('admin.setting'),
+            'modalSize' => 'modal-xl',
+            'submitlabel' => trans('admin.setting'),
+            'preventSubmit' => true,
+        ]);
+    }
+
+
     /**
      * Save attachment and get column name
      *

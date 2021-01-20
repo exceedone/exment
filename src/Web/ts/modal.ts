@@ -25,10 +25,15 @@ namespace Exment {
         public static AddEvent() {
         }
 
-        public static ShowModal($target, url, params = []){
-
+        /**
+         * Show modal
+         * @param $target click target button
+         * @param url request url
+         * @param post_params post params
+         * @param options options
+         */
+        public static ShowModal($target, url, post_params = {}){
             let original_title = $target.data('original-title');
-
             let data = {targetid: $target.attr('id')};
             
             /// get data from "data-widgetmodal_getdata". only get in targets.
@@ -75,7 +80,7 @@ namespace Exment {
             }
 
             data = $.extend(
-                data, params
+                data, post_params
             );
 
             // get ajax
@@ -315,7 +320,7 @@ namespace Exment {
          * @param button 
          * @param original_title 
          */
-        private static setBodyHtml(res, button, original_title){
+        public static setBodyHtml(res, button = null, original_title = null){
             // change html
             if (res.body) {
                 $('#modal-showmodal .modal-body').html(res.body);

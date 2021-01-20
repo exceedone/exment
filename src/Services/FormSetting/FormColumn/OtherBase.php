@@ -2,11 +2,47 @@
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Model\CustomFormColumn;
+use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
+use Encore\Admin\Widgets\Form as WidgetForm;
 
 /**
  */
 class OtherBase extends ColumnBase
 {
+    public static function make(CustomFormColumn $custom_form_column) : ColumnBase
+    {
+        $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
+        switch($column_form_column_name){
+            case 'header':
+            case 'explain':
+                return new Text($custom_form_column);
+            case 'html':
+            case 'exhtml':
+                return new Html($custom_form_column);
+            case 'image':
+                return new Image($custom_form_column);
+        }
+        
+        return new OtherBase($custom_form_column);
+    }
+
+
+    /**
+     * Get object for suggest
+     *
+     * @return self
+     */
+    public static function makeBySuggest($form_column_type_id) : ColumnBase
+    {
+        $form_column = new CustomFormColumn;
+        $form_column->form_column_type = FormColumnType::OTHER;
+        $form_column->form_column_target_id = $form_column_type_id;
+
+        return static::make($form_column);
+    }
+
+
     /**
      * Get column's view name
      *
@@ -27,5 +63,17 @@ class OtherBase extends ColumnBase
     public function isRequired() : bool
     {
         return false;
+    }
+
+    
+    /**
+     * Get setting modal form 
+     *
+     * @return WidgetForm
+     */
+    public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm
+    {
+        $form = new WidgetForm($parameters);
+        return $form;
     }
 }

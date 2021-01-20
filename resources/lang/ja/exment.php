@@ -1326,6 +1326,7 @@ return [
         'suggest_column_label' => 'テーブル列',
         'suggest_other_label' => 'その他',
         'form_block_name' => 'フォームブロック名',
+        'field_default' => '標準',
         'read_only' => '読み取り専用',
         'view_only' => '表示専用',
         'hidden' => '隠しフィールド',
@@ -1340,6 +1341,7 @@ return [
         'relation_filter' => '関連絞り込み',
         'relation_filter_manual' => '関連絞り込み設定',
         'items' => 'フォーム項目',
+        'items_detail' => 'フォーム項目詳細',
         'suggest_items' => '候補一覧',
         'add_all_items' => 'すべて項目に追加',
         'changedata_target_column' => '列を選択',
@@ -1348,6 +1350,9 @@ return [
         'changedata_column' => 'リンク列を選択',
         'changedata_column_then' => 'の値をコピーする',
         'default_flg' => '既定のフォーム',
+        'field_showing_type' => 'フィールド種類',
+        'form_column_view_name' => 'フィールド表示名',
+        'image_aslink' => '画像をリンクとして表示',
 
         'priority' => [
             'title' => 'フォーム表示条件設定',
@@ -1372,8 +1377,9 @@ return [
             'changedata_no_item' => '※列の種類が「選択肢 (他のテーブルの値一覧から選択)」、「ユーザー」、「組織」となる列がテーブル内に存在しません。データ連動設定を使用する場合、これらの列を登録してください。',
             'relation_filter_no_item' => '※列「%s」の親、もしくは参照先となるテーブルが存在しません。',
             'html' => '表示するHTMLを記入してください。<span class="red">※入力したHTMLがそのまま埋め込まれます。またスクリプトも実行されます。入力には十分注意してください。</span>',
-            'read_only' => '読み取り専用の項目として、画面に表示されます。データ関連設定によって値を書き換えることや、計算式の設定を行ったり、他の項目の計算式で、値を取得することができます。',
-            'view_only' => '表示専用の項目として、画面に表示されます。データ関連設定によって値を書き換えることも、他の項目の計算式で、値を取得することもできません。',
+            'field_showing_type' => 'フィールドの種類を選択します。画面に表示する方法を選択してください。',
+            'form_column_view_name' => 'フォームに表示する名称を変更する場合は、記入してください。',
+            'image_aslink' => 'YESにすることで、画像をリンク形式で表示します。',
         ],
 
         'message' => [

@@ -24,7 +24,7 @@
   margin-bottom: 5px;
 }
 
-.draggables li {
+.draggables .draggable {
   list-style: none;
   margin: 0.5rem 0;
   padding: 5px;
@@ -39,4 +39,12 @@
 
 .draggables label {
   font-weight: normal;
+}
+
+.draggables .config-icon {
+  padding: 0 3px;
+}
+
+.draggables .config-icon:hover {
+  opacity: 0.6;
 }

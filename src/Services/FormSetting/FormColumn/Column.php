@@ -2,9 +2,13 @@
 namespace Exceedone\Exment\Services\FormSetting\FormColumn;
 
 use Encore\Admin\Form;
+use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
+use Illuminate\Support\Collection;
 
 /**
  */
@@ -37,6 +41,21 @@ class Column extends ColumnBase
     }
     
     /**
+     * Get object for suggest
+     *
+     * @return self
+     */
+    public static function makeBySuggest(CustomColumn $custom_column) : ColumnBase
+    {
+        $form_column = new CustomFormColumn;
+        $form_column->form_column_type = FormColumnType::COLUMN;
+        $form_column->form_column_target_id = $custom_column->id;
+
+        return static::make($form_column);
+    }
+
+
+    /**
      * Get column's view name
      *
      * @return string|null
@@ -58,5 +77,118 @@ class Column extends ColumnBase
     public function isRequired() : bool
     {
         return boolval(array_get($this->custom_form_column, 'required')) || boolval(array_get($this->custom_column, 'required'));
+    }
+
+
+    /**
+     * Get setting modal form 
+     *
+     * @return WidgetForm
+     */
+    public function getSettingModalForm(BlockBase $block_item, array $parameters) : WidgetForm
+    {
+        $form = new WidgetForm($parameters);
+
+        $form->text('form_column_view_name', exmtrans('custom_form.form_column_view_name'))
+            ->help(exmtrans('custom_form.help.form_column_view_name'))
+            ->default($this->custom_column->column_view_name ?? null);
+
+        $form->radio('field_showing_type', exmtrans('custom_form.field_showing_type'))->options([
+            'default' => exmtrans('custom_form.field_default'),
+            'read_only' => exmtrans('custom_form.read_only'),
+            'view_only' => exmtrans('custom_form.view_only'),
+            'hidden' => exmtrans('custom_form.hidden'),
+        ])->help(exmtrans('custom_form.help.field_showing_type') . \Exment::getMoreTag('form', 'custom_form.items_detail'))
+        ->default('default');
+
+        $form->switchbool('required', exmtrans('custom_form.required'));
+
+        $selectColumns = $this->getSelectTableColumns($block_item)->filter(function($selectColumn, $key){
+            return !isMatchString($key, $this->custom_column->id);
+        });
+
+        if($selectColumns->count() > 0){
+            $form->exmheader(exmtrans('custom_form.changedata'))->hr();
+            $form->description(sprintf(exmtrans('custom_form.help.changedata'), getManualUrl('form#'.exmtrans('custom_form.changedata'))))->escape(false);
+
+            $form->select('changedata_target_column_id', exmtrans('custom_form.changedata_target_column'))
+                ->help(exmtrans('custom_form.changedata_target_column_when'))
+                ->options($selectColumns);
+
+            $form->select('changedata_column_id', exmtrans('custom_form.changedata_column'))
+                ->help(exmtrans('custom_form.changedata_column_then'))
+                ->options(function() use($parameters){
+                    if(is_null(array_get($changedata_target_column_id = $parameters, 'changedata_target_column_id'))){
+                        return [];
+                    }
+
+                    // get custom column
+                    $custom_column = CustomColumn::getEloquent($changedata_target_column_id);
+                    // if column_type is not select_table, return []
+                    if (!ColumnType::isSelectTable(array_get($custom_column, 'column_type'))) {
+                        return [];
+                    }
+
+                    // get select_target_table
+                    $select_target_table = $custom_column->select_target_table;
+                    if (!isset($select_target_table)) {
+                        return [];
+                    }
+                    return $select_target_table->custom_columns_cache->pluck('column_view_name', 'id');
+                });
+        }
+        
+        return $form;
+    }
+
+    
+    /**
+     * Get select table's columns in this block.
+     *
+     * @return Collection
+     */
+    protected function getSelectTableColumns(BlockBase $block_item) : Collection
+    {
+        if (!isset($this->custom_column)) {
+            return collect();
+        }
+
+        $custom_table = $this->custom_column->custom_table_cache;
+        if (!$custom_table) {
+            return collect();
+        }
+
+        $custom_columns = $custom_table->custom_columns_cache->filter(function ($custom_column) {
+            return ColumnType::isSelectTable(array_get($custom_column, 'column_type'));
+        });
+            
+        // if form block type is 1:n or n:n, get parent tables columns too.
+        if ($block_item instanceof RelationBase) {
+            $custom_columns = $custom_columns->merge(
+                $block_item->getCustomTable()->custom_columns_cache,
+            );
+        }
+
+        $result = [];
+        foreach ($custom_columns as $custom_column) {
+            $target_table = $custom_column->select_target_table;
+            if (!isset($target_table)) {
+                return $result;
+            }
+
+            // get custom table
+            $custom_table = $custom_column->custom_table_cache;
+            // set table name if not $form_block_target_table_id and custom_table_eloquent's id
+            $form_block_target_table_id = array_get($block_item->getCustomFormBlock(), 'form_block_target_table_id');
+            if (!isMatchString($custom_table->id, $form_block_target_table_id)) {
+                $select_table_column_name = sprintf('%s:%s', $custom_table->table_view_name, array_get($custom_column, 'column_view_name'));
+            } else {
+                $select_table_column_name = array_get($custom_column, 'column_view_name');
+            }
+            // get select_table, user, organization columns
+            $result[array_get($custom_column, 'id')] = $select_table_column_name;
+        }
+
+        return collect($result);
     }
 }

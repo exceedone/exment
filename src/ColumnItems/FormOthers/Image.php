@@ -26,7 +26,13 @@ class Image extends FormOtherItem
         }
 
         $url = ExmentFile::getUrl($file);
-        return \Exment::getUrlTag($url, '<img src="'.$url.'" class="mw-100 image_html" />', UrlTagType::BLANK, [], [
+
+        $imageTag = '<img src="'.$url.'" class="mw-100 image_html" />';
+        if(!boolval(array_get($this->form_column, 'options.image_aslink', false))){
+            return $imageTag;
+        }
+
+        return \Exment::getUrlTag($url, $imageTag, UrlTagType::BLANK, [], [
             'notEscape' => true,
         ]);
     }

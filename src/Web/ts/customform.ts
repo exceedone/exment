@@ -5,25 +5,16 @@ namespace Exment {
 
         public static AddEvent() {
             $('.box-custom_form_block').on('ifChanged check', '.icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
-            $('.box-custom_form_block').on('click', '.delete', {}, CustomFromEvent.deleteColumn);
-            $('.box-custom_form_block').on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
-            $('.box-custom_form_block').on('click', '.changedata-modal', {}, CustomFromEvent.changedataModalEvent);
-            $('.box-custom_form_block').on('click', '.input_texthtml-modal', {}, CustomFromEvent.editTextHtmlModalEvent);
-            $('.box-custom_form_block').on('click', '.relation_filter-modal', {}, CustomFromEvent.relationfilterModalEvent);
-            $('.box-custom_form_block').on('click.custom_form', '[data-toggle-expanded-value]', {}, CustomFromEvent.toggoleListOpenClose);
+            $('.box-custom_form_block').on('click.exment_custom_form', '.delete', {}, CustomFromEvent.deleteColumn);
+            $('.box-custom_form_block').on('click.exment_custom_form', '.setting', {}, CustomFromEvent.settingModalEvent);
+            $('.box-custom_form_block').on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);           
 
-            $(document).off('change.custom_form', '.changedata_target_column').on('change.custom_form', '.changedata_target_column', {}, CustomFromEvent.changedataColumnEvent);
+            $(document).off('change.custom_form', '.changedata_target_column_id').on('change.custom_form', '.changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
             $(document).off('click.custom_form', '#changedata-button-setting').on('click.custom_form', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
-            $(document).off('click.custom_form', '#changedata-button-reset').on('click.custom_form', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
-            $(document).off('click.custom_form', '#relation_filter-button-setting').on('click.custom_form', '#relation_filter-button-setting', {}, CustomFromEvent.relationfilterSetting);
-            $(document).off('click.custom_form', '#relation_filter-button-reset').on('click.custom_form', '#relation_filter-button-reset', {}, CustomFromEvent.relationfilterReset);
             $(document).off('click.custom_form', '#textinput-button-setting').on('click.custom_form', '#textinput-button-setting', {}, CustomFromEvent.textinputSetting);
-            $(document).off('click.custom_form', '#textinput-button-reset').on('click.custom_form', '#textinput-button-reset', {}, CustomFromEvent.textinputReset);
 
             CustomFromEvent.addDragEvent();
-            CustomFromEvent.addCollapseEvent();
             CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
-            CustomFromEvent.appendIcheckEvent($('.box-custom_form_block .icheck:visible, .box-custom_form_block .icheck.icheck_hasmany_type'));
             $('form').on('submit', CustomFromEvent.formSubmitEvent);
         }
 
@@ -31,16 +22,6 @@ namespace Exment {
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
             });
-        }
-
-        /**
-         * Add All item button event
-         */
-        private static toggoleListOpenClose = (ev) => {
-            const $button = $(ev.target).closest('[data-toggle-expanded-value]');
-            const expanded = $button.data('toggle-expanded-value')
-            const $li = $button.closest('.custom_form_column_block').find('li [data-toggle="collapse"]').filter('[aria-expanded="' + expanded + '"]');
-            $li.trigger('click');
         }
 
         /**
@@ -76,7 +57,7 @@ namespace Exment {
                         var $ul = ui.helper.closest('.draggables');
                         // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
                         if ($ul.hasClass('custom_form_column_items')) {
-                            ui.helper.find('.delete,.options,[data-toggle]').show();
+                            CustomFromEvent.toggleConfigIcon(ui.helper, true);
                             // add hidden form
                             var header_name = CustomFromEvent.getHeaderName(ui.helper);
                             ui.helper.append($('<input/>', {
@@ -108,16 +89,12 @@ namespace Exment {
                                     .attr('data-parent', '#' + uuid)
                                     .attr('href', '#' + uuid);
                                 ui.helper.find('.panel-collapse').prop('id', uuid);
-                                CustomFromEvent.addCollapseEvent(ui.helper.find('.panel-collapse'));
                             }
-
-                            // add icheck event
-                            CustomFromEvent.appendIcheckEvent(ui.helper.find('.icheck'));
 
                             // replace html name(for clone object)
                             CustomFromEvent.replaceCloneColumnName(ui.helper);
                         } else {
-                            ui.helper.find('.delete,.options,[data-toggle]').hide();
+                            CustomFromEvent.toggleConfigIcon(ui.helper, false);
                         }
                     }
                 });
@@ -136,21 +113,6 @@ namespace Exment {
                         CustomFromEvent.setDragItemEvent($(elem2));
                     });
                 });
-        }
-
-        private static addCollapseEvent($elem: JQuery<Element>= null) {
-            if(!hasValue($elem)){
-                $elem = $('.panel-collapse');
-            }
-            $elem.off('show.bs.collapse').on('show.bs.collapse', function () {
-                CustomFromEvent.appendIcheckEvent($(this));
-                $(this).parent('li').find('[data-toggle] i').addClass('fa-chevron-up').removeClass('fa-chevron-down');
-            });
-        
-            $elem.off('hide.bs.collapse').on('hide.bs.collapse', function () {
-                $(this).siblings('.panel-heading').removeClass('active');
-                $(this).parent('li').find('[data-toggle] i').addClass('fa-chevron-down').removeClass('fa-chevron-up');
-            });
         }
 
         private static setDragItemEvent($elem, initialize = true){
@@ -181,9 +143,19 @@ namespace Exment {
             }
         }
 
-        private static toggleFormColumnItem($elem: JQuery<Element>, isShow = true) {
+
+        private static toggleConfigIcon($elem: JQuery<Element>, isShow:boolean){
             if(isShow){
-                $elem.find('.delete,.options,[data-toggle]').show();
+                $elem.find('.delete,.options,[data-toggle],.setting').show();
+            }else{
+                $elem.find('.delete,.options,[data-toggle],.setting').hide();
+            }
+        }
+
+        private static toggleFormColumnItem($elem: JQuery<Element>, isShow = true) {
+            CustomFromEvent.toggleConfigIcon($elem, isShow);
+
+            if(isShow){
                 // add hidden form
                 var header_name = CustomFromEvent.getHeaderName($elem);
                 $elem.append($('<input/>', {
@@ -196,12 +168,7 @@ namespace Exment {
                     value: $elem.find('.form_column_type').val(),
                     type: 'hidden',
                 }));
-                // add icheck event
-                CustomFromEvent.appendIcheckEvent($elem.find('.icheck'));
-
                 CustomFromEvent.setDragItemEvent($elem);
-            }else{
-                $elem.find('.delete,.options,[data-toggle]').hide();
             }
         }
         
@@ -339,16 +306,6 @@ namespace Exment {
                 });
             });
         }
-        private static appendIcheckEvent($elem: JQuery<Element>) {
-            $elem.each(function(index, elem){
-                var $e = $(elem);
-                if (!$e.data('ichecked')) {
-                    $e.iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
-                    $e.data('ichecked', true);
-                }    
-            });
-        }
-
         /**
          * Replace clone suggest li name.
          * @param $li 
@@ -383,51 +340,10 @@ namespace Exment {
             $replaceLi.attr('id', newHeaderName);
         }
 
-        private static changedataModalEvent = (ev) => {
-            // get target header_column_name
-            var $target_li = $(ev.target).closest('.custom_form_column_item');
-            var target_header_column_name = $target_li.data('header_column_name');
-            var $block = $target_li.closest('.box-custom_form_block');
 
-            // get default value
-            var changedata_target_column_id = $target_li.find('.changedata_target_column_id').val();
-            var changedata_column_id = $target_li.find('.changedata_column_id').val();
-
-            // get select target columns in target table columns
-            var select_table_columns = JSON.parse($block.find('.select-table-columns').val() as string);
-            $('.changedata_target_column,.changedata_column').children('option').remove();
-            $('.changedata_target_column').append($('<option>').val('').text(''));
-            $.each(select_table_columns, function (value, name) {
-                var $option = $('<option>')
-                    .val(value as string)
-                    .text(name)
-                    .prop('selected', changedata_target_column_id == value);
-                    $('.changedata_target_column').append($option);
-            });
-
-            // if no select_table_columns, show error message
-            if(!hasValue(select_table_columns) || select_table_columns.length == 0){
-                $('.select_no_item').show();
-                $('.select_item').hide();
-            }else{
-                $('.select_no_item').hide();
-                $('.select_item').show();
-            }
-
-            $('#form-changedata-modal').find('.target_header_column_name').val(target_header_column_name);
-
-            // check default changedata_target_column_id value
-            if(hasValue(changedata_target_column_id)){
-                //hasValue, get changedataColumns, then open modal
-                $.when(CustomFromEvent.changedataColumnEvent(changedata_target_column_id, changedata_column_id))
-                    .then(function(){
-                        $('#form-changedata-modal').modal('show');
-                    })
-            }
-            // not default value
-            else{
-                $('#form-changedata-modal').modal('show');
-            }
+        private static settingModalEvent = (ev:JQueryEventObject) => {
+           let formItem = CustomFromItem.makeByHidden($(ev.target).closest('.custom_form_column_item'));
+           formItem.showSettingModal($(ev.target).closest('.setting'));
         }
 
         private static changedataColumnEvent = (ev:any, changedata_column_id?) => {
@@ -443,7 +359,7 @@ namespace Exment {
             }
 
             if(!hasValue(custom_column_id)){
-                $('.changedata_column').children('option').remove();
+                $('.changedata_column_id').children('option').remove();
                 $d.resolve();
             }
             else{
@@ -452,14 +368,14 @@ namespace Exment {
                     type: 'GET'
                 })
                 .done(function (data) {
-                    $('.changedata_column').children('option').remove();
-                    $('.changedata_column').append($('<option>').val('').text(''));
+                    $('.changedata_column_id').children('option').remove();
+                    $('.changedata_column_id').append($('<option>').val('').text(''));
                     $.each(data, function (value, name) {
                         var $option = $('<option>')
                             .val(value as string)
                             .text(name)
                             .prop('selected', changedata_column_id == value);
-                            $('.changedata_column').append($option);
+                            $('.changedata_column_id').append($option);
                     });
                     $d.resolve();
                 })
@@ -474,23 +390,12 @@ namespace Exment {
 
         
         /**
-         * Reset changedata Setting
+         * Settng modal Setting
          */
-        private static changedataReset = (ev) => {
-            // get target_header_column_name for updating.
-            var $target_li = CustomFromEvent.getModalTargetLi('#form-changedata-modal');
-            
-            // data setting and show message
-            $target_li.find('.changedata_target_column_id').val('');
-            $target_li.find('.changedata_column_id').val('');
-            $target_li.find('.changedata_available').hide();
+        private static settingModalSetting = (ev) => {
+            let formItem = CustomFromItem.makeByModal();
+            formItem.showSettingModal($(ev.target).closest('.setting'));
 
-            $('#form-changedata-modal').modal('hide');
-        }
-        /**
-         * Settng changedata Setting
-         */
-        private static changedataSetting = (ev) => {
             // get target_header_column_name for updating.
             var $target_li = CustomFromEvent.getModalTargetLi('#form-changedata-modal');
             
@@ -503,59 +408,6 @@ namespace Exment {
         }
 
 
-        private static relationfilterModalEvent = (ev) => {
-            // get target header_column_name
-            var $target_li = $(ev.target).closest('.custom_form_column_item');
-            var target_header_column_name = $target_li.data('header_column_name');
-
-            // get default value
-            var target_column_id = $target_li.find('.form_column_target_id').val();
-            var relation_filter_target_column_id = $target_li.find('.relation_filter_target_column_id').val();
-
-            $.ajax({
-                type: 'GET',
-                url: $('#relationFilterUrl').val() as string,
-                //container: "#pjax-container",
-                data: {target_column_id:target_column_id, relation_filter_target_column_id:relation_filter_target_column_id},
-                success: function (repsonse) {
-                    $('#form-relation_filter-modal').html(repsonse);
-                    $('#form-relation_filter-modal').modal('show');
-                    $('#form-relation_filter-modal').find('.target_header_column_name').val(target_header_column_name);
-
-                },
-                error: function (repsonse) {
-                }
-            });
-        }
-
-        /**
-         * Reset relation_filter Setting
-         */
-        private static relationfilterReset = (ev) => {
-            // get target_header_column_name for updating.
-            var $target_li = CustomFromEvent.getModalTargetLi('#form-relation_filter-modal');
-            
-            // data setting and show message
-            $target_li.find('.relation_filter_target_column_id').val('');
-            $target_li.find('.relation_filter_available').hide();
-
-            $('#form-relation_filter-modal').modal('hide');
-        }
-        /**
-         * Settng relation_filter Setting
-         */
-        private static relationfilterSetting = (ev) => {
-            // get target_header_column_name for updating.
-            var $target_li = CustomFromEvent.getModalTargetLi('#form-relation_filter-modal');
-            
-            // data setting and show message
-            $target_li.find('.relation_filter_target_column_id').val($('.relation_filter_target_column').val());
-            $target_li.find('.relation_filter_available').show();
-
-            $('#form-relation_filter-modal').modal('hide');
-        }
-
-
         private static getModalTargetLi(formSelector){
             // get target_header_column_name for updating.
             var target_header_column_name = $(formSelector).find('.target_header_column_name').val();
@@ -564,28 +416,6 @@ namespace Exment {
             return $target_li;
         }
 
-
-        
-        private static editTextHtmlModalEvent = (ev) => {
-            let $target_li = $(ev.target).closest('.custom_form_column_item');
-            let $val = $target_li.find('.input_texthtml');
-            CustomFromEvent.$targetLi = $target_li;
-
-            $('#form-textinput-modal').find('#textinput-modal-textarea').val($val.val());
-            
-            $('#form-textinput-modal').modal('show');
-        }
-
-        
-        /**
-         */
-        private static textinputReset = (ev) => {
-            let $target_li = CustomFromEvent.$targetLi;
-            $target_li.find('.input_texthtml').val('');
-            $target_li.find('.input_texthtml-label').text('');
-            
-            $('#form-textinput-modal').modal('hide');
-        }
         /**
          * Settng changedata Setting
          */
