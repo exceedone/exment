@@ -70,32 +70,25 @@ class CCustomCopyTest extends ExmentKitTestCase
             ->seeOuterElement('input[id=label]', 'copy unit test')
             ->seeOuterElement('input[id=icon]', 'fa-android')
             ->seeOuterElement('input[id=button_class]', 'btn-info')
-            //// TODO isaka:selectoption
-            // selector:select.from_column_target value: 50, text: text
-            // selector:select.from_column_target value: 51, text: user
-            // selector:select.from_column_target value: 52, text: index_text
-            // selector:select.from_column_target value: 53, text: odd_even
-            // selector:select.from_column_target value: 54, text: multiples_of_3
-            // selector:select.from_column_target value: 55, text: file
-            // selector:select.from_column_target value: 56, text: date
-            // selector:select.from_column_target value: 57, text: integer
-            // selector:select.from_column_target value: 58, text: decimal
-            // selector:select.from_column_target value: 59, text: currency
-            // selector:select.from_column_target value: 60, text: init_text
-            // selector:select.from_column_target value: 61, text: email
-            // selector:select.to_column_target value: 62, text: text
-            // selector:select.to_column_target value: 63, text: user
-            // selector:select.to_column_target value: 64, text: index_text
-            // selector:select.to_column_target value: 65, text: odd_even
-            // selector:select.to_column_target value: 66, text: multiples_of_3
-            // selector:select.to_column_target value: 67, text: file
-            // selector:select.to_column_target value: 68, text: date
-            // selector:select.to_column_target value: 69, text: integer
-            // selector:select.to_column_target value: 70, text: decimal
-            // selector:select.to_column_target value: 71, text: currency
-            // selector:select.to_column_target value: 72, text: init_text
-            // selector:select.to_column_target value: 73, text: email
             ;
+
+        $options = [
+            'text',
+            'user',
+            'index_text',
+            'odd_even',
+            'multiples_of_3',
+            'file',
+            'date',
+            'integer',
+            'decimal',
+            'currency',
+            'init_text',
+            'email',
+        ];
+
+        $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, $options));
+        $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $options));
     }
 
     /**
@@ -131,6 +124,31 @@ class CCustomCopyTest extends ExmentKitTestCase
             // selector:select.custom_copy_input_columns value: 71, text: currency
             // selector:select.custom_copy_input_columns value: 73, text: email
             ;
+            
+        $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, [
+            'text',
+            'index_text',
+            'multiples_of_3',
+            'date',
+            'decimal',
+            'init_text',
+        ]));
+        $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, [
+            'text',
+            'index_text',
+            'multiples_of_3',
+            'date',
+            'decimal',
+            'init_text',
+        ]));
+        $this->containsSelectOptions('select.custom_copy_input_columns', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, [
+            'user',
+            'odd_even',
+            'file',
+            'integer',
+            'currency',
+            'email',
+        ]));
     }
 
     /**
@@ -323,5 +341,23 @@ class CCustomCopyTest extends ExmentKitTestCase
         $raw = CustomCopy::orderBy('created_at', 'desc')->first();
 
         return $raw;
+    }
+
+
+    /**
+     * Get column's options
+     *
+     * @param string $table_name
+     * @param array $options
+     * @return void
+     */
+    protected function getColumnSelectOption(string $table_name, array $options) : array
+    {
+        // create from options
+        return collect($options)->mapWithKeys(function($option) use($table_name){
+            $column = CustomColumn::getEloquent($option, $table_name);
+            return ["{$column->id}?table_id={$column->custom_table_id}" => $option];
+        })->toArray();
+
     }
 }
