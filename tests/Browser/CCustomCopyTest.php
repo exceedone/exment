@@ -104,25 +104,6 @@ class CCustomCopyTest extends ExmentKitTestCase
         $this->visit(admin_url("copy/custom_value_edit_all/$id/edit"))
             ->seePageIs(admin_url("copy/custom_value_edit_all/$id/edit"))
             ->seeOuterElement('input[id=label]', 'copy unit test update')
-            //// TODO isaka:selectoption
-            // selector:select.from_column_target value: 50, text: text
-            // selector:select.from_column_target value: 52, text: index_text
-            // selector:select.from_column_target value: 54, text: multiples_of_3
-            // selector:select.from_column_target value: 56, text: date
-            // selector:select.from_column_target value: 58, text: decimal
-            // selector:select.from_column_target value: 60, text: init_text
-            // selector:select.to_column_target value: 62, text: text
-            // selector:select.to_column_target value: 64, text: index_text
-            // selector:select.to_column_target value: 66, text: multiples_of_3
-            // selector:select.to_column_target value: 68, text: date
-            // selector:select.to_column_target value: 70, text: decimal
-            // selector:select.to_column_target value: 72, text: init_text
-            // selector:select.custom_copy_input_columns value: 63, text: user
-            // selector:select.custom_copy_input_columns value: 65, text: odd_even
-            // selector:select.custom_copy_input_columns value: 67, text: file
-            // selector:select.custom_copy_input_columns value: 69, text: integer
-            // selector:select.custom_copy_input_columns value: 71, text: currency
-            // selector:select.custom_copy_input_columns value: 73, text: email
             ;
             
         $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, [
