@@ -7,7 +7,7 @@ var Exment;
             $('.box-custom_form_block').on('click.exment_custom_form', '.setting', {}, CustomFromEvent.settingModalEvent);
             $('.box-custom_form_block').on('click.exment_custom_form', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
             $(document).off('change.exment_custom_form', '.changedata_target_column_id').on('change.exment_custom_form', '.changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
-            $(document).off('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit').on('click', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
+            $(document).off('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit').on('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
             CustomFromEvent.addDragEvent();
             CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
             $('form').on('submit', CustomFromEvent.formSubmitEvent);
@@ -355,12 +355,17 @@ var Exment;
         ev.preventDefault();
         let formItem = Exment.CustomFromItem.makeByModal();
         let options = formItem.getOption();
+        let $modal = $('#modal-showmodal');
         // get target_header_column_name for updating.
-        let widgetmodal_uuid = $('#modal-showmodal').find('.widgetmodal_uuid').val();
+        let widgetmodal_uuid = $modal.find('.widgetmodal_uuid').val();
         let $target_li = $('[data-widgetmodal_uuid="' + widgetmodal_uuid + '"]').closest('.custom_form_column_item');
         // data setting and show message
         $target_li.find('.options').val(JSON.stringify(options));
-        $('#modal-showmodal').modal('hide');
+        // move image event
+        let header_name = CustomFromEvent.getHeaderName($target_li);
+        $target_li.find('.image').remove();
+        $modal.find('.image').appendTo($target_li).prop('name', header_name + '[options][image]').hide();
+        $modal.modal('hide');
     };
     Exment.CustomFromEvent = CustomFromEvent;
 })(Exment || (Exment = {}));

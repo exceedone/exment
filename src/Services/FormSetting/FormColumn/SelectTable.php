@@ -30,6 +30,7 @@ class SelectTable extends Column
         
         return array_filter($options, function($option, $key){
             return in_array($key, [
+                'form_column_view_name',
                 'view_only',
                 'read_only',
                 'required',

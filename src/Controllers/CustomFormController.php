@@ -542,13 +542,16 @@ class CustomFormController extends AdminControllerTableBase
      */
     public function settingModal(Request $request)
     {
-        $form_column_type = $request->get('form_column_type');
-        $form_column_target_id = $request->get('form_column_target_id');
-        $column_item = FormSetting\FormColumn\ColumnBase::makeByParams($form_column_type, $form_column_target_id);
+        $column_item = FormSetting\FormColumn\ColumnBase::makeByParams(
+            $request->get('form_column_type'), 
+            $request->get('form_column_target_id'),
+            $request->get('header_column_name')
+        );
 
-        $form_block_type = $request->get('form_block_type');
-        $form_block_target_table_id = $request->get('form_block_target_table_id');
-        $block_item = FormSetting\FormBlock\BlockBase::makeByParams($form_block_type, $form_block_target_table_id);
+        $block_item = FormSetting\FormBlock\BlockBase::makeByParams(
+            $request->get('form_block_type'), 
+            $request->get('form_block_target_table_id')
+        );
 
         $form = $column_item->getSettingModalForm($block_item, $request->get('options', []));
         $form->disableReset();

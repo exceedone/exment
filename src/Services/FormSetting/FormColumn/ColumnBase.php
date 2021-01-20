@@ -51,11 +51,17 @@ abstract class ColumnBase
      *
      * @return self
      */
-    public static function makeByParams($form_column_type, $form_column_target_id) : ColumnBase
+    public static function makeByParams($form_column_type, $form_column_target_id, $header_column_name = null) : ColumnBase
     {
         $form_column = new CustomFormColumn;
         $form_column->form_column_type = $form_column_type;
         $form_column->form_column_target_id = $form_column_target_id;
+
+        // get form_column_id from request
+        preg_match("/\[custom_form_columns\]\[(?<id>\d+)\]/iu", $header_column_name, $match);
+        if($match){
+            $form_column->id = $match['id'];
+        }
 
         return static::make($form_column);
     }

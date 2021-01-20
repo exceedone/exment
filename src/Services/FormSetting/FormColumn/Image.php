@@ -21,11 +21,13 @@ class Image extends OtherBase
         $imageurl = $this->getImageUrl();
         if(!isset($imageurl)){
             $form->image('image', exmtrans('custom_form.image'))
-                ->attributes(['accept' => '.jpeg,.jpg,.png,.gif,.svg']);
+                ->attribute(['accept' => "image/*"]);
         }
         else{
-            $form->description($imageurl)->escape(false)
-                ->help(exmtrans('custom_form.message.image_need_delete'));
+            $form->description(exmtrans('custom_form.message.image_need_delete'));
+
+            $imagetag = '<img src="'.$imageurl.'" class="mw-100 image_html" style="max-height:200px;" />';
+            $form->description($imagetag)->escape(false);
         }
         $form->switchbool('image_aslink', exmtrans('custom_form.image_aslink'))->default(false)
             ->help(exmtrans('custom_form.help.image_aslink'));
@@ -57,6 +59,10 @@ class Image extends OtherBase
      */
     public function prepareSavingOptions(array $options) : array
     {
-        return [];
+        return array_filter($options, function($option, $key){
+            return in_array($key, [
+                'image_aslink',
+            ]);
+        }, ARRAY_FILTER_USE_BOTH);
     }
 }

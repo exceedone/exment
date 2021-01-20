@@ -92,6 +92,7 @@ class Column extends ColumnBase
         }
         return array_filter($options, function($option, $key){
             return in_array($key, [
+                'form_column_view_name',
                 'required',
                 'view_only',
                 'read_only',
@@ -141,7 +142,14 @@ class Column extends ColumnBase
             'view_only' => exmtrans('custom_form.view_only'),
             'hidden' => exmtrans('custom_form.hidden'),
         ])->help(exmtrans('custom_form.help.field_showing_type') . \Exment::getMoreTag('form', 'custom_form.items_detail'))
-        ->default('default');
+        ->default(function() use($parameters){
+            foreach(['read_only', 'view_only', 'hidden'] as $key){
+                if(boolval(array_get($parameters, $key, false))){
+                    return $key;
+                }
+            }
+            return 'default';
+        });
 
         $form->switchbool('required', exmtrans('custom_form.required'));
 
