@@ -87,5 +87,6 @@ namespace Exment {
 
             Exment.ModalEvent.ShowModal($target, URLJoin($('#formroot').val(), 'settingModal'), formData);
         }
+
     }
 }

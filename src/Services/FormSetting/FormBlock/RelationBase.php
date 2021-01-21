@@ -3,6 +3,7 @@ namespace Exceedone\Exment\Services\FormSetting\FormBlock;
 
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\RelationType;
 
 /**
@@ -35,8 +36,8 @@ abstract class RelationBase extends BlockBase
         
         $block = new CustomFormBlock;
         $block->id = null;
-        $block->form_block_type = $relation->relation_type;
-        $block->form_block_target_table_id = $relation->child_custom_table_id;
+        $block->form_block_type = $custom_relation->relation_type;
+        $block->form_block_target_table_id = $custom_relation->child_custom_table_id;
         $block->label = $classname::getBlockLabelHeader($custom_relation->child_custom_table) . $custom_relation->child_custom_table->table_view_name;
         $block->form_block_view_name = $block->label;
         $block->available = 0;
@@ -44,6 +45,6 @@ abstract class RelationBase extends BlockBase
             'hasmany_type' => null
         ];
 
-        return (new self($block, $custom_table))->setCustomRelation($custom_relation);
+        return BlockBase::make($block, $custom_table)->setCustomRelation($custom_relation);
     }
 }

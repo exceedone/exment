@@ -8,8 +8,9 @@ var Exment;
             $('.box-custom_form_block').on('click.exment_custom_form', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
             $(document).off('change.exment_custom_form', '.changedata_target_column_id').on('change.exment_custom_form', '.changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
             $(document).off('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit').on('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
-            CustomFromEvent.addDragEvent();
+            CustomFromEvent.loadingEvent();
             CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
+            CustomFromEvent.appendIcheckEvent($('.box-custom_form_block .icheck:visible, .box-custom_form_block .icheck.icheck_hasmany_type'));
             $('form').on('submit', CustomFromEvent.formSubmitEvent);
         }
         static AddEventOnce() {
@@ -17,131 +18,118 @@ var Exment;
                 CustomFromEvent.AddEvent();
             });
         }
-        static addDragEvent($elem = null) {
-            //if (!$elem) {
-            // create draagble form
-            $('.custom_form_column_suggests.draggables').each(function (index, elem) {
-                var d = $(elem);
-                $elem = d.children('.draggable');
-                $elem.draggable({
-                    // connect to sortable. set only same block
-                    connectToSortable: '.' + d.data('connecttosortable') + ' .draggables',
-                    //cursor: 'move',
-                    helper: d.data('draggable_clone') ? 'clone' : '',
-                    revert: "invalid",
-                    droppable: "drop",
-                    distance: 40,
-                    stop: (event, ui) => {
-                        var $ul = ui.helper.closest('.draggables');
-                        // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
-                        if ($ul.hasClass('custom_form_column_items')) {
-                            CustomFromEvent.toggleConfigIcon(ui.helper, true);
-                            // add hidden form
-                            var header_name = CustomFromEvent.getHeaderName(ui.helper);
-                            ui.helper.append($('<input/>', {
-                                name: header_name + '[form_column_target_id]',
-                                value: ui.helper.find('.form_column_target_id').val(),
-                                type: 'hidden',
-                            }));
-                            ui.helper.append($('<input/>', {
-                                name: header_name + '[form_column_type]',
-                                value: ui.helper.find('.form_column_type').val(),
-                                type: 'hidden',
-                            }));
-                            ui.helper.append($('<input/>', {
-                                name: header_name + '[required]',
-                                value: ui.helper.find('.required').val(),
-                                type: 'hidden',
-                            }));
-                            ui.helper.append($('<input/>', {
-                                name: header_name + '[column_no]',
-                                value: ui.helper.closest('[data-form_column_no]').data('form_column_no'),
-                                'class': 'column_no',
-                                type: 'hidden',
-                            }));
-                            // rename for toggle
-                            if (hasValue(ui.helper.find('[data-toggle]'))) {
-                                let uuid = getUuid();
-                                ui.helper.find('[data-parent]')
-                                    .attr('data-parent', '#' + uuid)
-                                    .attr('href', '#' + uuid);
-                                ui.helper.find('.panel-collapse').prop('id', uuid);
-                            }
-                            // replace html name(for clone object)
-                            CustomFromEvent.replaceCloneColumnName(ui.helper);
-                        }
-                        else {
-                            CustomFromEvent.toggleConfigIcon(ui.helper, false);
-                        }
-                    }
-                });
+        /**
+         * Call loading event
+         */
+        static loadingEvent() {
+            // Add drag item event
+            $('.custom_form_column_items.draggables,.custom_form_column_suggests.draggables').each(function (index, elem) {
+                CustomFromEvent.addDragItemEvent($(elem).children('.draggable'));
             });
-            // add sorable event (only left column)
+        }
+        /**
+         * Append event for suggest item, for loading display.
+         * @param $element suggest area list
+         */
+        static addDragItemEvent($element) {
+            let $draggables = $element.closest('.draggables');
+            $element.draggable({
+                // connect to sortable. set only same block
+                // and filter not draggable_setted
+                //connectToSortable: '.ul_0_19',
+                connectToSortable: '.' + $draggables.data('connecttosortable'),
+                helper: $draggables.data('draggable_clone') ? 'clone' : '',
+                revert: "invalid",
+                droppable: "drop",
+                distance: 40,
+                stop: (event, ui) => {
+                    let $draggables = ui.helper.closest('.draggables');
+                    // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
+                    if ($draggables.hasClass('custom_form_column_items')) {
+                        CustomFromEvent.setMovedEvent(ui);
+                    }
+                }
+            });
+            // set event for fix area   
             $(".custom_form_column_items.draggables")
                 .sortable({
                 distance: 40,
-            })
-                // add 1to2 or 2to1 draagable event
-                .each(function (index, elem) {
-                var d = $(elem);
-                $elem = d.children('.draggable');
-                $elem.each(function (index2, elem2) {
-                    CustomFromEvent.setDragItemEvent($(elem2));
-                });
             });
         }
-        static setDragItemEvent($elem, initialize = true) {
-            // get parent div
-            var $div = $elem.parents('.custom_form_column_block');
-            // get id name for connectToSortable
-            var id = 'ul_'
-                + $div.data('form_block_type')
-                + '_' + $div.data('form_block_target_table_id');
-            //+ '_' + ($div.data('form_column_no') == 1 ? 2 : 1);
-            if (initialize) {
-                $elem.draggable({
-                    // connect to sortable. set only same block
-                    connectToSortable: '.' + id,
-                    //cursor: 'move',
-                    revert: "invalid",
-                    droppable: "drop",
-                    distance: 40,
-                    stop: (event, ui) => {
-                        // reset draageble target
-                        CustomFromEvent.setDragItemEvent(ui.helper, false);
-                        // set column no
-                        ui.helper.find('.column_no').val(ui.helper.closest('[data-form_column_no]').data('form_column_no'));
-                    }
-                });
+        /**
+         * Set event after dragged erea.
+         */
+        static setMovedEvent(ui) {
+            CustomFromEvent.toggleConfigIcon(ui.helper, true);
+            // add hidden form
+            var header_name = CustomFromEvent.getHeaderName(ui.helper);
+            ui.helper.append($('<input/>', {
+                name: header_name + '[form_column_target_id]',
+                value: ui.helper.find('.form_column_target_id').val(),
+                type: 'hidden',
+            }));
+            ui.helper.append($('<input/>', {
+                name: header_name + '[form_column_type]',
+                value: ui.helper.find('.form_column_type').val(),
+                type: 'hidden',
+            }));
+            ui.helper.append($('<input/>', {
+                name: header_name + '[required]',
+                value: ui.helper.find('.required').val(),
+                type: 'hidden',
+            }));
+            ui.helper.append($('<input/>', {
+                name: header_name + '[column_no]',
+                value: ui.helper.closest('[data-form_column_no]').data('form_column_no'),
+                'class': 'column_no',
+                type: 'hidden',
+            }));
+            // rename for toggle
+            if (hasValue(ui.helper.find('[data-toggle]'))) {
+                let uuid = getUuid();
+                ui.helper.find('[data-parent]')
+                    .attr('data-parent', '#' + uuid)
+                    .attr('href', '#' + uuid);
+                ui.helper.find('.panel-collapse').prop('id', uuid);
             }
-            else {
-                $elem.draggable("option", "connectToSortable", "." + id);
-            }
+            // replace html name(for clone object)
+            CustomFromEvent.replaceCloneColumnName(ui.helper);
+            // disabled connecttosortable to draggables
+            ui.helper.closest('.draggables').addClass('draggables_setted');
         }
+        // private static setDragItemEvent($elem, initialize = true){
+        //     // get parent div
+        //     var $div = $elem.parents('.custom_form_column_block');
+        //     // get id name for connectToSortable
+        //     var id = 'ul_' 
+        //         + $div.data('form_block_type') 
+        //         + '_' + $div.data('form_block_target_table_id')
+        //         //+ '_' + ($div.data('form_column_no') == 1 ? 2 : 1);
+        //     if(initialize){
+        //         $elem.draggable({
+        //             // connect to sortable. set only same block
+        //             connectToSortable: '.' + id,
+        //             //cursor: 'move',
+        //             revert: "invalid",
+        //             droppable: "drop",
+        //             distance: 40,
+        //             stop: (event, ui) => {
+        //                 // reset draageble target
+        //                 CustomFromEvent.setDragItemEvent(ui.helper, false);
+        //                 // set column no
+        //                 ui.helper.find('.column_no').val(ui.helper.closest('[data-form_column_no]').data('form_column_no'));
+        //             }
+        //         });
+        //     }else{
+        //         $elem.draggable( "option", "connectToSortable", "." + id );
+        //     }
+        // }
         static toggleConfigIcon($elem, isShow) {
             if (isShow) {
                 $elem.find('.delete,.options,[data-toggle],.setting').show();
             }
             else {
                 $elem.find('.delete,.options,[data-toggle],.setting').hide();
-            }
-        }
-        static toggleFormColumnItem($elem, isShow = true) {
-            CustomFromEvent.toggleConfigIcon($elem, isShow);
-            if (isShow) {
-                // add hidden form
-                var header_name = CustomFromEvent.getHeaderName($elem);
-                $elem.append($('<input/>', {
-                    name: header_name + '[form_column_target_id]',
-                    value: $elem.find('.form_column_target_id').val(),
-                    type: 'hidden',
-                }));
-                $elem.append($('<input/>', {
-                    name: header_name + '[form_column_type]',
-                    value: $elem.find('.form_column_type').val(),
-                    type: 'hidden',
-                }));
-                CustomFromEvent.setDragItemEvent($elem);
             }
         }
         static getHeaderName($li) {
@@ -162,6 +150,15 @@ var Exment;
                         $(event.target).closest('.bootstrap-switch').next().val(state ? '1' : '0').change();
                     }
                 });
+            });
+        }
+        static appendIcheckEvent($elem) {
+            $elem.each(function (index, elem) {
+                var $e = $(elem);
+                if (!$e.data('ichecked')) {
+                    $e.iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
+                    $e.data('ichecked', true);
+                }
             });
         }
         /**
@@ -203,9 +200,27 @@ var Exment;
         $items.each(function (index, elem) {
             $(elem).appendTo($target_ul);
             // show item options, 
-            CustomFromEvent.toggleFormColumnItem($(elem), true);
+            //CustomFromEvent.toggleFormColumnItem($(elem), true);
         });
     };
+    // private static toggleFormColumnItem($elem: JQuery<Element>, isShow = true) {
+    //     CustomFromEvent.toggleConfigIcon($elem, isShow);
+    //     if(isShow){
+    //         // add hidden form
+    //         var header_name = CustomFromEvent.getHeaderName($elem);
+    //         $elem.append($('<input/>', {
+    //             name: header_name + '[form_column_target_id]',
+    //             value: $elem.find('.form_column_target_id').val(),
+    //             type: 'hidden',
+    //         }));
+    //         $elem.append($('<input/>', {
+    //             name: header_name + '[form_column_type]',
+    //             value: $elem.find('.form_column_type').val(),
+    //             type: 'hidden',
+    //         }));
+    //         CustomFromEvent.setDragItemEvent($elem);
+    //     }
+    // }
     CustomFromEvent.toggleFromBlock = (ev) => {
         ev.preventDefault();
         var available = $(ev.target).closest('.icheck_toggleblock').prop('checked');
@@ -257,7 +272,7 @@ var Exment;
             if ($template) {
                 var $clone = $template.children('.custom_form_column_item').clone(true);
                 $clone.appendTo($custom_form_column_suggests).show();
-                CustomFromEvent.addDragEvent($clone);
+                CustomFromEvent.loadingEvent($clone);
             }
         }
     };
@@ -293,7 +308,6 @@ var Exment;
             title: $('#cofirm_required_title').val(),
             text: $('#cofirm_required_text').val(),
             confirmCallback: function (result) {
-                console.log(result);
                 if (pBool(result.value)) {
                     $('form.custom_form_form').addClass('confirmed').submit();
                 }
