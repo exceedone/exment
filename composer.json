@@ -27,6 +27,7 @@
         "mews/purifier": "^3.2",
         "myclabs/php-enum": "^1.6.0",
         "laravel/passport": "^7.0",
+        "laravel/slack-notification-channel": "^2.3",
         "lcobucci/jwt": "3.3.*",
         "composer/composer": "^2.0",
         "kylekatarnls/update-helper": "^1.2",
