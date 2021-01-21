@@ -225,7 +225,7 @@ namespace Exment {
                 var $template = $custom_form_block_target.find('[data-form_column_target_id="' + form_column_target_id + '"]')
                     .filter('[data-form_column_type="' + form_column_type + '"]');
                 if ($template) {
-                    var $clone: any = $template.children('li').clone(true);
+                    var $clone: any = $template.children('.custom_form_column_item').clone(true);
                     $clone.appendTo($custom_form_column_suggests).show();
 
                     CustomFromEvent.addDragEvent($clone);

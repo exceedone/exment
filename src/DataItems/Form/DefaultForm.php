@@ -252,7 +252,7 @@ EOT;
                 $form->pushFieldAndOption($field, [
                     'row' => $form_column->row_no,
                     'column' => $form_column->column_no,
-                    'width' => $form_column->getOption('width', 4),
+                    'width' => $form_column->width ?? 4,
                 ]);
             }
         };

@@ -25,6 +25,10 @@
 }
 
 .draggables{
+    .form_column_type_0{
+        background-color: lightblue;
+    }
+    
     .draggable {
         list-style: none;
         margin: 0.5rem 0;
@@ -45,5 +49,17 @@
         &:hover{
             opacity: 0.6;
         }
+    }
+}
+
+.custom_form_column_suggests{
+    display: flex;
+    flex-wrap: wrap;
+
+    &.draggables .draggable{
+        margin: 0.2em;
+        width: calc(50% - 0.4em) !important;
+
+        font-size: 0.9em;
     }
 }

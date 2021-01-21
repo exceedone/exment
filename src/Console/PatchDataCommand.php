@@ -1423,7 +1423,7 @@ class PatchDataCommand extends Command
             $columnGroupInners->each(function($columns) use($columnGroupInners){
                 $columns->sortBy('order')->each(function($column, $index) use($columnGroupInners){
                     $column->row_no = $index + 1;
-                    $column->setOption('width', 4 / $columnGroupInners->count());
+                    $column->width = 4 / $columnGroupInners->count();
                     $column->save();
                 });
             });

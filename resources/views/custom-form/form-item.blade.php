@@ -1,7 +1,7 @@
 @if(!isset($template_item) && (isset($custom_form_column['has_custom_forms']) && boolval($custom_form_column['has_custom_forms'])))
 
 @else
-<div class="ui-state-default custom_form_column_item draggable"
+<div class="ui-state-default custom_form_column_item draggable form_column_type_{{$custom_form_column['form_column_type']}}"
     style="{{boolval(array_get($custom_form_column, 'delete_flg')) ? 'display:none' : ''}}"
     id="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}" data-header_column_name="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}">
         <span class="item-label {{array_get($custom_form_column, 'required') ? 'asterisk' : ''}}">{{ $custom_form_column['column_view_name'] }}</span>

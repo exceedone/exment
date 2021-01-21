@@ -29,6 +29,9 @@ class FormOptions extends Migration
             if (!Schema::hasColumn('custom_form_columns', 'row_no')) {
                 $table->integer('row_no')->after('form_column_target_id')->default(1);
             }
+            if (!Schema::hasColumn('custom_form_columns', 'width')) {
+                $table->integer('width')->after('column_no')->default(1);
+            }
         });
 
         \Artisan::call('exment:patchdata', ['action' => 'form_column_row_no']);
