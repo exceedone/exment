@@ -1,5 +1,5 @@
 {
-    "name": "exceedone/exment",
+    "name": "kajitoritest/exment",
     "description": "Management for Product, Client, Contracts, Subscription, ...",
     "type": "library",
     "keywords": ["CMS", "SFA", "Dynamic Table", "Free", "Custom Database", "Custom Table"],
@@ -17,15 +17,20 @@
     ],
     "require": {
         "php": ">=7.1.3",
-        "exceedone/laravel-admin": "^1.6.11",
-        "laravel/framework": "^5.6",
-        "laravelcollective/html": "^5.6.0",
+        "kajitoritest/laravel-admin": "~2.0",
+        "laravel/framework": "~6.20",
+        "laravelcollective/html": "~6.2",
+        "laravel/helpers": "~1.4",
         "webpatser/laravel-uuid": "^3.0",
         "phpoffice/phpspreadsheet": "^1.5.0",
         "box/spout": "^3.1",
         "mews/purifier": "^3.2",
         "myclabs/php-enum": "^1.6.0",
         "laravel/passport": "^7.0",
+        "laravel/slack-notification-channel": "^2.3",
+        "lcobucci/jwt": "3.3.*",
+        "composer/composer": "^2.0",
+        "kylekatarnls/update-helper": "^1.2",
         "renatomarinho/laravel-page-speed": "^1.8.11"
     },
     "require-dev": {

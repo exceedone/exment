@@ -66,6 +66,12 @@ class SystemRequireTest extends UnitTestBase
         });
     }
 
+    public function testComposerVersionMin(){
+        return $this->_test(SystemRequireTestComposerMin::class, function(){
+             return SystemRequireResult::WARNING;
+        });
+    }
+
 
     protected function _test($classname, \Closure $exceptValueFunc, ?\Closure $resultFunc = null){
         $obj = new $classname();
