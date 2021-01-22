@@ -14,7 +14,7 @@
 - GitHubの [https://github.com/exceedone/exment] にアクセスし、ページ右上の「Fork」ボタンをクリックしてください。
 
 - Exmentをあなたのリポジトリにフォークしてください。また、あなたのリポジトリをコピーしてください。  
-(ex. https://github.com/hirossyi73/exment)
+(ex. https://github.com/hirossyi73/exment。以後、あなたのGitHubユーザー名・オーナー名を、"hirossyi73"として記載しています。)
 
 ## Laravelのプロジェクト作成
 - Laravelのプロジェクトを作成します。
@@ -160,7 +160,7 @@ php artisan exment:publish
 ## GitHub
 
 ### ブランチ
-GitHubのブランチくぉ、以下のように運用しています。  
+GitHubのブランチを、以下のように運用しています。  
 [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
 
 | GitHub Brunch Name | Derived from | Explain |
