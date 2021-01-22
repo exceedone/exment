@@ -1,34 +1,43 @@
-.custom_form_block_available {
+#custom_form_form .custom_form_block_available {
   padding-left: 15px;
   margin-bottom: 1em;
 }
 
-.custom_form_column_block .custom_form_column_label {
+#custom_form_form .custom_form_column_block .custom_form_column_label {
   margin-bottom: 5px;
 }
 
-.custom_form_column_items {
-  padding: 1em 0.5em 4em;
+#custom_form_form .custom_form_area_inner {
+  border: 1px solid;
+  padding: 5px;
+}
+
+#custom_form_form .custom_form_area_inner .custom_form_area_header {
+  font-size: 1.4em;
+}
+
+#custom_form_form .custom_form_area_inner .draggables {
+  padding: 1em 0.5em;
   border: 2px dashed #AAA;
   min-height: 100px;
 }
 
-.arrows-h {
+#custom_form_form .arrows-h {
   font-size: 2.5em;
   text-align: center;
 }
 
-.options .form-horizontal .form-group {
+#custom_form_form .options .form-horizontal .form-group {
   margin-left: 5px;
   margin-right: 5px;
   margin-bottom: 5px;
 }
 
-.draggables .form_column_type_0 {
+#custom_form_form .draggables .form_column_type_0 {
   background-color: lightblue;
 }
 
-.draggables .draggable {
+#custom_form_form .draggables .draggable {
   list-style: none;
   margin: 0.5rem 0;
   padding: 5px;
@@ -37,29 +46,52 @@
   cursor: move;
 }
 
-.draggables .item-label {
+#custom_form_form .draggables .item-label {
   font-weight: bold;
 }
 
-.draggables label {
+#custom_form_form .draggables label {
   font-weight: normal;
 }
 
-.draggables .config-icon {
+#custom_form_form .custom_form_column_items .config-icon {
   padding: 0 3px;
 }
 
-.draggables .config-icon:hover {
+#custom_form_form .custom_form_column_items .config-icon:hover {
   opacity: 0.6;
 }
 
-.custom_form_column_suggests {
+#custom_form_form .custom_form_column_suggests .draggables {
   display: flex;
   flex-wrap: wrap;
 }
 
-.custom_form_column_suggests.draggables .draggable {
+#custom_form_form .custom_form_column_suggests .draggables .draggable {
   margin: 0.2em;
   width: calc(50% - 0.4em) !important;
   font-size: 0.9em;
+}
+
+#custom_form_form .addbutton_block {
+  position: relative;
+  min-height: 150px;
+}
+
+#custom_form_form .addbutton_block .addbutton_button {
+  position: absolute;
+  top: calc(50% - 50px);
+  left: calc(50% - 50px);
+  width: 100px;
+  height: 100px;
+  background-color: #FFFFFF;
+  border: 1px solid black;
+}
+
+#custom_form_form .addbutton_block .addbutton_button:hover {
+  background-color: #F0F0F0;
+}
+
+#custom_form_form .addbutton_block .addbutton_button i {
+  font-size: 30px;
 }

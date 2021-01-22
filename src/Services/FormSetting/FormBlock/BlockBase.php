@@ -32,12 +32,20 @@ abstract class BlockBase
      */
     protected $custom_form_block;
 
+    /**
+     * FormColumn list
+     * @var Collection
+     */
+    protected $custom_form_column_items;
+
 
     public function __construct(CustomFormBlock $custom_form_block, CustomTable $custom_table)
     {
         $this->custom_form_block = $custom_form_block;
         $this->custom_table = $custom_table;
         $this->target_table = $custom_form_block->target_table;
+
+        $this->custom_form_column_items = collect();
     }
 
     public static function make(CustomFormBlock $custom_form_block, CustomTable $custom_table) : BlockBase
@@ -83,6 +91,17 @@ abstract class BlockBase
 
 
     /**
+     * Get the value of custom_form_block type
+     *
+     * @return  string
+     */ 
+    public function getCustomFormBlockType()
+    {
+        return array_get($this->custom_form_block, 'form_block_type');
+    }
+
+
+    /**
      * Get based table
      *
      * @return  CustomTable
@@ -108,7 +127,7 @@ abstract class BlockBase
             'label' => static::getBlockLabelHeader($this->target_table),
             'header_name' => $this->getHtmlHeaderName(),
             'suggests' => $this->getSuggestItems(),
-            'custom_form_columns' => [],
+            'custom_form_rows' => $this->getCustomFormRows(),
         ];
     }
 
@@ -210,6 +229,62 @@ abstract class BlockBase
             .']';
     }
     
+
+    /**
+     * Set formColumn list
+     *
+     * @param  Collection  $custom_form_column_items    FormColumn list
+     *
+     * @return  self
+     */ 
+    public function setCustomFormColumnItems(Collection $custom_form_column_items)
+    {
+        $this->custom_form_column_items = $custom_form_column_items;
+
+        return $this;
+    }
+    
+
+    /**
+     * get Custom Form Boxes using custom_form_column_items. Contains row_no, column_no, width.
+     *
+     * @return  array
+     */ 
+    public function getCustomFormRows()
+    {
+        // grouping row_no and column_no;
+        $groupRows = $this->custom_form_column_items->groupBy(function($custom_form_column_item){
+            $custom_form_column = $custom_form_column_item->getCustomFormColumn();
+            return $custom_form_column->row_no;
+        });
+
+        $groupRowColumns = $groupRows->map(function($groupRow){
+            $groupColumns = $groupRow->groupBy(function($group){
+                $group = $group->getCustomFormColumn();
+                return $group->column_no;
+            });
+
+            $columns = $groupColumns->map(function($column){
+                return [
+                    'column_no' => $column->first()->getCustomFormColumn()->column_no,
+                    'width' => $column->first()->getCustomFormColumn()->width,
+                    'gridWidth' => $column->first()->getCustomFormColumn()->width * 3,
+                    'custom_form_columns' => $column->map(function($c){
+                        return $c->getItemsForDisplay();
+                    })->toArray(),
+                ];
+            });
+
+            return [
+                'row_no' => $groupRow->first()->getCustomFormColumn()->row_no,
+                'columns' => $columns,
+            ];
+        });
+
+        return $groupRowColumns;
+    }
+
+
     abstract public static function getBlockLabelHeader(CustomTable $custom_table);
 
 }

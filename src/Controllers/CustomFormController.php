@@ -286,7 +286,10 @@ class CustomFormController extends AdminControllerTableBase
         }
 
         // get form block list
-        $custom_form_blocks = $this->getFormBlocks($form);
+        $custom_form_block_items = $this->getFormBlocks($form);
+        $custom_form_blocks = collect($custom_form_block_items)->map(function($custom_form_block_item){
+            return $custom_form_block_item->getItemsForDisplay();
+        });
 
         // get exment version
         $ver = \Exment::getExmentCurrentVersion();
@@ -313,25 +316,24 @@ class CustomFormController extends AdminControllerTableBase
     protected function getFormBlocks($form)
     {    
         // Loop using CustomFormBlocks
-        $custom_form_blocks = [];
+        $custom_form_block_items = [];
         foreach ($this->getFormBlockItems($form) as $custom_form_block) {
             $block_item = FormSetting\FormBlock\BlockBase::make($custom_form_block, $this->custom_table);
-            $custom_form_block_array = $block_item->getItemsForDisplay();
-            
-            // get form columns
-            $custom_form_columns = $block_item->getFormColumns();
-            foreach ($custom_form_columns as $custom_form_column) {
-                $column_item = FormSetting\FormColumn\ColumnBase::make($custom_form_column);
-                $custom_form_block_array['custom_form_columns'][] = $column_item->getItemsForDisplay();
-            }
-            $custom_form_blocks[] = $custom_form_block_array;
+
+            // get form column items
+            $custom_form_column_items = collect($block_item->getFormColumns())->map(function($custom_form_column){
+                return FormSetting\FormColumn\ColumnBase::make($custom_form_column);
+            });
+            $block_item->setCustomFormColumnItems($custom_form_column_items);
+
+            $custom_form_block_items[] = $block_item;
         }
 
         // if $custom_form_blocks not have $block->form_block_type = default, set as default
-        if (!collect($custom_form_blocks)->first(function ($custom_form_block) {
-            return array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT;
+        if (!collect($custom_form_block_items)->first(function ($custom_form_block_item) {
+            return $custom_form_block_item->getCustomFormBlockType() == FormBlockType::DEFAULT;
         })) {
-            $custom_form_blocks[] = FormSetting\FormBlock\DefaultBlock::getDefaultBlock($this->custom_table)->getItemsForDisplay();
+            $custom_form_block_items[] = FormSetting\FormBlock\DefaultBlock::getDefaultBlock($this->custom_table);
         }
 
         // Create Blocks as "table-self", "one-to-many tables", "many-to-many tables".
@@ -342,15 +344,15 @@ class CustomFormController extends AdminControllerTableBase
             
         // check relation define.if not exists in custom_form_blocks, add define.
         foreach ($relations as $relation) {
-            if (!collect($custom_form_blocks)->first(function ($custom_form_block) use ($relation) {
-                return array_get($custom_form_block, 'form_block_type') == $relation->relation_type
-                            && array_get($custom_form_block, 'form_block_target_table_id') == $relation->child_custom_table_id;
+            if (!collect($custom_form_block_items)->first(function ($custom_form_block_item) use ($relation) {
+                return $custom_form_block_item->getCustomFormBlockType() == $relation->relation_type
+                            && array_get($custom_form_block_item->getCustomFormBlock(), 'form_block_target_table_id') == $relation->child_custom_table_id;
             })) {
-                $custom_form_blocks[] = FormSetting\FormBlock\RelationBase::getDefaultBlock($this->custom_table, $relation)->getItemsForDisplay();
+                $custom_form_block_items[] = FormSetting\FormBlock\RelationBase::getDefaultBlock($this->custom_table, $relation);
             }
         }
 
-        return $custom_form_blocks;
+        return $custom_form_block_items;
     }
 
     /**

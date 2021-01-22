@@ -68,6 +68,17 @@ abstract class ColumnBase
 
 
     /**
+     * Get the value of custom_form_column
+     *
+     * @return  CustomFormColumn
+     */ 
+    public function getCustomFormColumn()
+    {
+        return $this->custom_form_column;
+    }
+
+    
+    /**
      * Get items for display
      *
      * @return array
@@ -145,4 +156,5 @@ abstract class ColumnBase
      * @return array
      */
     abstract public function prepareSavingOptions(array $options) : array;
+
 }

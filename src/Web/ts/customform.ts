@@ -28,7 +28,7 @@ namespace Exment {
          */
         private static loadingEvent() {
             // Add drag item event
-            $('.custom_form_column_items.draggables,.custom_form_column_suggests.draggables').each(function(index:number, elem:Element){
+            $('.custom_form_column_items .draggables,.custom_form_column_suggests .draggables').each(function(index:number, elem:Element){
                 CustomFromEvent.addDragItemEvent($(elem).children('.draggable'));
             });
         }
@@ -43,8 +43,7 @@ namespace Exment {
             $element.draggable({
                 // connect to sortable. set only same block
                 // and filter not draggable_setted
-                //connectToSortable: '.ul_0_19',
-                connectToSortable: '.' + $draggables.data('connecttosortable'),
+                connectToSortable: '.' + $draggables.data('connecttosortable') + ' .draggables',
                 helper: $draggables.data('draggable_clone') ? 'clone' : '',
                 revert: "invalid",
                 droppable: "drop",
@@ -59,7 +58,7 @@ namespace Exment {
             });
 
             // set event for fix area   
-            $(".custom_form_column_items.draggables")
+            $(".custom_form_column_items .draggables")
                 .sortable({
                     distance: 40,
             })

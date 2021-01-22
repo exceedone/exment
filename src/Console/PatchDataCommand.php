@@ -1422,8 +1422,9 @@ class PatchDataCommand extends Command
             $columnGroupInners = $columnGroup->groupBy('column_no');
             $columnGroupInners->each(function($columns) use($columnGroupInners){
                 $columns->sortBy('order')->each(function($column, $index) use($columnGroupInners){
-                    $column->row_no = $index + 1;
-                    $column->width = 4 / $columnGroupInners->count();
+                    $column->row_no = 1;
+                    $column->width = 1;
+                    $column->order = $index + 1;
                     $column->save();
                 });
             });

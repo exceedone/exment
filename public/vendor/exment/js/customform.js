@@ -23,7 +23,7 @@ var Exment;
          */
         static loadingEvent() {
             // Add drag item event
-            $('.custom_form_column_items.draggables,.custom_form_column_suggests.draggables').each(function (index, elem) {
+            $('.custom_form_column_items .draggables,.custom_form_column_suggests .draggables').each(function (index, elem) {
                 CustomFromEvent.addDragItemEvent($(elem).children('.draggable'));
             });
         }
@@ -36,8 +36,7 @@ var Exment;
             $element.draggable({
                 // connect to sortable. set only same block
                 // and filter not draggable_setted
-                //connectToSortable: '.ul_0_19',
-                connectToSortable: '.' + $draggables.data('connecttosortable'),
+                connectToSortable: '.' + $draggables.data('connecttosortable') + ' .draggables',
                 helper: $draggables.data('draggable_clone') ? 'clone' : '',
                 revert: "invalid",
                 droppable: "drop",
@@ -51,7 +50,7 @@ var Exment;
                 }
             });
             // set event for fix area   
-            $(".custom_form_column_items.draggables")
+            $(".custom_form_column_items .draggables")
                 .sortable({
                 distance: 40,
             });
