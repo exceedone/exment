@@ -663,7 +663,7 @@ class Exment
     public function getComposerPath() : string
     {
         $path = config('exment.composer_path');
-        if(!\is_nullorempty($path)){
+        if (!\is_nullorempty($path)) {
             return $path;
         }
 

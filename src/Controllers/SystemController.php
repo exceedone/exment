@@ -279,15 +279,15 @@ class SystemController extends AdminControllerBase
         $form->display('version_compare', exmtrans('system.version_compare_label'))
             ->default($message);
 
-        if($updateButton){
+        if ($updateButton) {
             //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
             //if disable update button, showing only update link
             //if(boolval(config('exment.system_update_display_disabled', false))){
-                $manualUrl = exmtrans('common.message.label_link', [
+            $manualUrl = exmtrans('common.message.label_link', [
                     'label' => exmtrans('system.call_update_howto'),
                     'link' => \Exment::getManualUrl('update'),
                 ]);
-                $form->display(exmtrans('system.call_update_howto'))
+            $form->display(exmtrans('system.call_update_howto'))
                     ->displayText($manualUrl)
                     ->escape(false);
             // }

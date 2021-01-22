@@ -24,7 +24,7 @@ class Composer extends SystemRequireBase
         // check backup execute
         $result = $this->checkComposerExists();
 
-        if(!isMatchString($result, SystemRequireResult::OK)){
+        if (!isMatchString($result, SystemRequireResult::OK)) {
             $this->result = $result;
             $this->warning_type = 1;
             return;
@@ -45,8 +45,8 @@ class Composer extends SystemRequireBase
         try {
             // check EXMENT_COMPOSER_PATH
             $path = \Exment::getComposerPath();
-            if($path != 'composer'){
-                if(file_exists($path)){
+            if ($path != 'composer') {
+                if (file_exists($path)) {
                     $this->command_path = $path;
                     return SystemRequireResult::OK;
                 }
@@ -77,21 +77,19 @@ class Composer extends SystemRequireBase
     protected function getComposerVersion()
     {
         $composer_version = \Cache::get(Define::SYSTEM_KEY_SESSION_COMPOSER_VERSION);
-        if(is_nullorempty($composer_version)){
+        if (is_nullorempty($composer_version)) {
             // check composer version
             exec($this->command_path . ' --version', $output, $return_var);
             if ($return_var != 0) {
                 $composer_version = false;
             }
             // get composer version using regex
-            else
-            {
+            else {
                 $composer_version_string = $output[0];
                 preg_match("/^Composer version (?<version>\d+\.\d+\.\d+)/u", $composer_version_string, $match);
-                if($match){
+                if ($match) {
                     $composer_version = $match['version'];
-                }
-                else{
+                } else {
                     $composer_version = false;
                 }
             }
@@ -108,11 +106,10 @@ class Composer extends SystemRequireBase
      */
     protected function checkComposerVersion($composer_version)
     {
-        if($composer_version === false){
+        if ($composer_version === false) {
             $this->warning_type = 2;
             return SystemRequireResult::WARNING;
-        }
-        else{
+        } else {
             $this->composer_version = $composer_version;
             if (version_compare($composer_version, '2.0.0') < 0) {
                 $this->warning_type = 3;
@@ -164,13 +161,13 @@ class Composer extends SystemRequireBase
 
     protected function getMessageWarning() : ?string
     {
-        if($this->warning_type == 1){
+        if ($this->warning_type == 1) {
             return exmtrans('system_require.type.composer.warning');
         }
-        if($this->warning_type == 2){
+        if ($this->warning_type == 2) {
             return exmtrans('system_require.type.composer.warning_versionget');
         }
-        if($this->warning_type == 3){
+        if ($this->warning_type == 3) {
             return exmtrans('system_require.type.composer.warning_versionmin', ['version' => $this->composer_version]);
         }
         return null;

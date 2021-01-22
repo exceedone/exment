@@ -25,22 +25,22 @@ class UpdateService
             'publish' => true, // whether execute publish(update)
         ], $options);
 
-        try{
-            if(boolval($options['maintenance'])){
+        try {
+            if (boolval($options['maintenance'])) {
                 \Artisan::call('down');
             }
 
-            if(boolval($options['backup'])){
+            if (boolval($options['backup'])) {
                 static::callBackup();
             }
             
             static::updateExment();
             
-            if(boolval($options['publish'])){
+            if (boolval($options['publish'])) {
                 static::callPublish();
             }
-        }finally{
-            if(boolval($options['maintenance'])){
+        } finally {
+            if (boolval($options['maintenance'])) {
                 \Artisan::call('up');
             }
         }
@@ -56,8 +56,7 @@ class UpdateService
             $backup->initBackupRestore()->execute();
         } catch (BackupRestoreNotSupportedException $ex) {
         } catch (BackupRestoreCheckException $ex) {
-        }
-        finally{
+        } finally {
             $backup->diskService()->deleteTmpDirectory();
         }
     }
@@ -99,7 +98,8 @@ class UpdateService
     }
 
 
-    public static function callPublish(){
+    public static function callPublish()
+    {
         \Artisan::call('exment:update');
     }
 }
