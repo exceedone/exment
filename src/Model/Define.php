@@ -14,10 +14,9 @@ use Exceedone\Exment\Enums\Permission;
  */
 class Define
 {
-    //TODO: Please revert if exceedone/exment
-    public const COMPOSER_PACKAGE_NAME = 'kajitoritest/exment';
-    public const COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN = 'kajitoritest/laravel-admin';
-    public const COMPOSER_VERSION_CHECK_URL = 'https://repo.packagist.org/p/kajitoritest/exment.json';
+    public const COMPOSER_PACKAGE_NAME = 'exceedone/exment';
+    public const COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN = 'exceedone/laravel-admin';
+    public const COMPOSER_VERSION_CHECK_URL = 'https://repo.packagist.org/p/exceedone/exment.json';
     public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
     public const EXMENT_NEWS_LINK = 'https://exment.net/archives/category/news';
     public const USER_IMAGE_LINK = 'vendor/exment/images/user.png';
