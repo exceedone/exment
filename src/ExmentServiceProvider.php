@@ -432,9 +432,6 @@ class ExmentServiceProvider extends ServiceProvider
         Connection::resolverFor('sqlsrv', function (...$parameters) {
             return new ExmentDatabase\SqlServerConnection(...$parameters);
         });
-        Connection::resolverFor('pgsql', function (...$parameters) {
-            return new ExmentDatabase\PostgresConnection(...$parameters);
-        });
     }
 
     /**
@@ -463,7 +460,7 @@ class ExmentServiceProvider extends ServiceProvider
      * Get Middleware Groups
      * *Merge adminapioauth, adminwebapi
      *
-     * @return void
+     * @return array
      */
     public function getMiddlewareGroups()
     {

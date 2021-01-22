@@ -64,7 +64,7 @@ class ForgetPasswordController extends Controller
         try {
             $response = $broker->sendResetLink($array);
             return $response == Password::RESET_LINK_SENT
-                        ? $this->sendResetLinkResponse($response)
+                        ? $this->sendResetLinkResponse($request, $response)
                         : $this->sendResetLinkFailedResponse($request, $response);
         } catch (\Swift_TransportException $ex) {
             \Log::error($ex);

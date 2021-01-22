@@ -37,7 +37,7 @@ class Composer extends SystemRequireBase
     /**
      * Check composer file exists
      *
-     * @return void
+     * @return string
      */
     protected function checkComposerExists()
     {

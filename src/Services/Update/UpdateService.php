@@ -49,9 +49,10 @@ class UpdateService
 
     public static function callBackup()
     {
+        $backup = new Backup;
+        
         // check backup execute
         try {
-            $backup = new Backup;
             $backup->check();
             $backup->initBackupRestore()->execute();
         } catch (BackupRestoreNotSupportedException $ex) {
