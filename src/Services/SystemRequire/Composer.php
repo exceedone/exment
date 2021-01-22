@@ -93,7 +93,7 @@ class Composer extends SystemRequireBase
                     $composer_version = false;
                 }
             }
-            \Cache::put(Define::SYSTEM_KEY_SESSION_COMPOSER_VERSION, $composer_version, Define::CACHE_CLEAR_MINUTE);
+            \Cache::put(Define::SYSTEM_KEY_SESSION_COMPOSER_VERSION, $composer_version, Define::CACHE_CLEAR_MINUTE * 24);
         }
         return $composer_version;
     }
