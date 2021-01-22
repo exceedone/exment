@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Unit;
 
-use Exceedone\Exment\Enums\SystemRequireResult\Composer;
+use Exceedone\Exment\Services\SystemRequire\Composer;
 
 /**
  * For test check require, version is 1.9.2

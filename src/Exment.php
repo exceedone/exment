@@ -669,4 +669,20 @@ class Exment
 
         return 'composer';
     }
+
+
+    /**
+     * Convert to array for Carbon
+     *
+     * @param \Carbon\Carbon $carbon
+     * @return array
+     */
+    public function carbonToArray(\Carbon\Carbon $carbon) : array
+    {
+        return [
+            'date' => $carbon->format("Y-m-d H:i:s.u"),
+            'timezone_type' => 3,  // Directly set timezone type, because cannot get.
+            'timezone' => $carbon->getTimezone()->getName(),
+        ];
+    }
 }

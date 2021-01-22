@@ -145,11 +145,7 @@ trait DatabaseJsonTrait
     protected function convertSetValue($value)
     {
         if ($value instanceof \Carbon\Carbon) {
-            return [
-                'date' => $value->format("Y-m-d H:i:s.u"),
-                'timezone_type' => 3,  // Directly set timezone type, because cannot get.
-                'timezone' => $value->getTimezone()->getName(),
-            ];
+            return \Exment::carbonToArray($value);
         }
 
         return $value;
