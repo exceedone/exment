@@ -34,7 +34,9 @@
         "renatomarinho/laravel-page-speed": "^1.8.11"
     },
     "require-dev": {
-        "laravel/dusk": "~4.0.0"
+        "composer require symfony/css-selector": "~4.2",
+        "laravel/browser-kit-testing": "~5.2",
+        "dms/phpunit-arraysubset-asserts": "~0.2"
     },
     "autoload": {
         "psr-4": {
