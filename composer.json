@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "php": ">=7.1.3",
+        "php": ">=7.2.0",
         "exceedone/laravel-admin": "~2.0",
         "laravel/framework": "~6.20",
         "laravelcollective/html": "~6.2",
@@ -36,7 +36,7 @@
     "require-dev": {
         "symfony/css-selector": "~4.2",
         "laravel/browser-kit-testing": "~5.2",
-        "dms/phpunit-arraysubset-asserts": "~0.2"
+        "dms/phpunit-arraysubset-asserts": "~0.1"
     },
     "autoload": {
         "psr-4": {
