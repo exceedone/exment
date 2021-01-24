@@ -867,6 +867,9 @@ if (!function_exists('isMatchString')) {
      */
     function isMatchString($v1, $v2) : bool
     {
+        if (is_array($v1) || is_array($v2)) {
+            return false;
+        }
         return strcmp($v1, $v2) == 0;
     }
 }
