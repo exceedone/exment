@@ -20,7 +20,7 @@ This page explains how to set up developing Exment engine.
 - Please execute this command on any path.
 
 ~~~
-composer create-project "laravel/laravel=5.6.*" (project name)
+composer create-project "laravel/laravel=6.*" (project name)
 cd (project name)
 ~~~
 
@@ -50,9 +50,9 @@ git clone https://github.com/hirossyi73/exment.git
 
 ~~~
     "require": {
-        "php": "^7.1.3",
+        "php": "^7.2.0",
         "fideloper/proxy": "^4.0",
-        "laravel/framework": "5.6.*",
+        "laravel/framework": "6.*",
         "laravel/tinker": "^1.0",
         // Add this line
         "exceedone/exment": "dev-master"
