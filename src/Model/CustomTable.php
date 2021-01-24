@@ -23,7 +23,7 @@ use Exceedone\Exment\ColumnItems\WorkflowItem;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Request;
 
 /**
  * Custom Table Class
@@ -1080,7 +1080,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $view = $custom_view->suuid;
 
-        $inputs = Arr::except(Input::all(), ['view', '_pjax', '_token', '_method', '_previous_', '_export_', 'format', 'group_key', 'group_view']);
+        $inputs = Arr::except(Request::all(), ['view', '_pjax', '_token', '_method', '_previous_', '_export_', 'format', 'group_key', 'group_view']);
 
         $parameters = \Exment::user()->getSettingValue($path)?? '[]';
         $parameters = json_decode($parameters, true);

@@ -7,6 +7,20 @@ return [
     'timezone' => env('APP_TIMEZONE', config('app.timezone')),
 
     'system_locale_options' => env('EXMENT_SYSTEM_LOCALE_OPTIONS'),
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | composer path
+    |--------------------------------------------------------------------------
+    |
+    | If select composer path, set composer path
+    |
+    */
+    'composer_path' => env('EXMENT_COMPOSER_PATH'),
+
+
     /*
     |--------------------------------------------------------------------------
     | Use API
@@ -699,6 +713,16 @@ return [
     | 
     */
     'select_relation_linkage_disabled' => env('SELECT_RELATION_LINKAGE_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | SystemUpdateDisplayDisabled
+    |--------------------------------------------------------------------------
+    |
+    | IF true, disabled system update on display.
+    |
+    */
+    'system_update_display_disabled' => env('EXMENT_SYSTEM_UPDATE_DISPLAY_DISABLED', false),
 
     
     /*

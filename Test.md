@@ -8,7 +8,7 @@ How to test. / テスト実行方法です。
 
 ```
 composer require symfony/css-selector=~4.2
-composer require laravel/browser-kit-testing=~4.2
+composer require laravel/browser-kit-testing=~5.2
 ```
 
 ## Create test data / テストデータ作成
