@@ -15,6 +15,7 @@ use Exceedone\Exment\Enums\Permission;
 class Define
 {
     public const COMPOSER_PACKAGE_NAME = 'exceedone/exment';
+    public const COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN = 'exceedone/laravel-admin';
     public const COMPOSER_VERSION_CHECK_URL = 'https://repo.packagist.org/p/exceedone/exment.json';
     public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
     public const EXMENT_NEWS_LINK = 'https://exment.net/archives/category/news';
@@ -143,7 +144,7 @@ class Define
         'format_local',
     ];
 
-    public const CACHE_CLEAR_MINUTE = 60;
+    public const CACHE_CLEAR_MINUTE = 3600;
     public const SYSTEM_KEY_SESSION_SYSTEM_CONFIG = "setting.%s";
     public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
     public const SYSTEM_KEY_SESSION_INITIALIZE_INPUTS = "initialize_inputs";
@@ -191,6 +192,8 @@ class Define
     public const SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG = "disable_data_url_tag";
     public const SYSTEM_KEY_SESSION_FORM_DATA_TYPE = "form_data_type";
     public const SYSTEM_KEY_SESSION_FILE_NODELIST = "file_treelist";
+    public const SYSTEM_KEY_SESSION_COMPOSER_VERSION = "exment_composer_version";
+
 
     public const APPEND_QUERY_WORK_STATUS_SUB_QUERY = 'APPEND_QUERY_WORK_STATUS_SUB_QUERY';
     public const APPEND_QUERY_WORK_USERS_SUB_QUERY = 'APPEND_QUERY_WORK_USERS_SUB_QUERY';

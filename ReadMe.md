@@ -66,7 +66,7 @@ And more and more and more functions....
 - Create Laravel project using composer. ("exment" is project name.)
 
 ~~~
-composer create-project "laravel/laravel=5.6.*" exment
+composer create-project "laravel/laravel=6.*" exment
 cd exment
 ~~~
 

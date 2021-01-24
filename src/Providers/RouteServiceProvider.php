@@ -69,6 +69,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system/version', 'SystemController@version');
             $router->post('system/send_testmail', 'SystemController@sendTestMail');
             
+            //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
+            //$router->post('system/call_update', 'SystemController@callUpdate');
+            
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
@@ -415,20 +418,27 @@ class RouteServiceProvider extends ServiceProvider
     
     /**
      * set resource.
-     * (Set names simply)
      */
     protected function setResouce($router, $endpointName, $controllerName, $isShow = false)
     {
-        $names = [
-            'index' => "exment.$endpointName.index",
-            'create' => "exment.$endpointName.create",
-            'store' => "exment.$endpointName.store",
-            'edit' => "exment.$endpointName.edit",
-            'update' => "exment.$endpointName.update",
-            'delete' => "exment.$endpointName.delete",
-            'show' => "exment.$endpointName.show",
-        ];
-
-        $router->resource($endpointName, $controllerName)->names($names);
+        // $names = [
+        //     'index' => "exment.$endpointName.index",
+        //     'create' => "exment.$endpointName.create",
+        //     'store' => "exment.$endpointName.store",
+        //     'edit' => "exment.$endpointName.edit",
+        //     'update' => "exment.$endpointName.update",
+        //     'delete' => "exment.$endpointName.delete",
+        //     'show' => "exment.$endpointName.show",
+        // ];
+        // $router->resource($endpointName, $controllerName)->names($names);
+        
+        $router->get("{$endpointName}", "$controllerName@index")->name("exment.$endpointName.index");
+        $router->get("{$endpointName}/create", "$controllerName@create")->name("exment.$endpointName.create");
+        $router->post("{$endpointName}", "$controllerName@store")->name("exment.$endpointName.store");
+        $router->get("{$endpointName}/{id}/edit", "$controllerName@edit")->name("exment.$endpointName.edit");
+        $router->put("{$endpointName}/{id}", "$controllerName@update")->name("exment.$endpointName.update");
+        $router->patch("{$endpointName}/{id}", "$controllerName@update");
+        $router->delete("{$endpointName}/{id}", "$controllerName@destroy")->name("exment.$endpointName.delete");
+        $router->get("{$endpointName}/{id}", "$controllerName@show")->name("exment.$endpointName.show");
     }
 }

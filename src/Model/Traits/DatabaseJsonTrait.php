@@ -137,19 +137,15 @@ trait DatabaseJsonTrait
      *     timezone_type:3
      *     timezone:"Asia/Tokyo"
      * ]
-     * Because PHP7.4, execute setvalue, carbon is empty array. So before setting array. 
+     * Because PHP7.4, execute setvalue, carbon is empty array. So before setting array.
      *
      * @param mixed $value
      * @return mixed
      */
     protected function convertSetValue($value)
     {
-        if($value instanceof \Carbon\Carbon){
-            return [
-                'date' => $value->format("Y-m-d H:i:s.u"),
-                'timezone_type' => 3,  // Directly set timezone type, because cannot get.
-                'timezone' => $value->getTimezone()->getName(),
-            ];
+        if ($value instanceof \Carbon\Carbon) {
+            return \Exment::carbonToArray($value);
         }
 
         return $value;

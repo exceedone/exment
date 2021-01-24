@@ -20,6 +20,8 @@ trait BackupRestoreTrait
     public function initBackupRestore($basename = null)
     {
         $this->diskService = new BackupDiskService($basename);
+
+        return $this;
     }
 
     public function diskService()

@@ -9,7 +9,7 @@ class Plugin extends PluginDashboardBase
 {
     /**
      *
-     * @return Content|\Illuminate\Http\Response
+     * @return \Encore\Admin\Layout\Content|\Illuminate\Http\Response
      */
     public function body()
     {

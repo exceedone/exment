@@ -16,7 +16,7 @@ class HPluginPageTest extends ExmentKitTestCase
     /**
      * pre-excecute process before test.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         // precondition : login success

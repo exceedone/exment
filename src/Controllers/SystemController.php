@@ -15,14 +15,16 @@ use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Exment;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Form\Widgets\InfoBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\Update\UpdateService;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\SystemRequire;
 use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
 use Exceedone\Exment\Enums\SystemRequireCalledType;
+use Exceedone\Exment\Enums\SystemRequireResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Validator;
@@ -255,45 +257,107 @@ class SystemController extends AdminControllerBase
         $version = \Exment::checkLatestVersion();
         $showLink = false;
 
+        $form = new WidgetForm;
+        $form->disableReset()->disableSubmit();
+
+        $form->display('version_current', exmtrans('system.version_current_label'))
+            ->default($current);
+        $form->display('version_latest', exmtrans('system.version_latest_label'))
+            ->default($latest);
+
+        $updateButton = false;
         if ($version == SystemVersion::ERROR) {
             $message = exmtrans("system.version_error");
-            $icon = 'warning';
-            $bgColor = 'red';
-            $current = '---';
         } elseif ($version == SystemVersion::DEV) {
             $message = exmtrans("system.version_develope");
-            $icon = 'legal';
-            $bgColor = 'olive';
         } elseif ($version == SystemVersion::LATEST) {
             $message = exmtrans("system.version_latest");
-            $icon = 'check-square';
-            $bgColor = 'blue';
         } else {
             $message = exmtrans("system.version_old") . '(' . $latest . ')';
-            $showLink = true;
-            $icon = 'arrow-circle-right';
-            $bgColor = 'aqua';
+            $updateButton = true;
         }
-        
-        // Version infomation
-        $infoBox = new InfoBox(
-            exmtrans("system.current_version") . $current,
-            $icon,
-            $bgColor,
-            getManualUrl('update'),
-            $message
-        );
-        $class = $infoBox->getAttributes()['class'];
-        $infoBox
-            ->class(isset($class)? $class . ' box-version': 'box-version')
-            ->showLink($showLink)
-            ->target('_blank');
-        if ($showLink) {
-            $infoBox->linkText(exmtrans("system.update_guide"));
+        $form->display('version_compare', exmtrans('system.version_compare_label'))
+            ->default($message);
+
+        if ($updateButton) {
+            //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
+            //if disable update button, showing only update link
+            //if(boolval(config('exment.system_update_display_disabled', false))){
+            $manualUrl = exmtrans('common.message.label_link', [
+                    'label' => exmtrans('system.call_update_howto'),
+                    'link' => \Exment::getManualUrl('update'),
+                ]);
+            $form->display(exmtrans('system.call_update_howto'))
+                    ->displayText($manualUrl)
+                    ->escape(false);
+            // }
+            // else{
+            //     $this->setUpdatePartialForm($form, $latest);
+            // }
         }
 
-        return $infoBox;
+        return $form;
     }
+
+
+    //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
+    // /**
+    //  * Set UpdatePartialForm
+    //  *
+    //  * @param WidgetForm $form
+    //  * @param string $latest
+    //  * @return void
+    //  */
+    // protected function setUpdatePartialForm(WidgetForm $form, $latest)
+    // {
+    //     $form->exmheader(exmtrans('system.call_update_header'))->hr();
+
+    //     // check require. If conatains not OK, showing error message.
+    //     $checkObjs = [new SystemRequire\Composer, new SystemRequire\FilePermissionInstaller, new SystemRequire\TimeoutTime];
+    //     $errorObjs = [];
+    //     foreach($checkObjs as $checkObj){
+    //         $checkObj->systemRequireCalledType(SystemRequireCalledType::WEB);
+
+    //         $checkResult = $checkObj->checkResult();
+    //         if(!isMatchString($checkResult, SystemRequireResult::OK)){
+    //             $errorObjs[] = $checkObj;
+    //         }
+    //     }
+
+    //     // if has error, set button and return
+    //     if(!is_nullorempty($errorObjs)){
+    //         $form->display(exmtrans('system.call_update_cannot'))->displayText(exmtrans('system.call_update_cannot_description'));
+            
+    //         $buttons = collect($errorObjs)->map(function($errorObj){
+    //             return view('exment::tools.button-simple', [
+    //                 'href' => $errorObj->getSettingUrl(),
+    //                 'label' => $errorObj->getLabel(),
+    //                 'target' => '_blank',
+    //                 'btn_class' => 'btn-primary',
+    //             ])->render();
+    //         });
+    //         $form->description($buttons->implode(''))->escape(false);
+
+    //         return;
+    //     }
+
+    //     $form->description(exmtrans('system.call_update_description', $latest));
+        
+    //     $manualUrl = exmtrans('common.message.label_link', [
+    //         'label' => exmtrans('system.release_note'),
+    //         'link' => \Exment::getManualUrl('release_note'),
+    //     ]);
+    //     $form->description($manualUrl)->escape(false);
+
+    //     $form->ajaxButton('call_update', exmtrans("system.call_update"))
+    //         ->url(admin_urls('system', 'call_update'))
+    //         ->button_class('btn-sm btn-info')
+    //         ->button_label(exmtrans('system.call_update'))
+    //         ->confirm(true)
+    //         ->confirm_title(trans('admin.confirm'))
+    //         ->confirm_text(exmtrans('system.call_update_modal_confirm', $latest) . exmtrans('common.message.modal_confirm', 'yes'))
+    //         ->confirm_error(exmtrans('custom_table.help.delete_confirm_error'));
+    // }
 
 
     /**
@@ -393,4 +457,25 @@ class SystemController extends AdminControllerBase
             ]);
         }
     }
+
+    
+    //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
+    /**
+     * send test mail
+     *
+     * @return void
+     */
+    // public function callUpdate(Request $request)
+    // {
+    //     UpdateService::update([
+    //         'backup' => false,
+    //     ]);
+
+    //     return getAjaxResponse([
+    //         'result'  => true,
+    //         'logoutAsync' => true,
+    //         'swal' => exmtrans('system.call_update_success'),
+    //         'swaltext' => exmtrans('system.call_update_success_text'),
+    //     ]);
+    // }
 }
