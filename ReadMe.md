@@ -135,8 +135,8 @@ Pull Requestはいつでも大歓迎です。現在は、新しい機能の要�
 
 
 # Other pages
-[Setup for Develop / 開発方法](Develop.md)  
-[Setup for Test / テスト実行方法](Test.md)
+Setup for Develop [En](document/en/Develop.md) / 開発方法 [日本語](document/ja/Develop.md)  
+Setup for Test [En](document/en/Test.md) / テスト実行方法 [日本語](document/ja/Test.md)  
 
 
 # issues
