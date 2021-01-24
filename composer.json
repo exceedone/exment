@@ -34,7 +34,8 @@
         "renatomarinho/laravel-page-speed": "^1.8.11"
     },
     "require-dev": {
-        "composer require symfony/css-selector": "~4.2",
+        "phpunit/phpunit": "^9.0",
+        "symfony/css-selector": "~4.2",
         "laravel/browser-kit-testing": "~5.2",
         "dms/phpunit-arraysubset-asserts": "~0.2"
     },
