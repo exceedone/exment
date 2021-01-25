@@ -86,7 +86,7 @@ class EnumBase extends Enum
             }
             
             $key = $enum->lowerKey();
-            if (strcmp($key, $value) == 0) {
+            if (isMatchString($key, $value)) {
                 return $enum;
             }
         }

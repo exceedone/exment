@@ -77,12 +77,12 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
         return $this->belongsTo(CustomTable::class, 'to_column_table_id');
     }
     
-    public function getCustomTableFromCacheAttribute()
+    public function getFromCustomTableCacheAttribute()
     {
         return CustomTable::getEloquent($this->from_column_table_id);
     }
 
-    public function getCustomTableToCacheAttribute()
+    public function getToCustomTableCacheAttribute()
     {
         return CustomTable::getEloquent($this->to_column_table_id);
     }
@@ -145,7 +145,7 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
      * @return void
      */
     public function getFromConditionItemAttribute(){
-        return ConditionItemBase::make($this->custom_table_from_cache, $this->from_column_type);
+        return ConditionItemBase::getItem($this->from_custom_table_cache, $this->from_column_type, $this->from_column_target_id);
     }
 
     /**
@@ -154,7 +154,7 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
      * @return void
      */
     public function getToConditionItemAttribute(){
-        return ConditionItemBase::make($this->custom_table_to_cache, $this->to_column_type);
+        return ConditionItemBase::getItem($this->to_custom_table_cache, $this->to_column_type, $this->to_column_target_id);
     }
 
 

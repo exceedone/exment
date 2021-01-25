@@ -82,45 +82,85 @@ abstract class ConditionItemBase implements ConditionItemInterface
     
 
     /**
-     * get filter condition
+     * Get condition item
      */
-    public static function make(?CustomTable $custom_table, $target)
+    public static function getItem(?CustomTable $custom_table, string $target, string $target_column_id)
     {
         if (!isset($target)) {
             return null;
         }
-        $enum = ConditionType::getEnum(strtolower($target));
-        return $enum->getConditionItem($custom_table, $target, null);
+        
+        return static::getConditionItem($custom_table, $target, $target_column_id);
     }
 
 
     /**
-     * get filter condition
+     * Get condition item by request
      */
-    public static function getItem(?CustomTable $custom_table, $target)
+    public static function getItemByRequest(?CustomTable $custom_table, string $target_query)
     {
-        if (!isset($target)) {
+        if (!isset($target_query)) {
             return null;
         }
+
+        // separate ? for removing table id
+        $target_query = explode('?', $target_query)[0];
         
-        if (ConditionTypeDetail::isValidKey($target)) {
-            $enum = ConditionTypeDetail::getEnum(strtolower($target));
-            return $enum->getConditionItem($custom_table, $target);
-        } else {
-            // get column item
-            $column_item = CustomViewFilter::getColumnItem($target)
-                ->options([
-                ]);
-        
-            if ($column_item instanceof \Exceedone\Exment\ColumnItems\CustomItem) {
-                return new ColumnItem($custom_table, $target);
-            } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem) {
-                return new WorkflowItem($custom_table, $target);
-            } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
-                return new ParentIdItem($custom_table, $target);
-            } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\SystemItem) {
+        // convert enum using target_query
+        $enum = ConditionType::getEnumByTargetKey(strtolower($target_query));
+        return static::getConditionItem($custom_table, $enum, $target_query);
+    }
+
+    
+    /**
+     * Get condition type
+     *
+     * @param CustomTable|null $custom_table
+     * @param string $target Condition Type or key name
+     * @param string|null $target_column_id
+     * @return void
+     */
+    protected static function getConditionItem(?CustomTable $custom_table, string $target, ?string $target_column_id)
+    {
+        $enum = ConditionType::getEnum(strtolower($target));
+        switch ($enum) {
+            case ConditionType::COLUMN:
+                return new ColumnItem($custom_table, $target_column_id);
+            case ConditionType::SYSTEM:
+                return new SystemItem($custom_table, $target_column_id);
+            case ConditionType::PARENT_ID:
+                return new ParentIdItem($custom_table, $target_column_id);
+            case ConditionType::WORKFLOW:
+                return new WorkflowItem($custom_table, $target_column_id);
+            case ConditionType::CONDITION:
+                return static::getConditionDetailItem($custom_table, $target_column_id);
+        }
+    }
+
+
+    /**
+     * Get condition detail item
+     *
+     * @param CustomTable|null $custom_table
+     * @param string $target
+     * @return ConditionItemBase
+     */
+    protected static function getConditionDetailItem(?CustomTable $custom_table, string $target)
+    {
+        $enum = ConditionTypeDetail::getEnum(strtolower($target));
+        switch ($enum) {
+            case ConditionTypeDetail::USER:
+                return new UserItem($custom_table, $target);
+            case ConditionTypeDetail::ORGANIZATION:
+                return new OrganizationItem($custom_table, $target);
+            case ConditionTypeDetail::ROLE:
+                return new RoleGroupItem($custom_table, $target);
+            case ConditionTypeDetail::SYSTEM:
                 return new SystemItem($custom_table, $target);
-            }
+            case ConditionTypeDetail::COLUMN:
+                return new ColumnItem($custom_table, $target);
+            case ConditionTypeDetail::FORM:
+                return new FormDataItem($custom_table, $target);
         }
     }
 

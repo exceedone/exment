@@ -162,7 +162,7 @@ trait CustomViewColumnTrait
             $view_column_type = ConditionType::getEnumValue($view_column_type);
         }
 
-        $item = ConditionItemBase::make($custom_table, $view_column_type);
+        $item = ConditionItemBase::getItem($custom_table, $view_column_type, $column_name);
         return $item->getColumnAndTableId($column_name, $custom_table);
     }
 

@@ -12,10 +12,12 @@ use Encore\Admin\Form;
  */
 class Condition extends ModelBase
 {
-    use Traits\ColumnOptionQueryTrait;
+    use Traits\ColumnOptionQueryTrait, Traits\ConditionTypeTrait;
 
     protected $guarded = ['id'];
     protected $appends = ['condition_target'];
+    protected $condition_type_key = 'condition_type';
+    protected $condition_column_key = 'target_column_id';
 
     public function getConditionTargetAttribute()
     {
@@ -58,17 +60,11 @@ class Condition extends ModelBase
      */
     public function getConditionTextAttribute()
     {
-        $condition_type = ConditionType::getEnum($this->condition_type);
-        if (!isset($condition_type)) {
+        if (!isset($this->condition_item)) {
             return null;
         }
 
-        $item = $condition_type->getConditionItem(null, $this->condition_target, $this->target_column_id);
-        if (!isset($item)) {
-            return null;
-        }
-
-        return $item->getConditionLabel($this) . ' : ' . $item->getConditionText($this);
+        return $this->condition_item->getConditionLabel($this) . ' : ' . $this->condition_item->getConditionText($this);
     }
 
     /**
@@ -113,7 +109,7 @@ class Condition extends ModelBase
      */
     public function isMatchCondition($custom_value)
     {
-        $item = ConditionItemBase::getItem($custom_value->custom_table, $this->condition_target);
+        $item = ConditionItemBase::getItem($custom_value->custom_table, $this->condition_target, $this->target_column_id);
         if (is_null($item)) {
             return false;
         }
