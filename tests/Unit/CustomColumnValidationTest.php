@@ -335,7 +335,7 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATE => new \Carbon\Carbon('2020-07-01'),
         ], [
         ], [
-            ColumnType::DATE => (array)(new \Carbon\Carbon('2020-07-01')),
+            ColumnType::DATE => \Exment::carbonToArray(new \Carbon\Carbon('2020-07-01')),
         ]);
     }
 
@@ -344,7 +344,7 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATE => new \Carbon\Carbon('2020-07-01 03:00:00'),
         ], [
         ], [
-            ColumnType::DATE => (array)(new \Carbon\Carbon('2020-07-01 03:00:00')),
+            ColumnType::DATE => \Exment::carbonToArray(new \Carbon\Carbon('2020-07-01 03:00:00')),
         ]);
     }
 
@@ -459,7 +459,7 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATETIME => new \Carbon\Carbon('2020-07-01'),
         ], [
         ], [
-            ColumnType::DATETIME => (array)(new \Carbon\Carbon('2020-07-01')),
+            ColumnType::DATETIME => \Exment::carbonToArray(new \Carbon\Carbon('2020-07-01')),
         ]);
     }
 
@@ -468,7 +468,7 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATETIME => new \Carbon\Carbon('2020-07-01 03:00:00'),
         ], [
         ], [
-            ColumnType::DATETIME => (array)(new \Carbon\Carbon('2020-07-01 03:00:00')),
+            ColumnType::DATETIME => \Exment::carbonToArray(new \Carbon\Carbon('2020-07-01 03:00:00')),
         ]);
     }
 

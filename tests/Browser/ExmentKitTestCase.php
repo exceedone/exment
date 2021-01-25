@@ -18,7 +18,7 @@ abstract class ExmentKitTestCase extends BaseTestCase
     /**
      * pre-excecute process before test.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         // cannot call method "config", so call env function
         $this->baseUrl = env('APP_URL');

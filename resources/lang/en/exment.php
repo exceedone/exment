@@ -96,6 +96,8 @@ return [
             'input_keyword' => 'Please input "%s".',
             'no_permission' => '(No Permission)',
             'file_drag_drop' => 'Drag & drop files here …',
+            'modal_confirm' => 'If you want to do it, enter "%s".',
+            'label_link' => 'For :label, please check <a href=":link" target="_blank">here<i class="fa fa-external-link"></i></a>.',
         ],
 
         'help' =>[
@@ -257,6 +259,9 @@ return [
         'userview_available' => 'Use User View',
         'template' => 'Install Template',
         'version_header' => 'System version infomation',
+        'version_current_label' => 'Current Version',
+        'version_latest_label' => 'Latest Version',
+        'version_compare_label' => 'Version Check Result',
         'version_progress' => 'Checking system version...',
         'version_latest' => 'This is latest version.',
         'version_develope' => 'This is developer version.',
@@ -283,6 +288,17 @@ return [
         'ip_filter' => 'IP Filter Setting',
         'web_ip_filters' => 'Web Page',
         'api_ip_filters' => 'API',
+
+        'release_note' => 'Release Note',
+        'call_update_header' => 'Execute Update(β)',
+        'call_update' => 'Execute Update',
+        'call_update_howto' => 'How To Update',
+        'call_update_description' => 'We will update the system to version %s. The update will take a very long time. It also switches to maintenance mode during the update. Do not close or update the screen during the update.',
+        'call_update_modal_confirm' => 'We will update the system to version %s.',
+        'call_update_success' => 'The update is complete!',
+        'call_update_success_text' => 'The update is complete. After 5 seconds, you will be automatically logged out.',
+        'call_update_cannot' => 'Cannot be updated',
+        'call_update_cannot_description' => 'It is not possible to update from the screen because the system requirements settings need to be changed. Check the following system requirements.',
 
         'site_skin_options' => [
             "skin-blue" => "Header:Blue&nbsp;&nbsp;&nbsp;&nbsp;SideBar:Black",
@@ -449,6 +465,8 @@ return [
                 'label' => 'Install Composer',
                 'explain' => 'Check if you have Composer installed to update your Exment.',
                 'warning' => 'Could not confirm the installation of Composer. The Exment update may not complete successfully. Please check if Composer is installed normally.',
+                'warning_versionget' => 'The version of composer could not be obtained. Review the settings.',
+                'warning_versionmin' => 'The version of composer installed was :version. Exment currently recommends a composer version of 2.0.0 or higher. Please consider updating.',
             ],
         ],
     ],
