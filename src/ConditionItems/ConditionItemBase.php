@@ -119,15 +119,15 @@ abstract class ConditionItemBase implements ConditionItemInterface
 
 
     /**
-     * get filter condition by authority
+     * get detail item by authority
      *
      * @param CustomTable|null $custom_table
      * @param WorkflowAuthority|WorkflowValueAuthority $authority
      * @return \Exceedone\Exment\ConditionItems\ConditionItemBase
      */
-    public static function getItemByAuthority(?CustomTable $custom_table, $authority)
+    public static function getDetailItemByAuthority(?CustomTable $custom_table, $authority)
     {   
-        return static::getConditionItem($custom_table, $authority->related_type, null);
+        return static::getConditionDetailItem($custom_table, $authority->related_type);
     }
 
     
