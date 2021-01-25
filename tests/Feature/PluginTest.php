@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Tests\Feature;
 
 use Encore\Admin\Grid;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 use Exceedone\Exment\Enums\PluginType;
@@ -24,7 +24,7 @@ use Exceedone\Exment\Tests\PluginTestTrait;
 
 class PluginTest extends TestCase
 {
-    use TestTrait, PluginTestTrait;
+    use TestTrait, PluginTestTrait, DatabaseTransactions;
 
     protected function init(bool $fake)
     {
@@ -62,25 +62,19 @@ class PluginTest extends TestCase
     {
         $id = 3;
 
-        DB::beginTransaction();
+        $old_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL)->getValueModel($id);
+        $old_int = $old_value->getValue('integer');
 
-        try {
-            $old_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL)->getValueModel($id);
-            $old_int = $old_value->getValue('integer');
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
+        $custom_value = $custom_table->getValueModel($id);
+        $change_val = $custom_value->getValue('multiples_of_3') == '1'? '0': '1';
+        $custom_value->setValue('multiples_of_3', $change_val);
+        $custom_value->save();
 
-            $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL);
-            $custom_value = $custom_table->getValueModel($id);
-            $change_val = $custom_value->getValue('multiples_of_3') == '1'? '0': '1';
-            $custom_value->setValue('multiples_of_3', $change_val);
-            $custom_value->save();
+        $new_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL)->getValueModel($id);
+        $new_int = $new_value->getValue('integer');
 
-            $new_value = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL)->getValueModel($id);
-            $new_int = $new_value->getValue('integer');
-
-            $this->assertEquals($old_int + 100, $new_int);
-        } finally {
-            DB::rollback();
-        }
+        $this->assertEquals($old_int + 100, $new_int);
     }
 
     /**
@@ -92,27 +86,21 @@ class PluginTest extends TestCase
     {
         $id = 4;
 
-        DB::beginTransaction();
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $custom_value = $custom_table->getValueModel($id);
 
-        try {
-            $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
-            $custom_value = $custom_table->getValueModel($id);
+        // get action
+        $action = $custom_value->getWorkflowActions()->first();
+        $action_user = $action->getAuthorityTargets($custom_value)->first();
+        $this->be(LoginUser::find($action_user->id));
+        
+        $action->executeAction($custom_value, [
+            'comment' => 'プラグインのワークフローイベントのテストです。',
+        ]);
 
-            // get action
-            $action = $custom_value->getWorkflowActions()->first();
-            $action_user = $action->getAuthorityTargets($custom_value)->first();
-            $this->be(LoginUser::find($action_user->id));
-            
-            $action->executeAction($custom_value, [
-                'comment' => 'プラグインのワークフローイベントのテストです。',
-            ]);
+        $new_text = $custom_value->getValue('init_text');
 
-            $new_text = $custom_value->getValue('init_text');
-
-            $this->assertEquals($new_text, 'workflow executed');
-        } finally {
-            DB::rollback();
-        }
+        $this->assertEquals($new_text, 'workflow executed');
     }
 
     /**
@@ -124,28 +112,22 @@ class PluginTest extends TestCase
     {
         $id = 5;
 
-        DB::beginTransaction();
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW);
+        $custom_value = $custom_table->getValueModel($id);
 
-        try {
-            $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW);
-            $custom_value = $custom_table->getValueModel($id);
+        $notify = Notify::where('custom_table_id', $custom_table->id)->where('notify_trigger', NotifyTrigger::BUTTON)->first();
+        $target_user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
-            $notify = Notify::where('custom_table_id', $custom_table->id)->where('notify_trigger', NotifyTrigger::BUTTON)->first();
-            $target_user = CustomTable::getEloquent('user')->getValueModel(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        NotifyService::executeNotifyAction($notify, [
+            'custom_value' => $custom_value,
+            'subject' => 'プラグインテスト',
+            'body' => 'プラグインの通知イベントのテストです。',
+            'user' => $target_user,
+        ]);
 
-            NotifyService::executeNotifyAction($notify, [
-                'custom_value' => $custom_value,
-                'subject' => 'プラグインテスト',
-                'body' => 'プラグインの通知イベントのテストです。',
-                'user' => $target_user,
-            ]);
+        $new_text = $custom_value->getValue('init_text');
 
-            $new_text = $custom_value->getValue('init_text');
-
-            $this->assertEquals($new_text, 'notify executed');
-        } finally {
-            DB::rollback();
-        }
+        $this->assertEquals($new_text, 'notify executed');
     }
 
     /**
@@ -157,23 +139,17 @@ class PluginTest extends TestCase
     {
         $id = 3;
 
-        DB::beginTransaction();
+        $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
+        $custom_value = $custom_table->getValueModel($id);
+        $custom_value->delete();
 
-        try {
-            $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
-            $custom_value = $custom_table->getValueModel($id);
-            $custom_value->delete();
+        $trash_value = $custom_table->getValueModel()->withTrashed()->find($id);
+        $this->assertTrue(isset($trash_value));
 
-            $trash_value = $custom_table->getValueModel()->withTrashed()->find($id);
-            $this->assertTrue(isset($trash_value));
+        \Artisan::call('exment:batch', ['--name' => 'TestPluginBatch']);
 
-            \Artisan::call('exment:batch', ['--name' => 'TestPluginBatch']);
-
-            $trash_value = $custom_table->getValueModel()->withTrashed()->find($id);
-            $this->assertTrue(is_null($trash_value));
-        } finally {
-            DB::rollback();
-        }
+        $trash_value = $custom_table->getValueModel()->withTrashed()->find($id);
+        $this->assertTrue(is_null($trash_value));
     }
 
     /**
@@ -206,37 +182,32 @@ class PluginTest extends TestCase
      */
     public function testImport()
     {
-        DB::beginTransaction();
-        try {
-            $pre_cnt = getModelName('parent_table')::where('value->init_text', 'plugin_unit_test')->count();
+        $pre_cnt = getModelName('parent_table')::where('value->init_text', 'plugin_unit_test')->count();
 
-            $import_path = storage_path(path_join_os('app', 'import', 'unittest'));
-            if (\File::exists($import_path)) {
-                \File::deleteDirectory($import_path);
-            }
-            \File::makeDirectory($import_path, 0755, true);
-            $source_path = exment_package_path("tests/tmpfile/Feature/plugin_import");
-            \File::copyDirectory($source_path, $import_path);
-            $files = \File::files($import_path);
-    
-            $plugin = Plugin::where('plugin_name', 'TestPluginImport')->first();
-
-            $service = (new DataImportExport\DataImportExportService());
-            $res = $this->callProtectedMethod($service, 'customImport', $plugin->id, $files[0]);
-
-            $this->assertTrue(array_get($res, 'result'));
-
-            $parent = getModelName('parent_table')::where('value->init_text', 'plugin_unit_test')->get();
-            $this->assertEquals($pre_cnt+1, count($parent));
-
-            $parent = $parent->last();
-
-            $child_cnt = getModelName('child_table')::where('parent_type', 'parent_table')
-                ->where('parent_id', $parent->id)->count();
-            $this->assertEquals(2, $child_cnt);
-        } finally {
-            DB::rollback();
+        $import_path = storage_path(path_join_os('app', 'import', 'unittest'));
+        if (\File::exists($import_path)) {
+            \File::deleteDirectory($import_path);
         }
+        \File::makeDirectory($import_path, 0755, true);
+        $source_path = exment_package_path("tests/tmpfile/Feature/plugin_import");
+        \File::copyDirectory($source_path, $import_path);
+        $files = \File::files($import_path);
+
+        $plugin = Plugin::where('plugin_name', 'TestPluginImport')->first();
+
+        $service = (new DataImportExport\DataImportExportService());
+        $res = $this->callProtectedMethod($service, 'customImport', $plugin->id, $files[0]);
+
+        $this->assertTrue(array_get($res, 'result'));
+
+        $parent = getModelName('parent_table')::where('value->init_text', 'plugin_unit_test')->get();
+        $this->assertEquals($pre_cnt+1, count($parent));
+
+        $parent = $parent->last();
+
+        $child_cnt = getModelName('child_table')::where('parent_type', 'parent_table')
+            ->where('parent_id', $parent->id)->count();
+        $this->assertEquals(2, $child_cnt);
     }
 
     /**
