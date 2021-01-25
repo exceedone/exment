@@ -88,6 +88,7 @@ git clone https://github.com/hirossyi73/exment.git
 ~~~
 composer update
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
+php artisan passport:keys
 ~~~
 
 - 以下のページにアクセスし、Exmentページにアクセス＆セットアップしてください。
