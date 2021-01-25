@@ -2,12 +2,14 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\WorkflowAuthority;
 use Exceedone\Exment\Model\WorkflowValueAuthority;
 use Exceedone\Exment\Enums;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\FilterType;
@@ -78,6 +80,20 @@ abstract class ConditionItemBase implements ConditionItemInterface
         return $this;
     }
     
+
+    /**
+     * get filter condition
+     */
+    public static function make(?CustomTable $custom_table, $target)
+    {
+        if (!isset($target)) {
+            return null;
+        }
+        $enum = ConditionType::getEnum(strtolower($target));
+        return $enum->getConditionItem($custom_table, $target, null);
+    }
+
+
     /**
      * get filter condition
      */
@@ -100,11 +116,14 @@ abstract class ConditionItemBase implements ConditionItemInterface
                 return new ColumnItem($custom_table, $target);
             } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem) {
                 return new WorkflowItem($custom_table, $target);
+            } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
+                return new ParentIdItem($custom_table, $target);
             } elseif ($column_item instanceof \Exceedone\Exment\ColumnItems\SystemItem) {
                 return new SystemItem($custom_table, $target);
             }
         }
     }
+
 
     /**
      * get filter condition by authority
@@ -334,4 +353,63 @@ abstract class ConditionItemBase implements ConditionItemInterface
     {
         return $this->getText($condition->condition_key, $condition->condition_value);
     }
+
+
+    /**
+     * Set query sort for custom value's sort
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query
+     * @param Model\CustomViewSort $custom_view_sort
+     * @return void
+     */
+    public function setQuerySort($query, Model\CustomViewSort $custom_view_sort)
+    {
+    }
+
+
+    /**
+     * get select column display text
+     *
+     * @return string|null
+     */
+    public function getSelectColumnText(Model\CustomViewColumn $custom_view_column, Model\CustomTable $custom_table) : ?string
+    {
+        return null;
+    }
+
+
+    /**
+     * Whether this column is number
+     *
+     * @return bool
+     */
+    public function isSelectColumnNumber(Model\CustomViewColumn $custom_view_column) : bool
+    {
+        return false;
+    }
+
+
+    /**
+     * get Column Key Name
+     *
+     * @param string $column_type_target
+     * @param Model\CustomColumn $custom_column
+     * @return string|null
+     */
+    public function getColumnKeyName($column_type_target, $custom_column) : ?string
+    {
+        return null;
+    }
+    
+
+    /**
+     * get column and table id
+     *
+     * @return array offset 0 : column id, 1 : table id
+     */
+    public function getColumnAndTableId($column_name, $custom_table) : array
+    {
+        return [null, null];
+    }
+
 }

@@ -4,6 +4,14 @@ namespace Exceedone\Exment\Enums;
 
 use Exceedone\Exment\ConditionItems;
 
+/**
+ * Condition type. This enum is parent, child enum is CONDITION->detail.
+ * CONDITION
+ *      USER
+ *      ORGANIZATION
+ *      ROLE
+ *      FORM
+ */
 class ConditionType extends EnumBase
 {
     const COLUMN = "0";
@@ -20,6 +28,8 @@ class ConditionType extends EnumBase
                 return new ConditionItems\ColumnItem($custom_table, $target);
             case static::SYSTEM:
                 return new ConditionItems\SystemItem($custom_table, $target);
+            case static::PARENT_ID:
+                return new ConditionItems\ParentIdItem($custom_table, $target);
             case static::WORKFLOW:
                 return new ConditionItems\WorkflowItem($custom_table, $target);
             case static::CONDITION:

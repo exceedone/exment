@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\ConditionItems\ConditionItemBase;
 use Exceedone\Exment\ColumnItems;
 
 /**
@@ -147,12 +148,13 @@ trait CustomViewColumnTrait
         return $model->column_item;
     }
 
+    
     /**
      * get column target id and target table id.
      *
      * @return array first, target column id. second, target table id.
      */
-    protected static function getColumnAndTableId($view_column_type, $column_name, $custom_table = null)
+    protected static function getColumnAndTableId($view_column_type, $column_name, ?CustomTable $custom_table = null)
     {
         if (!isset($view_column_type)) {
             $view_column_type = ConditionType::COLUMN;
@@ -160,38 +162,10 @@ trait CustomViewColumnTrait
             $view_column_type = ConditionType::getEnumValue($view_column_type);
         }
 
-        $target_column_id = null;
-        $target_table_id = null;
-        switch ($view_column_type) {
-            // for table column
-            case ConditionType::COLUMN:
-                $target_column = CustomColumn::getEloquent($column_name, $custom_table);
-                // get table and column id
-                if (isset($target_column)) {
-                    $target_column_id = $target_column->id ?? null;
-                    $target_table_id = $target_column->custom_table_id;
-                }
-                break;
-            // system column
-            default:
-                // set parent id
-                if ($column_name == ConditionType::PARENT_ID || $view_column_type == ConditionType::PARENT_ID) {
-                    $target_column_id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
-                    // get parent table
-                    if (isset($custom_table)) {
-                        $target_table_id = $custom_table->id;
-                    }
-                } else {
-                    $target_column_id = SystemColumn::getOption(['name' => $column_name])['id'];
-                    // set parent table info
-                    if (isset($custom_table)) {
-                        $target_table_id = $custom_table->id;
-                    }
-                }
-                break;
-        }
-        return [$target_column_id, $target_table_id];
+        $item = ConditionItemBase::make($custom_table, $view_column_type);
+        return $item->getColumnAndTableId($column_name, $custom_table);
     }
+
 
     protected function getViewPivotIdTrait($key)
     {

@@ -2,10 +2,12 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ColumnType;
@@ -223,5 +225,102 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
                 }
             });
         }
+    }
+
+
+    /**
+     * Set query sort for custom value's sort
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query
+     * @param CustomViewSort $custom_view_sort
+     * @return void
+     */
+    public function setQuerySort($query, CustomViewSort $custom_view_sort)
+    {
+        $custom_column = $custom_view_sort->custom_column;
+        if (!isset($custom_column)) {
+            return;
+        }
+        $column_item = $custom_column->column_item;
+        if (!isset($column_item)) {
+            return;
+        }
+        // if cannot sort column, break
+        if (!$column_item->sortable()) {
+            return;
+        }
+
+        // $view_column_target is wraped
+        $view_column_target = $column_item->getSortColumn();
+        $sort_order = $custom_view_sort->sort == Enums\ViewColumnSort::ASC ? 'asc' : 'desc';
+        //set order
+        $query->orderByRaw("$view_column_target $sort_order");
+    }
+    
+
+    /**
+     * get select column display text
+     *
+     * @return string|null
+     */
+    public function getSelectColumnText(Model\CustomViewColumn $custom_view_column, Model\CustomTable $custom_table) : ?string
+    {
+        $column = $custom_view_column->custom_column;
+        $column_view_name = array_get($custom_view_column, 'view_column_name');
+
+        if (is_nullorempty($column_view_name)) {
+            $column_view_name = array_get($column, 'column_view_name');
+            // if table is not equal target table, add table name to column name.
+            if ($custom_table->id != array_get($column, 'custom_table_id')) {
+                $column_view_name = array_get($column->custom_table, 'table_view_name') . '::' . $column_view_name;
+            }
+        }
+
+        return $column_view_name;
+    }
+
+
+    /**
+     * Whether this column is number
+     *
+     * @return bool
+     */
+    public function isSelectColumnNumber(Model\CustomViewColumn $custom_view_column) : bool
+    {
+        $column = $custom_view_column->custom_column;
+        return ColumnType::isCalc(array_get($column, 'column_type'));
+    }
+
+
+    /**
+     * get Column Key Name
+     *
+     * @param string $column_type_target
+     * @param Model\CustomColumn $custom_column
+     * @return string|null
+     */
+    public function getColumnKeyName($column_type_target, $custom_column) : ?string
+    {
+        return "value.{$custom_column->column_name}";
+    }
+    
+
+    /**
+     * get column and table id
+     *
+     * @return array offset 0 : column id, 1 : table id
+     */
+    public function getColumnAndTableId($column_name, $custom_table) : array
+    {
+         $target_column = CustomColumn::getEloquent($column_name, $custom_table);
+        // get table and column id
+        if (isset($target_column)) {
+            return [
+                $target_column->id ?? null,
+                $target_column->custom_table_id
+            ];
+        }
+
+        return [null, null];
     }
 }

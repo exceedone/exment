@@ -2,11 +2,15 @@
 
 namespace Exceedone\Exment\ConditionItems;
 
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
+use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
+use Exceedone\Exment\Enums;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\WorkflowTargetSystem;
-use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
 class SystemItem extends ConditionItemBase implements ConditionItemInterface
 {
@@ -58,5 +62,72 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
                 ->where('authority_related_type', ConditionTypeDetail::SYSTEM()->lowerkey())
                 ->where($tableName . '.created_user_id', \Exment::getUserId());
         });
+    }
+
+
+    /**
+     * Set query sort for custom value's sort
+     *
+     * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query
+     * @param CustomViewSort $custom_view_sort
+     * @return void
+     */
+    public function setQuerySort($query, CustomViewSort $custom_view_sort)
+    {
+        $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
+        $view_column_target = array_get($system_info, 'sqlname') ?? array_get($system_info, 'name');
+        //set order
+        $query->orderby($view_column_target, $custom_view_sort->sort == Enums\ViewColumnSort::ASC ? 'asc' : 'desc');
+    }
+
+
+    /**
+     * get select column display text
+     *
+     * @return string|null
+     */
+    public function getSelectColumnText(Model\CustomViewColumn $custom_view_column, Model\CustomTable $custom_table) : ?string
+    {
+        $column_view_name = array_get($custom_view_column, 'view_column_name');
+
+        $system_info = SystemColumn::getOption(['id' => array_get($custom_view_column, 'view_column_target_id')]);
+        if (is_nullorempty($column_view_name)) {
+            $column_view_name = exmtrans('common.'.$system_info['name']);
+        }
+
+        return $column_view_name;
+    }
+
+
+    /**
+     * get Column Key Name
+     *
+     * @param string $column_type_target
+     * @param Model\CustomColumn $custom_column
+     * @return string|null
+     */
+    public function getColumnKeyName($column_type_target, $custom_column) : ?string
+    {
+        return SystemColumn::getOption(['id' => $column_type_target])['name'] ?? null;
+    }
+
+    
+    /**
+     * get column and table id
+     *
+     * @return array offset 0 : column id, 1 : table id
+     */
+    public function getColumnAndTableId($column_name, $custom_table) : array
+    {
+        $target_column_id = SystemColumn::getOption(['name' => $column_name])['id'] ?? null;
+        // set parent table info
+        if (isset($custom_table)) {
+            $target_table_id = $custom_table->id;
+        }
+
+        return [
+            $target_column_id ?? null,
+            $target_table_id ?? null,
+        ];
     }
 }
