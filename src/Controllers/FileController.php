@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Validator\ImageRule;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Model\CustomTable;
@@ -352,7 +353,7 @@ class FileController extends AdminControllerBase
         
         // check image file. *NOW Only this endpoint is image*
         $validator = \Validator::make($request->all(), [
-            'file' => 'required|image'
+            'file' => ['required', new ImageRule],
         ]);
         if ($validator->fails()) {
             return response()->json(array_get($validator->errors()->toArray(), 'file'), 400);

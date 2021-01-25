@@ -20,7 +20,7 @@
 - Laravelのプロジェクトを作成します。
 
 ~~~
-composer create-project "laravel/laravel=5.6.*" (プロジェクト名)
+composer create-project "laravel/laravel=6.*" (プロジェクト名)
 cd (プロジェクト名)
 ~~~
 
@@ -53,7 +53,7 @@ git clone https://github.com/hirossyi73/exment.git
     "require": {
         "php": "^7.1.3",
         "fideloper/proxy": "^4.0",
-        "laravel/framework": "5.6.*",
+        "laravel/framework": "6.*",
         "laravel/tinker": "^1.0",
         // 行追加
         "exceedone/exment": "dev-master"
