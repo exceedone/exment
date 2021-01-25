@@ -34,9 +34,9 @@ And more and more and more functions....
 
 ## Operating environment
 ### Server
-- PHP 7.1.3 or upper
+- PHP 7.2.0 or upper
 - MySQL 5.7.8 or upper and less than 8.0.0, or MariaDB 10.2.7 or upper
-- Laravel5.6
+- Laravel6.X
 
 ### Support Browser
 - Google Chrome
@@ -66,7 +66,7 @@ And more and more and more functions....
 - Create Laravel project using composer. ("exment" is project name.)
 
 ~~~
-composer create-project "laravel/laravel=5.6.*" exment
+composer create-project "laravel/laravel=6.*" exment
 cd exment
 ~~~
 
@@ -135,8 +135,8 @@ Pull Requestはいつでも大歓迎です。現在は、新しい機能の要�
 
 
 # Other pages
-[Setup for Develop / 開発方法](Develop.md)  
-[Setup for Test / テスト実行方法](Test.md)
+Setup for Develop [En](document/en/Develop.md) / 開発方法 [日本語](document/ja/Develop.md)  
+Setup for Test [En](document/en/Test.md) / テスト実行方法 [日本語](document/ja/Test.md)  
 
 
 # issues

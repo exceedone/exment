@@ -701,7 +701,8 @@ class Plugin extends ModelBase
     /**
      * Get plugin page model using request uri
      *
-     * @return void
+     * return : \Exceedone\Exment\Services\Plugin\PluginBase
+     * @return mixed
      */
     public static function getPluginPageModel()
     {
