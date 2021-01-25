@@ -196,7 +196,13 @@ namespace Exment {
                 else{
                     $.pjax({ container: '#pjax-container', url: res.redirect });
                 }
-            } else {
+            } 
+            else if(res.logoutAsync){
+                setTimeout(function(){
+                    location.href = admin_url('auth/logout');
+                }, 5000);
+            }
+            else {
                 $.pjax.reload('#pjax-container');
             }
         }
@@ -232,6 +238,7 @@ namespace Exment {
                     data: [],
                     redirect: null,
                     preConfirmValidate: null,
+                    postEvent: null,
                     showCancelButton: true,
                     confirmCallback: null,
                 },
@@ -275,6 +282,10 @@ namespace Exment {
                     
                     if(hasValue(options.inputKey)){
                         data[options.inputKey] = input;
+                    }
+
+                    if(hasValue(options.postEvent)){
+                        return options.postEvent(data);
                     }
 
                     return new Promise(function (resolve) {

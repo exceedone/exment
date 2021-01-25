@@ -208,4 +208,17 @@ class ModelBase extends Model
     {
         return new \Exceedone\Exment\Database\Eloquent\ExtendedBuilder($query);
     }
+
+    /**
+     * Determine if the given key is guarded.
+     * ## exment currently using a column that isn't used in the database as a setter,
+     * ## so remanding what was fixed in Laravel 6.18.35.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    public function isGuarded($key)
+    {
+        return in_array($key, $this->getGuarded()) || $this->getGuarded() == ['*'];
+    }
 }

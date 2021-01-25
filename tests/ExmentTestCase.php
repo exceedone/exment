@@ -14,7 +14,7 @@ abstract class ExmentTestCase extends TestCase
         ExmentTestTrait::runDatabaseMigrations insteadof DatabaseMigrations;
     }
 
-    public function setUp()
+    public function setUp() : void
     {
         parent::setUp();
 
