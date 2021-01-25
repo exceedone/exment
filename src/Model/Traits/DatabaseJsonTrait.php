@@ -42,7 +42,7 @@ trait DatabaseJsonTrait
         if (is_null($value)) {
             $value = [];
         }
-        $value[$key] = $val;
+        $value[$key] = $this->convertSetValue($val);
         $this->{$dbcolumnname} = $value;
 
         return $this;
@@ -127,5 +127,27 @@ trait DatabaseJsonTrait
 
         $value[$key] = array_get($original, $key);
         return true;
+    }
+
+    /**
+     * Convert set value.
+     * If carbon, return this array.
+     * [
+     *     date:"2020-07-01 00:00:00.000000"
+     *     timezone_type:3
+     *     timezone:"Asia/Tokyo"
+     * ]
+     * Because PHP7.4, execute setvalue, carbon is empty array. So before setting array.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    protected function convertSetValue($value)
+    {
+        if ($value instanceof \Carbon\Carbon) {
+            return \Exment::carbonToArray($value);
+        }
+
+        return $value;
     }
 }

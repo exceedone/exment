@@ -34,9 +34,9 @@ And more and more and more functions....
 
 ## Operating environment
 ### Server
-- PHP 7.1.3 or upper
+- PHP 7.2.0 or upper
 - MySQL 5.7.8 or upper and less than 8.0.0, or MariaDB 10.2.7 or upper
-- Laravel5.6
+- Laravel6.X
 
 ### Support Browser
 - Google Chrome
@@ -66,7 +66,7 @@ And more and more and more functions....
 - Create Laravel project using composer. ("exment" is project name.)
 
 ~~~
-composer create-project "laravel/laravel=5.6.*" exment
+composer create-project "laravel/laravel=6.*" exment
 cd exment
 ~~~
 
@@ -125,10 +125,18 @@ URL is http://127.0.0.1:8000/admin
 php artisan serve
 ~~~
 
+# Community
+Exment does not currently have a community forum. I am taking advantage of issues. However, we may use some other platform in the future. If you have detailed knowledge, I would be grateful if you could give me a recommendation.  
+現在、Exmentではコミュニティ・フォーラムを用意していません。issueを活用しています。  ただし、将来的に何か他のプラットフォームを使うかもしれません。詳しい知見をお持ちの方は、推奨を教えてください。
+
+## Pull Request
+Pull Requests are always welcome. Currently, I'd be happy if you actually implemented the function rather than requesting a new function.  
+Pull Requestはいつでも大歓迎です。現在は、新しい機能の要望よりも、その機能を実際に実装していただいた方が、嬉しいです。
+
 
 # Other pages
-[Setup for Develop / 開発方法](Develop.md)  
-[Setup for Test / テスト実行方法](Test.md)
+Setup for Develop [En](document/en/Develop.md) / 開発方法 [日本語](document/ja/Develop.md)  
+Setup for Test [En](document/en/Test.md) / テスト実行方法 [日本語](document/ja/Test.md)  
 
 
 # issues

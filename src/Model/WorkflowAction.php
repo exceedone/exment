@@ -469,7 +469,9 @@ class WorkflowAction extends ModelBase
                     }
 
                     $column_values = $custom_value->getValue($column->column_name);
-
+                    if (is_nullorempty($column_values)) {
+                        break;
+                    }
                     if ($column_values instanceof CustomValue) {
                         $column_values = [$column_values];
                     }

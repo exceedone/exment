@@ -18,6 +18,11 @@ class AjaxButton extends Field
 
     protected $send_params;
 
+    protected $confirm;
+    protected $confirm_title;
+    protected $confirm_text;
+    protected $confirm_error;
+
     public function url($url)
     {
         $this->url = $url;
@@ -53,16 +58,74 @@ class AjaxButton extends Field
         return $this;
     }
 
+    /**
+     * Whether confirm
+     *
+     * @param bool $confirm
+     * @return $this
+     */
+    public function confirm(bool $confirm)
+    {
+        $this->confirm = $confirm;
+
+        return $this;
+    }
+
+    
+    /**
+     * confirm_title
+     *
+     * @param string $confirm_title
+     * @return $this
+     */
+    public function confirm_title($confirm_title)
+    {
+        $this->confirm_title = $confirm_title;
+
+        return $this;
+    }
+    
+    /**
+     * confirm_text
+     *
+     * @param string $confirm_text
+     * @return $this
+     */
+    public function confirm_text($confirm_text)
+    {
+        $this->confirm_text = $confirm_text;
+
+        return $this;
+    }
+    
+    /**
+     * confirm_error
+     *
+     * @param string $confirm_error
+     * @return $this
+     */
+    public function confirm_error($confirm_error)
+    {
+        $this->confirm_error = $confirm_error;
+
+        return $this;
+    }
+
+    
     public function render()
     {
         $url = $this->url;
+        $confirm = [
+            'isConfirm' => $this->confirm,
+            'title' => $this->confirm_title,
+            'text' => $this->confirm_text,
+            'error' => $this->confirm_error,
+        ];
 
-        $this->script = <<<EOT
+        $this->script = <<<SCRIPT
 
         $('{$this->getElementClassSelector()}').off('click').on('click', function(ev) {
             const button = $(ev.target).closest('button');
-            button.text(button.data('loading-label'));
-            button.prop('disabled', true);
 
             // get senddata
             let send_data = {};
@@ -95,23 +158,52 @@ class AjaxButton extends Field
                 })
             }
 
-            $.ajax({
-                type: "POST",
-                url: "{$url}",
-                data: send_data,
-                success:function(repsonse) {
-                    button.text(button.data('default-label'));
-                    button.prop('disabled', false);
-                    Exment.CommonEvent.CallbackExmentAjax(repsonse);
-                },
-                error: function(repsonse){
-                    button.text(button.data('default-label'));
-                    button.prop('disabled', false);
-                    Exment.CommonEvent.CallbackExmentAjax(repsonse);
-                }
-            });
+            let postEvent = function(button, send_data){
+                button.text(button.data('loading-label'));
+                button.prop('disabled', true);
+    
+                return new Promise(function (resolve) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{$url}",
+                        data: send_data,
+                        success:function(repsonse) {
+                            button.text(button.data('default-label'));
+                            button.prop('disabled', false);
+                            Exment.CommonEvent.CallbackExmentAjax(repsonse, resolve);
+                        },
+                        error: function(repsonse){
+                            button.text(button.data('default-label'));
+                            button.prop('disabled', false);
+                            Exment.CommonEvent.CallbackExmentAjax(repsonse, resolve);
+                        }
+                    });
+                });
+            };
+
+
+            if(pBool("{$confirm['isConfirm']}")){
+                Exment.CommonEvent.ShowSwal("{$url}", {
+                    title: "{$confirm['title']}",
+                    text: "{$confirm['text']}",
+                    input: 'text',
+                    preConfirmValidate: function(input){
+                        if (input != "yes") {
+                            return "{$confirm['error']}";
+                        }
+            
+                        return true;
+                    },
+                    postEvent: function(data){
+                        return postEvent(button, data);
+                    },
+                });
+            }
+            else{
+                postEvent(button, send_data);
+            }
         });
-EOT;
+SCRIPT;
 
         return parent::render()->with([
             'button_label' => $this->button_label,

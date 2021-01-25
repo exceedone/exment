@@ -331,24 +331,20 @@ class CustomColumnValidationTest extends UnitTestBase
     }
 
     public function testSuccessDate3(){
-        $this->skipTempTestIfTrue($this->skipPhp74(), 'PHP version is upper 7.4');
-
         $this->executeTestAllColumns(ColumnType::DATE, [
             ColumnType::DATE => new \Carbon\Carbon('2020-07-01'),
         ], [
         ], [
-            ColumnType::DATE => (array)(new \Carbon\Carbon('2020-07-01')),
+            ColumnType::DATE => \Exment::carbonToArray(new \Carbon\Carbon('2020-07-01')),
         ]);
     }
 
     public function testSuccessDate4(){
-        $this->skipTempTestIfTrue($this->skipPhp74(), 'PHP version is upper 7.4');
-
         $this->executeTestAllColumns(ColumnType::DATE, [
             ColumnType::DATE => new \Carbon\Carbon('2020-07-01 03:00:00'),
         ], [
         ], [
-            ColumnType::DATE => (array)(new \Carbon\Carbon('2020-07-01 03:00:00')),
+            ColumnType::DATE => \Exment::carbonToArray(new \Carbon\Carbon('2020-07-01 03:00:00')),
         ]);
     }
 
@@ -459,24 +455,20 @@ class CustomColumnValidationTest extends UnitTestBase
     }
 
     public function testSuccessDatetime3(){
-        $this->skipTempTestIfTrue($this->skipPhp74(), 'PHP version is upper 7.4');
-
         $this->executeTestAllColumns(ColumnType::DATETIME, [
             ColumnType::DATETIME => new \Carbon\Carbon('2020-07-01'),
         ], [
         ], [
-            ColumnType::DATETIME => (array)(new \Carbon\Carbon('2020-07-01')),
+            ColumnType::DATETIME => \Exment::carbonToArray(new \Carbon\Carbon('2020-07-01')),
         ]);
     }
 
     public function testSuccessDatetime4(){
-        $this->skipTempTestIfTrue($this->skipPhp74(), 'PHP version is upper 7.4');
-
         $this->executeTestAllColumns(ColumnType::DATETIME, [
             ColumnType::DATETIME => new \Carbon\Carbon('2020-07-01 03:00:00'),
         ], [
         ], [
-            ColumnType::DATETIME => (array)(new \Carbon\Carbon('2020-07-01 03:00:00')),
+            ColumnType::DATETIME => \Exment::carbonToArray(new \Carbon\Carbon('2020-07-01 03:00:00')),
         ]);
     }
 
@@ -508,16 +500,6 @@ class CustomColumnValidationTest extends UnitTestBase
             ColumnType::DATETIME => [$this->getErrorMessage('date', ColumnType::DATETIME)],
         ]);
     }
-
-
-    ///// Datetime now wrong result if PHP7.4. So skip if 7.4
-    protected function skipPhp74() : \Closure
-    {
-        return function(){
-            return version_compare(PHP_VERSION, '7.4.0') >= 0;
-        };
-    }
-
     
 
 

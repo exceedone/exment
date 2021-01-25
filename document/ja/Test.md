@@ -1,28 +1,28 @@
-# Test / テスト
-How to test. / テスト実行方法です。  
+# テスト
+テスト実行方法です。  
 
-## Browser, Unit, Feature Test / ブラウザ・単体・結合テスト
+## ブラウザ・単体・結合テスト
 
-### Install (Only first) / インストール(初回のみ) 
-- Please execute this command.  / 以下のコマンドを実行してください。  
+### インストール(初回のみ) 
+- 以下のコマンドを実行してください。  
 
 ```
 composer require symfony/css-selector=~4.2
-composer require laravel/browser-kit-testing=~5.2
+composer require laravel/browser-kit-testing=~4.2
 ```
 
-## Create test data / テストデータ作成
+## テストデータ作成
 
-- Please execute this command.   / 以下のコマンドを実行してください。  
-<span style="color:red;">CAUTION: If execute this command, reset all data. / 注意：以下のコマンドを実行すると、全てのデータがリセットされます。</span>
+- 以下のコマンドを実行してください。  
+<span style="color:red;">注意：以下のコマンドを実行すると、全てのデータがリセットされます。</span>
 
 ```
 php artisan exment:inittest
 ```
 
-### Setup and execute test / テスト実行
+### テスト実行
 
-- Please execute this command.  / 以下のコマンドを実行してください。  
+- 以下のコマンドを実行してください。  
 
 ```
 .\vendor\bin\phpunit .\vendor\exceedone\exment\tests\Browser
@@ -31,17 +31,17 @@ php artisan exment:inittest
 ```
 
 ## Lint
-Execute Lint (PHPStan / Laratisan) and perform syntax check etc. / Lint(PHPStan / Laratisan)を実行し、構文チェックなどを行います。  
-*Some syntaxes have some deficiencies that do not affect the execution results. It is being corrected at any time. / ※一部の構文で、実行結果に影響のない不備が残っています。随時修正中です。
+Lint(PHPStan / Laratisan)を実行し、構文チェックなどを行います。  
+※一部の構文で、実行結果に影響のない不備が残っています。随時修正中です。
 
-### Install (Only first) / インストール(初回のみ) 
-- Please execute this command.  / 以下のコマンドを実行してください。  
+### インストール(初回のみ) 
+- 以下のコマンドを実行してください。  
 
 ```
-# for lint / Lintのライブラリ
+# Lintのライブラリ
 composer require --dev nunomaduro/larastan=^0.4.*
 
-# for Exment related libraries / Exmentの関連ライブラリ
+# Exmentの関連ライブラリ
 composer require pragmarx/google2fa
 composer require simplesoftwareio/simple-qrcode=^2.0.0
 composer require laravel/socialite=~3.3.0
@@ -52,24 +52,24 @@ composer require league/flysystem-aws-s3-v3 ~1.0
 composer require league/flysystem-azure-blob-storage ~0.1.6
 ```
 
-- Copy setting file. / 以下のファイルを、プロジェクトのルートフォルダにコピーします。
+- 以下のファイルを、プロジェクトのルートフォルダにコピーします。
 
 ```
 vendor/exceedone/exment/phpstan.neon.dist
 ```
 
-### Setup and execute / 設定・実行
+### 設定・実行
 
-- Please execute this command.  / 以下のコマンドを実行してください。  
+- 以下のコマンドを実行してください。  
 
 ```
 ./vendor/bin/phpstan analyse
 ```
 
 
-## About Testdata / テストデータ
+## テストデータ
 
-### User / ユーザー
+### ユーザー
 | id | user_code | test password |
 | ---- | ---- | ---- |
 | 1 | admin | adminadmin |
@@ -83,7 +83,7 @@ vendor/exceedone/exment/phpstan.neon.dist
 | 9 | dev2-userE | dev2-userE |
 | 10 | company2-userF | company2-userF |
 
-### Organization / 組織
+### 組織
 | id | organization_code | parent_organization_code | users |
 | ---- | ---- | ---- | ---- |
 | 1 | company1 | - | company1-userA |
@@ -96,7 +96,7 @@ vendor/exceedone/exment/phpstan.neon.dist
 
 
 
-### RoleGroup / 役割グループ
+### 役割グループ
 | id | role_group_name | organizations | users | permissions |
 | ---- | ---- | ---- | ---- | ---- |
 | 1 | data_admin_group | - | user1 | Can access all data |
@@ -105,30 +105,30 @@ vendor/exceedone/exment/phpstan.neon.dist
 | 4 | user_group | dev | user2,user3 | Please look bottom |
 
 
-### CustomTable / カスタムテーブル
+### カスタムテーブル
 | id | table_name | description | column_pattern |
 | ---- | ---- | ---- | ---- |
-| 9 | custom_value_edit_all | user_group users can edit all_custom_value. / "user_group"に所属するユーザーはすべてのデータを編集できます。 | 1 |
-| 10 | custom_value_view_all | user_group users can view all_custom_value. / "user_group"に所属するユーザーはすべてのデータを閲覧できます。 | 1 |
-| 11 | custom_value_access_all | user_group users can access all_custom_value. / "user_group"に所属するユーザーはすべてのデータにアクセスできます。 | 1 |
-| 12 | custom_value_edit | user_group users can edit custom_value. And has workflow. / "user_group"に所属するユーザーは担当者のデータを編集できます。かつ、ワークフローを持ちます。 | 1 |
-| 13 | custom_value_view | user_group users can view custom_value. / "user_group"に所属するユーザーは担当者のデータを閲覧できます。 | 1 |
-| 14 | no_permission | user_group users don't have permission. / "user_group"に所属するユーザーはアクセス権を持ちません。 | 1 |
-| 15 | parent_table | The parent table for the 1:n relationship. / 1:nリレーションの親テーブルです。 | 1 |
-| 16 | child_table | The child table for the 1:n relationship. / 1:nリレーションの子テーブルです。 | 1 |
-| 17 | pivot_table | A table that has both parent_table and child_table in a custom column. /  / parent_table, child_tableの両方をカスタム列に持つテーブルです。 | 2|
-| 18 | parent_table_n_n | The parent table for the n:n relationship. / n:nリレーションの親テーブルです。 | 1 |
-| 19 | child_table_n_n | The child table for the n:n relationship. / n:nリレーションの子テーブルです。 | 1 |
-| 20 | pivot_table_n_n | A table that has both parent_table_n_n and child_table_n_n in a custom column. / parent_table_n_n, child_table_n_nの両方をカスタム列に持つテーブルです。 | 2|
-| 21 | parent_table_select | This is the referenced table of the table related by the custom column "select_table". / カスタム列"select_table"により関連をもつテーブルの、参照先のテーブルです。 | 1 |
-| 22 | child_table_select | The referencing table of the table associated with the custom column "select_table". / カスタム列"select_table"により関連をもつテーブルの、参照元のテーブルです。 | 1 |
-| 23 | pivot_table_select | A table that has both parent_table_select and child_table_select in a custom column. / parent_table_select, child_table_selectの両方をカスタム列に持つテーブルです。 | 2 |
-| 24 | all_columns_table | A table that has all column type's column. / すべての列種類をもつテーブルです。 | 3 |
+| 9 | custom_value_edit_all | "user_group"に所属するユーザーはすべてのデータを編集できます。 | 1 |
+| 10 | custom_value_view_all | "user_group"に所属するユーザーはすべてのデータを閲覧できます。 | 1 |
+| 11 | custom_value_access_all | "user_group"に所属するユーザーはすべてのデータにアクセスできます。 | 1 |
+| 12 | custom_value_edit | "user_group"に所属するユーザーは担当者のデータを編集できます。かつ、ワークフローを持ちます。 | 1 |
+| 13 | custom_value_view | "user_group"に所属するユーザーは担当者のデータを閲覧できます。 | 1 |
+| 14 | no_permission | "user_group"に所属するユーザーはアクセス権を持ちません。 | 1 |
+| 15 | parent_table | 1:nリレーションの親テーブルです。 | 1 |
+| 16 | child_table | 1:nリレーションの子テーブルです。 | 1 |
+| 17 | pivot_table | parent_table, child_tableの両方をカスタム列に持つテーブルです。 | 2|
+| 18 | parent_table_n_n | n:nリレーションの親テーブルです。 | 1 |
+| 19 | child_table_n_n | n:nリレーションの子テーブルです。 | 1 |
+| 20 | pivot_table_n_n | parent_table_n_n, child_table_n_nの両方をカスタム列に持つテーブルです。 | 2|
+| 21 | parent_table_select | カスタム列"select_table"により関連をもつテーブルの、参照先のテーブルです。 | 1 |
+| 22 | child_table_select | カスタム列"select_table"により関連をもつテーブルの、参照元のテーブルです。 | 1 |
+| 23 | pivot_table_select | parent_table_select, child_table_selectの両方をカスタム列に持つテーブルです。 | 2 |
+| 24 | all_columns_table | すべての列種類をもつテーブルです。 | 3 |
 
 
-### CustomColumn / カスタム列
+### カスタム列
 
-#### Column Pattern 1 / 列種類1
+#### 列種類1
 - Each tables have above columns;
 
 | column_name | column_type | options | description |
@@ -143,7 +143,7 @@ vendor/exceedone/exment/phpstan.neon.dist
 | init_text | text | init_only | text and init_only column. |
 
 
-#### Column Pattern 2 / 列種類2
+#### 列種類2
 - Each tables have above columns;
 
 | column_name | column_type | options | description |
@@ -162,7 +162,7 @@ vendor/exceedone/exment/phpstan.neon.dist
 | child_relation_filter_ajax | select_table | index_enabled, freeword_search, multiple_enabled, select_target_table to child table, filter ajax, filter if selected "parent_multi" | - |
 
 
-#### Column Pattern 3 / 列種類3
+#### 列種類3
 - Each tables have above columns;
 
 | column_name | column_type | options | description |
@@ -190,7 +190,7 @@ vendor/exceedone/exment/phpstan.neon.dist
 
 
 
-### CustomView / カスタムビュー
+### カスタムビュー
 - Each tables have above view;
 
 | view_name | view_type | filter_description |
@@ -203,7 +203,7 @@ vendor/exceedone/exment/phpstan.neon.dist
 | table_name + ' view workflow_work_user' | default | Workflow is self |
 
 
-### CustomValue / カスタムデータ
+### カスタムデータ
 - Create custom data for each table.  
 - Each of the above users creates 10 data.
 
@@ -219,7 +219,7 @@ Ex.
 | test_2 | 2 | odd | index_2_3 | 1 | 2 |
 
 
-### Workflow / ワークフロー
+### ワークフロー
 
 | id | workflow_name | workflow_type | setting_completed_flg | target_table |
 | ---- | ---- | ---- | ---- | ---- |
