@@ -2386,15 +2386,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         if ($include_system) {
             $setSystemColumn(['footer' => true]);
+        }
 
-            if ($include_workflow && !is_null(Workflow::getWorkflowByTable($this))) {
-                // check contains workflow in table
-                $setSystemColumn(['name' => 'workflow_status']);
-            }
-            if ($include_workflow_work_users && !is_null(Workflow::getWorkflowByTable($this))) {
-                // check contains workflow in table
-                $setSystemColumn(['name' => 'workflow_work_users']);
-            }
+        if ($include_workflow && !is_null(Workflow::getWorkflowByTable($this))) {
+            // check contains workflow in table
+            $setSystemColumn(['name' => 'workflow_status']);
+        }
+        if ($include_workflow_work_users && !is_null(Workflow::getWorkflowByTable($this))) {
+            // check contains workflow in table
+            $setSystemColumn(['name' => 'workflow_work_users']);
         }
     }
 

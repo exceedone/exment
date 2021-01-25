@@ -299,11 +299,12 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
      * @param Model\CustomColumn $custom_column
      * @return string|null
      */
-    public function getColumnKeyName($column_type_target, $custom_column) : ?string
+    public function getColumnValueKey($column_type_target, $custom_column) : ?string
     {
         return "value.{$custom_column->column_name}";
     }
     
+
 
     /**
      * get column and table id

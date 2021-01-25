@@ -138,14 +138,14 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // loop for custom_copy_columns
         foreach ($custom_copy_columns as $custom_copy_column) {
-            $fromkey = static::getColumnKey(
+            $fromkey = static::getColumnValueKey(
                 $custom_copy_column->from_condition_item,
                 $custom_copy_column->from_column_target_id,
                 $custom_copy_column->from_custom_column
             );
             $val = array_get($from_custom_value, $fromkey);
 
-            $tokeys = static::getColumnKey(
+            $tokeys = static::getColumnValueKey(
                 $custom_copy_column->to_condition_item,
                 $custom_copy_column->to_column_target_id,
                 $custom_copy_column->to_custom_column
@@ -179,9 +179,9 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $to_custom_value;
     }
     
-    protected static function getColumnKey($condition_item, $column_type_target, $custom_column)
+    protected static function getColumnValueKey($condition_item, $column_type_target, $custom_column)
     {
-        return $condition_item ? $condition_item->getColumnKeyName($column_type_target, $custom_column) : null;
+        return $condition_item ? $condition_item->getColumnValueKey($column_type_target, $custom_column) : null;
     }
     
     /**

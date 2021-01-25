@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
-class RoleGroupItem extends ConditionItemBase implements ConditionItemInterface
+class RoleGroupItem extends ConditionDetailBase implements ConditionItemInterface
 {
     public function getFilterOption()
     {

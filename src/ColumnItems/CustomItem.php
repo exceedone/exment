@@ -27,14 +27,6 @@ abstract class CustomItem implements ItemInterface
     
     protected $custom_column;
     
-    /**
-     * This custom table.
-     * *If view_pivot_column, custom_table is pivot target table
-     *
-     * @var CustomTable
-     */
-    protected $custom_table;
-    
     protected $custom_value;
 
     /**
@@ -185,11 +177,6 @@ abstract class CustomItem implements ItemInterface
         $this->prepare();
         
         return $this;
-    }
-
-    public function getCustomTable()
-    {
-        return $this->custom_table;
     }
 
     public function getCustomColumn()

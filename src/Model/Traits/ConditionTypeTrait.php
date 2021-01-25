@@ -30,7 +30,8 @@ trait ConditionTypeTrait
      *
      * @return void
      */
-    public function getConditionItemAttribute(){
+    public function getConditionItemAttribute()
+    {
         if(!is_null($this->_condition_item)){
             return $this->_condition_item;
         }

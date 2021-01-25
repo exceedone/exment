@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Interfaces\WorkflowAuthorityInterface;
 
-class FormDataItem extends ConditionItemBase implements ConditionItemInterface
+class FormDataItem extends ConditionDetailBase implements ConditionItemInterface
 {
     public function getFilterOption()
     {

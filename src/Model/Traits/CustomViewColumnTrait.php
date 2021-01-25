@@ -141,11 +141,17 @@ trait CustomViewColumnTrait
     /**
      * get column item using view_column_target
      */
-    public static function getColumnItem($view_column_target)
+    public static function getColumnItem($view_column_target, ?CustomTable $custom_table = null)
     {
         $model = new self;
         $model->view_column_target = $view_column_target;
-        return $model->column_item;
+
+        $column_item = $model->column_item;
+        // set custom table(if workflow item is not set custom table)
+        if(!$column_item->getCustomTable() && isset($custom_table)){
+            $column_item->setCustomTable($custom_table);
+        }
+        return $column_item;
     }
 
     

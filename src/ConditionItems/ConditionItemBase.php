@@ -86,7 +86,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      */
     public static function getItem(?CustomTable $custom_table, string $target, string $target_column_id)
     {
-        if (!isset($target)) {
+        if (is_nullorempty($target)) {
             return null;
         }
         
@@ -99,16 +99,35 @@ abstract class ConditionItemBase implements ConditionItemInterface
      */
     public static function getItemByRequest(?CustomTable $custom_table, string $target_query)
     {
-        if (!isset($target_query)) {
+        if (is_nullorempty($target_query)) {
             return null;
         }
 
         // separate ? for removing table id
-        $target_query = explode('?', $target_query)[0];
+        $target = explode('?', $target_query)[0];
+
+        if(!$custom_table){
+            // get model by key
+            $column_item = CustomViewFilter::getColumnItem($target_query);
+            $custom_table = $column_item->getCustomTable();
+        }
         
         // convert enum using target_query
-        $enum = ConditionType::getEnumByTargetKey(strtolower($target_query));
-        return static::getConditionItem($custom_table, $enum, $target_query);
+        $enum = ConditionType::getEnumByTargetKey(strtolower($target));
+        return static::getConditionItem($custom_table, $enum, $target);
+    }
+
+
+    /**
+     * get filter condition by authority
+     *
+     * @param CustomTable|null $custom_table
+     * @param WorkflowAuthority|WorkflowValueAuthority $authority
+     * @return \Exceedone\Exment\ConditionItems\ConditionItemBase
+     */
+    public static function getItemByAuthority(?CustomTable $custom_table, $authority)
+    {   
+        return static::getConditionItem($custom_table, $authority->related_type, null);
     }
 
     
@@ -118,7 +137,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
      * @param CustomTable|null $custom_table
      * @param string $target Condition Type or key name
      * @param string|null $target_column_id
-     * @return void
+     * @return self
      */
     protected static function getConditionItem(?CustomTable $custom_table, string $target, ?string $target_column_id)
     {
@@ -164,19 +183,6 @@ abstract class ConditionItemBase implements ConditionItemInterface
         }
     }
 
-
-    /**
-     * get filter condition by authority
-     *
-     * @param CustomTable|null $custom_table
-     * @param WorkflowAuthority|WorkflowValueAuthority $authority
-     * @return \Exceedone\Exment\ConditionItems\ConditionItemBase
-     */
-    public static function getItemByAuthority(?CustomTable $custom_table, $authority)
-    {
-        $enum = ConditionTypeDetail::getEnum($authority->related_type);
-        return $enum->getConditionItem($custom_table, null);
-    }
 
     /**
      * get filter condition
@@ -396,6 +402,17 @@ abstract class ConditionItemBase implements ConditionItemInterface
 
 
     /**
+     * get query key Name for display
+     *
+     * @return string|null
+     */
+    public function getQueryKey(Condition $condition) : ?string
+    {
+        return $condition->target_column_id;
+    }
+
+
+    /**
      * Set query sort for custom value's sort
      *
      * @param \Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder $query
@@ -430,17 +447,18 @@ abstract class ConditionItemBase implements ConditionItemInterface
 
 
     /**
-     * get Column Key Name
+     * get Column Key Name for getting value
      *
      * @param string $column_type_target
      * @param Model\CustomColumn $custom_column
      * @return string|null
      */
-    public function getColumnKeyName($column_type_target, $custom_column) : ?string
+    public function getColumnValueKey($column_type_target, $custom_column) : ?string
     {
         return null;
     }
     
+
 
     /**
      * get column and table id

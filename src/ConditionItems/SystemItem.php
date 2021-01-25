@@ -106,7 +106,7 @@ class SystemItem extends ConditionItemBase implements ConditionItemInterface
      * @param Model\CustomColumn $custom_column
      * @return string|null
      */
-    public function getColumnKeyName($column_type_target, $custom_column) : ?string
+    public function getColumnValueKey($column_type_target, $custom_column) : ?string
     {
         return SystemColumn::getOption(['id' => $column_type_target])['name'] ?? null;
     }
