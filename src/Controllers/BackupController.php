@@ -378,6 +378,8 @@ class BackupController extends AdminControllerBase
      */
     public function restore(Request $request)
     {
+        \Exment::setTimeLimitLong();
+        
         $data = $request->all();
 
         $validator = Validator::make($data, [
