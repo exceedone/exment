@@ -117,8 +117,9 @@ npm install @types/node @types/jquery @types/jqueryui @types/jquery.pjax @types/
 ~~~
 
 - 以下の"\*.d.ts"ファイルをダウンロードしてください。これらのファイルは、npmに含まれていないファイルです。  
-その後、これらの"*.d.ts"ファイルを、"node_modules/@types/(パッケージ名フォルダです。作成してください)"に配置してください。   
-[bignumber/index.d.ts](https://exment.net/downloads/develop/bignumber/index.d.ts)
+その後、これらの"*.d.ts"ファイルを、"node_modules/@types/(パッケージ名フォルダ)"に配置してください。   
+例：node_modules/@types/bignumber/index.d.ts、node_modules/@types/exment/index.d.ts  
+[bignumber/index.d.ts](https://exment.net/downloads/develop/bignumber/index.d.ts)  
 [exment/index.d.ts](https://exment.net/downloads/develop/exment/index.d.ts)
 
 - プロジェクトフォルダ直下の"packages.json" ファイルを開き、"dependencies" ブロックに、ダウンロードしたファイルの記述を追加します。
