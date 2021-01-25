@@ -7,6 +7,7 @@ use Encore\Admin\Admin;
 use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Plugin\PluginPublicBase;
@@ -78,6 +79,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\ExportChunkCommand',
         'Exceedone\Exment\Console\ResetPasswordCommand',
         'Exceedone\Exment\Console\CheckConnectionCommand',
+        'Exceedone\Exment\Console\TotalUpdateCommand',
     ];
 
     
@@ -301,8 +303,8 @@ class ExmentServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/../config' => config_path()]);
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
         $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
-        $this->publishes([base_path('vendor/exceedone/laravel-admin/resources/assets') => public_path('vendor/laravel-admin')], 'laravel-admin-assets-exment');
-        $this->publishes([base_path('vendor/exceedone/laravel-admin/resources/lang') => resource_path('lang')], 'laravel-admin-lang-exment');
+        $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/assets') => public_path('vendor/laravel-admin')], 'laravel-admin-assets-exment');
+        $this->publishes([base_path('vendor/' . Define::COMPOSER_PACKAGE_NAME_LARAVEL_ADMIN . '/resources/lang') => resource_path('lang')], 'laravel-admin-lang-exment');
         $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang_vendor');
     }
 
@@ -430,9 +432,6 @@ class ExmentServiceProvider extends ServiceProvider
         Connection::resolverFor('sqlsrv', function (...$parameters) {
             return new ExmentDatabase\SqlServerConnection(...$parameters);
         });
-        Connection::resolverFor('pgsql', function (...$parameters) {
-            return new ExmentDatabase\PostgresConnection(...$parameters);
-        });
     }
 
     /**
@@ -461,7 +460,7 @@ class ExmentServiceProvider extends ServiceProvider
      * Get Middleware Groups
      * *Merge adminapioauth, adminwebapi
      *
-     * @return void
+     * @return array
      */
     public function getMiddlewareGroups()
     {

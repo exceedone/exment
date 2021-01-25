@@ -660,8 +660,45 @@ class Exment
     }
 
 
+    /**
+     * Whether server os is Windows
+     *
+     * @return boolean
+     */
     public function isWindows() : bool
     {
         return 0 === strpos(PHP_OS, 'WIN');
+    }
+
+
+    /**
+     * Get composer path. If env EXMENT_COMPOSER_PATH set, return this env value.
+     *
+     * @return string
+     */
+    public function getComposerPath() : string
+    {
+        $path = config('exment.composer_path');
+        if (!\is_nullorempty($path)) {
+            return $path;
+        }
+
+        return 'composer';
+    }
+
+
+    /**
+     * Convert to array for Carbon
+     *
+     * @param \Carbon\Carbon $carbon
+     * @return array
+     */
+    public function carbonToArray(\Carbon\Carbon $carbon) : array
+    {
+        return [
+            'date' => $carbon->format("Y-m-d H:i:s.u"),
+            'timezone_type' => 3,  // Directly set timezone type, because cannot get.
+            'timezone' => $carbon->getTimezone()->getName(),
+        ];
     }
 }
