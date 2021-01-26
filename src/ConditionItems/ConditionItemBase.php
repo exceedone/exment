@@ -97,7 +97,7 @@ abstract class ConditionItemBase implements ConditionItemInterface
     /**
      * Get condition item by request
      */
-    public static function getItemByRequest(?CustomTable $custom_table, string $target_query)
+    public static function getItemByRequest(?CustomTable $custom_table, ?string $target_query)
     {
         if (is_nullorempty($target_query)) {
             return null;

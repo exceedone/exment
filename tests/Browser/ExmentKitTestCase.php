@@ -34,6 +34,14 @@ abstract class ExmentKitTestCase extends BaseTestCase
     }
 
 
+    protected function matchStatusCode($code)
+    {
+        $this->assertTrue($code == $this->response->getStatusCode(), "Expects {$code}, but result is " . $this->response->getStatusCode());
+
+        return $this;
+    }
+
+
     /**
      * Assert that a given string is seen outside an element.
      *
