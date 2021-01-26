@@ -19,7 +19,7 @@ class CCustomCopyTest extends ExmentKitTestCase
     /**
      * pre-excecute process before test.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->login();
@@ -72,23 +72,16 @@ class CCustomCopyTest extends ExmentKitTestCase
             ->seeOuterElement('input[id=button_class]', 'btn-info')
             ;
 
-        $options = [
-            'text',
-            'user',
-            'index_text',
-            'odd_even',
-            'multiples_of_3',
-            'file',
-            'date',
-            'integer',
-            'decimal',
-            'currency',
-            'init_text',
-            'email',
-        ];
+        foreach ($custom_copy->custom_copy_columns as $custom_copy_column) {
+            $row_id = $custom_copy_column->id;
+            $this->seeIsSelected("custom_copy_columns[$row_id][from_column_target]", 
+                $custom_copy_column->from_column_target_id . '?table_id=' . $custom_copy_column->from_column_table_id);
+            $this->seeIsSelected("custom_copy_columns[$row_id][to_column_target]", 
+                $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id);
+        }
 
-        $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, $options));
-        $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, $options));
+        $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL));
+        $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL));
     }
 
     /**
@@ -105,31 +98,26 @@ class CCustomCopyTest extends ExmentKitTestCase
             ->seePageIs(admin_url("copy/custom_value_edit_all/$id/edit"))
             ->seeOuterElement('input[id=label]', 'copy unit test update')
             ;
+
+        $custom_copy = CustomCopy::find($id);
+
+        foreach ($custom_copy->custom_copy_columns as $custom_copy_column) {
+            $row_id = $custom_copy_column->id;
+            $this->seeIsSelected("custom_copy_columns[$row_id][from_column_target]", 
+                $custom_copy_column->from_column_target_id . '?table_id=' . $custom_copy_column->from_column_table_id);
+            $this->seeIsSelected("custom_copy_columns[$row_id][to_column_target]", 
+                $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id);
+        }
+
+        foreach ($custom_copy->custom_copy_input_columns as $custom_copy_column) {
+            $row_id = $custom_copy_column->id;
+            $this->seeIsSelected("custom_copy_input_columns[$row_id][to_column_target]", 
+                $custom_copy_column->to_column_target_id . '?table_id=' . $custom_copy_column->to_column_table_id);
+        }
             
-        $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL, [
-            'text',
-            'index_text',
-            'multiples_of_3',
-            'date',
-            'decimal',
-            'init_text',
-        ]));
-        $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, [
-            'text',
-            'index_text',
-            'multiples_of_3',
-            'date',
-            'decimal',
-            'init_text',
-        ]));
-        $this->containsSelectOptions('select.custom_copy_input_columns', $this->getColumnSelectOption(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL, [
-            'user',
-            'odd_even',
-            'file',
-            'integer',
-            'currency',
-            'email',
-        ]));
+        $this->exactSelectOptions('select.from_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL));
+        $this->exactSelectOptions('select.to_column_target', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL));
+        $this->exactSelectOptions('select.custom_copy_input_columns', $this->getColumnSelectOptions(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL));
     }
 
     /**
@@ -324,21 +312,4 @@ class CCustomCopyTest extends ExmentKitTestCase
         return $raw;
     }
 
-
-    /**
-     * Get column's options
-     *
-     * @param string $table_name
-     * @param array $options
-     * @return void
-     */
-    protected function getColumnSelectOption(string $table_name, array $options) : array
-    {
-        // create from options
-        return collect($options)->mapWithKeys(function($option) use($table_name){
-            $column = CustomColumn::getEloquent($option, $table_name);
-            return ["{$column->id}?table_id={$column->custom_table_id}" => $option];
-        })->toArray();
-
-    }
 }

@@ -3,10 +3,13 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Exceedone\Exment\Enums\ConditionTypeDetail;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\OperationUpdateType;
 use Exceedone\Exment\Enums\OperationValueType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -22,7 +25,7 @@ class CCustomOperationTest extends ExmentKitTestCase
     /**
      * pre-excecute process before test.
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->login();
@@ -62,6 +65,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             ->seeInElement('label.radio-inline', 'いずれかの条件に一致')
             ->seeInElement('button[id=admin-submit]', '保存')
         ;
+        $this->exactSelectOptions('select.operation_type', CustomOperationType::transKeyArray('custom_operation.operation_type_options'));
     }
 
     /**
@@ -92,15 +96,23 @@ class CCustomOperationTest extends ExmentKitTestCase
             ]]
         ]);
 
-        $this->seeOuterElement('input.update_value_text', '2021-01-01')
-            //// TODO isaka:selectoption
-            // selector:select.operation_type value: bulk_update, text: 一覧画面のチェックボタン選択時
-            // selector:select.view_column_target value: 51?table_id=9, text: user
-            // selector:select.view_column_target value: 56?table_id=9, text: date
-            // selector:select.operation_update_type value: default, text: 固定値
-            // selector:select.operation_update_type value: system, text: システム値
-            // selector:select.update_value_text value: login_user, text: ログインユーザー
-            ;
+        $this->seeIsSelected('operation_type[]', CustomOperationType::BUTTON);
+        
+        foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
+            $row_id = $custom_operation_column->id;
+            $this->seeIsSelected("custom_operation_columns[$row_id][view_column_target]", 
+                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id);
+            $this->seeIsSelected("custom_operation_columns[$row_id][operation_update_type]", 
+                $custom_operation_column->getOption('operation_update_type'));
+            if ($index == 0) {
+                $this->seeIsSelected("custom_operation_columns[$row_id][update_value_text]", OperationValueType::LOGIN_USER);
+            } else {
+                $this->seeOuterElement("input.update_value_text.rowno-$row_id", '2021-01-01');
+            }
+            $this->exactSelectOptions("select[name='custom_operation_columns[$row_id][operation_update_type]']", OperationUpdateType::transKeyArray('custom_operation.operation_update_type_options'));
+        }
+
+        $this->exactSelectOptions('select.view_column_target', $this->getColumnSelectOptions($target_table_name));
 
         $custom_value = $target_table->getValueModel()->where('value->user', '<>', \Exment::user()->base_user->id)->first();
         $target_id = $custom_value->id;
@@ -154,16 +166,51 @@ class CCustomOperationTest extends ExmentKitTestCase
             ]]
         ]);
 
+        $this->seeIsSelected('operation_type[]', CustomOperationType::BULK_UPDATE);
+        
+        foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
+            $row_id = $custom_operation_column->id;
+            $this->seeIsSelected("custom_operation_columns[$row_id][view_column_target]", 
+                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id);
+            $this->seeIsSelected("custom_operation_columns[$row_id][operation_update_type]", 
+                $custom_operation_column->getOption('operation_update_type'));
+            if ($index == 0) {
+                $this->seeOuterElement("input.update_value_text.rowno-$row_id", '1');
+            } else {
+                $this->seeIsSelected("custom_operation_columns[$row_id][update_value_text]", OperationValueType::BERONG_ORGANIZATIONS);
+            }
+        }
 
-        $this->seeOuterElement('input.condition_value', '30000')
-            //// TODO isaka:selectoption
-            // selector:select.operation_type value: bulk_update, text: 一覧画面のチェックボタン選択時
-            // selector:select.view_column_target value: 51?table_id=9, text: user
-            // selector:select.view_column_target value: 56?table_id=9, text: date
-            // selector:select.operation_update_type value: default, text: 固定値
-            // selector:select.operation_update_type value: system, text: システム値
-            // selector:select.update_value_text value: login_user, text: ログインユーザー
-            ;
+        foreach ($operation->custom_operation_conditions as $index => $custom_operation_condition) {
+            $row_id = $custom_operation_condition->id;
+            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_key]", 
+                $custom_operation_condition->condition_key);
+            if ($index == 0) {
+                $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", 'USER');
+                $this->seeIsSelected("custom_operation_conditions[$row_id][condition_value][]", 
+                    TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
+                $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::CONDITION));
+                $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value]']", 
+                    $this->getUserSelectOptions());
+            } else {
+                $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", 
+                    $custom_operation_condition->target_column_id);
+                $this->seeOuterElement("input.condition_value.rowno-$row_id", 30000);
+                $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::COMPARE));
+            }
+        }
+
+        $add_options = [];
+        foreach (ConditionTypeDetail::CONDITION_OPTIONS() as $key => $enum) {
+            $add_options[$enum->getKey()] = $enum->lowerKey();
+        }
+        $add_options = getTransArrayValue($add_options, 'condition.condition_type_options');
+
+        $this->exactSelectOptions('select.condition_target', 
+            $this->getColumnSelectOptions($target_table_name, [
+                'is_index' => true,
+                'add_options' => $add_options
+            ]));
 
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         Model\System::clearCache();
@@ -240,16 +287,26 @@ class CCustomOperationTest extends ExmentKitTestCase
                 '_remove_' => 0,
             ]]
         ]);
+        
+        foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
+            $row_id = $custom_operation_column->id;
+            $this->seeIsSelected("custom_operation_columns[$row_id][view_column_target]", 
+                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id);
+            $this->seeIsSelected("custom_operation_columns[$row_id][operation_update_type]", OperationUpdateType::DEFAULT);
+            $this->seeOuterElement("input.update_value_text.rowno-$row_id", $custom_operation_column->update_value_text);
+        }
 
-        $this->seeOuterElement('input.update_value_text', 'odd')
-            ->seeOuterElement('input.update_value_text', '0.01')
-            //// TODO isaka:selectoption
-            // selector:select.operation_type value: create, text:データ新規作成時
-            // selector:select.view_column_target value: 53?table_id=9, text: odd_even
-            // selector:select.view_column_target value: 58?table_id=9, text: decimal
-            // selector:select.operation_update_type value: default, text: 固定値
-            // selector:select.condition_value value: 4, text: 一般グループ
-            ;
+        foreach ($operation->custom_operation_conditions as $index => $custom_operation_condition) {
+            $row_id = $custom_operation_condition->id;
+            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_key]", 
+                $custom_operation_condition->condition_key);
+            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", 'ROLE');
+            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_value][]", 
+                TestDefine::TESTDATA_ROLEGROUP_GENERAL);
+            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::CONDITION));
+            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value]']", 
+                $this->getRoleSelectOptions());
+        }
 
         $this->login(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         Model\System::clearCache();
@@ -328,18 +385,28 @@ class CCustomOperationTest extends ExmentKitTestCase
             ]]
         ]);
 
-        $this
-            //// TODO isaka:selectoption
-            // selector:select.operation_type value: update, text:データ更新時
-            // selector:select.view_column_target value: 56?table_id=9, text: date
-            // selector:select.operation_update_type value: system, text: システム値
-            // selector:select.update_value_text value: execute_datetime, text: 実行日時
-            // selector:select.view_column_target value: 61?table_id=9, text: email
-            // selector:select.operation_update_type value: default, text: 固定値
-            ->seeOuterElement('input.update_value_text', 'test123@mail.co.jp')
-            // selector:select.condition_target value: 54?table_id=9, text: multiples_of_3
-            ->seeOuterElement('input.condition_value', '1')
-            ;
+        foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
+            $row_id = $custom_operation_column->id;
+            $this->seeIsSelected("custom_operation_columns[$row_id][view_column_target]", 
+                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id);
+            $this->seeIsSelected("custom_operation_columns[$row_id][operation_update_type]", 
+                $custom_operation_column->getOption('operation_update_type'));
+            if ($index == 0) {
+                $this->seeIsSelected("custom_operation_columns[$row_id][update_value_text]", 
+                    OperationValueType::EXECUTE_DATETIME);
+            } else {
+                $this->seeOuterElement("input.update_value_text.rowno-$row_id", $custom_operation_column->update_value_text);
+            }
+        }
+
+        foreach ($operation->custom_operation_conditions as $index => $custom_operation_condition) {
+            $row_id = $custom_operation_condition->id;
+            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_key]", 
+                $custom_operation_condition->condition_key);
+            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", $filter_1->id);
+            $this->seeOuterElement("input.condition_value.rowno-$row_id", $custom_operation_condition->condition_value);
+            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::DEFAULT));
+        }
 
         $this->visit(admin_url("data/$target_table_name/create"))
                 ->type('operation update test', 'value[text]')
@@ -406,16 +473,22 @@ class CCustomOperationTest extends ExmentKitTestCase
             ]]
         ]);
 
-        
-            //// TODO isaka:selectoption
-            // selector:select.operation_type value: create, text:データ新規作成時
-            // selector:select.operation_type value: update, text:データ更新時
-            // selector:select.view_column_target value: 51?table_id=9, text: user
-            // selector:select.operation_update_type value: system, text: システム値
-            // selector:select.update_value_text value: login_user, text: ログインユーザー
-            // selector:select.condition_target value: 56?table_id=9, text: date
-            // selector:select.condition_key value: 1032, text: 去年
-            ;
+        foreach ($operation->custom_operation_columns as $index => $custom_operation_column) {
+            $row_id = $custom_operation_column->id;
+            $this->seeIsSelected("custom_operation_columns[$row_id][view_column_target]", 
+                $custom_operation_column->view_column_target_id . '?table_id=' . $target_table->id);
+            $this->seeIsSelected("custom_operation_columns[$row_id][operation_update_type]", OperationUpdateType::SYSTEM);
+            $this->seeIsSelected("custom_operation_columns[$row_id][update_value_text]", 
+                OperationValueType::LOGIN_USER);
+        }
+
+        foreach ($operation->custom_operation_conditions as $index => $custom_operation_condition) {
+            $row_id = $custom_operation_condition->id;
+            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_key]", 
+                $custom_operation_condition->condition_key);
+            $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", $filter_1->id);
+            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::DAY));
+        }
 
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
@@ -503,5 +576,46 @@ class CCustomOperationTest extends ExmentKitTestCase
             ->seeOuterElement('span.custom_table_table_view_name_', $target_table_name);
 
         return $raw;
+    }
+
+    /**
+     * Get filter condition options
+     *
+     * @return array
+     */
+    protected function getFilterSelectOptions($filter_type) : array
+    {
+        $options = FilterOption::FILTER_OPTIONS()[$filter_type];
+        return collect($options)->mapWithKeys(function ($option) {
+            return [$option['id'] => exmtrans("custom_view.filter_condition_options.{$option['name']}")];
+        })->toArray();
+    }
+
+    /**
+     * Get user column's options
+     *
+     * @return array
+     */
+    protected function getUserSelectOptions() : array
+    {
+        return CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->all()
+            ->mapWithKeys(function($value) {
+                return [$value->id => $value->getValue('user_name')];
+            })->toArray();
+
+    }
+
+    /**
+     * Get role group column's options
+     *
+     * @return array
+     */
+    protected function getRoleSelectOptions() : array
+    {
+        return Model\RoleGroup::all()
+            ->mapWithKeys(function($value) {
+                return [$value->id => $value->role_group_view_name];
+            })->toArray();
+
     }
 }
