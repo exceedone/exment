@@ -63,7 +63,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'onelinetext')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --one line--
@@ -122,7 +122,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'multilinetext')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Multi line--
@@ -177,7 +177,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'editor_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Editor--
@@ -228,7 +228,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'url_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --URL--
@@ -279,7 +279,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'email_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Email--
@@ -338,7 +338,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'integer_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Integer--
@@ -415,7 +415,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'decimal_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Decimal--
@@ -488,7 +488,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'currency_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Currency--
@@ -558,7 +558,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'date_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Date--
@@ -611,7 +611,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'time_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Time--
@@ -664,7 +664,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'datetime_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --DateTime--
@@ -720,7 +720,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'select_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Select line--
@@ -777,7 +777,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'select_valtext_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Select Value Text--
@@ -839,7 +839,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'select_table_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Select Table--
@@ -896,7 +896,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'yesno_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --YesNo--
@@ -957,7 +957,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'boolean_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Boolean--
@@ -1016,7 +1016,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'auto_number_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --AutoNumber--
@@ -1069,7 +1069,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'image_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Image--
@@ -1120,7 +1120,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'file_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --File--
@@ -1172,7 +1172,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'user_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --User--
@@ -1228,7 +1228,7 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seeInElement('td', 'organization_col')
                 ->assertEquals($pre_cnt + 1, CustomColumn::count())
 ;
-        $row = CustomColumn::orderBy('created_at', 'desc')->first();
+        $row = $this->getNewestColumn();
         $id = array_get($row, 'id');
 
         // Check custom column --Organization--
@@ -1289,5 +1289,10 @@ class CCustomColumnTest extends ExmentKitTestCase
                 ->seePageIs(admin_url('column/test/create'))
         ;
     }
-}
 
+
+    protected function getNewestColumn()
+    {
+        return CustomColumn::orderBy('created_at', 'desc')->orderBy('id', 'desc')->first();
+    }
+}
