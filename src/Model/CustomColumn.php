@@ -394,7 +394,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      */
     public function getQueryKey()
     {
-        return $this->index_enabled ? $this->getIndexColumnName() : 'value->' . $this->column_name;
+        return $this->index_enabled ? $this->getIndexColumnName() : 'value->>' . $this->column_name;
     }
 
     /**
