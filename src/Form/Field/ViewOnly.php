@@ -2,6 +2,10 @@
 
 namespace Exceedone\Exment\Form\Field;
 
+/**
+ * Display for view only. Cannot save and update.
+ * Use for initOnly option, or viewonly option.
+ */
 class ViewOnly extends Display
 {
     protected $view = 'exment::form.field.view_only';
@@ -16,7 +20,7 @@ class ViewOnly extends Display
 
     public function prepare($value)
     {
-        // if set value, return always default.
+        // Even if set value, return always default.
         return $this->default;
     }
     
