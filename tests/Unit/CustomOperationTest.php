@@ -19,7 +19,7 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CustomOperationTest extends UnitTestBase
 {
-    use DatabaseTransactions;
+    use DatabaseTransactions, CustomTableTrait;
 
     /**
      * update data at once
@@ -37,14 +37,20 @@ class CustomOperationTest extends UnitTestBase
                 'update_value_text' => 'unit test update text',
             ]],
         ];
-        $operation = $this->prepareCustomOperation($settings);
+        $operation = $this->_prepareCustomOperation($settings);
+        $id = array_get($operation, 'id');
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $ids = '5';
         $result = $operation->execute($custom_table, $ids);
 
         $this->assertTrue($result);
-        $this->checkUpdateValue($custom_table, $ids, $settings);
+        $this->_checkUpdateValue($custom_table, $ids, $settings);
+
+        // test delete custom operation setting
+        $operation->delete();
+        $this->assertNull(CustomOperation::find($id));
+        $this->assertCount(0, CustomOperationColumn::where('custom_operation_id', $id)->get());
     }
 
     /**
@@ -64,14 +70,14 @@ class CustomOperationTest extends UnitTestBase
                 'update_type' => 'system'
             ]],
         ];
-        $operation = $this->prepareCustomOperation($settings);
+        $operation = $this->_prepareCustomOperation($settings);
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $ids = '3,9,15';
         $result = $operation->execute($custom_table, $ids);
 
         $this->assertTrue($result);
-        $this->checkUpdateValue($custom_table, $ids, $settings);
+        $this->_checkUpdateValue($custom_table, $ids, $settings);
     }
 
     /**
@@ -96,7 +102,7 @@ class CustomOperationTest extends UnitTestBase
                 'condition_value' => 500,
             ]],
         ];
-        $operation = $this->prepareCustomOperation($settings);
+        $operation = $this->_prepareCustomOperation($settings);
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $custom_value = $custom_table->getValueModel()
@@ -105,7 +111,7 @@ class CustomOperationTest extends UnitTestBase
         $result = $operation->execute($custom_table, $custom_value->id);
 
         $this->assertTrue($result);
-        $this->checkUpdateValue($custom_table, $custom_value->id, $settings);
+        $this->_checkUpdateValue($custom_table, $custom_value->id, $settings);
     }
 
     /**
@@ -130,7 +136,7 @@ class CustomOperationTest extends UnitTestBase
                 'condition_value' => 500,
             ]],
         ];
-        $operation = $this->prepareCustomOperation($settings);
+        $operation = $this->_prepareCustomOperation($settings);
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $custom_value = $custom_table->getValueModel()
@@ -158,14 +164,14 @@ class CustomOperationTest extends UnitTestBase
                 'update_type' => 'system'
             ]],
         ];
-        $operation = $this->prepareCustomOperation($settings);
+        $operation = $this->_prepareCustomOperation($settings);
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $custom_value = $custom_table->getValueModel();
         $custom_value->setValue("text", 'test operation data create');
         $custom_value->save();
 
-        $this->checkUpdateValue($custom_table, $custom_value->id, $settings);
+        $this->_checkUpdateValue($custom_table, $custom_value->id, $settings);
     }
 
     /**
@@ -186,7 +192,7 @@ class CustomOperationTest extends UnitTestBase
                 'update_type' => 'system'
             ]],
         ];
-        $operation = $this->prepareCustomOperation($settings);
+        $operation = $this->_prepareCustomOperation($settings);
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
         $custom_value = $custom_table->getValueModel()
@@ -194,10 +200,36 @@ class CustomOperationTest extends UnitTestBase
         $custom_value->setValue("text", 'test operation data update');
         $custom_value->save();
 
-        $this->checkUpdateValue($custom_table, $custom_value->id, $settings);
+        $this->_checkUpdateValue($custom_table, $custom_value->id, $settings);
     }
 
-    protected function checkUpdateValue($custom_table, $ids, $settings = [])
+    /**
+     * delete custom table with operation setting
+     */
+    public function testTableDeleteWithOperation()
+    {
+        $this->_createSimpleTable('operation_test');
+        $settings = [
+            'custom_table_name' => 'operation_test',
+            'operation_type' => [CustomOperationType::CREATE],
+            'operation_name' => 'test operation by create',
+            'update_columns' => [[
+                'column_name' => 'name',
+                'update_value_text' => 'operation update value',
+            ]],
+        ];
+        $operation = $this->_prepareCustomOperation($settings);
+        $id = array_get($operation, 'id');
+
+        // test delete custom table with copy setting
+        $res = CustomTable::getEloquent($settings['custom_table_name'])->delete();
+        $this->assertTrue($res);
+
+        $this->assertNull(CustomOperation::find($id));
+        $this->assertCount(0, CustomOperationColumn::where('custom_operation_id', $id)->get());
+    }
+
+    protected function _checkUpdateValue($custom_table, $ids, $settings = [])
     {
         $ids = stringToArray($ids);
         $custom_values = $custom_table->getValueModel()->find($ids);
@@ -238,7 +270,7 @@ class CustomOperationTest extends UnitTestBase
         }
     }
 
-    protected function prepareCustomOperation(array $settings = [])
+    protected function _prepareCustomOperation(array $settings = [])
     {
         $settings = array_merge(
             [
