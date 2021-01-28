@@ -96,20 +96,13 @@ class ExactSelectOption extends PageConstraint
     /**
      * Contains 2 array
      *
-     * @param array $testArr1
-     * @param array $targetArr2
+     * @param array|Collection $testArr1
+     * @param array|Collection $targetArr2
      * @return boolean
      */
     protected function contains2Array($testArr1, $targetArr2) : bool
     {
-        foreach($testArr1 as $arrKey => $arrValue){
-            if(!collect($targetArr2)->contains(function($v, $k) use($arrKey, $arrValue){
-                return isMatchString($arrKey, $k) && isMatchString($arrValue, $v);
-            })){
-                return false;
-            };
-            return true;
-        }
+        return \Exment::isContains2Array($testArr1, $targetArr2);
     }
 
     /**
