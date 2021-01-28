@@ -95,6 +95,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         return $this->hasMany(CustomCopy::class, 'from_custom_table_id');
     }
+    
     public function to_custom_copies()
     {
         return $this->hasMany(CustomCopy::class, 'to_custom_table_id');
