@@ -269,7 +269,7 @@ abstract class CustomItem implements ItemInterface
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
         } elseif ($this->initonly()) {
-            $classname = ExmentField\ViewOnly::class;
+            $classname = ExmentField\InitOnly::class;
         } elseif ($this->viewonly($form_column_options)) {
             $classname = ExmentField\ViewOnly::class;
         } else {
@@ -315,7 +315,7 @@ abstract class CustomItem implements ItemInterface
         }
 
         // default (login user)
-        if ($classname != ExmentField\ViewOnly::class) {
+        if ($classname != ExmentField\InitOnly::class) {
             if (boolval(array_get($options, 'login_user_default'))) {
                 $field->default(\Exment::getUserId());
             }
