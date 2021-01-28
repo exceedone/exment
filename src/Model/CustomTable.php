@@ -95,7 +95,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         return $this->hasMany(CustomCopy::class, 'from_custom_table_id');
     }
-    
+
     public function to_custom_copies()
     {
         return $this->hasMany(CustomCopy::class, 'to_custom_table_id');
@@ -459,6 +459,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($this->custom_form_block_target_tables as $item) {
             $item->deletingChildren();
         }
+        foreach ($this->operations as $item) {
+            $item->deletingChildren();
+        }
 
         foreach (WorkflowValue::where('morph_type', $this->table_name)->get() as $item) {
             $item->deletingChildren();
@@ -491,6 +494,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->custom_relations()->delete();
             $model->from_custom_copies()->delete();
             $model->to_custom_copies()->delete();
+            $model->operations()->delete();
 
             // delete items
             Notify::where('custom_table_id', $model->id)->delete();
