@@ -315,8 +315,10 @@ abstract class CustomItem implements ItemInterface
         }
 
         // default (login user)
-        if (boolval(array_get($options, 'login_user_default'))) {
-            $field->default(\Exment::getUserId());
+        if ($classname != ExmentField\ViewOnly::class) {
+            if (boolval(array_get($options, 'login_user_default'))) {
+                $field->default(\Exment::getUserId());
+            }
         }
 
         // number_format
