@@ -12,6 +12,8 @@ class TestDefine
 
     public const TESTDATA_ORGANIZATION_DEV = '2'; // dev
 
+    public const TESTDATA_ROLEGROUP_GENERAL = '4'; // 一般グループ
+
     public const TESTDATA_TABLE_NAME_VIEW_ALL = 'custom_value_view_all';
     public const TESTDATA_TABLE_NAME_EDIT_ALL = 'custom_value_edit_all';
     public const TESTDATA_TABLE_NAME_EDIT = 'custom_value_edit';

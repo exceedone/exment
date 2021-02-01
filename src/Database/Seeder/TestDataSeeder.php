@@ -879,6 +879,7 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("date", \Carbon\Carbon::now());
                 $custom_value->setValue("init_text", 'init_text');
                 $custom_value->setValue("integer", rand(0, 1000));
+                $custom_value->setValue("decimal", rand(0, 10000) / 100);
                 $custom_value->setValue("currency", rand(0, 1000) * 100);
                 $custom_value->setValue("email", "foovartest{$i}@test.com.test");
                 $custom_value->created_user_id = $user_id;
