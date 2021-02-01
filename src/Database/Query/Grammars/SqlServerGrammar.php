@@ -12,6 +12,19 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
     use GrammarTrait;
     
     /**
+     * Split the given JSON selector into the field and the optional path and wrap them separately.
+     *
+     * @param  string  $column
+     * @return array
+     */
+    protected function wrapJsonFieldAndPath($column)
+    {
+        $column = str_replace('->>', '->', $column);
+        return parent::wrapJsonFieldAndPath($column);
+    }
+
+
+    /**
      * Whether support wherein multiple column.
      *
      * @return bool

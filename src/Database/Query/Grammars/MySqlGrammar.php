@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Database\Query\Grammars;
 
+use Illuminate\Support\Str;
 use Illuminate\Database\Query\Grammars\MySqlGrammar as BaseGrammar;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\GroupCondition;
@@ -10,6 +11,53 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
 {
     use GrammarTrait;
     
+
+    protected function wrapJsonSelector($value)
+    {
+        if (Str::contains($value, '->>')) {
+            $delimiter = '->>';
+            $format = 'JSON_UNQUOTE(JSON_EXTRACT(%s, \'$.%s\'))';
+        } else {
+            $delimiter = '->';
+            $format = 'JSON_EXTRACT(%s, \'$.%s\')';
+        }
+        $path = explode($delimiter, $value);
+        $field = collect(explode('.', array_shift($path)))->map(function ($part) {
+            return $this->wrapValue($part);
+        })->implode('.');
+        return sprintf($format, $field, collect($path)->map(function ($part) {
+            return '"'.$part.'"';
+        })->implode('.'));
+    }
+
+    //make table.field->json selects work
+    public function wrap($value, $prefixAlias = false)
+    {
+        $mysqlWrap = parent::wrap($value, $prefixAlias);
+        if (Str::contains($mysqlWrap, '.JSON_EXTRACT')) {
+            if (Str::contains($value, '->>')) {
+                $delimiter = '->>';
+                $format = 'JSON_UNQUOTE(JSON_EXTRACT(%s, \'$.%s\'))';
+            } else {
+                $delimiter = '->';
+                $format = 'JSON_EXTRACT(%s, \'$.%s\')';
+            }
+            $path = explode($delimiter, $value);
+            $field = collect(explode('.', array_shift($path)))->map(function ($part) {
+                return $this->wrapValue($part);
+            })->implode('.');
+            return sprintf(
+                $format,
+                $field,
+                collect($path)->map(function ($part) {
+                    return '"'.$part.'"';
+                })->implode('.')
+            );
+        }
+        return $mysqlWrap;
+    }
+
+
     public function compileUpdateRemovingJsonKey($query, string $key) : string
     {
         $table = $this->wrapTable($query->from);
