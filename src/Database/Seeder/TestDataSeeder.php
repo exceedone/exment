@@ -495,21 +495,24 @@ class TestDataSeeder extends Seeder
             
                         for ($i = 1; $i <= 10; $i++) {
                             $index++;
+                            $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+
                             $custom_value = $custom_table->getValueModel();
-                            $custom_value->setValue("text", rand(0, 1) == 0? null: 'text_'.$i);
-                            $custom_value->setValue("user", (rand(0, 5) == 0 ? null : $user_id));
-                            $custom_value->setValue("organization", rand(1, 7));
+                            // only use rand
+                            $custom_value->setValue("text", rand(0, 1) == 0 ? null: 'text_'.$i);
+                            $custom_value->setValue("user", ($new_id % 5 == 0 ? null : $user_id));
+                            $custom_value->setValue("organization", ($new_id % 7) + 1);
                             $custom_value->setValue("email", "foovartest{$i}@test.com.test");
-                            $custom_value->setValue("yesno", rand(0, 1));
-                            $custom_value->setValue("boolean", (rand(0, 3) == 0 ? 'ng' : 'ok'));
-                            $custom_value->setValue("date", $this->getDateValue($user_id, $i));
+                            $custom_value->setValue("yesno", $new_id % 2);
+                            $custom_value->setValue("boolean", ($new_id % 4 == 0 ? 'ng' : 'ok'));
+                            $custom_value->setValue("date", $this->getDateValue($user_id, $new_id));
                             $custom_value->setValue("time", \Carbon\Carbon::createFromTime($i, $i, $i)->format('H:i:s'));
-                            $custom_value->setValue("datetime", \Carbon\Carbon::now()->addSeconds(rand(-500000, 500000))->format('Y-m-d H:i:s'));
-                            $custom_value->setValue("integer", rand(-100, 100) * 100);
-                            $custom_value->setValue("decimal", rand(-100000, 100000) / 100);
-                            $custom_value->setValue("currency", rand(0, 1000000) / 10);
-                            $custom_value->setValue("select", array("foo", "bar", "baz")[rand(0, 2)]);
-                            $custom_value->setValue("select_valtext", array("foo", "bar", "baz")[rand(0, 2)]);
+                            $custom_value->setValue("datetime", \Carbon\Carbon::now()->addSeconds($new_id * ($new_id % 2 == 0 ? 1 : -1) * pow(10, ($new_id % 5) + 1))->format('Y-m-d H:i:s'));
+                            $custom_value->setValue("integer", $new_id * ($new_id % 2 == 0 ? 1 : -1) * pow(10, ($new_id % 2) + 1) * 100);
+                            $custom_value->setValue("decimal", $new_id * ($new_id % 2 == 0 ? 1 : -1) * pow(10, ($new_id % 5) + 1) / 100);
+                            $custom_value->setValue("currency", $new_id * pow(10, ($new_id % 5) + 1) / 10);
+                            $custom_value->setValue("select", array("foo", "bar", "baz")[$new_id % 3]);
+                            $custom_value->setValue("select_valtext", array("foo", "bar", "baz")[$new_id % 3]);
                             $custom_value->setValue("select_table", $index);
                             $custom_value->setValue("select_table_2", ceil($index / 2));
                             $custom_value->setValue("select_multiple", $this->getMultipleSelectValue());
@@ -870,6 +873,8 @@ class TestDataSeeder extends Seeder
             $user_id = array_get($user, 'id');
 
             for ($i = 1; $i <= $options['count']; $i++) {
+                $new_id = ($custom_table->getValueModel()->orderBy('id', 'desc')->max('id') ?? 0) + 1;
+
                 $custom_value = $custom_table->getValueModel();
                 $custom_value->setValue("text", 'test_'.$user_id);
                 $custom_value->setValue("user", $user_id);
@@ -878,8 +883,9 @@ class TestDataSeeder extends Seeder
                 $custom_value->setValue("multiples_of_3", ($i % 3 == 0 ? 1 : 0));
                 $custom_value->setValue("date", \Carbon\Carbon::now());
                 $custom_value->setValue("init_text", 'init_text');
-                $custom_value->setValue("integer", rand(0, 1000));
-                $custom_value->setValue("currency", rand(0, 1000) * 100);
+                $custom_value->setValue("integer", $new_id * pow(10, ($new_id % 3) + 1));
+                $custom_value->setValue("decimal", $new_id * pow(10, ($new_id % 5) + 1) * ($new_id % 2 + 1) / 10000);
+                $custom_value->setValue("currency", $new_id * pow(10, ($new_id % 4) + 1));
                 $custom_value->setValue("email", "foovartest{$i}@test.com.test");
                 $custom_value->created_user_id = $user_id;
                 $custom_value->updated_user_id = $user_id;
@@ -945,30 +951,48 @@ class TestDataSeeder extends Seeder
      *
      * @return string ymd string
      */
-    protected function getDateValue($user_id, $index) : ?string
+    protected function getDateValue($user_id, $new_id) : ?string
     {
-        $now = \Carbon\Carbon::now();
+        //$date = \Carbon\Carbon::now();
+        // fixed date
+        $date = \Carbon\Carbon::create(2021, 1, 1, 0, 0, 0);
+        $today = \Carbon\Carbon::today();
         $result = null;
-        switch ($user_id % 7) {
+
+        $month = ($new_id % 12) + 1;
+        $day = ($new_id % 28) + 1;
+        switch ($new_id % 10) {
             case 0:
                 break;
             case 1:
-                $result = $now->addDays($index-4);
+                $result = $date->addDays($new_id-4);
                 break;
             case 2:
-                $result = \Carbon\Carbon::create($now->year+1, rand(1, 12), rand(1, 28));
+                $result = \Carbon\Carbon::create($today->year+1, $month, $day);
                 break;
             case 3:
-                $result = \Carbon\Carbon::create($now->year-1, rand(1, 12), rand(1, 28));
+                $result = \Carbon\Carbon::create($today->year-1, $month, $day);
                 break;
             case 4:
-                $result = \Carbon\Carbon::create($now->year, $now->month+1, rand(1, 28));
+                $result = \Carbon\Carbon::create($today->year, $today->month+1, $day);
                 break;
             case 5:
-                $result = \Carbon\Carbon::create($now->year, $now->month-1, rand(1, 28));
+                $result = \Carbon\Carbon::create($today->year, $today->month-1, $day);
+                break;
+            case 6:
+                $result = \Carbon\Carbon::now();
+                break;
+            case 7:
+                $result = \Carbon\Carbon::tomorrow();
+                break;
+            case 8:
+                $result = \Carbon\Carbon::yesterday();
+                break;
+            case 9:
+                $result = $date;
                 break;
             default:
-                $result = \Carbon\Carbon::create(2019, 12, 28)->addDays($index);
+                $result = \Carbon\Carbon::create(2019, 12, 28)->addDays($new_id);
                 break;
         }
 

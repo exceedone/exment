@@ -16,7 +16,8 @@ class ALoginOutTest extends ExmentKitTestCase
                 ->type('abcde', 'username')
                 ->type('abcde', 'password')
                 ->press('ログイン')
-                ->seePageIs(admin_url('auth/login'));
+                ->seePageIs(admin_url('auth/login'))
+                ->seeOuterElement('p[class="login-box-msg"]', 'ログイン');
     }
 
     /**
