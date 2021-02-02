@@ -52,6 +52,9 @@ class ExactSelectOption extends PageConstraint
     public function matches($crawler): bool
     {
         $elements = $this->crawler($crawler)->filter($this->element);
+        if($elements->count() == 0){
+            return false;
+        }
 
         foreach ($elements as $element) {
             $element = new Crawler($element);
@@ -60,18 +63,6 @@ class ExactSelectOption extends PageConstraint
             }
 
             $this->realOptions = $this->getOptionsItemFromSelect($element);
-
-            // check expect options
-            $checkFunc = function($arr1, $arr2) : bool{
-                foreach($arr1 as $arrKey => $arrValue){
-                    if(!collect($arr2)->contains(function($v, $k) use($arrKey, $arrValue){
-                        return isMatchString($arrKey, $k) && isMatchString($arrValue, $v);
-                    })){
-                        return false;
-                    };
-                    return true;
-                }
-            };
 
             if(!$this->test2Array()){
                 return false;
