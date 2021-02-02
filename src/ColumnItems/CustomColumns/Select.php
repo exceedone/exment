@@ -167,12 +167,18 @@ class Select extends CustomItem
             ->help(exmtrans("custom_column.help.multiple_enabled"));
 
         $form->switchbool('radiobutton_enabled', exmtrans("custom_column.options.radiobutton_enabled"))
-            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '0'])])
+            ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '0'])])
             ->help(exmtrans("custom_column.help.radiobutton_enabled"));
 
         $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
-            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '1'])])
+            ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '1'])])
             ->help(exmtrans("custom_column.help.checkbox_enabled"));
+
+        $form->switchbool('input_freely', exmtrans("custom_column.options.input_freely"))
+            ->attribute(['data-filter' => json_encode([
+                ['parent' => 1, 'key' => 'options_radiobutton_enabled', 'value' => '0'],
+                ['parent' => 1, 'key' => 'options_checkbox_enabled', 'value' => '0']])])
+            ->help(exmtrans("custom_column.help.input_freely"));
     }
 
 }
