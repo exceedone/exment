@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Database\Query\Grammars;
 
+use Illuminate\Support\Str;
 use Illuminate\Database\Query\Grammars\MySqlGrammar as BaseGrammar;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\GroupCondition;
@@ -10,6 +11,7 @@ class MySqlGrammar extends BaseGrammar implements GrammarInterface
 {
     use GrammarTrait;
     
+
     public function compileUpdateRemovingJsonKey($query, string $key) : string
     {
         $table = $this->wrapTable($query->from);

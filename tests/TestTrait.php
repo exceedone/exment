@@ -35,6 +35,16 @@ trait TestTrait
         return $this;
     }
 
+    protected function assertNotMatch($value1, $value2){
+        $isMatch = false;
+
+        $messageV1 = is_array($value1) ? json_encode($value1) : $value1;
+        $messageV2 = is_array($value2) ? json_encode($value2) : $value2;
+        $this->assertTrue($value1 != $value2, "value1 is $messageV1, but value2 is $messageV2");
+
+        return $this;
+    }
+
 
     /**
      * Check post's Response
