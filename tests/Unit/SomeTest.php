@@ -147,7 +147,7 @@ class SomeTest extends UnitTestBase
 
 
     /**
-     * Search value test. Call getQueryKey function, set "->>".
+     * Search value test. Call getQueryKey function, set "->".
      *
      * @param string $column_name
      * @param boolean $index_enabled
