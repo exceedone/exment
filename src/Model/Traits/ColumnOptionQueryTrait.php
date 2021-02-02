@@ -162,11 +162,10 @@ trait ColumnOptionQueryTrait
     protected function getColumnSelectOption(string $table_name, array $options) : array
     {
         // create from options
-        return collect($options)->mapWithKeys(function($option) use($table_name){
+        return collect($options)->mapWithKeys(function ($option) use ($table_name) {
             $column = CustomColumn::getEloquent($option, $table_name);
             return ["{$column->id}?table_id={$column->custom_table_id}" => $option];
         })->toArray();
-
     }
 
     /**

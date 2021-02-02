@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Form\Field;
 
 /**
  * Display for view only. Cannot save and update.
- * Use for initOnly option, or viewonly option.
+ * Use for viewonly option (form).
  */
 class ViewOnly extends Display
 {

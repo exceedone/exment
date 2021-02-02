@@ -14,7 +14,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\TestDefine;
 
 class CustomOperationTest extends UnitTestBase
@@ -105,8 +104,9 @@ class CustomOperationTest extends UnitTestBase
         $operation = $this->_prepareCustomOperation($settings);
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        $custom_column = CustomColumn::getEloquent('integer', $custom_table);
         $custom_value = $custom_table->getValueModel()
-            ->where('value->integer', '>', 500)->first();
+            ->where($custom_column->getQueryKey(), '>', 500)->first();
 
         $result = $operation->execute($custom_table, $custom_value->id);
 
@@ -139,8 +139,9 @@ class CustomOperationTest extends UnitTestBase
         $operation = $this->_prepareCustomOperation($settings);
 
         $custom_table = CustomTable::getEloquent($settings['custom_table_name']);
+        $custom_column = CustomColumn::getEloquent('integer', $custom_table);
         $custom_value = $custom_table->getValueModel()
-            ->where('value->integer', '<=', 500)->first();
+            ->where($custom_column->getQueryKey(), '<=', 500)->first();
 
         $result = $operation->execute($custom_table, $custom_value->id);
 

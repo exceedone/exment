@@ -47,9 +47,9 @@ trait ExtendedBuilderTrait
      */
     public function updateRemovingJsonKey(string $key)
     {
-        $sql = $this->query->grammar->compileUpdateRemovingJsonKey($this->query, $key);
+        $sql = $this->_getQueryExment()->grammar->compileUpdateRemovingJsonKey($this->_getQueryExment(), $key);
 
-        return $this->query->connection->statement($sql);
+        return $this->_getQueryExment()->connection->statement($sql);
     }
 
 
@@ -119,9 +119,9 @@ trait ExtendedBuilderTrait
         }
 
         // is suport where in multiple ----------------------------------------------------
-        if ($this->query->grammar->isSupportWhereInMultiple()) {
-            $columns = $this->query->grammar->wrapWhereInMultiple($columns);
-            list($bindStrings, $binds) = $this->query->grammar->bindValueWhereInMultiple($values);
+        if ($this->_getQueryExment()->grammar->isSupportWhereInMultiple()) {
+            $columns = $this->_getQueryExment()->grammar->wrapWhereInMultiple($columns);
+            list($bindStrings, $binds) = $this->_getQueryExment()->grammar->bindValueWhereInMultiple($values);
     
             return $this->whereRaw(
                 '('.implode(', ', $columns).') in ('.implode(', ', $bindStrings).')',
@@ -219,7 +219,7 @@ trait ExtendedBuilderTrait
         }
 
         $tableName = $this->model->getTable();
-        $this->query->grammar->whereInArrayString($this, $tableName, $column, $values, $isOr, $isNot);
+        $this->_getQueryExment()->grammar->whereInArrayString($this, $tableName, $column, $values, $isOr, $isNot);
 
         return $this;
     }
@@ -260,13 +260,13 @@ trait ExtendedBuilderTrait
         }
 
         if ($isOr) {
-            $this->query->orWhere(function ($query) use ($column, $startMark, $endMark, $values) {
-                $this->query->where($column, $startMark, $values[0]);
-                $this->query->where($column, $endMark, $values[1]);
+            $this->_getQueryExment()->orWhere(function ($query) use ($column, $startMark, $endMark, $values) {
+                $query->where($column, $startMark, $values[0]);
+                $query->where($column, $endMark, $values[1]);
             });
         } else {
-            $this->query->where($column, $startMark, $values[0]);
-            $this->query->where($column, $endMark, $values[1]);
+            $this->_getQueryExment()->where($column, $startMark, $values[0]);
+            $this->_getQueryExment()->where($column, $endMark, $values[1]);
         }
 
         return $this;
@@ -468,5 +468,17 @@ trait ExtendedBuilderTrait
         }
 
         return $this->where($column, $mark, $value->format('Y-m-d'));
+    }
+
+    /**
+     * get query instance
+     * @return Exceedone\Exment\Database\Query\ExtendedBuilder
+     */
+    protected function _getQueryExment()
+    {
+        if ($this instanceof \Illuminate\Database\Eloquent\Builder) {
+            return $this->query;
+        }
+        return $this;
     }
 }

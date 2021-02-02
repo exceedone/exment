@@ -696,10 +696,10 @@ class Exment
      */
     public function isContains2Array($testArr, $targetArr) : bool
     {
-        foreach($testArr as $arrKey => $arrValue){
-            if(!collect($targetArr)->contains(function($v, $k) use($arrKey, $arrValue){
+        foreach ($testArr as $arrKey => $arrValue) {
+            if (!collect($targetArr)->contains(function ($v, $k) use ($arrKey, $arrValue) {
                 return isMatchString($arrKey, $k) && isMatchString($arrValue, $v);
-            })){
+            })) {
                 return false;
             };
         }
