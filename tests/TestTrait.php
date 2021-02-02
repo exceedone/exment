@@ -26,21 +26,19 @@ trait TestTrait
     }
 
     protected function assertMatch($value1, $value2){
-        $isMatch = false;
-
-        $messageV1 = is_array($value1) ? json_encode($value1) : $value1;
-        $messageV2 = is_array($value2) ? json_encode($value2) : $value2;
-        $this->assertTrue($value1 == $value2, "value1 is $messageV1, but value2 is $messageV2");
-
-        return $this;
+        return $this->_assertMatch($value1, $value2, true);
     }
 
     protected function assertNotMatch($value1, $value2){
-        $isMatch = false;
+        return $this->_assertMatch($value1, $value2, false);
+    }
 
+    protected function _assertMatch($value1, $value2, bool $isTrue){
         $messageV1 = is_array($value1) ? json_encode($value1) : $value1;
         $messageV2 = is_array($value2) ? json_encode($value2) : $value2;
-        $this->assertTrue($value1 != $value2, "value1 is $messageV1, but value2 is $messageV2");
+
+        $result = isMatchString($messageV1, $messageV2);
+        $this->assertTrue($result === $isTrue, "value1 is $messageV1, but value2 is $messageV2. Expect result is " . ($isTrue ? 'match' : 'not match') . '.');
 
         return $this;
     }

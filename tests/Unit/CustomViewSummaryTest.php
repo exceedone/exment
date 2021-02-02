@@ -405,7 +405,7 @@ class CustomViewSummaryTest extends UnitTestBase
                     return empty($summary['key']) && empty($data['date']);
                 }
             })->count();
-            $this->assertTrue(isMatchString($summary['value'], $result));
+            $this->assertMatch($summary['value'], $result);
         }
     }
 
