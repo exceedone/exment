@@ -81,10 +81,10 @@ trait UserTrait
     public function belong_role_groups_all()
     {
         return Model\RoleGroup::whereHas('role_group_user_organizations', function ($query) {
-            $query->where(function($qry) {
+            $query->where(function ($qry) {
                 $qry->where('role_group_target_id', $this->id)
                     ->where('role_group_user_org_type', 'user');
-            })->orWhere(function($qry) {
+            })->orWhere(function ($qry) {
                 $qry->whereIn('role_group_target_id', $this->getOrganizationIds())
                     ->where('role_group_user_org_type', 'organization');
             });

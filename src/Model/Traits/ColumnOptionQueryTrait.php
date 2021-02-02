@@ -161,11 +161,10 @@ trait ColumnOptionQueryTrait
     protected function getColumnSelectOption(string $table_name, array $options) : array
     {
         // create from options
-        return collect($options)->mapWithKeys(function($option) use($table_name){
+        return collect($options)->mapWithKeys(function ($option) use ($table_name) {
             $column = CustomColumn::getEloquent($option, $table_name);
             return ["{$column->id}?table_id={$column->custom_table_id}" => $option];
         })->toArray();
-
     }
 
     /**
@@ -185,12 +184,12 @@ trait ColumnOptionQueryTrait
 
         $custom_table = CustomTable::getEloquent($table_name);
         // create from custom column
-        $array = $custom_table->custom_columns->filter(function($custom_column) use($is_index){
+        $array = $custom_table->custom_columns->filter(function ($custom_column) use ($is_index) {
             if (boolval($is_index)) {
                 return $custom_column->index_enabled;
             }
             return true;
-        })->mapWithKeys(function($custom_column) use($table_name){
+        })->mapWithKeys(function ($custom_column) use ($table_name) {
             return ["{$custom_column->id}?table_id={$custom_column->custom_table_id}" => $custom_column->column_view_name];
         })->toArray();
 

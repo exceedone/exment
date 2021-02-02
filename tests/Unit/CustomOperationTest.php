@@ -14,7 +14,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\TestDefine;
 
 class CustomOperationTest extends UnitTestBase
