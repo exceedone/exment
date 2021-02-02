@@ -38,7 +38,20 @@ class Yesno extends CustomItem
 
     protected function getAdminFieldClass()
     {
-        return Field\SwitchBoolField::class;
+        if (boolval(array_get($this->custom_column, 'options.checkbox_enabled'))) {
+            return Field\Checkboxone::class;
+        } else {
+            return Field\SwitchBoolField::class;
+        }
+    }
+
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
+        if (boolval(array_get($this->custom_column, 'options.checkbox_enabled'))) {
+            $field->option([
+                1 => ''
+            ]);
+        }
     }
     
     protected function getAdminFilterClass()
@@ -90,5 +103,18 @@ class Yesno extends CustomItem
             }
         }
         return null;
+    }
+
+    /**
+     * Set Custom Column Option Form. Using laravel-admin form option
+     * https://laravel-admin.org/docs/#/en/model-form-fields
+     *
+     * @param Form $form
+     * @return void
+     */
+    public function setCustomColumnOptionForm(&$form)
+    {
+        $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
+            ->help(exmtrans("custom_column.help.checkbox_enabled"));
     }
 }

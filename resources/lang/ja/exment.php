@@ -78,6 +78,7 @@ return [
         'append_to_selectitem' => '追加',
         'redirect_to' => '%sへ遷移する',
         'second' => '秒',
+        'no_selected' => '未選択',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -1240,6 +1241,8 @@ return [
             'multiple_enabled' => '複数選択を許可する',
             'calc_formula' => '計算式',
             'currency_symbol' => '通貨の表示形式',
+            'checkbox_enabled' => 'チェックボックス形式で表示',
+            'radiobutton_enabled' => 'ラジオボタン形式で表示',
         ],
         'column_type_options' => [
             "text" => "1行テキスト",
@@ -1307,6 +1310,8 @@ return [
             'select_table_deny' => '参照先のテーブル「%s」の権限がありません。システム管理者に問い合わせし、権限の追加を依頼してください。',
             'login_user_default' => 'YESにすることで、項目の初期値がログインユーザーになります。',
             'multiple_enabled' => 'YESにすることで、この列に複数の値を登録することができます。※一部の機能に制限がかかります。',
+            'checkbox_enabled' => 'YESにすることで、チェックボックス形式で表示されます。',
+            'radiobutton_enabled' => 'YESにすることで、ラジオボタン形式で表示されます。',
         ],
         'available_characters' => [
             'lower' => '英小文字', 

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator\SelectRule;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Form\Field\RadioButton;
 use Exceedone\Exment\Grid\Filter\Where as ExmWhere;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
@@ -55,9 +56,17 @@ class Select extends CustomItem
     protected function getAdminFieldClass()
     {
         if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
-            return Field\MultipleSelect::class;
+            if (boolval(array_get($this->custom_column, 'options.checkbox_enabled'))) {
+                return Field\Checkbox::class;
+            } else {
+                return Field\MultipleSelect::class;
+            }
         } else {
-            return Field\Select::class;
+            if (boolval(array_get($this->custom_column, 'options.radiobutton_enabled'))) {
+                return RadioButton::class;
+            } else {
+                return Field\Select::class;
+            }
         }
     }
     
@@ -81,6 +90,10 @@ class Select extends CustomItem
     protected function setAdminOptions(&$field, $form_column_options)
     {
         $field->options($this->custom_column->createSelectOptions());
+
+        if ($field instanceof RadioButton) {
+            $field->addEmpty();
+        }
     }
     
     protected function setValidates(&$validates, $form_column_options)
@@ -150,7 +163,16 @@ class Select extends CustomItem
             ->help(exmtrans("custom_column.help.select_item"));
             
         $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
+            ->attribute(['data-filtertrigger' =>true])
             ->help(exmtrans("custom_column.help.multiple_enabled"));
+
+        $form->switchbool('radiobutton_enabled', exmtrans("custom_column.options.radiobutton_enabled"))
+            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '0'])])
+            ->help(exmtrans("custom_column.help.radiobutton_enabled"));
+
+        $form->switchbool('checkbox_enabled', exmtrans("custom_column.options.checkbox_enabled"))
+            ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '1'])])
+            ->help(exmtrans("custom_column.help.checkbox_enabled"));
     }
 
 }
