@@ -261,8 +261,8 @@ trait ExtendedBuilderTrait
 
         if ($isOr) {
             $this->query->orWhere(function ($query) use ($column, $startMark, $endMark, $values) {
-                $this->query->where($column, $startMark, $values[0]);
-                $this->query->where($column, $endMark, $values[1]);
+                $query->where($column, $startMark, $values[0]);
+                $query->where($column, $endMark, $values[1]);
             });
         } else {
             $this->query->where($column, $startMark, $values[0]);
