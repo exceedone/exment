@@ -778,160 +778,328 @@ class JFilterValueTest extends ExmentKitTestCase
 
 
 
+    // system id ----------------------------------------------------
+    public function testConditionValueSystemIdEqual()
+    {
+        $this->_testConditionValueSystemId(FilterOption::EQ, true);
+    }
+    public function testConditionValueSystemIdNotEqual()
+    {
+        $this->_testConditionValueSystemId(FilterOption::NE, true);
+    }
+    public function testConditionValueSystemIdLike()
+    {
+        $this->_testConditionValueSystemId(FilterOption::LIKE, true);
+    }
+    public function testConditionValueSystemIdNotLike()
+    {
+        $this->_testConditionValueSystemId(FilterOption::NOT_LIKE, true);
+    }
+    public function testConditionValueSystemIdNotNull()
+    {
+        $this->_testConditionValueSystemId(FilterOption::NOT_NULL, false);
+    }
+    public function testConditionValueSystemIdNull()
+    {
+        $this->_testConditionValueSystemId(FilterOption::NULL, false);
+    }
+    protected function _testConditionValueSystemId(string $filterOption, bool $hasHtml)
+    {
+        $this->__testConditionValueApiSystem(SystemColumn::ID, $filterOption, $hasHtml, 'input[type="text"]');
+    }
+    
 
 
-    // public function testConditionApiColumnTestarea()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::TEXTAREA, FilterType::DEFAULT);
-    // }
-
-    // public function testConditionApiColumnEditor()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::EDITOR, FilterType::DEFAULT);
-    // }
-
-    // public function testConditionApiColumnUrl()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::URL, FilterType::DEFAULT);
-    // }
-
-    // public function testConditionApiColumnEmail()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::EMAIL, FilterType::DEFAULT);
-    // }
-
-    // public function testConditionApiColumnInteger()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::INTEGER, FilterType::NUMBER);
-    // }
-
-    // public function testConditionApiColumnDecimal()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::DECIMAL, FilterType::NUMBER);
-    // }
-
-    // public function testConditionApiColumnCurrency()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::CURRENCY, FilterType::NUMBER);
-    // }
-
-    // public function testConditionApiColumnDate()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::DATE, FilterType::DAY);
-    // }
-
-    // public function testConditionApiColumnTime()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::TIME, FilterType::DEFAULT);
-    // }
-
-    // public function testConditionApiColumnDateTime()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::DATETIME, FilterType::DAY);
-    // }
-
-    // public function testConditionApiColumnSelect()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::SELECT, FilterType::SELECT);
-    // }
-
-    // public function testConditionApiColumnSelectValtext()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::SELECT_VALTEXT, FilterType::SELECT);
-    // }
-
-    // public function testConditionApiColumnSelectTable()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::SELECT_TABLE, FilterType::SELECT);
-    // }
-
-    // public function testConditionApiColumnYesNo()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::YESNO, FilterType::DEFAULT);
-    // }
-
-    // public function testConditionApiColumnBoolean()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::BOOLEAN, FilterType::DEFAULT);
-    // }
-
-    // public function testConditionApiColumnAutoNumber()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::AUTO_NUMBER, FilterType::DEFAULT);
-    // }
-
-    // public function testConditionApiColumnImage()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::IMAGE, FilterType::FILE);
-    // }
-
-    // public function testConditionApiColumnFile()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::FILE, FilterType::FILE);
-    // }
-
-    // public function testConditionApiColumnUser()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::USER, FilterType::USER);
-    // }
-
-    // public function testConditionApiColumnOrganization()
-    // {
-    //     $this->__testConditionValueApiColumn(ColumnType::ORGANIZATION, FilterType::SELECT);
-    // }
-
-    // // System Column ----------------------------------------------------
-    // public function testConditionApiSystemId()
-    // {
-    //     $this->__testConditionApiSystem(SystemColumn::ID, FilterType::DEFAULT);
-    // }
-
-    // public function testConditionApiSystemSuuid()
-    // {
-    //     $this->__testConditionApiSystem(SystemColumn::SUUID, FilterType::DEFAULT);
-    // }
-
-    // public function testConditionApiSystemCreatedAt()
-    // {
-    //     $this->__testConditionApiSystem(SystemColumn::CREATED_AT, FilterType::DAY);
-    // }
-
-    // public function testConditionApiSystemUpdatedAt()
-    // {
-    //     $this->__testConditionApiSystem(SystemColumn::UPDATED_AT, FilterType::DAY);
-    // }
-
-    // public function testConditionApiSystemCreateUser()
-    // {
-    //     $this->__testConditionApiSystem(SystemColumn::CREATED_USER, FilterType::USER);
-    // }
-
-    // public function testConditionApiSystemUpdateUser()
-    // {
-    //     $this->__testConditionApiSystem(SystemColumn::UPDATED_USER, FilterType::USER);
-    // }
+    // system suuid ----------------------------------------------------
+    public function testConditionValueSystemSuuidEqual()
+    {
+        $this->_testConditionValueSystemSuuid(FilterOption::EQ, true);
+    }
+    public function testConditionValueSystemSuuidNotEqual()
+    {
+        $this->_testConditionValueSystemSuuid(FilterOption::NE, true);
+    }
+    public function testConditionValueSystemSuuidLike()
+    {
+        $this->_testConditionValueSystemSuuid(FilterOption::LIKE, true);
+    }
+    public function testConditionValueSystemSuuidNotLike()
+    {
+        $this->_testConditionValueSystemSuuid(FilterOption::NOT_LIKE, true);
+    }
+    public function testConditionValueSystemSuuidNotNull()
+    {
+        $this->_testConditionValueSystemSuuid(FilterOption::NOT_NULL, false);
+    }
+    public function testConditionValueSystemSuuidNull()
+    {
+        $this->_testConditionValueSystemSuuid(FilterOption::NULL, false);
+    }
+    protected function _testConditionValueSystemSuuid(string $filterOption, bool $hasHtml)
+    {
+        $this->__testConditionValueApiSystem(SystemColumn::SUUID, $filterOption, $hasHtml, 'input[type="text"]');
+    }
 
 
-    // // ConditionDetail ----------------------------------------------------
-    // public function testConditionApiConditionUser()
-    // {
-    //     $this->__testConditionApiConditionDetail(ConditionTypeDetail::USER, FilterType::CONDITION);
-    // }
+    
+    // system CREATED_AT ----------------------------------------------------
+    public function testConditionValueSystemCreatedAtDayOn()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_ON, true);
+    }
+    public function testConditionValueSystemCreatedAtDayOnOrAfter()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_ON_OR_AFTER, true);
+    }
+    public function testConditionValueSystemCreatedAtDayOnOrBefore()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_ON_OR_BEFORE, true);
+    }
+    public function testConditionValueSystemCreatedAtDayToday()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_TODAY, false);
+    }
+    public function testConditionValueSystemCreatedAtDayTodayOrAfter()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_TODAY_OR_AFTER, false);
+    }
+    public function testConditionValueSystemCreatedAtDayTodayOrBefore()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_TODAY_OR_BEFORE, false);
+    }
+    public function testConditionValueSystemCreatedAtDayYesterday()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_YESTERDAY, false);
+    }
+    public function testConditionValueSystemCreatedAtDayTomorrow()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_TOMORROW, false);
+    }
+    public function testConditionValueSystemCreatedAtDayThisMonth()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_THIS_MONTH, false);
+    }
+    public function testConditionValueSystemCreatedAtDayLastMonth()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_LAST_MONTH, false);
+    }
+    public function testConditionValueSystemCreatedAtDayNextMonth()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_NEXT_MONTH, false);
+    }
+    public function testConditionValueSystemCreatedAtDayThisYear()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_THIS_YEAR, false);
+    }
+    public function testConditionValueSystemCreatedAtDayLastYear()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_LAST_YEAR, false);
+    }
+    public function testConditionValueSystemCreatedAtDayNextYear()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_NEXT_YEAR, false);
+    }
+    public function testConditionValueSystemCreatedAtDayLastXDayOrAfter()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_LAST_X_DAY_OR_AFTER, true);
+    }
+    public function testConditionValueSystemCreatedAtDayNextXDayOrAfter()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_NEXT_X_DAY_OR_AFTER, true);
+    }
+    public function testConditionValueSystemCreatedAtDayLastXDayOrBefore()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_LAST_X_DAY_OR_BEFORE, true);
+    }
+    public function testConditionValueSystemCreatedAtDayNextXDayOrBefore()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::DAY_NEXT_X_DAY_OR_BEFORE, true);
+    }
+    public function testConditionValueSystemCreatedAtDayNotNull()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::NOT_NULL, false);
+    }
+    public function testConditionValueSystemCreatedAtDatetimeNull()
+    {
+        $this->_testConditionValueSystemCreatedAt(FilterOption::NULL, false);
+    }
+    protected function _testConditionValueSystemCreatedAt(string $filterOption, bool $hasHtml)
+    {
+        $this->__testConditionValueApiSystem(SystemColumn::CREATED_AT, $filterOption, $hasHtml, 'input[type="text"]');
+    }
+  
 
-    // public function testConditionApiConditionOrganization()
-    // {
-    //     $this->__testConditionApiConditionDetail(ConditionTypeDetail::ORGANIZATION, FilterType::CONDITION);
-    // }
 
-    // public function testConditionApiConditionRole()
-    // {
-    //     $this->__testConditionApiConditionDetail(ConditionTypeDetail::ROLE, FilterType::CONDITION);
-    // }
 
-    // public function testConditionApiConditionForm()
-    // {
-    //     $this->__testConditionApiConditionDetail(ConditionTypeDetail::FORM, FilterType::CONDITION);
-    // }
+    
+    // system UPDATED_AT ----------------------------------------------------
+    public function testConditionValueSystemUpdatedAtDayOn()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_ON, true);
+    }
+    public function testConditionValueSystemUpdatedAtDayOnOrAfter()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_ON_OR_AFTER, true);
+    }
+    public function testConditionValueSystemUpdatedAtDayOnOrBefore()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_ON_OR_BEFORE, true);
+    }
+    public function testConditionValueSystemUpdatedAtDayToday()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_TODAY, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayTodayOrAfter()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_TODAY_OR_AFTER, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayTodayOrBefore()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_TODAY_OR_BEFORE, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayYesterday()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_YESTERDAY, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayTomorrow()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_TOMORROW, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayThisMonth()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_THIS_MONTH, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayLastMonth()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_LAST_MONTH, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayNextMonth()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_NEXT_MONTH, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayThisYear()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_THIS_YEAR, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayLastYear()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_LAST_YEAR, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayNextYear()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_NEXT_YEAR, false);
+    }
+    public function testConditionValueSystemUpdatedAtDayLastXDayOrAfter()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_LAST_X_DAY_OR_AFTER, true);
+    }
+    public function testConditionValueSystemUpdatedAtDayNextXDayOrAfter()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_NEXT_X_DAY_OR_AFTER, true);
+    }
+    public function testConditionValueSystemUpdatedAtDayLastXDayOrBefore()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_LAST_X_DAY_OR_BEFORE, true);
+    }
+    public function testConditionValueSystemUpdatedAtDayNextXDayOrBefore()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::DAY_NEXT_X_DAY_OR_BEFORE, true);
+    }
+    public function testConditionValueSystemUpdatedAtDayNotNull()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::NOT_NULL, false);
+    }
+    public function testConditionValueSystemUpdatedAtDatetimeNull()
+    {
+        $this->_testConditionValueSystemUpdatedAt(FilterOption::NULL, false);
+    }
+    protected function _testConditionValueSystemUpdatedAt(string $filterOption, bool $hasHtml)
+    {
+        $this->__testConditionValueApiSystem(SystemColumn::UPDATED_AT, $filterOption, $hasHtml, 'input[type="text"]');
+    }
+
+
+
+
+    // system Created user ----------------------------------------------------
+    public function testConditionValueSystemCreatedUserEqLoginUser()
+    {
+        $this->_testConditionValueApiSystemCreatedUser(FilterOption::USER_EQ_USER, false);
+    }
+    public function testConditionValueSystemCreatedUserNotEqLoginUser()
+    {
+        $this->_testConditionValueApiSystemCreatedUser(FilterOption::USER_NE_USER, false);
+    }
+    public function testConditionValueSystemCreatedUserEq()
+    {
+        $this->_testConditionValueApiSystemCreatedUser(FilterOption::USER_EQ, true);
+    }
+    public function testConditionValueSystemCreatedUserNe()
+    {
+        $this->_testConditionValueApiSystemCreatedUser(FilterOption::USER_NE, true);
+    }
+    public function testConditionValueSystemCreatedUserNotNull()
+    {
+        $this->_testConditionValueApiSystemCreatedUser(FilterOption::USER_NOT_NULL, false);
+    }
+    public function testConditionValueSystemCreatedUserNull()
+    {
+        $this->_testConditionValueApiSystemCreatedUser(FilterOption::USER_NULL, false);
+    }
+    protected function _testConditionValueApiSystemCreatedUser(string $filterOption, bool $hasHtml)
+    {
+       $this->__testConditionValueApiSystem(SystemColumn::UPDATED_USER, $filterOption, $hasHtml, 'select');
+    }
+
+
+
+
+    // system Updated user ----------------------------------------------------
+    public function testConditionValueSystemUpdatedUserEqLoginUser()
+    {
+        $this->_testConditionValueApiSystemUpdatedUser(FilterOption::USER_EQ_USER, false);
+    }
+    public function testConditionValueSystemUpdatedUserNotEqLoginUser()
+    {
+        $this->_testConditionValueApiSystemUpdatedUser(FilterOption::USER_NE_USER, false);
+    }
+    public function testConditionValueSystemUpdatedUserEq()
+    {
+        $this->_testConditionValueApiSystemUpdatedUser(FilterOption::USER_EQ, true);
+    }
+    public function testConditionValueSystemUpdatedUserNe()
+    {
+        $this->_testConditionValueApiSystemUpdatedUser(FilterOption::USER_NE, true);
+    }
+    public function testConditionValueSystemUpdatedUserNotNull()
+    {
+        $this->_testConditionValueApiSystemUpdatedUser(FilterOption::USER_NOT_NULL, false);
+    }
+    public function testConditionValueSystemUpdatedUserNull()
+    {
+        $this->_testConditionValueApiSystemUpdatedUser(FilterOption::USER_NULL, false);
+    }
+    protected function _testConditionValueApiSystemUpdatedUser(string $filterOption, bool $hasHtml)
+    {
+        $this->__testConditionValueApiSystem(SystemColumn::UPDATED_USER, $filterOption, $hasHtml, 'select');
+    }
+
+
+
+    // Condition detail user ----------------------------------------------------
+    public function testConditionValueConditionDetailUserEq()
+    {
+        $this->_testConditionValueApiConditionDetailUser(FilterOption::EQ, true);
+    }
+    public function testConditionValueConditionDetailUserNe()
+    {
+        $this->_testConditionValueApiConditionDetailUser(FilterOption::NE, true);
+    }
+    protected function _testConditionValueApiConditionDetailUser(string $filterOption, bool $hasHtml)
+    {
+        $this->__testConditionApiConditionDetail(ConditionTypeDetail::USER, $filterOption, $hasHtml, 'select', true);
+    }
+
 
 
 
@@ -947,7 +1115,6 @@ class JFilterValueTest extends ExmentKitTestCase
     protected function __testConditionValueApiColumn(string $column_name, string $cond_key, bool $hasHtml, $selector)
     {
         $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
-
         $custom_table = CustomTable::getEloquent($table_name);
         $custom_column = CustomColumn::getEloquent($column_name, $custom_table);
 
@@ -975,21 +1142,25 @@ class JFilterValueTest extends ExmentKitTestCase
      * @param string $column_name
      * @return void
      */
-    protected function __testConditionApiSystem(string $system_column_name)
+    protected function __testConditionValueApiSystem(string $system_column_name, string $cond_key, bool $hasHtml, $selector)
     {
-        if(!$table_name){
-            $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
-        }
-
+        $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         $custom_table = CustomTable::getEloquent($table_name);
         $syetem_column = SystemColumn::getOption(['name' => $system_column_name]);
-
-        $url = admin_urls_query('webapi', $custom_table->table_name, 'filter-condition', [
-            'q' => $syetem_column['name'],
+        
+        $url = admin_urls_query('webapi', $custom_table->table_name, 'filter-value', [
+            'target' => $syetem_column['id'],
             'table_id' => $custom_table->id,
+            'cond_key' => $cond_key,
+
+            // fixed key for api.
+            'cond_name' => 'custom_view_filters[1][view_filter_condition]',
+            'replace_search' => 'view_filter_condition',
+            'replace_word' => 'view_filter_condition_value',
+            'show_condition_key' => '1',
         ]);
 
-        $this->checkTestResult($url);
+        $this->checkTestResult($url, $hasHtml, $selector);
     }
     
     /**
@@ -999,24 +1170,28 @@ class JFilterValueTest extends ExmentKitTestCase
      * @param string $column_name
      * @return void
      */
-    protected function __testConditionApiConditionDetail(string $condition_type_detail)
+    protected function __testConditionApiConditionDetail(string $condition_type_detail, string $cond_key, bool $hasHtml, $selector, bool $multiple = false)
     {
-        if(!$table_name){
-            $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
-        }
-
+        $table_name = TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS;
         $custom_table = CustomTable::getEloquent($table_name);
 
-        $url = admin_urls_query('webapi', $custom_table->table_name, 'filter-condition', [
-            'q' => ConditionTypeDetail::getEnum($condition_type_detail)->upperKey(),
+        $url = admin_urls_query('webapi', $custom_table->table_name, 'filter-value', [
+            'target' => ConditionTypeDetail::getEnum($condition_type_detail)->upperKey(),
             'table_id' => $custom_table->id,
+            'cond_key' => $cond_key,
+
+            // fixed key for api.
+            'cond_name' => 'custom_view_filters[1][view_filter_condition]',
+            'replace_search' => 'view_filter_condition',
+            'replace_word' => 'view_filter_condition_value',
+            'show_condition_key' => '1',
         ]);
 
-        $this->checkTestResult($url);
+        $this->checkTestResult($url, $hasHtml, $selector, $multiple);
     }
 
 
-    protected function checkTestResult(string $url, bool $hasHtml, $selector)
+    protected function checkTestResult(string $url, bool $hasHtml, $selector, bool $multiple = false)
     {
         $this->get($url);
 
@@ -1040,7 +1215,7 @@ class JFilterValueTest extends ExmentKitTestCase
         $this->assertThat($html, $hasElement);
 
         // check name
-        $hasElement = new HasElement('[name="custom_view_filters[1][view_filter_condition_value]"]');
+        $hasElement = new HasElement('[name="custom_view_filters[1][view_filter_condition_value]' . ($multiple ? '[]' : '') . '"]');
         if(!$hasHtml){
             $hasElement = new ReversePageConstraint($hasElement);
         }
