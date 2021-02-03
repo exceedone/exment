@@ -188,6 +188,20 @@ class JFilterConditionTest extends ExmentKitTestCase
 
 
 
+    // Workflow ----------------------------------------------------
+    public function testConditionApiWorkflowStatus()
+    {
+        $this->__testConditionApiWorkflow('workflow_status', FilterType::WORKFLOW);
+    }
+
+    public function testConditionApiWorkflowWorkUser()
+    {
+        $this->__testConditionApiWorkflow('workflow_work_users', FilterType::WORKFLOW_WORK_USER);
+    }
+
+
+
+
     /**
      * Test condition api result.
      * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
@@ -242,7 +256,7 @@ class JFilterConditionTest extends ExmentKitTestCase
     }
     
     /**
-     * Test condition api result for system
+     * Test condition api result for condition detail
      * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
      *
      * @param string $column_name
@@ -260,6 +274,30 @@ class JFilterConditionTest extends ExmentKitTestCase
 
         $url = admin_urls_query('view', $custom_table->table_name, 'filter-condition', [
             'q' => ConditionTypeDetail::getEnum($condition_type_detail)->upperKey(),
+            'table_id' => $custom_table->id,
+        ]);
+
+        $this->checkTestResult($url, $filterType);
+    }
+
+    /**
+     * Test condition api result for workflow
+     * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
+     *
+     * @param string $column_name
+     * @param string $filterType
+     * @param string|null $table_name
+     * @return void
+     */
+    protected function __testConditionApiWorkflow(string $type, string $filterType, ?string $table_name = null)
+    {
+        if(!$table_name){
+            $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        }
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        $url = admin_urls_query('view', $custom_table->table_name, 'filter-condition', [
+            'q' => $type,
             'table_id' => $custom_table->id,
         ]);
 

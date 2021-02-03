@@ -6,7 +6,7 @@ use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Tests\TestDefine;
-use Exceedone\Exment\Enums\FilterType;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\FilterOption;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -1102,6 +1102,76 @@ class JFilterValueTest extends ExmentKitTestCase
 
 
 
+    // Condition detail org ----------------------------------------------------
+    public function testConditionValueConditionDetailOrgEq()
+    {
+        $this->_testConditionValueApiConditionDetailOrg(FilterOption::EQ, true);
+    }
+    public function testConditionValueConditionDetailOrgNe()
+    {
+        $this->_testConditionValueApiConditionDetailOrg(FilterOption::NE, true);
+    }
+    protected function _testConditionValueApiConditionDetailOrg(string $filterOption, bool $hasHtml)
+    {
+        $this->__testConditionApiConditionDetail(ConditionTypeDetail::ORGANIZATION, $filterOption, $hasHtml, 'select', true);
+    }
+
+
+
+    // Condition detail role ----------------------------------------------------
+    public function testConditionValueConditionDetailRoleEq()
+    {
+        $this->_testConditionValueApiConditionDetailRole(FilterOption::EQ, true);
+    }
+    public function testConditionValueConditionDetailRoleNe()
+    {
+        $this->_testConditionValueApiConditionDetailRole(FilterOption::NE, true);
+    }
+    protected function _testConditionValueApiConditionDetailRole(string $filterOption, bool $hasHtml)
+    {
+        $options = Model\RoleGroup::all()->pluck('role_group_view_name', 'id')->toArray();
+        $this->__testConditionApiConditionDetail(ConditionTypeDetail::ROLE, $filterOption, $hasHtml, new ExactSelectOption('select', $options), true);
+    }
+
+
+
+    // Condition detail form ----------------------------------------------------
+    public function testConditionValueConditionDetailFormEq()
+    {
+        $this->_testConditionValueApiConditionDetailForm(FilterOption::EQ, true);
+    }
+    public function testConditionValueConditionDetailFormNe()
+    {
+        $this->_testConditionValueApiConditionDetailForm(FilterOption::NE, true);
+    }
+    protected function _testConditionValueApiConditionDetailForm(string $filterOption, bool $hasHtml)
+    {
+        $options = Enums\FormDataType::transArray('condition.form_data_type_options');
+        $this->__testConditionApiConditionDetail(ConditionTypeDetail::FORM, $filterOption, $hasHtml, new ExactSelectOption('select', $options), true);
+    }
+
+
+
+    // Workflow item ----------------------------------------------------
+    public function testConditionValueWorkflowStatusEq()
+    {
+        $this->_testConditionValueApiWorkflowStatus(FilterOption::EQ, true);
+    }
+    public function testConditionValueWorkflowStatus()
+    {
+        $this->_testConditionValueApiWorkflowStatus(FilterOption::NE, true);
+    }
+    protected function _testConditionValueApiWorkflowStatus(string $filterOption, bool $hasHtml)
+    {
+        $workflow = Model\Workflow::getWorkflowByTable(Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT));
+        $options = $workflow->getStatusOptions()->toArray();
+        $this->__testConditionApiWorkflow('workflow_status', $filterOption, $hasHtml, new ExactSelectOption('select', $options));
+    }
+
+    public function testConditionValueWorkflowWorkUser()
+    {
+        $this->__testConditionApiWorkflow('workflow_work_users', FilterOption::USER_EQ_USER, false, 'select');
+    }
 
     /**
      * Test condition api result.
@@ -1188,6 +1258,36 @@ class JFilterValueTest extends ExmentKitTestCase
         ]);
 
         $this->checkTestResult($url, $hasHtml, $selector, $multiple);
+    }
+
+
+    /**
+     * Test condition api result for workflow
+     * This condtion api returns select options, ex {'id': 1, 'name': 'eq'}
+     *
+     * @param string $column_name
+     * @param string $filterType
+     * @param string|null $table_name
+     * @return void
+     */
+    protected function __testConditionApiWorkflow(string $type, string $cond_key, bool $hasHtml, $selector)
+    {
+        // workflow table
+        $table_name = TestDefine::TESTDATA_TABLE_NAME_EDIT;
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        $url = admin_urls_query('webapi', $custom_table->table_name, 'filter-value', [
+            'target' => "$type?table_id={$custom_table->id}",
+            'cond_key' => $cond_key,
+
+            // fixed key for api.
+            'cond_name' => 'custom_view_filters[1][view_filter_condition]',
+            'replace_search' => 'view_filter_condition',
+            'replace_word' => 'view_filter_condition_value',
+            'show_condition_key' => '1',
+        ]);
+
+        $this->checkTestResult($url, $hasHtml, $selector, false);
     }
 
 
