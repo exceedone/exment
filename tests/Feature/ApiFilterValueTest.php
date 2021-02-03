@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Tests\Browser;
+namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
@@ -20,7 +20,7 @@ use Exceedone\Exment\Tests\Constraints\ExactSelectOption;
 /**
  * Filter value test. For use custom view filter, form priority, workflow, etc.
  */
-class JFilterValueTest extends ExmentKitTestCase
+class ApiFilterValueTest extends ExmentKitTestCase
 {
     /**
      * pre-excecute process before test.

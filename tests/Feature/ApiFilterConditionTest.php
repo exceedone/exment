@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Tests\Browser;
+namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
@@ -16,7 +16,7 @@ use Exceedone\Exment\Enums\ConditionTypeDetail;
 /**
  * Filter condition test. For use custom view filter, form priority, workflow, etc.
  */
-class JFilterConditionTest extends ExmentKitTestCase
+class ApiFilterConditionTest extends ExmentKitTestCase
 {
     /**
      * pre-excecute process before test.
