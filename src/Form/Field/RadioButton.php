@@ -18,7 +18,7 @@ class RadioButton extends Radio
      *
      * @return $this
      */
-    public function addEmpty($addEmpty = true)
+    public function addEmpty(bool $addEmpty)
     {
         $this->addEmpty = $addEmpty;
         return $this;

@@ -1243,7 +1243,7 @@ return [
             'currency_symbol' => '通貨の表示形式',
             'checkbox_enabled' => 'チェックボックス形式で表示',
             'radiobutton_enabled' => 'ラジオボタン形式で表示',
-            'input_freely' => '自由に入力可能にする',
+            'free_input' => '自由に入力可能にする',
         ],
         'column_type_options' => [
             "text" => "1行テキスト",
@@ -1313,7 +1313,7 @@ return [
             'multiple_enabled' => 'YESにすることで、この列に複数の値を登録することができます。※一部の機能に制限がかかります。',
             'checkbox_enabled' => 'YESにすることで、チェックボックス形式で表示されます。',
             'radiobutton_enabled' => 'YESにすることで、ラジオボタン形式で表示されます。',
-            'input_freely' => 'YESにすることで、登録されていない選択肢を自由に入力することができます。',
+            'free_input' => 'YESにすることで、登録されていない選択肢を自由に入力することができます。',
         ],
         'available_characters' => [
             'lower' => '英小文字', 

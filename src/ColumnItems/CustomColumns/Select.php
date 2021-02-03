@@ -55,14 +55,14 @@ class Select extends CustomItem
     
     protected function getAdminFieldClass()
     {
-        if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
-            if (boolval(array_get($this->custom_column, 'options.checkbox_enabled'))) {
+        if ($this->isMultipleEnabled()) {
+            if (boolval($this->custom_column->getOption('checkbox_enabled', false))) {
                 return Field\Checkbox::class;
             } else {
                 return Field\MultipleSelect::class;
             }
         } else {
-            if (boolval(array_get($this->custom_column, 'options.radiobutton_enabled'))) {
+            if (boolval($this->custom_column->getOption('radiobutton_enabled', false))) {
                 return RadioButton::class;
             } else {
                 return Field\Select::class;
@@ -89,17 +89,37 @@ class Select extends CustomItem
 
     protected function setAdminOptions(&$field, $form_column_options)
     {
-        $field->options($this->custom_column->createSelectOptions());
+        $options = $this->custom_column->createSelectOptions();
+
+        if ($this->isFreeInput()) {
+            $field->freeInput(true);
+
+            if (isset($this->value)) {
+                $array = $this->value;
+                if (!is_array($array)) {
+                    $array = [$array];
+                }
+                foreach ($array as $value) {
+                    if (!in_array($value, $options)) {
+                        $options[$value] = $value;
+                    }
+                }
+            }
+        }
+
+        $field->options($options);
 
         if ($field instanceof RadioButton) {
-            $field->addEmpty();
+            $field->addEmpty(true);
         }
     }
     
     protected function setValidates(&$validates, $form_column_options)
     {
-        $select_options = $this->custom_column->createSelectOptions();
-        $validates[] = new SelectRule(array_keys($select_options));
+        if (!$this->isFreeInput()) {
+            $select_options = $this->custom_column->createSelectOptions();
+            $validates[] = new SelectRule(array_keys($select_options));
+        }
     }
 
     protected function getRemoveValidates()
@@ -143,6 +163,15 @@ class Select extends CustomItem
     {
         return $this->isMultipleEnabledTrait();
     }
+
+    public function isFreeInput()
+    {
+        if (boolval($this->custom_column->getOption('radiobutton_enabled', false)) ||
+            boolval($this->custom_column->getOption('checkbox_enabled', false))) {
+            return false;
+        }
+        return boolval($this->custom_column->getOption('free_input', false));
+    }
     protected function getFilterFieldClass()
     {
         return Field\Select::class;
@@ -174,11 +203,11 @@ class Select extends CustomItem
             ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'options_multiple_enabled', 'value' => '1'])])
             ->help(exmtrans("custom_column.help.checkbox_enabled"));
 
-        $form->switchbool('input_freely', exmtrans("custom_column.options.input_freely"))
+        $form->switchbool('free_input', exmtrans("custom_column.options.free_input"))
             ->attribute(['data-filter' => json_encode([
                 ['parent' => 1, 'key' => 'options_radiobutton_enabled', 'value' => '0'],
                 ['parent' => 1, 'key' => 'options_checkbox_enabled', 'value' => '0']])])
-            ->help(exmtrans("custom_column.help.input_freely"));
+            ->help(exmtrans("custom_column.help.free_input"));
     }
 
 }
