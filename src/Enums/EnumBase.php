@@ -14,6 +14,14 @@ class EnumBase extends Enum
         return strtolower($this->getKey());
     }
     
+    /**
+     * get upper key Name
+     */
+    public function upperKey()
+    {
+        return strtoupper($this->getKey());
+    }
+    
     public function toString()
     {
         return $this->__toString();

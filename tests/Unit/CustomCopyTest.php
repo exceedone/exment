@@ -14,7 +14,7 @@ use Exceedone\Exment\Tests\TestDefine;
 
 class CustomCopyTest extends UnitTestBase
 {
-    use DatabaseTransactions;
+    use DatabaseTransactions, CustomTableTrait;
 
     protected function init(){
         System::clearCache();
@@ -30,13 +30,19 @@ class CustomCopyTest extends UnitTestBase
         $copy_settings = [
             'from_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
         ];
-        $copy = $this->prepareCustomCopy($copy_settings);
+        $copy = $this->_prepareCustomCopy($copy_settings);
+        $id = array_get($copy, 'id');
 
         $custom_value = getModelName($copy_settings['from_table_name'])::find(5);
         $response = $copy->execute($custom_value);
 
         $this->assertTrue(array_get($response, 'result'));
-        $this->compareCopyValue($custom_value, array_get($response, 'redirect'));
+        $this->_compareCopyValue($custom_value, array_get($response, 'redirect'));
+
+        // test delete custom copy setting
+        $copy->delete();
+        $this->assertNull(CustomCopy::find($id));
+        $this->assertCount(0, CustomCopyColumn::where('custom_copy_id', $id)->get());
     }
 
     /**
@@ -54,14 +60,14 @@ class CustomCopyTest extends UnitTestBase
                 'decimal' => '12345.67',
             ],
         ];
-        $copy = $this->prepareCustomCopy($copy_settings);
+        $copy = $this->_prepareCustomCopy($copy_settings);
 
         $custom_value = getModelName($copy_settings['from_table_name'])::find(11);
 
         $response = $copy->execute($custom_value, $copy_settings['input_columns']);
 
         $this->assertTrue(array_get($response, 'result'));
-        $this->compareCopyValue($custom_value, array_get($response, 'redirect'), $copy_settings);
+        $this->_compareCopyValue($custom_value, array_get($response, 'redirect'), $copy_settings);
     }
 
     /**
@@ -75,13 +81,13 @@ class CustomCopyTest extends UnitTestBase
             'from_table_name' => TestDefine::TESTDATA_TABLE_NAME_EDIT_ALL,
             'to_table_name' => TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL,
         ];
-        $copy = $this->prepareCustomCopy($copy_settings);
+        $copy = $this->_prepareCustomCopy($copy_settings);
 
         $custom_value = getModelName($copy_settings['from_table_name'])::find(5);
         $response = $copy->execute($custom_value);
 
         $this->assertTrue(array_get($response, 'result'));
-        $this->compareCopyValue($custom_value, array_get($response, 'redirect'));
+        $this->_compareCopyValue($custom_value, array_get($response, 'redirect'));
     }
 
     /**
@@ -100,16 +106,40 @@ class CustomCopyTest extends UnitTestBase
                 'email' => 'test123@mail.com',
             ],
         ];
-        $copy = $this->prepareCustomCopy($copy_settings);
+        $copy = $this->_prepareCustomCopy($copy_settings);
 
         $custom_value = getModelName($copy_settings['from_table_name'])::find(3);
         $response = $copy->execute($custom_value, $copy_settings['input_columns']);
 
         $this->assertTrue(array_get($response, 'result'));
-        $this->compareCopyValue($custom_value, array_get($response, 'redirect'), $copy_settings);
+        $this->_compareCopyValue($custom_value, array_get($response, 'redirect'), $copy_settings);
     }
 
-    protected function compareCopyValue($custom_value, $redirect, $settings = [])
+    /**
+     * delete custom table with copy setting
+     */
+    public function testTableDeleteWithCopy()
+    {
+        $this->_createSimpleTable('copy_from');
+        $this->_createSimpleTable('copy_to');
+        $copy_settings = [
+            'from_table_name' => 'copy_from',
+            'to_table_name' => 'copy_to',
+        ];
+        $copy = $this->_prepareCustomCopy($copy_settings);
+        $id = array_get($copy, 'id');
+
+        // test delete custom table with copy setting
+        $res = CustomTable::getEloquent($copy_settings['from_table_name'])->delete();
+        $this->assertTrue($res);
+        $res = CustomTable::getEloquent($copy_settings['to_table_name'])->delete();
+        $this->assertTrue($res);
+
+        $this->assertNull(CustomCopy::find($id));
+        $this->assertCount(0, CustomCopyColumn::where('custom_copy_id', $id)->get());
+    }
+
+    protected function _compareCopyValue($custom_value, $redirect, $settings = [])
     {
         $path_array = explode('/', $redirect);
         $new_id = end($path_array);
@@ -128,7 +158,7 @@ class CustomCopyTest extends UnitTestBase
         }
     }
 
-    protected function prepareCustomCopy(array $options = [])
+    protected function _prepareCustomCopy(array $options = [])
     {
         $options = array_merge(
             [
@@ -160,20 +190,20 @@ class CustomCopyTest extends UnitTestBase
         {
             if (empty($copy_columns) && empty($input_columns)) {
                 $custom_copy_column = CustomCopyColumn::create(
-                    $this->getCustomCopyColumnInfo($custom_copy, $custom_column));
+                    $this->_getCustomCopyColumnInfo($custom_copy, $custom_column));
             } else if (empty($copy_columns) || \in_array($custom_column->column_name, $copy_columns)) {
                 $custom_copy_column = CustomCopyColumn::create(
-                    $this->getCustomCopyColumnInfo($custom_copy, $custom_column));
+                    $this->_getCustomCopyColumnInfo($custom_copy, $custom_column));
             } else if (array_key_exists($custom_column->column_name, $input_columns)) {
                 $custom_copy_column = CustomCopyColumn::create(
-                    $this->getCustomCopyColumnInfo($custom_copy, $custom_column, CopyColumnType::INPUT));
+                    $this->_getCustomCopyColumnInfo($custom_copy, $custom_column, CopyColumnType::INPUT));
             }
         }
 
         return $custom_copy;
     }
 
-    protected function getCustomCopyColumnInfo($custom_copy, $custom_column, $column_type = CopyColumnType::DEFAULT)
+    protected function _getCustomCopyColumnInfo($custom_copy, $custom_column, $column_type = CopyColumnType::DEFAULT)
     {
         $copy_column = [
             'custom_copy_id' => $custom_copy->id,

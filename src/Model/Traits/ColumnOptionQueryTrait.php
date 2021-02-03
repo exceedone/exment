@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ConditionTypeDetail;
 
@@ -149,5 +150,58 @@ trait ColumnOptionQueryTrait
         }
 
         return [$column_type, $column_table_id, $column_type_target, $view_pivot_column_id, $view_pivot_table_id];
+    }
+
+    /**
+     * Get column's options (only parameter target column)
+     *
+     * @param string $table_name
+     * @param array $options
+     * @return array
+     */
+    protected function getColumnSelectOption(string $table_name, array $options) : array
+    {
+        // create from options
+        return collect($options)->mapWithKeys(function ($option) use ($table_name) {
+            $column = CustomColumn::getEloquent($option, $table_name);
+            return ["{$column->id}?table_id={$column->custom_table_id}" => $option];
+        })->toArray();
+    }
+
+    /**
+     * Get column's options
+     *
+     * @param string $table_name
+     * @param array $options
+     * @return array
+     */
+    protected function getColumnSelectOptions(string $table_name, array $options = []) : array
+    {
+        $options = array_merge([
+            'is_index' => false,
+            'append_tableid' => true,
+            'add_options' => [],
+            'ignore_attachment' => false,
+        ], $options);
+        extract($options);
+
+        $custom_table = CustomTable::getEloquent($table_name);
+        // create from custom column
+        $array = $custom_table->custom_columns->filter(function($custom_column) use($is_index, $options){
+            if (boolval($is_index)) {
+                return $custom_column->index_enabled;
+            }
+            
+            if (boolval($options['ignore_attachment']) && ColumnType::isAttachment($custom_column->column_type)) {
+                return false;
+            }
+
+            return true;
+        })->mapWithKeys(function($custom_column) use($table_name, $options){
+            $key = "{$custom_column->id}" . (boolval($options['append_tableid']) ? "?table_id={$custom_column->custom_table_id}" : '');
+            return [strval($key) => $custom_column->column_view_name];
+        })->toArray();
+
+        return $add_options + $array;
     }
 }

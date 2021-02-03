@@ -685,4 +685,24 @@ class Exment
             'timezone' => $carbon->getTimezone()->getName(),
         ];
     }
+
+    /**
+     * Contains 2 array.
+     * *This function only check testArr item contains targetArr. Whether targetArr's item not contains testArr, maybe return true.*
+     *
+     * @param array|Collection $testArr
+     * @param array|Collection $targetArr
+     * @return boolean
+     */
+    public function isContains2Array($testArr, $targetArr) : bool
+    {
+        foreach ($testArr as $arrKey => $arrValue) {
+            if (!collect($targetArr)->contains(function ($v, $k) use ($arrKey, $arrValue) {
+                return isMatchString($arrKey, $k) && isMatchString($arrValue, $v);
+            })) {
+                return false;
+            };
+        }
+        return true;
+    }
 }
