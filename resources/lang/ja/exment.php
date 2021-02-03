@@ -1354,7 +1354,7 @@ return [
         'image' => '表示画像',
         'available' => '使用する',
         'hasmany_type' => 'フォームをテーブル形式にする',
-        'header_basic_setting' => 'ヘッダー基本設定',
+        'header_basic_setting' => 'フォーム基本設定',
         'changedata' => 'データ連動設定',
         'relation_filter' => '関連絞り込み',
         'relation_filter_manual' => '関連絞り込み設定',
@@ -1371,6 +1371,7 @@ return [
         'field_showing_type' => 'フィールド種類',
         'form_column_view_name' => 'フィールド表示名',
         'image_aslink' => '画像をリンクとして表示',
+        'form_label_type' => '見出し表示方法',
 
         'priority' => [
             'title' => 'フォーム表示条件設定',
@@ -1388,6 +1389,13 @@ return [
             'hr' => '罫線',
         ],
 
+        'form_label_type_options' => [
+            'form_default' => 'フォーム設定に合わせる',
+            'horizontal' => '横並び',
+            'vertical' => '縦並び',
+            'hidden' => '非表示',
+        ],
+
         'help'=> [
             'items' => 'データフォームに表示する項目を設定します。<br />「フォーム項目 候補一覧」の中から、フォームに表示したい項目を、ドラッグ＆ドロップで設定してください。',
             'changedata' => 'フォーム内の他の項目を選択したときに、選択したデータの値を、項目にコピーすることができます。<br />詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
@@ -1398,6 +1406,8 @@ return [
             'field_showing_type' => 'フィールドの種類を選択します。画面に表示する方法を選択してください。',
             'form_column_view_name' => 'フォームに表示する名称を変更する場合は、記入してください。',
             'image_aslink' => 'YESにすることで、画像をリンク形式で表示します。',
+            'form_label_type' => '各項目の見出しを、どのように表示するかを設定します。※フォーム全体の設定です。個別に設定する場合は、各項目の設定を変更してください。',
+            'field_label_type' => 'この項目の見出しを、どのように表示するかを設定します。',
         ],
 
         'message' => [

@@ -8,7 +8,7 @@
 }
 
 #custom_form_form .custom_form_area_inner {
-  border: 1px solid;
+  border: 1px solid black;
   padding: 5px;
 }
 
@@ -60,6 +60,12 @@
 
 #custom_form_form .custom_form_column_items .config-icon:hover {
   opacity: 0.6;
+}
+
+#custom_form_form .custom_form_column_items .draggables .item-label {
+  display: inline-block;
+  max-width: calc(100% - 40px);
+  word-wrap: break-word;
 }
 
 #custom_form_form .custom_form_column_suggests .draggables {

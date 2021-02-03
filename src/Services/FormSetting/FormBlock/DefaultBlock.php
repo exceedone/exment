@@ -26,7 +26,7 @@ class DefaultBlock extends BlockBase
         $block->id = null;
         $block->form_block_type = FormBlockType::DEFAULT;
         $block->form_block_target_table_id = $custom_table->id;
-        $block->label = static::getBlockLabelHeader($custom_table) . $custom_table->table_view_name;
+        $block->label = static::getBlockLabelHeader($custom_table);
         $block->form_block_view_name = $block->label;
         $block->available = 1;
         $block->options = [];

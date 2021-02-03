@@ -25,7 +25,15 @@ class FormOptions extends Migration
             }
         });
 
+        Schema::table('custom_forms', function (Blueprint $table) {
+            if (!Schema::hasColumn('custom_forms', 'options')) {
+                $table->json('options')->after('default_flg')->nullable();
+            }
+        });
         Schema::table('custom_form_columns', function (Blueprint $table) {
+            if (!Schema::hasColumn('custom_form_columns', 'suuid')) {
+                $table->string('suuid', 20)->index()->after('id')->nullable();
+            }
             if (!Schema::hasColumn('custom_form_columns', 'row_no')) {
                 $table->integer('row_no')->after('form_column_target_id')->default(1);
             }

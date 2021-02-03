@@ -202,13 +202,13 @@ abstract class BlockBase
         // get custom_form_blocks from request
         $req_custom_form_blocks = old('custom_form_blocks');
         if (!isset($req_custom_form_blocks)
-            || !isset($req_custom_form_blocks[$this->custom_form_block['id']])
-            || !isset($req_custom_form_blocks[$this->custom_form_block['id']]['custom_form_columns'])
+            || !isset($req_custom_form_blocks[$this->custom_form_block->request_key])
+            || !isset($req_custom_form_blocks[$this->custom_form_block->request_key]['custom_form_columns'])
         ) {
             return collect(array_get($this->custom_form_block, 'custom_form_columns') ?? []);
         }
 
-        $custom_form_columns = $req_custom_form_blocks[$this->custom_form_block['id']]['custom_form_columns'];
+        $custom_form_columns = $req_custom_form_blocks[$this->custom_form_block->request_key]['custom_form_columns'];
         return collect($custom_form_columns)->map(function ($req_custom_form_column, $id) {
             $custom_form_column = new CustomFormColumn($req_custom_form_column);
             $custom_form_column->id = $id;
@@ -280,6 +280,19 @@ abstract class BlockBase
                 'columns' => $columns,
             ];
         });
+
+        // if empty row column, append init form items
+        if($groupRowColumns->count() == 0){
+            $groupRowColumns->push([
+                'row_no' => 1,
+                'columns' => collect([[
+                    'column_no' => 1,
+                    'width' => 1,
+                    'gridWidth' => 3,
+                    'custom_form_columns' => [],
+                ]]),
+            ]);
+        }
 
         return $groupRowColumns;
     }

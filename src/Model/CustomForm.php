@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\DataItems\Show as ShowItem;
 use Exceedone\Exment\DataItems\Form as FormItem;
@@ -15,6 +16,10 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
+    use Traits\DatabaseJsonOptionTrait;
+
+    protected $casts = ['options' => 'json'];
+    protected $appends = ['form_label_type'];
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'form_name'],
@@ -109,6 +114,21 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         $this->_form_item = FormItem\DefaultForm::getItem($this->custom_table, $this);
 
         return $this->_form_item;
+    }
+
+    /**
+     */
+    public function getFormLabelTypeAttribute()
+    {
+        return $this->getOption('form_label_type', FormLabelType::HORIZONTAL);
+    }
+
+    /**
+     */
+    public function setFormLabelTypeAttribute($form_label_type)
+    {
+        $this->setOption('form_label_type', $form_label_type);
+        return $this;
     }
 
 

@@ -7,6 +7,8 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
+use Encore\Admin\Widgets\Form as WidgetForm;
+use Encore\Admin\Widgets\Box;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
@@ -16,6 +18,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -194,7 +197,7 @@ class CustomFormController extends AdminControllerTableBase
      */
     public function store(Request $request)
     {
-        $validator = $this->saveformValidate($request, $id);
+        $validator = $this->saveformValidate($request);
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator);
         }
@@ -291,11 +294,6 @@ class CustomFormController extends AdminControllerTableBase
             return $custom_form_block_item->getItemsForDisplay();
         });
 
-        // get exment version
-        $ver = \Exment::getExmentCurrentVersion();
-        if (!isset($ver)) {
-            $ver = date('YmdHis');
-        }
 
         // create endpoint
         $formroot = admin_url("form/{$this->custom_table->table_name}");
@@ -304,14 +302,46 @@ class CustomFormController extends AdminControllerTableBase
             'formroot' => $formroot,
             'endpoint'=> $endpoint,
             'custom_form_blocks' => $custom_form_blocks,
-            'css' => asset('/vendor/exment/css/customform.css?ver='.$ver),
-            'jslist' => [asset('/vendor/exment/js/customformitem.js?ver='.$ver), asset('/vendor/exment/js/customform.js?ver='.$ver)],
             'editmode' => isset($id),
-            'form_view_name' => $form->form_view_name,
-            'default_flg' => $form->default_flg?? '0',
-            'change_page_menu' => (new Tools\CustomTableMenuButton('form', $this->custom_table)),
+            'headerBox' => $this->getHeaderBox($form, $formroot),
         ]));
     }
+
+
+    /**
+     * Get header box ex. view name, label, default flg....
+     *
+     * @param CustomForm|null $custom_form
+     * @return void
+     */
+    protected function getHeaderBox(?CustomForm $custom_form, string $formroot)
+    {
+        ///// set default setting
+        $form = new WidgetForm($custom_form);
+        $form->disableSubmit()->disableReset()->onlyRenderFields();
+
+        $form->text('form_view_name', exmtrans('custom_form.form_view_name'))
+            ->required();
+
+        $form->radio('form_label_type', exmtrans('custom_form.form_label_type'))
+            ->help(exmtrans('custom_form.help.form_label_type'))
+            ->default(FormLabelType::HORIZONTAL)
+            ->options(FormLabelType::transArrayFilter('custom_form.form_label_type_options', FormLabelType::getFormLabelTypes()));
+            
+        $form->switchbool('default_flg', exmtrans('custom_form.default_flg'))
+            ->default(false);
+
+        $box = new Box(exmtrans('custom_form.header_basic_setting'), $form);
+        $box->tools(view('exment::tools.button', [
+            'href' => $formroot,
+            'label' => trans('admin.list'),
+            'icon' => 'fa-list',
+            'btn_class' => 'btn-default',
+        ])->render());
+        $box->tools((new Tools\CustomTableMenuButton('form', $this->custom_table))->render());
+        return $box;
+    }
+
 
     protected function getFormBlocks($form)
     {    
@@ -371,9 +401,9 @@ class CustomFormController extends AdminControllerTableBase
             return $form->custom_form_blocks;
         }
 
-        return collect($req_custom_form_blocks)->map(function ($req_custom_form_block, $id) {
+        return collect($req_custom_form_blocks)->map(function ($req_custom_form_block, $key) {
             $custom_form_block = new CustomFormBlock($req_custom_form_block);
-            $custom_form_block->id = $id;
+            $custom_form_block->request_key = $key;
             $custom_form_block->available = $req_custom_form_block['available'] ?? 0;
             $custom_form_block->target_table = CustomTable::getEloquent($req_custom_form_block['form_block_target_table_id']);
             return $custom_form_block;
@@ -446,6 +476,7 @@ class CustomFormController extends AdminControllerTableBase
             }
             $form->form_view_name = $request->input('form_view_name');
             $form->default_flg = $request->input('default_flg');
+            $form->form_label_type = $request->input('form_label_type', FormLabelType::HORIZONTAL);
             $form->saveOrFail();
             $id = $form->id;
 

@@ -61,6 +61,7 @@ class Bootstrap
         Ad::css(asset('vendor/exment/fullcalendar/timegrid/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
         Ad::css(asset('vendor/exment/css/workflow.css?ver='.$ver));
+        Ad::css(asset('vendor/exment/css/customform.css?ver='.$ver));
         Ad::css(asset('vendor/exment/codemirror/codemirror.css?ver='.$ver));
         Ad::css(asset('vendor/exment/jstree/themes/default/style.min.css?ver='.$ver));
         
@@ -90,6 +91,8 @@ class Bootstrap
         Ad::js(asset('vendor/exment/js/modal.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/workflow.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/changefield.js?ver='.$ver));
+        Ad::js(asset('vendor/exment/js/customformitem.js?ver='.$ver));
+        Ad::js(asset('vendor/exment/js/customform.js?ver='.$ver));
 
         // set scripts
         $pluginPublics = Plugin::getPluginPublics();

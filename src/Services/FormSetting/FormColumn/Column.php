@@ -5,6 +5,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Services\FormSetting\FormBlock\BlockBase;
@@ -97,6 +98,7 @@ class Column extends ColumnBase
                 'view_only',
                 'read_only',
                 'hidden',
+                'field_label_type',
                 'changedata_target_column_id',
                 'changedata_column_id',
             ]);
@@ -136,6 +138,13 @@ class Column extends ColumnBase
             ->help(exmtrans('custom_form.help.form_column_view_name'))
             ->default($this->custom_column->column_view_name ?? null);
 
+        $form->radio('field_label_type', exmtrans('custom_form.form_label_type'))
+            ->options(FormLabelType::transArrayFilter('custom_form.form_label_type_options', FormLabelType::getFieldLabelTypes()))
+            ->help(exmtrans('custom_form.help.field_label_type'))
+            ->default(function() use($parameters){
+                return array_get($parameters, 'field_label_type', FormLabelType::FORM_DEFAULT);
+            });
+    
         $form->radio('field_showing_type', exmtrans('custom_form.field_showing_type'))->options([
             'default' => exmtrans('custom_form.field_default'),
             'read_only' => exmtrans('custom_form.read_only'),

@@ -8,8 +8,8 @@
         margin-bottom: 5px;
     }
 
-    .custom_form_area_inner{
-        border: 1px solid;
+    .custom_form_area_inner {
+        border: 1px solid black;
         padding: 5px;
 
         .custom_form_area_header{
@@ -63,6 +63,13 @@
             &:hover{
                 opacity: 0.6;
             }
+        }
+
+        
+        .draggables .item-label{
+            display: inline-block;
+            max-width: calc(100% - 40px);
+            word-wrap: break-word;
         }
     }
 

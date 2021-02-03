@@ -12,6 +12,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
     use Traits\UniqueKeyCustomColumnTrait;
+    use Traits\AutoSUuidTrait;
     
     protected $casts = ['options' => 'json'];
     protected $appends = ['form_column_target'];
