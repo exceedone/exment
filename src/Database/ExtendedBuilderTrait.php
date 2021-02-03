@@ -472,7 +472,7 @@ trait ExtendedBuilderTrait
 
     /**
      * get query instance
-     * @return Exceedone\Exment\Database\Query\ExtendedBuilder
+     * @return \Exceedone\Exment\Database\Query\ExtendedBuilder
      */
     protected function _getQueryExment()
     {

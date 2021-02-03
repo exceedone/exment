@@ -180,7 +180,8 @@ trait ColumnOptionQueryTrait
             'is_index' => false,
             'add_options' => []
         ], $options);
-        extract($options);
+        $is_index = $options['is_index'];
+        $add_options = $options['add_options'];
 
         $custom_table = CustomTable::getEloquent($table_name);
         // create from custom column
@@ -189,7 +190,7 @@ trait ColumnOptionQueryTrait
                 return $custom_column->index_enabled;
             }
             return true;
-        })->mapWithKeys(function ($custom_column) use ($table_name) {
+        })->mapWithKeys(function ($custom_column) {
             return ["{$custom_column->id}?table_id={$custom_column->custom_table_id}" => $custom_column->column_view_name];
         })->toArray();
 
