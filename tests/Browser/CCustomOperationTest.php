@@ -192,7 +192,7 @@ class CCustomOperationTest extends ExmentKitTestCase
                 $this->seeIsSelected("custom_operation_conditions[$row_id][condition_value][]", 
                     TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
                 $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::CONDITION));
-                $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value]']", 
+                $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value][]']", 
                     $this->getUserSelectOptions());
             } else {
                 $this->seeIsSelected("custom_operation_conditions[$row_id][condition_target]", 
@@ -308,7 +308,7 @@ class CCustomOperationTest extends ExmentKitTestCase
             $this->seeIsSelected("custom_operation_conditions[$row_id][condition_value][]", 
                 TestDefine::TESTDATA_ROLEGROUP_GENERAL);
             $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_key]']", $this->getFilterSelectOptions(FilterType::CONDITION));
-            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value]']", 
+            $this->exactSelectOptions("select[name='custom_operation_conditions[$row_id][condition_value][]']", 
                 $this->getRoleSelectOptions());
         }
 
@@ -602,11 +602,10 @@ class CCustomOperationTest extends ExmentKitTestCase
      */
     protected function getUserSelectOptions() : array
     {
-        return CustomTable::getEloquent(SystemTableName::USER)->getValueModel()->all()
-            ->mapWithKeys(function($value) {
-                return [$value->id => $value->getValue('user_name')];
-            })->toArray();
-
+        $custom_table = CustomTable::getEloquent(SystemTableName::USER);
+        return $custom_table->getSelectOptions([
+            'display_table' => TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST,
+        ])->toArray();
     }
 
     /**
