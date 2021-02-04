@@ -66,7 +66,7 @@
                 </div>
 
 
-                <div class="col-md-9">
+                <div class="col-md-10">
                     <div class="custom_form_column_block"
                         data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}">
 
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-                <div class="col-xs-12 col-md-3 custom_form_column_block"
+                <div class="col-xs-12 col-md-2 custom_form_column_block"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}">
                     <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('custom_form.suggest_items') }}</h5>
                     @foreach($custom_form_block['suggests'] as $suggest)

@@ -91,16 +91,6 @@
   word-wrap: break-word;
 }
 
-#custom_form_form .custom_form_column_suggests .draggables {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-#custom_form_form .custom_form_column_suggests .draggables .draggable {
-  margin: 0.2em;
-  width: calc(50% - 0.4em) !important;
-}
-
 #custom_form_form .addbutton_block {
   position: relative;
   min-height: 150px;

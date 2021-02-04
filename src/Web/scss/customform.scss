@@ -96,20 +96,6 @@
         }
     }
 
-    .custom_form_column_suggests
-    {
-        .draggables{
-            display: flex;
-            flex-wrap: wrap; 
-            
-            .draggable{
-                margin: 0.2em;
-                width: calc(50% - 0.4em) !important;
-            }
-        }
-    }
-
-
     .addbutton_block{
         position: relative;
         min-height: 150px;

@@ -37,18 +37,26 @@ var Exment;
          */
         static addDragItemEvent($draggable) {
             let $draggables = $draggable.closest('.draggables');
+            let connectToSortable = '.' + $draggables.data('connecttosortable') + ' .draggables';
             // destory first, for dragged from suggest.
-            $draggable.draggable('destroy');
+            //$draggable.draggable('destroy');
             // set event for fix area   
-            $draggables
-                .sortable({
+            $draggable.draggable({
+                // connect to sortable. set only same block
+                connectToSortable: connectToSortable,
+                //cursor: 'move',
+                revert: "invalid",
+                droppable: "drop",
                 distance: 40,
-            }).each(function (index, elem) {
-                let d = $(elem);
-                let $draggable = d.children('.draggable');
-                $draggable.each(function (index2, elem2) {
-                    //CustomFromEvent.setDragItemEvent($(elem2));
-                });
+                start: (event, ui) => {
+                    // reset draageble target
+                    ui.helper.addClass('moving');
+                },
+                stop: (event, ui) => {
+                    // reset draageble target
+                    CustomFromEvent.setMovedEvent(ui.helper);
+                    ui.helper.removeClass('moving');
+                },
             });
         }
         /**
@@ -57,21 +65,48 @@ var Exment;
          */
         static addDragSuggestEvent($draggable) {
             let $draggables = $draggable.closest('.draggables');
+            let connectToSortable = '.' + $draggables.data('connecttosortable') + ' .draggables';
             $draggable.draggable({
                 // connect to sortable. set only same block
                 // and filter not draggable_setted
-                connectToSortable: '.' + $draggables.data('connecttosortable') + ' .draggables',
+                connectToSortable: connectToSortable,
                 helper: $draggables.closest('[data-draggable_clone]').data('draggable_clone') ? 'clone' : '',
                 revert: "invalid",
                 droppable: "drop",
                 distance: 40,
+                start: (event, ui) => {
+                    // reset draageble target
+                    ui.helper.addClass('moving');
+                },
                 stop: (event, ui) => {
+                    ui.helper.removeClass('moving');
                     // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
                     if (ui.helper.closest('.custom_form_column_items').length > 0) {
                         CustomFromEvent.setMovedEvent(ui.helper);
                         CustomFromEvent.addDragItemEvent(ui.helper.closest('.draggable'));
                     }
                 }
+            });
+            CustomFromEvent.addSortableEvent($draggable);
+        }
+        /**
+         * Append event for suggest item, for loading display.
+         * @param $draggable suggest area list
+         */
+        static addSortableEvent($draggable) {
+            let $draggables = $draggable.closest('.draggables');
+            let connectToSortable = '.' + $draggables.data('connecttosortable') + ' .draggables';
+            $(connectToSortable)
+                .not('.added-sortable')
+                .sortable({
+                distance: 40,
+            }).each(function (index, elem) {
+                let d = $(elem);
+                let $draggable = d.children('.draggable');
+                $draggable.each(function (index2, elem2) {
+                    //CustomFromEvent.setDragItemEvent($(elem2));
+                });
+                d.addClass('added-sortable');
             });
         }
         /**
@@ -390,6 +425,7 @@ var Exment;
         CustomFromEvent.togglePlusButton($button);
         CustomFromEvent.appendRow($copy);
         CustomFromEvent.resizeEvent($copy);
+        CustomFromEvent.addSortableEvent($copy.find('.draggables'));
     };
     /**
      * Add All item button event
