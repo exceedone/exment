@@ -210,6 +210,7 @@ EOT;
             if (isset($this->id)) {
                 $item->id($this->id);
             }
+            $item->setCustomForm($this->custom_form);
             $form->pushField($item->getAdminField($form_column));
         }
     }
@@ -240,7 +241,10 @@ EOT;
                     continue;
                 }
     
-                $field = $form_column->column_item->setCustomValue($target_custom_value)->getAdminField($form_column);
+                $field = $form_column->column_item
+                    ->setCustomForm($this->custom_form)
+                    ->setCustomValue($target_custom_value)
+                    ->getAdminField($form_column);
     
                 // set $closures using $form_column->column_no
                 if (!isset($field)) {

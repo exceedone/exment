@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
+use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\FilterSearchType;
@@ -337,6 +338,9 @@ abstract class CustomItem implements ItemInterface
             $field->attribute(['suggest_url' => $url]);
         }
 
+        // set label
+        $this->setLabelType($field, $form_column_options);
+
         // set validates
         $field->rules($this->getColumnValidates($form_column_options, $field));
 
@@ -458,6 +462,36 @@ abstract class CustomItem implements ItemInterface
         $grammar = \DB::getQueryGrammar();
         return $grammar->getColumnTypeString($type);
     }
+
+    /**
+     * Set label type to field
+     *
+     * @param Field $field
+     * @param array $form_column_options
+     * @return void
+     */
+    protected function setLabelType(&$field, $form_column_options)
+    {
+        $field_label_type = array_get($form_column_options, 'field_label_type', FormLabelType::FORM_DEFAULT);
+        
+        // get form info
+        if($field_label_type == FormLabelType::FORM_DEFAULT && isset($this->custom_form)){
+            $field_label_type = $this->custom_form->getOption('form_label_type') ?? FormLabelType::HORIZONTAL;
+        }
+
+        switch($field_label_type){
+            case FormLabelType::HORIZONTAL:
+                return;
+            case FormLabelType::VERTICAL:
+                $field->disableHorizontal();
+                return;
+            case FormLabelType::HIDDEN:
+                $field->disableHorizontal();
+                $field->disableLabel();
+                return;
+        }
+    }
+
 
     protected function getCastOptions()
     {

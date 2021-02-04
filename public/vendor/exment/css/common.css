@@ -3854,6 +3854,10 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   padding-left: 0;
 }
 
+.form-group-vertical {
+  margin-bottom: 10px;
+}
+
 table img.image_html {
   max-width: 200px;
   max-height: 200px;

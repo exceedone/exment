@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomForm;
 
 /**
  *
@@ -25,6 +26,13 @@ trait ItemTrait
     protected $options;
 
     protected $uniqueName;
+
+    /**
+     * CustomForm
+     *
+     * @var CustomForm
+     */
+    protected $custom_form;
 
     /**
      * get value
@@ -400,5 +408,19 @@ trait ItemTrait
     public function convertFilterValue($value)
     {
         return $value;
+    }
+
+    /**
+     * Set customForm
+     *
+     * @param  CustomForm  $custom_form  CustomForm
+     *
+     * @return  self
+     */ 
+    public function setCustomForm(CustomForm $custom_form)
+    {
+        $this->custom_form = $custom_form;
+
+        return $this;
     }
 }

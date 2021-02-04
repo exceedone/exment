@@ -11,11 +11,15 @@
     <div class="embed-{{$column}}-forms">
 
         <div class="embed-{{$column}}-form fields-group">
-            @foreach($fieldGroups as $fieldGroup)
+            @foreach($fieldGroups as $fieldRow)
                 <div class="row">
-                    @foreach($fieldGroup as $field)
-                    <div class="col-sm-{{array_get($field, 'col_sm', 12)}}">
-                    {!! $field['field']->render() !!}
+                    @foreach($fieldRow['columns'] as $fieldColumn)
+                        <div class="col-sm-{{array_get($fieldColumn, 'col_sm', 12)}}">
+                        @foreach($fieldColumn['fields'] as $field)
+                            <div class="row"><div class="col-sm-{{array_get($field, 'field_sm', 12)}} col-sm-offset-{{array_get($field, 'field_offset', 0)}}">
+                            {!! $field['field']->render() !!}
+                            </div></div>
+                        @endforeach
                     </div>
                     @endforeach
                 </div>
