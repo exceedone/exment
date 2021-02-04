@@ -223,7 +223,10 @@ class Embeds extends AdminField\Embeds
 
                 // set field's col sm and offset
                 $fieldOption['fields'] = collect($fieldOption['fields'])->map(function ($field) use($totalWidth){ 
-                    if($totalWidth == 1 && !$field['field']->getHorizontal()){
+                    if($totalWidth == 1){
+                        $field['field_sm'] = 8;
+                        $field['field_offset'] = 2;
+                    }elseif($totalWidth == 2 && !$field['field']->getHorizontal()){
                         $field['field_sm'] = 8;
                         $field['field_offset'] = 2;
                     }

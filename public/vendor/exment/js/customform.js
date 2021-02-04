@@ -5,6 +5,7 @@ var Exment;
             CustomFromEvent.loadingEvent();
             CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
             CustomFromEvent.appendIcheckEvent($('.box-custom_form_block .icheck:visible, .box-custom_form_block .icheck.icheck_hasmany_type'));
+            CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
             $('form').on('submit', CustomFromEvent.formSubmitEvent);
         }
         static AddEventOnce() {
@@ -89,6 +90,12 @@ var Exment;
                 'class': 'column_no',
                 type: 'hidden',
             }));
+            $elem.append($('<input/>', {
+                name: header_name + '[width]',
+                value: $elem.closest('[data-width]').data('width'),
+                'class': 'width',
+                type: 'hidden',
+            }));
             // rename for toggle
             if (hasValue($elem.find('[data-toggle]'))) {
                 let uuid = getUuid();
@@ -135,6 +142,18 @@ var Exment;
             $elem.find('.draggables').data('column_no', column);
             // update items column no
             $elem.find('.column_no').val(column);
+        }
+        /**
+         * Update width no. each items.
+         * @param $elem
+         */
+        static updateAreaWidth($elem) {
+            // update data row and column no
+            let $custom_form_area = $elem.closest('.custom_form_area');
+            let width = $custom_form_area.data('grid_column') / 3;
+            $custom_form_area.find('.draggables').data('width', width);
+            // update items column no
+            $elem.find('.width').val(width);
         }
         static appendRow($copy) {
             if ($copy.find('[data-column_no]').data('column_no') != 1) {
@@ -235,6 +254,63 @@ var Exment;
             $replaceLi.attr('data-header_column_name', newHeaderName);
             $replaceLi.attr('id', newHeaderName);
         }
+        /**
+         * Box resize event
+         * https://codepen.io/delagics/pen/PWxjMN
+         * Delagics CA
+         * Customized
+         */
+        static resizeEvent(resizableEl) {
+            let columns = 12, fullWidth = resizableEl.parent().width(), columnWidth = fullWidth / columns, updateClass = function (el, col, updateValue) {
+                el.css('width', ''); // remove width, our class already has it
+                el.removeClass(function (index, className) {
+                    return (className.match(/(^|\s)col-\S+/g) || []).join(' ');
+                }).addClass('col-sm-' + col);
+                // if 1 or 2, resize this
+                if (updateValue == 1 || updateValue == 2) {
+                    el.data('grid_column', col);
+                    CustomFromEvent.updateAreaWidth(el);
+                }
+                // if 2, size down next element and resize.
+                if (updateValue == 2) {
+                    let $next = $(el).closest('[data-grid_column]').next('[data-grid_column]');
+                    updateClass($next, $next.data('grid_column') - 3, 1);
+                }
+            };
+            // jQuery UI Resizable
+            resizableEl.resizable({
+                handles: 'e',
+                start: function (event, ui) {
+                    let target = ui.element;
+                    let targetCol = Math.round(target.width() / columnWidth);
+                    target.resizable('option', 'minWidth', columnWidth);
+                },
+                resize: function (event, ui) {
+                    let $element = $(ui.element);
+                    let beforeGridColumn = $element.data('grid_column');
+                    let target = ui.element;
+                    let targetColumnCount = Math.round(target.width() / columnWidth);
+                    let updateValue = 1;
+                    // Whether update next
+                    if (beforeGridColumn == targetColumnCount || targetColumnCount % 3 !== 0) {
+                        targetColumnCount = beforeGridColumn;
+                        updateValue = 0;
+                    }
+                    else {
+                        updateValue = CustomFromEvent.isEnableResize($element, targetColumnCount);
+                        if (updateValue == 0) {
+                            targetColumnCount = beforeGridColumn;
+                        }
+                    }
+                    updateClass(target, targetColumnCount, updateValue);
+                    // toggle append button
+                    let $button = target.closest('.row').find('.addbutton_button');
+                    CustomFromEvent.togglePlusButton($button);
+                },
+            });
+            resizableEl.prop('data-add-resizable', 1);
+            $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_tooltip').val());
+        }
     }
     CustomFromEvent.addAreaButtonEvent = (ev) => {
         let $button = $(ev.target).closest('.addbutton_button');
@@ -247,6 +323,7 @@ var Exment;
         // toggle plus button
         CustomFromEvent.togglePlusButton($button);
         CustomFromEvent.appendRow($copy);
+        CustomFromEvent.resizeEvent($copy);
         CustomFromEvent.addDragItemEvent($copy);
     };
     /**
@@ -440,6 +517,29 @@ var Exment;
         $target_li.find('.image').remove();
         $modal.find('.image').appendTo($target_li).prop('name', header_name + '[options][image]').hide();
         $modal.modal('hide');
+    };
+    /**
+     * whether inable resize
+     * @param el
+     * @param nextSize resizing expects size
+     * @return 1: can resize. 0: cannot resize. 2: next box size resize to down.
+     */
+    CustomFromEvent.isEnableResize = function (el, nextSize) {
+        // calc size
+        let $items = $(el).closest('.row').find('[data-grid_column]').not(el);
+        let columns = 0;
+        $items.each(function (index, elem) {
+            columns += $(elem).data('grid_column');
+        });
+        if (columns + nextSize <= 12) {
+            return 1;
+        }
+        // if next size is upper 6 and can resize, return 2;
+        let $next = $(el).closest('[data-grid_column]').next('[data-grid_column]');
+        if (hasValue($next) && $next.data('grid_column') >= 6) {
+            return 2;
+        }
+        return 0;
     };
     Exment.CustomFromEvent = CustomFromEvent;
 })(Exment || (Exment = {}));

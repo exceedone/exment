@@ -2,5 +2,5 @@
     @foreach($row['columns'] ?? [] as $custom_form_item_column)
         @include('exment::custom-form.row-columns.column', ['gridWidth' => $custom_form_item_column['gridWidth'] ?? 3])
     @endforeach
-    @include('exment::custom-form.row-columns.addarea')
+    @include('exment::custom-form.row-columns.addarea', ['isShow' => $custom_form_item_row['isShowAddButton'] ?? false])
 </div>

@@ -24,6 +24,7 @@
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'form_column_type'])
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'row_no'])
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'column_no'])
+        @include('exment::custom-form.fields.column-hidden', ['param_name' => 'width'])
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'required'])
         @endif
 

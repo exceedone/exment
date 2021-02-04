@@ -275,9 +275,15 @@ abstract class BlockBase
                 ];
             });
 
+            // cacl row's grid width.
+            $gridColumn = $columns->sum(function($column){
+                return $column['width'];
+            });
+
             return [
                 'row_no' => $groupRow->first()->getCustomFormColumn()->row_no,
                 'columns' => $columns,
+                'isShowAddButton' => ($gridColumn < 4),
             ];
         });
 

@@ -534,6 +534,7 @@ class CustomFormController extends AdminControllerTableBase
 
                     $column->row_no = array_get($column_value, 'row_no', 1);
                     $column->column_no = array_get($column_value, 'column_no', 1);
+                    $column->width = array_get($column_value, 'width', 1);
                     $column->options = $column_item->prepareSavingOptions(json_decode(array_get($column_value, 'options', "[]"), true));
                     $column->order = $order++;
 

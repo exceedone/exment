@@ -1371,6 +1371,8 @@ return [
         'field_showing_type' => 'フィールド種類',
         'form_column_view_name' => 'フィールド表示名',
         'image_aslink' => '画像をリンクとして表示',
+        'append_button_tooltip' => 'ブロックを追加',
+        'resize_tooltip' => 'ブロックのサイズを変更',
         'form_label_type' => '見出し表示方法',
 
         'priority' => [

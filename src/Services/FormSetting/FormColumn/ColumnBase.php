@@ -89,6 +89,7 @@ abstract class ColumnBase
             'form_column_type' => $this->custom_form_column->form_column_type ?? FormColumnType::COLUMN,
             'row_no' => $this->custom_form_column->row_no ?? 1,
             'column_no' => $this->custom_form_column->column_no ?? 1,
+            'width' => $this->custom_form_column->width ?? 1,
             'form_column_target_id' => $this->custom_form_column->form_column_target_id ?? null,
             
             'options' =>  collect($this->custom_form_column->options ?? [])->toJson(),

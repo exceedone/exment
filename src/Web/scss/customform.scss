@@ -8,6 +8,10 @@
         margin-bottom: 5px;
     }
 
+    .custom_form_area{
+        margin-bottom: 20px;
+    }
+
     .custom_form_area_inner {
         border: 1px solid black;
         padding: 5px;
@@ -112,5 +116,33 @@
             }
         }
     }
-    
+        
+    .ui-resizable-handle{
+        position: absolute;
+        font-size: 0.1px;
+        display: block;
+        touch-action: none;
+        width: 30px;
+        right: -15px;    
+
+        &:after{
+            content: '';
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin-top: -10px;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #ddd;
+            box-shadow: 0 10px 0 #ddd, 0 20px 0 #ddd;
+            cursor: col-resize;
+        }
+
+        &:hover{
+            background-color: #EEEEEE;
+        }
+    }
 }
