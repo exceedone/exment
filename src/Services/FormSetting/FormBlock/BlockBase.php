@@ -297,6 +297,7 @@ abstract class BlockBase
                     'gridWidth' => 6,
                     'custom_form_columns' => [],
                 ]]),
+                'isShowAddButton' => true,
             ]);
         }
 

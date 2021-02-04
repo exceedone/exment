@@ -160,7 +160,13 @@ class Column extends ColumnBase
             return 'default';
         });
 
-        $form->switchbool('required', exmtrans('custom_form.required'));
+        if($this->custom_column->required){
+            $form->display('required', exmtrans('custom_form.required'))
+                ->displayText(exmtrans('custom_form.message.required_as_column'));
+        }else{
+            $form->switchbool('required', exmtrans('custom_form.required'))
+                ->help(exmtrans('custom_form.help.required'));
+        }
 
         $selectColumns = $this->getSelectTableColumns($block_item)->filter(function($selectColumn, $key){
             return !isMatchString($key, $this->custom_column->id);

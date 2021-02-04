@@ -9,11 +9,14 @@
 
 #custom_form_form .custom_form_area {
   margin-bottom: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 #custom_form_form .custom_form_area_inner {
   border: 1px solid black;
   padding: 5px;
+  height: 100%;
 }
 
 #custom_form_form .custom_form_area_inner .custom_form_area_header {
@@ -25,9 +28,10 @@
 }
 
 #custom_form_form .custom_form_area_inner .draggables {
-  padding: 1em 0.5em;
+  padding: 2em 0.5em;
   border: 2px dashed #AAA;
-  min-height: 100px;
+  height: calc(100% - 40px);
+  min-height: 50px;
 }
 
 #custom_form_form .arrows-h {
@@ -52,6 +56,12 @@
   width: 100% !important;
   height: auto !important;
   cursor: move;
+  font-size: 0.9em;
+}
+
+#custom_form_form .draggables .draggable.error {
+  background-color: lightpink;
+  color: red;
 }
 
 #custom_form_form .draggables .item-label {
@@ -60,6 +70,11 @@
 
 #custom_form_form .draggables label {
   font-weight: normal;
+}
+
+#custom_form_form .custom_form_column_items .row {
+  margin-left: -10px;
+  margin-right: -10px;
 }
 
 #custom_form_form .custom_form_column_items .config-icon {
@@ -84,7 +99,6 @@
 #custom_form_form .custom_form_column_suggests .draggables .draggable {
   margin: 0.2em;
   width: calc(50% - 0.4em) !important;
-  font-size: 0.9em;
 }
 
 #custom_form_form .addbutton_block {
@@ -115,8 +129,8 @@
   font-size: 0.1px;
   display: block;
   touch-action: none;
-  width: 30px;
-  right: -15px;
+  width: 20px;
+  right: -10px;
 }
 
 #custom_form_form .ui-resizable-handle:after {

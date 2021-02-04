@@ -21,6 +21,7 @@ class Image extends OtherBase
         $imageurl = $this->getImageUrl();
         if(!isset($imageurl)){
             $form->image('image', exmtrans('custom_form.image'))
+                ->required()
                 ->attribute(['accept' => "image/*"]);
         }
         else{
@@ -36,6 +37,23 @@ class Image extends OtherBase
     }
 
     
+    
+    /**
+     * Get items for display
+     *
+     * @return array
+     */
+    public function getItemsForDisplay() : array
+    {
+        $result = parent::getItemsForDisplay();
+
+        // set image url for option
+        $options = json_decode($result['options'], true);
+        $options['image_url'] = $this->getImageUrl();
+        $result['options'] = collect($options)->toJson();
+        return $result;
+    }
+
     /**
      * getImageUrl
      *
@@ -64,5 +82,15 @@ class Image extends OtherBase
                 'image_aslink',
             ]);
         }, ARRAY_FILTER_USE_BOTH);
+    }
+
+    /**
+     * Get validation rules for jquery
+     *
+     * @return array
+     */
+    public function getValidationRules() : array
+    {
+        return ['image' => 'required_image'];
     }
 }

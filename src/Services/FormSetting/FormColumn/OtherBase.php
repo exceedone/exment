@@ -15,8 +15,9 @@ class OtherBase extends ColumnBase
         $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
         switch($column_form_column_name){
             case 'header':
-            case 'explain':
                 return new Text($custom_form_column);
+            case 'explain':
+                return new Explain($custom_form_column);
             case 'html':
             case 'exhtml':
                 return new Html($custom_form_column);

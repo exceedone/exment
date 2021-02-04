@@ -17,7 +17,8 @@ class Text extends OtherBase
     {
         $form = new WidgetForm($parameters);
 
-        $form->text('text', exmtrans('custom_form.text'));
+        $form->text('text', exmtrans('custom_form.text'))
+            ->required();
 
         return $form;
     }
@@ -35,5 +36,15 @@ class Text extends OtherBase
                 'text',
             ]);
         }, ARRAY_FILTER_USE_BOTH);
+    }
+
+    /**
+     * Get validation rules for jquery
+     *
+     * @return array
+     */
+    public function getValidationRules() : array
+    {
+        return ['text' => 'required'];
     }
 }

@@ -5,7 +5,6 @@ namespace Exment {
             
             CustomFromEvent.loadingEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
-            $('form').on('submit', CustomFromEvent.formSubmitEvent);
         }
 
         public static AddEventOnce() {
@@ -21,6 +20,8 @@ namespace Exment {
             $(document).on('change.exment_custom_form', '.box-custom_form_block .changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
             $(document).on('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
 
+            $(document).on('submit', '#custom_form_form', CustomFromEvent.formSubmitEvent);
+
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
             });
@@ -32,23 +33,50 @@ namespace Exment {
          */
         private static loadingEvent() {
             // Add drag item event
-            $('.custom_form_column_items .draggables,.custom_form_column_suggests .draggables').each(function(index:number, elem:Element){
+            $('.custom_form_column_items .draggables').each(function(index:number, elem:Element){
                 CustomFromEvent.addDragItemEvent($(elem).children('.draggable'));
+            });
+            $('.custom_form_column_suggests .draggables').each(function(index:number, elem:Element){
+                CustomFromEvent.addDragSuggestEvent($(elem).children('.draggable'));
             });
         }
 
 
         /**
-         * Append event for suggest item, for loading display.
-         * @param $element suggest area list
+         * Append event for setted item, for loading display.
+         * @param $draggable item area list
          */
-        public static addDragItemEvent($element: JQuery<Element>){
-            let $draggables = $element.closest('.draggables');
-            $element.draggable({
+        public static addDragItemEvent($draggable: JQuery<Element>){
+            let $draggables = $draggable.closest('.draggables');
+            
+            // destory first, for dragged from suggest.
+            $draggable.draggable('destroy');
+
+            // set event for fix area   
+            $draggables
+                .sortable({
+                    distance: 40,
+                }).each(function(index:number, elem:Element){
+                    let d = $(elem);
+                    let $draggable = d.children('.draggable');
+                    $draggable.each(function(index2, elem2){
+                        //CustomFromEvent.setDragItemEvent($(elem2));
+                    });
+                });
+        }
+
+
+        /**
+         * Append event for suggest item, for loading display.
+         * @param $draggable suggest area list
+         */
+        public static addDragSuggestEvent($draggable: JQuery<Element>){
+            let $draggables = $draggable.closest('.draggables');
+            $draggable.draggable({
                 // connect to sortable. set only same block
                 // and filter not draggable_setted
                 connectToSortable: '.' + $draggables.data('connecttosortable') + ' .draggables',
-                helper: $draggables.data('draggable_clone') ? 'clone' : '',
+                helper: $draggables.closest('[data-draggable_clone]').data('draggable_clone') ? 'clone' : '',
                 revert: "invalid",
                 droppable: "drop",
                 distance: 40,
@@ -56,15 +84,10 @@ namespace Exment {
                     // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
                     if (ui.helper.closest('.custom_form_column_items').length > 0) {
                         CustomFromEvent.setMovedEvent(ui.helper);
+                        CustomFromEvent.addDragItemEvent(ui.helper.closest('.draggable'));
                     }
                 }
             });
-
-            // set event for fix area   
-            $(".custom_form_column_items .draggables")
-                .sortable({
-                    distance: 40,
-            })
         }
         
 
@@ -87,7 +110,7 @@ namespace Exment {
             }));
             $elem.append($('<input/>', {
                 name: header_name + '[required]',
-                value: $elem.find('.required').val(),
+                value: $elem.find('.required_item').val(), // if name 'required', validation wrong call.
                 type: 'hidden',
             }));
             $elem.append($('<input/>', {
@@ -127,7 +150,7 @@ namespace Exment {
             let $button = $(ev.target).closest('.addbutton_button');
 
             let $copy: JQuery<HTMLElement> = null;
-            $copy = $('.template_item_column .custom_form_area').clone(true);
+            $copy = $button.closest('.box-custom_form_block').find('.template_item_column .custom_form_area').clone(true);
             $button.closest('.addbutton_block').before($copy);
 
             // update data row and column no
@@ -140,8 +163,6 @@ namespace Exment {
             CustomFromEvent.appendRow($copy);
 
             CustomFromEvent.resizeEvent($copy);
-
-            CustomFromEvent.addDragItemEvent($copy);
         }
 
         
@@ -360,7 +381,7 @@ namespace Exment {
                     $clone = $template.children('.custom_form_column_item').clone(true);
                     $clone.appendTo($custom_form_column_suggests).show();
 
-                    CustomFromEvent.loadingEvent();
+                    CustomFromEvent.addDragSuggestEvent($clone);
                 }
             }
 
@@ -407,6 +428,16 @@ namespace Exment {
         }
 
         private static formSubmitEvent = () => {
+            if(!CustomFromEvent.validateSubmit()){
+                CommonEvent.ShowSwal(null, {
+                    type: 'error',
+                    title: $('#validate_error_title').val(),
+                    text: $('#validate_error_message').val(),
+                    showCancelButton: false,
+                });
+                return false;
+            };
+
             // loop "custom_form_block_available" is 1
             let hasRequire = false;
             if(!$('form.custom_form_form').hasClass('confirmed')){
@@ -423,7 +454,7 @@ namespace Exment {
                     let $suggests = $(elem).parents('.box-custom_form_block').find('.custom_form_column_suggests li');
                     // if required value is 1, hasRequire is true and break
                     $suggests.each(function(i, e){
-                        if($(e).find('.required').val() == '1'){
+                        if($(e).find('.required_item').val() == '1'){
                             hasRequire = true;
                             return false;
                         }
@@ -448,6 +479,81 @@ namespace Exment {
             });
 
             return false;
+        }
+
+
+        private static validateSubmit() : boolean{
+            $.validator.addMethod('options', function(value, element){
+                return CustomFromEvent.validateOption(value, element);
+            });
+
+            $('#custom_form_form').validate({
+                ignore: [],
+                errorPlacement: function (err, element) {
+                    // append class "error" to .custom_form_column_item
+                    element.closest('.custom_form_column_item').addClass('error');
+                },  
+            });
+
+            $('[name$="options\]"]').each(function() {
+                $(this).rules('add', {
+                    options: true,
+                    messages: {
+                        options: '',
+                    },
+                });
+            });
+
+
+            let result = $('#custom_form_form').valid();
+            if(result){
+                $('#custom_form_form .error').removeClass('error');
+            }
+            return result;
+        }
+
+
+        private static validateOption(value, element) : boolean
+        {
+            if($(element).closest('.custom_form_column_suggests').length > 0){
+                return true;
+            }
+            let $elem = $(element);
+            let $item = $elem.closest('.custom_form_column_item');
+            let optionJson = JSON.parse(value);
+
+            // if already deleted, skip
+            if(pBool($item.find('.delete_flg').val())){
+                return true;
+            }
+
+            // get rules
+            let rules = JSON.parse($elem.closest('.custom_form_column_item').find('.validation_rules').val() as string);
+            for(let key in rules){
+                let rule = rules[key];
+                let optionVal = optionJson[key];
+
+                // execute rule
+                switch(rule){
+                    // required
+                    case 'required':
+                        if(!hasValue(optionVal)){
+                            return false;
+                        }
+                        break;
+                    case 'required_image':
+                        if(hasValue(optionJson['image_url'])){
+                            continue;
+                        }
+                        // check image element and has item
+                        if(!hasValue($item.find('.image')) || $item.find('.image').get(0).isDefaultNamespace.length == 0){
+                            return false;
+                        }
+                        break;
+                }
+            }
+
+            return true;
         }
         
 

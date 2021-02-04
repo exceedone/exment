@@ -19,6 +19,7 @@ class Html extends OtherBase
 
         $form->textarea('html', exmtrans('custom_form.html'))
             ->help(exmtrans('custom_form.help.html'))
+            ->required()
             ->rows(15);
 
         return $form;
@@ -37,5 +38,15 @@ class Html extends OtherBase
                 'html',
             ]);
         }, ARRAY_FILTER_USE_BOTH);
+    }
+
+    /**
+     * Get validation rules for jquery
+     *
+     * @return array
+     */
+    public function getValidationRules() : array
+    {
+        return ['html' => 'required'];
     }
 }

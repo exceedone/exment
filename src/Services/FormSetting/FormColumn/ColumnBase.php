@@ -99,6 +99,7 @@ abstract class ColumnBase
             'column_view_name' => $this->getColumnViewName(),
             'header_column_name' => $this->getHtmlHeaderName(),
             'toggle_key_name' => make_uuid(),
+            'validation_rules' => collect($this->getValidationRules())->toJson(),
             'has_custom_forms' => $this->isSelected,
         ];
     }
@@ -127,6 +128,17 @@ abstract class ColumnBase
     public function isSelectTable() : bool
     {
         return false;
+    }
+
+
+    /**
+     * Get validation rules for jquery
+     *
+     * @return array
+     */
+    public function getValidationRules() : array
+    {
+        return [];
     }
 
     /**

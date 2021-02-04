@@ -4,6 +4,8 @@
 <input type="hidden" id="resize_box_tooltip" value="{{ exmtrans('custom_form.resize_box_tooltip') }}">
 <input type="hidden" id="delete_title" value="{{ exmtrans('common.deleted') }}">
 <input type="hidden" id="delete_revert_message" value="{{ exmtrans('custom_form.message.delete_revert_message') }}">
+<input type="hidden" id="validate_error_message" value="{{ exmtrans('custom_form.message.validate_error_message') }}">
+<input type="hidden" id="validate_error_title" value="{{ exmtrans('common.error') }}">
 
 <form id="custom_form_form" method="POST" action="{{$endpoint}}" accept-charset="UTF-8" pjax-container class="custom_form_form">
     {{-- Form basic setting --}}

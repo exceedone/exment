@@ -65,6 +65,7 @@ class Bootstrap
         Ad::css(asset('vendor/exment/codemirror/codemirror.css?ver='.$ver));
         Ad::css(asset('vendor/exment/jstree/themes/default/style.min.css?ver='.$ver));
         
+        Ad::js(asset('vendor/exment/validation/jquery.validate.js?ver='.$ver));
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
         Ad::js(asset('vendor/exment/codemirror/codemirror.js'));
         Ad::js(asset('vendor/exment/codemirror/mode/htmlmixed/htmlmixed.js'));

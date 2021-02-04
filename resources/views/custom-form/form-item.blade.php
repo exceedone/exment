@@ -25,7 +25,7 @@
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'row_no'])
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'column_no'])
         @include('exment::custom-form.fields.column-hidden', ['param_name' => 'width'])
-        @include('exment::custom-form.fields.column-hidden', ['param_name' => 'required'])
+        {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[required]", array_get($custom_form_column, 'required'), ['class' => 'required_item']) }}
         @endif
 
         @if(boolval(array_get($custom_form_column, 'delete_flg')))
@@ -37,5 +37,6 @@
         @include('exment::custom-form.fields.column-hidden-disabled', ['param_name' => 'form_column_target_id'])
         @include('exment::custom-form.fields.column-hidden-disabled', ['param_name' => 'header_column_name'])
         @include('exment::custom-form.fields.column-hidden-disabled', ['param_name' => 'required'])
+        @include('exment::custom-form.fields.column-hidden-disabled', ['param_name' => 'validation_rules'])
     </div>    
 @endif
