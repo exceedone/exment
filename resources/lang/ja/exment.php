@@ -1372,7 +1372,8 @@ return [
         'form_column_view_name' => 'フィールド表示名',
         'image_aslink' => '画像をリンクとして表示',
         'append_button_tooltip' => 'ブロックを追加',
-        'resize_tooltip' => 'ブロックのサイズを変更',
+        'resize_box_tooltip' => 'ブロックのサイズを変更',
+        'delete_box_tooltip' => 'ブロックを削除',
         'form_label_type' => '見出し表示方法',
 
         'priority' => [
@@ -1416,6 +1417,7 @@ return [
             'no_exists_column' => '必須項目が設定されていません。',
             'confirm_required' => '必須項目が設定されていません。このまま保存してもよろしいでしょうか？',
             'image_need_delete' => '画像を差し替える場合、列を一度削除後、再度追加してください。',
+            'delete_revert_message' => '元に戻す場合はクリック',
         ],
     ],
 

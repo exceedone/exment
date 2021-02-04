@@ -4,16 +4,17 @@ namespace Exment {
         public static AddEvent() {
             
             CustomFromEvent.loadingEvent();
-            CustomFromEvent.appendSwitchEvent($('.la_checkbox:visible'));
-            CustomFromEvent.appendIcheckEvent($('.box-custom_form_block .icheck:visible, .box-custom_form_block .icheck.icheck_hasmany_type'));
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
             $('form').on('submit', CustomFromEvent.formSubmitEvent);
         }
 
         public static AddEventOnce() {
             $(document).on('ifChanged check', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
-            $(document).on('click.exment_custom_form', '.box-custom_form_block .delete', {}, CustomFromEvent.deleteColumn);
-            $(document).on('click.exment_custom_form', '.box-custom_form_block .setting', {}, CustomFromEvent.settingModalEvent);
+            $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .delete', {}, CustomFromEvent.deleteColumnEvent);
+            $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .setting', {}, CustomFromEvent.settingModalEvent);
+            
+            $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_area_header .delete', {}, CustomFromEvent.deleteBoxEvent);
+            
             $(document).on('click.exment_custom_form', '.box-custom_form_block .btn-addallitems', {}, CustomFromEvent.addAllItems);           
             $(document).on('click.exment_custom_form', '.box-custom_form_block .addbutton_button', {}, CustomFromEvent.addAreaButtonEvent);
 
@@ -292,8 +293,8 @@ namespace Exment {
         private static toggleFromBlock = (ev) => {
             ev.preventDefault();
             
-            var available = $(ev.target).closest('.icheck_toggleblock').prop('checked');
-            var $block = $(ev.target).closest('.box-custom_form_block').find('.custom_form_block');
+            let available = $(ev.target).closest('.icheck_toggleblock').prop('checked');
+            let $block = $(ev.target).closest('.box-custom_form_block').find('.custom_form_block');
             if (available) {
                 $block.show();
             } else {
@@ -301,55 +302,103 @@ namespace Exment {
             }
         }
 
-        private static deleteColumn = (ev) => {
+
+        /**
+         * delete form column
+         * @param ev 
+         */
+        private static deleteColumnEvent = (ev) => {
             ev.preventDefault();
 
-            var item = $(ev.target).closest('.custom_form_column_item');
+            CustomFromEvent.deleteColumn($(ev.target));
+        }
+
+        private static deleteColumn = ($elem : JQuery<HTMLElement>, isShowToastr = true) => {
+            let item = $elem.closest('.custom_form_column_item');
             if(item.hasClass('deleting')){
                 return;
             }
             item.addClass('deleting');
 
-            var header_name = CustomFromEvent.getHeaderName(item);
+            let header_name = CustomFromEvent.getHeaderName(item);
             // Add delete flg
             item.append($('<input/>', {
                 type: 'hidden',
                 name: header_name + '[delete_flg]',
+                'class': 'delete_flg',
                 value: 1
             }));
             item.fadeOut();
+            let $clone: JQuery<HTMLElement> = null;
             if (item.find('.form_column_type').val() != '99') {
-                var form_column_type = item.find('.form_column_type').val();
-                var form_column_target_id = item.find('.form_column_target_id').val();
-                var form_block_type = item.closest('.custom_form_column_block').data('form_block_type');
-                var form_block_target_table_id = item.closest('.custom_form_column_block').data('form_block_target_table_id');
+                let form_column_type = item.find('.form_column_type').val();
+                let form_column_target_id = item.find('.form_column_target_id').val();
+                let form_block_type = item.closest('.custom_form_column_block').data('form_block_type');
+                let form_block_target_table_id = item.closest('.custom_form_column_block').data('form_block_target_table_id');
 
                 // get suggest_form_column_type.
+                let suggest_form_column_type;
                 if(form_column_type == '1'){
-                   var suggest_form_column_type:any = '0';
+                    suggest_form_column_type = '0';
                 }else{
                     suggest_form_column_type = form_column_type;
                 }
 
                 // get target suggest div area.
-                var $custom_form_block_target = $('.custom_form_column_block')
+                let $custom_form_block_target = $('.custom_form_column_block')
                 .filter('[data-form_block_type="' + form_block_type + '"]')
                 .filter('[data-form_block_target_table_id="' + form_block_target_table_id + '"]');
 
-                var $custom_form_column_suggests = $custom_form_block_target
+                let $custom_form_column_suggests = $custom_form_block_target
                     .find('.custom_form_column_suggests')
-                    .filter('[data-form_column_type="' + suggest_form_column_type + '"]');
+                    .filter('[data-form_column_type="' + suggest_form_column_type + '"]')
+                    .find('.draggables');
                 // find the same value hidden in suggest ul.
-                var $template = $custom_form_block_target.find('[data-form_column_target_id="' + form_column_target_id + '"]')
+                let $template = $custom_form_block_target.find('[data-form_column_target_id="' + form_column_target_id + '"]')
                     .filter('[data-form_column_type="' + form_column_type + '"]');
                 if ($template) {
-                    var $clone: any = $template.children('.custom_form_column_item').clone(true);
+                    $clone = $template.children('.custom_form_column_item').clone(true);
                     $clone.appendTo($custom_form_column_suggests).show();
 
-                    CustomFromEvent.loadingEvent($clone);
+                    CustomFromEvent.loadingEvent();
                 }
             }
+
+            if(isShowToastr){
+                toastr.warning($('#delete_revert_message').val(), $('#delete_title').val(), {timeOut:5000, preventDuplicates: true, positionClass: 'toast-bottom-center', onclick: function(){
+                    CustomFromEvent.revertDeleteColumn(item, $clone);
+                }});
+            }
         }
+
+
+        /**
+         * delete box
+         * @param ev 
+         */
+        private static deleteBoxEvent = (ev) => {
+            ev.preventDefault();
+
+            $(ev.target).closest('.custom_form_area').fadeOut();
+
+            $(ev.target).find('.custom_form_column_item').each(function(index, element){
+                CustomFromEvent.deleteColumn($(element), false);
+            })
+        }
+
+
+        /**
+         * revert deleting column.
+         */
+        private static revertDeleteColumn($item: JQuery<HTMLElement>, $clone: JQuery<HTMLElement>){
+            if($clone){
+                $clone.remove();
+            }
+
+            $item.removeClass('deleting').fadeIn();
+            $item.find('.delete_flg').remove();
+        }
+
 
         private static getHeaderName($li: JQuery<Element>): string {
             var header_name = $li.closest('.box-custom_form_block').find('.header_name').val() as string;
@@ -407,30 +456,6 @@ namespace Exment {
             return true;
         }
 
-        static appendSwitchEvent($elem) {
-            $elem.each(function (index, elem) {
-                var $e = $(elem);
-                $e.bootstrapSwitch({
-                    size:'small',
-                    onText: 'YES',
-                    offText: 'NO',
-                    onColor: 'primary',
-                    offColor: 'default',
-                    onSwitchChange: function(event, state) {
-                        $(event.target).closest('.bootstrap-switch').next().val(state ? '1' : '0').change();
-                    }
-                });
-            });
-        }
-        private static appendIcheckEvent($elem: JQuery<Element>) {
-            $elem.each(function(index, elem){
-                var $e = $(elem);
-                if (!$e.data('ichecked')) {
-                    $e.iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
-                    $e.data('ichecked', true);
-                }    
-            });
-        }
 
         /**
          * Replace clone suggest li name.
@@ -606,7 +631,7 @@ namespace Exment {
                 },
             });
             resizableEl.prop('data-add-resizable', 1);
-            $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_tooltip').val());
+            $('.ui-resizable-e').attr('data-toggle', 'tooltip').prop('title', $('#resize_box_tooltip').val());
         }
         
         /**
@@ -617,7 +642,7 @@ namespace Exment {
          */
         private static isEnableResize = function(el, nextSize){
             // calc size
-            let $items = $(el).closest('.row').find('[data-grid_column]').not(el);
+            let $items = $(el).closest('.row').find('[data-grid_column]:visible').not(el);
             let columns = 0;
             $items.each(function(index, elem){
                 columns += $(elem).data('grid_column');

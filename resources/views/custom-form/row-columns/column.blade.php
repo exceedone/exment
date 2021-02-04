@@ -1,7 +1,7 @@
 <div class="col-sm-{{$gridWidth ?? 3}} custom_form_area" data-grid_column="{{$gridWidth ?? 3}}">
     <div class="custom_form_area_inner">
         <p class="text-right custom_form_area_header">
-            <a href="javascript:void(0);" class="config-icon delete">
+            <a href="javascript:void(0);" class="config-icon delete" data-toggle="tooltip" title="{{exmtrans('custom_form.delete_box_tooltip')}}">
                 <i class="fa fa-trash"></i>
             </a>
         </p>

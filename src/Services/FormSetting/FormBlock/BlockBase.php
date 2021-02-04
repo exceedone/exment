@@ -293,8 +293,8 @@ abstract class BlockBase
                 'row_no' => 1,
                 'columns' => collect([[
                     'column_no' => 1,
-                    'width' => 1,
-                    'gridWidth' => 3,
+                    'width' => 2,
+                    'gridWidth' => 6,
                     'custom_form_columns' => [],
                 ]]),
             ]);

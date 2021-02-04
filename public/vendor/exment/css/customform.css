@@ -20,6 +20,10 @@
   font-size: 1.4em;
 }
 
+#custom_form_form .custom_form_area_inner .custom_form_area_header a.config-icon {
+  color: #454545;
+}
+
 #custom_form_form .custom_form_area_inner .draggables {
   padding: 1em 0.5em;
   border: 2px dashed #AAA;
