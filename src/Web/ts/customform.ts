@@ -21,6 +21,7 @@ namespace Exment {
 
             $(document).on('change.exment_custom_form', '.box-custom_form_block .changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
             $(document).on('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
+            $(document).on('click.exment_custom_form', '.preview-custom_form', {}, CustomFromEvent.previewCustomForm);
 
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
@@ -525,6 +526,11 @@ namespace Exment {
 
 
         private static validateSubmit() : boolean{
+            if(pBool($('#custom_form_form').data('preview'))){
+                $('#custom_form_form').data('preview', 0);
+                return true;
+            }
+
             $.validator.addMethod('options', function(value, element){
                 return CustomFromEvent.validateOption(value, element);
             });
@@ -812,8 +818,29 @@ namespace Exment {
             }
 
             return 0;
-        };
-    
+        }
+
+
+        /**
+         * Showing preview
+         */
+        private static previewCustomForm()
+        {
+			window.open('', 'exment_preview');
+
+			const form = $('#custom_form_form');
+			const action = form.attr('action');
+			const method = form.attr('method');
+
+            // update form info
+			form.attr('action', URLJoin($('#formroot').val(), 'preview'))
+                .attr('method', 'post')
+                .attr('target', 'exment_preview')
+                .removeAttr('pjax-container')
+                .data('preview', 1);
+			form.submit();
+			form.attr('action', action).attr('method', method).attr('target', '').attr('pjax-container', '');
+        }
     }
     
 }

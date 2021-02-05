@@ -150,6 +150,47 @@ class CustomFormController extends AdminControllerTableBase
         return $content;
     }
 
+    
+    /**
+     * Showing preview
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function preview(Request $request)
+    {
+        // get requested form
+        $requestItem = $this->getModelFromRequest($request);
+        $custom_form = $requestItem['custom_form'];
+
+        // loop form block and column
+        foreach($requestItem['custom_form_blocks'] ?? [] as $block){
+            $custom_form_block = $block['custom_form_block'] ?? null;
+            if(!$custom_form_block){
+                continue;
+            }
+
+            foreach($block['custom_form_columns'] ?? [] as $custom_form_column){
+                $custom_form_block->custom_form_columns->add($custom_form_column);
+            }
+            $custom_form->custom_form_blocks->add($custom_form_block);
+        }
+
+        $form_item = $custom_form->form_item;
+        $form = $form_item->disableToolsButton()->disableSavingButton()->form();
+        
+        $content = new Content;
+        $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
+        $this->AdminContent($content);
+        $content->row($form);
+        
+        admin_info(exmtrans('common.preview'), exmtrans('common.message.preview'));
+
+        return $content;
+    }
+
+
+
     /**
      * Create interface.
      *
@@ -333,12 +374,19 @@ class CustomFormController extends AdminControllerTableBase
 
         $box = new Box(exmtrans('custom_form.header_basic_setting'), $form);
         $box->tools(view('exment::tools.button', [
+            'href' => 'javascript:void(0);',
+            'label' => exmtrans('common.preview'),
+            'icon' => 'fa-eye',
+            'btn_class' => 'preview-custom_form btn-warning',
+        ])->render());
+        $box->tools(view('exment::tools.button', [
             'href' => $formroot,
             'label' => trans('admin.list'),
             'icon' => 'fa-list',
             'btn_class' => 'btn-default',
         ])->render());
         $box->tools((new Tools\CustomTableMenuButton('form', $this->custom_table))->render());
+        
         return $box;
     }
 
@@ -417,7 +465,7 @@ class CustomFormController extends AdminControllerTableBase
     protected function saveformValidate($request, $id = null)
     {
         //not required check, confirm on display.
-        // $inputs = $request->input('custom_form_blocks');
+        // $inputs = $request->get('custom_form_blocks');
         // foreach ($inputs as $key => $value) {
         //     $columns = [];
         //     if (!isset($value['form_block_target_table_id'])) {
@@ -522,7 +570,7 @@ class CustomFormController extends AdminControllerTableBase
         $result = [
             'custom_form_blocks' => [],
         ];
-        $inputs = $request->input('custom_form_blocks');
+        $inputs = $request->get('custom_form_blocks');
         $is_new = false;
 
         // create form (if new form) --------------------------------------------------
@@ -533,9 +581,9 @@ class CustomFormController extends AdminControllerTableBase
         } else {
             $form = CustomForm::getEloquent($id);
         }
-        $form->form_view_name = $request->input('form_view_name');
-        $form->default_flg = $request->input('default_flg');
-        $form->form_label_type = $request->input('form_label_type', FormLabelType::HORIZONTAL);
+        $form->form_view_name = $request->get('form_view_name');
+        $form->default_flg = $request->get('default_flg');
+        $form->form_label_type = $request->get('form_label_type', FormLabelType::HORIZONTAL);
 
         $new_columns = [];
         $deletes = [];

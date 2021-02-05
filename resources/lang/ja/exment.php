@@ -78,6 +78,7 @@ return [
         'append_to_selectitem' => '追加',
         'redirect_to' => '%sへ遷移する',
         'second' => '秒',
+        'preview' => 'プレビュー',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
@@ -98,6 +99,7 @@ return [
             'file_drag_drop' => 'ファイルをドラッグ＆ドロップしてください',
             'modal_confirm' => '実施する場合は、「%s」を入力してください。',
             'label_link' => ':labelは、<a href=":link" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご確認ください。',
+            'preview' => 'この画面はプレビューです。内容を最新化する場合、元々のウィンドウで、再度プレビューボタンをクリックしてください。',
         ],
 
         'help' =>[

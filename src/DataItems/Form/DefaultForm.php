@@ -415,37 +415,52 @@ EOT;
         });
     }
 
+    /**
+     * Manage form tools button
+     *
+     * @param Form $form
+     * @param CustomTable $custom_table
+     * @param CustomForm $custom_form
+     * @return void
+     */
     protected function manageFormToolButton($form, $custom_table, $custom_form)
     {
-        $checkboxes = collect([
-            [
-                'key' => 'continue_editing',
-                'value' => 1,
-            ],
-            [
-                'key' => 'continue_creating',
-                'value' => 2,
-            ],
-            [
-                'key' => 'view',
-                'value' => 3,
-            ],
-            [
-                'key' => 'list',
-                'value' => 4,
-                'redirect' => admin_urls('data', $this->custom_table->table_name),
-            ],
-        ])->map(function ($checkbox) {
-            return array_merge([
-                'label' => trans('admin.' . $checkbox['key']),
-                'default' => isMatchString(System::data_submit_redirect(), $checkbox['value']),
-            ], $checkbox);
-        })->each(function ($checkbox) use ($form) {
-            $form->submitRedirect($checkbox);
-        });
+        if(!$this->disableSavingButton){
+            $checkboxes = collect([
+                [
+                    'key' => 'continue_editing',
+                    'value' => 1,
+                ],
+                [
+                    'key' => 'continue_creating',
+                    'value' => 2,
+                ],
+                [
+                    'key' => 'view',
+                    'value' => 3,
+                ],
+                [
+                    'key' => 'list',
+                    'value' => 4,
+                    'redirect' => admin_urls('data', $this->custom_table->table_name),
+                ],
+            ])->map(function ($checkbox) {
+                return array_merge([
+                    'label' => trans('admin.' . $checkbox['key']),
+                    'default' => isMatchString(System::data_submit_redirect(), $checkbox['value']),
+                ], $checkbox);
+            })->each(function ($checkbox) use ($form) {
+                $form->submitRedirect($checkbox);
+            });
+        }
+        else{
+            $form->disableSubmit();
+        }
+
 
         $id = $this->id;
-        $form->tools(function (Form\Tools $tools) use ($id, $custom_table) {
+        $disableToolsButton = $this->disableToolsButton;
+        $form->tools(function (Form\Tools $tools) use ($id, $custom_table, $disableToolsButton) {
             $custom_value = $custom_table->getValueModel($id);
 
             // create
@@ -478,16 +493,25 @@ EOT;
                 $tools->disableDelete();
             }
 
+            // if all disable tools button
+            if($disableToolsButton){
+                $tools->disableListButton();
+                $tools->disableDelete();
+                $tools->disableView();
+            }
+
             // add plugin button
-            if ($listButtons !== null && count($listButtons) > 0) {
+            if (!$disableToolsButton && $listButtons !== null && count($listButtons) > 0) {
                 foreach ($listButtons as $listButton) {
                     $tools->append(new Tools\PluginMenuButton($listButton, $custom_table, $id));
                 }
             }
 
-            PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
-            
-            if ($custom_table->enableTableMenuButton()) {
+            if(!$disableToolsButton){
+                PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
+            }
+
+            if (!$disableToolsButton && $custom_table->enableTableMenuButton()) {
                 $tools->add((new Tools\CustomTableMenuButton('data', $custom_table)));
             }
         });

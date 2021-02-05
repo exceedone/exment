@@ -9,6 +9,21 @@ abstract class FormBase
     protected $id;
     protected $custom_value;
 
+    /**
+     * If true, all disabled tools button
+     *
+     * @var boolean
+     */
+    protected $disableToolsButton = false;
+
+    /**
+     * If true, disabled saving button
+     *
+     * @var boolean
+     */
+    protected $disableSavingButton = false;
+    
+
     public static function getItem(...$args)
     {
         list($custom_table, $custom_form) = $args + [null, null];
@@ -22,6 +37,29 @@ abstract class FormBase
         if (!is_nullorempty($id)) {
             $this->custom_value = $this->custom_table->getValueModel($id);
         }
+
+        return $this;
+    }
+
+
+    /**
+     * If true, all disable tools button
+     *
+     * @return $this
+     */
+    public function disableToolsButton(){
+        $this->disableToolsButton = true;
+
+        return $this;
+    }
+
+    /**
+     * If true, disable saving button
+     *
+     * @return $this
+     */
+    public function disableSavingButton(){
+        $this->disableSavingButton = true;
 
         return $this;
     }
