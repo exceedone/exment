@@ -461,95 +461,33 @@ class CustomFormController extends AdminControllerTableBase
      */
     protected function saveform(Request $request, $id = null)
     {
+        $saveData = $this->getModelFromRequest($request, $id);
         DB::beginTransaction();
         try {
-            $inputs = $request->input('custom_form_blocks');
-            $is_new = false;
-
-            // create form (if new form) --------------------------------------------------
-            if (!isset($id)) {
-                $form = new CustomForm;
-                $form->custom_table_id = $this->custom_table->id;
-                $is_new = true;
-            } else {
-                $form = CustomForm::getEloquent($id);
-            }
-            $form->form_view_name = $request->input('form_view_name');
-            $form->default_flg = $request->input('default_flg');
-            $form->form_label_type = $request->input('form_label_type', FormLabelType::HORIZONTAL);
-            $form->saveOrFail();
-            $id = $form->id;
-
+            $custom_form = $saveData['custom_form'];
+            $custom_form->saveOrFail();
+            $id = $custom_form->id;
 
             $new_columns = [];
             $deletes = [];
-            foreach ($inputs as $key => $value) {
-                // create blocks --------------------------------------------------
-                // if key is "NEW_", create new block
-                if (starts_with($key, 'NEW_') || $is_new) {
-                    $block = new CustomFormBlock;
-                    $block->custom_form_id = $id;
-                    $block->form_block_type = array_get($value, 'form_block_type');
-                    $block->form_block_target_table_id = array_get($value, 'form_block_target_table_id');
-                } else {
-                    $block = CustomFormBlock::findOrFail($key);
-                }
-                $block->available = array_get($value, 'available') ?? 0;
-                $block->form_block_view_name = array_get($value, 'form_block_view_name');
-                $block->options = array_get($value, 'options', []);
-                $block->saveOrFail();
+            foreach ($saveData['custom_form_blocks'] ?? [] as $key => $block) {
+                $custom_form_block = $block['custom_form_block'];
+                $custom_form_block->saveOrFail();
 
                 // create columns --------------------------------------------------
-                $order = 1;
-                if (!is_array(array_get($value, 'custom_form_columns'))) {
-                    continue;
+                foreach($block['custom_form_columns'] ?? [] as $custom_form_column){
+                    $custom_form_column->saveOrFail();
                 }
-                foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {
-                    if (!isset($column_value['form_column_type'])) {
-                        continue;
-                    }
-                    // if key is "NEW_", create new column
-                    $new_column = starts_with($column_key, 'NEW_') || $is_new;
-
-                    // if delete flg is true, delete and continue
-                    if (boolval(array_get($column_value, 'delete_flg'))) {
-                        if (!$new_column) {
-                            CustomFormColumn::findOrFail($column_key)->delete();
-                            $deletes[] = $column_key;
-                        }
-                        continue;
-                    } elseif ($new_column) {
-                        $column = new CustomFormColumn;
-                        $column->custom_form_block_id = $block->id;
-                        $column->form_column_type = array_get($column_value, 'form_column_type');
-                        if (is_null(array_get($column_value, 'form_column_target_id'))) {
-                            continue;
-                        }
-                        $column->form_column_target_id = array_get($column_value, 'form_column_target_id');
-                    } else {
-                        $column = CustomFormColumn::findOrFail($column_key);
-                    }
-
-                    $column_item = FormSetting\FormColumn\ColumnBase::make($column);
-
-                    $column->row_no = array_get($column_value, 'row_no', 1);
-                    $column->column_no = array_get($column_value, 'column_no', 1);
-                    $column->width = array_get($column_value, 'width', 1);
-                    $column->options = $column_item->prepareSavingOptions(json_decode(array_get($column_value, 'options', "[]"), true));
-                    $column->order = $order++;
-
-                    $column->saveOrFail();
-
-                    if($new_column){
-                        $new_columns[$column_key] = $column->id;
-                    }
+                // delete columns --------------------------------------------------
+                foreach($block['delete_custom_form_columns'] ?? [] as $custom_form_column){
+                    $custom_form_column->delete();
                 }
             }
 
             // set file info
-            $this->saveAndStoreImage($new_columns);
+            $this->saveAndStoreImage($saveData['new_columns']);
             // delete file info
-            $this->deleteImage($deletes);
+            $this->deleteImage($saveData['deletes']);
 
             DB::commit();
             return true;
@@ -559,6 +497,122 @@ class CustomFormController extends AdminControllerTableBase
             throw $exception;
         }
     }
+
+    /**
+     * get Model from request
+     *
+     * @param Request $request
+     * @param string|int|null $id
+     * @return array [
+     *     'custom_form' => $custom_form,
+     *     'custom_form_blocks' => [
+     *         [
+     *             'custom_form_block' => $custom_form_block
+     *             'custom_form_columns' => $custom_form_columns,
+     *             'delete_custom_form_columns' => $custom_form_columns,
+     *         ],
+     *         ...
+     *     ],
+     *     'new_columns' => [(column_ids)],
+     *     'deletes' => [(column_ids)],
+     * ]
+     */
+    protected function getModelFromRequest(Request $request, $id = null) : array
+    {
+        $result = [
+            'custom_form_blocks' => [],
+        ];
+        $inputs = $request->input('custom_form_blocks');
+        $is_new = false;
+
+        // create form (if new form) --------------------------------------------------
+        if (!isset($id)) {
+            $form = new CustomForm;
+            $form->custom_table_id = $this->custom_table->id;
+            $is_new = true;
+        } else {
+            $form = CustomForm::getEloquent($id);
+        }
+        $form->form_view_name = $request->input('form_view_name');
+        $form->default_flg = $request->input('default_flg');
+        $form->form_label_type = $request->input('form_label_type', FormLabelType::HORIZONTAL);
+
+        $new_columns = [];
+        $deletes = [];
+        foreach ($inputs as $key => $value) {
+            $result_block = [];
+
+            // create blocks --------------------------------------------------
+            // if key is "NEW_", create new block
+            if (starts_with($key, 'NEW_') || $is_new) {
+                $block = new CustomFormBlock;
+                $block->custom_form_id = $id;
+                $block->form_block_type = array_get($value, 'form_block_type');
+                $block->form_block_target_table_id = array_get($value, 'form_block_target_table_id');
+            } else {
+                $block = CustomFormBlock::findOrFail($key);
+            }
+            $block->available = array_get($value, 'available') ?? 0;
+            $block->form_block_view_name = array_get($value, 'form_block_view_name');
+            $block->options = array_get($value, 'options', []);
+            
+            // create columns --------------------------------------------------
+            $order = 1;
+            if (!is_array(array_get($value, 'custom_form_columns'))) {
+                continue;
+            }
+            foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {
+                if (!isset($column_value['form_column_type'])) {
+                    continue;
+                }
+                // if key is "NEW_", create new column
+                $new_column = starts_with($column_key, 'NEW_') || $is_new;
+
+                // if delete flg is true, delete and continue
+                if (boolval(array_get($column_value, 'delete_flg'))) {
+                    if (!$new_column) {
+                        $result_block['delete_custom_form_columns'][] = CustomFormColumn::find($column_key);
+                        $deletes[] = $column_key;
+                    }
+                    continue;
+                } elseif ($new_column) {
+                    $column = new CustomFormColumn;
+                    $column->custom_form_block_id = $block->id;
+                    $column->form_column_type = array_get($column_value, 'form_column_type');
+                    if (is_null(array_get($column_value, 'form_column_target_id'))) {
+                        continue;
+                    }
+                    $column->form_column_target_id = array_get($column_value, 'form_column_target_id');
+                } else {
+                    $column = CustomFormColumn::findOrFail($column_key);
+                }
+
+                $column_item = FormSetting\FormColumn\ColumnBase::make($column);
+
+                $column->row_no = array_get($column_value, 'row_no', 1);
+                $column->column_no = array_get($column_value, 'column_no', 1);
+                $column->width = array_get($column_value, 'width', 1);
+                $column->options = $column_item->prepareSavingOptions(json_decode(array_get($column_value, 'options', "[]"), true));
+                $column->order = $order++;
+
+                $result_block['custom_form_columns'][] = $column;
+
+                if($new_column){
+                    $new_columns[$column_key] = $column->id;
+                }
+            }
+            
+            $result_block['custom_form_block'] = $block;
+            $result['custom_form_blocks'][] = $result_block;
+        }
+
+        $result['custom_form'] = $form;
+        $result['new_columns'] = $new_columns;
+        $result['deletes'] = $deletes;
+
+        return $result;
+    }
+
 
     // create form because we need for delete
     protected function form($id = null)

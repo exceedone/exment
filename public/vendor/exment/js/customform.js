@@ -2,6 +2,7 @@ var Exment;
 (function (Exment) {
     class CustomFromEvent {
         static AddEvent() {
+            $('#custom_form_form').off('submit.exment_custom_form').on('submit.exment_custom_form', CustomFromEvent.formSubmitEvent);
             CustomFromEvent.loadingEvent();
             CustomFromEvent.resizeEvent($('.custom_form_area:visible'));
         }
@@ -14,7 +15,6 @@ var Exment;
             $(document).on('click.exment_custom_form', '.box-custom_form_block .addbutton_button', {}, CustomFromEvent.addAreaButtonEvent);
             $(document).on('change.exment_custom_form', '.box-custom_form_block .changedata_target_column_id', {}, CustomFromEvent.changedataColumnEvent);
             $(document).on('click.exment_custom_form', '#modal-showmodal .modal-customform .modal-submit', {}, CustomFromEvent.settingModalSetting);
-            $(document).on('submit', '#custom_form_form', CustomFromEvent.formSubmitEvent);
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
             });
