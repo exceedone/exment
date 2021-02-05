@@ -642,6 +642,10 @@ var Exment;
      */
     CustomFromEvent.settingModalSetting = (ev) => {
         ev.preventDefault();
+        let form = $('#modal-showmodal form').get()[0];
+        if (!form.reportValidity()) {
+            return;
+        }
         let formItem = Exment.CustomFromItem.makeByModal();
         let options = formItem.getOption();
         let $modal = $('#modal-showmodal');

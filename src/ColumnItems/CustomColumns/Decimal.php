@@ -83,7 +83,16 @@ class Decimal extends CustomItem
         if (!is_null(array_get($options, 'decimal_digit'))) {
             $field->attribute(['decimal_digit' => array_get($options, 'decimal_digit')]);
         }
-        $field->attribute('style', 'max-width: 200px');
+        
+        $field->attribute(['style' => 'max-width: 200px']);
+        
+        if (array_key_value_exists('decimal_digit', $options)) {
+            $digit = intval(array_get($options, 'decimal_digit'));
+
+            // convert $digit digit. if $digit is 2, 0.01
+            $step = ($digit <= 0 ? "0" : "0." . str_repeat("0", $digit - 1) . "1");
+            $field->attribute(['type' => 'number', 'step' => $step]);
+        }
     }
     
     protected function setValidates(&$validates, $form_column_options)

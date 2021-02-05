@@ -322,11 +322,6 @@ abstract class CustomItem implements ItemInterface
             }
         }
 
-        // number_format
-        if (boolval(array_get($options, 'number_format'))) {
-            $field->attribute(['number_format' => true]);
-        }
-
         // readonly
         if ($this->readonly($form_column_options)) {
             $field->readonly();

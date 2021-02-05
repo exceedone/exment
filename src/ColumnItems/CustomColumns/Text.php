@@ -22,6 +22,22 @@ class Text extends CustomItem
         return Field\Text::class;
     }
     
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
+        $options = $this->custom_column->options;
+        
+        // value size
+        if (array_get($options, 'string_length')) {
+            $field->attribute(['maxlength' => array_get($options, 'string_length')]);
+        }
+
+        // regex
+        $regex = $this->getAvailableCharactersInfo();
+        if(isset($regex['regex']) && !is_nullorempty($regex['regex'])){
+            $field->attribute(['pattern' => $regex['regex']]);
+        }
+    }
+
     protected function setValidates(&$validates, $form_column_options)
     {
         $options = $this->custom_column->options;
@@ -56,12 +72,14 @@ class Text extends CustomItem
     {
         // // regex rules
         $validates = [];
+        $regex = null;
         $help_regexes = [];
         $options = $this->custom_column->options;
 
         if (boolval(config('exment.expart_mode', false)) && array_key_value_exists('regex_validate', $options)) {
             $regex_validate = array_get($options, 'regex_validate');
             $validates[] = 'regex:/'.$regex_validate.'/u';
+            $regex = implode("", $regex_validate);
         } elseif (array_key_value_exists('available_characters', $options)) {
             $difinitions = CustomColumn::getAvailableCharacters();
 
@@ -82,10 +100,12 @@ class Text extends CustomItem
             }
             if (count($regexes) > 0) {
                 $validates[] = 'regex:/^['.implode("", $regexes).']*$/u';
+                $regex = "^[" . implode("", $regexes) . "]*$";
             }
         }
 
         return [
+            'regex' => $regex,
             'validates' => $validates,
             'help' => count($help_regexes) ? sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes)) : null,
         ];

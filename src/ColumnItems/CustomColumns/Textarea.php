@@ -38,10 +38,21 @@ class Textarea extends CustomItem
     {
         $options = $this->custom_column->options;
         $field->rows(array_get($options, 'rows', 6));
+
+        if (array_get($options, 'string_length')) {
+            $field->attribute(['maxlength' => array_get($options, 'string_length')]);
+        }
     }
     
     protected function setValidates(&$validates, $form_column_options)
     {
+        $options = $this->custom_column->options;
+        
+        // value size
+        if (array_get($options, 'string_length')) {
+            $validates[] = 'max:'.array_get($options, 'string_length');
+        }
+
         // value string
         $validates[] = new Validator\StringNumericRule();
     }

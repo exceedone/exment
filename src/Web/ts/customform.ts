@@ -695,6 +695,11 @@ namespace Exment {
         private static settingModalSetting = (ev) => {
             ev.preventDefault();
 
+            let form : HTMLFormElement = $('#modal-showmodal form').get()[0] as HTMLFormElement;
+            if(!form.reportValidity()){
+                return;
+            }
+            
             let formItem = CustomFromItem.makeByModal();
             let options = formItem.getOption();
             let $modal = $('#modal-showmodal');

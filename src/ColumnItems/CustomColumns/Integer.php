@@ -55,6 +55,11 @@ class Integer extends CustomItem
         if (!is_null(array_get($options, 'number_max'))) {
             $field->attribute(['max' => array_get($options, 'number_max')]);
         }
+
+        $field->attribute(['type' => 'number']);
+        $field->callbackValue(function($value){
+            return rmcomma($value);
+        });
     }
 
     protected function setValidates(&$validates, $form_column_options)

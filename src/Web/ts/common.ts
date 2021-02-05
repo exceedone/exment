@@ -976,11 +976,6 @@ namespace Exment {
                 }
             }
 
-            // if number format, add comma
-            if (isNumber && $target.attr('number_format')) {
-                value = comma(value);
-            }
-
             // switch bootstrapSwitch
             if ($.inArray(column_type, ['boolean', 'yesno']) != -1) {
                 let $bootstrapSwitch = $target.filter('[type="checkbox"]');
