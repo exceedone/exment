@@ -18,6 +18,20 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     protected $appends = ['form_column_target'];
     protected $with = ['custom_column'];
 
+    /**
+     * for form display. Whether is delete
+     *
+     * @var bool
+     */
+    protected $_delete_flg;
+
+    /**
+     * request key. Used by custom form setting display. Ex. NEW__f482dce0-662c-11eb-8f65-5f9d12681ab1
+     *
+     * @var string
+     */
+    protected $_request_key;
+
     public static $templateItems = [
         'excepts' => ['custom_column', 'form_column_target', 'options.changedata_target_column_id', 'options.changedata_column_id', 'options.relation_filter_target_column_id'],
         'langs' => [
@@ -122,6 +136,29 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         }
         
         return CustomColumn::getEloquent($this->form_column_target_id);
+    }
+    
+    protected function getDeleteFlgAttribute()
+    {
+        return $this->_delete_flg;
+    }
+    
+    
+    protected function setDeleteFlgAttribute($delete_flg)
+    {
+        $this->_delete_flg = $delete_flg;
+        return $this;
+    }
+    
+    public function getRequestKeyAttribute()
+    {
+        return $this->_request_key ?? $this->id;
+    }
+
+    public function setRequestKeyAttribute($request_key)
+    {
+        $this->_request_key = $request_key;
+        return $this;
     }
     
     /**

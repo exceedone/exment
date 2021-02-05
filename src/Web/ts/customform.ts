@@ -384,14 +384,8 @@ namespace Exment {
             }
             item.addClass('deleting');
 
-            let header_name = CustomFromEvent.getHeaderName(item);
             // Add delete flg
-            item.append($('<input/>', {
-                type: 'hidden',
-                name: header_name + '[delete_flg]',
-                'class': 'delete_flg',
-                value: 1
-            }));
+            item.find('.delete_flg').val(1);
             item.fadeOut();
             let $clone: JQuery<HTMLElement> = null;
             if (item.find('.form_column_type').val() != '99') {
@@ -526,11 +520,6 @@ namespace Exment {
 
 
         private static validateSubmit() : boolean{
-            if(pBool($('#custom_form_form').data('preview'))){
-                $('#custom_form_form').data('preview', 0);
-                return true;
-            }
-
             $.validator.addMethod('options', function(value, element){
                 return CustomFromEvent.validateOption(value, element);
             });
@@ -826,6 +815,16 @@ namespace Exment {
          */
         private static previewCustomForm()
         {
+            if(!CustomFromEvent.validateSubmit()){
+                CommonEvent.ShowSwal(null, {
+                    type: 'error',
+                    title: $('#validate_error_title').val(),
+                    text: $('#validate_error_message').val(),
+                    showCancelButton: false,
+                });
+                return;
+            };
+
 			window.open('', 'exment_preview');
 
 			const form = $('#custom_form_form');

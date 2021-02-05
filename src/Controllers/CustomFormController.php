@@ -224,8 +224,12 @@ class CustomFormController extends AdminControllerTableBase
             return back()->withInput()->withErrors($validator);
         }
 
-        if ($this->saveform($request, $id)) {
+        if (!is_null($custom_form = $this->saveform($request, $id))){
             admin_toastr(trans('admin.save_succeeded'));
+
+            if($request->get('after-save') == 1){
+                return redirect(admin_url("form/{$this->custom_table->table_name}/{$id}/edit?after-save=1"));
+            }
             return redirect(admin_url("form/{$this->custom_table->table_name}"));
         }
         return null; //TODO
@@ -243,8 +247,12 @@ class CustomFormController extends AdminControllerTableBase
             return back()->withInput()->withErrors($validator);
         }
 
-        if ($this->saveform($request)) {
+        if (!is_null($custom_form = $this->saveform($request))) {
             admin_toastr(trans('admin.save_succeeded'));
+
+            if($request->get('after-save') == 1){
+                return redirect(admin_url("form/{$this->custom_table->table_name}/{$custom_form->id}/edit?after-save=1"));
+            }
             return redirect(admin_url("form/{$this->custom_table->table_name}"));
         }
         return null; //TODO
@@ -345,6 +353,7 @@ class CustomFormController extends AdminControllerTableBase
             'custom_form_blocks' => $custom_form_blocks,
             'editmode' => isset($id),
             'headerBox' => $this->getHeaderBox($form, $formroot),
+            'after_save' => old('after-save', request()->get('after-save')),
         ]));
     }
 
@@ -520,10 +529,12 @@ class CustomFormController extends AdminControllerTableBase
             $deletes = [];
             foreach ($saveData['custom_form_blocks'] ?? [] as $key => $block) {
                 $custom_form_block = $block['custom_form_block'];
+                $custom_form_block->custom_form_id = $id;
                 $custom_form_block->saveOrFail();
 
                 // create columns --------------------------------------------------
                 foreach($block['custom_form_columns'] ?? [] as $custom_form_column){
+                    $custom_form_column->custom_form_block_id = $custom_form_block->id;
                     $custom_form_column->saveOrFail();
                 }
                 // delete columns --------------------------------------------------
@@ -538,7 +549,7 @@ class CustomFormController extends AdminControllerTableBase
             $this->deleteImage($saveData['deletes']);
 
             DB::commit();
-            return true;
+            return $custom_form;
         } catch (\Exception $exception) {
             //TODO:error handling
             DB::rollback();

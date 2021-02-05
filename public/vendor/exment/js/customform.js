@@ -267,10 +267,6 @@ var Exment;
             return header_name + header_column_name;
         }
         static validateSubmit() {
-            if (pBool($('#custom_form_form').data('preview'))) {
-                $('#custom_form_form').data('preview', 0);
-                return true;
-            }
             $.validator.addMethod('options', function (value, element) {
                 return CustomFromEvent.validateOption(value, element);
             });
@@ -421,6 +417,16 @@ var Exment;
          * Showing preview
          */
         static previewCustomForm() {
+            if (!CustomFromEvent.validateSubmit()) {
+                Exment.CommonEvent.ShowSwal(null, {
+                    type: 'error',
+                    title: $('#validate_error_title').val(),
+                    text: $('#validate_error_message').val(),
+                    showCancelButton: false,
+                });
+                return;
+            }
+            ;
             window.open('', 'exment_preview');
             const form = $('#custom_form_form');
             const action = form.attr('action');

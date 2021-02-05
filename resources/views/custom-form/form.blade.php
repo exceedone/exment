@@ -141,5 +141,16 @@
     {{-- /custom_form_block --}}
     {{csrf_field() }} @if($editmode)
     <input type="hidden" name="_method" value="PUT" class="_method"> @endif
-    <button type="submit" id="admin-submit" class="btn btn-info pull-right" style="margin-bottom:2em;" data-loading-text="<i class='fa fa-spinner fa-spin '></i> {{__('admin.save')}}">@lang('admin.save')</button>
+
+    
+    <div style="background-color: #FFF; width: 100%; overflow: hidden; padding: 10px; margin-bottom:2em;">
+        <div class="btn-group pull-right">
+            <button type="submit" id="admin-submit" class="btn btn-info pull-right" data-loading-text="<i class='fa fa-spinner fa-spin '></i> {{__('admin.save')}}">@lang('admin.save')</button>
+        
+            <label class="pull-right" style="margin: 5px 10px 0 0;">
+                <input type="checkbox" class="after-submit" name="after-save" value="1" {{ $after_save == 1 ? 'checked' : '' }}> @lang('admin.continue_editing')
+            </label>
+        </div>
+    </div>
+
 </form>

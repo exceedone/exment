@@ -26,7 +26,6 @@ abstract class ColumnBase
      */
     protected $isSelected = false;
 
-
     public function __construct(CustomFormColumn $custom_form_column)
     {
         $this->custom_form_column = $custom_form_column;
@@ -101,6 +100,7 @@ abstract class ColumnBase
             'toggle_key_name' => make_uuid(),
             'validation_rules' => collect($this->getValidationRules())->toJson(),
             'has_custom_forms' => $this->isSelected,
+            'delete_flg' => $this->custom_form_column->delete_flg ? 1 : 0,
         ];
     }
 
@@ -119,10 +119,9 @@ abstract class ColumnBase
      */
     protected function getHtmlHeaderName()
     {
+        $key = $this->custom_form_column['id'] ?? $this->custom_form_column->request_key ?? 'NEW__'.make_uuid();
         // add header name
-        return '[custom_form_columns]['
-            .(isset($this->custom_form_column['id']) ? $this->custom_form_column['id'] : 'NEW__'.make_uuid())
-            .']';
+        return "[custom_form_columns][{$key}]";
     }
     
     public function isSelectTable() : bool

@@ -209,9 +209,14 @@ abstract class BlockBase
         }
 
         $custom_form_columns = $req_custom_form_blocks[$this->custom_form_block->request_key]['custom_form_columns'];
-        return collect($custom_form_columns)->map(function ($req_custom_form_column, $id) {
+        return collect($custom_form_columns)->map(function ($req_custom_form_column, $key) {
+            // convert option to array
+            if(isset($req_custom_form_column['options']) && is_string($req_custom_form_column['options']) && is_json($req_custom_form_column['options'])){
+                $req_custom_form_column['options'] = json_decode($req_custom_form_column['options'], true);
+            }
             $custom_form_column = new CustomFormColumn($req_custom_form_column);
-            $custom_form_column->id = $id;
+            $custom_form_column->request_key = $key;
+            $custom_form_column->delete_flg = array_get($req_custom_form_column, 'delete_flg');
             return $custom_form_column;
         });
     }
@@ -224,9 +229,8 @@ abstract class BlockBase
      */
     protected function getHtmlHeaderName()
     {
-        return 'custom_form_blocks['
-            .(isset($this->custom_form_block['id']) ? $this->custom_form_block['id'] : 'NEW__'.make_uuid())
-            .']';
+        $key = $this->custom_form_block['id'] ?? $this->custom_form_block->request_key ?? 'NEW__'.make_uuid();
+        return "custom_form_blocks[{$key}]";
     }
     
 
