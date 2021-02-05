@@ -1377,6 +1377,7 @@ return [
         'resize_box_tooltip' => 'ブロックのサイズを変更',
         'delete_box_tooltip' => 'ブロックを削除',
         'form_label_type' => '見出し表示方法',
+        'append_hr' => '罫線を引く',
 
         'priority' => [
             'title' => 'フォーム表示条件設定',
@@ -1414,6 +1415,7 @@ return [
             'form_label_type' => '各項目の見出しを、どのように表示するかを設定します。※フォーム全体の設定です。個別に設定する場合は、各項目の設定を変更してください。',
             'field_label_type' => 'この項目の見出しを、どのように表示するかを設定します。',
             'required' => 'このフォームで、この項目を必須にする場合、YESにしてください.',
+            'append_hr' => 'YESにすることで、見出し下に罫線を引きます。',
         ],
 
         'message' => [

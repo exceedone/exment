@@ -6,7 +6,7 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 
 /**
  */
-class Text extends OtherBase
+class Header extends OtherBase
 {
     /**
      * Get setting modal form 
@@ -19,6 +19,9 @@ class Text extends OtherBase
 
         $form->text('text', exmtrans('custom_form.text'))
             ->required();
+
+        $form->switchbool('append_hr', exmtrans('custom_form.append_hr'))
+            ->help(exmtrans('custom_form.help.append_hr'));
 
         return $form;
     }
@@ -34,6 +37,7 @@ class Text extends OtherBase
         return array_filter($options, function($option, $key){
             return in_array($key, [
                 'text',
+                'append_hr',
             ]);
         }, ARRAY_FILTER_USE_BOTH);
     }

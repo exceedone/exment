@@ -6,7 +6,7 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 
 /**
  */
-class Explain extends Text
+class Explain extends Header
 {
     /**
      * Get setting modal form 
