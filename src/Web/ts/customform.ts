@@ -815,30 +815,18 @@ namespace Exment {
          */
         private static previewCustomForm()
         {
-            if(!CustomFromEvent.validateSubmit()){
-                CommonEvent.ShowSwal(null, {
-                    type: 'error',
-                    title: $('#validate_error_title').val(),
-                    text: $('#validate_error_message').val(),
-                    showCancelButton: false,
-                });
-                return;
-            };
-
-			window.open('', 'exment_preview');
-
-			const form = $('#custom_form_form');
-			const action = form.attr('action');
-			const method = form.attr('method');
-
-            // update form info
-			form.attr('action', URLJoin($('#formroot').val(), 'preview'))
-                .attr('method', 'post')
-                .attr('target', 'exment_preview')
-                .removeAttr('pjax-container')
-                .data('preview', 1);
-			form.submit();
-			form.attr('action', action).attr('method', method).attr('target', '').attr('pjax-container', '');
+            const preview = new Preview(
+                URLJoin($('#formroot').val(), 'preview'),
+                $('#custom_form_form'),
+                {
+                    validateErrorTitle: $('#validate_error_title').val(),
+                    validateErrorText: $('#validate_error_message').val(),
+                    validateSubmitEvent: function(){
+                        return CustomFromEvent.validateSubmit();
+                    }
+                }
+            );
+            preview.openPreview();
         }
     }
     

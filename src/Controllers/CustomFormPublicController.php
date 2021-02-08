@@ -38,22 +38,31 @@ class CustomFormPublicController extends AdminControllerTableBase
     protected function form($id = null)
     {
         $form = new Form(new PublicForm);
+        $public_form = PublicForm::find($id);
         $custom_table = $this->custom_table;
 
         // Basic setting ----------------------------------------------------
-        $form->tab(exmtrans("common.basic_setting"), function ($form) use ($custom_table) {
-            $form->embeds("basic_setting", exmtrans("common.basic_setting"), function($form) use ($custom_table){
-                $form->exmheader(exmtrans("common.basic_setting"))->hr();
+        $form->tab(exmtrans("common.basic_setting"), function ($form) use ($public_form, $id, $custom_table) {
+            $form->exmheader(exmtrans("common.basic_setting"))->hr();
                 
-                $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
-                    ->tabRequired()
-                    ->help(exmtrans("custom_form_public.help.custom_form_id"))
-                    ->options(function ($value) use ($custom_table) {
-                        return $custom_table->custom_forms->mapWithKeys(function ($item) {
-                            return [$item['id'] => $item['form_view_name']];
-                        });
+            if(isset($public_form)){
+                $form->url('share_url', exmtrans('custom_form_public.share_url'))
+                    ->setElementClass(['copyScript'])
+                    ->default($public_form->getUrl())
+                    ->readonly();
+                $form->ignore('share_url');
+            }
+            
+            $form->select('custom_form_id', exmtrans("custom_form_public.custom_form_id"))
+                ->tabRequired()
+                ->help(exmtrans("custom_form_public.help.custom_form_id"))
+                ->options(function ($value) use ($custom_table) {
+                    return $custom_table->custom_forms->mapWithKeys(function ($item) {
+                        return [$item['id'] => $item['form_view_name']];
                     });
-                    
+                });
+                
+            $form->embeds("basic_setting", exmtrans("common.basic_setting"), function($form) use ($custom_table){
                 $form->switchbool('active_flg', exmtrans("plugin.active_flg"))
                     ->help(exmtrans("custom_form_public.help.active_flg"))
                     ->default(true);
@@ -64,7 +73,7 @@ class CustomFormPublicController extends AdminControllerTableBase
             })->disableHeader();
         })->tab(exmtrans("custom_form_public.design_setting"), function ($form) {
             $form->embeds("design_setting", exmtrans("common.design_setting"), function($form){
-                $form->exmheader(exmtrans("custom_form_public.design_setting"))->hr();            
+                $form->exmheader(exmtrans("custom_form_public.header_setting"))->hr();            
                 
                 $form->switchbool('use_header', exmtrans("custom_form_public.use_header"))
                     ->help(exmtrans("custom_form_public.help.use_header"))
@@ -73,25 +82,43 @@ class CustomFormPublicController extends AdminControllerTableBase
                 
                 $form->color('header_background_color', exmtrans("custom_form_public.header_background_color"))
                     ->help(exmtrans("custom_form_public.help.header_background_color"))
+                    ->default('#3c8dbc')
                 ;
 
                 $form->image('header_logo', exmtrans("custom_form_public.header_logo"))
                     ->help(exmtrans("custom_form_public.help.header_logo"))
                 ;
 
+                $form->text('header_label', exmtrans("custom_form_public.header_label"))
+                    ->help(exmtrans("custom_form_public.help.header_label"))
+                ;
+
+                $form->color('header_text_color', exmtrans("custom_form_public.header_text_color"))
+                    ->help(exmtrans("custom_form_public.help.header_text_color"))
+                    ->default('#FFFFFF')
+                    ;
+
+
+                $form->exmheader(exmtrans("custom_form_public.body_setting"))->hr();
+                $form->select('body_content_type', exmtrans("custom_form_public.body_content_type"))
+                    ->help(exmtrans("custom_form_public.help.body_content_type"))
+                    ->options([
+                        'width100' => exmtrans("custom_form_public.body_content_type_options.width100"), 
+                        'centering' => exmtrans("custom_form_public.body_content_type_options.centering"), 
+                    ])
+                    ->default('width100');
+                    ;
+                
+                $form->color('background_color_outer', exmtrans("custom_form_public.background_color_outer"))
+                    ->help(exmtrans("custom_form_public.help.background_color_outer"))
+                    ->default('#FFFFFF')
+                    ;
                 $form->color('background_color', exmtrans("custom_form_public.background_color"))
                     ->help(exmtrans("custom_form_public.help.background_color"))
                     ->default('#FFFFFF')
                 ;
-                // $form->color('background_color_inner', exmtrans("custom_form_public.background_color_inner"))
-                //     ->help(exmtrans("custom_form_public.help.background_color_inner"))
-                //     ->default('#FFFFFF')
-                //     ;
-                $form->color('text_color', exmtrans("custom_form_public.text_color"))
-                    ->help(exmtrans("custom_form_public.help.text_color"))
-                    ->default('#000000')
-                    ;
 
+                $form->exmheader(exmtrans("custom_form_public.footer_setting"))->hr();
                 $form->switchbool('use_footer', exmtrans("custom_form_public.use_footer"))
                     ->help(exmtrans("custom_form_public.help.use_footer"))
                     ->default(true);
@@ -161,6 +188,11 @@ class CustomFormPublicController extends AdminControllerTableBase
         $form->editing(function($form, $arr){
             $form->model()->append(['basic_setting', 'design_setting', 'confirm_complete_setting', 'error_setting']);
         });
+        $form->saving(function($form){
+            if(!isset($form->model()->proxy_user_id)){
+                $form->model()->proxy_user_id = \Exment::getUserId();
+            }
+        });
         $form->disableEditingCheck(false);
             
         $form->tools(function (Form\Tools $tools) use ($custom_table) {
@@ -169,6 +201,12 @@ class CustomFormPublicController extends AdminControllerTableBase
                 'label' => exmtrans('common.preview'),
                 'icon' => 'fa-eye',
                 'btn_class' => 'preview-custom_form btn-warning',
+                'attributes' => [
+                    'data-preview' => true,
+                    'data-preview-url' => '',
+                    'data-preview-error-title' => '',
+                    'data-preview-error-text' => '',
+                ],
             ])->render());
             $tools->add(new Tools\CustomTableMenuButton('form', $custom_table));
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
@@ -186,4 +224,32 @@ class CustomFormPublicController extends AdminControllerTableBase
 
         return $form;
     }
+    
+
+    /**
+     * Showing preview
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function preview(Request $request)
+    {
+        $form = $this->form();
+
+        $model = $form->getModelByInputs();
+
+        $content = new \Exceedone\Exment\Form\PublicContent;
+        $content->row($form);
+        return $content;
+        
+        $content = new Content;
+        $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
+        $this->AdminContent($content);
+        $content->row($form);
+        
+        admin_info(exmtrans('common.preview'), exmtrans('common.message.preview'));
+
+        return $content;
+    }
+
 }

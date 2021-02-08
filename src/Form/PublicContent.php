@@ -16,6 +16,19 @@ class PublicContent implements Renderable
      */
     protected $rows = [];
 
+    protected $header_label;
+
+    protected $use_header = true;
+    protected $use_footer = true;
+
+    protected $background_color = '#FFFFFF';
+    protected $background_color_outer = '#F9FAFC';
+    protected $header_background_color = '#3C8DBC';
+    protected $footer_background_color = '#FFFFFF';
+    protected $header_text_color = '#FFFFFF';
+    protected $footer_text_color = '#000000';
+    protected $container_fluid = true;
+
     /**
      * Content constructor.
      *
@@ -26,6 +39,54 @@ class PublicContent implements Renderable
         if ($callback instanceof Closure) {
             $callback($this);
         }
+    }
+
+    /**
+     * Set the value of background_color
+     *
+     * @return  self
+     */ 
+    public function setBackgroundColor($background_color)
+    {
+        $this->background_color = $background_color;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of background_color_outer
+     *
+     * @return  self
+     */ 
+    public function setBackgroundColorOuter($background_color_outer)
+    {
+        $this->background_color_outer = $background_color_outer;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of header_background_color
+     *
+     * @return  self
+     */ 
+    public function setHeaderBackgroundColor($header_background_color)
+    {
+        $this->header_background_color = $header_background_color;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of footer_background_color
+     *
+     * @return  self
+     */ 
+    public function setFooterBackgroundColor($footer_background_color)
+    {
+        $this->footer_background_color = $footer_background_color;
+
+        return $this;
     }
 
     /**
@@ -108,66 +169,6 @@ class PublicContent implements Renderable
     }
 
     /**
-     * Set success message for content.
-     *
-     * @param string $title
-     * @param string $message
-     *
-     * @return $this
-     */
-    public function withSuccess($title = '', $message = '')
-    {
-        admin_success($title, $message);
-
-        return $this;
-    }
-
-    /**
-     * Set error message for content.
-     *
-     * @param string $title
-     * @param string $message
-     *
-     * @return $this
-     */
-    public function withError($title = '', $message = '')
-    {
-        admin_error($title, $message);
-
-        return $this;
-    }
-
-    /**
-     * Set warning message for content.
-     *
-     * @param string $title
-     * @param string $message
-     *
-     * @return $this
-     */
-    public function withWarning($title = '', $message = '')
-    {
-        admin_warning($title, $message);
-
-        return $this;
-    }
-
-    /**
-     * Set info message for content.
-     *
-     * @param string $title
-     * @param string $message
-     *
-     * @return $this
-     */
-    public function withInfo($title = '', $message = '')
-    {
-        admin_info($title, $message);
-
-        return $this;
-    }
-
-    /**
      * Render this content.
      *
      * @return string
@@ -176,8 +177,84 @@ class PublicContent implements Renderable
     {
         $items = [
             'content'     => $this->build(),
+
+            'header_text_color' => $this->header_text_color,
+            'footer_text_color' => $this->footer_text_color,
+            'background_color_outer' => $this->background_color_outer,
+            'background_color' => $this->background_color,
+            'header_background_color' => $this->header_background_color,
+            'footer_background_color' => $this->footer_background_color,
+            
+            'container_fluid' => $this->container_fluid,
+
+            'header_label' => $this->header_label,
+            'use_header' => $this->use_header,
+            'use_footer' => $this->use_footer,
+
+            'container_height' => 40 + ($this->use_header ? 50 : 0) + ($this->use_footer ? 51 : 0),
         ];
 
         return view('exment::public-form.content', $items)->render();
+    }
+
+
+    /**
+     * Set the value of use_header
+     *
+     * @return  self
+     */ 
+    public function setUseHeader($use_header)
+    {
+        $this->use_header = $use_header;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of use_footer
+     *
+     * @return  self
+     */ 
+    public function setUseFooter($use_footer)
+    {
+        $this->use_footer = $use_footer;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of footer_text_color
+     *
+     * @return  self
+     */ 
+    public function setFooterTextColor($footer_text_color)
+    {
+        $this->footer_text_color = $footer_text_color;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of container_fluid
+     *
+     * @return  self
+     */ 
+    public function setIsContainerFluid(bool $container_fluid)
+    {
+        $this->container_fluid = $container_fluid;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of header_label
+     *
+     * @return  self
+     */ 
+    public function setHeaderLabel($header_label)
+    {
+        $this->header_label = $header_label;
+
+        return $this;
     }
 }

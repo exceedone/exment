@@ -52,7 +52,7 @@ class PublicFormController extends Controller
      */
     protected $custom_table;
 
-    public function __construct(PublicForm $public_form)
+    public function __construct(?PublicForm $public_form)
     {
         $this->public_form = $public_form;
         if(isset($public_form)){
@@ -71,32 +71,34 @@ class PublicFormController extends Controller
      */
     public function index(Request $request)
     {
-        $form = $this->getForm($request);
+        $form = $this->getForm($request)
+            ->setAction(asset(url_join(config('exment.publicform_route_prefix', 'publicform'), 'create')));
 
         $content = new \Exceedone\Exment\Form\PublicContent;
+        $this->public_form->setContentOption($content);
+
         $content->row($form);
         return $content;
     }
 
 
-    public function store(Request $request)
+    /**
+     * create interface.
+     *
+     * @return Content
+     */
+    public function create(Request $request)
     {
         $form = $this->getForm($request);
+        $response = $form->store();
+
+        return $response;
     }
+
 
 
     protected function getForm(Request $request)
     { 
-        $form = $this->form_item
-            ->disableToolsButton()
-            ->disableSavedRedirectCheck()
-            ->form()
-            ->setView('exment::public-form.form')
-            ->setAction(asset(config('exment.publicform_route_prefix', 'publicform')));
-
-        $form->hidden('key')
-            ->default($this->public_form->uuid);
-
-        return $form;
+        return $this->public_form->getForm($request);
     }
 }

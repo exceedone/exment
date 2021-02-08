@@ -93,6 +93,7 @@ class Bootstrap
             'vendor/exment/js/changefield.js',
             'vendor/exment/js/customformitem.js',
             'vendor/exment/js/customform.js',
+            'vendor/exment/js/preview.js',
         ], false);
 
         // set scripts

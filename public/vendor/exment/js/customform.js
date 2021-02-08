@@ -417,28 +417,14 @@ var Exment;
          * Showing preview
          */
         static previewCustomForm() {
-            if (!CustomFromEvent.validateSubmit()) {
-                Exment.CommonEvent.ShowSwal(null, {
-                    type: 'error',
-                    title: $('#validate_error_title').val(),
-                    text: $('#validate_error_message').val(),
-                    showCancelButton: false,
-                });
-                return;
-            }
-            ;
-            window.open('', 'exment_preview');
-            const form = $('#custom_form_form');
-            const action = form.attr('action');
-            const method = form.attr('method');
-            // update form info
-            form.attr('action', URLJoin($('#formroot').val(), 'preview'))
-                .attr('method', 'post')
-                .attr('target', 'exment_preview')
-                .removeAttr('pjax-container')
-                .data('preview', 1);
-            form.submit();
-            form.attr('action', action).attr('method', method).attr('target', '').attr('pjax-container', '');
+            const preview = new Exment.Preview(URLJoin($('#formroot').val(), 'preview'), $('#custom_form_form'), {
+                validateErrorTitle: $('#validate_error_title').val(),
+                validateErrorText: $('#validate_error_message').val(),
+                validateSubmitEvent: function () {
+                    return CustomFromEvent.validateSubmit();
+                }
+            });
+            preview.openPreview();
         }
     }
     CustomFromEvent.addAreaButtonEvent = (ev) => {
@@ -512,14 +498,8 @@ var Exment;
             return;
         }
         item.addClass('deleting');
-        let header_name = CustomFromEvent.getHeaderName(item);
         // Add delete flg
-        item.append($('<input/>', {
-            type: 'hidden',
-            name: header_name + '[delete_flg]',
-            'class': 'delete_flg',
-            value: 1
-        }));
+        item.find('.delete_flg').val(1);
         item.fadeOut();
         let $clone = null;
         if (item.find('.form_column_type').val() != '99') {

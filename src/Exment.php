@@ -74,7 +74,14 @@ class Exment
      */
     public function user($guards = null)
     {
-        return Auth::user();
+        $guards = [Define::AUTHENTICATE_KEY_WEB, Define::AUTHENTICATE_KEY_API, Define::AUTHENTICATE_KEY_PUBLIC_FORM];
+        foreach($guards as $guard){
+            if(Auth::guard($guard)->check()) {
+                return Auth::guard($guard)->user();
+            }
+        }
+
+        return null;
     }
 
 

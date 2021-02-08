@@ -14,7 +14,7 @@ trait AutoUuidTrait
 
     protected static $key = 'uuid';
 
-    public static function bootAutoSUuidTrait()
+    public static function bootAutoUuidTrait()
     {
         self::observe(AutoUuidObserver::class);
     }

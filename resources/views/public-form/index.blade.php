@@ -14,22 +14,44 @@
 
     {!! Admin::css() !!}
 
+    @include('exment::public-form.style')
+
     <script src="{{ Admin::jQuery() }}"></script>
     {!! Admin::headerJs() !!}
 
 </head>
 
-<body class="hold-transition {{config('admin.skin')}} {{join(' ', config('admin.layout'))}}">
+<body class="hold-transition {{$container_fluid ? 'body-container-fluid' : 'body-container'}}">
 <div class="wrapper">
+    <!-- Main Header -->
+    @if($use_header)
+    <header class="main-header">
+        <span class="logo">
+            {{$header_label}}
+        </span>
+
+        <!-- Header Navbar -->
+        <nav class="navbar navbar-static-top" role="navigation">
+        </nav>
+    </header>
+    @endif
 
     <div id="pjax-container">
         {!! Admin::style() !!}
         <div id="app">
-        @yield('content')
+            <div id="container-inner" class="{{$container_fluid ? 'container-fluid' : 'container'}}">
+            @yield('content')
+            </div>
         </div>
         {!! Admin::script() !!}
     </div>
 
+    <!-- Main Footer -->
+    @if($use_footer)
+    <footer class="main-footer">
+        <strong>Powered by <a href="https://github.com/exceedone/exment" target="_blank">Exment</a></strong>
+    </footer>
+    @endif
 </div>
 
 {!! Admin::html() !!}
