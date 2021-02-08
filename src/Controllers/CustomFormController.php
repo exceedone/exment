@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomFormPriority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\FormLabelType;
@@ -56,7 +57,10 @@ class CustomFormController extends AdminControllerTableBase
         }
         $this->AdminContent($content);
         $content->body($this->grid());
+
         $content->row($this->setFormPriorities());
+        
+        $content->row($this->setFormPublics());
         return $content;
     }
 
@@ -100,6 +104,43 @@ class CustomFormController extends AdminControllerTableBase
         return $grid;
     }
 
+
+    /**
+     * Make a grid builder.
+     *
+     * @return Grid
+     */
+    protected function setFormPublics()
+    {
+        $grid = new Grid(new PublicForm);
+        $grid->setName('public_forms');
+        $grid->setTitle(exmtrans("custom_form.public_form.title"));
+        $grid->setResource(admin_urls('formpublic', $this->custom_table->table_name));
+        $grid->column('form_view_name', exmtrans("custom_form.public_form.form_view_name"));
+
+        if (isset($this->custom_table)) {
+            $grid->model()
+                ->select(['public_forms.*', 'custom_forms.form_view_name'])
+                ->join('custom_forms', 'custom_forms.id', '=', 'public_forms.custom_form_id')
+                ->where('custom_forms.custom_table_id', $this->custom_table->id);
+        }
+        
+        $grid->tools(function (Grid\Tools $tools) {
+            $tools->batch(function (Grid\Tools\BatchActions $actions) {
+                $actions->disableDelete();
+            });
+        });
+        
+        $grid->disableExport();
+        $grid->disableRowSelector();
+        $grid->disableFilter();
+        $grid->actions(function ($actions) {
+            $actions->disableView();
+            // $actions->disableDelete();
+        });
+        
+        return $grid;
+    }
 
     /**
      * priority update interface.

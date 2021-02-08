@@ -133,6 +133,18 @@ class Initialize
             'driver' => 'exment-auth',
         ]);
     
+        
+        // for login publicform
+        Config::set('auth.guards.publicform', [
+            'driver' => 'token',
+            'provider' => 'publicform-provider',
+            'input_key' => 'key',
+            'storage_key' => 'uuid',
+        ]);
+        Config::set('auth.providers.publicform-provider', [
+            'driver' => 'publicform-provider-driver',
+        ]);
+
 
         ///// File info
         /// maybe update setting by user

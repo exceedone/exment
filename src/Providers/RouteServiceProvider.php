@@ -34,6 +34,7 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
+        $this->mapExmentPublicFormWebRotes();
     }
 
     /**
@@ -211,6 +212,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'column', 'CustomColumnController');
             $this->setTableResouce($router, 'form', 'CustomFormController');
             $this->setTableResouce($router, 'formpriority', 'CustomFormPriorityController');
+            $this->setTableResouce($router, 'formpublic', 'CustomFormPublicController');
             $this->setTableResouce($router, 'view', 'CustomViewController');
             $this->setTableResouce($router, 'relation', 'CustomRelationController');
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
@@ -274,6 +276,17 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('favicon', 'FileController@downloadFavicon');
             $router->get('auth/login/background', 'FileController@downloadLoginBackground');
             $router->get('auth/login/header', 'FileController@downloadLoginHeader');
+        });
+    }
+    
+    protected function mapExmentPublicFormWebRotes()
+    {
+        Route::group([
+            'prefix'        => config('exment.publicform_route_prefix', 'publicform'),
+            'namespace'     => $this->namespace,
+            'middleware'    => ['adminweb', 'publicform'],
+        ], function (Router $router) {
+            $router->get('/', 'PublicFormController@index');
         });
     }
     

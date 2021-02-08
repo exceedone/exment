@@ -3,19 +3,19 @@
 namespace Exceedone\Exment\Model\Traits;
 
 /**
- * set Suuid automatic
+ * set uuid automatic
  *
  * @method static \Illuminate\Support\Collection allRecords(\Closure $filter = null, $isGetAll = true, $with = [])
  * @method static \Illuminate\Support\Collection allRecordsCache(\Closure $filter = null, $isGetAll = true, $with = [])
  */
-trait AutoSUuidTrait
+trait AutoUuidTrait
 {
     use AutoUuidTraitBase;
 
-    protected static $key = 'suuid';
+    protected static $key = 'uuid';
 
     public static function bootAutoSUuidTrait()
     {
-        self::observe(AutoSUuidObserver::class);
+        self::observe(AutoUuidObserver::class);
     }
 }

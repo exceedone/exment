@@ -9,7 +9,9 @@ use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Services\Plugin\PluginApiBase;
 use Exceedone\Exment\Enums\Driver;
@@ -121,7 +123,10 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.session'    => AdminMiddleware\Session::class,
         
         'pluginapi.auth'       => \Exceedone\Exment\Middleware\AuthenticatePluginApi::class,
-
+        
+        'publicform.auth'       => \Exceedone\Exment\Middleware\AuthenticatePublicForm::class,
+        'publicform.bootstrap'       => \Exceedone\Exment\Middleware\BootstrapPublicForm::class,
+        
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
 
         'laravel-page-speed.space' => \Exceedone\Exment\Middleware\CollapseWhitespace::class,
@@ -222,6 +227,17 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.morph',
         ],
+        // Exment public form page.
+        'publicform' => [
+            'publicform.auth',
+            'admin.browser',
+            'admin.initialize',
+            'admin.morph',
+            'admin.pjax',
+            'admin.bootstrap',
+            'publicform.bootstrap',
+            'admin.session',
+        ],
     ];
 
     /**
@@ -290,6 +306,9 @@ class ExmentServiceProvider extends ServiceProvider
         });
         $this->app->bind(PluginApiBase::class, function ($app) {
             return Plugin::getPluginPageModel();
+        });
+        $this->app->bind(PublicForm::class, function ($app) {
+            return PublicForm::getPublicFormByRequest();
         });
         $this->app->bind(CustomTable::class, function ($app) {
             return CustomTable::findByEndpoint();
@@ -390,7 +409,11 @@ class ExmentServiceProvider extends ServiceProvider
         // Extend --------------------------------------------------
         Auth::provider('exment-auth', function ($app, array $config) {
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...
-            return new Providers\LoginUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
+            return new Providers\LoginUserProvider($app['hash'], LoginUser::class);
+        });
+        \Auth::provider('publicform-provider-driver', function ($app, array $config) {
+            // Return an instance of Illuminate\Contracts\Auth\UserProvider...
+            return new Providers\PublicFormUserProvider($app['hash'], LoginUser::class);
         });
         
         \Validator::resolver(function ($translator, $data, $rules, $messages, $customAttributes) {

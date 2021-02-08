@@ -914,6 +914,7 @@ return [
 
 
 
+    'publicform_route_prefix' => env('EXMENT_PUBLICFORM_ROUTE_PREFIX', 'publicform'),
 
 
   

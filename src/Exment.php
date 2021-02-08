@@ -70,22 +70,11 @@ class Exment
     }
 
     /**
-     * get user. multi supported admin and adminapi
+     * get user. Use "Auth::shouldUse", so get only logined user.
      */
     public function user($guards = null)
     {
-        if (is_null($guards)) {
-            $guards = ['adminapi', 'admin'];
-        }
-
-        foreach (stringToArray($guards) as $guard) {
-            # code...
-            $user = Auth::guard($guard)->user();
-            if (isset($user)) {
-                return $user;
-            }
-        }
-        return null;
+        return Auth::user();
     }
 
 

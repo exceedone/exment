@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Closure;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 
 class Authenticate extends \Encore\Admin\Middleware\Authenticate
 {
@@ -31,8 +32,10 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
             return redirect()->guest(admin_base_path('initialize'));
         }
 
-        $user = \Admin::user();
-        if (is_null($user) || is_null($user->base_user)) {
+        if (\Auth::guard(Define::AUTHENTICATE_KEY_WEB)->check()) {
+            \Auth::shouldUse(Define::AUTHENTICATE_KEY_WEB);
+        }
+        else{
             return redirect()->guest(admin_base_path('auth/login'));
         }
 

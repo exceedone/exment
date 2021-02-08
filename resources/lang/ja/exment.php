@@ -1380,10 +1380,15 @@ return [
         'append_hr' => '罫線を引く',
 
         'priority' => [
-            'title' => 'フォーム表示条件設定',
+            'title' => 'フォーム優先順位設定',
             'form_view_name' => '表示フォーム',
             'form_priority_text' => '条件',
             'order' => '優先順',
+        ],
+
+        'public_form' => [
+            'title' => '公開フォーム設定',
+            'form_view_name' => 'フォーム名',
         ],
 
         'form_column_type_other_options' => [
@@ -1429,14 +1434,72 @@ return [
     ],
 
     'custom_form_priority' => [
-        'header' => 'カスタムフォーム優先度設定',
-        'description' => 'フォーム画面を表示する条件と優先度を設定します。このページで設定した内容に応じて、フォーム画面が切り替わります。',
+        'header' => 'カスタムフォーム優先順位設定',
+        'description' => 'フォーム画面を示する条件と優先順位を設定します。このページで設定した内容に応じて、フォーム画面が切り替わります。',
         'custom_form_id' => '対象フォーム',
         'order' => '優先順',
         'custom_form_priority_conditions' => '表示条件',
         'help'=> [
             'order' => 'フォームの表示優先順位を設定します。',
             'custom_form_priority_conditions' => 'カスタムフォームを表示する条件を設定します。ユーザー、組織、役割、選択型のカスタム列を選択できます。<br>複数条件を設定した場合はそのすべてを満たす必要があります。',
+        ],
+    ],
+
+    'custom_form_public' => [
+        'header' => '公開フォーム設定',
+        'description' => 'ログインしなくてもデータを入力できる、公開フォームを設定します。',
+        'custom_form_id' => '対象フォーム',
+        'validity_period' => '公開有効期限',
+        'design_setting' => 'デザイン設定',
+        'use_header' => 'ヘッダー使用',
+        'header_background_color' => 'ヘッダー-背景色',
+        'header_logo' => 'ヘッダーロゴ',
+        'background_color' => '外枠-背景色',
+        'background_color_inner' => '内枠-背景色',
+        'text_color' => '文字色',
+        'use_footer' => 'フッター使用',
+        'footer_background_color' => 'フッター-背景色',
+        'footer_text_color' => 'フッター文字色',
+        'confirm_complete_setting' => '回答確認・完了設定',
+        'use_confirm' => '回答確認を使用する',
+        'confirm_text' => '確認テキスト',
+        'complete_text' => '完了テキスト',
+        'complete_link_text' => '完了リンク先テキスト',
+        'complete_link_url' => '完了リンク先URL',
+        'error_setting'=> 'エラー設定',
+        'error_text' => 'エラーテキスト',
+        'error_link_text' => 'エラーリンク先テキスト',
+        'error_link_url' => 'エラーリンク先URL',
+        'use_error_notify' => 'エラー通知を行う',
+
+        'help'=> [
+            'custom_form_id' => '公開フォームを設定する、フォームを選択してください。',
+            'active_flg' => '公開フォームを有効にする場合、YESに設定してください。',
+            'validity_period' => 'フォームを公開する期限を設定する場合は、開始日時と終了日時を入力してください。※どちらかのみ入力することもできます。',
+            'use_header' => 'ヘッダーを使用する場合は、YESに設定してください。',
+            'header_background_color' => 'ヘッダーの背景色を指定してください。',
+            'header_logo' => 'ヘッダーのロゴを指定してください。推奨サイズ：XXXXpx*XXXXpx',
+            'background_color' => 'フォーム(外枠)の背景色を設定してください。',
+            'background_color_inner' => 'フォーム(内枠)の背景色を設定してください。',
+            'text_color' => 'テキストの文字色を設定してください。',
+            'use_footer' => 'フッターを使用する場合は、YESに設定してください。',
+            'footer_background_color' => 'フッターの背景色を設定してください。',
+            'footer_text_color' => 'フッターのCopyRight文の文字色を設定してください。',
+            'use_confirm' => 'YESにすることで、ユーザーがデータを送信する前に、入力内容を一覧表示する回答確認画面を表示します。',
+            'confirm_text' => '確認画面のページ上部に表示するテキスト・HTMLを入力してください。※<a href=":url" target="_blank" rel="noopener noreferrer">パラメータ</a>を入力できます。また、スクリプトは実行できません。',
+            'complete_text' => '入力完了画面のページ上部に表示するテキスト・HTMLを入力してください。※<a href=":url" target="_blank" rel="noopener noreferrer">パラメータ</a>を入力できます。また、スクリプトは実行できません。',
+            'complete_link_text' => '完了画面でリンクを表示する場合、リンク先テキストを入力してください。',
+            'complete_link_url' => '完了画面でリンクを表示する場合、リンク先のURLを入力してください。',
+            'error_text' => 'エラー画面のページ上部に表示するテキスト・HTMLを入力してください。※スクリプトは実行できません。',
+            'error_link_text' => 'エラー画面でリンクを表示する場合、リンク先テキストを入力してください。',
+            'error_link_url' => 'エラー画面でリンクを表示する場合、リンク先のURLを入力してください。',
+            'use_error_notify' => 'エラーが発生した場合、管理者に通知を行うことができます。',
+        ],
+
+        'message' => [
+            'confirm_text' => '入力内容をご確認の上、よろしければ「送信」ボタンを押してください。入力をやり直す場合は、「修正」ボタンを押して入力画面に戻り、再度入力してください。',
+            'complete_text' => '入力が完了しました。',
+            'error_text' => 'エラーが発生しました。お手数ですが、再度入力を行ってください。',
         ],
     ],
 

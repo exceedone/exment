@@ -23,6 +23,13 @@ abstract class FormBase
      */
     protected $disableSavingButton = false;
     
+    /**
+     * If true, disableSavedRedirectCheck
+     *
+     * @var boolean
+     */
+    protected $disableSavedRedirectCheck = false;
+    
 
     public static function getItem(...$args)
     {
@@ -60,6 +67,18 @@ abstract class FormBase
      */
     public function disableSavingButton(){
         $this->disableSavingButton = true;
+
+        return $this;
+    }
+
+
+    /**
+     * If true, disableSavedRedirectCheck
+     *
+     * @return $this
+     */
+    public function disableSavedRedirectCheck(){
+        $this->disableSavedRedirectCheck = true;
 
         return $this;
     }

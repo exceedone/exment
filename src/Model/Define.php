@@ -198,6 +198,12 @@ class Define
     public const APPEND_QUERY_WORK_STATUS_SUB_QUERY = 'APPEND_QUERY_WORK_STATUS_SUB_QUERY';
     public const APPEND_QUERY_WORK_USERS_SUB_QUERY = 'APPEND_QUERY_WORK_USERS_SUB_QUERY';
 
+
+    // Authenticate ----------------------------------------------------
+    public const AUTHENTICATE_KEY_WEB = 'admin';
+    public const AUTHENTICATE_KEY_API = 'adminapi';
+    public const AUTHENTICATE_KEY_PUBLIC_FORM = 'publicform';
+    
     /**
      * MENU SYSTEM DIFINITION
      */

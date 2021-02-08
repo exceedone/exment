@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Closure;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Model\Define;
 
 class AuthenticateApi extends \Encore\Admin\Middleware\Authenticate
 {
@@ -18,7 +19,9 @@ class AuthenticateApi extends \Encore\Admin\Middleware\Authenticate
     public function handle($request, Closure $next)
     {
         $user = \Exment::user();
-        if (is_null($user) || is_null($user->base_user)) {
+        if (\Auth::guard(Define::AUTHENTICATE_KEY_API)->check()) {
+            return $this->auth->shouldUse(Define::AUTHENTICATE_KEY_API);
+        }else{
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }
 
