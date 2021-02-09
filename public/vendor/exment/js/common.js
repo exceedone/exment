@@ -423,9 +423,6 @@ var Exment;
                 var $parent = CommonEvent.getParentRow($target);
                 // if has data, get from data object
                 if (hasValue(data)) {
-                    // if data is not array, set as array
-                    //if(!Array.isArray(data)){data = [data];}
-                    // loop for model table
                     for (var table_name in data) {
                         var target_table_data = data[table_name];
                         if (!hasValue(target_table_data)) {
@@ -438,17 +435,9 @@ var Exment;
                             yield CommonEvent.setModelItem(null, $parent, $target, target_table_data);
                             continue;
                         }
-                        $.ajaxSetup({
-                            headers: {
-                                'X-CSRF-TOKEN': $('[name="_token"]').val()
-                            }
-                        });
-                        $.ajax({
-                            url: admin_url(URLJoin('webapi', 'data', table_name, value)),
-                            type: 'POST',
-                            context: {
-                                data: target_table_data,
-                            }
+                        const webapi = Exment.WebApiBase.make();
+                        webapi.findValue(table_name, value, {
+                            data: target_table_data,
                         })
                             .done(function (modeldata) {
                             return __awaiter(this, void 0, void 0, function* () {
@@ -461,7 +450,6 @@ var Exment;
                             $d.reject();
                         });
                     }
-                    //}
                 }
                 // getItem
                 var changedata_data = $target.data('changedata');
@@ -637,27 +625,12 @@ var Exment;
          * @param table_name
          * @param value
          * @param context
+         *
+         * @deprecated Please use webapi model
          */
         static findModel(table_name, value, context = null) {
-            var $d = $.Deferred();
-            if (!hasValue(value)) {
-                $d.resolve(null);
-            }
-            else {
-                $.ajax({
-                    url: admin_url(URLJoin('webapi', 'data', table_name, value)),
-                    type: 'GET',
-                    context: context
-                })
-                    .done(function (modeldata) {
-                    $d.resolve(modeldata);
-                })
-                    .fail(function (errordata) {
-                    console.log(errordata);
-                    $d.reject();
-                });
-            }
-            return $d.promise();
+            const webapi = Exment.WebApiBase.make();
+            return webapi.findValue(table_name, value, context);
         }
         /**
          * set value. check number format, column type, etc...

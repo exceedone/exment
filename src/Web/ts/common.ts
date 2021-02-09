@@ -466,9 +466,6 @@ namespace Exment {
 
             // if has data, get from data object
             if (hasValue(data)) {
-                // if data is not array, set as array
-                //if(!Array.isArray(data)){data = [data];}
-                // loop for model table
                 for (var table_name in data) {
                     var target_table_data = data[table_name];
                     if (!hasValue(target_table_data)) {
@@ -481,28 +478,20 @@ namespace Exment {
                         await CommonEvent.setModelItem(null, $parent, $target, target_table_data);
                         continue;
                     }
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('[name="_token"]').val() as string
-                        }
-                    });
-                    $.ajax({
-                        url: admin_url(URLJoin('webapi', 'data', table_name, value)),
-                        type: 'POST',
-                        context: {
-                            data: target_table_data,
-                        }
+
+                    const webapi = WebApiBase.make();
+                    webapi.findValue(table_name, value, {
+                        data: target_table_data,
                     })
-                        .done(async function (modeldata) {
-                            await CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
-                            $d.resolve();
-                        })
-                        .fail(function (errordata) {
-                            console.log(errordata);
-                            $d.reject();
-                        });
+                    .done(async function (modeldata) {
+                        await CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
+                        $d.resolve();
+                    })
+                    .fail(function (errordata) {
+                        console.log(errordata);
+                        $d.reject();
+                    });
                 }
-                //}
             }
 
             // getItem
@@ -907,36 +896,20 @@ namespace Exment {
             }
         }
 
-        
+
         /**
          * find table data
          * @param table_name 
          * @param value 
          * @param context 
+         * 
+         * @deprecated Please use webapi model
          */
         public static findModel(table_name, value, context = null) {
-            var $d = $.Deferred();
-            if (!hasValue(value)) {
-                $d.resolve(null);
-            } else {
-                $.ajax({
-                    url: admin_url(URLJoin('webapi', 'data', table_name, value)),
-                    type: 'GET',
-                    context: context
-                })
-                    .done(function (modeldata) {
-                        $d.resolve(modeldata);
-                    })
-                    .fail(function (errordata) {
-                        console.log(errordata);
-
-                        $d.reject();
-                    });
-            }
-
-            return $d.promise();
+            const webapi = WebApiBase.make();
+            return webapi.findValue(table_name, value, context);
         }
-
+        
         /**
          * set value. check number format, column type, etc...
          * @param $target 

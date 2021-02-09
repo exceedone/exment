@@ -80,6 +80,8 @@ class BootstrapPublicForm
             'vendor/exment/js/changefield.js',
             'vendor/exment/js/customformitem.js',
             'vendor/exment/js/customform.js',
+            'vendor/exment/js/webapi.js',
+            'vendor/exment/js/webapi_admin.js',
         ], false);
     }
 }

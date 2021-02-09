@@ -18,7 +18,6 @@ class AuthenticateApi extends \Encore\Admin\Middleware\Authenticate
      */
     public function handle($request, Closure $next)
     {
-        $user = \Exment::user();
         if (\Auth::guard(Define::AUTHENTICATE_KEY_API)->check()) {
             return $this->auth->shouldUse(Define::AUTHENTICATE_KEY_API);
         }else{
