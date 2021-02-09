@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Auth;
 
-use Illuminate\Http\Request;
 use Laravel\Passport\Bridge\User;
 use League\OAuth2\Server\RequestEvent;
 use Psr\Http\Message\ServerRequestInterface;
